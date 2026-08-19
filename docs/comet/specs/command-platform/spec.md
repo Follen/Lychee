@@ -22,9 +22,16 @@ Extension
 
 Extension 是内部模块或第三方插件的稳定身份，至少包含稳定 ID、API 版本、显示名称、能力声明和生命周期状态。第三方通过独立 `LycheeSDK` 创建 draft，注册全部子声明后调用 `Commit()` 原子发布；Host 未加载时 committed registration 进入 pending registry，Host attach 后一次性消费。
 
+第三方数据不会因 AddOn 已加载或 Provider 已注册而自动进入搜索。第三方若要让实体名称参与 Lychee 主输入框搜索，必须在同一 Extension draft 中同时注册 CapabilityProvider 和引用该能力的 `ambient` `dynamic-list` Command，再以 `Commit()` 原子发布。SDK 返回的 Extension 句柄是状态查询、owner 启停和幂等 `Unregister()` 的唯一控制入口；Lychee 不通过扫描 AddOn 目录推断或补造搜索接入。
+
 ### Command
 
-Command 是用户可搜索和选择的入口，至少包含 stable ID、标题、别名/关键词、presentation、参数描述和 Intent factory。Command 不直接暴露任意回调给 UI。
+Command 是唯一可搜索和选择的入口，至少包含 stable ID、标题、别名/关键词、match、presentation、参数描述和 Intent factory。Command 不直接暴露任意回调给 UI。Provider 中的实体不会自动进入全局搜索；需要直接搜索实体名称时，仍由一个 Command 声明主动匹配并调用 Provider。
+
+Command 的匹配模式：
+
+- `catalog`：默认模式。只通过标题、别名、关键词、拼音和显式命令语法进入静态候选。
+- `ambient`：主动内容匹配。只允许 `dynamic-list` 使用；当规范化输入满足 `minLength`、`maxLength`、availability、用户启用状态和 Host 预筛选时，QueryOrchestrator 才调用 resolver。注册时必须显式提供长度边界，非法组合原子失败。
 
 支持的 presentation：
 
@@ -53,19 +60,36 @@ Lychee 只注册 `TOGGLELYCHEE`。实现必须提供 `Bindings.xml` 中的 `<Bin
   -> generation + 1
   -> normalize/tokenize/intent parse
   -> 静态 Command Catalog 候选
+  -> 计算满足规则的 ambient dynamic Command
   -> context/availability filter
   -> stable rank
   -> 发布普通结果
-  -> 只调用命中的 dynamic-list resolver
+  -> 只调用已命中的 catalog/ambient dynamic-list resolver
   -> 校验 generation
   -> diff render
 ```
 
-输入合并使用唯一 debounce；新 generation 使旧动态结果失效。Palette 隐藏时取消查询、清空 deferred 队列并停止驱动。
+输入合并使用唯一 debounce；新 generation 使旧动态结果失效。ambient Command 必须有全局调用数、每 Command 结果数和协作式耗时预算；Host 使用稳定优先级选择预算内的命令，并允许用户逐项停用主动匹配。短于 `minLength`、长于 `maxLength`、不可用、被停用或超出本次调度预算的 Command 不调用 resolver。Palette 隐藏时取消查询、清空 deferred 队列并停止驱动。
 
 ## 动态列表
 
 动态 item 是结构化数据，至少包括 stable item ID、主文本、可选副文本、图标、availability 和 opaque payload。Host 拥有行 frame、选中状态、滚动、鼠标/键盘事件和生命周期。选择 item 后，Host 将 Command ID、item ID 和 payload 交给对应 Intent factory；Extension 不直接接管全局输入框。Context、payload 和第三方返回值在复制、比较、排序、格式化、记录或持久化前必须递归检查 `issecretvalue`、`canaccessvalue` 和表的 `canaccesstable`；不安全值不得进入索引、Intent、日志或 SavedVariables，并返回稳定错误码。
+
+resolver 可以通过 CapabilityBroker 查询 Provider，但不能持有 Provider 函数引用。大规模实体数据由 Provider 或所属模块在注册/数据更新时维护轻量名称索引；按键热路径只查索引，不全表扫描，不把每个实体注册成 Command。
+
+item Intent 成功后，Handler 可返回声明式视图转换：`transition = { type = "custom-panel", panelFactoryID = string, state = plainData }`。Host 必须确认 PanelFactory 属于同一 Extension、当前会话和 Context 仍有效，并对 state 执行边界/schema 校验，之后才由 ViewHost Mount；resolver、Provider 和 Handler 都不能直接取得 Palette 根 frame或绕过 ViewHost。
+
+大秘境怪物示例链路：
+
+```text
+输入怪物名称
+  -> mythic-creature Command 的 ambient match 命中
+  -> resolver 通过 creature Provider 查询名称索引
+  -> Host 绘制结构化怪物 item
+  -> itemIntent 生成 open-creature-detail Intent
+  -> Handler 返回 custom-panel transition
+  -> ViewHost 挂载详情 Panel
+```
 
 ## 生命周期和隔离
 
@@ -81,11 +105,14 @@ Extension 至少具有 draft、pending、registered、enabled、slow、disabled�
 4. **按需加载：** 声明 `LoadOnDemand` 和 `X-Lychee-Keywords` 的候选可进入登录期轻量索引；用户明确选择后 Host 调用 `C_AddOns.LoadAddOn`，然后等待其 Commit。缺少关键词元数据的 LoD AddOn 只在诊断页或其他已加载入口中出现。加载成功不代表注册成功，必须以 committed registry 为准。
 5. **通信边界：** `C_ChatInfo.RegisterAddonMessagePrefix`/`SendAddonMessage` 只用于客户端间消息，不能作为本机插件 SDK RPC。SDK 调用使用同一客户端内的 Lua 表、受限 context 和结构化 payload。
 
+SDK 先加载而 Host 后加载时，已 Commit 的句柄留在 pending registry；Host 先加载而第三方后加载时，`Commit()` 立即触发 attach。两种顺序必须产生相同的 registered Extension，不要求第三方重试注册，也不在输入时重新扫描 AddOn。
+
 ## 性能
 
 - Palette 隐藏时无常驻 per-frame Lua 工作。
 - 静态 Catalog 在注册/显式失效时更新，不在每次按键时重建。
-- 动态 resolver 有数量、结果和耗时上限。
+- ambient Command 只在显式声明、用户启用、长度/availability 规则命中且位于本次稳定调度预算内时调用。
+- 动态 resolver 有全局调用数、单 Command 结果数和协作式耗时上限；实体数据使用预索引/缓存，不在每次按键全量扫描。
 - 结果行池化并按 stable ID 增量更新。
 - ContextStore 事件驱动并按 slice version 失效。
 

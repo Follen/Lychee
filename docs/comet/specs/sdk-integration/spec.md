@@ -8,6 +8,8 @@
 
 `LycheeSDK` 是独立 sibling AddOn，负责把其他 WoW 插件接入 Lychee。它只提供进程内 Lua API 和生命周期句柄，不模拟桌面应用的 IPC，不使用聊天频道传输注册信息。
 
+接入动作必须由第三方主动发起：第三方在自己的加载流程中向 `LycheeSDK` 注册 Extension、Command、Provider、Handler 和可选 Panel，并调用 `Commit()`。Lychee 不扫描目录来自动生成接入。只有 Provider 的 Extension 不会产生搜索结果；需要让第三方数据响应 Lychee 主输入框时，同一 Extension 必须注册引用该 Provider 的 `ambient` `dynamic-list` Command。
+
 ## AddOn 加载契约
 
 第三方插件的 TOC 至少声明：
@@ -81,14 +83,17 @@ extension:RegisterCommand({
     title = "Search sample data",
     keywords = { "sample", "search" },
     presentation = "dynamic-list",
+    match = { type = "ambient", minLength = 2, maxLength = 64 },
     resolve = function(query, context) end,
-    intent = function(item, context) end,
+    itemIntent = function(item, context) end,
 })
 
 local committed, commitErr = extension:Commit()
 ```
 
 `RegisterExtension` 返回 draft；各 `Register*` 只写入 draft，`Commit()` 一次性校验交叉引用、版本、schema 和声明数量。注册校验必须拒绝并报告：空 ID、非法字符、重复 Extension/Command/Capability ID、未支持的 API 版本、presentation 与 resolver/factory 不匹配、缺少稳定标题或超出声明数量上限。失败不发布部分对象，重复注册不能静默覆盖已启用的 Extension。
+
+`Commit()` 成功后返回同一个稳定 Extension 句柄；第三方用该句柄读取只读状态、设置 owner-enabled 位和调用幂等 `Unregister()`。第三方不得直接修改 SDK registry，也不需要因 Host 尚未加载而自行轮询或重复注册。
 
 ## pending registry 与 Host attach
 
@@ -105,13 +110,48 @@ SDK 不把可变 registry、Host frame、SavedVariables 根表或 SecureButton �
 
 ### 统一动态列表
 
+Command 默认使用 `match = { type = "catalog" }`，只按标题、别名和关键词进入静态候选。需要让用户直接输入怪物、物品等实体名称时，`dynamic-list` Command 可以显式声明：
+
+```lua
+match = {
+    type = "ambient",
+    minLength = 2,
+    maxLength = 64,
+    priority = 0,
+}
+```
+
+`ambient` 只允许 `dynamic-list` 使用。Host 还会检查 Extension/Command 用户启用状态、availability、全局主动 resolver 数量预算和稳定优先级；声明不表示每次按键都必定调用。`row` 或 `custom-panel` 使用 ambient、缺少长度边界、`minLength < 1` 或 `maxLength < minLength` 时，整个注册事务失败。
+
 第三方 `dynamic-list` resolver 接收规范化 query 和只读 `ContextSnapshot`，返回结构化 item 数组。Context、payload 和返回值必须先经过递归边界检查：`issecretvalue(value)` 为 true、`canaccessvalue(value)` 为 false，或 table 的 `canaccesstable(value)` 为 false 时，SDK 拒绝该值并返回稳定错误码；这些值不得进入索引、Intent、日志或 SavedVariables。
 
 ```lua
 { id = "item-1", text = "...", subtext = "...", icon = "...", enabled = true, payload = opaque }
 ```
 
-Lychee 负责行池、键盘上下、鼠标点击、滚动、选中态、查询 generation 和过期结果丢弃。第三方只处理 payload 对应的 Intent，不创建 Palette 行 frame。
+Lychee 负责单一输入 debounce、行池、键盘上下、鼠标点击、滚动、选中态、查询 generation 和过期结果丢弃。第三方只处理 payload 对应的 Intent，不创建 Palette 行 frame。Resolver 可以通过 CapabilityBroker 查询 Provider；Provider 自己维护实体名称的预索引/缓存，但不会自动成为搜索入口，也不向 Palette 推送 frame。
+
+因此第三方可复用能力与可搜索入口是两份显式声明：`RegisterCapabilityProvider(...)` 让能力可被 Broker 调用，`RegisterCommand(...)` 决定该能力何时参与主输入框查询。两者只有在所属 Extension `Commit()` 成功后才同时可见；注销 Extension 时二者作为一个所有权单元退出。
+
+### 动态项进入详情 Panel
+
+点选动态项必须先经过 `itemIntent` 和 IntentRouter。Handler 成功后可以请求 Host 进入本 Extension 已注册的详情 Panel：
+
+```lua
+return {
+    ok = true,
+    closePalette = false,
+    transition = {
+        type = "custom-panel",
+        panelFactoryID = "creature-detail",
+        state = { creatureID = intent.payload.creatureID },
+    },
+}
+```
+
+Host 只接受同一 Extension 的 PanelFactory ID。`transition.state` 必须通过 plain-data、secret/inaccessible、深度、字段数和 Panel 声明 schema 校验；校验失败时 Intent 返回稳定错误，不 Mount Panel。Handler 只返回描述符，不直接调用 ViewHost、PanelFactory 或 Palette frame。
+
+大秘境怪物接入的组合固定为：ambient `dynamic-list` Command 负责直接命中名称，creature CapabilityProvider 负责查询预索引数据，`itemIntent` 生成打开详情 Intent，IntentHandler 返回上述 transition，PanelFactory 负责详情内容。
 
 ### 受控 custom-panel
 
@@ -158,7 +198,9 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 
 - 注册和 AddOn 元数据扫描只发生在加载/登录/诊断入口，不发生在每次按键。
 - registry、Command Catalog 和 alias 索引使用稳定数组 + ID 索引；重复注册/注销不触发全量 UI 重建。
-- dynamic-list 结果带 generation，旧结果不进入渲染；列表行使用池化 frame。
+- ambient dynamic-list 只在用户启用、长度/availability 命中并位于 Host 全局调用预算内时执行；短输入不调度。
+- dynamic-list 结果带 generation，旧结果不进入渲染；每 Command 结果数受限，列表行使用池化 frame。
+- Provider/模块在注册或数据变化时维护实体索引，resolver 不在每次输入时全表扫描。
 - custom-panel 隐藏时必须清理 ticker、timer、事件和 frame 引用；Palette 隐藏时无常驻 Lua `OnUpdate`。
 - SDK 主 chunk 只做常量和 registry 初始化，不在加载期深扫描第三方代码。
 
@@ -177,4 +219,9 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 9. `SecureActionButtonTemplate` 创建、脱战 descriptor 配置，以及所有战斗中 Lychee Intent、scripted click/Enter 的 `COMBAT_LOCKED` 行为；
 10. 战斗中 `TOGGLELYCHEE` 静默失效且不启动查询，进战关闭已打开 Palette，脱战后同一 Binding 恢复；
 11. secret/inaccessible Context、payload 和返回值被递归拒绝，且不进入索引、Intent、日志或 SavedVariables；
-12. `IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After` generation guard。
+12. `IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After` generation guard；
+13. 直接输入实体名时 ambient Command 返回动态项，不需要先输入命令标题；短于 `minLength` 时不调用 resolver；
+14. 多个 ambient Command 按启用状态和稳定预算调度，快速连续输入的旧结果不覆盖新结果；
+15. Provider 不可用、索引未就绪或 resolver 超预算时只影响所属结果组；
+16. item Intent 的合法 transition 挂载同 Extension Panel，跨 Extension、非法 state 或过期 session 转换被拒绝；
+17. Palette 关闭、进入战斗、Extension disable/unregister 后 ambient 查询与待处理 transition 均无效果。
