@@ -26,7 +26,9 @@ Extension
 `- RegisterPanelFactory(...)        复杂交互如何挂载
 ```
 
-最常见的插件只需注册一个 Extension、一个 IntentHandler 和一个 `row` Command。Command、Provider 和 Intent 分层：Command 是搜索入口，Provider 是可复用数据能力，IntentHandler 是经过校验的动作执行器。
+最常见的插件只需注册一个 Extension、一个 IntentHandler 和一个 `row` Command。Command、Provider 和 Intent 分层：Command 是唯一搜索入口，Provider 是可复用数据能力，IntentHandler 是经过校验的动作执行器。
+
+第三方接入必须由第三方 AddOn 主动完成：取得 `_G.LycheeSDK`，创建 Extension 草稿，注册全部子声明，最后调用 `Commit()`。Lychee 不扫描插件目录来猜测或补造接入。**单独注册 Provider 不会产生任何搜索结果**；要让 Provider 的实体响应 Lychee 主输入框，同一 Extension 还必须注册一个引用该能力的 `ambient` `dynamic-list` Command，并将二者一起 Commit。
 
 ## 2. TOC 与加载顺序
 
@@ -55,6 +57,13 @@ end
 ```
 
 这条路径只跳过 Lychee 集成，不改变第三方 AddOn 自己的功能。SDK 不通过扫描和执行第三方代码补注册；加载状态变化后，由客户端的正常 AddOn 加载流程决定第三方入口是否再次执行。
+
+双方的有效加载顺序都必须工作：
+
+1. **SDK 先、Host 后：** 第三方 Commit 后，稳定句柄进入 SDK 的 `pending` registry；Lychee Host attach 时按 Extension ID 稳定消费，不要求第三方轮询或重复注册。
+2. **Host 先、第三方后：** Host 已 attach 时，第三方 Commit 立即触发 attach；成功后进入同样的 registered/enabled 状态。
+
+`OptionalDeps` 正常情况下会让 SDK 先于第三方加载；第二种顺序仍用于 LoD AddOn、运行期加载和测试夹具。无论顺序如何，唯一完成条件都是 Extension 已 Commit 且被兼容 Host attach，而不是 TOC 元数据或 AddOn loaded 状态。
 
 Lychee Host 自己的 TOC 使用 `## Dependencies: LycheeSDK` 声明硬依赖；Host 启动时仍校验 `_G.LycheeSDK` 和 API 版本。只有第三方 AddOn 使用 `OptionalDeps`。
 
@@ -85,7 +94,7 @@ Host 可在登录期一次性读取 `X-Lychee-*`，建立轻量 LoD 候选。用
   -> Command Catalog / Capability Broker / Intent Router
 ```
 
-**已提交的 SDK registry 是“插件已经接入”的唯一事实源。** 草稿、TOC 元数据、AddOn 已启用或 `LoadAddOn` 成功都不等于已经接入。
+**已提交的 SDK registry 是“插件已经接入”的唯一事实源。** 草稿、TOC 元数据、AddOn 已启用或 `LoadAddOn` 成功都不等于已经接入。Lychee 不从 Provider registry 自动生成 Command；没有 committed Command 的 Provider 只能由其他已注册声明通过 Capability Broker 调用，不能响应主输入框。
 
 Lychee 只在登录、诊断页或显式 LoD 加载入口读取以下信息：
 
@@ -214,6 +223,10 @@ extension:QueryCapability(request, contextSnapshot)
 `GetState()` 返回只读快照，不返回内部表。`Invalidate(key)` 只接受该 Extension 在描述符中声明过的失效 key，Host 合并同帧重复失效。`QueryCapability` 只能在 Host attached 且 Extension enabled 时调用。
 
 `SetEnabled` 只设置第三方自己的 owner-enabled 位。Extension 的实际可用状态是 owner-enabled、用户设置、Host 兼容性和健康熔断的合取；第三方不能用 `SetEnabled(true)` 覆盖用户禁用或 Host 熔断。
+
+`GetState()` 至少返回 `lifecycle`、`ownerEnabled`、`userEnabled`、`hostAttached`、`effectiveEnabled` 和最后一个稳定错误码。`SetEnabled(false)` 立即停止该 Extension 的新 Command/Provider 调度，并使活动 generation、deferred resolver 和待处理 transition 失效；再次设为 true 只恢复 owner-enabled 位，仍要经过用户设置、Host 兼容性和健康状态判断。
+
+`Unregister()` 幂等。第一次调用把句柄推进到 `retiring` 并开始清理，后续调用返回相同句柄状态，不重复触发生命周期回调；完成后为 `removed`。旧句柄不能删除后来使用同一字符串 ID 注册的 Extension，也不能在 removed 后重新启用。
 
 句柄不暴露：
 
@@ -361,6 +374,8 @@ extension:RegisterIntentHandler({
 - Intent 必须包含 `type`、`version` 和符合 schema 的 `payload`。Host 注入并校验 `extensionID`，第三方不能冒充其他 Extension。
 - payload 校验成功后才进入 `execute`；Handler 返回 `ExecutionResult`，不直接操作 Lychee UI。
 - 成功返回 `{ ok = true, closePalette = boolean? }`；业务失败返回 `{ ok = false, code = stableCode, messageKey = string? }`。抛错映射为 `CALLBACK_ERROR`。
+- 成功结果还可包含声明式 `transition`，当前 v1 只支持 `{ type = "custom-panel", panelFactoryID = string, state = plainData }`。Handler 不直接调用 ViewHost 或 PanelFactory。
+- Host 只接受当前 Extension 拥有且已启用的 PanelFactory，并复核当前 Palette session、query generation 和 Context token。`transition.state` 必须通过目标 Panel 的 `stateSchema` 以及 7.2 节的 plain-data、secret/inaccessible、深度和字段数校验；任一失败都不 Mount Panel。
 - 只有 `ok=true` 才写入 recent。`messageKey` 是本地化键，不把异常堆栈直接显示给用户。
 - 普通回调由 Host 用局部 `xpcall` 包裹。受保护动作注册声明式 Secure Descriptor；第三方不取得 Host SecureButton。
 
@@ -411,6 +426,7 @@ extension:RegisterCommand({
     title = "查找物品",
     aliases = { "物品", "item" },
     presentation = "dynamic-list",
+    match = { type = "catalog" },
     contextDependencies = { "bags" },
 
     resolve = function(query, context, runtime)
@@ -459,7 +475,40 @@ Lychee 负责输入 debounce、generation、结果行池化和 diff、键鼠导�
 
 Resolver 只读取 query 和 ContextSnapshot，不创建 frame、不注册事件、不执行动作。结果变化由已声明的 `Invalidate(key)` 或 Context slice version 驱动，不靠轮询。
 
-### 10.1 协作式 deferred resolver
+### 10.1 Catalog 与 ambient 匹配
+
+Command 未声明 `match` 时等价于：
+
+```lua
+match = { type = "catalog" }
+```
+
+`catalog` 先按 Command 的 title、aliases、keywords、拼音和显式命令语法产生候选；只有候选命中后，Host 才调用它的 dynamic resolver。
+
+需要让用户不先输入命令名、直接输入怪物或物品名称时，只能由 `dynamic-list` Command 显式声明主动匹配：
+
+```lua
+match = {
+    type = "ambient",
+    minLength = 2,
+    maxLength = 64,
+    priority = 0,
+}
+```
+
+ambient 契约：
+
+- `ambient` 只允许 `presentation = "dynamic-list"`；`row`、`custom-panel` 使用 ambient，或缺少合法 `minLength`/`maxLength`，都会使整个 Extension Commit 原子失败。
+- `minLength >= 1` 且 `maxLength >= minLength`。长度按 Host 规范化后的查询计算；短输入、超长输入、availability 不满足、Command/Extension 被停用或超出本轮全局调用预算时，不调用 resolver。
+- `priority` 只参与稳定调度顺序，不能绕过用户禁用、健康熔断和预算；相同优先级按稳定全局 Command ID 排序。Host 必须允许用户逐个停用 ambient Command。
+- 所有 ambient Command 共用主输入框的单一 debounce。每次有效输入创建新 generation；旧 resolver、旧 deferred 任务、旧 Context token 和旧结果全部失效，迟到返回直接丢弃。
+- Host 对每轮设置全局 resolver 调用数预算，并通过 `query.limit` 限制单 Command 结果数、通过 `query.deadlineMS` 下发协作式时间预算。它们是 Host 版本统一定义的上限，不由第三方扩大。
+- Palette 隐藏、进入战斗、Extension/Command 停用或注销时，取消 debounce、未运行的 resolver 和 deferred 队列；隐藏状态没有 ambient 后台查询。
+- resolver 只查询 Provider/模块维护的轻量预索引或缓存，不在每次按键枚举 AddOn、全量扫描原始数据库、创建 frame、注册事件或执行动作。
+
+Command 仍是唯一搜索对象。`RegisterCapabilityProvider(...)` 只是向 Broker 发布能力；要搜索该 Provider 的数据，必须再注册 ambient Command，在 resolver 中通过 `extension:QueryCapability(...)` 查询它，并与 Provider 一起 Commit。
+
+### 10.2 协作式 deferred resolver
 
 同步 resolver 必须快速返回。需要分批处理时，使用本次调用的临时 `runtime`：
 
@@ -539,6 +588,9 @@ Custom Panel 适用于确实需要表单、分页、按钮组或复杂状态的�
 extension:RegisterPanelFactory({
     id = "profile-editor",
     contextDependencies = { "combat" },
+    stateSchema = {
+        profileID = "string?",
+    },
     create = function()
         local panel = {}
 
@@ -590,6 +642,8 @@ extension:RegisterCommand({
 ```
 
 Host 在第一次打开时惰性调用一次 `create`，缓存该 panel 实例并在后续打开时复用。成功 `Mount` 后必有且仅有一次对应 `Unmount`；Extension 注销时在 Unmount 后调用一次可选 `Dispose`。Mount 或 Update 报错时，Host 执行尽力 Unmount、关闭 ViewHost，并记录 `PANEL_ERROR`。
+
+`stateSchema` 声明 Intent transition 可交给本 Panel 的状态形状。通过 Command 直接打开 Panel 时初始 state 为空；通过 Handler transition 打开时，Host 先验证同 Extension 所有权、session/generation/Context token 和 `transition.state`，再 Mount Panel，并调用一次 `Update({ reason = "transition", state = validatedState, ... })`。跨 Extension 的 `panelFactoryID` 或非法 state 返回 `INTENT_INVALID`；过期 session/generation 返回 `STALE_GENERATION`，两者都不调用 `create`、`Mount` 或 `Update`。
 
 `PanelContext` 只在当前 Mount 期间有效：
 
@@ -780,7 +834,9 @@ end
 
 Host 使用固定容量计数器/ring buffer 记录调用次数、平均/峰值耗时、错误和过期 generation。连续超预算可令 Extension 进入 `slow`，继续超预算或连续报错可触发本会话 disabled；阈值由 Host 版本统一定义并在诊断页展示，不能由 Provider priority 绕过。
 
-## 17. 完整最小示例
+## 17. 完整示例
+
+### 17.1 普通 row Command
 
 ```lua
 local SDK = _G.LycheeSDK
@@ -832,6 +888,197 @@ if not committed then
 end
 ```
 
+### 17.2 大秘境怪物 Provider + ambient Command + 详情 Panel
+
+下面的组合是第三方实体搜索的完整模板。`SearchCreatureNameIndex` 和 `GetCreatureRecord` 代表第三方自己维护的预索引和数据表；索引在加载或数据变化时更新，不在每次输入时重建。
+
+```lua
+local SDK = _G.LycheeSDK
+if not SDK or not SDK:Supports(1, 1) then return end
+
+local Extension, registerErr = SDK:RegisterExtension({
+    id = "mythic-creatures",
+    apiVersion = 1,
+    minApiRevision = 1,
+    title = "大秘境怪物资料",
+    version = "1.0.0",
+    invalidationKeys = { "creature-index" },
+})
+if not Extension then return end
+
+local function RequireDeclaration(token)
+    if token then return true end
+    Extension:Abort()
+    return false
+end
+
+-- Provider 发布可复用能力，但它自己不会出现在 Lychee 搜索结果中。
+if not RequireDeclaration(Extension:RegisterCapabilityProvider({
+    id = "creature-source",
+    type = "mythic-creatures.creature-search",
+    version = 1,
+    priority = 0,
+    requestSchema = {
+        text = "string",
+        limit = "integer",
+    },
+    resultSchema = {
+        kind = "array",
+        items = {
+            creatureID = "integer",
+            name = "string",
+            dungeonName = "string",
+            icon = "integer?",
+        },
+        maxItems = 20,
+    },
+    query = function(request)
+        -- 必须查询已构建的轻量名称索引，不在这里全量扫描原始数据。
+        return SearchCreatureNameIndex(request.text, request.limit)
+    end,
+})) then return end
+
+if not RequireDeclaration(Extension:RegisterPanelFactory({
+    id = "creature-detail",
+    stateSchema = {
+        creatureID = "integer",
+    },
+    create = function()
+        local panel = {}
+
+        function panel:Mount(context)
+            self.context = context
+            if not self.frame then
+                self.frame = CreateFrame("Frame", nil, context.contentFrame)
+                self.frame:SetAllPoints(context.contentFrame)
+                self.title = self.frame:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+                self.title:SetPoint("TOPLEFT", 16, -16)
+                self.body = self.frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+                self.body:SetPoint("TOPLEFT", self.title, "BOTTOMLEFT", 0, -12)
+                self.body:SetJustifyH("LEFT")
+            end
+            self.frame:Show()
+        end
+
+        function panel:Update(update)
+            if update.reason ~= "transition" then return end
+            local record = GetCreatureRecord(update.state.creatureID)
+            if not record then
+                self.title:SetText("资料不可用")
+                self.body:SetText("")
+                return
+            end
+            self.title:SetText(record.name)
+            self.body:SetText(record.summary)
+        end
+
+        function panel:Unmount()
+            if self.frame then self.frame:Hide() end
+            self.context = nil
+        end
+
+        function panel:Dispose()
+            if self.frame then
+                self.frame:SetScript("OnEvent", nil)
+                self.frame:Hide()
+            end
+            self.context = nil
+        end
+
+        return panel
+    end,
+})) then return end
+
+if not RequireDeclaration(Extension:RegisterIntentHandler({
+    type = "mythic-creatures.open-creature-detail",
+    version = 1,
+    schema = {
+        creatureID = "integer",
+    },
+    execute = function(intent)
+        return {
+            ok = true,
+            closePalette = false,
+            transition = {
+                type = "custom-panel",
+                panelFactoryID = "creature-detail",
+                state = {
+                    creatureID = intent.payload.creatureID,
+                },
+            },
+        }
+    end,
+})) then return end
+
+-- 只有这个 ambient dynamic-list Command 会让怪物名称进入主输入框搜索。
+if not RequireDeclaration(Extension:RegisterCommand({
+    id = "find-creature",
+    title = "查找大秘境怪物",
+    aliases = { "怪物", "小怪", "creature" },
+    keywords = { "mythic", "dungeon" },
+    presentation = "dynamic-list",
+    match = {
+        type = "ambient",
+        minLength = 2,
+        maxLength = 64,
+        priority = 0,
+    },
+    resolve = function(query, context)
+        local records, queryErr = Extension:QueryCapability({
+            type = "mythic-creatures.creature-search",
+            minVersion = 1,
+            maxVersion = 1,
+            request = {
+                text = query.normalized,
+                limit = query.limit,
+            },
+        }, context)
+        if not records then
+            return nil, queryErr
+        end
+
+        local items = {}
+        for index = 1, #records do
+            local record = records[index]
+            items[index] = {
+                id = "creature-" .. record.creatureID,
+                text = record.name,
+                subtext = record.dungeonName,
+                icon = record.icon,
+                enabled = true,
+                payload = {
+                    creatureID = record.creatureID,
+                },
+            }
+        end
+        return items
+    end,
+    itemIntent = function(item)
+        return {
+            type = "mythic-creatures.open-creature-detail",
+            version = 1,
+            payload = {
+                creatureID = item.payload.creatureID,
+            },
+        }
+    end,
+})) then return end
+
+local committed, commitErr = Extension:Commit()
+if not committed then
+    -- Provider、Command、Handler 和 Panel 全部不可见，不会留下部分接入。
+    return
+end
+
+-- 可选的第三方所有者控制；不能覆盖用户禁用或 Host 健康熔断。
+committed:SetEnabled(true)
+
+-- 插件关闭 Lychee 集成时调用；重复调用也是安全的。
+-- committed:Unregister()
+```
+
+用户直接输入怪物名称后的固定链路是：ambient Command 通过长度和预算筛选 -> resolver 经 Broker 查询 Provider 预索引 -> Host 绘制 item -> `itemIntent` 生成结构化 Intent -> Handler 返回 transition -> Host 校验并由 ViewHost 挂载同 Extension 的 Panel。Provider、resolver 和 Handler 都不创建或接管 Palette UI。
+
 实现阶段的 SDK fixture 必须验证：
 
 1. SDK 先加载、Host 后 attach，committed pending 被完整消费；
@@ -850,17 +1097,28 @@ end
 14. 战斗中 `TOGGLELYCHEE` 不改变 UI、焦点、generation 和任务数量；已打开 Palette 在 `PLAYER_REGEN_DISABLED` 完整关闭；
 15. `PLAYER_REGEN_ENABLED` 自动恢复 Binding 处理但不自动重开旧会话，焦点恢复失败不阻塞关闭；
 16. secure descriptor 只在脱战准备，真实点击触发动作，脚本 `Click()` 不作为 secure execution。
+17. 直接输入实体名时 ambient Command 返回动态项，不需要先输入 Command title/alias；短于 `minLength` 或长于 `maxLength` 时 resolver 调用数为零；
+18. 多个 ambient Command 按 owner/user enable、availability、priority、稳定 ID 和全局调用预算调度；单 Command 结果不超过 `query.limit`，超出 `deadlineMS` 的返回被计入 slow/熔断；
+19. 快速连续输入只发布最新 generation；旧同步结果、deferred 结果和 Context token 均被丢弃；
+20. 只有 Provider 而没有 ambient Command 的 committed Extension 不产生搜索结果；Provider 不可用、索引未就绪或 resolver 报错只影响所属结果组；
+21. 合法 item Intent transition 挂载同 Extension Panel；跨 Extension Panel、非法/secret/inaccessible state、过期 session/generation 均不创建或挂载 Panel；
+22. Palette 关闭、进入战斗、`SetEnabled(false)` 或幂等 `Unregister()` 后，ambient resolver、deferred、Panel 和待处理 transition 均无效果；
+23. SDK 先/Host 后和 Host 先/第三方后最终得到相同 registered Extension，且第三方无需轮询或重复注册。
 
 ## 18. 接入检查清单
 
 - [ ] TOC 使用 `## OptionalDeps: LycheeSDK`，SDK 缺席时只跳过 Lychee 接入。
 - [ ] Extension 在所有子声明成功后调用一次 `Commit()`。
+- [ ] SDK 先/Host 后与 Host 先/第三方后都不需要轮询或重复注册。
 - [ ] Extension、Command、Provider、Intent type 和 item 使用稳定 ID。
 - [ ] 第三方 Intent/custom capability type 使用自己的 Extension ID 前缀。
 - [ ] 普通动作使用结构化 Intent，payload 只含有界 plain data。
 - [ ] Context、payload、request/result、item 和诊断字段先递归拒绝 secret/inaccessible value。
 - [ ] dynamic-list 返回稳定 item ID，不创建结果行 frame。
-- [ ] Provider 不作为搜索入口，不绘制 UI，并通过 Broker 调用。
+- [ ] Provider 不作为搜索入口、不绘制 UI；需要实体搜索时，同一 Extension 还注册 ambient dynamic-list Command，并通过 Broker 调用 Provider。
+- [ ] ambient 只用于 dynamic-list，声明合法长度边界，并遵守 enable、availability、调用数、结果数、时间和 generation 预算。
+- [ ] itemIntent 先生成 Intent；Handler 只返回声明式 transition，Panel 所有权和 state 校验后才挂载。
+- [ ] Extension 句柄只控制 owner-enabled 位，`Unregister()` 可重复调用且不误删新句柄。
 - [ ] custom-panel 只在 `contentFrame` 下创建子 frame 并复用实例。
 - [ ] Panel 在所有退出路径停止自身事件并取消托管 Timer/Ticker；raw `C_Timer.After` 有 generation/active guard。
 - [ ] Resolver、Provider 和 availability 没有执行副作用或无界同步工作。

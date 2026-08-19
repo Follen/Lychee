@@ -1,6 +1,6 @@
 # Lychee 命令平台架构设计
 
-> 状态：Design Contract v0.3
+> 状态：Design Contract v0.4
 >
 > 本文是后续实现和评审的系统级契约。公开 SDK 的字段、示例和第三方接入步骤见
 > [SDK.md](SDK.md)。需要改变本文中的分层、所有权或生命周期时，先更新设计文档，再进入代码变更。
@@ -16,6 +16,7 @@ Lychee 是 World of Warcraft 内的单入口命令平台。用户通过唯一全
 - 普通结果和动态列表由 Lychee 统一绘制。
 - 复杂交互通过 Lychee 托管的 ViewHost 承载。
 - 中文、英文、拼音和别名使用确定性本地匹配，不依赖运行时网络或 AI。
+- 命令名和实体名共用一条搜索链路：Command 是唯一搜索入口，由 `dynamic-list` Command 显式声明是否参与主动内容匹配。
 - Palette 隐藏且无任务时，Lua 每帧工作为零。
 - 单个第三方扩展的错误、超时或卸载不影响其他扩展和 Palette 关闭。
 - Host 与 SDK 都采用轻量自有实现，不依赖 Ace3 全家桶。
@@ -176,6 +177,8 @@ Lychee Host 加载
 
 Host 已 attach 后提交的第三方 Extension 走即时 attach。SDK 缺席时，第三方跳过 Lychee 接入路径，其自身功能继续运行。
 
+第三方必须主动向 `_G.LycheeSDK` 创建完整 Extension draft，注册需要的 Command、Provider、Handler 和 PanelFactory，并以 `Commit()` 一次性发布。AddOn 已加载、TOC 已声明或单独注册 Provider 都不会自动变成搜索结果；要搜索实体名，同一 Extension 还必须注册引用该能力的 `ambient` `dynamic-list` Command。
+
 SDK 必须支持以下两个等价时序，并对每个 Extension 只提交一次注册事务：
 
 ```text
@@ -248,6 +251,8 @@ draft --Commit--> pending -> registered -> enabled -> slow
 
 每次注册返回不可伪造的句柄。注销使用句柄而非 ID，避免旧实例移除同 ID 的新实例。
 
+句柄是 Extension owner 查询状态、`SetEnabled(enabled)` 和 `Unregister()` 的唯一控制入口。`SetEnabled` 只设置 owner-enabled 位，不能覆盖用户禁用、Host 兼容性或健康熔断；启停只增量更新该 Extension 的 Catalog 条目、ambient 调度资格和运行中任务。重复设置同一状态或注销均必须幂等，不得对其他 Extension 产生副作用。
+
 Host detach 时，`registered`/`enabled` Extension 先停止 Host 托管任务并清理 ViewHost，再回到 `pending`；后续兼容 Host attach 时重新注册。`Unregister()` 幂等，只移除 Lychee 接入，不卸载第三方 AddOn。
 
 ## 7. Command 模型
@@ -261,6 +266,7 @@ Command 是唯一可搜索对象。最小规范化形状：
     aliases = { "示例", "sample" },
     keywords = { "search" },
     presentation = "row", -- row/dynamic-list/custom-panel
+    match = { type = "catalog" },
     availability = { context = "ui-state", key = "sample.available" },
     intent = {
         type = "sample.open",
@@ -270,12 +276,27 @@ Command 是唯一可搜索对象。最小规范化形状：
 }
 ```
 
+需要主动内容匹配时，`dynamic-list` 使用：
+
+```lua
+match = {
+    type = "ambient",
+    minLength = 2,
+    maxLength = 64,
+    priority = 0,
+}
+```
+
 约束：
 
 - ID 在 Extension namespace 内稳定且唯一；Host 规范化为 `extensionID:commandID`，第三方不自行填写 `extensionID`。
 - 展示文案与索引关键词分离。
 - availability 读取 ContextSnapshot，不产生副作用。
 - Command 不持有 Palette frame。
+- `match.type` 默认为 `catalog`：Command 只通过 title、alias、keyword、拼音或显式命令语法进入静态候选。`row` 和 `custom-panel` 只能使用该模式。
+- `match.type = "ambient"` 表示输入可以直接匹配 Command 背后的实体内容；它不是第二种可搜索对象或新 registry，只是 Command 的主动匹配模式。
+- `ambient` 只允许 `dynamic-list`，并必须显式声明 `minLength` 和 `maxLength`；`minLength >= 1` 且 `maxLength >= minLength`。Host 在注册期拒绝缺少/非法长度边界或 presentation 不匹配的整个 draft。
+- `ambient.match.priority` 只用于预算紧张时的稳定调度顺序，同优先级按全局 Command ID 排序；它不能绕过用户禁用、availability、健康熔断或预算。
 - `row` 必须声明静态 `intent`。
 - `dynamic-list` 必须声明 `resolve` 和 `itemIntent`；resolver 只返回结构化 item。
 - `custom-panel` 必须引用已注册的 PanelFactory ID，Panel 生命周期由 ViewHost 驱动。
@@ -306,6 +327,8 @@ Provider 以稳定 capability type 注册输入/输出契约：
 
 Provider 不进入搜索结果、不控制结果布局、不注册快捷键。Host 内置 Provider 和第三方 Provider 进入同一 Broker；内部实现可以获得额外的 Host service，但输出必须规范化成相同 schema。
 
+技能、任务、怪物技能等大规模实体索引属于 Provider 或其所属模块的私有实现，不公开独立 Content Index registry。索引在注册、数据加载或相关 WoW 事件到达时增量构建；resolver 按键热路径只通过 CapabilityBroker 查询预索引/缓存，不全表扫描，不把每个实体注册成 Command。
+
 Command 不持有 Provider 函数引用。需要能力时只提交 capability type、版本和结构化 request，由 Broker 完成选择、调用和校验。这保证更换或新增数据源不需要改写 Command 的 UI 契约。
 
 ## 9. Intent 模型与执行
@@ -335,6 +358,21 @@ Command/item selection
 ```
 
 `ExecutionResult` 至少包含 `ok`、稳定 code 和可选 message key。只有 `ok=true` 才写入 recent。
+
+动态 item 需要进入详情面板时，Handler 可在成功结果中返回声明式转换：
+
+```lua
+{
+    ok = true,
+    transition = {
+        type = "custom-panel",
+        panelFactoryID = "creature-detail",
+        state = { creatureID = 12345 },
+    },
+}
+```
+
+Host 只在 IntentRouter 成功执行 Intent 后处理 transition。它必须确认 PanelFactory 与 Command、IntentHandler 属于同一 Extension，当前 Palette session、generation 和 ContextSnapshot version 仍有效，并对 `transition.state` 执行第 5.4 节的 plain-data、secret/inaccessible、深度、字段数与 schema 校验，才能交给 ViewHost 挂载。校验失败只结束该转换，不打开 Panel；resolver、Provider 和 Handler 均不能直接持有 Palette 根 frame 或调用 Panel 生命周期。
 
 ### 9.1 普通动作
 
@@ -369,15 +407,18 @@ Input text changed
   -> normalize
   -> tokenize / intent parse
   -> static candidate retrieval
+  -> prefilter eligible ambient dynamic Commands
   -> context availability filter
   -> deterministic rank
   -> publish row results
-  -> invoke matched dynamic resolvers
-  -> verify generation
+  -> invoke matched catalog/ambient dynamic resolvers
+  -> verify generation + query key + context version
   -> merge and diff-render
 ```
 
-每次输入变化生成单调递增 generation。动态结果返回时必须同时匹配当前 generation、query key 和 context version；旧结果直接丢弃。
+每次输入变化生成单调递增 generation。默认 `catalog` Command 通过静态索引命中；`ambient` Command 不需要用户先输入命令名，但只在规范化查询满足其长度边界、availability、Extension/Command 启用状态和 Host 静态预筛选时获得调度资格。Provider 本身不参与该预筛选。
+
+输入只有一个 debounce、一个 generation 和一份查询 ContextSnapshot，catalog 与 ambient 不建立两条并行状态机。动态结果返回时必须同时匹配当前 generation、query key 和它声明依赖的 context slice version；旧结果直接丢弃。
 
 ### 10.2 Normalization
 
@@ -396,6 +437,8 @@ Input text changed
 
 静态索引维护 exact ID、title token、alias、keyword、pinyin 和 category 倒排表。候选上限默认 200，展示上限默认 20。
 
+ambient item 只保留结构化轻量字段，由 Host 与 catalog 结果一起合并、去重和排序；详情数据在用户选中后再通过 Intent/Panel 链路加载。同分时先使用 Command 的稳定调度优先级，最后使用规范化 `extensionID:commandID:itemID` 破除平局。
+
 排序因子按固定顺序组合：
 
 1. exact title/alias；
@@ -413,7 +456,9 @@ Input text changed
 
 - 输入使用单一 debounce，建议默认 0.05 秒。
 - 静态检索同步完成。
-- 只有已命中的 dynamic Command 才调用 resolver。
+- 只有通过 catalog 命中，或通过 ambient 长度、availability、启用状态和静态预筛选的 `dynamic-list` Command 才调用 resolver。用户可以逐个停用 ambient Command，该偏好由 Host 按 stable Command ID 保存。
+- QueryOrchestrator 按稳定优先级为 ambient Command 分配全局调用数、单 Command 结果数和协作式耗时预算。未获得本 generation 预算的 Command 不调用 resolver，不以不确定顺序超额执行。
+- resolver 只读取查询、ContextSnapshot 和预索引/缓存；不扫描 AddOn，不创建 frame，不注册常驻事件，不执行动作。
 - deferred 工作按固定时间片执行，Palette 隐藏后立即取消。
 - resolver 没有协作式取消时使用 generation 丢弃旧结果。
 - 需要取消的一次性延迟和周期任务分别使用 `C_Timer.NewTimer`、`C_Timer.NewTicker`，保存返回的 callback object，并在查询替换、Palette 关闭、Panel Unmount、Extension disable/unregister 和 Host detach 时调用 `:Cancel()` 后清除引用。
@@ -446,6 +491,22 @@ Lychee 绘制单行结果。Enter 或点击后生成并路由 Intent。
 Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态、空状态和 generation 校验。item payload 只传给所属 Command 的 `itemIntent`。
 
 `resolve` 由 QueryOrchestrator 调用，不由 ResultList 直接调用。返回 item 必须有 Extension 内稳定 ID；`itemIntent` 只把选中 item 转换为结构化 Intent，实际执行仍经过 IntentRouter。
+
+主动内容搜索的端到端示例：
+
+```text
+输入大秘境小怪名称
+  -> mythic-creature dynamic-list Command 的 ambient match 通过预筛选
+  -> resolver 通过 CapabilityBroker 查询 creature Provider 的私有名称索引
+  -> Host 统一绘制结构化怪物 item
+  -> itemIntent 生成 open-creature-detail Intent
+  -> IntentRouter 调用同 Extension Handler
+  -> Handler 返回 custom-panel transition
+  -> Host 校验同 Extension PanelFactory 和 state
+  -> ViewHost 挂载怪物详情 Panel
+```
+
+任何一步不可用、超预算、过期或校验失败都只终止该 Command 的结果/转换，不允许 resolver 或 Provider 跳过 IntentRouter 直接打开 Panel。
 
 ### 11.3 `custom-panel`
 
@@ -551,6 +612,8 @@ Builtin module
 
 内部模块可以使用额外 Host service，例如直接读取缓存后的 Context slice；它们不建立第二套索引、搜索或执行通道。建议的后续内置域包括 Blizzard 面板、法术、物品、宏、设置、插件、最近使用和收藏。
 
+内置的技能、任务、怪物技能、副本 CD 等内容域与第三方使用同一套 `catalog/ambient` Command、CapabilityProvider、item Intent、ExecutionResult transition 和 ViewHost 合同。数据可以来自 ContextStore、本地数据包或第三方 Provider，但数据来源不改变搜索对象和 UI 所有权。
+
 内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
 
 Palette、输入框、结果列表和 ViewHost 本身属于 Host 基础 UI，不作为 Command 面板注册；用户实际搜索进入的设置、诊断、插件管理等功能页面则作为 Builtin Extension 的 Command/PanelFactory 接入。
@@ -576,7 +639,9 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 - AddOn 枚举、schema 校验和索引构建不发生在每次按键。
 - SDK registry 变更由注册/注销事件增量推送给 Host，不通过轮询发现。
 - 静态 Catalog 只在注册、注销或显式 invalidation 时重建。
-- dynamic resolver 有数量、结果数、调用深度和耗时上限。
+- Provider/模块在注册、数据更新或事件失效时增量维护私有索引；ambient 按键路径不全表扫描。
+- ambient 只在显式声明、用户启用、长度/availability 命中且位于本 generation 预算内时调度。
+- dynamic resolver 有全局调用数、单 Command 结果数、调用深度和协作式耗时上限。
 - ResultRow 和常用 Panel 容器池化，按 stable ID 增量渲染。
 - 热路径避免临时 frame、闭包、长字符串和可规避的 table 分配。
 - `SetPoint`、`SetSize`、字体、纹理、颜色和 frame level 使用 change guard。
@@ -593,6 +658,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | 静态候选 | 最多 200 |
 | 展示结果 | 最多 20 |
 | 单个 dynamic resolver 结果 | 最多 20 |
+| 单个 generation 的 ambient resolver 调用 | 最多 4 个 Command |
 | 输入 debounce | 默认 0.05 秒 |
 | deferred 时间片 | 每帧最多 2 ms，且仅 Palette 可见时 |
 | 诊断 ring buffer | 64 条 |
@@ -612,7 +678,9 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 ### 17.1 ZTools
 
-借鉴：Command Catalog、动态结果 generation、统一列表与插件自定义 view 的双模式、稳定插件 ID 和按需加载思想。
+借鉴：`mainPush` 中“Command 先声明参与范围，命中后动态查询数据，Host 统一绘制结果”的分层，以及 Command Catalog、动态结果 generation、统一列表与插件自定义 view 的双模式、稳定插件 ID 和按需加载思想。
+
+不采用：插件无条件向 UI 推送结果的接口。WoW 实现由 QueryOrchestrator 在预算内同步/协作式调度，Provider 查询预索引，Host 验证 generation/context 后统一发布。
 
 舍弃：Electron IPC、多进程、运行时安装器、桌面窗口管理和网络插件市场。WoW 内通信使用同一 Lua 环境的 SDK registry。
 
@@ -660,12 +728,20 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | --- | --- |
 | SDK 先加载 | committed pending registration 在 Host attach 后完整消费 |
 | Host 先 attach | 后提交 Extension 立即注册 |
+| Provider 单独注册 | 不进入搜索；同 Extension 提交 ambient `dynamic-list` Command 后才可直接搜索实体 |
+| Extension 句柄 | `SetEnabled` 只增量影响本 Extension 的 owner-enabled 位，重复设置和 `Unregister()` 幂等 |
 | SDK 缺席 | 第三方只跳过 Lychee 接入，自身功能继续运行 |
 | 草稿/提交失败 | 未 Commit 草稿不可见，任一失败均无部分注册 |
 | 重复/非法 ID | 原子失败，不覆盖已有 Extension |
 | installed/loading/loaded/sdk-registered | 验证 `loadedOrLoading, loaded` 对应未加载、加载中、已加载三个业务状态，不由 TOC 元数据推断接入 |
 | LoD AddOn | 关键词候选、显式加载、加载状态与注册状态分别展示 |
 | 快速连续输入 | 旧 generation 结果被丢弃 |
+| 直接实体名 | 不输入 Command 名也能经 ambient resolver 得到结构化 item |
+| ambient 短/超长输入 | 不满足 `minLength`/`maxLength` 时 resolver 调用数为零 |
+| 多个 ambient Command | 按稳定优先级和全局调用预算调度，合并排序可复现 |
+| Provider 不可用 | 只显示该 Command 的稳定 unavailable/空状态，其他结果继续工作 |
+| 大秘境怪物详情 | 怪物名命中 -> Provider 索引 -> Host item -> Intent -> 同 Extension transition -> ViewHost Panel |
+| 详情转换失败 | 跨 Extension PanelFactory、过期 context/session 或非法 state 均不挂载 Panel |
 | dynamic-list | 键盘、鼠标、滚动、空状态和 item Intent |
 | custom-panel | 实例复用、Mount/Update/Unmount/Dispose、Esc、异常和托管资源清理 |
 | 第三方报错 | 其他 Extension 和 Palette 继续工作 |
@@ -673,16 +749,19 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | timer 取消 | query 替换、关闭、Unmount、disable 和 detach 后句柄已 Cancel，After 旧 generation 无效果 |
 | 战斗状态 | toggle 静默无效果；已开 Palette 在 `PLAYER_REGEN_DISABLED` 统一关闭；脱战后快捷键自动恢复但不自动重开 |
 | secure action | `SecureActionButtonTemplate` 脱战创建/预配置，只有真实点击可执行，scripted click 不作为硬件输入 |
-| Palette 隐藏 | ticker、timer、动态队列和 active row 归零 |
+| Palette 隐藏 | ticker、timer、catalog/ambient 动态队列和 active row 归零，迟到结果无效 |
 | 1000+ Command | 候选上限、排序稳定性和帧时间 |
 
 ## 21. 设计验收清单
 
 - [ ] 顶层公开模型为 Extension/Command/CapabilityProvider/IntentHandler/PanelFactory。
 - [ ] 已提交的 SDK registry 是接入唯一事实源，草稿不参与查询。
+- [ ] Command 是唯一搜索对象；Provider 只有被 `catalog/ambient` Command 引用时才间接参与搜索。
+- [ ] `ambient` 只能用于带明确长度边界的 `dynamic-list`，并经过单一 debounce/generation/context 和统一预算调度。
 - [ ] AddOn 枚举只用于诊断、兼容和 LoD。
 - [ ] 内置和第三方走同一 Catalog、Broker、Router 和 UI。
 - [ ] dynamic-list 与 custom-panel 的所有权清晰。
+- [ ] dynamic item 先转换为 Intent，详情只能经同 Extension 的声明式 transition 进入 ViewHost。
 - [ ] `TOGGLELYCHEE` 是唯一全局 Binding。
 - [ ] 战斗中 toggle 不改变 UI、焦点或查询，进入战斗会关闭已打开的 Palette。
 - [ ] UI 不直接调用第三方任意函数。
