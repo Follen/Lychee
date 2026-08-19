@@ -52,11 +52,16 @@ Extension
 ```lua
 local SDK = _G.LycheeSDK
 if not SDK or not SDK:Supports(1, 1) then
+    -- 这是第三方自己的诊断 sink；同一加载周期只记录一次，不能放在事件回调里重复记。
+    if not _G.MyAddonLycheeUnavailableRecorded then
+        _G.MyAddonLycheeUnavailableRecorded = true
+        MyAddon_RecordDiagnostic("SDK_UNAVAILABLE")
+    end
     return
 end
 ```
 
-这条路径只跳过 Lychee 集成，不改变第三方 AddOn 自己的功能。SDK 不通过扫描和执行第三方代码补注册；加载状态变化后，由客户端的正常 AddOn 加载流程决定第三方入口是否再次执行。
+这条路径只跳过 Lychee 集成，不改变第三方 AddOn 自己的功能。`SDK_UNAVAILABLE` 是第三方接入诊断 code，不是需要用户处理的运行时错误。诊断必须按 AddOn 加载周期或 AddOn 会话去重：SDK 缺席、版本不兼容或入口再次被事件触发时，不能重复写入同一条诊断；第三方自身的功能继续运行。SDK 不通过扫描和执行第三方代码补注册；加载状态变化后，由客户端的正常 AddOn 加载流程决定第三方入口是否再次执行。
 
 双方的有效加载顺序都必须工作：
 
@@ -374,6 +379,7 @@ extension:RegisterIntentHandler({
 - Intent 必须包含 `type`、`version` 和符合 schema 的 `payload`。Host 注入并校验 `extensionID`，第三方不能冒充其他 Extension。
 - payload 校验成功后才进入 `execute`；Handler 返回 `ExecutionResult`，不直接操作 Lychee UI。
 - 成功返回 `{ ok = true, closePalette = boolean? }`；业务失败返回 `{ ok = false, code = stableCode, messageKey = string? }`。抛错映射为 `CALLBACK_ERROR`。
+- Handler 返回业务失败、抛错、非法结果或 transition 校验失败时，IntentRouter 统一结束本次 busy 状态，发布一条 Host 所有的错误行，并停止当前 Intent；不会留下 busy 锁、重复错误行或半挂载 Panel。错误行使用稳定 `code`/`messageKey`，不展示异常堆栈。
 - 成功结果还可包含声明式 `transition`，当前 v1 只支持 `{ type = "custom-panel", panelFactoryID = string, state = plainData }`。Handler 不直接调用 ViewHost 或 PanelFactory。
 - Host 只接受当前 Extension 拥有且已启用的 PanelFactory，并复核当前 Palette session、query generation 和 Context token。`transition.state` 必须通过目标 Panel 的 `stateSchema` 以及 7.2 节的 plain-data、secret/inaccessible、深度和字段数校验；任一失败都不 Mount Panel。
 - 只有 `ok=true` 才写入 recent。`messageKey` 是本地化键，不把异常堆栈直接显示给用户。
@@ -535,7 +541,7 @@ end
 
 step 的返回约定固定为：`false` 表示让出并继续；`true, items` 表示成功完成；`nil, errorObject` 表示失败。取消时允许返回 `true, nil`，Host 将其记为取消而不是空结果。
 
-`deadlineMS` 是测量和调度预算，不是硬超时。WoW Lua 无法安全抢占正在运行的第三方回调；Host 只能在回调返回后记录超时，并降低或停止后续调用。
+`deadlineMS` 是测量和调度预算，不是硬超时。WoW Lua 无法安全抢占正在运行的第三方回调；Host 只能在回调返回后记录超时。超时或连续 `PROVIDER_ERROR` 时，Host 保留对应 Command/Provider 的 dirty 标记，不发布不完整结果，进入 `slow`，并按统一的有界退避窗口重新调度（例如 50ms、100ms、250ms，达到本轮重试上限后等待下一次输入或显式 `Invalidate`）。退避期间不创建额外 ticker；新 generation、关闭 Palette、停用或注销会取消重试。只有成功刷新或明确确认数据不可用时才清除 dirty。
 
 ## 11. CapabilityProvider
 
@@ -641,7 +647,7 @@ extension:RegisterCommand({
 })
 ```
 
-Host 在第一次打开时惰性调用一次 `create`，缓存该 panel 实例并在后续打开时复用。成功 `Mount` 后必有且仅有一次对应 `Unmount`；Extension 注销时在 Unmount 后调用一次可选 `Dispose`。Mount 或 Update 报错时，Host 执行尽力 Unmount、关闭 ViewHost，并记录 `PANEL_ERROR`。
+Host 在第一次打开时惰性调用一次 `create`，缓存该 panel 实例并在后续打开时复用。成功 `Mount` 后必有且仅有一次对应 `Unmount`；Extension 注销时在 Unmount 后调用一次可选 `Dispose`。`create`、`Mount`、`Update`、`Unmount` 或 `Dispose` 任一步报错时，Host 按固定顺序执行：记录 `PANEL_ERROR` -> 尽力调用 `Unmount` -> 隐藏该 Panel 的 `contentFrame` -> 注销该 Extension 的 Panel/查询/timer 驱动 -> 关闭 ViewHost 并释放 busy 状态。错误清理不得把异常重新抛回 Palette，也不得让其他 Extension 停止。
 
 `stateSchema` 声明 Intent transition 可交给本 Panel 的状态形状。通过 Command 直接打开 Panel 时初始 state 为空；通过 Handler transition 打开时，Host 先验证同 Extension 所有权、session/generation/Context token 和 `transition.state`，再 Mount Panel，并调用一次 `Update({ reason = "transition", state = validatedState, ... })`。跨 Extension 的 `panelFactoryID` 或非法 state 返回 `INTENT_INVALID`；过期 session/generation 返回 `STALE_GENERATION`，两者都不调用 `create`、`Mount` 或 `Update`。
 
@@ -715,6 +721,8 @@ draft -> pending -> registered -> enabled -> slow/disabled
 - `retiring`：新查询已停止，等待 generation、Panel 和 Host 托管任务清理。
 - `removed`：从 registry 和索引移除，旧句柄失效。
 
+同一 `Extension.id` 重载时不允许新句柄覆盖旧句柄。SDK 先把旧 committed handle 标记为 `retiring`，停止新 Command/Provider 调度，令活动 generation 失效，并依次等待 resolver/deferred、Panel `Unmount`、托管 timer/ticker 和 Extension 驱动清理；只有旧句柄进入 `removed` 后，新的 draft 才能占用该 ID 并 Commit。旧句柄的迟到回调即使返回也会被丢弃，不能写入新句柄的索引、结果或 Panel。清理异常不能卡住替换：Host 记录 `CALLBACK_ERROR`/`PANEL_ERROR` 后继续完成 best-effort 清理，再释放 ID。
+
 Host attach 时按 Extension ID 稳定排序消费 pending。Host 已就绪时，新提交立即 attach。生命周期回调由 SDK 在局部错误边界中调用：
 
 ```lua
@@ -729,6 +737,8 @@ onDisabled = function(reason) end
 attach 回调顺序固定为 `onHostAttached -> onEnabled`；detach 时若当前 enabled，则按 `onDisabled(reason) -> onHostDetached(reason)` 执行。Host detach 后，Extension 停止所有 Host 托管任务并回到 pending；下一个兼容 Host attach 后可再次注册和启用。
 
 `Unregister()` 幂等：第一次调用进入 retiring，后续调用返回同一状态。它只清理 Lychee 接入，不卸载第三方 AddOn，也不删除第三方 SavedVariables。生命周期回调报错只记录 `CALLBACK_ERROR`，状态机仍继续完成清理。
+
+重载使用同一 retiring 流程；第三方不得通过再次 `RegisterExtension` 抢占仍在清理的 ID，也不得保存旧句柄并在新句柄提交后调用旧句柄的 `SetEnabled`、`Invalidate` 或 `QueryCapability`。
 
 ## 14. Binding、焦点与战斗策略
 
@@ -794,6 +804,7 @@ end
 | Code | 含义 |
 | --- | --- |
 | `INVALID_SCHEMA` | 字段类型、必填项、plain-data 限制或字段组合无效 |
+| `SDK_UNAVAILABLE` | 第三方 AddOn 入口未发现兼容的 `LycheeSDK`；仅用于一次性诊断，不阻止第三方自身功能 |
 | `SECRET_VALUE` | SDK 边界值或其任意后代为 secret；整个值被拒绝且不记录内容 |
 | `INACCESSIBLE_VALUE` | 调用方不能访问值或索引 table；整个值被拒绝且不记录内容 |
 | `DUPLICATE_ID` | ID 已被 committed Extension 或活动草稿占用 |
@@ -816,7 +827,7 @@ end
 | `PANEL_ERROR` | Panel create/Mount/Update/Unmount/Dispose 报错 |
 | `CALLBACK_ERROR` | 普通或生命周期回调报错 |
 
-错误码语义在同一 API major 内保持稳定。`retryable` 只描述重新发起是否可能成功，不代表 SDK 会自动重试。SDK 不对报错 resolver 自动循环重试；下一次输入、显式 invalidation 或用户操作才产生新调用。
+错误码语义在同一 API major 内保持稳定。`retryable` 只描述重新发起是否可能成功，不代表 SDK 会无限自动重试。Host 只允许 10.2 节规定的有限退避次数；达到上限后等待下一次输入、显式 invalidation 或用户操作才产生新调用。
 
 ## 16. 性能要求
 
@@ -1104,12 +1115,19 @@ committed:SetEnabled(true)
 21. 合法 item Intent transition 挂载同 Extension Panel；跨 Extension Panel、非法/secret/inaccessible state、过期 session/generation 均不创建或挂载 Panel；
 22. Palette 关闭、进入战斗、`SetEnabled(false)` 或幂等 `Unregister()` 后，ambient resolver、deferred、Panel 和待处理 transition 均无效果；
 23. SDK 先/Host 后和 Host 先/第三方后最终得到相同 registered Extension，且第三方无需轮询或重复注册。
+24. SDK 缺席、版本不兼容或入口被重复事件触发时，第三方只记录一次 `SDK_UNAVAILABLE`，随后跳过 Lychee 接入且自身功能继续；
+25. 同一 Extension ID 重载时旧句柄先进入 `retiring`，停止新调度并清理 resolver、Panel、timer 和驱动；旧句柄到 `removed` 后新句柄才可 Commit，旧迟到回调不污染新句柄；
+26. resolver 超时或连续 `PROVIDER_ERROR` 保留 dirty，进入 `slow`，按有界退避窗口重试；新 generation、关闭 Palette、停用和注销取消退避；
+27. Intent 业务失败、抛错、非法结果和 transition 失败都发布统一错误行并释放 busy，错误不重复且不显示异常堆栈；
+28. Panel create/Mount/Update/Unmount/Dispose 任一步报错都记录 `PANEL_ERROR`，尽力 Unmount、隐藏 contentFrame、注销该 Extension 驱动、关闭 ViewHost 和释放 busy，且不影响其他 Extension。
 
 ## 18. 接入检查清单
 
 - [ ] TOC 使用 `## OptionalDeps: LycheeSDK`，SDK 缺席时只跳过 Lychee 接入。
+- [ ] SDK 缺席或不兼容时只写一次 `SDK_UNAVAILABLE` 诊断，不在事件回调中重复记录，第三方自身功能继续。
 - [ ] Extension 在所有子声明成功后调用一次 `Commit()`。
 - [ ] SDK 先/Host 后与 Host 先/第三方后都不需要轮询或重复注册。
+- [ ] 同 ID 重载先等待旧句柄 `retiring -> removed` 和所有查询/Panel/timer/驱动清理，再接受新句柄。
 - [ ] Extension、Command、Provider、Intent type 和 item 使用稳定 ID。
 - [ ] 第三方 Intent/custom capability type 使用自己的 Extension ID 前缀。
 - [ ] 普通动作使用结构化 Intent，payload 只含有界 plain data。
@@ -1117,7 +1135,9 @@ committed:SetEnabled(true)
 - [ ] dynamic-list 返回稳定 item ID，不创建结果行 frame。
 - [ ] Provider 不作为搜索入口、不绘制 UI；需要实体搜索时，同一 Extension 还注册 ambient dynamic-list Command，并通过 Broker 调用 Provider。
 - [ ] ambient 只用于 dynamic-list，声明合法长度边界，并遵守 enable、availability、调用数、结果数、时间和 generation 预算。
+- [ ] resolver 超时/连续错误保留 dirty，进入 slow 并按退避窗口重试；取消路径不会留下 ticker 或任务。
 - [ ] itemIntent 先生成 Intent；Handler 只返回声明式 transition，Panel 所有权和 state 校验后才挂载。
+- [ ] Intent 错误统一发布错误行并释放 busy；Panel 错误记录 `PANEL_ERROR` 后执行 Unmount、隐藏 contentFrame、注销 Extension 驱动和 ViewHost 清理。
 - [ ] Extension 句柄只控制 owner-enabled 位，`Unregister()` 可重复调用且不误删新句柄。
 - [ ] custom-panel 只在 `contentFrame` 下创建子 frame 并复用实例。
 - [ ] Panel 在所有退出路径停止自身事件并取消托管 Timer/Ticker；raw `C_Timer.After` 有 generation/active guard。

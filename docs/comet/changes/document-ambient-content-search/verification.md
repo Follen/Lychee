@@ -1,0 +1,163 @@
+---
+generated_from_state_version: 5
+---
+
+# Verification
+
+## Current result
+
+- Result: **Failed**
+- Assurance: **skill-coordinated**
+- Goal cycle: 1
+- Iteration: 1
+- Verifier attempt: 1
+- Completed: 2026-08-19T08:00:59.752Z
+- Summary: 候选主架构正确，但 5 个验收项缺少最终文档合同，需要补齐 SDK 缺席诊断、同 ID 重载 retiring 流程，以及 resolver/Intent/Panel 错误恢复细节。
+
+## Acceptance
+
+| ID | Result | Source | Criterion | Reason |
+| --- | --- | --- | --- | --- |
+| A1 | passed | brief.md | A1：`docs/ARCHITECTURE.md` 明确 Command 是唯一搜索入口，Provider 数据不会自动进入全局搜索；`ambient` 只是 Command 的主动匹配模式，不是第二套搜索对象。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A2 | passed | brief.md | A2：文档给出“输入大秘境小怪名称 -> ambient Command 命中 -> resolver 查询怪物 Provider 索引 -> Host 绘制 -> item Intent -> ViewHost 详情 Panel”的完整链路。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A3 | passed | brief.md | A3：Command 匹配合同至少区分默认 `catalog` 和显式 `ambient`，并规定 `minLength`、`maxLength`、availability、启用状态与静态预筛选要求。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A4 | passed | brief.md | A4：只有 `dynamic-list` 可以声明 `ambient`；row/custom-panel 仍通过标题、别名和关键词进入静态 Catalog，注册期拒绝不合法组合。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A5 | passed | brief.md | A5：主动 resolver 受单一 debounce、generation/context token、全局调用数、单 Command 结果数和协作式耗时预算约束；Palette 隐藏时没有后台查询。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A6 | passed | brief.md | A6：SDK 文档提供可直接照写的怪物 Provider、ambient dynamic-list Command、item Intent、IntentHandler 和 PanelFactory 组合示例。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A7 | passed | brief.md | A7：点选动态项必须先生成并路由 Intent；Handler 只能返回声明式 `transition = { type = "custom-panel", panelFactoryID, state }`，Host 校验同 Extension 所有权后挂载 Panel。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A8 | passed | brief.md | A8：`transition.state` 与动态 item 一样经过 plain-data、secret/inaccessible、大小和深度校验，失败不挂载 Panel。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A9 | passed | brief.md | A9：文档明确内部功能和第三方功能使用同一主动匹配、Provider、Intent 和 ViewHost 合同。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A10 | passed | brief.md | A10：验证矩阵覆盖直接实体名、短输入不调度、快速连续输入、多个 ambient Command、Provider 不可用、详情转换失败和 Palette 关闭清理。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A11 | passed | brief.md | A11：文档明确第三方必须主动向 `LycheeSDK` 注册并 `Commit()` Extension；仅注册 Provider 不会进入搜索，第三方还必须在同一 Extension 中注册引用该 Provider 的 ambient Command。SDK/Host 任意加载顺序均可接入，返回句柄支持启停和幂等注销。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A12 | passed | specs/command-platform/spec.md | 本规格通过 `docs/ARCHITECTURE.md` 交付系统设计，不创建 Lua/XML/TOC 运行时代码。文档必须完整定义下述模型、依赖方向、生命周期、性能门槛、后续实现顺序和验证矩阵；示例 API 属于后续实现 change 的约束。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A13 | passed | specs/command-platform/spec.md | Lychee 提供一个单入口命令平台。用户输入只匹配 Command；Command 可调用一个或多个 CapabilityProvider，并通过 IntentHandler 执行普通或受保护动作。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A14 | passed | specs/command-platform/spec.md | Extension 是内部模块或第三方插件的稳定身份，至少包含稳定 ID、API 版本、显示名称、能力声明和生命周期状态。第三方通过独立 `LycheeSDK` 创建 draft，注册全部子声明后调用 `Commit()` 原子发布；Host 未加载时 committed registration 进入 pending registry，Host attach 后一次性消费。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A15 | passed | specs/command-platform/spec.md | 第三方数据不会因 AddOn 已加载或 Provider 已注册而自动进入搜索。第三方若要让实体名称参与 Lychee 主输入框搜索，必须在同一 Extension draft 中同时注册 CapabilityProvider 和引用该能力的 `ambient` `dynamic-list` Command，再以 `Commit()` 原子发布。SDK 返回的 Extension 句柄是状态查询、owner 启停和幂等 `Unregister()` 的唯一控制入口；Lychee 不通过扫描 AddOn 目录推断或补造搜索接入。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A16 | passed | specs/command-platform/spec.md | Command 是唯一可搜索和选择的入口，至少包含 stable ID、标题、别名/关键词、match、presentation、参数描述和 Intent factory。Command 不直接暴露任意回调给 UI。Provider 中的实体不会自动进入全局搜索；需要直接搜索实体名称时，仍由一个 Command 声明主动匹配并调用 Provider。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A17 | passed | specs/command-platform/spec.md | Command 的匹配模式： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A18 | passed | specs/command-platform/spec.md | `catalog`：默认模式。只通过标题、别名、关键词、拼音和显式命令语法进入静态候选。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A19 | passed | specs/command-platform/spec.md | `ambient`：主动内容匹配。只允许 `dynamic-list` 使用；当规范化输入满足 `minLength`、`maxLength`、availability、用户启用状态和 Host 预筛选时，QueryOrchestrator 才调用 resolver。注册时必须显式提供长度边界，非法组合原子失败。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A20 | passed | specs/command-platform/spec.md | 支持的 presentation： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A21 | passed | specs/command-platform/spec.md | `row`：Host 统一绘制单行结果，选择后立即路由 Intent。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A22 | passed | specs/command-platform/spec.md | `dynamic-list`：Command 命中后请求结构化 items，由 Host 统一绘制、导航和选择。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A23 | passed | specs/command-platform/spec.md | `custom-panel`：Command 命中后进入 Lychee 管理的 ViewHost。第三方拿到受限 `PanelContext`，只在 Host 提供的 content frame 中创建和更新自己的子 frame；Lychee 仍拥有输入焦点、Esc/关闭、尺寸、层级、超时和清理。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A24 | passed | specs/command-platform/spec.md | `custom-panel` 不是把 Palette frame 交给第三方。第三方不能替换根 frame、注册全局快捷键或修改 Host 的 secure 属性。Panel 实例由 Host 复用，必须实现 `Mount(context)`、可选的 `Update(state)`、`Unmount()` 和可选 `Dispose()`；隐藏 Palette 时 Host 调用 `Unmount`。Host 托管 timer/ticker 使用可取消的 `C_Timer.NewTimer`/`NewTicker` 句柄；`C_Timer.After` 没有可取消句柄，只能使用 generation/active guard 丢弃迟到回调。第三方自己创建的事件、ticker 和 timer 由其清理。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A25 | passed | specs/command-platform/spec.md | CapabilityProvider 按稳定 capability type 注册输入/输出契约。它不进入搜索结果、不持有 Palette frame、不注册 Lychee 快捷键，也不决定结果行布局。一个 Provider 可服务多个 Command，同一 capability type 可有多个实现并由 Host/用户选择默认实现。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A26 | passed | specs/command-platform/spec.md | IntentHandler 只处理已注册的 Intent type。普通动作经错误边界执行；受保护动作使用声明式 Secure Descriptor，以及通过 `CreateFrame(..., "SecureActionButtonTemplate")` 创建并在脱战时配置的 Host 安全按钮。Lychee 采用严格的战斗策略：战斗中 Palette 不可用，所有 Lychee Intent 返回 `COMBAT_LOCKED`，不暴露战斗内真实点击入口；Enter、`dispatchIntent` 和 scripted `Button:Click()` 永远不能模拟硬件点击。UI 不按名称直接调用 Provider 函数。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A27 | passed | specs/command-platform/spec.md | Lychee 只注册 `TOGGLELYCHEE`。实现必须提供 `Bindings.xml` 中的 `<Binding name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">`、稳定全局 Toggle 函数，以及 `BINDING_HEADER_LYCHEE`/`BINDING_NAME_TOGGLELYCHEE` 本地化全局文案。Toggle 入口第一步检查 `InCombatLockdown()`：战斗中静默返回，不打开、不关闭、不移动焦点、不启动查询。收到 `PLAYER_REGEN_DISABLED` 时，已打开的 Palette 立即走与 Esc 相同的关闭、`Unmount` 和任务清理路径；`PLAYER_REGEN_ENABLED` 后快捷键无需重新绑定即可恢复。关闭时恢复原 EditBox 只作 best-effort：对象和相关方法仍可访问时才尝试，否则只清除 Lychee 输入焦点。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A28 | passed | specs/command-platform/spec.md | 输入合并使用唯一 debounce；新 generation 使旧动态结果失效。ambient Command 必须有全局调用数、每 Command 结果数和协作式耗时预算；Host 使用稳定优先级选择预算内的命令，并允许用户逐项停用主动匹配。短于 `minLength`、长于 `maxLength`、不可用、被停用或超出本次调度预算的 Command 不调用 resolver。Palette 隐藏时取消查询、清空 deferred 队列并停止驱动。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A29 | passed | specs/command-platform/spec.md | 动态 item 是结构化数据，至少包括 stable item ID、主文本、可选副文本、图标、availability 和 opaque payload。Host 拥有行 frame、选中状态、滚动、鼠标/键盘事件和生命周期。选择 item 后，Host 将 Command ID、item ID 和 payload 交给对应 Intent factory；Extension 不直接接管全局输入框。Context、payload 和第三方返回值在复制、比较、排序、格式化、记录或持久化前必须递归检查 `issecretvalue`、`canaccessvalue` 和表的 `canaccesstable`；不安全值不得进入索引、Intent、日志或 SavedVariables，并返回稳定错误码。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A30 | passed | specs/command-platform/spec.md | resolver 可以通过 CapabilityBroker 查询 Provider，但不能持有 Provider 函数引用。大规模实体数据由 Provider 或所属模块在注册/数据更新时维护轻量名称索引；按键热路径只查索引，不全表扫描，不把每个实体注册成 Command。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A31 | passed | specs/command-platform/spec.md | item Intent 成功后，Handler 可返回声明式视图转换：`transition = { type = "custom-panel", panelFactoryID = string, state = plainData }`。Host 必须确认 PanelFactory 属于同一 Extension、当前会话和 Context 仍有效，并对 state 执行边界/schema 校验，之后才由 ViewHost Mount；resolver、Provider 和 Handler 都不能直接取得 Palette 根 frame或绕过 ViewHost。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A32 | passed | specs/command-platform/spec.md | 大秘境怪物示例链路： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A33 | passed | specs/command-platform/spec.md | Extension 至少具有 draft、pending、registered、enabled、slow、disabled、retiring 和 removed 状态。`Commit()` 是进入 registry 的唯一时点。错误、超时或禁用只移除本 Extension 的动态任务和索引项。注销时先标记 retiring，当前查询安全结束后再移除。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A34 | passed | specs/command-platform/spec.md | 发现必须分为加载期和运行期两条路径： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A35 | passed | specs/command-platform/spec.md | **加载期顺序：** 第三方 TOC 声明 `## OptionalDeps: LycheeSDK`，请求在双方均可用时先加载 SDK；这不是 SDK 存在或注册成功的证明。第三方主 chunk 必须检查 `_G.LycheeSDK`，存在时才创建 draft、注册子声明并 `Commit()`；缺失时走无 Lychee 的短路路径，不创建 Palette 相关 frame。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A36 | passed | specs/command-platform/spec.md | **运行期事实源：** LycheeSDK committed registry 保存每个 Extension 的注册句柄、API 版本、能力声明和状态。未 Commit draft、TOC 元数据和 AddOn loaded 状态都不算接入。Lychee Host attach 后消费 pending registry，并通过显式 `OnHostAttached`/`OnHostDetached` 生命周期通知。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A37 | passed | specs/command-platform/spec.md | **诊断扫描：** Lychee 可在登录或诊断页一次性枚举 `C_AddOns.GetNumAddOns`、`C_AddOns.GetAddOnInfo`、`C_AddOns.GetAddOnMetadata` 和 `C_AddOns.GetAddOnDependencies`，展示 `X-Lychee-*` 元数据、依赖和加载原因；输入变化时禁止重新枚举。`C_AddOns.IsAddOnLoaded` 必须同时读取 `(loadedOrLoading, loaded)`，仅第二返回值为 true 才是加载完成，第一返回值单独为 true 时显示 `loading`。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A38 | passed | specs/command-platform/spec.md | **按需加载：** 声明 `LoadOnDemand` 和 `X-Lychee-Keywords` 的候选可进入登录期轻量索引；用户明确选择后 Host 调用 `C_AddOns.LoadAddOn`，然后等待其 Commit。缺少关键词元数据的 LoD AddOn 只在诊断页或其他已加载入口中出现。加载成功不代表注册成功，必须以 committed registry 为准。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A39 | passed | specs/command-platform/spec.md | **通信边界：** `C_ChatInfo.RegisterAddonMessagePrefix`/`SendAddonMessage` 只用于客户端间消息，不能作为本机插件 SDK RPC。SDK 调用使用同一客户端内的 Lua 表、受限 context 和结构化 payload。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A40 | passed | specs/command-platform/spec.md | SDK 先加载而 Host 后加载时，已 Commit 的句柄留在 pending registry；Host 先加载而第三方后加载时，`Commit()` 立即触发 attach。两种顺序必须产生相同的 registered Extension，不要求第三方重试注册，也不在输入时重新扫描 AddOn。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A41 | passed | specs/command-platform/spec.md | Palette 隐藏时无常驻 per-frame Lua 工作。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A42 | passed | specs/command-platform/spec.md | 静态 Catalog 在注册/显式失效时更新，不在每次按键时重建。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A43 | passed | specs/command-platform/spec.md | ambient Command 只在显式声明、用户启用、长度/availability 规则命中且位于本次稳定调度预算内时调用。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A44 | passed | specs/command-platform/spec.md | 动态 resolver 有全局调用数、单 Command 结果数和协作式耗时上限；实体数据使用预索引/缓存，不在每次按键全量扫描。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A45 | passed | specs/command-platform/spec.md | 结果行池化并按 stable ID 增量更新。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A46 | passed | specs/command-platform/spec.md | ContextStore 事件驱动并按 slice version 失效。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A47 | passed | specs/command-platform/spec.md | SDK 提供 Extension 注册、Command 发布、Capability 注册/调用、Intent factory 注册、动态列表 resolver、custom-panel factory 和生命周期句柄。SDK 不提供 Palette frame、数据库根表、SecureButton、任意 Lua source 执行或第三方全局快捷键。所有第三方调用都经过 API 版本、稳定 ID、参数 schema 和错误边界校验；内部模块也使用同一 Command/Provider/Intent 数据模型。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A48 | passed | specs/command-platform/spec.md | 内置复杂面板也注册 PanelFactory 并使用同一 ViewHost 生命周期。内部 PanelContext 可以获得明确列出的 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口，但不能接管 Palette 根 frame 或绕过焦点、Esc、IntentRouter 与清理状态机。Host 自身的 Palette/Input/ResultList/ViewHost 基础 UI 不作为 Command 面板注册。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A49 | passed | specs/sdk-integration/spec.md | 本规格通过 `docs/SDK.md` 交付第三方接入设计，不创建 `LycheeSDK` AddOn 文件。文档必须给出可直接照写的 TOC、注册 API、返回值、错误码、两种交互模式、生命周期、版本兼容、性能要求和完整示例。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A50 | passed | specs/sdk-integration/spec.md | `LycheeSDK` 是独立 sibling AddOn，负责把其他 WoW 插件接入 Lychee。它只提供进程内 Lua API 和生命周期句柄，不模拟桌面应用的 IPC，不使用聊天频道传输注册信息。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A51 | passed | specs/sdk-integration/spec.md | 接入动作必须由第三方主动发起：第三方在自己的加载流程中向 `LycheeSDK` 注册 Extension、Command、Provider、Handler 和可选 Panel，并调用 `Commit()`。Lychee 不扫描目录来自动生成接入。只有 Provider 的 Extension 不会产生搜索结果；需要让第三方数据响应 Lychee 主输入框时，同一 Extension 必须注册引用该 Provider 的 `ambient` `dynamic-list` Command。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A52 | passed | specs/sdk-integration/spec.md | 第三方插件的 TOC 至少声明： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A53 | passed | specs/sdk-integration/spec.md | 可选的诊断元数据： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A54 | passed | specs/sdk-integration/spec.md | `OptionalDeps` 用于请求在双方均可用时先加载 `LycheeSDK`，但不能单独证明 SDK 已存在、已加载或注册成功，也不要求用户必须安装 Lychee。插件主 chunk 必须检查 `_G.LycheeSDK` 并兼容两种结果： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A55 | passed | specs/sdk-integration/spec.md | `LycheeSDK` 已加载：立即注册 Extension。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A56 | failed | specs/sdk-integration/spec.md | `LycheeSDK` 未安装或未能加载：记录一次诊断信息，跳过 Lychee frame 和事件，插件自身功能继续工作。 | SDK 缺席路径只写了 return/跳过接入，没有规定目标规格要求的一次性诊断记录。 |
+| A57 | passed | specs/sdk-integration/spec.md | SDK 主 chunk 只建立稳定全局表和轻量 registry，不创建 Palette、不注册全局快捷键、不访问第三方 SavedVariables。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A58 | passed | specs/sdk-integration/spec.md | Host 的唯一事实源是 SDK registry，而不是每次输入时重新扫描 AddOn 列表。Lychee 可以在登录或诊断页缓存以下官方信息用于展示： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A59 | passed | specs/sdk-integration/spec.md | `C_AddOns.GetNumAddOns`：AddOn 数量； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A60 | passed | specs/sdk-integration/spec.md | `C_AddOns.GetAddOnInfo`：名称、标题、可加载状态、失败原因和安全级别； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A61 | passed | specs/sdk-integration/spec.md | `C_AddOns.GetAddOnMetadata`：`X-Lychee-*` 等 TOC 元数据； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A62 | passed | specs/sdk-integration/spec.md | `C_AddOns.GetAddOnDependencies`：依赖关系； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A63 | passed | specs/sdk-integration/spec.md | `C_AddOns.IsAddOnLoaded`：返回 `(loadedOrLoading, loaded)`；诊断页只有第二返回值为 true 才显示 `loaded`，仅第一返回值为 true 时显示 `loading`； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A64 | passed | specs/sdk-integration/spec.md | `C_AddOns.LoadAddOn`：用户明确命中或打开诊断页时按需加载 LoD AddOn。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A65 | passed | specs/sdk-integration/spec.md | 枚举结果不能直接当作已接入：只有成功 `Commit()` 的 Extension 句柄才算接入。`LoadAddOn` 返回成功但没有 committed registry 注册时，诊断状态为 `loaded-without-registration`。LoD AddOn 只有声明 `X-Lychee-Keywords` 才能在加载前进入搜索候选。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A66 | passed | specs/sdk-integration/spec.md | SDK 暴露只读 API 版本和注册入口，推荐形态如下（名称可在 Build 阶段按最终 Lua 命名规范落地）： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A67 | passed | specs/sdk-integration/spec.md | `RegisterExtension` 返回 draft；各 `Register*` 只写入 draft，`Commit()` 一次性校验交叉引用、版本、schema 和声明数量。注册校验必须拒绝并报告：空 ID、非法字符、重复 Extension/Command/Capability ID、未支持的 API 版本、presentation 与 resolver/factory 不匹配、缺少稳定标题或超出声明数量上限。失败不发布部分对象，重复注册不能静默覆盖已启用的 Extension。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A68 | passed | specs/sdk-integration/spec.md | `Commit()` 成功后返回同一个稳定 Extension 句柄；第三方用该句柄读取只读状态、设置 owner-enabled 位和调用幂等 `Unregister()`。第三方不得直接修改 SDK registry，也不需要因 Host 尚未加载而自行轮询或重复注册。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A69 | passed | specs/sdk-integration/spec.md | SDK registry 分为 `pending` 和 `attached` 两个集合： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A70 | passed | specs/sdk-integration/spec.md | SDK 先加载、Host 后加载：committed 句柄进入 `pending`；Host attach 时按 Extension ID 稳定排序、逐项校验并转移到 `attached`。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A71 | passed | specs/sdk-integration/spec.md | Host 已加载、第三方后加载：Commit 后立即尝试 attach；失败仍留在 `pending`，等待下一次显式 attach。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A72 | failed | specs/sdk-integration/spec.md | 同一 Extension 重载：旧句柄先进入 `retiring`，其索引和驱动清理完成后才接受新句柄。 | 最终文档未定义同一 Extension 重载时旧句柄先 retiring、清理后才接受新句柄。 |
+| A73 | passed | specs/sdk-integration/spec.md | Host detach 或 Lychee 关闭：调用每个句柄的 `OnHostDetached`，停止查询、Panel、ticker、timer 和事件引用，但不删除第三方自己的数据。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A74 | passed | specs/sdk-integration/spec.md | SDK 不把可变 registry、Host frame、SavedVariables 根表或 SecureButton 返回给第三方；句柄只暴露窄接口和只读状态。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A75 | passed | specs/sdk-integration/spec.md | Command 默认使用 `match = { type = "catalog" }`，只按标题、别名和关键词进入静态候选。需要让用户直接输入怪物、物品等实体名称时，`dynamic-list` Command 可以显式声明： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A76 | passed | specs/sdk-integration/spec.md | `ambient` 只允许 `dynamic-list` 使用。Host 还会检查 Extension/Command 用户启用状态、availability、全局主动 resolver 数量预算和稳定优先级；声明不表示每次按键都必定调用。`row` 或 `custom-panel` 使用 ambient、缺少长度边界、`minLength < 1` 或 `maxLength < minLength` 时，整个注册事务失败。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A77 | passed | specs/sdk-integration/spec.md | 第三方 `dynamic-list` resolver 接收规范化 query 和只读 `ContextSnapshot`，返回结构化 item 数组。Context、payload 和返回值必须先经过递归边界检查：`issecretvalue(value)` 为 true、`canaccessvalue(value)` 为 false，或 table 的 `canaccesstable(value)` 为 false 时，SDK 拒绝该值并返回稳定错误码；这些值不得进入索引、Intent、日志或 SavedVariables。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A78 | passed | specs/sdk-integration/spec.md | Lychee 负责单一输入 debounce、行池、键盘上下、鼠标点击、滚动、选中态、查询 generation 和过期结果丢弃。第三方只处理 payload 对应的 Intent，不创建 Palette 行 frame。Resolver 可以通过 CapabilityBroker 查询 Provider；Provider 自己维护实体名称的预索引/缓存，但不会自动成为搜索入口，也不向 Palette 推送 frame。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A79 | passed | specs/sdk-integration/spec.md | 因此第三方可复用能力与可搜索入口是两份显式声明：`RegisterCapabilityProvider(...)` 让能力可被 Broker 调用，`RegisterCommand(...)` 决定该能力何时参与主输入框查询。两者只有在所属 Extension `Commit()` 成功后才同时可见；注销 Extension 时二者作为一个所有权单元退出。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A80 | passed | specs/sdk-integration/spec.md | 点选动态项必须先经过 `itemIntent` 和 IntentRouter。Handler 成功后可以请求 Host 进入本 Extension 已注册的详情 Panel： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A81 | passed | specs/sdk-integration/spec.md | Host 只接受同一 Extension 的 PanelFactory ID。`transition.state` 必须通过 plain-data、secret/inaccessible、深度、字段数和 Panel 声明 schema 校验；校验失败时 Intent 返回稳定错误，不 Mount Panel。Handler 只返回描述符，不直接调用 ViewHost、PanelFactory 或 Palette frame。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A82 | passed | specs/sdk-integration/spec.md | 大秘境怪物接入的组合固定为：ambient `dynamic-list` Command 负责直接命中名称，creature CapabilityProvider 负责查询预索引数据，`itemIntent` 生成打开详情 Intent，IntentHandler 返回上述 transition，PanelFactory 负责详情内容。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A83 | passed | specs/sdk-integration/spec.md | 第三方可声明 `presentation = "custom-panel"` 并提供 `panelFactory`。Lychee 创建自己的 ViewHost 后传入： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A84 | passed | specs/sdk-integration/spec.md | 第三方只能把子 frame 放入 `contentFrame`，不能取得 Palette 根 frame、改动 Host 尺寸/层级、注册全局按键或把焦点移出 Host。Panel 必须支持 `Mount`、可选 `Update`、`Unmount`。Host 隐藏、Esc、进入战斗、超时、Extension 禁用和异常退出都走同一清理路径。关闭后恢复原 EditBox 只作 best-effort：对象和焦点方法仍可访问时才尝试，否则只清除 Lychee 输入焦点。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A85 | passed | specs/sdk-integration/spec.md | Panel 实例由 Host 复用，生命周期为 `create once -> (Mount -> Update* -> Unmount)* -> Dispose`。Host 托管的可取消任务必须使用并保存 `C_Timer.NewTimer`/`NewTicker` 返回句柄，统一清理时调用 `Cancel()`；`C_Timer.After` 不返回可取消句柄，只能配合 generation/active guard 丢弃迟到回调。第三方直接创建的事件、timer 和 ticker 由其 `Unmount`/`Dispose` 清理。ViewHost 是所有权边界，不是强安全沙箱。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A86 | passed | specs/sdk-integration/spec.md | 第三方只提交声明式 Secure Descriptor。Host 使用 `CreateFrame("Button", ..., ..., "SecureActionButtonTemplate")` 创建自己的安全按钮，并只在脱战时配置 descriptor 对应属性。Lychee 采用更严格的产品策略：战斗中 Palette 不可用，所有 Lychee Intent 返回 `COMBAT_LOCKED`，不保留战斗内真实点击入口；普通回调、Enter、`dispatchIntent` 和 scripted `Button:Click()` 永远不模拟硬件输入。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A87 | passed | specs/sdk-integration/spec.md | Lychee Host 只注册 `TOGGLELYCHEE`：`Bindings.xml` 必须声明 `<Binding name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">`，调用稳定全局 Toggle 函数，并提供 `BINDING_HEADER_LYCHEE` 和 `BINDING_NAME_TOGGLELYCHEE` 本地化文案。第三方 Extension 不注册 Lychee 快捷键。Toggle 入口在 `InCombatLockdown()` 为 true 时静默返回，不打开、不关闭、不移动焦点、不启动查询；`PLAYER_REGEN_DISABLED` 会关闭已打开的 Palette 并触发 `Unmount`/任务清理，脱战后原 Binding 自动恢复可用。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A88 | passed | specs/sdk-integration/spec.md | Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -> retiring -> removed`。每个 resolver、Intent、Panel callback 都包在局部错误边界内；错误只禁用对应 Extension 的任务和索引，不得让 Palette 卡死或无法关闭。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A89 | failed | specs/sdk-integration/spec.md | resolver 超时或连续错误：丢弃本次结果，保留 dirty，按退避窗口重试并标记 `slow`； | 最终文档未定义 resolver 超时或连续错误时保留 dirty、按退避窗口重试并标记 slow。 |
+| A90 | failed | specs/sdk-integration/spec.md | Intent 错误：停止当前动作，显示统一错误行，释放 busy 状态； | 最终文档未规定 Intent 错误停止动作后显示统一错误行并释放 busy 状态。 |
+| A91 | failed | specs/sdk-integration/spec.md | Panel 错误：调用 `Unmount`、隐藏 content frame、注销该 Extension 驱动； | 最终文档未明确 Panel 错误时隐藏 content frame 并注销该 Extension 驱动。 |
+| A92 | passed | specs/sdk-integration/spec.md | 注销：先标记 `retiring`，等待当前 generation 完成或失效后再移除索引； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A93 | passed | specs/sdk-integration/spec.md | SDK 缺失：第三方不创建 Lychee 相关对象； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A94 | passed | specs/sdk-integration/spec.md | API 不兼容：注册失败并返回稳定错误码，不执行部分注册。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A95 | passed | specs/sdk-integration/spec.md | `C_ChatInfo.RegisterAddonMessagePrefix` 和 `C_ChatInfo.SendAddonMessage` 面向客户端间 AddOn 消息，需要频道/目标和文本 payload，受通信节流约束。它们不参与 LycheeSDK 注册、命令查询或本机 Intent 调用。Lychee 与第三方的本机通信只经过 Lua SDK 句柄、结构化参数和 Host 回调。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A96 | passed | specs/sdk-integration/spec.md | 注册和 AddOn 元数据扫描只发生在加载/登录/诊断入口，不发生在每次按键。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A97 | passed | specs/sdk-integration/spec.md | registry、Command Catalog 和 alias 索引使用稳定数组 + ID 索引；重复注册/注销不触发全量 UI 重建。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A98 | passed | specs/sdk-integration/spec.md | ambient dynamic-list 只在用户启用、长度/availability 命中并位于 Host 全局调用预算内时执行；短输入不调度。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A99 | passed | specs/sdk-integration/spec.md | dynamic-list 结果带 generation，旧结果不进入渲染；每 Command 结果数受限，列表行使用池化 frame。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A100 | passed | specs/sdk-integration/spec.md | Provider/模块在注册或数据变化时维护实体索引，resolver 不在每次输入时全表扫描。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A101 | passed | specs/sdk-integration/spec.md | custom-panel 隐藏时必须清理 ticker、timer、事件和 frame 引用；Palette 隐藏时无常驻 Lua `OnUpdate`。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A102 | passed | specs/sdk-integration/spec.md | SDK 主 chunk 只做常量和 registry 初始化，不在加载期深扫描第三方代码。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A103 | passed | specs/sdk-integration/spec.md | 必须覆盖： | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A104 | passed | specs/sdk-integration/spec.md | SDK 先加载、Host 后 attach，committed pending registry 被完整消费； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A105 | passed | specs/sdk-integration/spec.md | Host 先加载、第三方后 Commit，Extension 立即 attach； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A106 | passed | specs/sdk-integration/spec.md | 未 Commit draft 不可见，重复 ID、版本不兼容、声明数量超限时原子失败； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A107 | passed | specs/sdk-integration/spec.md | LoD 插件由关键词候选显式加载，加载但未 Commit 时显示诊断状态； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A108 | passed | specs/sdk-integration/spec.md | dynamic-list 旧 generation 不覆盖新输入； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A109 | passed | specs/sdk-integration/spec.md | custom-panel 的实例复用、Mount/Update/Unmount/Dispose、Esc 和托管资源清理； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A110 | passed | specs/sdk-integration/spec.md | 一个第三方回调报错时，其他 Extension 和 Palette 仍可用； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A111 | passed | specs/sdk-integration/spec.md | 代码路径没有使用 `SendAddonMessage` 作为本机 SDK RPC； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A112 | passed | specs/sdk-integration/spec.md | `SecureActionButtonTemplate` 创建、脱战 descriptor 配置，以及所有战斗中 Lychee Intent、scripted click/Enter 的 `COMBAT_LOCKED` 行为； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A113 | passed | specs/sdk-integration/spec.md | 战斗中 `TOGGLELYCHEE` 静默失效且不启动查询，进战关闭已打开 Palette，脱战后同一 Binding 恢复； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A114 | passed | specs/sdk-integration/spec.md | secret/inaccessible Context、payload 和返回值被递归拒绝，且不进入索引、Intent、日志或 SavedVariables； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A115 | passed | specs/sdk-integration/spec.md | `IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After` generation guard； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A116 | passed | specs/sdk-integration/spec.md | 直接输入实体名时 ambient Command 返回动态项，不需要先输入命令标题；短于 `minLength` 时不调用 resolver； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A117 | passed | specs/sdk-integration/spec.md | 多个 ambient Command 按启用状态和稳定预算调度，快速连续输入的旧结果不覆盖新结果； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A118 | passed | specs/sdk-integration/spec.md | Provider 不可用、索引未就绪或 resolver 超预算时只影响所属结果组； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A119 | passed | specs/sdk-integration/spec.md | item Intent 的合法 transition 挂载同 Extension Panel，跨 Extension、非法 state 或过期 session 转换被拒绝； | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+| A120 | passed | specs/sdk-integration/spec.md | Palette 关闭、进入战斗、Extension disable/unregister 后 ambient 查询与待处理 transition 均无效果。 | 独立 Verifier 核对交付文档与完整目标规格，合同已覆盖。 |
+
+## Checks
+
+_No Runtime checks were recorded._
+
+## Blockers
+
+_None._
+
+## Risks and skipped work
+
+- A56、A72、A89、A90、A91 的目标规格未完整落入最终 ARCHITECTURE/SDK 文档。
+- 本 change 仅交付文档，Lua/XML/TOC 行为与游戏内性能仍由后续 change 实现和验证。
+
+## Previous iterations
+
+| Goal cycle | Iteration | Attempt | Outcome | Unresolved | Summary | Completed |
+| ---: | ---: | ---: | --- | --- | --- | --- |
+| 1 | 1 | 1 | fail | A56, A72, A89, A90, A91 | 候选主架构正确，但 5 个验收项缺少最终文档合同，需要补齐 SDK 缺席诊断、同 ID 重载 retiring 流程，以及 resolver/Intent/Panel 错误恢复细节。 | 2026-08-19T08:00:59.752Z |
+
+## Conclusion
+
+候选主架构正确，但 5 个验收项缺少最终文档合同，需要补齐 SDK 缺席诊断、同 ID 重载 retiring 流程，以及 resolver/Intent/Panel 错误恢复细节。

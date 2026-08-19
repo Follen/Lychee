@@ -255,6 +255,8 @@ draft --Commit--> pending -> registered -> enabled -> slow
 
 Host detach 时，`registered`/`enabled` Extension 先停止 Host 托管任务并清理 ViewHost，再回到 `pending`；后续兼容 Host attach 时重新注册。`Unregister()` 幂等，只移除 Lychee 接入，不卸载第三方 AddOn。
 
+同一 Extension ID 的重载不是覆盖操作。SDK/Host 收到新 draft 时，旧句柄必须先进入 `retiring`：立即停止新 Command/Provider/resolver 调度，使所有活动 generation 和待处理 transition 失效，尽力 `Unmount` 并 `Dispose` 已挂载 Panel，取消 timer/ticker/deferred 与 Host 托管驱动，最后移除 Catalog 条目和 Provider 私有索引引用。只有旧句柄进入 `removed` 且上述清理屏障完成后，registry 才接受同 ID 新句柄；新 draft 在此前保持 pending/reload-wait，不可见也不参与查询。旧回调不能通过新句柄的 ID 重新激活。
+
 ## 7. Command 模型
 
 Command 是唯一可搜索对象。最小规范化形状：
@@ -378,6 +380,8 @@ Host 只在 IntentRouter 成功执行 Intent 后处理 transition。它必须确
 
 普通 Handler 通过局部 `xpcall` 执行。回调错误只结束当前 Intent，并为对应 Extension 增加失败计数。
 
+Intent 的 schema、availability/policy、Handler 或 transition 任一阶段失败时，IntentRouter 必须停止当前动作，不执行后续 Handler/transition，不写入 recent。Palette 由 Host 统一绘制一条不包含第三方原始异常文本的错误行，并在所有成功、错误和过期退出路径上释放当前结果的 `busy` 状态，恢复键盘/鼠标选择和 Palette 关闭。该错误行只是 Host Presentation，不是 Command，不进入 Catalog、recent 或 SavedVariables。
+
 ### 9.2 受保护动作
 
 战斗相关动作使用 Host 定义的声明式 Secure Descriptor。第三方只提交允许字段；第三方不接触按钮对象、属性写入接口或脚本源码。
@@ -459,6 +463,7 @@ ambient item 只保留结构化轻量字段，由 Host 与 catalog 结果一起�
 - 只有通过 catalog 命中，或通过 ambient 长度、availability、启用状态和静态预筛选的 `dynamic-list` Command 才调用 resolver。用户可以逐个停用 ambient Command，该偏好由 Host 按 stable Command ID 保存。
 - QueryOrchestrator 按稳定优先级为 ambient Command 分配全局调用数、单 Command 结果数和协作式耗时预算。未获得本 generation 预算的 Command 不调用 resolver，不以不确定顺序超额执行。
 - resolver 只读取查询、ContextSnapshot 和预索引/缓存；不扫描 AddOn，不创建 frame，不注册常驻事件，不执行动作。
+- resolver 超时或抛错时丢弃该 Command 在本 generation 的全部结果，保留其查询 `dirty` 标记，不发布部分结果。连续失败使 Extension 被标记为 `slow`，并按 Host 定义的有界退避窗口降频；退避有最小/最大延迟和最大尝试次数，成功后清除 dirty 并恢复健康计数。重试只能由 QueryOrchestrator/Scheduler 在 Palette 可见、当前 generation/context 仍有效且 Extension 有效启用时调度；第三方不能自建重试计时器。Palette 隐藏、Extension disable/unregister/retiring 时取消已排队重试，不在后台继续退避调度。
 - deferred 工作按固定时间片执行，Palette 隐藏后立即取消。
 - resolver 没有协作式取消时使用 generation 丢弃旧结果。
 - 需要取消的一次性延迟和周期任务分别使用 `C_Timer.NewTimer`、`C_Timer.NewTicker`，保存返回的 callback object，并在查询替换、Palette 关闭、Panel Unmount、Extension disable/unregister 和 Host detach 时调用 `:Cancel()` 后清除引用。
@@ -532,6 +537,8 @@ create once -> (Mount(context) -> Update(state)* -> Unmount(reason))* -> Dispose
 ```
 
 Lychee 始终拥有 Palette 根 frame、焦点、Esc、尺寸、层级、关闭和清理。第三方只在 `contentFrame` 下创建子 frame。Palette 隐藏、Extension 禁用、Panel 异常和 `/reload` 前清理都经过 `Unmount`；Extension 注销时在最后一次 Unmount 后调用可选 `Dispose`。
+
+PanelFactory `create`、`Mount`、`Update`、`Unmount` 或 `Dispose` 任一回调抛错时，ViewHost 必须先标记该 Panel 不可用，再以独立错误边界尽力执行一次 `Unmount("panel-error")`。无论清理回调是否再次失败，Host 都必须隐藏该 Extension 的 content frame，清空其中的 Host 状态、焦点和大对象引用，取消并注销通过 PanelContext/runtime 登记的 timer、ticker、事件、deferred 和其他 Host 托管驱动/任务，释放 `busy` 状态，然后显示 Host 统一 `PANEL_ERROR` 行或返回结果列表。该隔离只处理出错 Extension 的 Panel 资源，不卸载其他 Extension、不清空其他结果，也不停止 PaletteController。
 
 PanelFactory 由 Extension handle 的 `RegisterPanelFactory` 注册，Command 只引用其 ID。ViewHost 通过错误边界调用 `create`、`Mount`、`Update`、`Unmount` 和 `Dispose`；PanelContext 只暴露本文列出的托管能力，Panel 不直接访问 CommandCatalog、CapabilityBroker 或 IntentHandler。
 
@@ -730,6 +737,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | Host 先 attach | 后提交 Extension 立即注册 |
 | Provider 单独注册 | 不进入搜索；同 Extension 提交 ambient `dynamic-list` Command 后才可直接搜索实体 |
 | Extension 句柄 | `SetEnabled` 只增量影响本 Extension 的 owner-enabled 位，重复设置和 `Unregister()` 幂等 |
+| 同 ID Extension 重载 | 旧句柄 retiring 后停调度、失效 generation/transition、清理 Panel/索引/驱动；屏障完成才接受新句柄 |
 | SDK 缺席 | 第三方只跳过 Lychee 接入，自身功能继续运行 |
 | 草稿/提交失败 | 未 Commit 草稿不可见，任一失败均无部分注册 |
 | 重复/非法 ID | 原子失败，不覆盖已有 Extension |
@@ -740,10 +748,12 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | ambient 短/超长输入 | 不满足 `minLength`/`maxLength` 时 resolver 调用数为零 |
 | 多个 ambient Command | 按稳定优先级和全局调用预算调度，合并排序可复现 |
 | Provider 不可用 | 只显示该 Command 的稳定 unavailable/空状态，其他结果继续工作 |
+| resolver 超时/连续错误 | 本轮结果丢弃且保留 dirty，Host 有界退避并标记 slow；隐藏、disable、unregister 后无重试 |
 | 大秘境怪物详情 | 怪物名命中 -> Provider 索引 -> Host item -> Intent -> 同 Extension transition -> ViewHost Panel |
 | 详情转换失败 | 跨 Extension PanelFactory、过期 context/session 或非法 state 均不挂载 Panel |
+| Intent 错误 | 当前动作终止，Host 统一错误行可见，`busy` 必定释放且不写 recent |
 | dynamic-list | 键盘、鼠标、滚动、空状态和 item Intent |
-| custom-panel | 实例复用、Mount/Update/Unmount/Dispose、Esc、异常和托管资源清理 |
+| custom-panel | 实例复用、Mount/Update/Unmount/Dispose、Esc、异常后 content frame 隐藏/清空、托管驱动注销，其他 Extension 继续工作 |
 | 第三方报错 | 其他 Extension 和 Palette 继续工作 |
 | secret/inaccessible 数据 | 根、key、value 和嵌套 table 均在索引/Intent/日志/SavedVariables 前拒绝 |
 | timer 取消 | query 替换、关闭、Unmount、disable 和 detach 后句柄已 Cancel，After 旧 generation 无效果 |
@@ -762,6 +772,9 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 - [ ] 内置和第三方走同一 Catalog、Broker、Router 和 UI。
 - [ ] dynamic-list 与 custom-panel 的所有权清晰。
 - [ ] dynamic item 先转换为 Intent，详情只能经同 Extension 的声明式 transition 进入 ViewHost。
+- [ ] Extension 重载必须等待旧句柄 retiring 的查询、Panel、索引和驱动清理屏障，新句柄不能提前可见。
+- [ ] resolver 失败只由 Host 在有界退避窗口重试，Palette 隐藏或 Extension 退出后不留后台驱动。
+- [ ] Intent 与 Panel 错误都释放 `busy`，并由 Host 统一呈现/清场，不影响其他 Extension。
 - [ ] `TOGGLELYCHEE` 是唯一全局 Binding。
 - [ ] 战斗中 toggle 不改变 UI、焦点或查询，进入战斗会关闭已打开的 Palette。
 - [ ] UI 不直接调用第三方任意函数。
