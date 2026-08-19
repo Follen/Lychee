@@ -1,86 +1,79 @@
-# Lychee 架构与实现契约
+# Lychee 命令平台架构设计
 
-> 状态：design baseline v0.2
+> 状态：Design Contract v0.3
 >
-> 这是一份面向实现和代码评审的契约，不是产品介绍。凡是本文没有标记为
-> “实现可选”的内容，均视为必须遵守的架构决定。实现者不得自行增加第二套
-> Provider、搜索、Intent 或快捷键模型；需要改变契约时必须先更新本文和版本。
+> 本文是后续实现和评审的系统级契约。公开 SDK 的字段、示例和第三方接入步骤见
+> [SDK.md](SDK.md)。需要改变本文中的分层、所有权或生命周期时，先更新设计文档，再进入代码变更。
 
-## 0. 阅读规则与不可变决定
+## 1. 产品边界
 
-### 0.1 名词
+Lychee 是 World of Warcraft 内的单入口命令平台。用户通过唯一全局快捷键呼出输入框，搜索命令、选择动态结果，或进入 Lychee 托管的交互视图。
 
-| 名词 | 定义 |
-| --- | --- |
-| Host | `Lychee` 主插件，拥有 UI、索引、上下文和执行器 |
-| SDK | `LycheeSDK` 独立 AddOn，第三方只依赖它 |
-| Provider | 能力提供者，内部和外部使用同一个注册协议 |
-| Entry | 可被搜索和展示的一条能力描述 |
-| Intent | 用户选择 Entry 后的结构化执行请求 |
-| Context | 由 Host 维护的只读游戏状态快照 |
-| Generation | 一次输入快照的单调递增查询代次 |
+### 1.1 目标
 
-### 0.2 必须保持的单一事实源
+- 一个全局 Binding：`TOGGLELYCHEE`。
+- 内置能力和第三方能力使用同一套 Command、CapabilityProvider 和 Intent 模型。
+- 普通结果和动态列表由 Lychee 统一绘制。
+- 复杂交互通过 Lychee 托管的 ViewHost 承载。
+- 中文、英文、拼音和别名使用确定性本地匹配，不依赖运行时网络或 AI。
+- Palette 隐藏且无任务时，Lua 每帧工作为零。
+- 单个第三方扩展的错误、超时或卸载不影响其他扩展和 Palette 关闭。
+- Host 与 SDK 都采用轻量自有实现，不依赖 Ace3 全家桶。
 
-1. **只有一个全局 Binding：** `TOGGLELYCHEE`。所有调用最终进入
-   `Lychee:TogglePalette()`；第三方不能注册 Lychee 命名空间下的 Binding。
-2. **只有一个 ProviderRegistry：** SDK 负责收集和校验，Host 负责启停和消费。
-3. **只有一个 QueryOrchestrator 和 Ranker：** UI、内置模块、第三方都不能绕过它。
-4. **只有一个 IntentRouter：** UI 不能直接调用 Provider 回调或任意 Lua 函数。
-5. **只有一个 ContextStore：** Provider 读取快照，不自行监听并缓存完整游戏状态。
-6. **SDK 与 Host 是两个可独立加载的 AddOn：** SDK 不引用 Host UI；Host 缺失时 SDK
-   仍能安全接收注册并提供状态查询。
+### 1.2 本设计不包含
 
-### 0.3 变更规则
+- 操作系统级启动器或游戏外快捷键。
+- 插件市场、下载、安装和自动更新服务。
+- 客户端间同步协议。
+- 第三方独立全局快捷键。
+- 第三方对 Palette 根 frame、Host SavedVariables 或 SecureButton 的访问。
+- 任意 Lua 源码下载或执行。
 
-- 新增字段必须是可选字段，或提升 `apiVersion` 并提供迁移/降级路径。
-- 修改字段语义、排序权重、错误码或执行策略属于契约变更，必须更新本文件的版本号。
-- 任何“临时兼容”必须落在 `Adapters/` 或 SDK compatibility 层，不能散落在搜索和 UI 热路径。
-- 代码提交前必须通过本文第 18 节的静态检查、运行时验证和 Git/正式服同步流程。
+## 2. 核心分层
 
-## 1. Product Contract
-
-Lychee is an in-game command palette for World of Warcraft. The user presses
-one WoW binding, enters a natural-language or keyword query, selects a result,
-and executes a standard Intent.
-
-The product has exactly one global binding:
-
-```xml
-<Bindings>
-    <Binding name="TOGGLELYCHEE" header="LYCHEE" category="ADDONS">
-        Lychee:TogglePalette();
-    </Binding>
-</Bindings>
+```text
+Extension
+├─ Command
+│  └─ searchable entry -> Presentation -> Intent
+├─ CapabilityProvider
+│  └─ typed capability -> structured result
+├─ IntentHandler
+│  └─ typed intent -> policy -> execution result
+└─ PanelFactory
+   └─ custom-panel -> host-owned ViewHost lifecycle
 ```
 
-Third-party providers do not register global bindings. Provider actions are
-discovered and launched from the Lychee palette. Palette-local navigation is
-handled by the input/result frames while the palette is visible.
+| 概念 | 职责 | 明确排除 |
+| --- | --- | --- |
+| Extension | 内部模块或第三方 AddOn 的稳定身份和生命周期容器 | 搜索、绘制和执行策略 |
+| Command | 用户可搜索、选择的入口 | 共享数据服务和任意 UI frame |
+| CapabilityProvider | 提供可复用数据或能力 | 搜索入口、结果布局和 Palette 控制 |
+| IntentHandler | 执行已注册的结构化动作 | 按显示文本调用函数 |
+| PanelFactory | 为 `custom-panel` 创建受控 Panel 实例 | Palette 根 frame、全局焦点和全局快捷键 |
+| Presentation | 描述结果由 Host 如何呈现 | 绕过 Host 生命周期 |
+| ContextSnapshot | Host 维护的只读游戏状态切片 | 第三方自建全量状态镜像 |
 
-### 1.1 Goals
+Command 与 CapabilityProvider 必须分层。一个命令可以组合多个能力，一个能力也可以服务多个命令。新增数据源时注册 Provider；新增用户入口时注册 Command；新增执行动作时注册 IntentHandler。
 
-- Provide one predictable entry point for Blizzard, Lychee and third-party addon capabilities.
-- Keep the public integration contract smaller and more stable than the host implementation.
-- Make ordinary UI actions and protected combat actions explicit and separate.
-- Support deterministic Chinese/English/pinyin search without a runtime network dependency.
-- Keep the hidden/idle cost at zero Lua work per frame.
-- Allow the host to survive a broken or slow third-party provider.
+Extension 可以在同一注册草稿中发布一组 Command；这不是独立的公共对象、registry 或第二套注册 API。公开接入统一使用 Extension draft 上的 `RegisterCommand`。
 
-### 1.2 Non-goals
+## 3. 单一事实源
 
-- No operating-system launcher or out-of-game hotkey.
-- No dynamic code download or runtime package installation.
-- No provider-owned Lychee UI.
-- No provider-specific global hotkey namespace.
-- No runtime machine-learning model requirement.
-- No AceAddon/AceEvent/AceDB/AceConfig/AceGUI dependency in the host or SDK.
+系统始终只有以下实例：
 
-## 2. Repository and Runtime Layout
+1. 一个 `ExtensionRegistry`：保存 SDK 和内部 Extension 的规范化状态。
+2. 一个 `CommandCatalog`：保存所有可搜索命令及静态索引。
+3. 一个 `QueryOrchestrator`：拥有输入 generation、调度和结果合并。
+4. 一个 `Ranker`：负责确定性评分和稳定排序。
+5. 一个 `ContextStore`：把 WoW 事件转换为版本化状态切片。
+6. 一个 `IntentRouter`：校验并路由普通和受保护 Intent。
+7. 一个 `PaletteController`：拥有快捷键、焦点、结果列表和 ViewHost。
 
-The repository is a source/package workspace. The two directories under
-`package/` are separate WoW AddOns and are copied as siblings into the live
-`AddOns` directory.
+UI 不按名称直接调用第三方函数。第三方不持有上述对象的可变表。
+
+## 4. 仓库与 AddOn 布局
+
+后续实现使用两个 sibling AddOn：
 
 ```text
 Lychee/
@@ -90,1172 +83,612 @@ Lychee/
 │  │  ├─ Bindings.xml
 │  │  ├─ Bootstrap.lua
 │  │  ├─ Core/
-│  │  │  ├─ Host.lua
 │  │  │  ├─ Lifecycle.lua
-│  │  │  ├─ ProviderRegistry.lua
+│  │  │  ├─ ExtensionRegistry.lua
+│  │  │  ├─ CommandCatalog.lua
+│  │  │  ├─ CapabilityBroker.lua
 │  │  │  ├─ ContextStore.lua
-│  │  │  ├─ Scheduler.lua
 │  │  │  ├─ IntentRouter.lua
-│  │  │  ├─ ErrorBoundary.lua
+│  │  │  ├─ Scheduler.lua
 │  │  │  └─ Diagnostics.lua
-│  │  ├─ Builtin/
-│  │  │  ├─ BlizzardProvider.lua
-│  │  │  ├─ SpellProvider.lua
-│  │  │  ├─ ItemProvider.lua
-│  │  │  ├─ MacroProvider.lua
-│  │  │  ├─ SettingsProvider.lua
-│  │  │  ├─ PluginProvider.lua
-│  │  │  └─ SystemProvider.lua
-│  │  ├─ Semantic/
+│  │  ├─ Search/
 │  │  │  ├─ Normalizer.lua
 │  │  │  ├─ Tokenizer.lua
-│  │  │  ├─ Pinyin.lua
 │  │  │  ├─ IntentParser.lua
 │  │  │  ├─ StaticIndex.lua
-│  │  │  ├─ DynamicResolver.lua
 │  │  │  ├─ Ranker.lua
 │  │  │  └─ QueryOrchestrator.lua
 │  │  ├─ UI/
 │  │  │  ├─ Palette.lua
 │  │  │  ├─ Input.lua
 │  │  │  ├─ ResultList.lua
-│  │  │  ├─ ResultRow.lua
-│  │  │  ├─ KeybindManager.lua
-│  │  │  └─ Theme.lua
+│  │  │  ├─ ViewHost.lua
+│  │  │  └─ FocusController.lua
 │  │  ├─ Secure/
-│  │  │  ├─ SecureActionBroker.lua
-│  │  │  ├─ SecureButtonPool.lua
-│  │  │  └─ Descriptor.lua
-│  │  ├─ Adapters/
-│  │  │  └─ (legacy bridges only)
+│  │  │  ├─ Descriptor.lua
+│  │  │  ├─ Policy.lua
+│  │  │  └─ SecureActionBroker.lua
+│  │  ├─ Builtin/
 │  │  └─ Media/
 │  └─ LycheeSDK/
 │     ├─ LycheeSDK.toc
 │     ├─ Bootstrap.lua
 │     ├─ API/
-│     │  ├─ Version.lua
-│     │  ├─ Schema.lua
-│     │  ├─ ProviderAPI.lua
-│     │  ├─ EntryAPI.lua
-│     │  ├─ IntentAPI.lua
-│     │  └─ Errors.lua
-│     ├─ Runtime/
-│     │  ├─ PendingRegistry.lua
-│     │  ├─ Compatibility.lua
-│     │  └─ Notifications.lua
-│     └─ Docs/
+│     └─ Runtime/
 ├─ docs/
-│  └─ ARCHITECTURE.md
-├─ tools/
-├─ analyze/                 # local-only, ignored by Git
-├─ AGENTS.md                # local-only, ignored by Git
-└─ .gitignore
+│  ├─ ARCHITECTURE.md
+│  └─ SDK.md
+├─ analyze/                    # 本机调研，Git 忽略
+└─ AGENTS.md                   # 本机执行约定，Git 忽略
 ```
 
-Live installation:
+正式服安装布局：
 
 ```text
-D:\Game\World of Warcraft\_retail_\Interface\AddOns\
-├─ Lychee\
-└─ LycheeSDK\
+Interface/AddOns/
+├─ Lychee/
+└─ LycheeSDK/
 ```
 
-The current repository policy treats `AGENTS.md` and `analyze/` as local-only.
-They are never included in a runtime package.
-
-### 2.1 文件依赖方向
-
-依赖只能从上到下，禁止反向引用：
+依赖方向固定为：
 
 ```text
-Bootstrap
-  -> Core/Lifecycle -> Core services
-  -> Semantic      -> Core/ProviderRegistry + Core/ContextStore (只读接口)
-  -> UI            -> Semantic/QueryOrchestrator + Core/IntentRouter
-  -> Secure        -> Core/IntentRouter (只接收 Descriptor)
-  -> Builtin       -> Core/ProviderRegistry + SDK-compatible host services
+Bootstrap -> Core
+Search    -> Core 的只读接口
+UI        -> QueryOrchestrator + IntentRouter
+Secure    -> IntentRouter 的 Descriptor
+Builtin   -> 与 SDK 相同的注册 facade
+Lychee    -> LycheeSDK Host adapter
+LycheeSDK -> 不依赖 Lychee
 ```
 
-- `SDK` 目录中的代码不能 `:CreateFrame`、注册 Blizzard 事件或引用 `Lychee.UI`。
-- `Semantic` 不能写 SavedVariables、显示 UI 或执行 Intent。
-- `UI` 只能持有 `ResultViewModel`，不能持有 Provider 原始表。
-- `Builtin` 不得修改其他 Provider 的状态；跨模块数据只能通过 ContextStore 或窄接口读取。
-- `Secure` 不得暴露按钮对象、脚本字符串或任意属性写入 API 给 SDK。
+`Lychee.toc` 使用 `## Dependencies: LycheeSDK`，保证 Host adapter 绑定前 SDK 已存在。第三方 AddOn 使用可选依赖，因此没有安装 Lychee 时仍可独立工作。
 
-### 2.2 TOC 加载契约
+## 5. AddOn 发现与通信
 
-`LycheeSDK.toc` 只列 SDK 的 `Bootstrap.lua`、`API/` 和 `Runtime/` 文件；
-`Lychee.toc` 通过 `## OptionalDeps: LycheeSDK` 保证 SDK 先加载，并按以下顺序列文件：
+WoW 内的插件运行在同一个 Lua 环境中，接入不需要桌面应用式 IPC。
 
-1. `Core/ErrorBoundary.lua`、`Core/Diagnostics.lua`（先建立错误接收处）。
-2. `Core/Host.lua`、`Core/Lifecycle.lua`、`Core/Scheduler.lua`。
-3. `Core/ProviderRegistry.lua`、`Core/ContextStore.lua`、`Core/IntentRouter.lua`。
-4. `Semantic/*`。
-5. `Secure/*`。
-6. `Builtin/*`。
-7. `UI/*`、`Bootstrap.lua`、`Bindings.xml`。
+### 5.1 加载拓扑
 
-任何文件不得依赖“同一 TOC 中稍后才执行的 chunk 已经运行”。需要前置对象时，
-通过 `Lychee:RegisterModule(name, initFn, priority)` 放入生命周期队列，由 Host 统一调用。
+第三方 TOC 声明：
 
-### 2.3 AddOn loading topology
+```toc
+## OptionalDeps: LycheeSDK
+```
 
-`LycheeSDK` is loaded before `Lychee`. Third-party addons that integrate with
-the SDK declare `## OptionalDeps: LycheeSDK`; they remain functional when the
-SDK or host is absent.
+`OptionalDeps` 用于声明希望先加载的可选依赖；它不强制用户安装或启用 SDK，也不能代替运行时检查 `_G.LycheeSDK`。真正的加载结果和接入状态仍由运行时确认。
+
+加载流程：
 
 ```text
-LycheeSDK.toc
-    -> creates the public SDK object and pending provider registry
-Lychee.toc
-    -> consumes the SDK registry and installs the host implementation
-Third-party addon
-    -> calls SDK:RegisterProvider(...) from its own main chunk
+LycheeSDK 加载
+  -> 创建 _G.LycheeSDK facade 和私有 registry
+第三方 AddOn 加载
+  -> RegisterExtension(descriptor)
+  -> RegisterCommand/RegisterCapabilityProvider/RegisterIntentHandler/RegisterPanelFactory
+  -> Commit()
+  -> Host 未 attach 时进入 pending registry
+Lychee Host 加载
+  -> AttachHost(hostAdapter)
+  -> 消费 committed pending registrations
+  -> 建立 Command/Provider/Intent 索引
 ```
 
-The SDK must be usable before the host loads. Registration stores validated
-provider declarations in a pending registry. When Lychee attaches, it drains
-that registry exactly once. A provider does not need a reload or second user
-action to become searchable.
+Host 已 attach 后提交的第三方 Extension 走即时 attach。SDK 缺席时，第三方跳过 Lychee 接入路径，其自身功能继续运行。
 
-## 3. Module Ownership
-
-### 3.1 `LycheeSDK`
-
-Public, stable and deliberately small. It owns:
-
-- API version and capability negotiation.
-- Provider/Entry/Intent schema validation.
-- Provider registration and pending-registration storage.
-- Compatibility shims and no-op behavior when Lychee is absent.
-- Public error codes and provider lifecycle notifications.
-
-It does not own frames, search indexes, Blizzard event collection, SavedVariables,
-secure buttons, palette rendering or provider business logic.
-
-### 3.2 `Lychee/Core`
-
-Host-only implementation. It owns:
-
-- Host lifecycle and initialization order.
-- Provider registry consumption and enable/disable state.
-- Context Store and event subscriptions.
-- Static and dynamic indexes.
-- Query orchestration and ranking.
-- Intent routing and execution policy checks.
-- Host error reporting and performance accounting.
-
-### 3.3 `Lychee/Builtin`
-
-First-party capabilities implemented with the same normalized Provider contract:
-
-- `BlizzardProvider`: Blizzard panels and system UI.
-- `SpellProvider`: known spells and spell-related actions.
-- `ItemProvider`: inventory, equipment and consumable actions.
-- `MacroProvider`: pre-existing macros and macro navigation.
-- `SettingsProvider`: Lychee and registered addon settings.
-- `PluginProvider`: installed addons and their exposed capabilities.
-- `SystemProvider`: recent items, favorites, help and diagnostics.
-
-Built-ins may call internal services. External providers may only use SDK
-services. Both produce the same Entry and Intent shape before entering search
-or execution.
-
-### 3.4 `Lychee/UI`
-
-Owns the palette state machine and pooled controls. UI code consumes ranked
-results and emits `execute(entryID)`; it does not call provider functions by
-name and does not inspect provider internals.
-
-### 3.5 `Lychee/Secure`
-
-Owns protected execution descriptors, secure button creation and combat-state
-policy. It never accepts arbitrary Lua source from a provider.
-
-### 3.6 `Lychee/Adapters`
-
-Adapters are compatibility bridges for addons that cannot ship a provider.
-New integrations use the SDK and do not add a host adapter. An adapter may
-translate an old API into the Provider/Entry/Intent contract, then disappears
-from the rest of the system.
-
-## 4. Core Runtime State
-
-The host has one authoritative runtime object:
-
-```lua
-Lychee = {
-    state = "BOOTSTRAP",       -- BOOTSTRAP/READY/PALETTE/COMBAT_LOCKED/SHUTDOWN
-    apiVersion = 1,
-    providerRegistry = ...,
-    contextStore = ...,
-    query = ...,
-    intent = ...,
-    palette = ...,
-}
-```
-
-Internal fields are private by convention and are not part of the SDK. Public
-objects are returned through SDK methods and are never exposed as mutable host
-tables.
-
-### 4.1 Lifecycle phases
+SDK 必须支持以下两个等价时序，并对每个 Extension 只提交一次注册事务：
 
 ```text
-BOOTSTRAP
-  -> SDK_READY
-  -> PROVIDERS_COLLECTED
-  -> SAVED_VARIABLES_READY
-  -> PLAYER_LOGIN_READY
-  -> HOST_READY
-  -> PALETTE_OPEN (temporary)
-  -> HOST_READY
+Extension first: RegisterExtension -> Register* -> Commit -> pending -> AttachHost -> registered
+Host first:      AttachHost -> RegisterExtension -> Register* -> Commit -> registered immediately
 ```
 
-Rules:
+### 5.2 发现策略
 
-1. SDK creates its registry in its main chunk.
-2. Host creates Core services and consumes pending registrations.
-3. SavedVariables are bound before provider initialization that reads settings.
-4. Blizzard-dependent providers initialize at `PLAYER_LOGIN`.
-5. Palette frames are created once, hidden, and pooled.
-6. A provider that fails initialization is disabled for the session and reported.
+SDK registry 是“已接入”的唯一事实源。以下 API 只用于登录期诊断、兼容性展示和按需加载：
 
-No provider assumes the palette is open during registration. No provider creates
-a permanent `OnUpdate` driver during registration.
+- `C_AddOns.GetNumAddOns`
+- `C_AddOns.GetAddOnInfo`
+- `C_AddOns.GetAddOnMetadata`
+- `C_AddOns.GetAddOnDependencies`
+- `C_AddOns.IsAddOnLoaded`，返回 `loadedOrLoading, loaded`
+- `C_AddOns.LoadAddOn`
 
-### 4.2 精确启动时序
+Addon 枚举不进入每次按键的查询链路。LoD AddOn 被加载后，Host 仍等待它创建并成功 `Commit` Extension；“已加载”和“已接入”是两个状态。
+
+诊断必须区分三种事实，不能根据 TOC 元数据推断注册成功：
+
+1. `installed`：AddOn 可被 `C_AddOns` 枚举。
+2. `loading/loaded`：调用 `local loadedOrLoading, loaded = C_AddOns.IsAddOnLoaded(name)`；`loaded == true` 才是加载完成，`loadedOrLoading == true` 且 `loaded == false` 表示正在加载，两者均为 false 表示尚未加载。
+3. `sdk-registered`：Extension 已成功 `Commit`，并进入 pending 或 attached registry。未提交草稿不算接入。
+
+`X-Lychee-*` TOC 字段只提供候选信息和诊断文案。LoD AddOn 若希望在加载前可被搜索，必须声明可索引的 `X-Lychee-Keywords`；Host 在登录期一次性建立轻量候选索引，用户选择候选后才调用 `C_AddOns.LoadAddOn`。缺少该元数据的 LoD AddOn 只在诊断页或其他已加载入口中出现。Host 不在每次输入时扫描或自动加载所有候选。
+
+两个返回值来自 wowdoc `wow-ui-source`、retail `12.1.0`、提交 `31c7f7b9cc79e56c986b365c06a6afbcf3c9177b` 的 `Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua`（322-335）。
+
+### 5.3 通信边界
+
+本机 SDK 调用使用 Lua 表、注册句柄和结构化 payload。`C_ChatInfo.RegisterAddonMessagePrefix` 与 `C_ChatInfo.SendAddonMessage` 属于客户端间文本消息通道，不参与本机注册、查询或 Intent 调用。
+
+### 5.4 Secret 与不可访问值边界
+
+SDK schema 层和 Host 的所有数据入口共用一个递归 plain-data validator。它用于 Extension descriptor、Command/Provider 声明、ContextSnapshot 字段、capability request/result、dynamic item、Intent payload 和 ExecutionResult；只允许受限深度和数量的 `nil`、boolean、有限 number、string 与无环 plain table。
+
+校验顺序是安全契约，而不是实现细节：
+
+1. `nil` 直接按 schema 处理；对每个非 nil 根值、table key 和 table value，先调用 `issecretvalue(value)`；为 true 时立即拒绝，不做比较、格式化、复制或字符串化。
+2. 再调用 `canaccessvalue(value)`；为 false 时立即拒绝。
+3. 值为 table 时，必须先确认 `canaccesstable(value)`，之后才允许 `next`/`pairs`、索引或递归。
+4. 通过访问检查后再做类型、循环、深度、字段数和 schema 校验；key 与 value 都递归执行同一顺序。
+5. 任一步失败只返回稳定错误码和不包含原值的字段路径，例如 `INACCESSIBLE_VALUE`；诊断不得记录该值、table 内容或由其派生的文本。
+
+Secret 或当前调用方不可访问的数据不得进入 CommandCatalog/StaticIndex/Ranker、Intent、recent/favorite、诊断 ring buffer、缓存或 SavedVariables。ContextStore 从 Blizzard API 收到这类字段时丢弃该字段或整个受影响切片、递增无 payload 的计数器并使相关 capability 返回 unavailable；不得把占位字符串或原值转交第三方。
+
+这些检查依据 wowdoc `wow-ui-source`、retail `12.1.0`、提交 `31c7f7b9cc79e56c986b365c06a6afbcf3c9177b`：`FrameScriptDocumentation.lua` 中 `issecretvalue`（263）、`canaccessvalue`（65）和 `canaccesstable`（48）。
+
+## 6. Extension 生命周期
 
 ```text
-ADDON_LOADED(LycheeSDK)
-  1. SDK 创建私有状态和 pendingRegistry
-  2. SDK 暴露全局只读入口 `LycheeSDK`
-  3. 已加载的第三方主 chunk 调用 RegisterProvider，进入 pending
-
-ADDON_LOADED(Lychee)
-  4. Host 创建 `Lychee` 私有运行时和 direct event frame
-  5. Host 绑定/迁移 `LycheeDB`，但不初始化依赖玩家状态的 Provider
-  6. Host 调用 `SDK:AttachHost(hostAdapter)`，一次性 drain pending
-  7. Host 校验所有声明，状态置为 `registered`
-
-PLAYER_LOGIN
-  8. ContextStore 建立初始快照并注册精确 unit/event 监听
-  9. 静态 Provider 批量发布 Entry，StaticIndex 单次构建
- 10. UI 创建并隐藏 Palette、ResultRow 池和安全按钮池
- 11. 所有成功 Provider 状态置为 `enabled`，Host 状态置为 `READY`
+draft --Commit--> pending -> registered -> enabled -> slow
+  |                                    |          |
+  +--Abort/invalid--> discarded        +-> disabled
+                                       +-> retiring -> removed
 ```
 
-同一事件重复触发必须幂等。`AttachHost`、`PLAYER_LOGIN` 和 `ReloadIndex` 均有
-一次性 guard；不允许通过重复执行来“修复”初始化顺序。
+- `draft`：Extension 元数据和子声明暂存，尚未发布到 registry。
+- `pending`：Extension 已提交，Host 尚未 attach，或当前 Host revision 不兼容而等待后续 Host。
+- `registered`：Host 已完成 schema 和版本校验，尚未启用。
+- 注册阶段完成 API 版本兼容判断；不兼容实例停留在 pending/incompatible，并保留稳定诊断码。
+- `enabled`：Command、Provider 和 Handler 可以参与运行。
+- `slow`：动态调用连续超过预算，只进入降频队列。
+- `disabled`：本会话停止调用，保留诊断记录。
+- `retiring`：注销已开始，等待当前 generation 和 ViewHost 清理。
 
-### 4.3 Provider 生命周期状态机
+注册必须是原子的。`RegisterExtension` 只创建草稿并预留 ID，四种 `Register*` 只写入草稿；`Commit()` 一次性校验交叉引用、版本、schema 和数量上限。任一子声明或 Commit 失败时不发布任何对象，草稿只能 Abort 或丢弃。重复 ID 不覆盖已提交实例。
 
-```text
-PENDING -> REGISTERED -> ENABLED -> SLOW -> DISABLED
-             |             |          |          |
-             +-------------+----------+----------+
-                    UNREGISTERED（仅在 Host 未执行中的安全点）
-```
+每次注册返回不可伪造的句柄。注销使用句柄而非 ID，避免旧实例移除同 ID 的新实例。
 
-- `PENDING`：SDK 已校验声明，Host 尚未 Attach。
-- `REGISTERED`：已进入 Host registry，但尚未完成 `init`。
-- `ENABLED`：可参与静态检索和动态解析。
-- `SLOW`：最近窗口超过预算，仍可参与但只走 deferred resolver。
-- `DISABLED`：本会话停止调用；必须保留错误码和最后一次耗时。
-- `UNREGISTERED`：Provider 主动注销或其 AddOn 卸载。若当前查询正在执行，
-  先标记 `retiring=true`，待 generation 完成后再从索引移除，不能在遍历中直接删表。
+Host detach 时，`registered`/`enabled` Extension 先停止 Host 托管任务并清理 ViewHost，再回到 `pending`；后续兼容 Host attach 时重新注册。`Unregister()` 幂等，只移除 Lychee 接入，不卸载第三方 AddOn。
 
-Provider 只允许通过 `SDK:RegisterProvider`、`SDK:UnregisterProvider(handle)`、
-`SDK:SetProviderEnabled(handle, enabled)` 改变状态。handle 由注册调用返回，防止
-同 ID 的新版本误删旧实例。Host 禁用不会删除 SavedVariables 或公开 Entry ID。
+## 7. Command 模型
 
-## 5. Public SDK Contract
-
-### 5.1 Provider registration
-
-```lua
-SDK:RegisterProvider({
-    id = "my-addon",
-    apiVersion = 1,
-    name = "My Addon",
-    icon = "Interface\\Icons\\INV_Misc_Gear_01",
-    priority = 100,
-    capabilities = {
-        staticEntries = true,
-        dynamicSearch = true,
-        contextActions = true,
-        secureActions = false,
-    },
-    entries = { ... },
-    search = function(query, context) ... end,
-    resolve = function(ast, context) ... end,
-})
-```
-
-Required fields: `id`, `apiVersion`, `name`, and at least one of `entries`,
-`search` or `resolve`.
-
-Provider IDs are lowercase, globally unique and immutable after publication.
-The SDK rejects duplicate IDs; the first valid registration wins and a
-diagnostic is emitted for the duplicate.
-
-Allowed `priority` range is `-100..1000`. Host built-ins use `500..1000`;
-external providers default to `0`. Priority affects ranking only and never
-grants execution privileges.
-
-#### 5.1.1 注册结果与版本协商
-
-`RegisterProvider` 不向第三方抛出错误；始终返回 `ok, handleOrError`：
-
-```lua
-local ok, handleOrError = LycheeSDK:RegisterProvider(declaration)
-if not ok then
-    -- handleOrError.code: INVALID_SCHEMA / DUPLICATE_ID / UNSUPPORTED_API / ...
-end
-```
-
-SDK 支持矩阵：
-
-| `apiVersion` | 行为 |
-| --- | --- |
-| `1` | 支持 `entries`、`search`、`resolve` 和普通 Intent |
-| `1` + `secureActions=true` | 还必须提供 v1 Descriptor；不接受任意回调执行 |
-| 高于 Host 支持版本 | 保留为 `pending/incompatible`，不调用回调 |
-| 低于最低版本 | 返回 `UNSUPPORTED_API`，不进入 registry |
-
-Provider 可声明 `minHostVersion`。Host 不满足时状态为 `incompatible`，诊断显示
-需要的版本，但不影响其他 Provider。`SDK:GetCapabilities()` 返回
-`{ apiVersion, hostAttached, secureDescriptors }`，第三方可据此只发布兼容能力。
-
-#### 5.1.2 完整声明形状
+Command 是唯一可搜索对象。最小规范化形状：
 
 ```lua
 {
-    id = "my-addon",                  -- [a-z0-9][a-z0-9.-]{0,63}
-    apiVersion = 1,                    -- integer
-    minHostVersion = 1,                -- optional integer
-    name = "My Addon",                -- string or locale table
-    icon = "Interface\\Icons\\...", -- optional texture path/fileID
-    priority = 0,                      -- integer -100..1000
-    capabilities = { ... },
-    dependencies = { "other-addon" }, -- optional provider IDs
-    entries = function() return entries end, -- table or zero-arg factory
-    search = function(query, context) return entries end,
-    resolve = function(ast, context) return entryOrNil end,
-    init = function(hostServices) return cleanupFn end,
-    shutdown = function(reason) end,
-}
-```
-
-`entries` 工厂只在启用或显式索引失效时调用，不在每次按键时调用。`init` 返回的
-`cleanupFn` 在禁用/注销时只执行一次；即使没有返回值，Host 仍会断开由它托管的事件
-和 timer。`dependencies` 只表达能力依赖，不改变 WoW AddOn 加载顺序。
-
-### 5.2 Entry schema
-
-```lua
-{
-    id = "my-addon:open-options",
-    title = "打开插件设置",
-    subtitle = "My Addon",
-    icon = "Interface\\Icons\\INV_Misc_Gear_01",
-    category = "settings",
-    aliases = { "配置", "选项", "options" },
-    keywords = { "设置", "config" },
-    pinyin = { "shezhi", "sz" },
-    verbs = { "打开", "查看", "open", "show" },
-    availability = function(context) return true end,
+    id = "sample.search",
+    title = "搜索示例数据",
+    aliases = { "示例", "sample" },
+    keywords = { "search" },
+    presentation = "row", -- row/dynamic-list/custom-panel
+    availability = { context = "ui-state", key = "sample.available" },
     intent = {
-        type = "open-config",
-        addon = "my-addon",
+        type = "sample.open",
+        version = 1,
+        payload = {},
     },
 }
 ```
 
-Invariants:
+约束：
 
-- `id` is unique within a provider and stable across releases.
-- `title` is user-visible and localized by the provider.
-- Index metadata is separate from display text.
-- `availability` is cheap and runs after candidate retrieval.
-- An Entry has a declarative Intent or a host-approved callback registration.
-- An Entry never receives a UI frame reference.
+- ID 在 Extension namespace 内稳定且唯一；Host 规范化为 `extensionID:commandID`，第三方不自行填写 `extensionID`。
+- 展示文案与索引关键词分离。
+- availability 读取 ContextSnapshot，不产生副作用。
+- Command 不持有 Palette frame。
+- `row` 必须声明静态 `intent`。
+- `dynamic-list` 必须声明 `resolve` 和 `itemIntent`；resolver 只返回结构化 item。
+- `custom-panel` 必须引用已注册的 PanelFactory ID，Panel 生命周期由 ViewHost 驱动。
 
-#### 5.2.1 Entry 与 Intent 的稳定性
+## 8. CapabilityProvider 模型
 
-Provider 只填写 `intent` 或注册过的 `intentFactoryKey`，`providerID` 由 Host 填充：
-
-```lua
-{
-    id = "my-addon:open-options",
-    providerID = "my-addon",
-    schemaVersion = 1,
-    title = "打开插件设置",
-    subtitle = "My Addon",
-    icon = "Interface\\Icons\\INV_Misc_Gear_01",
-    category = "settings",
-    aliases = { "配置", "选项", "options" },
-    keywords = { "设置", "config" },
-    pinyin = { "shezhi", "sz" },
-    verbs = { "打开", "查看", "open", "show" },
-    availabilityKey = "my-addon:settings",
-    intent = { type = "open-config", addon = "my-addon" },
-}
-```
-
-`Entry.id` 在 Provider 的整个发布周期内不可复用；删除后保留 tombstone 一个数据版本，
-避免 recent/favorite 指向另一项能力。展示文本变化不影响 ID。Provider 的
-`availability` 函数必须无副作用且快速；新实现优先使用 Host 注册的
-`availabilityKey`，由 Host 统一读取 Context。
-
-### 5.3 Dynamic search contract
-
-`search(query, context)` receives an immutable query snapshot and a read-only
-context snapshot. It returns at most 20 normalized Entry values. The host may
-discard results from an obsolete query generation.
-
-The provider does not mutate `context`, write SavedVariables, create frames or
-perform protected actions in `search`.
-
-#### 5.3.1 查询代次、取消和预算
-
-每次输入变化生成不可复用的 `generation`：
-
-```lua
-querySnapshot = {
-    generation = 1042,
-    raw = "打开 天赋",
-    normalized = ...,
-    contextVersion = 42,
-    deadlineMS = 8,
-}
-```
-
-Host 先递增 generation、标记旧任务 cancelled，再同步完成静态检索。动态 Provider
-收到只读快照，返回值由 Host 绑定 generation。回调没有协作式取消时，采用“结果丢弃”：
-
-```lua
-if resultGeneration ~= Query.activeGeneration then return end
-```
-
-同一 Provider 同一 generation 不重复调用。输入事件在 `0.05s` debounce 窗口内只保留
-最后一次；上下文变化在窗口内合并为一次 flush。每代最多调用 8 个动态 Provider、
-每个最多返回 20 条 Entry、同步总预算 8ms。超预算 Provider 进入 `SLOW` 并排入
-deferred 队列，不能继续占用下一次按键的同步路径。
-
-### 5.4 Capabilities
-
-```text
-staticEntries       provider has load-time entries
-dynamicSearch       provider resolves query-dependent results
-contextActions      provider consumes context fields
-secureActions       provider declares secure descriptors
-settingsLink        provider exposes a settings target
-```
-
-Capabilities describe behavior, not trust. Only the host grants secure
-execution after validating a descriptor.
-
-## 6. Query and Semantic Matching Pipeline
-
-```text
-raw input
-  -> Normalizer
-  -> Tokenizer
-  -> IntentParser
-  -> StaticIndex retrieval
-  -> Provider resolver pass
-  -> Availability/context filter
-  -> Fuzzy scoring
-  -> Ranker
-  -> pooled ResultRows
-```
-
-### 6.1 Normalizer
+Provider 以稳定 capability type 注册输入/输出契约：
 
 ```lua
 {
-    raw = "打开 天赋",
-    folded = "打开 天赋",
-    tokens = { "打开", "天赋" },
-    asciiTokens = {},
-    pinyinTokens = {},
-    compact = "打开天赋",
+    id = "sample.data.default",
+    type = "sample.data",
+    version = 1,
+    priority = 0,
+    requestSchema = { text = "string" },
+    resultSchema = "sample.data-list.v1",
+    query = function(request, context) return result end,
 }
 ```
 
-It performs case, punctuation and whitespace folding, known
-traditional-to-simplified aliases, English lowercase and command-prefix
-extraction. It does not call provider code.
+`CapabilityBroker` 负责：
 
-Reserved prefixes:
+- 按 type 和版本选择 Provider。
+- 校验输入与输出 schema。
+- 设置耗时、结果数和调用深度预算；v1 Provider 只执行有界同步查询，昂贵数据必须来自事件驱动缓存或预索引。协作式 deferred queue 只提供给 `dynamic-list` resolver。
+- 隔离错误并返回稳定错误码。
+- 缓存明确声明为可缓存的结果。
 
-```text
->query       prefer command/provider search
-@name        prefer addon/provider names
-!action      prefer executable actions
-?help        search help and diagnostics
-```
+Provider 不进入搜索结果、不控制结果布局、不注册快捷键。Host 内置 Provider 和第三方 Provider 进入同一 Broker；内部实现可以获得额外的 Host service，但输出必须规范化成相同 schema。
 
-Prefixes are optional ranking hints, not separate execution paths.
+Command 不持有 Provider 函数引用。需要能力时只提交 capability type、版本和结构化 request，由 Broker 完成选择、调用和校验。这保证更换或新增数据源不需要改写 Command 的 UI 契约。
 
-### 6.2 Token and alias data
+## 9. Intent 模型与执行
 
-Every Entry contributes title, aliases, keywords, pinyin and optional verbs to
-an inverted index:
-
-```text
-token -> entry IDs
-```
-
-Chinese segmentation uses a small built-in dictionary plus character bigrams
-as fallback. Pinyin is generated offline or supplied by the provider; runtime
-code does not load a large NLP package.
-
-### 6.3 Intent parsing
+Intent 是结构化动作：
 
 ```lua
 {
-    verb = "open",
-    target = "talent",
-    unit = nil,
-    modifiers = {},
+    type = "sample.open",
+    version = 1,
+    payload = { itemID = "42" },
 }
 ```
 
-Canonical verbs include `open`, `show`, `search`, `cast`, `use`, `equip`,
-`copy`, `navigate` and `help`. Providers add aliases but do not create an
-execution path outside the Intent schema.
+第三方通过 Extension handle 创建 Intent，只填写 `type`、`version` 和 `payload`。IntentRouter 规范化时补入可信的 `extensionID`，第三方 payload 不能覆盖归属。
 
-### 6.4 Candidate retrieval and ranking
-
-The host retrieves a bounded candidate set before fuzzy work. Default limit is
-200 candidates and 20 displayed results.
+执行链路：
 
 ```text
-ID exact match          1000
-Title exact match        900
-Alias exact match        800
-Token prefix match       700
-All-token match          600
-Intent verb/object       550
-Synonym match            500
-Fuzzy match              400
-Context relevance        +100
-Favorite                 +80
-Recent                   +50
-Provider priority        +priority
+Command/item selection
+  -> IntentFactory
+  -> Intent schema validation
+  -> availability/policy check
+  -> normal or secure handler
+  -> ExecutionResult
+  -> recent/diagnostics update
 ```
 
-Scores are explainable and can be logged in developer mode. A low-confidence
-result is displayed only above the configured threshold; otherwise the UI shows
-help/recent fallback results.
+`ExecutionResult` 至少包含 `ok`、稳定 code 和可选 message key。只有 `ok=true` 才写入 recent。
 
-### 6.5 Dynamic provider budget
+### 9.1 普通动作
 
-Static retrieval is synchronous. Dynamic calls are limited to providers whose
-metadata intersects the query or context. The host invokes at most 8 dynamic
-providers per query generation and accepts at most 20 results from each.
+普通 Handler 通过局部 `xpcall` 执行。回调错误只结束当前 Intent，并为对应 Extension 增加失败计数。
 
-Slow providers are measured with `debugprofilestop`, marked in the session and
-moved to deferred resolver passes. The host never performs a full provider scan
-on every keystroke.
+### 9.2 受保护动作
 
-### 6.6 QueryOrchestrator 精确算法
+战斗相关动作使用 Host 定义的声明式 Secure Descriptor。第三方只提交允许字段；第三方不接触按钮对象、属性写入接口或脚本源码。
 
-一次查询按以下顺序执行，顺序不可调整：
+SecureActionBroker 在初始化期且 `not InCombatLockdown()` 时创建 Host 自有按钮：
+
+```lua
+local button = CreateFrame("Button", nil, UIParent, "SecureActionButtonTemplate")
+button:RegisterForClicks("LeftButtonUp")
+```
+
+Descriptor 先经过白名单和 schema 校验，再由 Broker 在脱战时写入 `type`、目标和动作所需的最小 attributes。按钮只在 descriptor 与可见结果一致后显示；进入战斗后不得创建按钮、修改 protected attributes、改变父级/锚点或重新绑定动作。配置失效时保持 dirty，等待 `PLAYER_REGEN_ENABLED` 后重新准备。
+
+SecureActionButton 能执行受保护动作的前提是用户对已经显示、已在脱战完成配置的按钮进行真实硬件点击。普通 Lua 回调、`dispatchIntent`、输入框 Enter、`Button:Click()` 和其他 scripted input 不能替代这个点击；`ScriptedInput` 明确限制 Lua 触发的合成输入。
+
+Lychee 当前产品策略更严格：战斗中 Palette 必须关闭，`TOGGLELYCHEE` 失效，所以 Lychee 不在战斗中展示或触发上述按钮。SecureActionBroker 仍按正确的模板和属性冻结规则实现，用于脱战准备、避免错误的 scripted click，并为未来单独评审的战斗交互保留清晰边界；没有新的设计变更前，不得以 secure button 为由绕过战斗关闭策略。
+
+这一约束以 wowdoc `wow-ui-source`、retail `12.1.0`、提交 `31c7f7b9cc79e56c986b365c06a6afbcf3c9177b` 为证据：`Blizzard_FrameXML/SecureTemplates.xml` 的 `SecureActionButtonTemplate`（4），以及 `ForbiddenAspectConstantsDocumentation.lua` 的 `ScriptedInput`（19）。后续实现需再次按目标客户端版本验证。
+
+## 10. 搜索与语义匹配
+
+### 10.1 查询链路
 
 ```text
-OnTextChanged(raw)
-  -> generation += 1，旧 generation 标记 cancelled
-  -> 记录 pendingRaw，重启唯一 debounce timer
-  -> Flush(generation)
-       1. Normalize/Tokenize/ParseIntent
-       2. 用 tokenPosting 求并集，截断为 200 个 candidateID
-       3. 读取 generation 创建时的 ContextSnapshot
-       4. availability/context filter
-       5. 计算静态分数并 stable sort
-       6. 立即发布最多 20 条静态结果
-       7. 选择最多 8 个动态 Provider
-       8. 在同步预算内执行 fast resolver
-       9. 合并、去重、重排并发布
-      10. 剩余 resolver 进入 deferred queue
+Input text changed
+  -> generation + 1
+  -> normalize
+  -> tokenize / intent parse
+  -> static candidate retrieval
+  -> context availability filter
+  -> deterministic rank
+  -> publish row results
+  -> invoke matched dynamic resolvers
+  -> verify generation
+  -> merge and diff-render
 ```
 
-每一个可重入边界之后都检查 `generation == activeGeneration`：Provider 回调返回后、
-deferred tick 开始时、结果发布前和 UI render 前。旧 generation 只能释放 scratch/table，
-不能更新结果、recent、诊断中的“当前查询”或选中行。
+每次输入变化生成单调递增 generation。动态结果返回时必须同时匹配当前 generation、query key 和 context version；旧结果直接丢弃。
 
-去重键固定为 `providerID .. "\0" .. entryID`。动态结果与静态结果同键时，动态结果只允许
-更新 `subtitle`、`icon`、`availability` 和 Intent payload，不允许改变 ID、Provider 和
-基础索引词。排序使用 `(score desc, providerPriority desc, normalizedTitle asc, stableID asc)`，
-因此同样输入和 Context 必须得到同样顺序。
+### 10.2 Normalization
 
-### 6.7 Deferred resolver 调度
+规范化顺序固定：
 
-`Core/Scheduler.lua` 只有一个可见时驱动：Palette 打开且队列非空时 `Show()`，否则
-`Hide()`。每帧可使用的 Lua 时间片默认 2ms，最多执行一个 Provider 回调；执行前后用
-`debugprofilestop()` 采样。队列元素为：
+1. 去除首尾空白并合并连续空白。
+2. ASCII 转小写。
+3. 全角字符转半角。
+4. 统一受支持的中文标点。
+5. 提取显式动词、参数和剩余 token。
+6. 读取预生成的拼音全拼/首字母索引。
+
+拼音数据在注册或构建索引时生成，按键热路径不做全量转写。
+
+### 10.3 候选与排序
+
+静态索引维护 exact ID、title token、alias、keyword、pinyin 和 category 倒排表。候选上限默认 200，展示上限默认 20。
+
+排序因子按固定顺序组合：
+
+1. exact title/alias；
+2. prefix；
+3. token coverage；
+4. pinyin prefix；
+5. context relevance；
+6. favorite/recent；
+7. Extension priority；
+8. stable ID 作为最终 tie-break。
+
+相同输入、相同 ContextSnapshot 和相同索引版本必须产生相同顺序。
+
+### 10.4 调度
+
+- 输入使用单一 debounce，建议默认 0.05 秒。
+- 静态检索同步完成。
+- 只有已命中的 dynamic Command 才调用 resolver。
+- deferred 工作按固定时间片执行，Palette 隐藏后立即取消。
+- resolver 没有协作式取消时使用 generation 丢弃旧结果。
+- 需要取消的一次性延迟和周期任务分别使用 `C_Timer.NewTimer`、`C_Timer.NewTicker`，保存返回的 callback object，并在查询替换、Palette 关闭、Panel Unmount、Extension disable/unregister 和 Host detach 时调用 `:Cancel()` 后清除引用。
+- `C_Timer.After` 不返回可取消句柄，只允许用于无需持有业务对象的极短 next-turn flush。回调必须捕获数值 generation/session token，开头校验 token、Palette 可见性和所属 Extension 状态；过期立即 return。需要可靠取消、可能跨越战斗切换或会持有 frame/payload 的工作不得使用 `After`。
+- Scheduler 统一登记 timer/ticker 句柄；不得创建无法从所有退出路径找到并取消的匿名后台任务。
+
+timer 契约依据同一 wowdoc 快照的 `Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua`：`After`（11-20）没有返回项，`NewTicker`（22-36）和 `NewTimer`（39-52）返回 callback object。
+
+## 11. Presentation 与 UI 所有权
+
+### 11.1 `row`
+
+Lychee 绘制单行结果。Enter 或点击后生成并路由 Intent。
+
+### 11.2 `dynamic-list`
+
+第三方返回结构化 item：
 
 ```lua
 {
-    generation = 1042,
-    providerID = "my-addon",
-    querySnapshot = querySnapshot,
-    contextSnapshot = contextSnapshot,
-    enqueuedAtMS = 123456,
+    id = "item-42",
+    text = "主文本",
+    subtext = "副文本",
+    icon = texture,
+    enabled = true,
+    payload = opaque,
 }
 ```
 
-调度规则：
+Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态、空状态和 generation 校验。item payload 只传给所属 Command 的 `itemIntent`。
 
-1. Palette 隐藏、generation 过期或 Provider 不再 enabled 时直接丢弃。
-2. 同 Provider 在一代中只允许一个排队项。
-3. 一个回调超过 4ms 记一次 slow strike；连续 3 次进入 `SLOW`。
-4. `SLOW` Provider 只在静态结果不足 10 条时调度，且每代最多一次。
-5. 回调错误记 failure，不重试当前 generation；下一个 generation 才可重新参与。
-6. 队列清空时当帧隐藏 driver，不能等下一帧再隐藏。
+`resolve` 由 QueryOrchestrator 调用，不由 ResultList 直接调用。返回 item 必须有 Extension 内稳定 ID；`itemIntent` 只把选中 item 转换为结构化 Intent，实际执行仍经过 IntentRouter。
 
-### 6.8 缓存分层与失效
+### 11.3 `custom-panel`
 
-| 缓存 | Key | 失效条件 |
-| --- | --- | --- |
-| normalized query | raw string | LRU 128；超限淘汰 |
-| token posting | normalized token | Provider static revision 改变 |
-| parsed intent | normalized compact query | synonym/verb dictionary revision 改变 |
-| provider static entries | providerID + declaration revision | enable/disable/register/unregister |
-| dynamic result | providerID + query + declared context versions | 任一版本变化或 TTL 到期 |
-| ranked result | generation only | generation 结束即释放 |
-
-缓存不得把完整 Context、UI frame、Provider declaration 或闭包作为 key。失效操作只标记
-revision/dirty，在安全点批量重建；事件 handler 内不重建完整索引。
-
-## 7. Context Store
+Lychee 创建 ViewHost，并向 Extension 提供受限 `PanelContext`：
 
 ```lua
 {
-    version = 42,
-    player = { class = "MAGE", specID = 64, level = 90 },
-    target = { exists = true, hostile = true, unit = "target" },
-    zone = { mapID = 123, instanceType = "party" },
-    group = { type = "party", size = 5 },
-    combat = false,
-    ui = { activePanel = nil },
+    contentFrame = hostOwnedFrame,
+    width = number,
+    height = number,
+    context = readOnlyContextSnapshot,
+    close = hostClose,
+    invalidate = requestUpdate,
+    requestFocus = requestDescendantFocus,
+    dispatchIntent = routeStructuredIntent,
 }
 ```
 
-Events update only the affected slice and increment its version:
+Panel 生命周期：
 
 ```text
-PLAYER_SPECIALIZATION_CHANGED -> player.specVersion
-PLAYER_TARGET_CHANGED         -> target.version
-PLAYER_ENTERING_WORLD         -> zone.version/group.version
-PLAYER_REGEN_DISABLED         -> combat
-PLAYER_REGEN_ENABLED          -> combat
+create once -> (Mount(context) -> Update(state)* -> Unmount(reason))* -> Dispose
 ```
 
-Providers declare context dependencies. A provider is invalidated only when a
-declared dependency changes. Context collection is event-driven; providers do
-not poll the whole game state from `OnUpdate`.
+Lychee 始终拥有 Palette 根 frame、焦点、Esc、尺寸、层级、关闭和清理。第三方只在 `contentFrame` 下创建子 frame。Palette 隐藏、Extension 禁用、Panel 异常和 `/reload` 前清理都经过 `Unmount`；Extension 注销时在最后一次 Unmount 后调用可选 `Dispose`。
 
-### 7.1 Snapshot 契约
+PanelFactory 由 Extension handle 的 `RegisterPanelFactory` 注册，Command 只引用其 ID。ViewHost 通过错误边界调用 `create`、`Mount`、`Update`、`Unmount` 和 `Dispose`；PanelContext 只暴露本文列出的托管能力，Panel 不直接访问 CommandCatalog、CapabilityBroker 或 IntentHandler。
 
-ContextStore 内部按 slice 保存 `{ value, version }`。查询开始时只复制 Provider 声明的
-slice 引用与数值 version，Provider 得到的表设置只读 metatable；修改尝试产生
-`READ_ONLY_CONTEXT` 诊断。快照在整个 generation 中保持一致，不因中途目标变化而替换。
+WoW AddOn 共享同一 Lua 环境，ViewHost 是生命周期和所有权边界，不是强安全沙箱。Host 自动取消通过 PanelContext/runtime 创建的托管任务；第三方直接注册的 Blizzard 事件、`C_Timer` 和 ticker 必须由其 `Unmount`/`Dispose` 清理，Host 无法枚举并撤销这些资源。
 
-Provider 声明依赖：
+WoW Frame 没有供 AddOn 普遍调用的销毁操作。这里的 `Dispose` 表示停止脚本/事件/timer/ticker、隐藏 frame、清空大对象和回调引用，并将可复用对象交回池；它不承诺销毁底层 Frame。`SetParent(nil)` 也不等于销毁，不作为释放证明。Panel 重挂载优先复用既有子 frame，避免每次打开无界创建对象。
+
+### 11.4 快捷键与焦点
+
+Lychee 只注册一个全局 Binding。`Bindings.xml` 的完整契约是：
+
+```xml
+<Bindings>
+    <Binding name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">
+        Lychee_Toggle();
+    </Binding>
+</Bindings>
+```
+
+加载期按 locale 设置下列 WoW 约定的全局字符串；缺少 locale 时回退到默认文案：
 
 ```lua
-context = {
-    required = { "player.spec", "combat" },
-    optional = { "target", "zone" },
-}
+_G.BINDING_HEADER_LYCHEE = "Lychee"
+_G.BINDING_NAME_TOGGLELYCHEE = "打开/关闭 Lychee"
 ```
 
-未知字段在注册时拒绝。`required` slice 尚未 ready 时 Provider 暂不参与；`optional`
-缺失时读取为 `nil`。不得把 `Unit*` API、背包全量扫描等昂贵工作藏在 getter 中；
-ContextStore getter 只返回已经由事件更新的缓存。
+`Lychee_Toggle` 是 Bindings.xml 唯一调用的稳定全局函数，初始化时定义一次并只委托给私有 `PaletteController`。第三方、Command 和 Panel 都不能替换该函数、增加 Lychee 级 Binding 或直接持有 Controller。
 
-## 8. Intent and Execution
-
-Search results produce an Intent, never an arbitrary function call from UI.
+战斗策略是强制契约：
 
 ```lua
-{
-    type = "open-panel",
-    provider = "blizzard",
-    action = "talents",
-    payload = {},
-    policy = {
-        combat = "allowed",
-        secure = false,
-    },
-}
-```
-
-### 8.1 Ordinary executor
-
-Handles panels, settings, navigation, copying text and ordinary UI actions. It
-validates provider/action ownership and wraps external callbacks in a local
-`xpcall` boundary.
-
-### 8.2 Secure Action Broker
-
-Handles spell, item, target and macro actions through declarative descriptors:
-
-```lua
-{
-    type = "spell",
-    spellID = 12345,
-    unit = "target",
-}
-```
-
-The broker pre-creates a bounded secure-button pool, writes attributes only
-when permitted, and applies these policies:
-
-```text
-allowed          execute immediately
-out-of-combat    show “available after combat” state
-secure-required  route through broker
-unavailable      return a user-visible reason
-```
-
-Provider callbacks never receive secure button references and never submit Lua
-source for execution.
-
-### 8.3 IntentRouter 路由表
-
-Intent 类型必须注册到静态路由表，不能根据字符串拼接全局函数名：
-
-| 类型 | Executor | 可在战斗中搜索 | 可在战斗中执行 |
-| --- | --- | --- | --- |
-| `open-panel` | OrdinaryExecutor | 是 | 视 Blizzard API 限制 |
-| `open-config` | OrdinaryExecutor | 是 | 否，排队到脱战或提示 |
-| `copy-text` | OrdinaryExecutor | 是 | 是 |
-| `run-provider-action` | CallbackExecutor | 是 | 仅声明为 allowed |
-| `cast-spell` | SecureActionBroker | 是 | 仅预备好的 secure action |
-| `use-item` | SecureActionBroker | 是 | 仅预备好的 secure action |
-| `run-macro` | SecureActionBroker | 是 | 仅预备好的 secure action |
-
-路由前依次校验：Entry 仍存在、Provider 仍 enabled、Intent schema 合法、Context 条件仍满足、
-combat policy、secure descriptor。任一步失败返回结构化 `ExecutionResult`：
-
-```lua
-{ ok = false, code = "COMBAT_LOCKED", messageKey = "action_after_combat" }
-```
-
-只有 `ok=true` 才写 recent 和 usage count；失败不得改变排序历史。
-
-### 8.4 SecureActionBroker 准备生命周期
-
-Secure Action 不能在按下 Enter 后临时创建或随意改属性。Broker 使用以下两阶段模型：
-
-```text
-OUT_OF_COMBAT
-  descriptor validate
-    -> canonical key
-    -> 从固定池分配 secure button
-    -> ClearAttributes + 写 type/spell/item/macrotext/unit
-    -> 标记 PREPARED(descriptorKey, revision)
-
-USER EXECUTE
-  -> 再校验 descriptorKey/revision/context
-  -> READY: 通过预备按钮的受保护点击路径执行
-  -> NOT_PREPARED: 返回结构化原因，不伪装成已执行
-```
-
-池的默认上限由设置固定，首版为 32；仅为当前可见候选和固定 favorite 预备。Palette 结果变化
-时，脱战状态下复用/重写池；战斗中冻结属性，只允许使用战斗开始前已 `PREPARED` 且 revision
-一致的按钮。`PLAYER_REGEN_ENABLED` 后批量处理 `dirtyDescriptors`，每帧最多准备 4 个，
-完成后 driver 立即停止。
-
-Descriptor canonical key 包含 type、spellID/itemID/macroID、unit、button 和所有影响 secure
-属性的 modifier。禁止 Provider 提供 `_onclick`、`PreClick`、`PostClick`、frame reference、
-macro Lua、任意 attribute 名或超过 Blizzard 宏文本限制的内容。Descriptor 校验失败时返回
-`INVALID_SECURE_DESCRIPTOR`，并记到 Provider session record。
-
-### 8.5 普通回调边界
-
-外部普通回调通过注册时获得的 callback key 调用，不允许把 closure 直接挂进 Entry。Host 在
-局部 `xpcall(callback, errorHandler, immutablePayload, contextSnapshot)` 中执行；回调不能得到
-Palette frame、registry、SavedVariables root 或 SecureButton。一次执行超过 8ms 记录 slow
-strike，但不在同一次用户动作里自动重试，防止副作用重复。
-
-## 9. Palette UI and Keybinding
-
-### 9.1 State machine
-
-```text
-HIDDEN
-  -> OPENING
-  -> READY
-  -> SEARCHING
-  -> EXECUTING
-  -> HIDDEN
-```
-
-The only global binding calls `TogglePalette`:
-
-- HIDDEN: reuse the palette, show it, focus the EditBox and select all text.
-- READY/SEARCHING: hide the palette and release focus.
-- Combat/secure restriction: the palette may open for search; protected
-  execution remains subject to Intent policy.
-
-### 9.2 Pooled UI
-
-The palette owns a fixed result-row pool. Rendering diffs previous result IDs
-against new result IDs. It updates changed rows, hides unused rows and never
-tears down the entire list for one query change.
-
-Palette-local keys:
-
-```text
-UP/DOWN       move selection
-ENTER         execute selected Intent
-ESCAPE        hide palette
-TAB           cycle category/filter
-CTRL+ENTER    explicit confirmation when supported
-```
-
-When hidden, the palette has no active `OnUpdate`; query work happens on text
-change and is debounced/coalesced.
-
-### 9.2.1 Palette 状态转换副作用
-
-| 转换 | 必须执行 | 禁止执行 |
-| --- | --- | --- |
-| `HIDDEN -> OPENING` | Show、恢复上次位置、建立空 generation | 重建索引、创建结果行 |
-| `OPENING -> READY` | Focus EditBox、选择文本、发布 recent/favorite | 启动永久 OnUpdate |
-| `READY -> SEARCHING` | 递增 generation、启动唯一 debounce | 同步调用全部 Provider |
-| `SEARCHING -> READY` | 仅接受当前 generation、diff render | 整体销毁/重建 ResultList |
-| `READY -> EXECUTING` | 冻结选择、路由 Intent、防重复 Enter | 直接调用 Provider 表函数 |
-| `* -> HIDDEN` | cancel generation、清 deferred、释放焦点、Hide driver | 保留查询 timer/动画 |
-
-快速重复按快捷键必须幂等：OPENING 再 Toggle 直接进入 HIDDEN；EXECUTING 时 Toggle 只隐藏 UI，
-不能中断已经进入外部回调的普通动作。关闭时保留文本由用户设置决定，但无论是否保留都要
-递增 generation，使所有晚到结果失效。
-
-ResultRow 池固定 20 行。每行只接收不可变 ViewModel：
-
-```lua
-{
-    stableID = "provider\0entry",
-    title = "...",
-    subtitle = "...",
-    icon = 123,
-    selected = false,
-    availability = "ready", -- ready/locked/unavailable/deferred
-}
-```
-
-`ResultList:Render` 以 stableID 复用行，只对变化字段调用 setter；选中项消失时选择排序后的
-第一项，不能按旧数组 index 选择另一条 Entry。
-
-### 9.3 Keybind configuration
-
-`KeybindManager` follows FarmHud's native pattern:
-
-```lua
-local function SetLycheeBinding(key)
-    local old = GetBindingKey("TOGGLELYCHEE")
-    if old then SetBinding(old) end
-    if key and key ~= "" then SetBinding(key, "TOGGLELYCHEE") end
-    SaveBindings(GetCurrentBindingSet())
+_G.Lychee_Toggle = function()
+    if InCombatLockdown() then
+        return
+    end
+    PaletteController:Toggle()
 end
 ```
 
-The host never overwrites a saved binding at login. A default binding is a
-first-install suggestion only. Conflict information is read with
-`GetBindingAction` and shown in options; changing a binding is a user action.
+- `InCombatLockdown()` 为 true 时必须静默 return；不得打开、关闭或重排 Palette，不移动焦点，不创建 timer，也不启动、取消或递增查询。Binding 仍显示在按键设置中，但战斗期间调用无效果。
+- Core 事件 frame 注册 `PLAYER_REGEN_DISABLED` 和 `PLAYER_REGEN_ENABLED`。进入战斗事件到达且 Palette 已打开时，立即调用统一 `Close("combat")`：递增 generation、取消所有 timer/ticker/deferred token、Unmount 当前 Panel、回池结果行、隐藏 Palette 并清理输入状态。该路径不经过 toggle 的战斗短路。
+- 战斗关闭路径只清除 Lychee 自己的输入焦点，不尝试把焦点设置到外部 frame。`PLAYER_REGEN_ENABLED` 后不自动重开 Palette；无需重绑按键，`Lychee_Toggle` 因锁定解除而自动恢复，同时 Broker 可处理脱战后的 dirty secure 配置。
+- Esc 优先关闭 custom-panel，再走同一个 Palette `Close(reason)`；Enter 选择当前可用项，上下键改变选择，Tab 行为由 Palette 状态机统一定义。
+- 第三方 Panel 只注册可见期间的 frame-local 输入，不注册 Lychee 命名空间下的 Binding。
 
-## 10. Persistence
+焦点恢复只能是 best-effort。打开前仅保存当前调用方可访问的键盘焦点；关闭时先 `ClearFocus()` 自有输入框，再确认关闭 session 未变化、当前不在战斗、旧对象仍可访问且仍适合接收键盘输入，最后以局部 `pcall` 尝试恢复。任一检查失败就保持无焦点，不报错、不重试、不保存该对象到 SavedVariables。Lychee 不承诺恢复被其他 UI 在 Palette 打开期间主动改变的焦点。
 
-Lychee owns one SavedVariables root. Provider data is namespaced beneath it:
+本节 API 依据同一 wowdoc 快照：`RestrictedActionsDocumentation.lua` 的 `InCombatLockdown`（45-52），`Blizzard_SharedXML/BindingUtil.lua` 中按 `BINDING_NAME_<binding>` 读取本地化名称的实现（142-145），以及 `Blizzard_Commentator/Bindings.xml` 使用 `category="BINDING_HEADER_COMMENTATOR"` 的官方分类形式。
 
-```lua
-LycheeDB = {
-    version = 1,
-    profileKeys = {},
-    profiles = {
-        Default = {
-            recent = {},
-            favorites = {},
-            providers = {},
-        },
-    },
-}
-```
+## 12. ContextStore
 
-Provider settings use `profiles.Default.providers[providerID]`. Providers do not
-create independent SavedVariables for search metadata. Defaults are merged on
-load; values equal to defaults may be stripped on logout. Migrations are
-versioned and run before provider enablement.
-
-The format may be AceDB-compatible for migration convenience, but the runtime
-implementation remains Lychee-owned and dependency-free.
-
-## 11. Errors, Isolation and Diagnostics
-
-Every provider has a session record:
-
-```lua
-{
-    state = "enabled", -- pending/enabled/slow/disabled
-    failures = 0,
-    lastError = nil,
-    queryCostMS = 0,
-}
-```
-
-Rules:
-
-- Registration errors disable only that provider.
-- Search errors return no results from that provider and preserve the query.
-- Execution errors show a concise user error and retain a developer trace.
-- Three failures in one session put a provider in `disabled` state.
-- Core errors use the normal WoW error handler and keep the palette closable.
-- Developer mode may show provider, score components, query generation and
-  execution policy; default mode avoids diagnostic allocation in hot paths.
-
-## 12. Performance Budget
-
-These are architecture constraints:
-
-- No global per-frame search/update loop.
-- No provider full scan on every keystroke.
-- Static indexes build once and invalidate by explicit version changes.
-- Dynamic providers have bounded count, result count and measured cost.
-- Result rows, temporary token tables and common strings are reused where they
-  are proven hot.
-- Expensive UI setters are change-guarded.
-- Provider callbacks do not create frames during search.
-- Hidden Palette, empty provider registry and completed Intent execution have no
-  active ticker.
-- Search debounce defaults to `0.05` seconds.
-- Ranking runs on at most 200 candidates; display is capped at 20.
-
-Validation scenarios:
+ContextStore 把 Blizzard 事件转换为只读、版本化切片，例如：
 
 ```text
-login -> idle -> open palette -> 1-char query -> 20-char query
-single target combat -> multi-target combat -> full group
-1000+ static entries -> 8 dynamic providers -> provider failure
-palette close -> provider disable -> reload
+player, target, combat, group, instance, specialization,
+bags, equipment, spellbook, addons, ui-state
 ```
 
-Measure CPU, Lua memory, active rows, provider query cost and frame time with
-WoW profiling tools. A permanent frame/ticker requires a documented cost and an
-explicit stop condition.
+每个切片有独立 version。事件只更新受影响切片，并向 Catalog/Provider 发布精确 invalidation key。Provider 申报依赖切片，Host 只传需要的数据。
 
-## 13. EllesmereUI Reference Decisions
+高频事件由一个 Core handler 接收和聚合。第三方通过 SDK 读取快照，不自行建立完整镜像。
 
-The reference implementation is EllesmereUI release v8.9.1, commit
-`1b37158d7533deb2d5b0a74292438a8ea2191588`.
+ContextStore 在构造或更新切片时执行第 5.4 节的递归访问检查。未经检查的 Blizzard API 返回值不进入共享快照；包含 secret/inaccessible key、value 或不可索引 table 的字段在边界处拒绝，Provider 只能看到缺失/不可用状态，不能看到原值或其字符串表示。
 
-Relevant decisions to reuse:
+## 13. 内置功能
 
-- `EllesmereUI_Lite.lua` replaces AceAddon/AceEvent/AceDB with a small addon
-  registry, direct event frames, lifecycle queues and local database helpers.
-- Direct event handlers avoid a generic callback dispatch layer in the hot path.
-- Existing AceDB-shaped SavedVariables are read for compatibility without
-  requiring AceDB at runtime.
-- `EllesmereUI_Ticker.lua` uses self-disarming drivers and dense-array
-  swap-remove registration.
-- `EllesmereUI_UICore.lua` separates cheap visual updates from throttled widget
-  refreshes and defers full GC.
-- `EllesmereUI_AuraKit.lua` caches normalized filters and change-guards expensive
-  UI setters.
-
-EllesmereUI still uses selected standalone libraries such as LibStub,
-CallbackHandler, LibSharedMedia, LibDeflate, LibKeystone and
-LibSpecialization. The decision for Lychee is “no Ace3 framework dependency”,
-not “no reusable library may ever be used”. A dependency must be justified by a
-concrete capability and measured cost.
-
-## 14. Host Services 与内部功能接入
-
-### 14.1 ProviderContext（内部与 SDK 统一）
-
-Host 给 Provider 的 `init(hostServices)` 只暴露以下窄接口；返回对象必须是只读代理：
-
-```lua
-hostServices = {
-    apiVersion = 1,
-    providerID = "my-addon",
-    registerEntries = function(entriesOrFactory) end,
-    invalidate = function(reason) end,
-    getContext = function(keys) return snapshot end,
-    registerIntentFactory = function(key, descriptor) end,
-    registerCallback = function(key, fn, policy) end,
-    getProviderSetting = function(key, default) return value end,
-    log = function(level, code, fields) end,
-}
-```
-
-禁止暴露：`LycheeDB` 根表、`ProviderRegistry`、`StaticIndex`、Palette frame、任意
-`CreateFrame` helper、SecureButtonPool 和全局事件 frame。`registerEntries` 只写入该
-Provider 的 namespace；`invalidate("entries"|"availability"|"context")` 只设置 dirty 位，
-不在调用点同步重建索引。
-
-### 14.2 内部功能的接入方式
-
-内部功能与第三方完全走相同的四步：
-
-1. 在 `Builtin/<Name>Provider.lua` 定义声明和稳定 Entry ID。
-2. 在 `init` 中注册静态 Entry、Intent factory 和 Context 依赖。
-3. 由 `Core/ProviderRegistry` 完成启用、索引和错误隔离。
-4. 由 `IntentRouter`/`SecureActionBroker` 执行，不从 UI 直接调用内部函数。
-
-示例：设置页面只发布 `intent={type="open-config", addon="lychee"}`；SpellProvider
-只发布 `cast-spell` Descriptor；RecentProvider 不创建新动作，而是读取 usage store
-生成已有 Entry 的排序加权。这样内部功能不会形成一套绕过 SDK 的“特权 API”。
-
-### 14.3 SDK 外部接入最小示例
-
-```lua
-local SDK = LycheeSDK
-local ok, handle = SDK:RegisterProvider({
-    id = "my-addon",
-    apiVersion = 1,
-    name = "My Addon",
-    entries = {
-        {
-            id = "my-addon:open",
-            title = "打开面板",
-            aliases = { "配置", "open" },
-            intent = { type = "open-config", addon = "my-addon" },
-        },
-    },
-})
-```
-
-接入方只需要声明能力；不需要知道索引、输入框、快捷键或安全按钮如何实现。卸载/禁用时
-调用 `SDK:UnregisterProvider(handle)`，而不是操作 Host 表。
-
-## 15. 配置、迁移与数据所有权
-
-### 15.1 SavedVariables 所有权
-
-`LycheeDB` 只由 Host 声明和写入。Provider 数据必须位于
-`LycheeDB.profiles[profile].providers[providerID]`，SDK 不声明 SavedVariables。
-Host 给出的 settings API 返回拷贝或标量；Provider 通过 `SetProviderSetting` 写入，
-写入操作只标记 dirty，由 logout/显式保存时批量落盘。
-
-### 15.2 迁移顺序
+内置功能使用和第三方相同的注册 facade：
 
 ```text
-读取根表 -> 缺失字段补默认 -> 执行 version migration[n]
--> 校验 profile/provider namespace -> 丢弃未知/损坏值并记录诊断
--> 迁移完成后才 Enable Provider
+Builtin module
+  -> RegisterExtension
+  -> RegisterCapabilityProvider
+  -> RegisterCommand
+  -> RegisterIntentHandler
+  -> Commit
+  -> same Catalog/Broker/Router/UI
 ```
 
-迁移函数必须幂等、无 UI/战斗 API 调用、无深拷贝整表；每个版本只执行一次并写入
-`LycheeDB.version`。Provider 自己的配置版本放在 namespace 的 `schemaVersion`，由
-Host 在调用 `init` 前按声明迁移。
+内部模块可以使用额外 Host service，例如直接读取缓存后的 Context slice；它们不建立第二套索引、搜索或执行通道。建议的后续内置域包括 Blizzard 面板、法术、物品、宏、设置、插件、最近使用和收藏。
 
-### 15.3 Recent/Favorite 数据规则
+内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
 
-- `recent` 只存 stableID、最后时间和计数，不存 Entry 全量快照。
-- `favorites` 只存 stableID；Entry 不存在时显示“已移除”并提供清理动作。
-- 只有成功 `ExecutionResult.ok=true` 才更新 recent；搜索/预览不计入。
-- Provider 注销不删除其历史数据，重新注册同 ID 可恢复；ID 重新指向不同语义属于兼容性错误。
+Palette、输入框、结果列表和 ViewHost 本身属于 Host 基础 UI，不作为 Command 面板注册；用户实际搜索进入的设置、诊断、插件管理等功能页面则作为 Builtin Extension 的 Command/PanelFactory 接入。
 
-## 16. 错误、事件和可观测性契约
+## 14. 错误、兼容与诊断
 
-### 16.1 错误码
-
-SDK/Host 使用稳定机器码，UI 只把机器码映射到本地化 message key：
+稳定错误码至少覆盖：
 
 ```text
 INVALID_SCHEMA, DUPLICATE_ID, UNSUPPORTED_API, INCOMPATIBLE_HOST,
-PROVIDER_DISABLED, PROVIDER_TIMEOUT, PROVIDER_ERROR, STALE_GENERATION,
-ENTRY_NOT_FOUND, INTENT_INVALID, COMBAT_LOCKED, INVALID_SECURE_DESCRIPTOR,
-SECURE_NOT_PREPARED, ACTION_UNAVAILABLE, CALLBACK_ERROR
+EXTENSION_DISABLED, PROVIDER_TIMEOUT, PROVIDER_ERROR, STALE_GENERATION,
+COMMAND_NOT_FOUND, INTENT_INVALID, COMBAT_LOCKED,
+INVALID_SECURE_DESCRIPTOR, INACCESSIBLE_VALUE, PANEL_ERROR, CALLBACK_ERROR
 ```
 
-错误对象至少包含 `code`、`providerID`（若有）、`generation`（查询错误时）、
-`retryable` 和内部 `traceID`。默认 UI 不显示 Lua error 原文；开发者诊断页可按 traceID 展开。
+SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段或方法提升 revision；改变字段语义、类型或删除字段提升 major。Extension 声明精确 major 和最低 revision，SDK 与 Host 分别在注册和 attach 阶段决定兼容结果；兼容分支不进入搜索热路径。
 
-### 16.2 事件归属
+诊断记录包括 Extension 状态、最后错误、查询次数、平均/峰值耗时、过期 generation 数和 Panel 清理结果。默认模式只维护计数器；开发者模式使用固定容量 ring buffer。
 
-每个事件只允许一个 Core handler 接收，然后更新 Context slice 或设置 dirty 位。Provider
-不得自行注册全局 `COMBAT_LOG_EVENT_UNFILTERED`、全量 `NAME_PLATE_*` 等高频事件；需要
-这些数据时必须申报 capability，由 Host 评估成本后提供聚合快照。模块卸载时按注册 token
-注销 handler，不能依赖 `OnHide` 自动清理。
+## 15. 性能契约
 
-### 16.3 诊断采样
+- 隐藏 Palette、空 registry 和已完成 Intent 的 active ticker 数为零。
+- AddOn 枚举、schema 校验和索引构建不发生在每次按键。
+- SDK registry 变更由注册/注销事件增量推送给 Host，不通过轮询发现。
+- 静态 Catalog 只在注册、注销或显式 invalidation 时重建。
+- dynamic resolver 有数量、结果数、调用深度和耗时上限。
+- ResultRow 和常用 Panel 容器池化，按 stable ID 增量渲染。
+- 热路径避免临时 frame、闭包、长字符串和可规避的 table 分配。
+- `SetPoint`、`SetSize`、字体、纹理、颜色和 frame level 使用 change guard。
+- 事件驱动优先；必须轮询的任务有固定间隔、对象上限和停止条件。
+- timer/ticker 默认使用可取消句柄，退出路径执行 `Cancel()`；`C_Timer.After` 只用于带 generation/session guard 的短 flush。
+- 第三方错误边界使用小范围 `xpcall`，不包裹整个 Host tick。
+- Palette 关闭后 dynamic queue、Panel、timer、Palette-owned 事件和 frame 引用都归零或回池；Core 生命周期事件 frame 可以继续等待战斗/登录事件，但没有 `OnUpdate`。
+- 战斗中 toggle 路径在任何 UI、焦点或查询工作前返回；`PLAYER_REGEN_DISABLED` 只执行一次统一关闭，不留下后台任务。
 
-开发者模式的每条查询记录：generation、raw 长度、candidate 数、动态 Provider 数、
-各阶段耗时、丢弃原因和最终结果数。默认模式只维护计数器和最近一次错误，避免为每个按键
-分配日志表。采样 ring buffer 固定 64 条，重载或关闭 Palette 时清空。
+后续实现的初始预算：
 
-## 17. 验证矩阵与交付证据
-
-### 17.1 单元/契约测试
-
-在不依赖 WoW UI 的 Lua harness 中测试：
-
-- SDK 未 Attach 时注册、Attach 后 drain、重复 ID、版本不兼容、token 注销。
-- Entry 字段校验、stableID 去重、tombstone、Provider namespace 隔离。
-- Normalizer 的中英文/繁简/拼音/前缀、IntentParser、固定排序 tie-break。
-- generation 过期结果丢弃、debounce 合并、deferred 队列去重和 slow 晋级。
-- Intent schema、combat policy、secure descriptor 禁止字段和普通 callback xpcall。
-
-### 17.2 游戏内场景
-
-每次常驻路径改动都记录同一客户端、同一角色和同一时长的 baseline/modified：
-
-| 场景 | 必查指标 |
+| 项目 | 预算 |
 | --- | --- |
-| 登录/重载 | 加载错误、Provider 状态、索引构建耗时 |
-| 站立空闲 60s | AddOn CPU、Lua 内存、active ticker 必须为 0 |
-| 1/20 字符输入 | debounce 次数、generation 丢弃数、结果延迟 |
-| 单目标/多目标战斗 | 无全量扫描、secure action 可用性、战斗锁定提示 |
-| 1000+ Entry/8 dynamic | candidate 上限、2ms deferred 时间片、帧时间 |
-| 关闭/禁用/注销 | timer、driver、事件、ResultRow active 数归零 |
+| 静态候选 | 最多 200 |
+| 展示结果 | 最多 20 |
+| 单个 dynamic resolver 结果 | 最多 20 |
+| 输入 debounce | 默认 0.05 秒 |
+| deferred 时间片 | 每帧最多 2 ms，且仅 Palette 可见时 |
+| 诊断 ring buffer | 64 条 |
 
-证据至少包含 `/console scriptProfile 1`、`UpdateAddOnCPUUsage()`、
-`GetAddOnCPUUsage("Lychee")`、`debugprofilestop()` 的命令、输入、字面输出和退出状态。
+预算是初始实现约束，后续只能依据实际 profile 调整。
 
-### 17.3 交付与同步
+## 16. SavedVariables 与所有权
 
-源码修改完成后必须按本仓库 `AGENTS.md` 的顺序：`git diff --check` -> 精确暂存 ->
-描述性 commit -> 记录 hash -> 复制 `package/Lychee` 与 `package/LycheeSDK` 到正式服
-同名目录 -> 比较文件清单和关键文件 SHA-256。文档、`AGENTS.md`、`analyze/`、`.codex/`
-不复制。未提交成功时不得复制运行时代码；删除旧文件需先生成删除清单。
+- `LycheeDB` 只由 Host 拥有。
+- SDK 不声明 SavedVariables。
+- 第三方自己的配置继续由第三方 AddOn 管理。
+- Lychee 只保存 Extension 启停、默认 Provider、favorite/recent 和 UI 偏好。
+- recent/favorite 只保存 stable ID，不保存完整 Command 快照。
+- 迁移按版本执行且幂等，发生在 Extension enable 之前。
 
-## 18. Implementation Order
+## 17. 参考项目取舍
 
-Implementation follows this dependency order:
+### 17.1 ZTools
 
-1. `LycheeSDK`: version, schema validation, pending registry and no-op host.
-2. `LycheeLite`: lifecycle, direct event registration, database defaults and
-   error boundary.
-3. Host `ProviderRegistry`, `ContextStore`, static index and Intent types.
-4. `Bindings.xml`, `KeybindManager` and the hidden/showing Palette state machine.
-5. Normalizer, tokenizer, intent parser, candidate retrieval and ranker.
-6. Ordinary executor and secure broker descriptor validation.
-7. Built-in providers.
-8. Documentation examples and external provider compatibility tests.
+借鉴：Command Catalog、动态结果 generation、统一列表与插件自定义 view 的双模式、稳定插件 ID 和按需加载思想。
 
-Each step must leave a loadable addon state. No step introduces a second
-provider registration API, a second global keybind mechanism or a second search
-ranking path.
+舍弃：Electron IPC、多进程、运行时安装器、桌面窗口管理和网络插件市场。WoW 内通信使用同一 Lua 环境的 SDK registry。
 
-## 19. Acceptance Checklist
+### 17.2 EllesmereUI
 
-- [ ] `TOGGLELYCHEE` is the only Lychee global binding.
-- [ ] SDK is a separate sibling AddOn and has no UI dependency.
-- [ ] Internal and external providers normalize to the same registry shape.
-- [ ] Provider registration works before and after host load.
-- [ ] Query results are generated through one orchestrator and one ranker.
-- [ ] Context invalidation is event-driven and versioned.
-- [ ] Search produces Intents; UI does not call arbitrary provider methods.
-- [ ] Secure actions use descriptors and the broker, never provider Lua source.
-- [ ] A failing provider is isolated without hiding the palette.
-- [ ] Hidden palette and idle providers have zero active per-frame work.
-- [ ] No Ace3 framework is required by the host or SDK.
-- [ ] Packaging copies `Lychee/` and `LycheeSDK/` as sibling AddOns and excludes
-      local `AGENTS.md`, `analyze/` and `.codex/` artifacts.
+参考提交 `1b37158d7533deb2d5b0a74292438a8ea2191588`：
+
+- 直接事件和轻量生命周期，不引入 Ace3 framework。
+- 订阅为零时隐藏驱动。
+- 密集数组 + ID 索引，swap-remove 删除。
+- 原生 AnimationGroup 优先于 Lua 每帧补间。
+- 高频 setter 使用缓存 key 和 change guard。
+- 重刷新按成本分层，延迟 GC 和批量重建。
+
+## 18. 品牌媒体约束
+
+本 change 只记录 Logo 契约，不把媒体复制到运行时目录。设计输入保存在本机 `analyze/inputs/lychee-logo-source.png`，不进入 Git：
+
+| 属性 | 已验证值 |
+| --- | --- |
+| 尺寸 | 500x500 |
+| 像素格式 | `Format32bppArgb` |
+| 四角 alpha | `0, 0, 0, 0` |
+| SHA-256 | `96887564230FA250D2AF4B151DEC219E9A166F245771C4414135F498E9E4E7E3` |
+
+后续媒体实现保持 1:1 比例、透明背景、完整叶片和荔枝主体，不增加黑色或不透明方形底。允许生成尺寸优化副本，但必须能追溯到上述源文件并保留 alpha。Logo 用于 AddOn 识别和 Palette 品牌位置；TOC 或媒体路径改变后通过重启客户端或 `/reload` 验证实际纹理加载。
+
+## 19. 后续实现顺序
+
+1. `LycheeSDK`：版本、schema、draft/Commit 事务、pending registry、Host attach 和句柄。
+2. Host 生命周期、ExtensionRegistry、错误边界和诊断。
+3. CapabilityBroker、ContextStore、CommandCatalog 和 IntentRouter。
+4. `TOGGLELYCHEE`、Palette、Input、ResultList 和焦点状态机。
+5. normalization、静态索引、Ranker、generation 和 dynamic 调度。
+6. ViewHost 与 custom-panel 生命周期。
+7. Secure Descriptor 与战斗策略。
+8. 首批内置 Extension。
+9. SDK fixture、性能采样和正式服验证。
+
+每一步都应保持 AddOn 可加载，并且不引入第二套注册、搜索、快捷键或执行模型。
+
+## 20. 验证矩阵
+
+| 场景 | 关键验证 |
+| --- | --- |
+| SDK 先加载 | committed pending registration 在 Host attach 后完整消费 |
+| Host 先 attach | 后提交 Extension 立即注册 |
+| SDK 缺席 | 第三方只跳过 Lychee 接入，自身功能继续运行 |
+| 草稿/提交失败 | 未 Commit 草稿不可见，任一失败均无部分注册 |
+| 重复/非法 ID | 原子失败，不覆盖已有 Extension |
+| installed/loading/loaded/sdk-registered | 验证 `loadedOrLoading, loaded` 对应未加载、加载中、已加载三个业务状态，不由 TOC 元数据推断接入 |
+| LoD AddOn | 关键词候选、显式加载、加载状态与注册状态分别展示 |
+| 快速连续输入 | 旧 generation 结果被丢弃 |
+| dynamic-list | 键盘、鼠标、滚动、空状态和 item Intent |
+| custom-panel | 实例复用、Mount/Update/Unmount/Dispose、Esc、异常和托管资源清理 |
+| 第三方报错 | 其他 Extension 和 Palette 继续工作 |
+| secret/inaccessible 数据 | 根、key、value 和嵌套 table 均在索引/Intent/日志/SavedVariables 前拒绝 |
+| timer 取消 | query 替换、关闭、Unmount、disable 和 detach 后句柄已 Cancel，After 旧 generation 无效果 |
+| 战斗状态 | toggle 静默无效果；已开 Palette 在 `PLAYER_REGEN_DISABLED` 统一关闭；脱战后快捷键自动恢复但不自动重开 |
+| secure action | `SecureActionButtonTemplate` 脱战创建/预配置，只有真实点击可执行，scripted click 不作为硬件输入 |
+| Palette 隐藏 | ticker、timer、动态队列和 active row 归零 |
+| 1000+ Command | 候选上限、排序稳定性和帧时间 |
+
+## 21. 设计验收清单
+
+- [ ] 顶层公开模型为 Extension/Command/CapabilityProvider/IntentHandler/PanelFactory。
+- [ ] 已提交的 SDK registry 是接入唯一事实源，草稿不参与查询。
+- [ ] AddOn 枚举只用于诊断、兼容和 LoD。
+- [ ] 内置和第三方走同一 Catalog、Broker、Router 和 UI。
+- [ ] dynamic-list 与 custom-panel 的所有权清晰。
+- [ ] `TOGGLELYCHEE` 是唯一全局 Binding。
+- [ ] 战斗中 toggle 不改变 UI、焦点或查询，进入战斗会关闭已打开的 Palette。
+- [ ] UI 不直接调用第三方任意函数。
+- [ ] 受保护动作只接受声明式 Descriptor。
+- [ ] secret/inaccessible 数据不会进入索引、Intent、日志、缓存或 SavedVariables。
+- [ ] timer/ticker 可取消，所有 `After` 回调都有 generation/session guard。
+- [ ] generation、排序和 context version 行为确定。
+- [ ] Palette 隐藏时后台工作归零。
+- [ ] SDK 公共字段和示例与 `docs/SDK.md` 一致。

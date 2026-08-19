@@ -1,0 +1,1415 @@
+schema: comet.native.v4
+name: design-lychee-command-platform
+language: zh-CN
+phase: archive
+status: done
+state_version: 15
+brief: brief.md
+spec_changes:
+  - capability: branding
+    operation: create
+    source: specs/branding/spec.md
+  - capability: command-platform
+    operation: create
+    source: specs/command-platform/spec.md
+  - capability: sdk-integration
+    operation: create
+    source: specs/sdk-integration/spec.md
+workspace:
+  isolation: current
+  change_branch: main
+  target_branch: main
+  finish: null
+loop:
+  stage: done
+  goal_cycle: 3
+  iteration: 1
+  attempt: 1
+  retry_epoch: 0
+  failed_iteration_count: 0
+  no_progress_count: 0
+  execution_failure_count: 0
+  previous_unresolved_ids: []
+  next_action: null
+acceptance:
+  - id: A1
+    source: brief.md
+    text: A1：`docs/ARCHITECTURE.md` 完整规定
+      Command、CapabilityProvider、IntentHandler、搜索、UI、快捷键、生命周期和性能边界。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A2
+    source: brief.md
+    text: A2：`docs/SDK.md` 给出第三方可直接照写的 TOC、注册、动态列表、能力调用、Intent 和 custom-panel 契约。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A3
+    source: brief.md
+    text: A3：文档明确 SDK registry 是运行时接入唯一事实源，AddOn 枚举只用于诊断/LoD，AddOnMessage 不承担本机 SDK
+      RPC。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A4
+    source: brief.md
+    text: A4：文档明确内部功能和第三方能力进入同一注册表、搜索器和结果渲染器。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A5
+    source: brief.md
+    text: A5：文档明确 `dynamic-list` 与受控 `custom-panel` 两种模式的所有权、生命周期和错误隔离。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A6
+    source: brief.md
+    text: A6：文档明确唯一 `TOGGLELYCHEE` Binding、完整 `Bindings.xml`/本地化契约、best-effort
+      输入焦点恢复，以及战斗中静默失效、进战自动关闭、脱战恢复。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A7
+    source: brief.md
+    text: A7：文档包含 API 版本、稳定 ID、pending/attach、卸载、错误码和兼容策略。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A8
+    source: brief.md
+    text: A8：文档包含后续实现顺序、验证矩阵和性能门槛，足以约束后续 Build change。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A9
+    source: specs/branding/spec.md
+    text: 本 change 只在设计文档中记录品牌约束。源 PNG 继续保存在本机
+      `analyze/inputs/`，不复制到运行时目录；媒体转换、打包和游戏内显示验证由后续实现 change 处理。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A10
+    source: specs/branding/spec.md
+    text: 用户提供的源图为 500x500 PNG，`Format32bppArgb`。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A11
+    source: specs/branding/spec.md
+    text: 四角 alpha 为 0，主体像素不透明；运行时显示必须保留透明背景。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A12
+    source: specs/branding/spec.md
+    text: SHA-256：`96887564230FA250D2AF4B151DEC219E9A166F245771C4414135F498E9E4E7E3`。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A13
+    source: specs/branding/spec.md
+    text: 本机保存在 `analyze/inputs/lychee-logo-source.png`；后续实现 change 再复制到正式运行时媒体目录。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A14
+    source: specs/branding/spec.md
+    text: Logo 用于插件识别和 Palette 品牌位置。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A15
+    source: specs/branding/spec.md
+    text: 缩放保持 1:1 比例，不拉伸、不裁掉叶片和荔枝主体。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A16
+    source: specs/branding/spec.md
+    text: 不增加黑色或不透明方形底。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A17
+    source: specs/branding/spec.md
+    text: 可生成尺寸优化副本，但必须能追溯到相同源文件并保留 alpha。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A18
+    source: specs/branding/spec.md
+    text: TOC/媒体路径变更后需要重启客户端或 `/reload` 验证实际纹理加载。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A19
+    source: specs/command-platform/spec.md
+    text: 本规格通过 `docs/ARCHITECTURE.md` 交付系统设计，不创建 Lua/XML/TOC
+      运行时代码。文档必须完整定义下述模型、依赖方向、生命周期、性能门槛、后续实现顺序和验证矩阵；示例 API 属于后续实现 change 的约束。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A20
+    source: specs/command-platform/spec.md
+    text: Lychee 提供一个单入口命令平台。用户输入只匹配 Command；Command 可调用一个或多个 CapabilityProvider，并通过
+      IntentHandler 执行普通或受保护动作。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A21
+    source: specs/command-platform/spec.md
+    text: Extension 是内部模块或第三方插件的稳定身份，至少包含稳定 ID、API 版本、显示名称、能力声明和生命周期状态。第三方通过独立
+      `LycheeSDK` 创建 draft，注册全部子声明后调用 `Commit()` 原子发布；Host 未加载时 committed
+      registration 进入 pending registry，Host attach 后一次性消费。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A22
+    source: specs/command-platform/spec.md
+    text: Command 是用户可搜索和选择的入口，至少包含 stable ID、标题、别名/关键词、presentation、参数描述和 Intent
+      factory。Command 不直接暴露任意回调给 UI。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A23
+    source: specs/command-platform/spec.md
+    text: 支持的 presentation：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A24
+    source: specs/command-platform/spec.md
+    text: "`row`：Host 统一绘制单行结果，选择后立即路由 Intent。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A25
+    source: specs/command-platform/spec.md
+    text: "`dynamic-list`：Command 命中后请求结构化 items，由 Host 统一绘制、导航和选择。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A26
+    source: specs/command-platform/spec.md
+    text: "`custom-panel`：Command 命中后进入 Lychee 管理的 ViewHost。第三方拿到受限
+      `PanelContext`，只在 Host 提供的 content frame 中创建和更新自己的子 frame；Lychee
+      仍拥有输入焦点、Esc/关闭、尺寸、层级、超时和清理。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A27
+    source: specs/command-platform/spec.md
+    text: "`custom-panel` 不是把 Palette frame 交给第三方。第三方不能替换根 frame、注册全局快捷键或修改 Host 的
+      secure 属性。Panel 实例由 Host 复用，必须实现 `Mount(context)`、可选的
+      `Update(state)`、`Unmount()` 和可选 `Dispose()`；隐藏 Palette 时 Host 调用
+      `Unmount`。Host 托管 timer/ticker 使用可取消的 `C_Timer.NewTimer`/`NewTicker`
+      句柄；`C_Timer.After` 没有可取消句柄，只能使用 generation/active guard
+      丢弃迟到回调。第三方自己创建的事件、ticker 和 timer 由其清理。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A28
+    source: specs/command-platform/spec.md
+    text: CapabilityProvider 按稳定 capability type 注册输入/输出契约。它不进入搜索结果、不持有 Palette
+      frame、不注册 Lychee 快捷键，也不决定结果行布局。一个 Provider 可服务多个 Command，同一 capability
+      type 可有多个实现并由 Host/用户选择默认实现。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A29
+    source: specs/command-platform/spec.md
+    text: IntentHandler 只处理已注册的 Intent type。普通动作经错误边界执行；受保护动作使用声明式 Secure
+      Descriptor，以及通过 `CreateFrame(..., "SecureActionButtonTemplate")`
+      创建并在脱战时配置的 Host 安全按钮。Lychee 采用严格的战斗策略：战斗中 Palette 不可用，所有 Lychee Intent 返回
+      `COMBAT_LOCKED`，不暴露战斗内真实点击入口；Enter、`dispatchIntent` 和 scripted
+      `Button:Click()` 永远不能模拟硬件点击。UI 不按名称直接调用 Provider 函数。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A30
+    source: specs/command-platform/spec.md
+    text: Lychee 只注册 `TOGGLELYCHEE`。实现必须提供 `Bindings.xml` 中的 `<Binding
+      name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">`、稳定全局 Toggle 函数，以及
+      `BINDING_HEADER_LYCHEE`/`BINDING_NAME_TOGGLELYCHEE` 本地化全局文案。Toggle 入口第一步检查
+      `InCombatLockdown()`：战斗中静默返回，不打开、不关闭、不移动焦点、不启动查询。收到
+      `PLAYER_REGEN_DISABLED` 时，已打开的 Palette 立即走与 Esc 相同的关闭、`Unmount`
+      和任务清理路径；`PLAYER_REGEN_ENABLED` 后快捷键无需重新绑定即可恢复。关闭时恢复原 EditBox 只作
+      best-effort：对象和相关方法仍可访问时才尝试，否则只清除 Lychee 输入焦点。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A31
+    source: specs/command-platform/spec.md
+    text: 输入合并使用唯一 debounce；新 generation 使旧动态结果失效。Palette 隐藏时取消查询、清空 deferred
+      队列并停止驱动。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A32
+    source: specs/command-platform/spec.md
+    text: 动态 item 是结构化数据，至少包括 stable item ID、主文本、可选副文本、图标、availability 和 opaque
+      payload。Host 拥有行 frame、选中状态、滚动、鼠标/键盘事件和生命周期。选择 item 后，Host 将 Command
+      ID、item ID 和 payload 交给对应 Intent factory；Extension
+      不直接接管全局输入框。Context、payload 和第三方返回值在复制、比较、排序、格式化、记录或持久化前必须递归检查
+      `issecretvalue`、`canaccessvalue` 和表的
+      `canaccesstable`；不安全值不得进入索引、Intent、日志或 SavedVariables，并返回稳定错误码。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A33
+    source: specs/command-platform/spec.md
+    text: Extension 至少具有 draft、pending、registered、enabled、slow、disabled、retiring 和
+      removed 状态。`Commit()` 是进入 registry 的唯一时点。错误、超时或禁用只移除本 Extension
+      的动态任务和索引项。注销时先标记 retiring，当前查询安全结束后再移除。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A34
+    source: specs/command-platform/spec.md
+    text: 发现必须分为加载期和运行期两条路径：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A35
+    source: specs/command-platform/spec.md
+    text: "**加载期顺序：** 第三方 TOC 声明 `## OptionalDeps: LycheeSDK`，请求在双方均可用时先加载 SDK；这不是
+      SDK 存在或注册成功的证明。第三方主 chunk 必须检查 `_G.LycheeSDK`，存在时才创建 draft、注册子声明并
+      `Commit()`；缺失时走无 Lychee 的短路路径，不创建 Palette 相关 frame。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A36
+    source: specs/command-platform/spec.md
+    text: "**运行期事实源：** LycheeSDK committed registry 保存每个 Extension 的注册句柄、API
+      版本、能力声明和状态。未 Commit draft、TOC 元数据和 AddOn loaded 状态都不算接入。Lychee Host attach
+      后消费 pending registry，并通过显式 `OnHostAttached`/`OnHostDetached` 生命周期通知。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A37
+    source: specs/command-platform/spec.md
+    text: "**诊断扫描：** Lychee 可在登录或诊断页一次性枚举
+      `C_AddOns.GetNumAddOns`、`C_AddOns.GetAddOnInfo`、`C_AddOns.GetAddOnMetadat\
+      a` 和 `C_AddOns.GetAddOnDependencies`，展示 `X-Lychee-*`
+      元数据、依赖和加载原因；输入变化时禁止重新枚举。`C_AddOns.IsAddOnLoaded` 必须同时读取 `(loadedOrLoading,
+      loaded)`，仅第二返回值为 true 才是加载完成，第一返回值单独为 true 时显示 `loading`。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A38
+    source: specs/command-platform/spec.md
+    text: "**按需加载：** 声明 `LoadOnDemand` 和 `X-Lychee-Keywords` 的候选可进入登录期轻量索引；用户明确选择后
+      Host 调用 `C_AddOns.LoadAddOn`，然后等待其 Commit。缺少关键词元数据的 LoD AddOn
+      只在诊断页或其他已加载入口中出现。加载成功不代表注册成功，必须以 committed registry 为准。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A39
+    source: specs/command-platform/spec.md
+    text: "**通信边界：** `C_ChatInfo.RegisterAddonMessagePrefix`/`SendAddonMessage`
+      只用于客户端间消息，不能作为本机插件 SDK RPC。SDK 调用使用同一客户端内的 Lua 表、受限 context 和结构化 payload。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A40
+    source: specs/command-platform/spec.md
+    text: Palette 隐藏时无常驻 per-frame Lua 工作。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A41
+    source: specs/command-platform/spec.md
+    text: 静态 Catalog 在注册/显式失效时更新，不在每次按键时重建。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A42
+    source: specs/command-platform/spec.md
+    text: 动态 resolver 有数量、结果和耗时上限。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A43
+    source: specs/command-platform/spec.md
+    text: 结果行池化并按 stable ID 增量更新。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A44
+    source: specs/command-platform/spec.md
+    text: ContextStore 事件驱动并按 slice version 失效。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A45
+    source: specs/command-platform/spec.md
+    text: SDK 提供 Extension 注册、Command 发布、Capability 注册/调用、Intent factory 注册、动态列表
+      resolver、custom-panel factory 和生命周期句柄。SDK 不提供 Palette
+      frame、数据库根表、SecureButton、任意 Lua source 执行或第三方全局快捷键。所有第三方调用都经过 API 版本、稳定
+      ID、参数 schema 和错误边界校验；内部模块也使用同一 Command/Provider/Intent 数据模型。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A46
+    source: specs/command-platform/spec.md
+    text: 内置复杂面板也注册 PanelFactory 并使用同一 ViewHost 生命周期。内部 PanelContext 可以获得明确列出的
+      ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口，但不能接管 Palette 根 frame
+      或绕过焦点、Esc、IntentRouter 与清理状态机。Host 自身的 Palette/Input/ResultList/ViewHost
+      基础 UI 不作为 Command 面板注册。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A47
+    source: specs/sdk-integration/spec.md
+    text: 本规格通过 `docs/SDK.md` 交付第三方接入设计，不创建 `LycheeSDK` AddOn 文件。文档必须给出可直接照写的 TOC、注册
+      API、返回值、错误码、两种交互模式、生命周期、版本兼容、性能要求和完整示例。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A48
+    source: specs/sdk-integration/spec.md
+    text: "`LycheeSDK` 是独立 sibling AddOn，负责把其他 WoW 插件接入 Lychee。它只提供进程内 Lua API
+      和生命周期句柄，不模拟桌面应用的 IPC，不使用聊天频道传输注册信息。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A49
+    source: specs/sdk-integration/spec.md
+    text: 第三方插件的 TOC 至少声明：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A50
+    source: specs/sdk-integration/spec.md
+    text: 可选的诊断元数据：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A51
+    source: specs/sdk-integration/spec.md
+    text: "`OptionalDeps` 用于请求在双方均可用时先加载 `LycheeSDK`，但不能单独证明 SDK
+      已存在、已加载或注册成功，也不要求用户必须安装 Lychee。插件主 chunk 必须检查 `_G.LycheeSDK` 并兼容两种结果："
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A52
+    source: specs/sdk-integration/spec.md
+    text: "`LycheeSDK` 已加载：立即注册 Extension。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A53
+    source: specs/sdk-integration/spec.md
+    text: "`LycheeSDK` 未安装或未能加载：记录一次诊断信息，跳过 Lychee frame 和事件，插件自身功能继续工作。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A54
+    source: specs/sdk-integration/spec.md
+    text: SDK 主 chunk 只建立稳定全局表和轻量 registry，不创建 Palette、不注册全局快捷键、不访问第三方
+      SavedVariables。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A55
+    source: specs/sdk-integration/spec.md
+    text: Host 的唯一事实源是 SDK registry，而不是每次输入时重新扫描 AddOn 列表。Lychee
+      可以在登录或诊断页缓存以下官方信息用于展示：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A56
+    source: specs/sdk-integration/spec.md
+    text: "`C_AddOns.GetNumAddOns`：AddOn 数量；"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A57
+    source: specs/sdk-integration/spec.md
+    text: "`C_AddOns.GetAddOnInfo`：名称、标题、可加载状态、失败原因和安全级别；"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A58
+    source: specs/sdk-integration/spec.md
+    text: "`C_AddOns.GetAddOnMetadata`：`X-Lychee-*` 等 TOC 元数据；"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A59
+    source: specs/sdk-integration/spec.md
+    text: "`C_AddOns.GetAddOnDependencies`：依赖关系；"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A60
+    source: specs/sdk-integration/spec.md
+    text: "`C_AddOns.IsAddOnLoaded`：返回 `(loadedOrLoading, loaded)`；诊断页只有第二返回值为 true
+      才显示 `loaded`，仅第一返回值为 true 时显示 `loading`；"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A61
+    source: specs/sdk-integration/spec.md
+    text: "`C_AddOns.LoadAddOn`：用户明确命中或打开诊断页时按需加载 LoD AddOn。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A62
+    source: specs/sdk-integration/spec.md
+    text: 枚举结果不能直接当作已接入：只有成功 `Commit()` 的 Extension 句柄才算接入。`LoadAddOn` 返回成功但没有
+      committed registry 注册时，诊断状态为 `loaded-without-registration`。LoD AddOn 只有声明
+      `X-Lychee-Keywords` 才能在加载前进入搜索候选。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A63
+    source: specs/sdk-integration/spec.md
+    text: SDK 暴露只读 API 版本和注册入口，推荐形态如下（名称可在 Build 阶段按最终 Lua 命名规范落地）：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A64
+    source: specs/sdk-integration/spec.md
+    text: "`RegisterExtension` 返回 draft；各 `Register*` 只写入 draft，`Commit()`
+      一次性校验交叉引用、版本、schema 和声明数量。注册校验必须拒绝并报告：空 ID、非法字符、重复
+      Extension/Command/Capability ID、未支持的 API 版本、presentation 与
+      resolver/factory 不匹配、缺少稳定标题或超出声明数量上限。失败不发布部分对象，重复注册不能静默覆盖已启用的 Extension。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A65
+    source: specs/sdk-integration/spec.md
+    text: SDK registry 分为 `pending` 和 `attached` 两个集合：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A66
+    source: specs/sdk-integration/spec.md
+    text: SDK 先加载、Host 后加载：committed 句柄进入 `pending`；Host attach 时按 Extension ID
+      稳定排序、逐项校验并转移到 `attached`。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A67
+    source: specs/sdk-integration/spec.md
+    text: Host 已加载、第三方后加载：Commit 后立即尝试 attach；失败仍留在 `pending`，等待下一次显式 attach。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A68
+    source: specs/sdk-integration/spec.md
+    text: 同一 Extension 重载：旧句柄先进入 `retiring`，其索引和驱动清理完成后才接受新句柄。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A69
+    source: specs/sdk-integration/spec.md
+    text: Host detach 或 Lychee 关闭：调用每个句柄的 `OnHostDetached`，停止查询、Panel、ticker、timer
+      和事件引用，但不删除第三方自己的数据。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A70
+    source: specs/sdk-integration/spec.md
+    text: SDK 不把可变 registry、Host frame、SavedVariables 根表或 SecureButton
+      返回给第三方；句柄只暴露窄接口和只读状态。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A71
+    source: specs/sdk-integration/spec.md
+    text: 第三方 `dynamic-list` resolver 接收规范化 query 和只读 `ContextSnapshot`，返回结构化 item
+      数组。Context、payload 和返回值必须先经过递归边界检查：`issecretvalue(value)` 为
+      true、`canaccessvalue(value)` 为 false，或 table 的 `canaccesstable(value)` 为
+      false 时，SDK 拒绝该值并返回稳定错误码；这些值不得进入索引、Intent、日志或 SavedVariables。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A72
+    source: specs/sdk-integration/spec.md
+    text: Lychee 负责行池、键盘上下、鼠标点击、滚动、选中态、查询 generation 和过期结果丢弃。第三方只处理 payload 对应的
+      Intent，不创建 Palette 行 frame。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A73
+    source: specs/sdk-integration/spec.md
+    text: 第三方可声明 `presentation = "custom-panel"` 并提供 `panelFactory`。Lychee 创建自己的
+      ViewHost 后传入：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A74
+    source: specs/sdk-integration/spec.md
+    text: 第三方只能把子 frame 放入 `contentFrame`，不能取得 Palette 根 frame、改动 Host
+      尺寸/层级、注册全局按键或把焦点移出 Host。Panel 必须支持 `Mount`、可选 `Update`、`Unmount`。Host
+      隐藏、Esc、进入战斗、超时、Extension 禁用和异常退出都走同一清理路径。关闭后恢复原 EditBox 只作
+      best-effort：对象和焦点方法仍可访问时才尝试，否则只清除 Lychee 输入焦点。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A75
+    source: specs/sdk-integration/spec.md
+    text: Panel 实例由 Host 复用，生命周期为 `create once -> (Mount -> Update* -> Unmount)* ->
+      Dispose`。Host 托管的可取消任务必须使用并保存 `C_Timer.NewTimer`/`NewTicker` 返回句柄，统一清理时调用
+      `Cancel()`；`C_Timer.After` 不返回可取消句柄，只能配合 generation/active guard
+      丢弃迟到回调。第三方直接创建的事件、timer 和 ticker 由其 `Unmount`/`Dispose` 清理。ViewHost
+      是所有权边界，不是强安全沙箱。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A76
+    source: specs/sdk-integration/spec.md
+    text: 第三方只提交声明式 Secure Descriptor。Host 使用 `CreateFrame("Button", ..., ...,
+      "SecureActionButtonTemplate")` 创建自己的安全按钮，并只在脱战时配置 descriptor 对应属性。Lychee
+      采用更严格的产品策略：战斗中 Palette 不可用，所有 Lychee Intent 返回
+      `COMBAT_LOCKED`，不保留战斗内真实点击入口；普通回调、Enter、`dispatchIntent` 和 scripted
+      `Button:Click()` 永远不模拟硬件输入。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A77
+    source: specs/sdk-integration/spec.md
+    text: Lychee Host 只注册 `TOGGLELYCHEE`：`Bindings.xml` 必须声明 `<Binding
+      name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">`，调用稳定全局 Toggle
+      函数，并提供 `BINDING_HEADER_LYCHEE` 和 `BINDING_NAME_TOGGLELYCHEE` 本地化文案。第三方
+      Extension 不注册 Lychee 快捷键。Toggle 入口在 `InCombatLockdown()` 为 true
+      时静默返回，不打开、不关闭、不移动焦点、不启动查询；`PLAYER_REGEN_DISABLED` 会关闭已打开的 Palette 并触发
+      `Unmount`/任务清理，脱战后原 Binding 自动恢复可用。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A78
+    source: specs/sdk-integration/spec.md
+    text: Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled
+      -> retiring -> removed`。每个 resolver、Intent、Panel callback
+      都包在局部错误边界内；错误只禁用对应 Extension 的任务和索引，不得让 Palette 卡死或无法关闭。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A79
+    source: specs/sdk-integration/spec.md
+    text: resolver 超时或连续错误：丢弃本次结果，保留 dirty，按退避窗口重试并标记 `slow`；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A80
+    source: specs/sdk-integration/spec.md
+    text: Intent 错误：停止当前动作，显示统一错误行，释放 busy 状态；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A81
+    source: specs/sdk-integration/spec.md
+    text: Panel 错误：调用 `Unmount`、隐藏 content frame、注销该 Extension 驱动；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A82
+    source: specs/sdk-integration/spec.md
+    text: 注销：先标记 `retiring`，等待当前 generation 完成或失效后再移除索引；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A83
+    source: specs/sdk-integration/spec.md
+    text: SDK 缺失：第三方不创建 Lychee 相关对象；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A84
+    source: specs/sdk-integration/spec.md
+    text: API 不兼容：注册失败并返回稳定错误码，不执行部分注册。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A85
+    source: specs/sdk-integration/spec.md
+    text: "`C_ChatInfo.RegisterAddonMessagePrefix` 和 `C_ChatInfo.SendAddonMessage`
+      面向客户端间 AddOn 消息，需要频道/目标和文本 payload，受通信节流约束。它们不参与 LycheeSDK 注册、命令查询或本机
+      Intent 调用。Lychee 与第三方的本机通信只经过 Lua SDK 句柄、结构化参数和 Host 回调。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A86
+    source: specs/sdk-integration/spec.md
+    text: 注册和 AddOn 元数据扫描只发生在加载/登录/诊断入口，不发生在每次按键。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A87
+    source: specs/sdk-integration/spec.md
+    text: registry、Command Catalog 和 alias 索引使用稳定数组 + ID 索引；重复注册/注销不触发全量 UI 重建。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A88
+    source: specs/sdk-integration/spec.md
+    text: dynamic-list 结果带 generation，旧结果不进入渲染；列表行使用池化 frame。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A89
+    source: specs/sdk-integration/spec.md
+    text: custom-panel 隐藏时必须清理 ticker、timer、事件和 frame 引用；Palette 隐藏时无常驻 Lua
+      `OnUpdate`。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A90
+    source: specs/sdk-integration/spec.md
+    text: SDK 主 chunk 只做常量和 registry 初始化，不在加载期深扫描第三方代码。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A91
+    source: specs/sdk-integration/spec.md
+    text: 必须覆盖：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A92
+    source: specs/sdk-integration/spec.md
+    text: SDK 先加载、Host 后 attach，committed pending registry 被完整消费；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A93
+    source: specs/sdk-integration/spec.md
+    text: Host 先加载、第三方后 Commit，Extension 立即 attach；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A94
+    source: specs/sdk-integration/spec.md
+    text: 未 Commit draft 不可见，重复 ID、版本不兼容、声明数量超限时原子失败；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A95
+    source: specs/sdk-integration/spec.md
+    text: LoD 插件由关键词候选显式加载，加载但未 Commit 时显示诊断状态；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A96
+    source: specs/sdk-integration/spec.md
+    text: dynamic-list 旧 generation 不覆盖新输入；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A97
+    source: specs/sdk-integration/spec.md
+    text: custom-panel 的实例复用、Mount/Update/Unmount/Dispose、Esc 和托管资源清理；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A98
+    source: specs/sdk-integration/spec.md
+    text: 一个第三方回调报错时，其他 Extension 和 Palette 仍可用；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A99
+    source: specs/sdk-integration/spec.md
+    text: 代码路径没有使用 `SendAddonMessage` 作为本机 SDK RPC；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A100
+    source: specs/sdk-integration/spec.md
+    text: "`SecureActionButtonTemplate` 创建、脱战 descriptor 配置，以及所有战斗中 Lychee
+      Intent、scripted click/Enter 的 `COMBAT_LOCKED` 行为；"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A101
+    source: specs/sdk-integration/spec.md
+    text: 战斗中 `TOGGLELYCHEE` 静默失效且不启动查询，进战关闭已打开 Palette，脱战后同一 Binding 恢复；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A102
+    source: specs/sdk-integration/spec.md
+    text: secret/inaccessible Context、payload 和返回值被递归拒绝，且不进入索引、Intent、日志或
+      SavedVariables；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+  - id: A103
+    source: specs/sdk-integration/spec.md
+    text: "`IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After`
+      generation guard。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix
+        Verifier execution 的情况下继续归档。"
+      truncated: false
+builder_handoff:
+  candidate_id: 4f248418-9f68-4760-a4e8-bce60aefc081
+  identity_provider: skill-coordinated
+  builder_execution_ref: skill-coordinated:builder:ab3a024d-938f-44bf-9593-138697b31a65
+  iteration: 1
+  summary:
+    text: 修复 wowdoc 复审的 Secret
+      Value、IsAddOnLoaded、Binding、焦点、SecureActionButtonTemplate 和 Timer 契约；同步
+      brief/spec；落实战斗中 TOGGLELYCHEE 静默失效、进战关闭 Palette、脱战恢复且不自动重开的产品规则。
+    truncated: false
+  addressed_acceptance_ids:
+    - A1
+    - A2
+    - A3
+    - A4
+    - A5
+    - A6
+    - A7
+    - A8
+    - A9
+    - A10
+    - A11
+    - A12
+    - A13
+    - A14
+    - A15
+    - A16
+    - A17
+    - A18
+    - A19
+    - A20
+    - A21
+    - A22
+    - A23
+    - A24
+    - A25
+    - A26
+    - A27
+    - A28
+    - A29
+    - A30
+    - A31
+    - A32
+    - A33
+    - A34
+    - A35
+    - A36
+    - A37
+    - A38
+    - A39
+    - A40
+    - A41
+    - A42
+    - A43
+    - A44
+    - A45
+    - A46
+    - A47
+    - A48
+    - A49
+    - A50
+    - A51
+    - A52
+    - A53
+    - A54
+    - A55
+    - A56
+    - A57
+    - A58
+    - A59
+    - A60
+    - A61
+    - A62
+    - A63
+    - A64
+    - A65
+    - A66
+    - A67
+    - A68
+    - A69
+    - A70
+    - A71
+    - A72
+    - A73
+    - A74
+    - A75
+    - A76
+    - A77
+    - A78
+    - A79
+    - A80
+    - A81
+    - A82
+    - A83
+    - A84
+    - A85
+    - A86
+    - A87
+    - A88
+    - A89
+    - A90
+    - A91
+    - A92
+    - A93
+    - A94
+    - A95
+    - A96
+    - A97
+    - A98
+    - A99
+    - A100
+    - A101
+    - A102
+    - A103
+  checks:
+    - name:
+        text: wowdoc-retail-12.1.0-contract-review
+        truncated: false
+      result: passed
+      note:
+        text: wow-ui-source retail 12.1.0 commit
+          31c7f7b9cc79e56c986b365c06a6afbcf3c9177b；覆盖 secret values、AddOn loaded
+          状态、Bindings、focus、secure template 和 timers。
+        truncated: false
+    - name:
+        text: markdown-and-contract-scan
+        truncated: false
+      result: passed
+      note:
+        text: ARCHITECTURE 46 个围栏、SDK 68 个围栏，均配对；H1、关键合同、旧战斗/Binding 表述和空白检查通过。
+        truncated: false
+    - name:
+        text: git-diff-check
+        truncated: false
+      result: passed
+      note:
+        text: git diff --check 退出码 0，仅 LF/CRLF 提示。
+        truncated: false
+    - name:
+        text: runtime-file-scope
+        truncated: false
+      result: passed
+      note:
+        text: git status 没有 Lua、XML、TOC、PNG、TGA、BLP 运行时文件改动。
+        truncated: false
+    - name:
+        text: logo-baseline
+        truncated: false
+      result: passed
+      note:
+        text: 500x500 Format32bppArgb，四角 alpha 0，SHA-256
+          96887564230FA250D2AF4B151DEC219E9A166F245771C4414135F498E9E4E7E3。
+        truncated: false
+  checks_truncated: false
+  known_limits:
+    - text: 本 change 只交付设计文档；Bindings、焦点、secret value 和战斗状态机需在后续实现 change 中用 retail
+        12.1.0 游戏客户端验证。
+      truncated: false
+    - text: Secure Descriptor 当前以 spell 示例说明，具体 allowlist、taint 和 protected attribute
+        行为由后续实现 change 定义并实测。
+      truncated: false
+  known_limits_truncated: false
+  submitted_at: 2026-08-18T19:31:14.791Z
+blockers: []
+verification:
+  candidate_id: 4f248418-9f68-4760-a4e8-bce60aefc081
+  identity_provider: skill-coordinated
+  verifier_execution_ref: skill-coordinated:verifier:79d9a03c-d471-42ad-bcb8-13cfd98b17b8
+  iteration: 1
+  attempt: 1
+  assurance: user-confirmed-degraded
+  verdict: pass
+  checks: []
+  summary:
+    text: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix Verifier execution
+      的情况下继续归档。
+    truncated: false
+  risks:
+    - text: No independent semantic Verifier execution was available; Runtime checks
+        alone do not cover acceptance semantics.
+      truncated: false
+  risks_truncated: false
+  completed_at: 2026-08-18T20:16:46.049Z
+history:
+  - goal_cycle: 1
+    iteration: 1
+    attempt: 0
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Native confirmed acceptance criteria changed
+      truncated: false
+    completed_at: 2026-08-18T10:28:43.060Z
+  - goal_cycle: 2
+    iteration: 1
+    attempt: 1
+    outcome: pass
+    unresolved_ids: []
+    summary:
+      text: A1-A98 均已由正式设计文档覆盖；三 Agent 审查和本地结构、契约、Logo、Git 范围检查通过，未发现运行时文件改动。
+      truncated: false
+    completed_at: 2026-08-18T12:48:37.179Z
+  - goal_cycle: 2
+    iteration: 1
+    attempt: 1
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: wowdoc 复审发现六项文档缺口；用户补充战斗中 TOGGLELYCHEE 快捷键必须完全失效。当前已通过候选失效，退回 Build
+        修订正式规格、验收项与交付文档。
+      truncated: false
+    completed_at: 2026-08-18T19:18:02.773Z
+  - goal_cycle: 2
+    iteration: 2
+    attempt: 0
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: Native confirmed acceptance criteria changed
+      truncated: false
+    completed_at: 2026-08-18T19:30:08.415Z
+  - goal_cycle: 3
+    iteration: 1
+    attempt: 1
+    outcome: blocked
+    unresolved_ids:
+      - A1
+      - A2
+      - A3
+      - A4
+      - A5
+      - A6
+      - A7
+      - A8
+      - A9
+      - A10
+      - A11
+      - A12
+      - A13
+      - A14
+      - A15
+      - A16
+      - A17
+      - A18
+      - A19
+      - A20
+      - A21
+      - A22
+      - A23
+      - A24
+      - A25
+      - A26
+      - A27
+      - A28
+      - A29
+      - A30
+      - A31
+      - A32
+      - A33
+      - A34
+      - A35
+      - A36
+      - A37
+      - A38
+      - A39
+      - A40
+      - A41
+      - A42
+      - A43
+      - A44
+      - A45
+      - A46
+      - A47
+      - A48
+      - A49
+      - A50
+      - A51
+      - A52
+      - A53
+      - A54
+      - A55
+      - A56
+      - A57
+      - A58
+      - A59
+      - A60
+      - A61
+      - A62
+      - A63
+      - A64
+      - A65
+      - A66
+      - A67
+      - A68
+      - A69
+      - A70
+      - A71
+      - A72
+      - A73
+      - A74
+      - A75
+      - A76
+      - A77
+      - A78
+      - A79
+      - A80
+      - A81
+      - A82
+      - A83
+      - A84
+      - A85
+      - A86
+      - A87
+      - A88
+      - A89
+      - A90
+      - A91
+      - A92
+      - A93
+      - A94
+      - A95
+      - A96
+      - A97
+      - A98
+      - A99
+      - A100
+      - A101
+      - A102
+      - A103
+    summary:
+      text: 本轮宿主协作接口未产生新的独立 Verifier execution。Builder 已完成
+        wowdoc、Markdown、合同残留、Logo、git diff 和文档范围检查，但不把这些自检冒充独立语义验收。
+      truncated: false
+    completed_at: 2026-08-18T19:35:01.342Z
+  - goal_cycle: 3
+    iteration: 1
+    attempt: 1
+    outcome: pass
+    unresolved_ids: []
+    summary:
+      text: 用户确认接受现有 Agent 审查、wowdoc 证据和本地检查结果，并同意在缺少新的独立 post-fix Verifier execution
+        的情况下继续归档。
+      truncated: false
+    completed_at: 2026-08-18T20:16:46.049Z
+history_overflow:
+  dropped_entries: 0
+  first_dropped_at: null
+  last_dropped_at: null
+  outcome_counts:
+    pass: 0
+    fail: 0
+    blocked: 0
+    execution-error: 0
+    recovery: 0
+verification_result: pass
+verification_report: verification.md
+archived: true
+created_at: 2026-08-18T09:22:04.355Z
