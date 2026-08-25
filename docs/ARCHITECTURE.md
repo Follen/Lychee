@@ -117,6 +117,11 @@ Lychee/
 │  │  ├─ Builtin/
 │  │  │  ├─ DungeonGuide/
 │  │  │  ├─ PlayerSpells/
+│  │  │  │  ├─ Provider.lua
+│  │  │  │  ├─ Command.lua
+│  │  │  │  ├─ AliasIndex.lua       # Locale 俗称与副本传送别名投影
+│  │  │  │  ├─ Intent.lua
+│  │  │  │  └─ Panel.lua
 │  │  │  ├─ DungeonAliases/
 │  │  │  ├─ Quests/
 │  │  │  └─ Cooldowns/
@@ -182,17 +187,17 @@ Lychee 本体加载
   -> 建立 Command/Provider/Intent/Panel 索引
 ```
 
-如果第三方先加载，集成代码等待 Lychee ready 后提交；如果 Lychee 已加载，提交后立即进入 registry。SDK 缺席时，第三方跳过 Lychee 接入路径，其自身功能继续运行。
+如果第三方先加载且 `_G.Lychee` 尚不存在，集成代码监听 `ADDON_LOADED` 的 `Lychee`；facade 一旦存在即可创建 draft 并 `Commit()`，不要求 Host 已 ready。Host 尚未 ready 时 committed Extension 进入 pending，ready 后转为 registered；Host 已 ready 时立即注册。Lychee 缺席时，第三方跳过集成路径，其自身功能继续运行。
 
-第三方集成使用一个无竞态的 ready 入口：若 `_G.Lychee` 已存在，立即调用 `IsReady()`/注册 API；若尚未加载，则监听 `ADDON_LOADED` 的 `Lychee`，或在 facade 出现后调用 `RegisterReady(callback)`。ready callback 只负责提交 Extension，不负责创建 Palette、结果行或安全按钮。
+`RegisterReady(callback)` 只能在 facade 已存在后调用，用于接收 Host ready 通知，不是创建 draft 或 `Commit()` 的前置条件。第三方不得在 `_G.Lychee` 不存在时调用它，也不需要用 timer 轮询 ready。ready callback 不负责创建 Palette、结果行或安全按钮。
 
 第三方必须主动通过 `_G.Lychee` 创建完整 Extension draft，注册需要的 Command、Provider、Handler 和 PanelFactory，并以 `Commit()` 一次性发布。Lychee 不扫描插件目录猜测接入；AddOn 已加载、TOC 已声明或单独注册 Provider 都不会自动变成搜索结果。要搜索实体名，同一 Extension 还必须注册引用该能力的 `ambient` `dynamic-list` Command。
 
 Lychee PublicAPI 必须支持以下两个等价时序，并对每个 Extension 只提交一次注册事务：
 
 ```text
-Third-party first: wait for Lychee ready -> RegisterExtension -> Register* -> Commit -> registered
-Lychee first:      RegisterExtension -> Register* -> Commit -> registered immediately
+Third-party first: wait for ADDON_LOADED -> facade -> Register* -> Commit -> pending -> ready -> registered
+Lychee first:      facade ready -> RegisterExtension -> Register* -> Commit -> registered immediately
 ```
 
 ### 5.2 发现策略
@@ -248,9 +253,9 @@ draft --Commit--> pending -> registered -> enabled -> slow
 ```
 
 - `draft`：Extension 元数据和子声明暂存，尚未发布到 registry。
-- `pending`：Extension 已提交，但 Lychee facade 尚未 ready，或当前 API revision 不兼容而等待后续兼容版本。
+- `pending`：Extension 已提交，但 Lychee Host 尚未 ready，或 PublicAPI 已接受该版本而当前 Host revision 暂时不足。
 - `registered`：Host 已完成 schema 和版本校验，尚未启用。
-- 注册阶段完成 API 版本兼容判断；不兼容实例停留在 pending/incompatible，并保留稳定诊断码。
+- PublicAPI 不支持 Extension 声明的 API major/minimum revision 时，`Commit()` 原子失败并返回 `UNSUPPORTED_API`。PublicAPI 支持但当前 Host revision 不足时，`Commit()` 成功，实例停留在 `pending/incompatible`，诊断码为 `INCOMPATIBLE_HOST`，且不执行第三方回调。
 - `enabled`：Command、Provider 和 Handler 可以参与运行。
 - `slow`：动态调用连续超过预算，只进入降频队列。
 - `disabled`：本会话停止调用，保留诊断记录。
@@ -445,6 +450,10 @@ Input text changed
 6. 读取预生成的拼音全拼/首字母索引。
 
 拼音数据在注册或构建索引时生成，按键热路径不做全量转写。
+
+本地化和搜索别名同样在注册或数据更新时建索引。Host 在加载期读取一次 `GetLocale()`，显示文本按“当前 locale -> `default`”回退；别名既可使用兼容的 string 简写，也可使用 `{ text = string, locale = "zhCN" | "enUS" | ... | "default" }`。查询只启用当前 locale 与 `default` 的别名，避免其他语言的俗称污染候选。例如法术“复仇之怒”可以声明 `zhCN` 搜索别名“翅膀”。别名必须是经过 plain-data/secret/inaccessible 校验的显式数据，不能在按键热路径调用翻译服务、网络或生成式模型。
+
+Command 的 title/aliases/keywords 和 Provider 实体的 canonical name/localized aliases 走同一规范化管线。Provider 在自己的业务索引中把别名映射到 canonical stable item ID；命中别名仍只返回一个 canonical item，显示当前 locale 的正式名称，不复制实体或产生第二个动作协议。相同规范化别名可映射多个实体，Host 交给稳定排序处理，注册时不得以覆盖写入的方式丢失候选。
 
 ### 10.3 候选与排序
 
@@ -655,9 +664,9 @@ Builtin module
 首批内置 Extension 按同一协议组织，避免为任一业务另建搜索或 UI 通道：
 
 1. `DungeonGuideProvider` 为大秘境小怪名与小怪技能建立怪物记录的反向索引；普通动作打开 Lychee 详情，并可提供打开外部指南的动作。
-2. `PlayerSpellProvider` 只索引当前角色已知、有效的法术；结果支持详情、专用区域拖到动作条，以及可选的真实点击安全施放。
+2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知、有效法术索引；同目录的 `AliasIndex.lua` 在该索引上维护 Locale 搜索别名投影：既包括“复仇之怒”对应“翅膀”等技能俗称，也包括已知副本传送法术对应“红玉”等副本简称。结果统一支持详情、专用区域拖到动作条，以及可选的真实点击安全施放。
 3. `DungeonAliasProvider` 把 Boss 名、赛季简称（如 `M1`）和版本别名映射为攻略实体；结果动作打开同 Extension 的详情 Panel。
-4. `PlayerSpellProvider` 为已知副本传送法术建立副本别名索引；输入“红玉”等别名仍返回 spell item，并沿用详情、拖拽和真实点击安全施放合同。
+4. 副本传送搜索是第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；命中后仍返回同一个 canonical spell item，并沿用详情、拖拽和真实点击安全施放合同。
 
 外部指南是可选 adapter，不是 Host 特权路径。以 MRT 为例，`DungeonGuideProvider` 只能调用目标 AddOn 的稳定公开接口；目标未加载、未接入或不支持该实体时，该动作返回 `ACTION_UNAVAILABLE`，不操作其内部 frame，不影响 Lychee 详情动作或其他结果。
 

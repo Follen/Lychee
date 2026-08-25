@@ -2,20 +2,20 @@
 
 ## 本 change 的交付形式
 
-本规格通过 `docs/SDK.md` 交付第三方接入设计，不创建 `LycheeSDK` AddOn 文件。文档必须给出可直接照写的 TOC、注册 API、返回值、下拉结果交互、生命周期、版本兼容、性能要求和完整示例。
+本规格通过 `docs/SDK.md` 交付第三方接入设计，不创建独立 SDK AddOn 文件。文档必须给出可直接照写的 TOC、注册 API、返回值、下拉结果交互、生命周期、版本兼容、性能要求和完整示例。
 
 ## 目标
 
-`LycheeSDK` 是独立 sibling AddOn，负责把其他 WoW 插件接入 Lychee。它只提供进程内 Lua API 和生命周期句柄，不模拟桌面应用的 IPC，不使用聊天频道传输注册信息。
+Lychee 只发布一个 Host AddOn；SDK 是 Lychee 暴露的公共 API，公共 facade 为 `_G.Lychee`。它提供进程内 Lua API 和生命周期句柄，不模拟桌面应用的 IPC，不使用聊天频道传输注册信息。
 
-接入动作必须由第三方主动发起：第三方在自己的加载流程中向 `LycheeSDK` 注册 Extension、Command、Provider、Handler 和可选 Panel，并调用 `Commit()`。Lychee 不扫描目录来自动生成接入。只有 Provider 的 Extension 不会产生搜索结果；需要让第三方数据响应 Lychee 主输入框时，同一 Extension 必须注册引用该 Provider 的 `ambient` `dynamic-list` Command。
+接入动作必须由第三方主动发起：第三方在自己的 AddOn 集成代码中通过 `_G.Lychee` 注册 Extension、Command、Provider、Handler 和可选 Panel，并调用 `Commit()`。Lychee 不扫描目录来自动生成接入。只有 Provider 的 Extension 不会产生搜索结果；需要让第三方数据响应 Lychee 主输入框时，同一 Extension 必须注册引用该 Provider 的 `ambient` `dynamic-list` Command。
 
 ## AddOn 加载契约
 
 第三方插件的 TOC 至少声明：
 
 ```toc
-## OptionalDeps: LycheeSDK
+## OptionalDeps: Lychee
 ```
 
 可选的诊断元数据：
@@ -27,27 +27,27 @@
 ## X-Lychee-Keywords: sample,search
 ```
 
-`OptionalDeps` 用于请求在双方均可用时先加载 `LycheeSDK`，但不能单独证明 SDK 已存在、已加载或注册成功，也不要求用户必须安装 Lychee。插件主 chunk 必须检查 `_G.LycheeSDK` 并兼容两种结果：
+`OptionalDeps` 用于请求优先加载 Lychee，但不能单独证明 Lychee 已存在、已加载或注册成功，也不要求用户必须安装 Lychee。插件主 chunk 必须检查 `_G.Lychee` 并兼容两种结果：
 
-1. `LycheeSDK` 已加载：立即注册 Extension。
-2. `LycheeSDK` 未安装或未能加载：记录一次诊断信息，跳过 Lychee frame 和事件，插件自身功能继续工作。
+1. `_G.Lychee` 已加载且 ready：立即注册 Extension。
+2. `_G.Lychee` 未安装或未能加载：记录一次诊断信息并等待 `ADDON_LOADED`；已存在但尚未 ready 时仍可创建 draft/Commit 进入 pending，`RegisterReady` 只用于 ready 通知，插件自身功能继续工作。
 
-SDK 主 chunk 只建立稳定全局表和轻量 registry，不创建 Palette、不注册全局快捷键、不访问第三方 SavedVariables。
+Lychee PublicAPI 只建立稳定 facade 和轻量 registry，不把 Palette、全局快捷键、Host SavedVariables 或 SecureButton 暴露给第三方。
 
 ## 运行时发现顺序
 
 ```text
+Lychee 本体加载
+  -> 创建 _G.Lychee 公共 facade 和 ExtensionRegistry
 第三方 TOC OptionalDeps
-  -> LycheeSDK 主 chunk 建立全局表
   -> 第三方创建 Extension draft 并注册子声明
   -> 第三方调用 Commit() 原子发布
-  -> SDK 校验并写入 pending registry
-  -> Lychee Host PLAYER_LOGIN/显式 attach
-  -> Host 消费 pending registry
+  -> Lychee PublicAPI 校验并写入 registry/pending
+  -> Lychee ready 时消费 pending registry
   -> Extension 进入 registered/enabled
 ```
 
-Host 的唯一事实源是 SDK registry，而不是每次输入时重新扫描 AddOn 列表。Lychee 可以在登录或诊断页缓存以下官方信息用于展示：
+Lychee Host 的唯一事实源是 ExtensionRegistry，而不是每次输入时重新扫描 AddOn 列表。Lychee 可以在登录或诊断页缓存以下官方信息用于展示：
 
 - `C_AddOns.GetNumAddOns`：AddOn 数量；
 - `C_AddOns.GetAddOnInfo`：名称、标题、可加载状态、失败原因和安全级别；
@@ -63,7 +63,7 @@ Host 的唯一事实源是 SDK registry，而不是每次输入时重新扫描 A
 SDK 暴露只读 API 版本和注册入口，推荐形态如下（名称可在 Build 阶段按最终 Lua 命名规范落地）：
 
 ```lua
-local sdk = _G.LycheeSDK
+local sdk = _G.Lychee
 if not sdk or sdk.API_VERSION < 1 then return end
 
 local extension, err = sdk:RegisterExtension({
@@ -93,16 +93,16 @@ local committed, commitErr = extension:Commit()
 
 `RegisterExtension` 返回 draft；各 `Register*` 只写入 draft，`Commit()` 一次性校验交叉引用、版本、schema 和声明数量。注册校验必须拒绝并报告：空 ID、非法字符、重复 Extension/Command/Capability ID、未支持的 API 版本、presentation 与 resolver/factory 不匹配、缺少稳定标题或超出声明数量上限。失败不发布部分对象，重复注册不能静默覆盖已启用的 Extension。
 
-`Commit()` 成功后返回同一个稳定 Extension 句柄；第三方用该句柄读取只读状态、设置 owner-enabled 位和调用幂等 `Unregister()`。第三方不得直接修改 SDK registry，也不需要因 Host 尚未加载而自行轮询或重复注册。
+`Commit()` 成功后返回同一个稳定 Extension 句柄；第三方用该句柄读取只读状态、设置 owner-enabled 位和调用幂等 `Unregister()`。第三方不得直接修改 Lychee ExtensionRegistry，也不需要因 Lychee 尚未 ready 而自行轮询或重复注册。
 
-## pending registry 与 Host attach
+## pending registry 与 Lychee ready
 
-SDK registry 分为 `pending` 和 `attached` 两个集合：
+Lychee ExtensionRegistry 在 facade 尚未 ready 时保留 `pending` 集合，ready 后转为 `registered`：
 
-- SDK 先加载、Host 后加载：committed 句柄进入 `pending`；Host attach 时按 Extension ID 稳定排序、逐项校验并转移到 `attached`。
-- Host 已加载、第三方后加载：Commit 后立即尝试 attach；失败仍留在 `pending`，等待下一次显式 attach。
+- 第三方先加载、Lychee 后 ready：committed 句柄进入 `pending`；ready 时按 Extension ID 稳定排序、逐项校验并转为 `registered`。
+- Lychee 已 ready、第三方后加载：Commit 后立即注册；失败返回稳定错误，不要求第三方轮询。
 - 同一 Extension 重载：旧句柄先进入 `retiring`，其索引和驱动清理完成后才接受新句柄。
-- Host detach 或 Lychee 关闭：调用每个句柄的 `OnHostDetached`，停止查询、Panel、ticker、timer 和事件引用，但不删除第三方自己的数据。
+- Lychee facade detach 或关闭：调用每个句柄的 `onHostDetached`，停止查询、Panel、ticker、timer 和事件引用，但不删除第三方自己的数据。
 
 SDK 不把可变 registry、Host frame、SavedVariables 根表或 SecureButton 返回给第三方；句柄只暴露窄接口和只读状态。
 
@@ -122,6 +122,8 @@ match = {
 ```
 
 `ambient` 只允许 `dynamic-list` 使用。Host 还会检查 Extension/Command 用户启用状态、availability、全局主动 resolver 数量预算和稳定优先级；声明不表示每次按键都必定调用。`row` 或 `custom-panel` 使用 ambient、缺少长度边界、`minLength < 1` 或 `maxLength < minLength` 时，整个注册事务失败。
+
+用户可见 title 支持 string 或带 `default` 的 locale table。Command 的 aliases/keywords 和 Provider 实体别名支持 string 简写，或 `{ text = string, locale = "zhCN" | "enUS" | ... | "default" }`。Host 在加载期读取一次 `GetLocale()`，只索引当前 locale 与 `default`；别名必须通过同一 plain-data/secret/inaccessible 校验。Provider 在注册或数据更新时把别名映射到 canonical stable item ID，例如“翅膀”映射到“复仇之怒”、“红玉”映射到对应已知传送法术；命中别名不复制实体、结果或动作协议，按键热路径不做临时翻译或全表扫描。
 
 第三方 `dynamic-list` resolver 接收规范化 query 和只读 `ContextSnapshot`，返回结构化 item 数组。Context、payload 和返回值必须先经过递归边界检查：`issecretvalue(value)` 为 true、`canaccessvalue(value)` 为 false，或 table 的 `canaccesstable(value)` 为 false 时，SDK 拒绝该值并返回稳定错误码；这些值不得进入索引、Intent、日志或 SavedVariables。
 
@@ -241,11 +243,11 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 - Panel 错误：调用 `Unmount`、隐藏 content frame、注销该 Extension 驱动；
 - 注销：先标记 `retiring`，等待当前 generation 完成或失效后再移除索引；
 - SDK 缺失：第三方不创建 Lychee 相关对象；
-- API 不兼容：注册失败并返回稳定错误码，不执行部分注册。
+- PublicAPI 不支持声明的 API major/minimum revision：`Commit()` 原子失败并返回 `UNSUPPORTED_API`；PublicAPI 支持但 Host revision 不足：`Commit()` 成功并进入 `pending/incompatible`，诊断码为 `INCOMPATIBLE_HOST`，不执行第三方回调。
 
 ## 通信边界
 
-`C_ChatInfo.RegisterAddonMessagePrefix` 和 `C_ChatInfo.SendAddonMessage` 面向客户端间 AddOn 消息，需要频道/目标和文本 payload，受通信节流约束。它们不参与 LycheeSDK 注册、命令查询或本机 Intent 调用。Lychee 与第三方的本机通信只经过 Lua SDK 句柄、结构化参数和 Host 回调。
+`C_ChatInfo.RegisterAddonMessagePrefix` 和 `C_ChatInfo.SendAddonMessage` 面向客户端间 AddOn 消息，需要频道/目标和文本 payload，受通信节流约束。它们不参与 Lychee PublicAPI 注册、命令查询或本机 Intent 调用。Lychee 与第三方的本机通信只经过 Lua PublicAPI 句柄、结构化参数和 Host 回调。
 
 ## 结果交互错误码
 
@@ -267,32 +269,34 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 - interaction action 槽按 stable item ID/action ID 复用，最多四个；拖拽和安全绑定只在结果 diff 与可见会话期间处理，不在 resolver、鼠标移动或常驻 `OnUpdate` 中工作。
 - Provider/模块在注册或数据变化时维护实体索引，resolver 不在每次输入时全表扫描。
 - custom-panel 隐藏时必须清理 ticker、timer、事件和 frame 引用；Palette 隐藏时无常驻 Lua `OnUpdate`。
-- SDK 主 chunk 只做常量和 registry 初始化，不在加载期深扫描第三方代码。
+- Lychee PublicAPI 主 chunk 只做常量和 registry 初始化，不在加载期深扫描第三方代码。
 
 ## 验证夹具
 
 必须覆盖：
 
-1. SDK 先加载、Host 后 attach，committed pending registry 被完整消费；
-2. Host 先加载、第三方后 Commit，Extension 立即 attach；
-3. 未 Commit draft 不可见，重复 ID、版本不兼容、声明数量超限时原子失败；
-4. LoD 插件由关键词候选显式加载，加载但未 Commit 时显示诊断状态；
-5. dynamic-list 旧 generation 不覆盖新输入；
-6. custom-panel 的实例复用、Mount/Update/Unmount/Dispose、Esc 和托管资源清理；
-7. 一个第三方回调报错时，其他 Extension 和 Palette 仍可用；
-8. 代码路径没有使用 `SendAddonMessage` 作为本机 SDK RPC；
-9. `SecureActionButtonTemplate` 创建、脱战 descriptor 配置，以及所有战斗中 Lychee Intent、scripted click/Enter 的 `COMBAT_LOCKED` 行为；
-10. 战斗中 `TOGGLELYCHEE` 静默失效且不启动查询，进战关闭已打开 Palette，脱战后同一 Binding 恢复；
-11. secret/inaccessible Context、payload 和返回值被递归拒绝，且不进入索引、Intent、日志或 SavedVariables；
-12. `IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After` generation guard；
-13. 直接输入实体名时 ambient Command 返回动态项，不需要先输入命令标题；短于 `minLength` 时不调用 resolver；
-14. 多个 ambient Command 按启用状态和稳定预算调度，快速连续输入的旧结果不覆盖新结果；
-15. Provider 不可用、索引未就绪或 resolver 超预算时只影响所属结果组；
-16. item Intent 的合法 transition 挂载同 Extension Panel，跨 Extension、非法 state 或过期 session 转换被拒绝；
-17. Palette 关闭、进入战斗、Extension disable/unregister 后 ambient 查询与待处理 transition 均无效果；
-18. 单一普通 primary action 可由左键/Enter 触发；多 action 行只调用声明的 primary，次级 action 由 Host 可见按钮触发；action ID 不靠文本推断；
-19. spell item 仅从专用区域真实 `OnDragStart` 调用 `C_Spell.PickupSpell` 并可被标准动作条接收；普通点击、Enter、resolver 与 itemIntent 不触发 PickupSpell；
-20. secure-spell 行/按钮只在脱战绑定，真实鼠标点击才可施放；Enter、IntentRouter 和 scripted `Button:Click()` 返回拒绝且不能模拟点击；
-21. 详情、MRT/指南适配器缺席、旧 generation、关闭、进战、disable 和 unregister 分别不会留下普通动作、拖拽或 secure 绑定；
-22. 怪物/怪物技能、玩家技能、Boss/赛季别名和已知副本传送技能四个内置 Extension 都通过同一 interaction 合同工作。
-23. 首次脱战初始化仅在 `TOGGLELYCHEE` 无绑定且 `ALT-SPACE` 空闲时写入默认 binding；已有 action、按键冲突、战斗中初始化、已设置 `defaultBindingAttempted` 以及玩家之后改键或解绑时，都不覆盖或回写。
+1. 第三方先加载、Lychee 尚未 ready 时，committed pending registry 被 ready 流程完整消费；
+2. Lychee 先 ready、第三方后 Commit，Extension 立即注册；
+3. 未 Commit draft 不可见，重复 ID 和声明数量超限时原子失败；
+4. PublicAPI 不支持声明的 API major/minimum revision 时，`Commit()` 原子失败并返回 `UNSUPPORTED_API`；
+5. PublicAPI 支持声明、但当前 Host revision 不足时，`Commit()` 成功并进入 `pending/incompatible`，诊断码为 `INCOMPATIBLE_HOST`，不执行第三方回调；
+6. LoD 插件由关键词候选显式加载，加载但未 Commit 时显示诊断状态；
+7. dynamic-list 旧 generation 不覆盖新输入；
+8. custom-panel 的实例复用、Mount/Update/Unmount/Dispose、Esc 和托管资源清理；
+9. 一个第三方回调报错时，其他 Extension 和 Palette 仍可用；
+10. 代码路径没有使用 `SendAddonMessage` 作为本机 SDK RPC；
+11. `SecureActionButtonTemplate` 创建、脱战 descriptor 配置，以及所有战斗中 Lychee Intent、scripted click/Enter 的 `COMBAT_LOCKED` 行为；
+12. 战斗中 `TOGGLELYCHEE` 静默失效且不启动查询，进战关闭已打开 Palette，脱战后同一 Binding 恢复；
+13. secret/inaccessible Context、payload 和返回值被递归拒绝，且不进入索引、Intent、日志或 SavedVariables；
+14. `IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After` generation guard；
+15. 直接输入实体名时 ambient Command 返回动态项，不需要先输入命令标题；短于 `minLength` 时不调用 resolver；
+16. 多个 ambient Command 按启用状态和稳定预算调度，快速连续输入的旧结果不覆盖新结果；
+17. Provider 不可用、索引未就绪或 resolver 超预算时只影响所属结果组；
+18. item Intent 的合法 transition 挂载同 Extension Panel，跨 Extension、非法 state 或过期 session 转换被拒绝；
+19. Palette 关闭、进入战斗、Extension disable/unregister 后 ambient 查询与待处理 transition 均无效果；
+20. 单一普通 primary action 可由左键/Enter 触发；多 action 行只调用声明的 primary，次级 action 由 Host 可见按钮触发；action ID 不靠文本推断；
+21. spell item 仅从专用区域真实 `OnDragStart` 调用 `C_Spell.PickupSpell` 并可被标准动作条接收；普通点击、Enter、resolver 与 itemIntent 不触发 PickupSpell；
+22. secure-spell 行/按钮只在脱战绑定，真实鼠标点击才可施放；Enter、IntentRouter 和 scripted `Button:Click()` 返回拒绝且不能模拟点击；
+23. 详情、MRT/指南适配器缺席、旧 generation、关闭、进战、disable 和 unregister 分别不会留下普通动作、拖拽或 secure 绑定；
+24. 怪物/怪物技能、玩家技能、Boss/赛季别名和已知副本传送技能四类内置搜索场景都通过同一 interaction 合同工作；副本传送与玩家技能共用 `PlayerSpells` Extension。
+25. 首次脱战初始化仅在 `TOGGLELYCHEE` 无绑定且 `ALT-SPACE` 空闲时写入默认 binding；已有 action、按键冲突、战斗中初始化、已设置 `defaultBindingAttempted` 以及玩家之后改键或解绑时，都不覆盖或回写。

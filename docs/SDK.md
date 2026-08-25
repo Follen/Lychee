@@ -48,34 +48,65 @@ Extension
 ## X-Lychee-Keywords: sample,settings
 ```
 
-`OptionalDeps` 声明第三方对 Lychee 本体的可选关系，并向客户端提供加载顺序信息；它不保证 Lychee 一定存在、启用或成功加载。第三方只能以运行时公共 facade 为准，并在入口短路：
+`OptionalDeps` 声明第三方对 Lychee 本体的可选关系，并向客户端提供加载顺序信息；它不保证 Lychee 一定存在、启用或成功加载。第三方只能以运行时公共 facade 为准。推荐把完整注册事务封装成幂等函数；下面的 `MyAddon_RegisterLycheeExtension` 代表完整注册示例返回的 committed handle：
 
 ```lua
-local Lychee = _G.Lychee
-if not Lychee or not Lychee:Supports(1, 1) then
-    -- 这是第三方自己的诊断 sink；同一加载周期只记录一次，不能放在事件回调里重复记。
-    if not _G.MyAddonLycheeUnavailableRecorded then
-        _G.MyAddonLycheeUnavailableRecorded = true
-        MyAddon_RecordDiagnostic("SDK_UNAVAILABLE")
+local integrationState = "idle"
+local recordedDiagnostics = {}
+
+local function RecordOnce(code)
+    if recordedDiagnostics[code] then return end
+    recordedDiagnostics[code] = true
+    MyAddon_RecordDiagnostic(code)
+end
+
+local function TryRegisterLychee()
+    if integrationState == "committed" then return true end
+    local Lychee = _G.Lychee
+    if not Lychee then return false, "SDK_UNAVAILABLE" end
+    if not Lychee:Supports(1, 1) then
+        integrationState = "unsupported"
+        RecordOnce("UNSUPPORTED_API")
+        return false, "UNSUPPORTED_API"
     end
-    return
+    local committed, err = MyAddon_RegisterLycheeExtension(Lychee)
+    if not committed then
+        integrationState = "failed"
+        RecordOnce(err and err.code or "REGISTRATION_FAILED")
+        return false, err and err.code or "REGISTRATION_FAILED"
+    end
+    integrationState = "committed"
+    return true
+end
+
+local registered, reason = TryRegisterLychee()
+if not registered and reason == "SDK_UNAVAILABLE" then
+    RecordOnce("SDK_UNAVAILABLE")
+    local listener = CreateFrame("Frame")
+    listener:RegisterEvent("ADDON_LOADED")
+    listener:SetScript("OnEvent", function(self, _, addonName)
+        if addonName ~= "Lychee" then return end
+        self:UnregisterEvent("ADDON_LOADED")
+        self:SetScript("OnEvent", nil)
+        TryRegisterLychee()
+    end)
 end
 ```
 
-这条路径只跳过 Lychee 集成，不改变第三方 AddOn 自己的功能。`SDK_UNAVAILABLE` 是第三方接入诊断 code，不是需要用户处理的运行时错误。诊断必须按 AddOn 加载周期或 AddOn 会话去重：SDK 缺席、版本不兼容或入口再次被事件触发时，不能重复写入同一条诊断；第三方自身的功能继续运行。SDK 不通过扫描和执行第三方代码补注册；加载状态变化后，由客户端的正常 AddOn 加载流程决定第三方入口是否再次执行。
+这条路径只跳过 Lychee 集成，不改变第三方 AddOn 自己的功能。`SDK_UNAVAILABLE` 只表示 facade 暂时缺席；`UNSUPPORTED_API` 表示当前 PublicAPI 不支持声明的 API major/minimum revision。事件监听只在 facade 缺席时创建，命中 `ADDON_LOADED("Lychee")` 后先注销再调用幂等注册函数；PublicAPI 已出现但版本不支持或注册失败时，不等待另一次加载事件，也不轮询。诊断按 code 去重，SDK 不扫描或执行第三方代码补注册。
 
 这里的“SDK 缺席”指 Lychee 本体没有暴露兼容的公共 facade，不是缺少一个名为 `LycheeSDK` 的独立 AddOn。Lychee 本体提供 SDK 的实现、registry、Host UI 和执行路由；第三方只把集成代码放进自己的 AddOn。
 
 双方的有效加载顺序都必须工作：
 
-1. **第三方先、Lychee 后：** 第三方集成代码等待 Lychee ready，再提交 Extension；提交后进入 Lychee registry。
-2. **Lychee 先、第三方后：** Lychee 已 ready 时，第三方 Commit 立即注册并可被搜索。
+1. **第三方先、Lychee 后：** `_G.Lychee` 不存在时监听 `ADDON_LOADED` 的 `Lychee`；facade 出现后立即创建 draft 并 `Commit()`。Host 尚未 ready 时 Extension 进入 pending，ready 后转为 registered。
+2. **Lychee 先、第三方后：** facade 已存在时可立即 `Commit()`；Host 已 ready 时 Extension 立即注册并可被搜索。
 
 `OptionalDeps` 正常情况下会让 Lychee 先于第三方加载；第一种顺序仍用于 LoD AddOn、运行期加载和测试夹具。无论顺序如何，唯一完成条件都是 Extension 已 Commit 并进入 Lychee registry，而不是 TOC 元数据或 AddOn loaded 状态。
 
 Lychee 本体不依赖另一个 SDK AddOn；它在自己的加载流程中创建 `_G.Lychee` 和 API 版本信息。只有第三方 AddOn 使用 `OptionalDeps: Lychee`。
 
-第三方必须处理加载竞态：公共 facade 已存在时直接注册；尚未存在时监听 `ADDON_LOADED` 的 `Lychee`，或使用 Lychee 提供的 `RegisterReady(callback)`。ready callback 只提交自己的 Extension；Lychee 不扫描第三方代码，也不要求第三方轮询。
+第三方必须处理加载竞态：公共 facade 已存在时直接注册；尚未存在时监听 `ADDON_LOADED` 的 `Lychee`。`RegisterReady(callback)` 只能在 facade 已存在后调用，用于 ready 通知，不是 `Commit()` 的前置条件。Lychee 不扫描第三方代码，也不要求第三方轮询。
 
 ### 2.1 LoadOnDemand AddOn
 
@@ -266,7 +297,23 @@ Schema 支持以下形式：
 
 payload、request、result 和动态 item 只能包含 `nil`、boolean、有限 number、string 和无环 plain table；不得包含 function、thread、userdata、Frame、纹理对象或循环引用。注册描述符本身允许在规定字段中放置回调函数。运行时 plain data 默认最大嵌套 8 层、单表 128 个字段；具体 schema 可以进一步收紧。
 
-### 7.2 Secret 与 inaccessible value
+### 7.2 Locale 与搜索别名
+
+所有用户可见 title 使用 string 或 locale table；Host 在加载期读取一次 `GetLocale()`，按“当前 locale -> `default`”选择显示值。Command 的 `aliases`/`keywords` 以及 Provider 自有实体索引可以使用两种别名形状：
+
+```lua
+aliases = {
+    "fallback-alias",                       -- 等价于 locale = "default"
+    { text = "翅膀", locale = "zhCN" },    -- 复仇之怒的中文俗称
+    { text = "wings", locale = "enUS" },
+}
+```
+
+`locale` 必须是 Host 支持的 WoW locale token 或 `default`。Host 只将当前 locale 和 `default` 的别名送入 Normalizer/Tokenizer/拼音索引；其他 locale 保留在注册数据中但不参与本次客户端搜索。别名必须是有限 plain data，按第 7.3 节的顺序先拒绝 secret/inaccessible 值，再做长度、数量、重复项和 locale token 校验。
+
+Provider 的实体别名由 Provider 在注册或数据更新时索引到 canonical stable item ID，resolver 只查询该预索引。命中别名仍返回当前 locale 的 canonical 名称和同一个 item ID；不得为“复仇之怒”和“翅膀”创建两个结果，也不得在每次按键临时翻译、扫描全表或调用网络/生成式模型。规范化后同名的多个实体作为多个候选交给 Host 稳定排序，索引不能用覆盖写入丢弃其中任意实体。
+
+### 7.3 Secret 与 inaccessible value
 
 每个进入 SDK 边界的 Context 字段、Command 索引字段、Intent payload、capability request/result、动态 item 和诊断字段都必须先经过同一个递归 validator。验证顺序固定：
 
@@ -322,7 +369,7 @@ end
 
 secret/inaccessible value 不得进入搜索规范化、alias/token/拼音索引、排序、Intent/secure descriptor、Provider 缓存、recent/favorite、诊断 ring buffer、错误日志或 SavedVariables。ContextStore 在写入切片前执行相同验证；失败字段不发布、不缓存，依赖该字段的 Command 对本 generation 不可用。
 
-### 7.3 ContextSnapshot
+### 7.4 ContextSnapshot
 
 回调收到的 ContextSnapshot 是一次查询内稳定的只读视图：
 
@@ -355,7 +402,7 @@ local command, err = extension:RegisterCommand({
 })
 ```
 
-Command ID 只需在当前 Extension 内唯一，Host 生成全局 ID `sample-extension:open-settings`。`title`、alias 和 keyword 在注册期规范化并建立索引。
+Command ID 只需在当前 Extension 内唯一，Host 生成全局 ID `sample-extension:open-settings`。`title`、alias 和 keyword 按第 7.2 节的 locale 规则在注册期规范化并建立索引。
 
 `availability` 可省略（默认可用），也可使用 Host 定义的声明式条件或快速、无副作用的回调。回调只读取 ContextSnapshot，不调用 Provider、不执行 Intent、不创建 frame。回调报错时本 Command 对本次查询不可用，并记录 `CALLBACK_ERROR`。
 
@@ -582,9 +629,9 @@ step 的返回约定固定为：`false` 表示让出并继续；`true, items` �
 Lychee 自己的功能也是 Extension/Provider，不绕开上述结果合同。这样内置数据和第三方数据在搜索、选择、详情与生命周期上遵循同一条链路：
 
 - `DungeonGuideProvider`：怪物名或怪物技能名通过 ambient `dynamic-list` 命中；普通 primary action 打开 Lychee 详情 Panel。若安装了 MRT 或其他指南，适配器只能调用其稳定公开 API 打开对应页面；不得操作其内部 frame。
-- `PlayerSpellProvider`：只索引当前角色已知且可用的法术。法术结果可提供详情 intent、`drag.type = "spell"`，以及可选 `secure-spell` 真实点击施放。
+- `PlayerSpells` Extension 的 `PlayerSpellProvider`：只建立一份当前角色已知且可用的法术索引，同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影；其中既包含“复仇之怒”对应“翅膀”等技能俗称，也包含已知传送法术对应“红玉”等副本简称。法术结果可提供详情 intent、`drag.type = "spell"`，以及可选 `secure-spell` 真实点击施放。
 - `DungeonAliasProvider`：Boss 名或赛季别名（如 `M1`）映射到副本/Boss 详情 Panel，而不是为每个别名建立独立快捷键或特殊 UI。
-- 副本传送门仍属于 `PlayerSpellProvider`：它为已知传送法术增加副本别名索引，例如输入“红玉”命中对应传送法术。详情、拖拽和真实点击施放仍复用同一 item interaction，不产生另一种“传送门”动作协议。
+- 副本传送搜索属于同一个 `PlayerSpells` Extension，不新增额外 Provider、独立目录或第二份法术索引。输入“红玉”等别名命中 canonical spell item，详情、拖拽和真实点击施放仍复用同一 item interaction。
 
 Provider 只维护预索引和数据查询；ambient Command 决定何时进入主输入框；`itemIntent`/Handler 决定普通选择后的 transition；Host 负责结果行和受保护输入。这些职责不因功能是内置或第三方而改变。
 
@@ -758,7 +805,7 @@ draft -> pending -> registered -> enabled -> slow/disabled
 ```
 
 - `draft`：声明暂存，尚未接入。
-- `pending`：已原子提交，但 Lychee facade 尚未 ready，或因 API revision 不足而等待兼容版本。
+- `pending`：已原子提交，但 Lychee Host 尚未 ready，或 PublicAPI 已接受该版本而当前 Host revision 暂时不足。
 - `registered`：Host 已建立索引，尚未启用。
 - `enabled`：Command、Provider、Handler 和 Panel 可以参与运行。
 - `slow`：仍是已注册实例，但调度被降频；达到熔断条件可进入 disabled。
@@ -767,6 +814,8 @@ draft -> pending -> registered -> enabled -> slow/disabled
 - `removed`：从 registry 和索引移除，旧句柄失效。
 
 同一 `Extension.id` 重载时不允许新句柄覆盖旧句柄。Lychee 先把旧 committed handle 标记为 `retiring`，停止新 Command/Provider 调度，令活动 generation 失效，并依次等待 resolver/deferred、Panel `Unmount`、托管 timer/ticker 和 Extension 驱动清理；只有旧句柄进入 `removed` 后，新的 draft 才能占用该 ID 并 Commit。旧句柄的迟到回调即使返回也会被丢弃，不能写入新句柄的索引、结果或 Panel。清理异常不能卡住替换：Host 记录 `CALLBACK_ERROR`/`PANEL_ERROR` 后继续完成 best-effort 清理，再释放 ID。
+
+PublicAPI 不支持声明的 API major/minimum revision 时，`Commit()` 原子失败并返回 `UNSUPPORTED_API`。PublicAPI 支持但当前 Host revision 不足时，`Commit()` 成功并停留在 `pending/incompatible`，诊断码为 `INCOMPATIBLE_HOST`，不执行第三方回调。
 
 Lychee ready 时按 Extension ID 稳定排序消费 pending。Lychee 已就绪时，新提交立即注册。生命周期回调由 PublicAPI 在局部错误边界中调用：
 
@@ -787,16 +836,12 @@ ready 回调顺序固定为 `onHostAttached -> onEnabled`；facade detach 时若
 
 ## 14. Binding、焦点与战斗策略
 
-Lychee 只声明一个全局 Binding：`TOGGLELYCHEE`。Host TOC 加载 `Bindings.xml`，文件内容为：
-
-```toc
-Bindings.xml
-```
+Lychee 只声明一个全局 Binding：`TOGGLELYCHEE`。`Lychee.toc` 必须把 `Bindings.xml` 列入加载文件；该 XML 文件内容为：
 
 ```xml
 <Bindings>
     <Binding name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">
-        Lychee_Toggle()
+        Lychee_Toggle();
     </Binding>
 </Bindings>
 ```
@@ -811,7 +856,7 @@ function Lychee_Toggle()
     if InCombatLockdown() then
         return -- 静默：不改变任何 Palette 状态。
     end
-    Lychee.Host:TogglePalette("binding")
+    PaletteController:Toggle()
 end
 ```
 
@@ -832,7 +877,7 @@ Host 在 SavedVariables 中记录一次性 `defaultBindingAttempted`。已有 `T
 - Host 注册 `PLAYER_REGEN_DISABLED`。若 Palette 已打开，统一执行 `Close("combat")`：先让当前 Panel `Unmount("combat")`，取消 Panel 托管 Timer/Ticker、resolver deferred、debounce 和待发布结果，使当前 generation 失效，best-effort 清空 Lychee 输入焦点，然后关闭 Palette。
 - 战斗关闭流程不执行 Intent、不准备/修改 secure descriptor 和 secure attributes。受限的 secure frame 变更保留 dirty 标记，等 `PLAYER_REGEN_ENABLED` 后再处理；关闭 Palette 本身不能依赖这些变更成功。
 - `PLAYER_REGEN_ENABLED` 自动重新启用 `TOGGLELYCHEE` 的正常处理，并处理允许的 dirty cleanup/secure preparation。它不自动重新打开 Palette，也不恢复战斗前 query；用户下一次按键创建全新 generation。
-- 其他代码入口调用 `TogglePalette`/`OpenPalette` 时复用同一 combat guard，不能绕过 Binding 策略。
+- 其他代码入口如需切换 Palette，也必须委托 `PaletteController:Toggle()` 并复用同一 combat guard，不能绕过 Binding 策略。
 
 ### 14.2 焦点恢复
 
@@ -1181,9 +1226,10 @@ committed:SetEnabled(true)
 20. 只有 Provider 而没有 ambient Command 的 committed Extension 不产生搜索结果；Provider 不可用、索引未就绪或 resolver 报错只影响所属结果组；
 21. 合法 item Intent transition 挂载同 Extension Panel；跨 Extension Panel、非法/secret/inaccessible state、过期 session/generation 均不创建或挂载 Panel；
 22. Palette 关闭、进入战斗、`SetEnabled(false)` 或幂等 `Unregister()` 后，ambient resolver、deferred、Panel 和待处理 transition 均无效果；
-23. 第三方先/后加载 Lychee 最终都得到相同 registered Extension，且第三方无需轮询或重复注册。
-24. SDK 缺席、版本不兼容或入口被重复事件触发时，第三方只记录一次 `SDK_UNAVAILABLE`，随后跳过 Lychee 接入且自身功能继续；
-25. 同一 Extension ID 重载时旧句柄先进入 `retiring`，停止新调度并清理 resolver、Panel、timer 和驱动；旧句柄到 `removed` 后新句柄才可 Commit，旧迟到回调不污染新句柄；
+23. 第三方先/后加载 Lychee 最终都得到相同 registered Extension；facade 缺席时一次性 `ADDON_LOADED` 监听触发幂等注册，第三方无需轮询或重复提交；
+24. facade 缺席只记录一次 `SDK_UNAVAILABLE`；PublicAPI 不支持声明的 API major/minimum revision 时，`Commit()` 原子失败并只记录一次 `UNSUPPORTED_API`，两种路径都不影响第三方自身功能；
+25. PublicAPI 支持声明、但当前 Host revision 不足时，`Commit()` 成功，Extension 进入 `pending/incompatible` 并报告 `INCOMPATIBLE_HOST`，不执行第三方回调；
+26. 同一 Extension ID 重载时旧句柄先进入 `retiring`，停止新调度并清理 resolver、Panel、timer 和驱动；旧句柄到 `removed` 后新句柄才可 Commit，旧迟到回调不污染新句柄；
 26. resolver 超时或连续 `PROVIDER_ERROR` 保留 dirty，进入 `slow`，按有界退避窗口重试；新 generation、关闭 Palette、停用和注销取消退避；
 27. Intent 业务失败、抛错、非法结果和 transition 失败都发布统一错误行并释放 busy，错误不重复且不显示异常堆栈；
 28. Panel create/Mount/Update/Unmount/Dispose 任一步报错都记录 `PANEL_ERROR`，尽力 Unmount、隐藏 contentFrame、注销该 Extension 驱动、关闭 ViewHost 和释放 busy，且不影响其他 Extension。
@@ -1191,7 +1237,7 @@ committed:SetEnabled(true)
 30. spell item 只从专用区域真实 `OnDragStart` 调用 `C_Spell.PickupSpell` 并可被标准动作条接收；普通点击、Enter、resolver 与 `itemIntent` 不触发 PickupSpell；
 31. secure-spell 行/按钮只在脱战绑定，真实鼠标点击才可施放；Enter、IntentRouter 与 scripted `Button:Click()` 被拒绝且不能模拟点击；
 32. Palette 关闭、进入战斗、Extension disable/unregister、指南适配器缺席或旧 generation 后，不遗留普通动作、拖拽 token、secure binding 或 Panel transition；
-33. 怪物/怪物技能、玩家技能、Boss/赛季别名和已知副本传送技能四个内置 Extension 均通过同一 interaction 合同工作；
+33. 怪物/怪物技能、玩家技能、Boss/赛季别名和已知副本传送技能四类内置搜索场景均通过同一 interaction 合同工作；副本传送与玩家技能共用 `PlayerSpells` Extension；
 34. 首次脱战初始化仅在 `TOGGLELYCHEE` 未绑定且 `ALT-SPACE` 空闲时写入默认 binding；已有 action、按键冲突、战斗中初始化、已设置 `defaultBindingAttempted` 以及玩家后来改键或解绑时，均不覆盖或回写。
 
 ### 17.3 玩家法术结果：详情、动作条拖拽与真实点击施放
@@ -1234,7 +1280,7 @@ end
 ## 18. 接入检查清单
 
 - [ ] TOC 使用 `## OptionalDeps: Lychee`，Lychee 缺席时只跳过集成接入。
-- [ ] SDK 缺席或不兼容时只写一次 `SDK_UNAVAILABLE` 诊断，不在事件回调中重复记录，第三方自身功能继续。
+- [ ] facade 缺席时只写一次 `SDK_UNAVAILABLE`；PublicAPI 不支持时记录 `UNSUPPORTED_API`；Host revision 暂时不足时 committed handle 进入 `pending/incompatible` 并报告 `INCOMPATIBLE_HOST`。
 - [ ] Extension 在所有子声明成功后调用一次 `Commit()`。
 - [ ] Lychee 先/后加载与第三方先/后加载都不需要轮询或重复注册。
 - [ ] 同 ID 重载先等待旧句柄 `retiring -> removed` 和所有查询/Panel/timer/驱动清理，再接受新句柄。

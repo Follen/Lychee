@@ -20,9 +20,9 @@ Extension
 
 ### Extension
 
-Extension 是内部模块或第三方插件的稳定身份，至少包含稳定 ID、API 版本、显示名称、能力声明和生命周期状态。第三方通过独立 `LycheeSDK` 创建 draft，注册全部子声明后调用 `Commit()` 原子发布；Host 未加载时 committed registration 进入 pending registry，Host attach 后一次性消费。
+Extension 是内部模块或第三方插件的稳定身份，至少包含稳定 ID、API 版本、显示名称、能力声明和生命周期状态。第三方通过 Lychee Host 暴露的公共 API `_G.Lychee` 创建 draft，注册全部子声明后调用 `Commit()` 原子发布；Lychee facade 尚未 ready 时 committed registration 进入 pending registry，ready 后由 Lychee Host 一次性消费。
 
-第三方数据不会因 AddOn 已加载或 Provider 已注册而自动进入搜索。第三方若要让实体名称参与 Lychee 主输入框搜索，必须在同一 Extension draft 中同时注册 CapabilityProvider 和引用该能力的 `ambient` `dynamic-list` Command，再以 `Commit()` 原子发布。SDK 返回的 Extension 句柄是状态查询、owner 启停和幂等 `Unregister()` 的唯一控制入口；Lychee 不通过扫描 AddOn 目录推断或补造搜索接入。
+第三方数据不会因 AddOn 已加载或 Provider 已注册而自动进入搜索。第三方若要让实体名称参与 Lychee 主输入框搜索，必须在同一 Extension draft 中同时注册 CapabilityProvider 和引用该能力的 `ambient` `dynamic-list` Command，再以 `Commit()` 原子发布。Lychee PublicAPI 返回的 Extension 句柄是状态查询、owner 启停和幂等 `Unregister()` 的唯一控制入口；Lychee 不通过扫描 AddOn 目录推断或补造搜索接入。
 
 ### Command
 
@@ -32,6 +32,8 @@ Command 的匹配模式：
 
 - `catalog`：默认模式。只通过标题、别名、关键词、拼音和显式命令语法进入静态候选。
 - `ambient`：主动内容匹配。只允许 `dynamic-list` 使用；当规范化输入满足 `minLength`、`maxLength`、availability、用户启用状态和 Host 预筛选时，QueryOrchestrator 才调用 resolver。注册时必须显式提供长度边界，非法组合原子失败。
+
+用户可见 title 支持 string 或带 `default` 的 locale table。Command 的 aliases/keywords 和 Provider 实体别名支持 string 简写，或 `{ text = string, locale = "zhCN" | "enUS" | ... | "default" }`；Host 只把当前 `GetLocale()` 与 `default` 的值送入统一规范化、拼音和倒排索引。Provider 在注册或数据更新时把“翅膀”“红玉”等别名映射到 canonical stable item ID，命中后不复制实体或动作协议；按键热路径不得临时翻译或全表扫描。
 
 支持的 presentation：
 
@@ -116,28 +118,30 @@ item Intent 成功后，Handler 可返回声明式视图转换：`transition = {
   -> ViewHost 挂载详情 Panel
 ```
 
-四类内置 Extension 都遵循同一链路：
+四类内置搜索场景都遵循同一链路，其中玩家技能与副本传送共用 `PlayerSpells` Extension：
 
 1. `DungeonGuideProvider` 建立怪物名与怪物技能到怪物记录的反向索引；其 item 的普通动作打开 Lychee 详情或可选 MRT/指南 adapter。
-2. `PlayerSpellProvider` 只索引当前角色已知的有效法术；其 item 可有详情 action、可选 secure-spell action 和 spell drag。
+2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知的有效法术索引；同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影，包括“复仇之怒”对应“翅膀”等技能俗称和已知传送法术对应“红玉”等副本简称。其 item 可有详情 action、可选 secure-spell action 和 spell drag。
 3. `DungeonAliasProvider` 将 Boss 名称、赛季简称（例如 `M1`）和版本别名映射为攻略实体；item action 打开同 Extension 的详情 Panel。
-4. `PlayerSpellProvider` 对带副本目标 alias 的已知传送法术建立别名索引；输入副本简称返回该 spell item，支持详情、专用区域拖拽和真实点击的 secure-spell action。
+4. 副本传送搜索属于第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；输入副本简称返回 canonical spell item，支持详情、专用区域拖拽和真实点击的 secure-spell action。
 
 ## 生命周期和隔离
 
 Extension 至少具有 draft、pending、registered、enabled、slow、disabled、retiring 和 removed 状态。`Commit()` 是进入 registry 的唯一时点。错误、超时或禁用只移除本 Extension 的动态任务和索引项。注销时先标记 retiring，当前查询安全结束后再移除。
 
+PublicAPI 不支持 Extension 声明的 API major/minimum revision 时，`Commit()` 原子失败并返回 `UNSUPPORTED_API`。PublicAPI 支持该声明、但当前 Host revision 不足时，`Commit()` 成功且 Extension 进入 `pending/incompatible`，诊断码为 `INCOMPATIBLE_HOST`，不执行第三方回调。
+
 ## 第三方接入发现
 
 发现必须分为加载期和运行期两条路径：
 
-1. **加载期顺序：** 第三方 TOC 声明 `## OptionalDeps: LycheeSDK`，请求在双方均可用时先加载 SDK；这不是 SDK 存在或注册成功的证明。第三方主 chunk 必须检查 `_G.LycheeSDK`，存在时才创建 draft、注册子声明并 `Commit()`；缺失时走无 Lychee 的短路路径，不创建 Palette 相关 frame。
-2. **运行期事实源：** LycheeSDK committed registry 保存每个 Extension 的注册句柄、API 版本、能力声明和状态。未 Commit draft、TOC 元数据和 AddOn loaded 状态都不算接入。Lychee Host attach 后消费 pending registry，并通过显式 `OnHostAttached`/`OnHostDetached` 生命周期通知。
+1. **加载期顺序：** 第三方 TOC 声明 `## OptionalDeps: Lychee`，请求优先加载 Lychee；这不是 Lychee 存在或注册成功的证明。第三方主 chunk 必须检查 `_G.Lychee`，facade 存在即可创建 draft、注册子声明并 `Commit()`；Host 尚未 ready 时进入 pending，缺失 facade 时监听 `ADDON_LOADED`。`RegisterReady` 只用于 ready 通知，不是 `Commit()` 前置条件。
+2. **运行期事实源：** Lychee Host 的 ExtensionRegistry 保存每个 Extension 的注册句柄、API 版本、能力声明和状态。未 Commit draft、TOC 元数据和 AddOn loaded 状态都不算接入。Lychee ready 后消费 pending registry，并通过显式 `onHostAttached`/`onHostDetached` 生命周期通知。
 3. **诊断扫描：** Lychee 可在登录或诊断页一次性枚举 `C_AddOns.GetNumAddOns`、`C_AddOns.GetAddOnInfo`、`C_AddOns.GetAddOnMetadata` 和 `C_AddOns.GetAddOnDependencies`，展示 `X-Lychee-*` 元数据、依赖和加载原因；输入变化时禁止重新枚举。`C_AddOns.IsAddOnLoaded` 必须同时读取 `(loadedOrLoading, loaded)`，仅第二返回值为 true 才是加载完成，第一返回值单独为 true 时显示 `loading`。
 4. **按需加载：** 声明 `LoadOnDemand` 和 `X-Lychee-Keywords` 的候选可进入登录期轻量索引；用户明确选择后 Host 调用 `C_AddOns.LoadAddOn`，然后等待其 Commit。缺少关键词元数据的 LoD AddOn 只在诊断页或其他已加载入口中出现。加载成功不代表注册成功，必须以 committed registry 为准。
 5. **通信边界：** `C_ChatInfo.RegisterAddonMessagePrefix`/`SendAddonMessage` 只用于客户端间消息，不能作为本机插件 SDK RPC。SDK 调用使用同一客户端内的 Lua 表、受限 context 和结构化 payload。
 
-SDK 先加载而 Host 后加载时，已 Commit 的句柄留在 pending registry；Host 先加载而第三方后加载时，`Commit()` 立即触发 attach。两种顺序必须产生相同的 registered Extension，不要求第三方重试注册，也不在输入时重新扫描 AddOn。
+第三方先加载而 Lychee 尚未 ready 时，已 Commit 的句柄留在 pending registry；Lychee 先 ready 而第三方后加载时，`Commit()` 立即注册。两种顺序必须产生相同的 registered Extension，不要求第三方重试注册，也不在输入时重新扫描 AddOn。
 
 ## 性能
 
