@@ -1,0 +1,325 @@
+schema: comet.native.v4
+name: implement-lychee-runtime
+language: zh-CN
+phase: archive
+status: done
+state_version: 23
+brief: brief.md
+spec_changes: []
+workspace:
+  isolation: current
+  change_branch: main
+  target_branch: main
+  finish: null
+loop:
+  stage: done
+  goal_cycle: 2
+  iteration: 4
+  attempt: 1
+  retry_epoch: 0
+  failed_iteration_count: 3
+  no_progress_count: 0
+  execution_failure_count: 0
+  previous_unresolved_ids: []
+  next_action: null
+acceptance:
+  - id: A1
+    source: brief.md
+    text: A1：`package/Lychee/Lychee.toc`、`Bindings.xml` 和入口 Lua 可被静态检查识别；加载后创建
+      `_G.Lychee`，不依赖 sibling SDK AddOn。
+    result: passed
+    reason:
+      text: TOC、Bindings.xml、入口 Lua 和单一 _G.Lychee facade 检查通过。
+      truncated: false
+  - id: A2
+    source: brief.md
+    text: "A2：第三方 fixture 使用 `## OptionalDeps: Lychee` 和 `_G.Lychee` 完成一次
+      `RegisterExtension -> Register* -> Commit`；facade 缺席时只注册一次 `ADDON_LOADED`
+      监听，迟到加载后幂等完成注册。"
+    result: passed
+    reason:
+      text: "第三方 fixture 使用 OptionalDeps: Lychee/_G.Lychee，完成
+        RegisterExtension、Register*、Commit，且 QueryCapability 闭包在 committed
+        handle 上工作。"
+      truncated: false
+  - id: A3
+    source: brief.md
+    text: A3：ExtensionRegistry 正确处理 `draft -> pending -> registered -> enabled ->
+      retiring -> removed`；重复 ID、非法 schema、未知 API major 返回稳定错误，不发布半成品。
+    result: passed
+    reason:
+      text: Registry 事务状态、边界校验、回滚和注销行为通过原有 smoke。
+      truncated: false
+  - id: A4
+    source: brief.md
+    text: A4：CommandCatalog 只收录 Command；catalog/ambient 查询共享 generation/debounce，旧
+      generation 结果不会覆盖新查询，Provider 不会自动成为搜索入口。
+    result: passed
+    reason:
+      text: Provider 不进入 Catalog；generation/debounce guard 保证旧查询不能覆盖新结果。
+      truncated: false
+  - id: A5
+    source: brief.md
+    text: A5：Locale/alias 索引只在注册或数据更新时构建；当前 locale 与 `default` 生效，`复仇之怒` 的
+      `翅膀`、传送法术的 `红玉` 命中同一个 canonical item，不复制结果。
+    result: passed
+    reason:
+      text: PlayerSpells 与 DungeonGuide 均在数据刷新时建立 UTF-8 gram 候选桶，查询不再全量扫描
+        alias，canonical alias smoke 通过。
+      truncated: false
+  - id: A6
+    source: brief.md
+    text: A5a：登录及
+      `SPELLS_CHANGED`、`LEARNED_SPELL_IN_TAB`、`PLAYER_SPECIALIZATION_CHANGED`、`TRAIT_CONFIG_UPDATED`
+      事件后，Provider 使用 `C_SpellBook` skill-line/item API
+      重建当前角色法术快照；查询不读取静态技能清单或全表扫描。
+    result: passed
+    reason:
+      text: PlayerSpells 使用 C_SpellBook 实时快照和四类刷新事件，瞬时失败保留旧快照，查询走预索引。
+      truncated: false
+  - id: A7
+    source: brief.md
+    text: A6：`PlayerSpells` 只有一份 Provider/法术索引；技能详情、动作条拖拽和 secure-spell 交互共用同一 item
+      ID 与生命周期。
+    result: passed
+    reason:
+      text: 详情、drag、secure-spell 共用同一实时 spell item ID。
+      truncated: false
+  - id: A8
+    source: brief.md
+    text: A7：Host 统一创建/复用结果行和 Panel；结果支持 primary click/Enter、显式次级 action、专用 spell
+      drag 和受限 secure-spell，第三方不能取得 Palette 根 frame 或 SecureButton。
+    result: passed
+    reason:
+      text: ViewHost 将 transition state 传入 create/Mount，正确调用 instance
+        Unmount/Dispose；结果行 click/drag/secure 均检查 session、generation、extension
+        生命周期并主动清理。
+      truncated: false
+  - id: A9
+    source: brief.md
+    text: A8：`Lychee_Toggle` 委托 `PaletteController:Toggle()`；首次脱战且无冲突时尝试
+      `ALT-SPACE`，战斗中静默，`PLAYER_REGEN_DISABLED` 关闭已打开 Palette，脱战后恢复。
+    result: passed
+    reason:
+      text: Toggle 委托 Host-private PaletteController，战斗 guard、进战关闭和脱战绑定重试存在。
+      truncated: false
+  - id: A10
+    source: brief.md
+    text: A9：隐藏 Palette 没有常驻 Lua OnUpdate；共享 ticker 无订阅者时隐藏；结果行、交互槽和临时表池化；setter 通过
+      change guard，关闭/卸载清理 ticker、timer、事件和引用。
+    result: passed
+    reason:
+      text: Scheduler 无订阅隐藏且 swap-remove；QueryOrchestrator 支持 NewTimer
+        Cancel、token/generation 失效；结果行和 setter 有池化/change guard。
+      truncated: false
+  - id: A11
+    source: brief.md
+    text: A10：静态/离线测试覆盖 schema、Locale/alias、generation、状态机、战斗 guard、secure-spell 拒绝
+      scripted click、拖拽 payload 校验、第三方 fixture 注册和性能静态规则。
+    result: passed
+    reason:
+      text: 原有 smoke 加 interaction_smoke 可执行覆盖 schema、alias、generation、combat、secure
+        scripted click、drag payload、Scheduler、Panel cleanup、stale row 和第三方
+        fixture。
+      truncated: false
+  - id: A12
+    source: brief.md
+    text: A11：`git diff --check`、Lua/XML/TOC 静态检查通过；提交只包含运行时代码、SDK 开发包和必要测试，不包含
+      `analyze/`、`.comet/` 或归档。
+    result: passed
+    reason:
+      text: luac、smoke、interaction smoke、contract checks、git diff --check 均通过；HEAD
+        d322c6d 只包含运行时、SDK fixture 和测试。
+      truncated: false
+builder_handoff:
+  candidate_id: 4bf1d2ad-9a90-47c7-a8ec-238150e50835
+  identity_provider: skill-coordinated
+  builder_execution_ref: skill-coordinated:builder:846abbd0-2586-4287-8904-9cdd11c5c8ca
+  iteration: 4
+  summary:
+    text: 第四轮修复已提交 d322c6d：DungeonGuide 改为 UTF-8 n-gram 候选桶；QueryOrchestrator 使用可取消
+      NewTimer 和 token/generation 失效；ViewHost 将 transition state 传入 create/Mount
+      并正确执行 instance cleanup；Palette/ResultList/SecureBroker 绑定
+      session、generation、extension 生命周期，禁用/注销时清理旧行、Panel 和 secure action；补齐 UI
+      模块导出并修复第三方 fixture Commit 后 QueryCapability 闭包；新增 interaction_smoke
+      覆盖战斗、secure、拖拽、Scheduler、Panel cleanup 和 stale row。
+    truncated: false
+  addressed_acceptance_ids:
+    - A5
+    - A8
+    - A10
+    - A11
+  checks:
+    - name:
+        text: Lua 5.1 syntax
+        truncated: false
+      result: passed
+      note:
+        text: All package/Lychee, tests and lychee-sdk Lua files parsed with luac -p.
+        truncated: false
+    - name:
+        text: offline smoke
+        truncated: false
+      result: passed
+      note:
+        text: lua tests/smoke.lua -> Lychee smoke PASS.
+        truncated: false
+    - name:
+        text: interaction smoke
+        truncated: false
+      result: passed
+      note:
+        text: lua tests/interaction_smoke.lua -> Lychee interaction smoke PASS.
+        truncated: false
+    - name:
+        text: contract checks
+        truncated: false
+      result: passed
+      note:
+        text: tests/check_contract.ps1 -> interaction smoke PASS and Lychee contract
+          checks PASS.
+        truncated: false
+    - name:
+        text: git diff check
+        truncated: false
+      result: passed
+      note:
+        text: git diff --check exited 0.
+        truncated: false
+    - name:
+        text: git commit
+        truncated: false
+      result: passed
+      note:
+        text: "d322c6d fix: close runtime interaction lifecycle gaps; only runtime, SDK
+          fixture and tests staged."
+        truncated: false
+  checks_truncated: false
+  known_limits:
+    - text: 真实 WoW SecureActionButton 硬件点击、C_Spell.PickupSpell、战斗锁定、焦点和 ALT-SPACE
+        冲突仍需客户端 /reload 验证。
+      truncated: false
+  known_limits_truncated: false
+  submitted_at: 2026-08-25T17:45:04.800Z
+blockers: []
+verification:
+  candidate_id: 4bf1d2ad-9a90-47c7-a8ec-238150e50835
+  identity_provider: skill-coordinated
+  verifier_execution_ref: skill-coordinated:verifier:63f15423-334d-4378-a4a7-cf2fdb24b355
+  iteration: 4
+  attempt: 1
+  assurance: skill-coordinated
+  verdict: pass
+  checks: []
+  summary:
+    text: 第四轮候选完成全部离线验收；保留真实 WoW 客户端安全 API 和快捷键行为的手工验证限制。
+    truncated: false
+  risks:
+    - text: 真实 WoW 客户端中的 SecureActionButton 硬件点击、C_Spell.PickupSpell、战斗锁定、焦点和
+        ALT-SPACE 冲突仍需 /reload 手工验证。
+      truncated: false
+  risks_truncated: false
+  completed_at: 2026-08-25T17:50:29.280Z
+history:
+  - goal_cycle: 1
+    iteration: 1
+    attempt: 0
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: 需求修订：PlayerSpells 必须以当前角色实时法术书为事实源，使用 C_SpellBook skill-line/item API，并由
+        SPELLS_CHANGED、LEARNED_SPELL_IN_TAB、PLAYER_SPECIALIZATION_CHANGED、TRAIT_CONFIG_UPDATED
+        事件触发快照重建；静态表仅保留 alias 定义和离线 fallback。实现、正式文档与 smoke 已同步。
+      truncated: false
+    completed_at: 2026-08-25T16:33:39.931Z
+  - goal_cycle: 2
+    iteration: 1
+    attempt: 1
+    outcome: execution-error
+    unresolved_ids: []
+    summary:
+      text: Verifier was not dispatched before the previous session ended, and
+        candidate 7fe8bc4b-1bbe-41d2-9b5a-d1e483da737b is stale after commit
+        06ae8e8 separated builtin business data from provider logic.
+      truncated: false
+    completed_at: 2026-08-25T16:45:20.631Z
+  - goal_cycle: 2
+    iteration: 1
+    attempt: 2
+    outcome: fail
+    unresolved_ids:
+      - A3
+      - A4
+      - A5
+      - A6
+      - A8
+      - A9
+      - A10
+      - A11
+    summary:
+      text: Static checks pass, but registration atomicity, Panel transitions,
+        secure-spell initialization, canonical spell data, search performance,
+        binding retry, lifecycle cleanup, and tests require another Build
+        iteration.
+      truncated: false
+    completed_at: 2026-08-25T16:55:03.641Z
+  - goal_cycle: 2
+    iteration: 2
+    attempt: 1
+    outcome: fail
+    unresolved_ids:
+      - A2
+      - A10
+      - A12
+    summary:
+      text: The previous candidate passed implementation inspection except for public
+        Host-handle exposure, incomplete required test evidence, and uncommitted
+        changes; those are addressed in the next Build state.
+      truncated: false
+    completed_at: 2026-08-25T17:21:18.366Z
+  - goal_cycle: 2
+    iteration: 3
+    attempt: 1
+    outcome: execution-error
+    unresolved_ids: []
+    summary:
+      text: "Native Verifier response was invalid: Native Verifier acceptance coverage
+        is invalid (duplicate: none; unknown: none; missing: A12)"
+      truncated: false
+    completed_at: 2026-08-25T17:30:13.233Z
+  - goal_cycle: 2
+    iteration: 3
+    attempt: 2
+    outcome: fail
+    unresolved_ids:
+      - A5
+      - A8
+      - A10
+      - A11
+    summary:
+      text: 需回到 Build 修复 DungeonGuide 预索引、Panel state、可取消 timer、注销清理并补充 A10 行为测试。
+      truncated: false
+    completed_at: 2026-08-25T17:35:29.130Z
+  - goal_cycle: 2
+    iteration: 4
+    attempt: 1
+    outcome: pass
+    unresolved_ids: []
+    summary:
+      text: 第四轮候选完成全部离线验收；保留真实 WoW 客户端安全 API 和快捷键行为的手工验证限制。
+      truncated: false
+    completed_at: 2026-08-25T17:50:29.280Z
+history_overflow:
+  dropped_entries: 0
+  first_dropped_at: null
+  last_dropped_at: null
+  outcome_counts:
+    pass: 0
+    fail: 0
+    blocked: 0
+    execution-error: 0
+    recovery: 0
+verification_result: pass
+verification_report: verification.md
+archived: true
+created_at: 2026-08-25T16:09:03.470Z
