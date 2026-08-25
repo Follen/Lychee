@@ -72,7 +72,7 @@ function ResultList:Create(parent, controller)
             if self.controller then self.controller:ActivateRow(button) end
         end)
         row:SetScript("OnEnter", function(button)
-            if self.controller then self.controller:SelectRow(button) end
+            self:SelectRow(button)
         end)
         self.rows[i] = row
     end

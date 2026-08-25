@@ -9,7 +9,14 @@ $legacy = rg -n 'OptionalDeps:\s*LycheeSDK|_G\.LycheeSDK' (Join-Path $root 'pack
 if ($LASTEXITCODE -eq 0) { throw "Legacy SDK facade marker found: $legacy" }
 $palette = Get-Content (Join-Path $root 'package/Lychee/UI/Palette.lua') -Raw
 if ($palette -match 'OnUpdate') { throw 'Palette must not contain a resident OnUpdate loop' }
-if ((Get-Content (Join-Path $root 'package/Lychee/Lychee.toc') -Raw) -notmatch 'Bindings\.xml') { throw 'TOC must load Bindings.xml' }
+$tocSource = Get-Content (Join-Path $root 'package/Lychee/Lychee.toc') -Raw
+if ($tocSource -notmatch '(?m)^## Bindings:\s*Bindings\.xml\s*$') { throw 'TOC must declare Bindings.xml with ## Bindings metadata' }
+if ($tocSource -match '(?m)^Bindings\.xml\s*$') { throw 'Bindings.xml must not be listed as a normal TOC file' }
+$bindings = Get-Content (Join-Path $root 'package/Lychee/Bindings.xml') -Raw
+if ($bindings -notmatch '<Binding\s+name="TOGGLELYCHEE"\s+category="BINDING_HEADER_LYCHEE"') { throw 'Lychee binding declaration missing' }
+$playerSpells = Get-Content (Join-Path $root 'package/Lychee/Builtin/PlayerSpells/Init.lua') -Raw
+if ($playerSpells -match 'LEARNED_SPELL_IN_TAB') { throw 'Legacy spell learned event must not be registered' }
+if ($playerSpells -notmatch 'LEARNED_SPELL_IN_SKILL_LINE') { throw 'Retail spell learned event missing' }
 $paletteSource = Get-Content (Join-Path $root 'package/Lychee/UI/Palette.lua') -Raw
 if ($paletteSource -match 'Lychee\.UI\.PaletteController\s*=\s*self') { throw 'Palette controller must remain Host-private' }
 if ($paletteSource -notmatch 'ACTION_REQUIRES_HARDWARE_CLICK') { throw 'Secure scripted-click guard missing' }

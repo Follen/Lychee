@@ -1,14 +1,22 @@
 local I = _G.LycheeInternal
 local M=I.Builtin.PlayerSpells
+
+local function registerEvent(frame, event)
+    -- Some client branches omit individual legacy events; do not abort addon init.
+    local ok = pcall(frame.RegisterEvent, frame, event)
+    return ok
+end
+
 function M:Init()
     if self._initialized then return end; self._initialized=true
     self.Provider:Refresh()
     self.Provider._eventFrame = CreateFrame and CreateFrame("Frame")
     if self.Provider._eventFrame then
-        self.Provider._eventFrame:RegisterEvent("SPELLS_CHANGED")
-        self.Provider._eventFrame:RegisterEvent("LEARNED_SPELL_IN_TAB")
-        self.Provider._eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-        self.Provider._eventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
+        registerEvent(self.Provider._eventFrame, "SPELLS_CHANGED")
+        registerEvent(self.Provider._eventFrame, "LEARNED_SPELL_IN_SKILL_LINE")
+        registerEvent(self.Provider._eventFrame, "PLAYER_SPECIALIZATION_CHANGED")
+        registerEvent(self.Provider._eventFrame, "ACTIVE_PLAYER_SPECIALIZATION_CHANGED")
+        registerEvent(self.Provider._eventFrame, "TRAIT_CONFIG_UPDATED")
         self.Provider._eventFrame:SetScript("OnEvent",function() self.Provider:Refresh() end)
     end
     local d=I.Registry:Begin({id=self.Provider.extensionID,apiVersion=1,minApiRevision=1,title="玩家技能"}); if not d then return end

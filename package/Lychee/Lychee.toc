@@ -4,8 +4,8 @@
 ## Author: Lychee
 ## Version: 0.1.0
 ## SavedVariables: LycheeDB
+## Bindings: Bindings.xml
 
-Bindings.xml
 Bootstrap.lua
 Core/ContextStore.lua
 Search/Normalizer.lua
