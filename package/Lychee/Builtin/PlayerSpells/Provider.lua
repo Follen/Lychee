@@ -74,6 +74,36 @@ local function spellName(spellID, item)
     end
 end
 
+local function knownToPlayer(spellID)
+    if type(IsPlayerSpell) == "function" then
+        local ok, known = pcall(IsPlayerSpell, spellID)
+        if ok then return known == true end
+    end
+    if C_SpellBook and type(C_SpellBook.IsSpellKnown) == "function" then
+        local bank = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player
+        if bank ~= nil then
+            local ok, known = pcall(C_SpellBook.IsSpellKnown, spellID, bank)
+            if ok then return known == true end
+        end
+    end
+    return false
+end
+
+local function addKnownAliasSpells(items, buckets, aliasDefinitions)
+    if type(C_Spell) ~= "table" or type(C_Spell.GetSpellInfo) ~= "function" then return end
+    for spellID in pairs(aliasDefinitions) do
+        if not items[spellID] and knownToPlayer(spellID) then
+            local ok, info = pcall(C_Spell.GetSpellInfo, spellID)
+            if ok and type(info) == "table" and type(info.name) == "string" and info.name ~= "" then
+                addSpell(items, buckets, aliasDefinitions, {
+                    id = spellID, name = info.name, icon = info.iconID,
+                    subtext = info.subName, aliases = aliasDefinitions[spellID],
+                })
+            end
+        end
+    end
+end
+
 local function commitSnapshot(self, items, buckets, source)
     self.items, self.queryBuckets = items, buckets
     self.lastRefresh, self.lastError, self.dirty = source, nil, false
@@ -128,6 +158,8 @@ function P:RefreshFromSpellBook()
             end
         end
     end
+    -- A known utility/teleport spell can be omitted from a visible skill line.
+    addKnownAliasSpells(nextItems, nextBuckets, self.aliasDefinitions)
     commitSnapshot(self, nextItems, nextBuckets, "spellbook")
     return true
 end
