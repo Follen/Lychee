@@ -490,12 +490,32 @@ Lychee 绘制单行结果。Enter 或点击后生成并路由 Intent。
     icon = texture,
     enabled = true,
     payload = opaque,
+    interaction = { -- optional, declared data rather than callbacks
+        primaryActionID = "open-detail",
+        actions = {
+            { id = "open-detail", title = "查看详情", kind = "intent" },
+            { id = "cast", title = "施放", kind = "secure-spell", spellID = 12345 },
+        },
+        drag = { type = "spell", spellID = 12345 },
+    },
 }
 ```
 
 Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态、空状态和 generation 校验。item payload 只传给所属 Command 的 `itemIntent`。
 
 `resolve` 由 QueryOrchestrator 调用，不由 ResultList 直接调用。返回 item 必须有 Extension 内稳定 ID；`itemIntent` 只把选中 item 转换为结构化 Intent，实际执行仍经过 IntentRouter。
+
+#### 结果动作与拖拽
+
+`interaction` 是动态 item 的可选、有界声明，不是给结果行挂任意 Lua 回调的入口。`actions` 最多四项，ID 必须在同一 item 内稳定且唯一；Host 只接受 `intent` 和自行解释的 `secure-spell` 两种 kind。描述符不得包含 function、Frame、宏文本、任意 secure attribute 或无界数据。
+
+- 只有一个普通主动作时，行左键和 Enter 都执行它；有多个动作时，二者仍只执行 `primaryActionID`，其余动作由 Host 在稳定的行内动作槽显示明确按钮。Host 不根据标题、图标或 Provider 名称猜测动作。
+- `intent` 动作只由所属 Command 的 `itemIntent(item, actionID, context)` 生成结构化 Intent，再交 IntentRouter；跨 Extension 的 Handler、PanelFactory 或 transition 一律拒绝。普通动作可执行操作，也可在成功后返回同 Extension 的声明式 `custom-panel` transition。
+- `secure-spell` 只能声明有限的 numeric `spellID`。Enter、IntentRouter、普通 Lua 回调和 `Button:Click()` 都不能触发它；用户必须真实左键点击 Host 已在脱战配置的 `SecureActionButtonTemplate` 行/按钮。若安全动作被设为 primary，Enter 返回 `ACTION_REQUIRES_HARDWARE_CLICK`。
+- `drag` 当前只支持 `{ type = "spell", spellID = number }`。Host 仅在结果可见、当前 generation、Extension 已启用、脱战且法术已知、可用、非被动时显示专用拖拽区域；真实 `OnDragStart` 调用 `C_Spell.PickupSpell(spellID)`，由标准动作条接收光标内容。点击行、Enter、resolver 和 `itemIntent` 绝不触发 PickupSpell。
+- 无效描述符、不支持类型、不可用法术、过期行或战斗状态分别返回稳定的 `INVALID_INTERACTION`、`DRAG_UNSUPPORTED`、`ACTION_UNAVAILABLE`、`STALE_GENERATION` 或 `COMBAT_LOCKED`，且不改变鼠标光标。
+
+动作、拖拽和安全按钮都绑定 `extensionID + itemID + actionID + Palette session/context token + generation`。输入变化、Palette 关闭、进入战斗、Extension disable、retiring 或 removed 后，Host 立即使对应绑定失效；旧行、旧回调和迟到 resolver 结果不能作用于新一轮结果。安全法术按钮只能在脱战按结果 diff 或 dirty flush 配置，进入战斗后保持冻结并等待脱战重建。
 
 主动内容搜索的端到端示例：
 
@@ -567,6 +587,8 @@ _G.BINDING_NAME_TOGGLELYCHEE = "打开/关闭 Lychee"
 
 `Lychee_Toggle` 是 Bindings.xml 唯一调用的稳定全局函数，初始化时定义一次并只委托给私有 `PaletteController`。第三方、Command 和 Panel 都不能替换该函数、增加 Lychee 级 Binding 或直接持有 Controller。
 
+默认唤起键是 `Alt + Space`（`ALT-SPACE`），但只能在首次初始化时做一次无冲突尝试：当 `GetBindingKey("TOGGLELYCHEE")` 没有任何返回值且 `GetBindingAction("ALT-SPACE")` 为空，并且当前不在战斗，才调用 `SetBinding("ALT-SPACE", "TOGGLELYCHEE")` 和 `SaveBindings(GetCurrentBindingSet())`。`LycheeDB.defaultBindingAttempted` 必须记录这次尝试，防止每次登录重复写入。若该 action 已绑定或此组合键属于其他 action，Lychee 不覆盖、不选择替代键，并在设置页提示玩家自行设置。玩家后来在 WoW 按键设置中修改或解绑后，Lychee 永不自动回写；不得使用 `SetOverrideBinding`，也不得在战斗中或每次登录写 Binding。
+
 战斗策略是强制契约：
 
 ```lua
@@ -621,6 +643,15 @@ Builtin module
 
 内置的技能、任务、怪物技能、副本 CD 等内容域与第三方使用同一套 `catalog/ambient` Command、CapabilityProvider、item Intent、ExecutionResult transition 和 ViewHost 合同。数据可以来自 ContextStore、本地数据包或第三方 Provider，但数据来源不改变搜索对象和 UI 所有权。
 
+首批内置 Extension 按同一协议组织，避免为任一业务另建搜索或 UI 通道：
+
+1. `DungeonGuideProvider` 为大秘境小怪名与小怪技能建立怪物记录的反向索引；普通动作打开 Lychee 详情，并可提供打开外部指南的动作。
+2. `PlayerSpellProvider` 只索引当前角色已知、有效的法术；结果支持详情、专用区域拖到动作条，以及可选的真实点击安全施放。
+3. `DungeonAliasProvider` 把 Boss 名、赛季简称（如 `M1`）和版本别名映射为攻略实体；结果动作打开同 Extension 的详情 Panel。
+4. `PlayerSpellProvider` 为已知副本传送法术建立副本别名索引；输入“红玉”等别名仍返回 spell item，并沿用详情、拖拽和真实点击安全施放合同。
+
+外部指南是可选 adapter，不是 Host 特权路径。以 MRT 为例，`DungeonGuideProvider` 只能调用目标 AddOn 的稳定公开接口；目标未加载、未接入或不支持该实体时，该动作返回 `ACTION_UNAVAILABLE`，不操作其内部 frame，不影响 Lychee 详情动作或其他结果。
+
 内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
 
 Palette、输入框、结果列表和 ViewHost 本身属于 Host 基础 UI，不作为 Command 面板注册；用户实际搜索进入的设置、诊断、插件管理等功能页面则作为 Builtin Extension 的 Command/PanelFactory 接入。
@@ -633,7 +664,9 @@ Palette、输入框、结果列表和 ViewHost 本身属于 Host 基础 UI，不
 INVALID_SCHEMA, DUPLICATE_ID, UNSUPPORTED_API, INCOMPATIBLE_HOST,
 EXTENSION_DISABLED, PROVIDER_TIMEOUT, PROVIDER_ERROR, STALE_GENERATION,
 COMMAND_NOT_FOUND, INTENT_INVALID, COMBAT_LOCKED,
-INVALID_SECURE_DESCRIPTOR, INACCESSIBLE_VALUE, PANEL_ERROR, CALLBACK_ERROR
+INVALID_SECURE_DESCRIPTOR, INVALID_INTERACTION, DRAG_UNSUPPORTED,
+ACTION_UNAVAILABLE, ACTION_REQUIRES_HARDWARE_CLICK, INACCESSIBLE_VALUE,
+PANEL_ERROR, CALLBACK_ERROR
 ```
 
 SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段或方法提升 revision；改变字段语义、类型或删除字段提升 major。Extension 声明精确 major 和最低 revision，SDK 与 Host 分别在注册和 attach 阶段决定兼容结果；兼容分支不进入搜索热路径。
@@ -650,6 +683,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 - ambient 只在显式声明、用户启用、长度/availability 命中且位于本 generation 预算内时调度。
 - dynamic resolver 有全局调用数、单 Command 结果数、调用深度和协作式耗时上限。
 - ResultRow 和常用 Panel 容器池化，按 stable ID 增量渲染。
+- 交互行按 `itemID + actionID` 复用有限动作槽、专用拖拽区域和 Host 安全按钮；绑定或解绑只发生在结果 diff/脱战 dirty flush，不在鼠标移动、每帧或 resolver 内创建 frame/闭包。
 - 热路径避免临时 frame、闭包、长字符串和可规避的 table 分配。
 - `SetPoint`、`SetSize`、字体、纹理、颜色和 frame level 使用 change guard。
 - 事件驱动优先；必须轮询的任务有固定间隔、对象上限和停止条件。
@@ -753,11 +787,18 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | 详情转换失败 | 跨 Extension PanelFactory、过期 context/session 或非法 state 均不挂载 Panel |
 | Intent 错误 | 当前动作终止，Host 统一错误行可见，`busy` 必定释放且不写 recent |
 | dynamic-list | 键盘、鼠标、滚动、空状态和 item Intent |
+| 单一/多个普通动作 | 左键与 Enter 均只执行主动作，其余动作显示为稳定的行内按钮 |
+| 法术拖拽 | 仅专用区域真实 `OnDragStart` 调用 `C_Spell.PickupSpell`；点击、Enter 与 Lua 调用不改变光标 |
+| 安全法术动作 | 脱战预配置；真实左键可施放，Enter/scripted click 返回或保持 `ACTION_REQUIRES_HARDWARE_CLICK` |
+| 动作生命周期 | 输入替换、关闭、进战、disable、retiring/removed 后旧 session/context/generation 的动作、拖拽和安全按钮均失效 |
 | custom-panel | 实例复用、Mount/Update/Unmount/Dispose、Esc、异常后 content frame 隐藏/清空、托管驱动注销，其他 Extension 继续工作 |
+| MRT/指南 adapter | 仅经稳定公开 API 打开支持的实体；目标不可用时返回 `ACTION_UNAVAILABLE`，不访问内部 frame |
+| 内置实体场景 | 小怪/小怪技能、角色技能、Boss/M1 别名和副本传送别名均经 Provider -> Command -> item Intent -> Host UI 链路 |
 | 第三方报错 | 其他 Extension 和 Palette 继续工作 |
 | secret/inaccessible 数据 | 根、key、value 和嵌套 table 均在索引/Intent/日志/SavedVariables 前拒绝 |
 | timer 取消 | query 替换、关闭、Unmount、disable 和 detach 后句柄已 Cancel，After 旧 generation 无效果 |
 | 战斗状态 | toggle 静默无效果；已开 Palette 在 `PLAYER_REGEN_DISABLED` 统一关闭；脱战后快捷键自动恢复但不自动重开 |
+| 默认 Binding | 首次且无冲突时保存 `ALT-SPACE -> TOGGLELYCHEE`；已有 action/key、战斗中或玩家后续改键时均不覆盖/回写 |
 | secure action | `SecureActionButtonTemplate` 脱战创建/预配置，只有真实点击可执行，scripted click 不作为硬件输入 |
 | Palette 隐藏 | ticker、timer、catalog/ambient 动态队列和 active row 归零，迟到结果无效 |
 | 1000+ Command | 候选上限、排序稳定性和帧时间 |
@@ -771,11 +812,13 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 - [ ] AddOn 枚举只用于诊断、兼容和 LoD。
 - [ ] 内置和第三方走同一 Catalog、Broker、Router 和 UI。
 - [ ] dynamic-list 与 custom-panel 的所有权清晰。
+- [ ] dynamic item 的动作、拖拽与安全施放均为 Host 解释的有界声明，且受 session/context/generation 生命周期保护。
 - [ ] dynamic item 先转换为 Intent，详情只能经同 Extension 的声明式 transition 进入 ViewHost。
 - [ ] Extension 重载必须等待旧句柄 retiring 的查询、Panel、索引和驱动清理屏障，新句柄不能提前可见。
 - [ ] resolver 失败只由 Host 在有界退避窗口重试，Palette 隐藏或 Extension 退出后不留后台驱动。
 - [ ] Intent 与 Panel 错误都释放 `busy`，并由 Host 统一呈现/清场，不影响其他 Extension。
 - [ ] `TOGGLELYCHEE` 是唯一全局 Binding。
+- [ ] `ALT-SPACE` 只在首次、脱战、action 未绑定且按键空闲时设为默认值，之后不覆盖玩家设置。
 - [ ] 战斗中 toggle 不改变 UI、焦点或查询，进入战斗会关闭已打开的 Palette。
 - [ ] UI 不直接调用第三方任意函数。
 - [ ] 受保护动作只接受声明式 Descriptor。
