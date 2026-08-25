@@ -1,9 +1,9 @@
 schema: comet.native.v4
 name: implement-lychee-runtime
 language: zh-CN
-phase: build
+phase: verify
 status: active
-state_version: 2
+state_version: 3
 brief: brief.md
 spec_changes: []
 workspace:
@@ -12,7 +12,7 @@ workspace:
   target_branch: main
   finish: null
 loop:
-  stage: building
+  stage: verify-ready
   goal_cycle: 1
   iteration: 1
   attempt: 0
@@ -21,7 +21,7 @@ loop:
   no_progress_count: 0
   execution_failure_count: 0
   previous_unresolved_ids: []
-  next_action: submit-builder-candidate
+  next_action: run-required-checks-and-dispatch-verifier
 acceptance:
   - id: A1
     source: brief.md
@@ -90,7 +90,76 @@ acceptance:
       `analyze/`、`.comet/` 或归档。
     result: pending
     reason: null
-builder_handoff: null
+builder_handoff:
+  candidate_id: 67f2b33f-bbd4-4641-8f20-466efd9ee5c4
+  identity_provider: skill-coordinated
+  builder_execution_ref: skill-coordinated:builder:492e88c2-2655-458a-9992-c2715619b772
+  iteration: 1
+  summary:
+    text: 已实现 package/Lychee Host AddOn 与 lychee-sdk 开发包。Host 包含 TOC/Bindings、Core
+      registry/catalog/broker/router/context/scheduler、Search
+      normalizer/index/query、UI Palette/Input/ResultList/ViewHost/Focus、Secure
+      descriptor/policy/broker、PlayerSpells 唯一法术索引与
+      Locale/俗称/副本传送别名、DungeonGuide fixture、_G.Lychee facade、Alt+Space 战斗保护。SDK
+      包含 API helper、stubs、README 和第三方 fixture。按 Ellesmere 性能原则使用事件驱动、无常驻
+      OnUpdate、行池、secure 槽复用、generation/session guard、预索引与局部更新。
+    truncated: false
+  addressed_acceptance_ids:
+    - A1
+    - A2
+    - A3
+    - A4
+    - A5
+    - A6
+    - A7
+    - A8
+    - A9
+    - A10
+    - A11
+  checks:
+    - name:
+        text: luac syntax
+        truncated: false
+      result: passed
+      note:
+        text: 33 Lua files parsed with Lua 5.1 luac -p
+        truncated: false
+    - name:
+        text: host smoke
+        truncated: false
+      result: passed
+      note:
+        text: "tests/smoke.lua: wings/ruby/M1 aliases and generation"
+        truncated: false
+    - name:
+        text: contract checks
+        truncated: false
+      result: passed
+      note:
+        text: "tests/check_contract.ps1: TOC, legacy facade, no Palette OnUpdate"
+        truncated: false
+    - name:
+        text: git diff check
+        truncated: false
+      result: passed
+      note:
+        text: git diff --check
+        truncated: false
+    - name:
+        text: git commits
+        truncated: false
+      result: passed
+      note:
+        text: 3546f3d implementation; 9540de1 Native state
+        truncated: false
+  checks_truncated: false
+  known_limits:
+    - text: 真实 WoW 客户端中的
+        SecureActionButton、C_Spell.PickupSpell、战斗锁定和鼠标拖拽尚未在客户端内验证；已通过静态合同和离线
+        fixture。
+      truncated: false
+  known_limits_truncated: false
+  submitted_at: 2026-08-25T16:26:05.880Z
 blockers: []
 verification: null
 history: []

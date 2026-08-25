@@ -33,4 +33,13 @@ assert(#ruby > 0 and ruby[1].payload.spellID == 395289)
 local _, m1 = q:Query("M1", {})
 assert(#m1 > 0)
 assert(q.generation >= 3)
+Enum = { SpellBookSpellBank = { Player = 0 } }
+C_SpellBook = {
+    GetNumSpellBookSkillLines = function() return 1 end,
+    GetSpellBookSkillLineInfo = function() return { itemIndexOffset = 0, numSpellBookItems = 1 } end,
+    GetSpellBookItemInfo = function() return { spellID = 9001, name = "实时技能", iconID = 1, subName = "当前角色", isPassive = false, isOffSpec = false } end,
+}
+_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh()
+local _, live = q:Query("实时技能", {})
+assert(#live > 0 and live[1].payload.spellID == 9001)
 print("Lychee smoke PASS")

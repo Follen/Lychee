@@ -633,6 +633,8 @@ Lychee 自己的功能也是 Extension/Provider，不绕开上述结果合同。
 - `DungeonAliasProvider`：Boss 名或赛季别名（如 `M1`）映射到副本/Boss 详情 Panel，而不是为每个别名建立独立快捷键或特殊 UI。
 - 副本传送搜索属于同一个 `PlayerSpells` Extension，不新增额外 Provider、独立目录或第二份法术索引。输入“红玉”等别名命中 canonical spell item，详情、拖拽和真实点击施放仍复用同一 item interaction。
 
+玩家法术索引必须以当前角色实时法术书为事实源。Host 在登录及法术/专精/天赋变化事件后批量刷新快照，读取 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 和 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)`；按键查询只访问预构建快照与 alias index。静态法术数据只能用于 alias 定义和无 WoW API 的离线 fixture，不能覆盖客户端实时已知技能。
+
 Provider 只维护预索引和数据查询；ambient Command 决定何时进入主输入框；`itemIntent`/Handler 决定普通选择后的 transition；Host 负责结果行和受保护输入。这些职责不因功能是内置或第三方而改变。
 
 ## 11. CapabilityProvider

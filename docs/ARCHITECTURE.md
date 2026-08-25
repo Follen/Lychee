@@ -668,6 +668,8 @@ Builtin module
 3. `DungeonAliasProvider` 把 Boss 名、赛季简称（如 `M1`）和版本别名映射为攻略实体；结果动作打开同 Extension 的详情 Panel。
 4. 副本传送搜索是第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；命中后仍返回同一个 canonical spell item，并沿用详情、拖拽和真实点击安全施放合同。
 
+`PlayerSpellProvider` 的法术源不是固定技能表：Retail 运行时在登录、`SPELLS_CHANGED`、`LEARNED_SPELL_IN_TAB`、`PLAYER_SPECIALIZATION_CHANGED` 和 `TRAIT_CONFIG_UPDATED` 事件后，使用 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 与 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)` 重建当前角色的已知非被动、非 off-spec 法术快照。别名定义只作为 canonical spell ID 的投影；输入查询只读取快照和倒排别名索引。WoW API 不存在的离线测试环境才使用有限 fixture fallback，不能作为客户端数据源。
+
 外部指南是可选 adapter，不是 Host 特权路径。以 MRT 为例，`DungeonGuideProvider` 只能调用目标 AddOn 的稳定公开接口；目标未加载、未接入或不支持该实体时，该动作返回 `ACTION_UNAVAILABLE`，不操作其内部 frame，不影响 Lychee 详情动作或其他结果。
 
 内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
