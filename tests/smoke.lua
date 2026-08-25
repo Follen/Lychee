@@ -30,7 +30,7 @@ local q = _G.LycheeInternal.Search.Query
 local _, results = q:Query("翅膀", {})
 assert(#results > 0 and results[1].payload and results[1].payload.spellID == 31884)
 local _, ruby = q:Query("红玉", {})
-assert(#ruby > 0 and ruby[1].payload.spellID == 393256)
+assert(#ruby > 0 and ruby[1].payload.spellID == 1289780)
 local _, m1 = q:Query("M1", {})
 assert(#m1 > 0)
 assert(q.generation >= 3)
@@ -68,11 +68,11 @@ local _, retained = q:Query("实时技能", {})
 assert(#retained > 0 and retained[1].payload.spellID == 9001)
 -- Known alias spells are indexed even when the visible skill-line snapshot omits them.
 C_SpellBook.GetSpellBookItemInfo = function() return nil end
-IsPlayerSpell = function(id) return id == 393256 end
-C_Spell = { GetSpellInfo = function(id) if id == 393256 then return { name = "Teleport: Ruby Life Pools", iconID = 1 } end end }
+IsPlayerSpell = function(id) return id == 1289780 end
+C_Spell = { GetSpellInfo = function(id) if id == 1289780 then return { name = "Teleport: Ruby Life Pools", iconID = 1 } end end }
 assert(_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh())
 local _, knownAlias = q:Query("红玉", {})
-assert(#knownAlias > 0 and knownAlias[1].payload.spellID == 393256)
+assert(#knownAlias > 0 and knownAlias[1].payload.spellID == 1289780)
 local bad = _G.LycheeInternal.Registry:Begin({ id = "test.bad", apiVersion = 1, minApiRevision = 1, title = "Bad" })
 assert(bad and not bad:RegisterCommand({ id = "broken", title = "Broken" }))
 local panel = _G.LycheeInternal.Registry:Get("builtin.player-spells")

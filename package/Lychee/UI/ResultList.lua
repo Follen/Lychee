@@ -21,6 +21,11 @@ local function extensionID(item)
     return item and (item._ext or (item.command and item.command._ext))
 end
 
+-- Defined before Create so an early cursor transition cannot observe a partial method table.
+function ResultList:SelectRow(row)
+    if row and row.index then self:Select(row.index) end
+end
+
 function ResultList:Create(parent, controller)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 12, -48)
@@ -72,7 +77,8 @@ function ResultList:Create(parent, controller)
             if self.controller then self.controller:ActivateRow(button) end
         end)
         row:SetScript("OnEnter", function(button)
-            self:SelectRow(button)
+            local selectRow = self.SelectRow
+            if type(selectRow) == "function" then selectRow(self, button) end
         end)
         self.rows[i] = row
     end
@@ -162,7 +168,6 @@ function ResultList:Select(index)
     end
 end
 
-function ResultList:SelectRow(row) self:Select(row.index) end
 function ResultList:GetSelected() return self.rows[self.selected] and self.rows[self.selected].item end
 function ResultList:Move(delta) self:Select(self.selected + (delta or 0)); return self:GetSelected() end
 function ResultList:ActivateSelected() local row = self.rows[self.selected]; if row and row:IsShown() and self.controller then self.controller:ActivateRow(row) end end

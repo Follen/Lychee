@@ -167,7 +167,7 @@ end
 function P:RefreshOfflineFixture()
     local items, buckets = {}, {}
     addSpell(items, buckets, self.aliasDefinitions, { id = 31884, name = "Avenging Wrath", subtext = "offline fixture", aliases = self.aliasDefinitions[31884], icon = 135875 })
-    addSpell(items, buckets, self.aliasDefinitions, { id = 393256, name = "Teleport: Ruby Life Pools", subtext = "offline fixture", aliases = self.aliasDefinitions[393256] })
+    addSpell(items, buckets, self.aliasDefinitions, { id = 1289780, name = "Teleport: Ruby Life Pools", subtext = "offline fixture", aliases = self.aliasDefinitions[1289780] })
     addSpell(items, buckets, self.aliasDefinitions, { id = 373274, name = "Teleport: Mechagon", subtext = "offline fixture", aliases = self.aliasDefinitions[373274] })
     commitSnapshot(self, items, buckets, "offline-fixture")
     return true

@@ -5,7 +5,7 @@ I.BuiltinData.PlayerSpellAliases = {
         { text = "翅膀", locale = "zhCN" },
         { text = "wings", locale = "enUS" },
     },
-    [393256] = {
+    [1289780] = {
         { text = "红玉", locale = "zhCN" },
         { text = "ruby life pools", locale = "enUS" },
     },
