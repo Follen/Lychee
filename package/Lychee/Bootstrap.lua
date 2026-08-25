@@ -28,15 +28,21 @@ local function onLogin()
     if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController
-    if palette and I.Search and I.Search.Query and not I._paletteWired then
-        I._paletteWired = true
-        palette:SetQueryCallback(function(raw, generation, session)
+    if palette then I.WirePalette(palette) end
+end
+
+function I.WirePalette(palette)
+    if not palette or not I.Search or not I.Search.Query or I._paletteWired then return false end
+    I._paletteWired = true
+    palette:SetQueryCallback(function(raw, generation, session)
             if InCombatLockdown and InCombatLockdown() then return end
             local snapshot = I.Context and I.Context:Snapshot() or {}
-            local _, results = I.Search.Query:Query(raw, snapshot, generation)
-            palette:SetResults(results, generation, session)
-        end)
-        palette:SetActivateCallback(function(item, actionID)
+            local queryGeneration, results = I.Search.Query:Query(raw, snapshot)
+            if session ~= palette.session then return end
+            palette.generation = queryGeneration
+            palette:SetResults(results, queryGeneration, session)
+    end)
+    palette:SetActivateCallback(function(item, actionID)
             local command = item and item.command
             if not command or type(command.itemIntent) ~= "function" then return false, "ACTION_UNAVAILABLE" end
             local intent = command.itemIntent(item, actionID, I.Context and I.Context:Snapshot() or {})
@@ -58,8 +64,8 @@ local function onLogin()
                 if controller then controller:Hide("intent") end
             end
             return result
-        end)
-    end
+    end)
+    return true
 end
 
 local frame = CreateFrame and CreateFrame("Frame")

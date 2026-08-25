@@ -47,6 +47,7 @@ function Palette:Create()
         end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
         if not internal.Host.TogglePalette then internal.Host.TogglePalette = function() return self:Toggle() end end
+        if internal.WirePalette then internal.WirePalette(self) end
     end
     return self
 end

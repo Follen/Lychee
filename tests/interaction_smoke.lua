@@ -113,6 +113,13 @@ assertEq(disposed, true, "panel dispose cleanup")
 -- Palette combat/secure/drag guards.
 local palette = I.Host.PaletteController
 assert(palette)
+assert(type(palette.onQuery) == "function", "palette query callback was not wired")
+I.Search.Query.generation = 100
+palette.generation = 1
+palette.session = 1
+palette.visible = true
+palette.onQuery("stale-generation", 2, palette.session)
+assert(palette.generation == I.Search.Query.generation, "palette and query generations diverged")
 _G.__combat = true
 local toggleOK, toggleErr = palette:Toggle()
 assertEq(toggleOK, false, "combat toggle result")
