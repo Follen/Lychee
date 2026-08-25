@@ -1,0 +1,13 @@
+name: lychee-sdk
+kind: development-package
+runtimeAddon: false
+hostAddon: Lychee
+facade: _G.Lychee
+apiVersion: 1
+apiRevision: 1
+contents:
+  - README.md
+  - LycheeAPI.lua
+  - ApiStubs.lua
+  - examples/ThirdPartyFixture/ThirdPartyFixture.toc
+  - examples/ThirdPartyFixture/ThirdPartyFixture.lua

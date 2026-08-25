@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="TOGGLELYCHEE" category="BINDING_HEADER_LYCHEE">
+        Lychee_Toggle();
+    </Binding>
+</Bindings>

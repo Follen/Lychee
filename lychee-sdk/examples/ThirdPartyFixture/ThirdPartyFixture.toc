@@ -1,0 +1,8 @@
+## Interface: 120100
+## Title: Lychee Third-Party Fixture
+## Notes: Development fixture for the Lychee public facade
+## Version: 1.0.0
+## Author: Lychee
+## OptionalDeps: Lychee
+
+ThirdPartyFixture.lua
