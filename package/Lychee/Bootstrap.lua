@@ -5,6 +5,17 @@ I.VERSION = I.VERSION or { api = 1, revision = 1 }
 I.Modules = I.Modules or {}
 LycheeDB = LycheeDB or {}
 
+local function wireRegistryLifecycle()
+    if I._registryLifecycleWired or not I.Registry then return end
+    I._registryLifecycleWired = true
+    I.Registry:OnChange(function(entry, state)
+        if state ~= "disabled" and state ~= "retiring" and state ~= "removed" then return end
+        if I.Search and I.Search.Query then I.Search.Query:Invalidate() end
+        local palette = I.Host and I.Host.PaletteController
+        if palette and palette.InvalidateExtension then palette:InvalidateExtension(entry.id, state) end
+    end)
+end
+
 local function onLogin()
     if type(GetBindingKey)=="function" and type(GetBindingAction)=="function" and type(SetBinding)=="function" and type(SaveBindings)=="function" and type(GetCurrentBindingSet)=="function" and not LycheeDB.defaultBindingAttempted and not (InCombatLockdown and InCombatLockdown()) then
         LycheeDB.defaultBindingAttempted = true
@@ -13,6 +24,7 @@ local function onLogin()
             SaveBindings(GetCurrentBindingSet())
         end
     end
+    wireRegistryLifecycle()
     if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController

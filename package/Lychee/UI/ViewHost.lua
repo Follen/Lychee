@@ -7,7 +7,8 @@ ViewHost.__index = ViewHost
 
 local function invoke(fn, ...)
     if type(fn) ~= "function" then return true end
-    return xpcall(fn, geterrorhandler and geterrorhandler() or function(e) return e end, ...)
+    local args = { ... }
+    return xpcall(function() return fn(unpack(args)) end, geterrorhandler and geterrorhandler() or function(e) return e end)
 end
 
 function ViewHost:Create(parent)
@@ -21,7 +22,11 @@ function ViewHost:Unmount(reason)
     local panel = self.panel
     self.panel, self.active = nil, false
     self.generation = self.generation + 1
-    if panel then invoke(panel.Unmount, panel.instance, reason or "unmount"); invoke(panel.Dispose, panel.instance, reason or "unmount") end
+    if panel then
+        local instance = panel.instance
+        invoke(panel.factory and panel.factory.Unmount or instance and instance.Unmount, instance, reason or "unmount")
+        invoke(panel.factory and panel.factory.Dispose or instance and instance.Dispose, instance, reason or "unmount")
+    end
     self.frame:Hide()
 end
 
@@ -32,7 +37,8 @@ function ViewHost:Mount(factory, context, state)
     if context.contentFrame == nil then context.contentFrame = self.frame end
     if context.width == nil then context.width = self.frame:GetWidth() end
     if context.height == nil then context.height = self.frame:GetHeight() end
-    local ok, instance = invoke(factory.create, context)
+    -- Lua callbacks may ignore the second argument, so legacy create(context) factories remain valid.
+    local ok, instance = invoke(factory.create, context, state)
     if not ok or not instance then return false, "PANEL_ERROR" end
     self.generation = self.generation + 1
     self.panel = { factory = factory, instance = instance, context = context }
@@ -53,3 +59,5 @@ end
 
 function ViewHost:IsActive() return self.active end
 function ViewHost:GetFrame() return self.frame end
+
+Lychee.UI.ViewHost = ViewHost

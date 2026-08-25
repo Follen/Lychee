@@ -22,4 +22,13 @@ $fixture = Get-Content (Join-Path $root 'lychee-sdk/examples/ThirdPartyFixture/T
 foreach ($marker in @('RegisterExtension','RegisterCapabilityProvider','RegisterPanelFactory','RegisterIntentHandler','RegisterCommand','Commit','ADDON_LOADED','state.committed')) {
     if ($fixture -notmatch [regex]::Escape($marker)) { throw "Third-party fixture marker missing: $marker" }
 }
+$lua = Get-Command lua -ErrorAction SilentlyContinue
+if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
+Push-Location $root
+try {
+    & $lua.Source 'tests/interaction_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Interaction smoke failed with exit code $LASTEXITCODE" }
+} finally {
+    Pop-Location
+}
 Write-Output 'Lychee contract checks PASS'

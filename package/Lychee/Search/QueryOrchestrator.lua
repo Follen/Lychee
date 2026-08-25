@@ -1,5 +1,5 @@
 local I = _G.LycheeInternal
-local Q = { generation = 0, active = false, last = nil, pending = nil, ambientEnabled = {}, limit = 20, catalogLimit = 8, ambientLimit = 12, debounceSeconds = 0.04 }
+local Q = { generation = 0, active = false, last = nil, pending = nil, timer = nil, timerToken = 0, ambientEnabled = {}, limit = 20, catalogLimit = 8, ambientLimit = 12, debounceSeconds = 0.04 }
 I.Search.Query = Q
 
 local function resultLess(left, right)
@@ -78,6 +78,13 @@ function Q:_Commit(generation, results)
     return true
 end
 
+function Q:_CancelTimer()
+    local timer = self.timer
+    self.timer = nil
+    self.timerToken = self.timerToken + 1
+    if timer and type(timer.Cancel) == "function" then pcall(timer.Cancel, timer) end
+end
+
 function Q:Query(raw, context, externalGeneration)
     local generation = self:_BeginGeneration(externalGeneration)
     if externalGeneration and externalGeneration < self.generation then return generation, {} end
@@ -90,15 +97,32 @@ end
 
 function Q:Schedule(raw, context, externalGeneration, callback, delay)
     local generation = self:_BeginGeneration(externalGeneration)
+    if externalGeneration and externalGeneration < self.generation then return generation, false end
+    self:_CancelTimer()
     self.pending = { raw = raw, context = context, generation = generation, callback = callback }
     local wait = delay
     if wait == nil then wait = self.debounceSeconds end
-    if wait <= 0 then self:Flush(generation)
-    elseif C_Timer and type(C_Timer.After) == "function" then C_Timer.After(wait, function() self:Flush(generation) end) end
+    local timerToken = self.timerToken
+    if wait <= 0 then
+        self:Flush(generation)
+    elseif C_Timer and type(C_Timer.NewTimer) == "function" then
+        local timer
+        timer = C_Timer.NewTimer(wait, function()
+            if self.timerToken ~= timerToken or self.timer ~= timer then return end
+            self.timer = nil
+            self:Flush(generation)
+        end)
+        self.timer = timer
+    elseif C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(wait, function()
+            if self.timerToken == timerToken then self:Flush(generation) end
+        end)
+    end
     return generation, true
 end
 
 function Q:Flush(expectedGeneration)
+    self:_CancelTimer()
     local pending = self.pending
     if not pending or (expectedGeneration and pending.generation ~= expectedGeneration) or pending.generation ~= self.generation then return false end
     self.pending = nil
@@ -109,6 +133,7 @@ function Q:Flush(expectedGeneration)
 end
 
 function Q:Invalidate()
+    self:_CancelTimer()
     self.generation, self.last, self.pending, self.active = self.generation + 1, nil, nil, false
 end
 

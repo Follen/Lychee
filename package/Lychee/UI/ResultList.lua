@@ -14,7 +14,11 @@ local function setText(fontString, value)
 end
 
 local function setShown(object, shown)
-    if object and object:IsShown() ~= shown then object:SetShown(shown) end
+    if object and type(object.IsShown) == "function" and object:IsShown() ~= shown then object:SetShown(shown) end
+end
+
+local function extensionID(item)
+    return item and (item._ext or (item.command and item.command._ext))
 end
 
 function ResultList:Create(parent, controller)
@@ -78,7 +82,7 @@ end
 function ResultList:Clear()
     for i = 1, #self.rows do
         local row = self.rows[i]
-        row.item, row.index = nil, nil
+        row.item, row.index, row.session, row.generation, row.extensionID = nil, nil, nil, nil, nil
         setShown(row, false)
         for j = 1, 4 do row.actions[j].actionID = nil; setShown(row.actions[j], false) end
     end
@@ -94,6 +98,7 @@ function ResultList:SetItems(items, session, generation)
         local item, row = self.items[i], self.rows[i]
         row.item = item
         row.index = i
+        row.session, row.generation, row.extensionID = session, generation, extensionID(item)
         setText(row.title, item.text)
         setText(row.subtext, item.subtext)
         if item.icon and row.icon.SetTexture then
@@ -121,12 +126,24 @@ function ResultList:SetItems(items, session, generation)
     end
     for i = count + 1, #self.rows do
         local row = self.rows[i]
-        row.item, row.index = nil, nil
+        row.item, row.index, row.session, row.generation, row.extensionID = nil, nil, nil, nil, nil
         setShown(row, false)
         for j = 1, 4 do row.actions[j].actionID = nil; setShown(row.actions[j], false) end
     end
     self.selected = math.max(1, math.min(self.selected or 1, math.max(count, 1)))
     self:Select(self.selected)
+end
+
+
+function ResultList:InvalidateRow(row)
+    if not row then return false end
+    local index = row.index
+    row.item, row.index, row.session, row.generation, row.extensionID = nil, nil, nil, nil, nil
+    setShown(row, false)
+    setShown(row.dragger, false)
+    for j = 1, 4 do row.actions[j].actionID = nil; setShown(row.actions[j], false) end
+    if index and self.items[index] then self.items[index] = false end
+    return true
 end
 
 function ResultList:Select(index)
@@ -149,3 +166,5 @@ function ResultList:SelectRow(row) self:Select(row.index) end
 function ResultList:GetSelected() return self.rows[self.selected] and self.rows[self.selected].item end
 function ResultList:Move(delta) self:Select(self.selected + (delta or 0)); return self:GetSelected() end
 function ResultList:ActivateSelected() local row = self.rows[self.selected]; if row and row:IsShown() and self.controller then self.controller:ActivateRow(row) end end
+
+Lychee.UI.ResultList = ResultList

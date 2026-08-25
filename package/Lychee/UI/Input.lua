@@ -34,3 +34,5 @@ function Input:Focus() return self.focus and self.focus:Set(self.frame) end
 function Input:ClearFocus() if self.frame.ClearFocus then self.frame:ClearFocus() end end
 function Input:Show() self.frame:Show() end
 function Input:Hide() self.frame:Hide() end
+
+Lychee.UI.Input = Input

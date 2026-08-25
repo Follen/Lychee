@@ -38,12 +38,35 @@ function Broker:_Acquire()
     button:RegisterForClicks("LeftButtonUp")
     button:SetSize(24, 24)
     button:Hide()
+    button:SetScript("PreClick", function(current)
+        if self:ValidateToken(current.token) then return end
+        if not (InCombatLockdown and InCombatLockdown()) then
+            current:SetAttribute("type", nil)
+            current:SetAttribute("spell", nil)
+            current:Hide()
+        else
+            current.pendingRelease = true
+            self.dirty = true
+        end
+        current.busy, current.token, current.action = false, nil, nil
+    end)
     button.busy = true
     self.buttons[#self.buttons + 1] = button
     return button
 end
+function Broker:ValidateToken(token)
+    if type(token) ~= "table" then return false, "STALE_GENERATION" end
+    local controller = token.controller or self:EnsureBound()
+    if not controller or not controller.IsRowCurrent then return false, "STALE_GENERATION" end
+    return controller:IsRowCurrent(token.row, token.session, token.generation, token.item, token.extensionID)
+end
+function Broker:IsTokenCurrent(token) return self:ValidateToken(token) == true end
 function Broker:Prepare(action, token)
     self:EnsureBound()
+    if token and token.row then
+        local current, tokenErr = self:ValidateToken(token)
+        if not current then return nil, tokenErr end
+    end
     local descriptor, err = Lychee.Secure.Descriptor.FromAction(action)
     if not descriptor then return nil, err end
     local ok, policyErr = Lychee.Secure.Policy:Check(descriptor)
@@ -69,10 +92,21 @@ function Broker:Release(button)
     button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
     button.busy, button.pendingRelease, button.token, button.action = false, nil, nil, nil
 end
-function Broker:ShowFor(row, action, session, generation)
-    local button, err = self:Prepare(action, { row = row, session = session, generation = generation })
+function Broker:ShowFor(row, action, session, generation, item, extensionID)
+    local button, err = self:Prepare(action, {
+        controller = self:EnsureBound(), row = row, item = item or (row and row.item),
+        extensionID = extensionID or (row and row.extensionID), session = session, generation = generation,
+    })
     if not button then return false, err end
     button:ClearAllPoints(); button:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    return true
+end
+function Broker:InvalidateRow(row)
+    if not row then return false end
+    for i = 1, #self.buttons do
+        local button = self.buttons[i]
+        if button.token and button.token.row == row then self:Release(button) end
+    end
     return true
 end
 function Broker:Flush()

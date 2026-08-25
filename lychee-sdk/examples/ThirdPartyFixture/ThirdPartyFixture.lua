@@ -177,6 +177,7 @@ local function buildExtension(SDK)
         record(commitErr and commitErr.code or "INVALID_SCHEMA")
         return nil
     end
+    extension = committed
     state.committed = committed
     return committed
 end

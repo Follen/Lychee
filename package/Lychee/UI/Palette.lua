@@ -37,6 +37,14 @@ function Palette:Create()
         internal.Host.PaletteController = self
         local broker = internal.Host.SecureBroker
         if broker and broker.BindPalette then broker:BindPalette(self) end
+        if internal.Registry and internal.Registry.OnChange and not internal._paletteLifecycleWired then
+            internal._paletteLifecycleWired = true
+            internal.Registry:OnChange(function(entry, state)
+                if state == "disabled" or state == "retiring" or state == "removed" then
+                    self:InvalidateExtension(entry and entry.id)
+                end
+            end)
+        end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
         if not internal.Host.TogglePalette then internal.Host.TogglePalette = function() return self:Toggle() end end
     end
@@ -46,6 +54,37 @@ end
 function Palette:SetQueryCallback(callback) self.onQuery = callback end
 function Palette:SetActivateCallback(callback) self.onActivate = callback end
 function Palette:SetDragCallback(callback) self.onDrag = callback end
+function Palette:IsExtensionEnabled(extensionID)
+    if not extensionID then return true end
+    local registry = _G.LycheeInternal and _G.LycheeInternal.Registry
+    return not registry or registry:IsEnabled(extensionID)
+end
+function Palette:IsRowCurrent(row, session, generation, item, extensionID)
+    if not self.visible or not row or not row.item then return false, "STALE_GENERATION" end
+    if row.session ~= self.session or row.generation ~= self.generation then return false, "STALE_GENERATION" end
+    if session and session ~= self.session or generation and generation ~= self.generation then return false, "STALE_GENERATION" end
+    if item and row.item ~= item then return false, "STALE_GENERATION" end
+    extensionID = extensionID or row.extensionID
+    if not self:IsExtensionEnabled(extensionID) then return false, "EXTENSION_DISABLED" end
+    return true
+end
+function Palette:InvalidateRow(row)
+    if self.secureBroker and self.secureBroker.InvalidateRow then self.secureBroker:InvalidateRow(row) end
+    if self.list and self.list.InvalidateRow then self.list:InvalidateRow(row) end
+end
+function Palette:InvalidateExtension(extensionID)
+    if not extensionID then return false end
+    if self.viewHost and self.viewHost.panel and self.viewHost.panel.context
+        and self.viewHost.panel.context.extensionID == extensionID then
+        self.viewHost:Unmount("extension-disabled")
+    end
+    if not self.list then return true end
+    for i = 1, #self.list.rows do
+        local row = self.list.rows[i]
+        if row.extensionID == extensionID then self:InvalidateRow(row) end
+    end
+    return true
+end
 function Palette:SetResults(items, generation, session)
     if not self.visible then return false end
     if session and session ~= self.session then return false end
@@ -57,11 +96,16 @@ function Palette:SetResults(items, generation, session)
             local row = self.list.rows[i]
             local interaction = row.item and row.item.interaction
             local actions = interaction and interaction.actions
-            if row:IsShown() and actions then
+            local current = self:IsRowCurrent(row)
+            if not current then self:InvalidateRow(row) end
+            if current and row:IsShown() and actions then
                 for j = 1, math.min(#actions, 4) do
                     local action = actions[j]
                     if action.kind == "secure-spell" then
-                        local button = self.secureBroker:Prepare(action, { row = row, session = self.session, generation = self.generation })
+                        local button = self.secureBroker:Prepare(action, {
+                            controller = self, row = row, item = row.item, extensionID = row.extensionID,
+                            session = self.session, generation = self.generation,
+                        })
                         if button then
                             button:ClearAllPoints()
                             button:SetPoint("CENTER", row.actions[j], "CENTER")
@@ -102,12 +146,15 @@ function Palette:Toggle()
     return self:Show()
 end
 function Palette:ActivateRow(row)
-    if not row or row.item == nil then return false, "ACTION_UNAVAILABLE" end
+    local valid, err = self:IsRowCurrent(row)
+    if not valid then self:InvalidateRow(row); return false, err end
     return self:ActivateRowAction(row, row.item.interaction and row.item.interaction.primaryActionID or "default")
 end
 function Palette:ActivateSelected() return self.list:ActivateSelected() end
 function Palette:ActivateRowAction(row, actionID)
     if not self.visible then return false, "INVALID_STATE" end
+    local valid, err = self:IsRowCurrent(row)
+    if not valid then self:InvalidateRow(row); return false, err end
     local item = row and row.item
     if not item then return false, "ACTION_UNAVAILABLE" end
     local interaction = item.interaction
@@ -115,13 +162,14 @@ function Palette:ActivateRowAction(row, actionID)
     if interaction and interaction.actions then for i = 1, #interaction.actions do if interaction.actions[i].id == actionID then action = interaction.actions[i]; break end end end
     if action and action.kind == "secure-spell" then
         if actionID == (interaction.primaryActionID or "") then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
-        return self.secureBroker and self.secureBroker:ShowFor(row, action, self.session, self.generation) or false
+        return self.secureBroker and self.secureBroker:ShowFor(row, action, self.session, self.generation, item, row.extensionID) or false
     end
     if self.onActivate then return self.onActivate(item, actionID, self.session, self.generation) end
     return false, "ACTION_UNAVAILABLE"
 end
 function Palette:BeginRowDrag(row)
-    if not self.visible or not row or not row.item then return false, "STALE_GENERATION" end
+    local valid, err = self:IsRowCurrent(row)
+    if not valid then self:InvalidateRow(row); return false, err end
     if self.onDrag then return self.onDrag(row.item, self.session, self.generation) end
     local drag = row.item.interaction and row.item.interaction.drag
     if type(drag) ~= "table" or drag.type ~= "spell" or type(drag.spellID) ~= "number" then return false, "DRAG_UNSUPPORTED" end
@@ -145,5 +193,5 @@ function Lychee_Toggle()
     controller:Toggle()
 end
 
-Lychee.UI.Palette = Lychee.UI.Palette or {}
+Lychee.UI.Palette = Palette
 if not (_G.LycheeInternal and _G.LycheeInternal.Host and _G.LycheeInternal.Host.PaletteController) then Palette:Create() end
