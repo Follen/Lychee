@@ -4,6 +4,7 @@ local P = {
     queryBuckets = {},
     extensionID = "builtin.player-spells",
     dirty = true,
+    descriptionRequests = {},
 }
 
 I.Builtin.PlayerSpells.Provider = P
@@ -57,8 +58,29 @@ local function addSpell(items, buckets, aliasDefinitions, spell)
     local aliases = spell.aliases or aliasDefinitions[spell.id]
     items[spell.id] = spell
     addAlias(buckets, spell.name, spell.id)
+    addAlias(buckets, spell.description, spell.id)
     if type(aliases) == "table" then
         for index = 1, #aliases do addAlias(buckets, aliases[index], spell.id) end
+    end
+end
+
+local function usableText(value)
+    if type(value) ~= "string" or value == "" then return nil end
+    if type(issecretvalue) == "function" then
+        local ok, secret = pcall(issecretvalue, value)
+        if not ok or secret then return nil end
+    end
+    return value
+end
+
+local function spellDescription(self, spellID)
+    if not C_Spell or type(C_Spell.GetSpellDescription) ~= "function" then return nil end
+    local ok, description = pcall(C_Spell.GetSpellDescription, spellID)
+    description = ok and usableText(description) or nil
+    if description then return description end
+    if type(C_Spell.RequestLoadSpellData) == "function" and not self.descriptionRequests[spellID] then
+        self.descriptionRequests[spellID] = true
+        pcall(C_Spell.RequestLoadSpellData, spellID)
     end
 end
 
@@ -89,7 +111,7 @@ local function knownToPlayer(spellID)
     return false
 end
 
-local function addKnownAliasSpells(items, buckets, aliasDefinitions)
+local function addKnownAliasSpells(self, items, buckets, aliasDefinitions)
     if type(C_Spell) ~= "table" or type(C_Spell.GetSpellInfo) ~= "function" then return end
     for spellID in pairs(aliasDefinitions) do
         if not items[spellID] and knownToPlayer(spellID) then
@@ -98,6 +120,7 @@ local function addKnownAliasSpells(items, buckets, aliasDefinitions)
                 addSpell(items, buckets, aliasDefinitions, {
                     id = spellID, name = info.name, icon = info.iconID,
                     subtext = info.subName, aliases = aliasDefinitions[spellID],
+                    description = spellDescription(self, spellID),
                 })
             end
         end
@@ -151,6 +174,7 @@ function P:RefreshFromSpellBook()
                             addSpell(nextItems, nextBuckets, self.aliasDefinitions, {
                                 id = item.spellID, name = name, icon = item.iconID,
                                 subtext = item.subName, aliases = self.aliasDefinitions[item.spellID],
+                                description = spellDescription(self, item.spellID),
                             })
                         end
                     end
@@ -159,7 +183,7 @@ function P:RefreshFromSpellBook()
         end
     end
     -- A known utility/teleport spell can be omitted from a visible skill line.
-    addKnownAliasSpells(nextItems, nextBuckets, self.aliasDefinitions)
+    addKnownAliasSpells(self, nextItems, nextBuckets, self.aliasDefinitions)
     if readableItems == 0 and next(nextItems) == nil then
         return refreshFailed(self, "SPELLBOOK_ITEMS_UNAVAILABLE")
     end
@@ -170,10 +194,14 @@ end
 function P:RefreshOfflineFixture()
     local items, buckets = {}, {}
     addSpell(items, buckets, self.aliasDefinitions, { id = 31884, name = "Avenging Wrath", subtext = "offline fixture", aliases = self.aliasDefinitions[31884], icon = 135875 })
-    addSpell(items, buckets, self.aliasDefinitions, { id = 1289780, name = "Teleport: Ruby Life Pools", subtext = "offline fixture", aliases = self.aliasDefinitions[1289780] })
+    addSpell(items, buckets, self.aliasDefinitions, { id = 393256, name = "利爪防御者之路", description = "传送至红玉新生法池入口。", subtext = "offline fixture", aliases = self.aliasDefinitions[393256] })
     addSpell(items, buckets, self.aliasDefinitions, { id = 373274, name = "Teleport: Mechagon", subtext = "offline fixture", aliases = self.aliasDefinitions[373274] })
     commitSnapshot(self, items, buckets, "offline-fixture")
     return true
+end
+
+function P:ClearDescriptionRequest(spellID)
+    if type(spellID) == "number" then self.descriptionRequests[spellID] = nil end
 end
 
 function P:Refresh()
