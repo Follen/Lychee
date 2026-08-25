@@ -6,16 +6,15 @@ function facade:Supports(api, revision)
     return api == self.API_VERSION and (revision or 1) <= self.API_REVISION
 end
 function facade:RegisterExtension(desc)
-    if not self:Supports(desc and desc.apiVersion or 1, desc and desc.minApiRevision or 1) then
+    if type(desc)~="table" then return nil,{code="INVALID_SCHEMA",field="descriptor",retryable=false} end
+    if not self:Supports(desc.apiVersion or 0, desc.minApiRevision or 1) then
         return nil, { code = "UNSUPPORTED_API" }
     end
-    return I.Registry:Begin(desc)
+    return I.Registry:Begin(desc,{public=true})
 end
 function facade:RegisterReady(fn)
     if type(fn) ~= "function" then return nil, { code = "INVALID_CALLBACK" } end
-    if I.Registry.ready then pcall(fn, { apiVersion=self.API_VERSION, apiRevision=self.API_REVISION })
-    else I.Registry:OnChange(function(_, state) if state == "registered" then pcall(fn, { apiVersion=self.API_VERSION, apiRevision=self.API_REVISION }) end end) end
-    return true
+    return I.Registry:RegisterReady(function(info) pcall(fn, info) end)
 end
 function facade:IsReady() return I.Registry.ready end
 _G.Lychee = facade

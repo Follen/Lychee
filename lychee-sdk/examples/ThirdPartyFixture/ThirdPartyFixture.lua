@@ -159,7 +159,6 @@ local function buildExtension(SDK)
                     interaction = {
                         primaryActionID = "open-detail",
                         actions = { { id = "open-detail", title = "查看详情", kind = "intent" } },
-                        drag = { type = "spell", spellID = recordValue.itemID },
                     },
                 }
             end

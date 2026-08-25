@@ -12,6 +12,7 @@ Search/Normalizer.lua
 Search/StaticIndex.lua
 Core/CommandCatalog.lua
 Core/CapabilityBroker.lua
+Core/Boundary.lua
 Core/IntentRouter.lua
 Core/Scheduler.lua
 Core/ExtensionRegistry.lua

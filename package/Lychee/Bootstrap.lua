@@ -15,7 +15,7 @@ local function onLogin()
     end
     if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
     if I.Registry then I.Registry:SetReady(true) end
-    local palette = _G.Lychee and _G.Lychee.UI and _G.Lychee.UI.PaletteController
+    local palette = I.Host and I.Host.PaletteController
     if palette and I.Search and I.Search.Query and not I._paletteWired then
         I._paletteWired = true
         palette:SetQueryCallback(function(raw, generation, session)
@@ -28,7 +28,24 @@ local function onLogin()
             local command = item and item.command
             if not command or type(command.itemIntent) ~= "function" then return false, "ACTION_UNAVAILABLE" end
             local intent = command.itemIntent(item, actionID, I.Context and I.Context:Snapshot() or {})
-            return I.Router and I.Router:Execute(intent, I.Context and I.Context:Snapshot() or {}) or false
+            local result, err = I.Router and I.Router:Execute(intent, I.Context and I.Context:Snapshot() or {}) or nil, "HANDLER_UNAVAILABLE"
+            if not result then return false, err end
+            local transition = result.transition
+            if transition then
+                local extensionID = command._ext or item._ext
+                local panelID = transition.panelID or transition.panelFactoryID
+                local factory = extensionID and I.Router:ResolvePanel(extensionID, panelID)
+                if not factory then return false, "COMMAND_NOT_FOUND" end
+                local controller = I.Host and I.Host.PaletteController
+                if not controller or not controller.viewHost then return false, "PANEL_ERROR" end
+                local ok, mountErr = controller:OpenView(factory, { extensionID = extensionID, panelID = panelID, session = session, generation = generation }, transition.state or {})
+                if not ok then return false, mountErr or "PANEL_ERROR" end
+            end
+            if result.closePalette then
+                local controller = I.Host and I.Host.PaletteController
+                if controller then controller:Hide("intent") end
+            end
+            return result
         end)
     end
 end
@@ -40,8 +57,11 @@ if frame then
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
     frame:SetScript("OnEvent", function(_, event)
         if event == "PLAYER_LOGIN" then onLogin()
-        elseif event == "PLAYER_REGEN_DISABLED" and _G.Lychee and _G.Lychee.UI and _G.Lychee.UI.PaletteController then _G.Lychee.UI.PaletteController:Hide("combat")
-        elseif event == "PLAYER_REGEN_ENABLED" and _G.Lychee and _G.Lychee.Secure and _G.Lychee.Secure.SecureActionBroker then _G.Lychee.Secure.SecureActionBroker:Flush() end
+        elseif event == "PLAYER_REGEN_DISABLED" and I.Host and I.Host.PaletteController then I.Host.PaletteController:Hide("combat")
+        elseif event == "PLAYER_REGEN_ENABLED" then
+            if I.Host and I.Host.SecureBroker then I.Host.SecureBroker:Flush() end
+            onLogin()
+        end
     end)
 end
 

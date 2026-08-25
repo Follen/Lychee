@@ -31,10 +31,12 @@ function Palette:Create()
     self.input:SetSubmitCallback(function() self:ActivateSelected() end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:SetScript("OnEvent", function(_, event) if event == "PLAYER_REGEN_DISABLED" and self.visible then self:Hide("combat") end end)
-    Lychee.UI.PaletteController = self
     local internal = _G.LycheeInternal
     if internal then
         internal.Host = internal.Host or {}
+        internal.Host.PaletteController = self
+        local broker = internal.Host.SecureBroker
+        if broker and broker.BindPalette then broker:BindPalette(self) end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
         if not internal.Host.TogglePalette then internal.Host.TogglePalette = function() return self:Toggle() end end
     end
@@ -137,9 +139,11 @@ function Palette:CloseView(reason) return self.viewHost:Unmount(reason or "close
 
 function Lychee_Toggle()
     if InCombatLockdown and InCombatLockdown() then return end
-    local controller = Lychee.UI.PaletteController or Palette:Create()
+    local internal = _G.LycheeInternal
+    local controller = internal and internal.Host and internal.Host.PaletteController
+    if not controller then controller = Palette:Create() end
     controller:Toggle()
 end
 
-Lychee.UI.Palette = Palette
-if not Lychee.UI.PaletteController then Palette:Create() end
+Lychee.UI.Palette = Lychee.UI.Palette or {}
+if not (_G.LycheeInternal and _G.LycheeInternal.Host and _G.LycheeInternal.Host.PaletteController) then Palette:Create() end

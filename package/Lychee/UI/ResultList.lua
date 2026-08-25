@@ -6,9 +6,15 @@ local ResultList = {}
 ResultList.__index = ResultList
 
 local ROWS = 12
+local EMPTY_ITEMS = {}
 
 local function setText(fontString, value)
-    if fontString then fontString:SetText(value or "") end
+    value = value or ""
+    if fontString and fontString:GetText() ~= value then fontString:SetText(value) end
+end
+
+local function setShown(object, shown)
+    if object and object:IsShown() ~= shown then object:SetShown(shown) end
 end
 
 function ResultList:Create(parent, controller)
@@ -72,17 +78,16 @@ end
 function ResultList:Clear()
     for i = 1, #self.rows do
         local row = self.rows[i]
-        row.item = nil
-        row:Hide()
-        for j = 1, 4 do row.actions[j]:Hide(); row.actions[j].actionID = nil end
+        row.item, row.index = nil, nil
+        setShown(row, false)
+        for j = 1, 4 do row.actions[j].actionID = nil; setShown(row.actions[j], false) end
     end
-    self.items = {}
+    self.items = EMPTY_ITEMS
     self.selected = 1
 end
 
 function ResultList:SetItems(items, session, generation)
-    self:Clear()
-    self.items = items or {}
+    self.items = items or EMPTY_ITEMS
     self.session, self.generation = session, generation
     local count = math.min(#self.items, #self.rows)
     for i = 1, count do
@@ -91,7 +96,13 @@ function ResultList:SetItems(items, session, generation)
         row.index = i
         setText(row.title, item.text)
         setText(row.subtext, item.subtext)
-        if item.icon and row.icon.SetTexture then row.icon:SetTexture(item.icon); row.icon:Show() else row.icon:Hide() end
+        if item.icon and row.icon.SetTexture then
+            if row._icon ~= item.icon then row.icon:SetTexture(item.icon); row._icon = item.icon end
+            setShown(row.icon, true)
+        else
+            row._icon = nil
+            setShown(row.icon, false)
+        end
         local interaction = item.interaction
         local actions = interaction and interaction.actions
         for j = 1, 4 do
@@ -99,15 +110,22 @@ function ResultList:SetItems(items, session, generation)
             if action then
                 button.actionID = action.id
                 setText(button.label, action.title)
-                button:Show()
+                setShown(button, true)
             else
                 button.actionID = nil
-                button:Hide()
+                setShown(button, false)
             end
         end
-        row.dragger:SetShown(interaction and interaction.drag ~= nil)
-        row:Show()
+        setShown(row.dragger, interaction and interaction.drag ~= nil or false)
+        setShown(row, true)
     end
+    for i = count + 1, #self.rows do
+        local row = self.rows[i]
+        row.item, row.index = nil, nil
+        setShown(row, false)
+        for j = 1, 4 do row.actions[j].actionID = nil; setShown(row.actions[j], false) end
+    end
+    self.selected = math.max(1, math.min(self.selected or 1, math.max(count, 1)))
     self:Select(self.selected)
 end
 
@@ -117,7 +135,13 @@ function ResultList:Select(index)
     self.selected = index
     for i = 1, #self.rows do
         local row = self.rows[i]
-        if row:IsShown() then row.bg:SetColorTexture(i == index and 0.15 or 0, 0.5, 0.8, i == index and 0.28 or 0) end
+        if row:IsShown() then
+            local selected = i == index
+            if row._selected ~= selected then
+                row.bg:SetColorTexture(selected and 0.15 or 0, 0.5, 0.8, selected and 0.28 or 0)
+                row._selected = selected
+            end
+        end
     end
 end
 

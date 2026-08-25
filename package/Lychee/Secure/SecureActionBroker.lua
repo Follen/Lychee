@@ -10,13 +10,26 @@ function Broker:Create(parent)
     self.eventFrame = CreateFrame("Frame")
     self.eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
     self.eventFrame:SetScript("OnEvent", function() self:Flush() end)
-    if Lychee.UI and Lychee.UI.PaletteController then Lychee.UI.PaletteController.secureBroker = self end
+    self:EnsureBound()
     local internal = _G.LycheeInternal
     if internal then
         internal.Host = internal.Host or {}
         if not internal.Host.FlushSecure then internal.Host.FlushSecure = function() return self:Flush() end end
     end
     return self
+end
+function Broker:BindPalette(palette)
+    if not palette then return false end
+    self.palette = palette
+    palette.secureBroker = self
+    if palette.frame and self.parent == UIParent then self.parent = palette.frame end
+    return true
+end
+function Broker:EnsureBound()
+    if self.palette then return self.palette end
+    local palette = _G.LycheeInternal and _G.LycheeInternal.Host and _G.LycheeInternal.Host.PaletteController
+    if palette then self:BindPalette(palette) end
+    return self.palette
 end
 function Broker:_Acquire()
     for i = 1, #self.buttons do if not self.buttons[i].busy then self.buttons[i].busy = true; return self.buttons[i] end end
@@ -30,6 +43,7 @@ function Broker:_Acquire()
     return button
 end
 function Broker:Prepare(action, token)
+    self:EnsureBound()
     local descriptor, err = Lychee.Secure.Descriptor.FromAction(action)
     if not descriptor then return nil, err end
     local ok, policyErr = Lychee.Secure.Policy:Check(descriptor)
@@ -47,8 +61,13 @@ function Broker:Prepare(action, token)
 end
 function Broker:Release(button)
     if not button then return end
-    if not (InCombatLockdown and InCombatLockdown()) then button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil) end
-    button.busy, button.token, button.action = false, nil, nil
+    if InCombatLockdown and InCombatLockdown() then
+        button.pendingRelease = true
+        self.dirty = true
+        return
+    end
+    button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
+    button.busy, button.pendingRelease, button.token, button.action = false, nil, nil, nil
 end
 function Broker:ShowFor(row, action, session, generation)
     local button, err = self:Prepare(action, { row = row, session = session, generation = generation })
@@ -57,8 +76,19 @@ function Broker:ShowFor(row, action, session, generation)
     return true
 end
 function Broker:Flush()
+    if self == Broker then
+        local instance = _G.LycheeInternal and _G.LycheeInternal.Host and _G.LycheeInternal.Host.SecureBroker
+        return instance and instance:Flush() or false
+    end
     if not self.dirty or (InCombatLockdown and InCombatLockdown()) then return end
     self.dirty = false
+    for i = 1, #self.buttons do
+        local button = self.buttons[i]
+        if button.pendingRelease then
+            button.pendingRelease = nil
+            self:Release(button)
+        end
+    end
 end
 function Broker:Invalidate() self.dirty = true end
 function Broker:ReleaseAll()
@@ -68,7 +98,9 @@ end
 function Broker:Destroy()
     self:ReleaseAll()
 end
-Lychee.Secure.SecureActionBroker = Broker
-if Lychee.UI and Lychee.UI.PaletteController and not Lychee.Secure.BrokerInstance then
-    Lychee.Secure.BrokerInstance = Broker:Create(Lychee.UI.PaletteController.frame)
+local internal = _G.LycheeInternal
+internal.Host = internal.Host or {}
+if not internal.Host.SecureBroker then
+    local palette = internal.Host.PaletteController
+    internal.Host.SecureBroker = Broker:Create(palette and palette.frame or UIParent)
 end

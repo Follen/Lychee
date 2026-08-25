@@ -20,7 +20,8 @@ function Input:Create(parent, focusController)
         if self.onSubmit then self.onSubmit() end
     end)
     edit:SetScript("OnEscapePressed", function()
-        if Lychee.UI.PaletteController then Lychee.UI.PaletteController:Hide("escape") end
+        local host = _G.LycheeInternal and _G.LycheeInternal.Host
+        if host and host.PaletteController then host.PaletteController:Hide("escape") end
     end)
     return self
 end
