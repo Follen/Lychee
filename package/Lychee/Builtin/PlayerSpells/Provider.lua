@@ -77,13 +77,13 @@ end
 local function knownToPlayer(spellID)
     if type(IsPlayerSpell) == "function" then
         local ok, known = pcall(IsPlayerSpell, spellID)
-        if ok then return known == true end
+        if ok and known == true then return true end
     end
     if C_SpellBook and type(C_SpellBook.IsSpellKnown) == "function" then
         local bank = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player
         if bank ~= nil then
             local ok, known = pcall(C_SpellBook.IsSpellKnown, spellID, bank)
-            if ok then return known == true end
+            if ok and known == true then return true end
         end
     end
     return false
@@ -134,32 +134,35 @@ function P:RefreshFromSpellBook()
     end
 
     local nextItems, nextBuckets = {}, {}
+    local readableItems = 0
     for line = 1, count do
         local lineOK, info = pcall(C_SpellBook.GetSpellBookSkillLineInfo, line)
-        if not lineOK or type(info) ~= "table" then return refreshFailed(self, "SPELLBOOK_LINE_READ_FAILED") end
-        if not info.shouldHide and not info.isGuild then
+        if lineOK and type(info) == "table" and not info.shouldHide and not info.isGuild then
             local offset, itemCount = info.itemIndexOffset, info.numSpellBookItems
-            if type(offset) ~= "number" or type(itemCount) ~= "number" or itemCount < 0 then
-                return refreshFailed(self, "SPELLBOOK_LINE_INVALID")
-            end
-            local first, last = offset + 1, offset + itemCount
-            for slot = first, last do
-                local itemOK, item = pcall(C_SpellBook.GetSpellBookItemInfo, slot, bank)
-                if not itemOK then return refreshFailed(self, "SPELLBOOK_ITEM_READ_FAILED") end
-                if type(item) == "table" and type(item.spellID) == "number" and item.spellID > 0
-                    and not item.isPassive and not item.isOffSpec then
-                    local name = spellName(item.spellID, item)
-                    if not name then return refreshFailed(self, "SPELL_NAME_READ_FAILED") end
-                    addSpell(nextItems, nextBuckets, self.aliasDefinitions, {
-                        id = item.spellID, name = name, icon = item.iconID,
-                        subtext = item.subName, aliases = self.aliasDefinitions[item.spellID],
-                    })
+            if type(offset) == "number" and type(itemCount) == "number" and itemCount >= 0 then
+                local first, last = offset + 1, offset + itemCount
+                for slot = first, last do
+                    local itemOK, item = pcall(C_SpellBook.GetSpellBookItemInfo, slot, bank)
+                    if itemOK then readableItems = readableItems + 1 end
+                    if itemOK and type(item) == "table" and type(item.spellID) == "number" and item.spellID > 0
+                        and not item.isPassive and not item.isOffSpec then
+                        local name = spellName(item.spellID, item)
+                        if name then
+                            addSpell(nextItems, nextBuckets, self.aliasDefinitions, {
+                                id = item.spellID, name = name, icon = item.iconID,
+                                subtext = item.subName, aliases = self.aliasDefinitions[item.spellID],
+                            })
+                        end
+                    end
                 end
             end
         end
     end
     -- A known utility/teleport spell can be omitted from a visible skill line.
     addKnownAliasSpells(nextItems, nextBuckets, self.aliasDefinitions)
+    if readableItems == 0 and next(nextItems) == nil then
+        return refreshFailed(self, "SPELLBOOK_ITEMS_UNAVAILABLE")
+    end
     commitSnapshot(self, nextItems, nextBuckets, "spellbook")
     return true
 end
