@@ -2,7 +2,7 @@
 
 > 状态：Proposed Public API v1
 >
-> 本文定义后续 `LycheeSDK` 实现必须满足的公开契约。当前 change 只交付设计；Lua API 在实现 change 中按本文落地并通过 fixture 验证。
+> 本文定义 Lychee 本体暴露的 `LycheeSDK` 公共 API 必须满足的契约。SDK 不是独立运行时 AddOn；第三方插件把接入代码集成到自己的 AddOn 中，由 Lychee Host 提供实际注册、搜索、Panel 和执行能力。
 
 证据基线：wowdoc source `wow-ui-source`，product `retail`，Tag `12.1.0`，commit `31c7f7b9cc79e56c986b365c06a6afbcf3c9177b`。本文使用的关键证据为：
 
@@ -29,14 +29,14 @@ Extension
 
 最常见的插件只需注册一个 Extension、一个 IntentHandler 和一个 `row` Command。Command、Provider 和 Intent 分层：Command 是唯一搜索入口，Provider 是可复用数据能力，IntentHandler 是经过校验的动作执行器。
 
-第三方接入必须由第三方 AddOn 主动完成：取得 `_G.LycheeSDK`，创建 Extension 草稿，注册全部子声明，最后调用 `Commit()`。Lychee 不扫描插件目录来猜测或补造接入。**单独注册 Provider 不会产生任何搜索结果**；要让 Provider 的实体响应 Lychee 主输入框，同一 Extension 还必须注册一个引用该能力的 `ambient` `dynamic-list` Command，并将二者一起 Commit。
+第三方接入必须由第三方 AddOn 主动完成：取得 Lychee 本体暴露的 `_G.Lychee` 公共 facade，创建 Extension 草稿，注册全部子声明，最后调用 `Commit()`。Lychee 不扫描插件目录来猜测或补造接入。**单独注册 Provider 不会产生任何搜索结果**；要让 Provider 的实体响应 Lychee 主输入框，同一 Extension 还必须注册一个引用该能力的 `ambient` `dynamic-list` Command，并将二者一起 Commit。
 
 ## 2. TOC 与加载顺序
 
 第三方 TOC 声明可选依赖：
 
 ```toc
-## OptionalDeps: LycheeSDK
+## OptionalDeps: Lychee
 ```
 
 推荐增加仅供诊断和 LoadOnDemand 发现使用的元数据：
@@ -48,11 +48,11 @@ Extension
 ## X-Lychee-Keywords: sample,settings
 ```
 
-`OptionalDeps` 声明第三方对 `LycheeSDK` 的可选关系，并向客户端提供加载顺序信息；它不保证 SDK 一定存在、启用或成功加载，也不强制用户安装 Lychee。第三方只能以运行时全局表为准，并在入口短路：
+`OptionalDeps` 声明第三方对 Lychee 本体的可选关系，并向客户端提供加载顺序信息；它不保证 Lychee 一定存在、启用或成功加载。第三方只能以运行时公共 facade 为准，并在入口短路：
 
 ```lua
-local SDK = _G.LycheeSDK
-if not SDK or not SDK:Supports(1, 1) then
+local Lychee = _G.Lychee
+if not Lychee or not Lychee:Supports(1, 1) then
     -- 这是第三方自己的诊断 sink；同一加载周期只记录一次，不能放在事件回调里重复记。
     if not _G.MyAddonLycheeUnavailableRecorded then
         _G.MyAddonLycheeUnavailableRecorded = true
@@ -64,14 +64,18 @@ end
 
 这条路径只跳过 Lychee 集成，不改变第三方 AddOn 自己的功能。`SDK_UNAVAILABLE` 是第三方接入诊断 code，不是需要用户处理的运行时错误。诊断必须按 AddOn 加载周期或 AddOn 会话去重：SDK 缺席、版本不兼容或入口再次被事件触发时，不能重复写入同一条诊断；第三方自身的功能继续运行。SDK 不通过扫描和执行第三方代码补注册；加载状态变化后，由客户端的正常 AddOn 加载流程决定第三方入口是否再次执行。
 
+这里的“SDK 缺席”指 Lychee 本体没有暴露兼容的公共 facade，不是缺少一个名为 `LycheeSDK` 的独立 AddOn。Lychee 本体提供 SDK 的实现、registry、Host UI 和执行路由；第三方只把集成代码放进自己的 AddOn。
+
 双方的有效加载顺序都必须工作：
 
-1. **SDK 先、Host 后：** 第三方 Commit 后，稳定句柄进入 SDK 的 `pending` registry；Lychee Host attach 时按 Extension ID 稳定消费，不要求第三方轮询或重复注册。
-2. **Host 先、第三方后：** Host 已 attach 时，第三方 Commit 立即触发 attach；成功后进入同样的 registered/enabled 状态。
+1. **第三方先、Lychee 后：** 第三方集成代码等待 Lychee ready，再提交 Extension；提交后进入 Lychee registry。
+2. **Lychee 先、第三方后：** Lychee 已 ready 时，第三方 Commit 立即注册并可被搜索。
 
-`OptionalDeps` 正常情况下会让 SDK 先于第三方加载；第二种顺序仍用于 LoD AddOn、运行期加载和测试夹具。无论顺序如何，唯一完成条件都是 Extension 已 Commit 且被兼容 Host attach，而不是 TOC 元数据或 AddOn loaded 状态。
+`OptionalDeps` 正常情况下会让 Lychee 先于第三方加载；第一种顺序仍用于 LoD AddOn、运行期加载和测试夹具。无论顺序如何，唯一完成条件都是 Extension 已 Commit 并进入 Lychee registry，而不是 TOC 元数据或 AddOn loaded 状态。
 
-Lychee Host 自己的 TOC 使用 `## Dependencies: LycheeSDK` 声明硬依赖；Host 启动时仍校验 `_G.LycheeSDK` 和 API 版本。只有第三方 AddOn 使用 `OptionalDeps`。
+Lychee 本体不依赖另一个 SDK AddOn；它在自己的加载流程中创建 `_G.Lychee` 和 API 版本信息。只有第三方 AddOn 使用 `OptionalDeps: Lychee`。
+
+第三方必须处理加载竞态：公共 facade 已存在时直接注册；尚未存在时监听 `ADDON_LOADED` 的 `Lychee`，或使用 Lychee 提供的 `RegisterReady(callback)`。ready callback 只提交自己的 Extension；Lychee 不扫描第三方代码，也不要求第三方轮询。
 
 ### 2.1 LoadOnDemand AddOn
 
@@ -79,7 +83,7 @@ LoD AddOn 还可声明：
 
 ```toc
 ## LoadOnDemand: 1
-## OptionalDeps: LycheeSDK
+## OptionalDeps: Lychee
 ## X-Lychee-API: 1
 ## X-Lychee-Extension: sample-extension
 ## X-Lychee-Keywords: sample,settings
@@ -92,15 +96,16 @@ Host 可在登录期一次性读取 `X-Lychee-*`，建立轻量 LoD 候选。用
 ## 3. Lychee 如何发现接入
 
 ```text
-第三方 TOC OptionalDeps
-  -> LycheeSDK 创建全局 facade 和私有 registry
-  -> 第三方创建 Extension 草稿并提交
-  -> committed extension 进入 pending registry
-  -> Lychee Host attach
-  -> Command Catalog / Capability Broker / Intent Router
+Lychee 本体加载
+  -> 创建 _G.Lychee 公共 facade 和私有 registry
+第三方 AddOn 集成代码
+  -> 取得 _G.Lychee
+  -> 创建 Extension 草稿并提交
+  -> Lychee registry 接收 committed Extension
+  -> Command Catalog / Capability Broker / Intent Router / ViewHost
 ```
 
-**已提交的 SDK registry 是“插件已经接入”的唯一事实源。** 草稿、TOC 元数据、AddOn 已启用或 `LoadAddOn` 成功都不等于已经接入。Lychee 不从 Provider registry 自动生成 Command；没有 committed Command 的 Provider 只能由其他已注册声明通过 Capability Broker 调用，不能响应主输入框。
+**Lychee 本体的 ExtensionRegistry 是“插件已经接入”的唯一事实源。** 草稿、TOC 元数据、AddOn 已启用或 `LoadAddOn` 成功都不等于已经接入。Lychee 不从 Provider registry 自动生成 Command；没有 committed Command 的 Provider 只能由其他已注册声明通过 Capability Broker 调用，不能响应主输入框。
 
 Lychee 只在登录、诊断页或显式 LoD 加载入口读取以下信息：
 
@@ -145,7 +150,7 @@ SDK:Supports(apiVersion, minApiRevision) -> boolean
 - `apiVersion` 必须精确匹配受支持的 major，不能只用 `>=` 判断未来 major。
 - 增加可选字段或新方法提升 `API_REVISION`，删除字段、改变类型或改变既有语义提升 `API_VERSION`。
 - Extension 的 `minApiRevision` 高于 SDK 时，注册返回 `UNSUPPORTED_API`。
-- Host attach 时也声明 major/revision。SDK 支持但 Host revision 不足时，Extension 保留诊断记录，不执行回调，错误为 `INCOMPATIBLE_HOST`。
+- Lychee Host ready 时也声明 major/revision。SDK 支持但 Host revision 不足时，Extension 保留诊断记录，不执行回调，错误为 `INCOMPATIBLE_HOST`。
 - 兼容适配只发生在注册/attach 层，不进入搜索热路径。
 
 ## 5. 原子注册
@@ -199,7 +204,7 @@ Extension 字段：
 - 四种 `Register*` 只向草稿暂存声明；同类 ID 在当前 Extension 内唯一。成功返回只读 declaration token，失败返回 `nil, errorObject`。
 - 任一暂存调用失败会使草稿进入 `invalid`，后续只能 `Abort()`；调用方必须重新创建完整草稿。
 - `Commit()` 一次性校验交叉引用、版本、schema 和声明上限。成功返回同一个 committed handle 和 `nil`；失败返回 `nil, errorObject`，全部不发布并释放预留 ID。
-- Host 尚未 attach 时，成功提交进入 `pending`；Host 已 attach 时立即尝试 attach。
+- Lychee facade 尚未 ready 时，成功提交进入 `pending`；Lychee 已 ready 时立即注册。
 - 提交后注册面关闭，再调用 `Register*` 或 `Commit()` 返回 `REGISTRATION_CLOSED`。运行期变更通过注销并重新注册完成。
 - 同 ID 的 committed Extension 不被后来注册覆盖。注销使用句柄身份，不按字符串 ID 删除。
 
@@ -226,7 +231,7 @@ extension:Invalidate(key)
 extension:QueryCapability(request, contextSnapshot)
 ```
 
-`GetState()` 返回只读快照，不返回内部表。`Invalidate(key)` 只接受该 Extension 在描述符中声明过的失效 key，Host 合并同帧重复失效。`QueryCapability` 只能在 Host attached 且 Extension enabled 时调用。
+`GetState()` 返回只读快照，不返回内部表。`Invalidate(key)` 只接受该 Extension 在描述符中声明过的失效 key，Host 合并同帧重复失效。`QueryCapability` 只能在 Lychee Host ready 且 Extension enabled 时调用。
 
 `SetEnabled` 只设置第三方自己的 owner-enabled 位。Extension 的实际可用状态是 owner-enabled、用户设置、Host 兼容性和健康熔断的合取；第三方不能用 `SetEnabled(true)` 覆盖用户禁用或 Host 熔断。
 
@@ -753,7 +758,7 @@ draft -> pending -> registered -> enabled -> slow/disabled
 ```
 
 - `draft`：声明暂存，尚未接入。
-- `pending`：已原子提交，Host 尚未 attach，或 attach 因 Host revision 不足而等待兼容 Host。
+- `pending`：已原子提交，但 Lychee facade 尚未 ready，或因 API revision 不足而等待兼容版本。
 - `registered`：Host 已建立索引，尚未启用。
 - `enabled`：Command、Provider、Handler 和 Panel 可以参与运行。
 - `slow`：仍是已注册实例，但调度被降频；达到熔断条件可进入 disabled。
@@ -761,9 +766,9 @@ draft -> pending -> registered -> enabled -> slow/disabled
 - `retiring`：新查询已停止，等待 generation、Panel 和 Host 托管任务清理。
 - `removed`：从 registry 和索引移除，旧句柄失效。
 
-同一 `Extension.id` 重载时不允许新句柄覆盖旧句柄。SDK 先把旧 committed handle 标记为 `retiring`，停止新 Command/Provider 调度，令活动 generation 失效，并依次等待 resolver/deferred、Panel `Unmount`、托管 timer/ticker 和 Extension 驱动清理；只有旧句柄进入 `removed` 后，新的 draft 才能占用该 ID 并 Commit。旧句柄的迟到回调即使返回也会被丢弃，不能写入新句柄的索引、结果或 Panel。清理异常不能卡住替换：Host 记录 `CALLBACK_ERROR`/`PANEL_ERROR` 后继续完成 best-effort 清理，再释放 ID。
+同一 `Extension.id` 重载时不允许新句柄覆盖旧句柄。Lychee 先把旧 committed handle 标记为 `retiring`，停止新 Command/Provider 调度，令活动 generation 失效，并依次等待 resolver/deferred、Panel `Unmount`、托管 timer/ticker 和 Extension 驱动清理；只有旧句柄进入 `removed` 后，新的 draft 才能占用该 ID 并 Commit。旧句柄的迟到回调即使返回也会被丢弃，不能写入新句柄的索引、结果或 Panel。清理异常不能卡住替换：Host 记录 `CALLBACK_ERROR`/`PANEL_ERROR` 后继续完成 best-effort 清理，再释放 ID。
 
-Host attach 时按 Extension ID 稳定排序消费 pending。Host 已就绪时，新提交立即 attach。生命周期回调由 SDK 在局部错误边界中调用：
+Lychee ready 时按 Extension ID 稳定排序消费 pending。Lychee 已就绪时，新提交立即注册。生命周期回调由 PublicAPI 在局部错误边界中调用：
 
 ```lua
 onHostAttached = function(hostInfo)
@@ -774,7 +779,7 @@ onEnabled = function() end
 onDisabled = function(reason) end
 ```
 
-attach 回调顺序固定为 `onHostAttached -> onEnabled`；detach 时若当前 enabled，则按 `onDisabled(reason) -> onHostDetached(reason)` 执行。Host detach 后，Extension 停止所有 Host 托管任务并回到 pending；下一个兼容 Host attach 后可再次注册和启用。
+ready 回调顺序固定为 `onHostAttached -> onEnabled`；facade detach 时若当前 enabled，则按 `onDisabled(reason) -> onHostDetached(reason)` 执行。Lychee facade detach 后，Extension 停止所有 Host 托管任务并回到 pending；下一个兼容版本 ready 后可再次注册和启用。
 
 `Unregister()` 幂等：第一次调用进入 retiring，后续调用返回同一状态。它只清理 Lychee 接入，不卸载第三方 AddOn，也不删除第三方 SavedVariables。生命周期回调报错只记录 `CALLBACK_ERROR`，状态机仍继续完成清理。
 
@@ -853,7 +858,7 @@ Host 在 SavedVariables 中记录一次性 `defaultBindingAttempted`。已有 `T
 | Code | 含义 |
 | --- | --- |
 | `INVALID_SCHEMA` | 字段类型、必填项、plain-data 限制或字段组合无效 |
-| `SDK_UNAVAILABLE` | 第三方 AddOn 入口未发现兼容的 `LycheeSDK`；仅用于一次性诊断，不阻止第三方自身功能 |
+| `SDK_UNAVAILABLE` | 第三方 AddOn 入口未发现 Lychee 暴露的兼容公共 API；仅用于一次性诊断，不阻止第三方自身功能 |
 | `SECRET_VALUE` | SDK 边界值或其任意后代为 secret；整个值被拒绝且不记录内容 |
 | `INACCESSIBLE_VALUE` | 调用方不能访问值或索引 table；整个值被拒绝且不记录内容 |
 | `DUPLICATE_ID` | ID 已被 committed Extension 或活动草稿占用 |
@@ -903,7 +908,7 @@ Host 使用固定容量计数器/ring buffer 记录调用次数、平均/峰值�
 ### 17.1 普通 row Command
 
 ```lua
-local SDK = _G.LycheeSDK
+local SDK = _G.Lychee
 if not SDK or not SDK:Supports(1, 1) then return end
 
 local Extension, err = SDK:RegisterExtension({
@@ -957,7 +962,7 @@ end
 下面的组合是第三方实体搜索的完整模板。`SearchCreatureNameIndex` 和 `GetCreatureRecord` 代表第三方自己维护的预索引和数据表；索引在加载或数据变化时更新，不在每次输入时重建。
 
 ```lua
-local SDK = _G.LycheeSDK
+local SDK = _G.Lychee
 if not SDK or not SDK:Supports(1, 1) then return end
 
 local Extension, registerErr = SDK:RegisterExtension({
@@ -1154,8 +1159,8 @@ committed:SetEnabled(true)
 
 实现阶段的 SDK fixture 必须验证：
 
-1. SDK 先加载、Host 后 attach，committed pending 被完整消费；
-2. Host 先 attach、第三方后提交，Extension 立即 attach；
+1. 第三方先加载时，集成代码等待 Lychee ready 后完成 Commit；
+2. Lychee 先加载时，第三方 Commit 后 Extension 立即注册；
 3. 草稿未 Commit 不可见，子声明失败和 Commit 失败均无部分注册；
 4. 重复 ID、版本不兼容、交叉引用错误和声明数量超限；
 5. LoD AddOn 加载成功但未注册时为 `loaded-without-registration`；
@@ -1176,7 +1181,7 @@ committed:SetEnabled(true)
 20. 只有 Provider 而没有 ambient Command 的 committed Extension 不产生搜索结果；Provider 不可用、索引未就绪或 resolver 报错只影响所属结果组；
 21. 合法 item Intent transition 挂载同 Extension Panel；跨 Extension Panel、非法/secret/inaccessible state、过期 session/generation 均不创建或挂载 Panel；
 22. Palette 关闭、进入战斗、`SetEnabled(false)` 或幂等 `Unregister()` 后，ambient resolver、deferred、Panel 和待处理 transition 均无效果；
-23. SDK 先/Host 后和 Host 先/第三方后最终得到相同 registered Extension，且第三方无需轮询或重复注册。
+23. 第三方先/后加载 Lychee 最终都得到相同 registered Extension，且第三方无需轮询或重复注册。
 24. SDK 缺席、版本不兼容或入口被重复事件触发时，第三方只记录一次 `SDK_UNAVAILABLE`，随后跳过 Lychee 接入且自身功能继续；
 25. 同一 Extension ID 重载时旧句柄先进入 `retiring`，停止新调度并清理 resolver、Panel、timer 和驱动；旧句柄到 `removed` 后新句柄才可 Commit，旧迟到回调不污染新句柄；
 26. resolver 超时或连续 `PROVIDER_ERROR` 保留 dirty，进入 `slow`，按有界退避窗口重试；新 generation、关闭 Palette、停用和注销取消退避；
@@ -1228,10 +1233,10 @@ end
 
 ## 18. 接入检查清单
 
-- [ ] TOC 使用 `## OptionalDeps: LycheeSDK`，SDK 缺席时只跳过 Lychee 接入。
+- [ ] TOC 使用 `## OptionalDeps: Lychee`，Lychee 缺席时只跳过集成接入。
 - [ ] SDK 缺席或不兼容时只写一次 `SDK_UNAVAILABLE` 诊断，不在事件回调中重复记录，第三方自身功能继续。
 - [ ] Extension 在所有子声明成功后调用一次 `Commit()`。
-- [ ] SDK 先/Host 后与 Host 先/第三方后都不需要轮询或重复注册。
+- [ ] Lychee 先/后加载与第三方先/后加载都不需要轮询或重复注册。
 - [ ] 同 ID 重载先等待旧句柄 `retiring -> removed` 和所有查询/Panel/timer/驱动清理，再接受新句柄。
 - [ ] Extension、Command、Provider、Intent type 和 item 使用稳定 ID。
 - [ ] 第三方 Intent/custom capability type 使用自己的 Extension ID 前缀。

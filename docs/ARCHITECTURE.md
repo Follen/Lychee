@@ -74,7 +74,7 @@ UI 不按名称直接调用第三方函数。第三方不持有上述对象的�
 
 ## 4. 仓库与 AddOn 布局
 
-后续实现使用两个 sibling AddOn：
+后续实现使用一个 Lychee Host AddOn；SDK 是 Lychee 暴露的公共 API，不是第二个运行时 AddOn。第三方插件把 Lychee 集成代码放在自己的 AddOn 内。
 
 ```text
 Lychee/
@@ -109,13 +109,22 @@ Lychee/
 │  │  │  ├─ Descriptor.lua
 │  │  │  ├─ Policy.lua
 │  │  │  └─ SecureActionBroker.lua
+│  │  ├─ PublicAPI/
+│  │  │  ├─ SDK.lua
+│  │  │  ├─ Schema.lua
+│  │  │  ├─ Extension.lua
+│  │  │  └─ Ready.lua
 │  │  ├─ Builtin/
+│  │  │  ├─ DungeonGuide/
+│  │  │  ├─ PlayerSpells/
+│  │  │  ├─ DungeonAliases/
+│  │  │  ├─ Quests/
+│  │  │  └─ Cooldowns/
 │  │  └─ Media/
-│  └─ LycheeSDK/
-│     ├─ LycheeSDK.toc
-│     ├─ Bootstrap.lua
-│     ├─ API/
-│     └─ Runtime/
+├─ sdk/
+│  ├─ README.md                # 第三方开发说明
+│  ├─ examples/                # 可复制的接入样例
+│  └─ stubs/                   # 编辑器提示/测试桩，不加载进客户端
 ├─ docs/
 │  ├─ ARCHITECTURE.md
 │  └─ SDK.md
@@ -128,7 +137,7 @@ Lychee/
 ```text
 Interface/AddOns/
 ├─ Lychee/
-└─ LycheeSDK/
+└─ ThirdPartyAddOn/
 ```
 
 依赖方向固定为：
@@ -138,12 +147,12 @@ Bootstrap -> Core
 Search    -> Core 的只读接口
 UI        -> QueryOrchestrator + IntentRouter
 Secure    -> IntentRouter 的 Descriptor
-Builtin   -> 与 SDK 相同的注册 facade
-Lychee    -> LycheeSDK Host adapter
-LycheeSDK -> 不依赖 Lychee
+PublicAPI -> Core 的受限只读 facade
+Builtin   -> 与第三方相同的 PublicAPI 注册 facade
+ThirdPartyAddOn -> OptionalDeps: Lychee
 ```
 
-`Lychee.toc` 使用 `## Dependencies: LycheeSDK`，保证 Host adapter 绑定前 SDK 已存在。第三方 AddOn 使用可选依赖，因此没有安装 Lychee 时仍可独立工作。
+Lychee 本体在加载时创建 `_G.Lychee` 公共 facade，并发布 ready 状态。第三方 AddOn 使用 `## OptionalDeps: Lychee`；没有 Lychee 时只跳过集成，自身功能继续工作。`LycheeSDK` 是这套公共 API 的名称和文档，不单独占用一个 AddOn 目录。
 
 ## 5. AddOn 发现与通信
 
@@ -154,41 +163,41 @@ WoW 内的插件运行在同一个 Lua 环境中，接入不需要桌面应用�
 第三方 TOC 声明：
 
 ```toc
-## OptionalDeps: LycheeSDK
+## OptionalDeps: Lychee
 ```
 
-`OptionalDeps` 用于声明希望先加载的可选依赖；它不强制用户安装或启用 SDK，也不能代替运行时检查 `_G.LycheeSDK`。真正的加载结果和接入状态仍由运行时确认。
+`OptionalDeps` 用于声明希望先加载 Lychee；它不强制用户安装或启用 Lychee，也不能代替运行时检查 `_G.Lychee`。真正的加载结果和接入状态仍由运行时确认。
 
 加载流程：
 
 ```text
-LycheeSDK 加载
-  -> 创建 _G.LycheeSDK facade 和私有 registry
+Lychee 本体加载
+  -> 创建 _G.Lychee facade、PublicAPI 和私有 registry
 第三方 AddOn 加载
+  -> 取得 _G.Lychee 公共 API
   -> RegisterExtension(descriptor)
   -> RegisterCommand/RegisterCapabilityProvider/RegisterIntentHandler/RegisterPanelFactory
   -> Commit()
-  -> Host 未 attach 时进入 pending registry
-Lychee Host 加载
-  -> AttachHost(hostAdapter)
-  -> 消费 committed pending registrations
-  -> 建立 Command/Provider/Intent 索引
+  -> 进入 Lychee ExtensionRegistry
+  -> 建立 Command/Provider/Intent/Panel 索引
 ```
 
-Host 已 attach 后提交的第三方 Extension 走即时 attach。SDK 缺席时，第三方跳过 Lychee 接入路径，其自身功能继续运行。
+如果第三方先加载，集成代码等待 Lychee ready 后提交；如果 Lychee 已加载，提交后立即进入 registry。SDK 缺席时，第三方跳过 Lychee 接入路径，其自身功能继续运行。
 
-第三方必须主动向 `_G.LycheeSDK` 创建完整 Extension draft，注册需要的 Command、Provider、Handler 和 PanelFactory，并以 `Commit()` 一次性发布。AddOn 已加载、TOC 已声明或单独注册 Provider 都不会自动变成搜索结果；要搜索实体名，同一 Extension 还必须注册引用该能力的 `ambient` `dynamic-list` Command。
+第三方集成使用一个无竞态的 ready 入口：若 `_G.Lychee` 已存在，立即调用 `IsReady()`/注册 API；若尚未加载，则监听 `ADDON_LOADED` 的 `Lychee`，或在 facade 出现后调用 `RegisterReady(callback)`。ready callback 只负责提交 Extension，不负责创建 Palette、结果行或安全按钮。
 
-SDK 必须支持以下两个等价时序，并对每个 Extension 只提交一次注册事务：
+第三方必须主动通过 `_G.Lychee` 创建完整 Extension draft，注册需要的 Command、Provider、Handler 和 PanelFactory，并以 `Commit()` 一次性发布。Lychee 不扫描插件目录猜测接入；AddOn 已加载、TOC 已声明或单独注册 Provider 都不会自动变成搜索结果。要搜索实体名，同一 Extension 还必须注册引用该能力的 `ambient` `dynamic-list` Command。
+
+Lychee PublicAPI 必须支持以下两个等价时序，并对每个 Extension 只提交一次注册事务：
 
 ```text
-Extension first: RegisterExtension -> Register* -> Commit -> pending -> AttachHost -> registered
-Host first:      AttachHost -> RegisterExtension -> Register* -> Commit -> registered immediately
+Third-party first: wait for Lychee ready -> RegisterExtension -> Register* -> Commit -> registered
+Lychee first:      RegisterExtension -> Register* -> Commit -> registered immediately
 ```
 
 ### 5.2 发现策略
 
-SDK registry 是“已接入”的唯一事实源。以下 API 只用于登录期诊断、兼容性展示和按需加载：
+Lychee ExtensionRegistry 是“已接入”的唯一事实源。以下 API 只用于登录期诊断、兼容性展示和按需加载：
 
 - `C_AddOns.GetNumAddOns`
 - `C_AddOns.GetAddOnInfo`
@@ -203,7 +212,7 @@ Addon 枚举不进入每次按键的查询链路。LoD AddOn 被加载后，Host
 
 1. `installed`：AddOn 可被 `C_AddOns` 枚举。
 2. `loading/loaded`：调用 `local loadedOrLoading, loaded = C_AddOns.IsAddOnLoaded(name)`；`loaded == true` 才是加载完成，`loadedOrLoading == true` 且 `loaded == false` 表示正在加载，两者均为 false 表示尚未加载。
-3. `sdk-registered`：Extension 已成功 `Commit`，并进入 pending 或 attached registry。未提交草稿不算接入。
+3. `sdk-registered`：Extension 已成功 `Commit`，并进入 pending 或 registered registry。未提交草稿不算接入。
 
 `X-Lychee-*` TOC 字段只提供候选信息和诊断文案。LoD AddOn 若希望在加载前可被搜索，必须声明可索引的 `X-Lychee-Keywords`；Host 在登录期一次性建立轻量候选索引，用户选择候选后才调用 `C_AddOns.LoadAddOn`。缺少该元数据的 LoD AddOn 只在诊断页或其他已加载入口中出现。Host 不在每次输入时扫描或自动加载所有候选。
 
@@ -239,7 +248,7 @@ draft --Commit--> pending -> registered -> enabled -> slow
 ```
 
 - `draft`：Extension 元数据和子声明暂存，尚未发布到 registry。
-- `pending`：Extension 已提交，Host 尚未 attach，或当前 Host revision 不兼容而等待后续 Host。
+- `pending`：Extension 已提交，但 Lychee facade 尚未 ready，或当前 API revision 不兼容而等待后续兼容版本。
 - `registered`：Host 已完成 schema 和版本校验，尚未启用。
 - 注册阶段完成 API 版本兼容判断；不兼容实例停留在 pending/incompatible，并保留稳定诊断码。
 - `enabled`：Command、Provider 和 Handler 可以参与运行。
@@ -253,7 +262,7 @@ draft --Commit--> pending -> registered -> enabled -> slow
 
 句柄是 Extension owner 查询状态、`SetEnabled(enabled)` 和 `Unregister()` 的唯一控制入口。`SetEnabled` 只设置 owner-enabled 位，不能覆盖用户禁用、Host 兼容性或健康熔断；启停只增量更新该 Extension 的 Catalog 条目、ambient 调度资格和运行中任务。重复设置同一状态或注销均必须幂等，不得对其他 Extension 产生副作用。
 
-Host detach 时，`registered`/`enabled` Extension 先停止 Host 托管任务并清理 ViewHost，再回到 `pending`；后续兼容 Host attach 时重新注册。`Unregister()` 幂等，只移除 Lychee 接入，不卸载第三方 AddOn。
+Lychee facade detach 或版本切换时，`registered`/`enabled` Extension 先停止 Host 托管任务并清理 ViewHost，再回到 `pending`；后续兼容版本 ready 后重新注册。`Unregister()` 幂等，只移除 Lychee 接入，不卸载第三方 AddOn。
 
 同一 Extension ID 的重载不是覆盖操作。SDK/Host 收到新 draft 时，旧句柄必须先进入 `retiring`：立即停止新 Command/Provider/resolver 调度，使所有活动 generation 和待处理 transition 失效，尽力 `Unmount` 并 `Dispose` 已挂载 Panel，取消 timer/ticker/deferred 与 Host 托管驱动，最后移除 Catalog 条目和 Provider 私有索引引用。只有旧句柄进入 `removed` 且上述清理屏障完成后，registry 才接受同 ID 新句柄；新 draft 在此前保持 pending/reload-wait，不可见也不参与查询。旧回调不能通过新句柄的 ID 重新激活。
 
@@ -654,6 +663,8 @@ Builtin module
 
 内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
 
+Builtin 按业务域垂直拆分，每个域维护自己的 Provider、Command、Intent、Panel、索引和数据适配器；域之间只通过 Core 的窄接口通信。新增技能、任务、怪物技能、副本 CD 或新的第三方适配器时，只新增一个 Extension/业务目录并提交注册，不修改 Palette、QueryOrchestrator、ResultList 或 IntentRouter 的核心协议。域可以独立启停、报错、超时和注销，不能污染其他域。
+
 Palette、输入框、结果列表和 ViewHost 本身属于 Host 基础 UI，不作为 Command 面板注册；用户实际搜索进入的设置、诊断、插件管理等功能页面则作为 Builtin Extension 的 Command/PanelFactory 接入。
 
 ## 14. 错误、兼容与诊断
@@ -677,7 +688,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 - 隐藏 Palette、空 registry 和已完成 Intent 的 active ticker 数为零。
 - AddOn 枚举、schema 校验和索引构建不发生在每次按键。
-- SDK registry 变更由注册/注销事件增量推送给 Host，不通过轮询发现。
+- Lychee ExtensionRegistry 变更由注册/注销事件增量推送给 Host，不通过轮询发现。
 - 静态 Catalog 只在注册、注销或显式 invalidation 时重建。
 - Provider/模块在注册、数据更新或事件失效时增量维护私有索引；ambient 按键路径不全表扫描。
 - ambient 只在显式声明、用户启用、长度/availability 命中且位于本 generation 预算内时调度。
@@ -723,7 +734,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 不采用：插件无条件向 UI 推送结果的接口。WoW 实现由 QueryOrchestrator 在预算内同步/协作式调度，Provider 查询预索引，Host 验证 generation/context 后统一发布。
 
-舍弃：Electron IPC、多进程、运行时安装器、桌面窗口管理和网络插件市场。WoW 内通信使用同一 Lua 环境的 SDK registry。
+舍弃：Electron IPC、多进程、运行时安装器、桌面窗口管理和网络插件市场。WoW 内通信使用同一 Lua 环境的 Lychee ExtensionRegistry。
 
 ### 17.2 EllesmereUI
 
@@ -751,7 +762,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 ## 19. 后续实现顺序
 
-1. `LycheeSDK`：版本、schema、draft/Commit 事务、pending registry、Host attach 和句柄。
+1. Lychee `PublicAPI`：版本、schema、draft/Commit 事务、ready/pending registry 和句柄。
 2. Host 生命周期、ExtensionRegistry、错误边界和诊断。
 3. CapabilityBroker、ContextStore、CommandCatalog 和 IntentRouter。
 4. `TOGGLELYCHEE`、Palette、Input、ResultList 和焦点状态机。
@@ -767,8 +778,8 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 | 场景 | 关键验证 |
 | --- | --- |
-| SDK 先加载 | committed pending registration 在 Host attach 后完整消费 |
-| Host 先 attach | 后提交 Extension 立即注册 |
+| 第三方先加载 | 集成代码等待 Lychee ready 后提交，Extension 进入 Lychee registry |
+| Lychee 先加载 | 第三方 Commit 后 Extension 立即注册 |
 | Provider 单独注册 | 不进入搜索；同 Extension 提交 ambient `dynamic-list` Command 后才可直接搜索实体 |
 | Extension 句柄 | `SetEnabled` 只增量影响本 Extension 的 owner-enabled 位，重复设置和 `Unregister()` 幂等 |
 | 同 ID Extension 重载 | 旧句柄 retiring 后停调度、失效 generation/transition、清理 Panel/索引/驱动；屏障完成才接受新句柄 |
@@ -806,7 +817,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 ## 21. 设计验收清单
 
 - [ ] 顶层公开模型为 Extension/Command/CapabilityProvider/IntentHandler/PanelFactory。
-- [ ] 已提交的 SDK registry 是接入唯一事实源，草稿不参与查询。
+- [ ] Lychee ExtensionRegistry 是接入唯一事实源，草稿不参与查询。
 - [ ] Command 是唯一搜索对象；Provider 只有被 `catalog/ambient` Command 引用时才间接参与搜索。
 - [ ] `ambient` 只能用于带明确长度边界的 `dynamic-list`，并经过单一 debounce/generation/context 和统一预算调度。
 - [ ] AddOn 枚举只用于诊断、兼容和 LoD。
