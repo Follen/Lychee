@@ -89,7 +89,10 @@ end
 function Palette:SetResults(items, generation, session)
     if not self.visible then return false end
     if session and session ~= self.session then return false end
-    if generation and generation ~= self.generation then return false end
+    -- Search owns the monotonic generation. Accept a newer result even if an
+    -- IME/composition callback advanced the palette locally; reject only stale work.
+    if generation and generation < self.generation then return false end
+    if generation then self.generation = generation end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
     self.list:SetItems(items or {}, self.session, self.generation)
     if self.secureBroker and self.secureBroker.Prepare then
