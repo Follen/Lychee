@@ -12,6 +12,7 @@
 - 实现 `TOGGLELYCHEE`、`Alt + Space` 首次绑定尝试和战斗中静默/进战关闭策略。
 - 实现至少四类内置搜索场景 fixture：怪物/怪物技能、玩家技能、Boss/赛季别名、副本传送别名。
 - 增加离线 Lua 静态检查、schema/索引/状态机单元测试或可执行 fixture；记录 Ellesmere 性能准则对应的零空闲成本、池化、change guard 和事件驱动检查。
+- 玩家技能数据必须来自当前角色实时法术书；静态表只允许保存 alias 定义和离线测试 fallback。
 
 # Non-goals
 
@@ -28,6 +29,7 @@
 - A3：ExtensionRegistry 正确处理 `draft -> pending -> registered -> enabled -> retiring -> removed`；重复 ID、非法 schema、未知 API major 返回稳定错误，不发布半成品。
 - A4：CommandCatalog 只收录 Command；catalog/ambient 查询共享 generation/debounce，旧 generation 结果不会覆盖新查询，Provider 不会自动成为搜索入口。
 - A5：Locale/alias 索引只在注册或数据更新时构建；当前 locale 与 `default` 生效，`复仇之怒` 的 `翅膀`、传送法术的 `红玉` 命中同一个 canonical item，不复制结果。
+- A5a：登录及 `SPELLS_CHANGED`、`LEARNED_SPELL_IN_TAB`、`PLAYER_SPECIALIZATION_CHANGED`、`TRAIT_CONFIG_UPDATED` 事件后，Provider 使用 `C_SpellBook` skill-line/item API 重建当前角色法术快照；查询不读取静态技能清单或全表扫描。
 - A6：`PlayerSpells` 只有一份 Provider/法术索引；技能详情、动作条拖拽和 secure-spell 交互共用同一 item ID 与生命周期。
 - A7：Host 统一创建/复用结果行和 Panel；结果支持 primary click/Enter、显式次级 action、专用 spell drag 和受限 secure-spell，第三方不能取得 Palette 根 frame 或 SecureButton。
 - A8：`Lychee_Toggle` 委托 `PaletteController:Toggle()`；首次脱战且无冲突时尝试 `ALT-SPACE`，战斗中静默，`PLAYER_REGEN_DISABLED` 关闭已打开 Palette，脱战后恢复。

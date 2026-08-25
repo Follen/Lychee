@@ -1,10 +1,7 @@
 local I = _G.LycheeInternal
-local P={items={},byAlias={},extensionID="builtin.player-spells",aliasDefinitions={
-    [642]={{text="翅膀",locale="zhCN"},{text="wings",locale="enUS"}},
-    [395289]={{text="红玉",locale="zhCN"},{text="ruby",locale="enUS"}},
-    [446534]={{text="麦卡贡",locale="zhCN"},{text="mechagon",locale="enUS"}},
-}}
+local P={items={},byAlias={},extensionID="builtin.player-spells"}
 I.Builtin.PlayerSpells.Provider=P
+P.aliasDefinitions=(I.BuiltinData and I.BuiltinData.PlayerSpellAliases) or {}
 local function norm(s) return I.Search.Normalizer:Normalize(s) end
 local function addAlias(self,alias,spellID)
     local text=I.Search.Normalizer:AliasText(alias); if not text then return end

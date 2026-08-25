@@ -115,6 +115,9 @@ Lychee/
 │  │  │  ├─ Extension.lua
 │  │  │  └─ Ready.lua
 │  │  ├─ Builtin/
+│  │  │  ├─ Data/
+│  │  │  │  ├─ PlayerSpellAliases.lua  # 可替换别名数据，不是技能源
+│  │  │  │  └─ DungeonGuide.lua       # 可替换攻略数据，不由 Provider 写死
 │  │  │  ├─ DungeonGuide/
 │  │  │  ├─ PlayerSpells/
 │  │  │  │  ├─ Provider.lua

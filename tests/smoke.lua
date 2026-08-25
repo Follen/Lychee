@@ -16,6 +16,7 @@ local files = {
     "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "PublicAPI/SDK.lua",
+    "Builtin/Data/PlayerSpellAliases.lua", "Builtin/Data/DungeonGuide.lua",
     "Builtin/PlayerSpells/AliasIndex.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Command.lua",
     "Builtin/PlayerSpells/Intent.lua", "Builtin/PlayerSpells/Panel.lua", "Builtin/PlayerSpells/Init.lua",
     "Builtin/DungeonGuide/Provider.lua", "Builtin/DungeonGuide/Command.lua", "Builtin/DungeonGuide/Init.lua", "Builtin/Init.lua",

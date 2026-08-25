@@ -3,7 +3,7 @@ name: implement-lychee-runtime
 language: zh-CN
 phase: verify
 status: active
-state_version: 3
+state_version: 7
 brief: brief.md
 spec_changes: []
 workspace:
@@ -13,15 +13,15 @@ workspace:
   finish: null
 loop:
   stage: verify-ready
-  goal_cycle: 1
+  goal_cycle: 2
   iteration: 1
-  attempt: 0
+  attempt: 1
   retry_epoch: 0
   failed_iteration_count: 0
   no_progress_count: 0
   execution_failure_count: 0
   previous_unresolved_ids: []
-  next_action: run-required-checks-and-dispatch-verifier
+  next_action: await-verifier-result
 acceptance:
   - id: A1
     source: brief.md
@@ -56,53 +56,57 @@ acceptance:
     reason: null
   - id: A6
     source: brief.md
+    text: A5a：登录及
+      `SPELLS_CHANGED`、`LEARNED_SPELL_IN_TAB`、`PLAYER_SPECIALIZATION_CHANGED`、`TRAIT_CONFIG_UPDATED`
+      事件后，Provider 使用 `C_SpellBook` skill-line/item API
+      重建当前角色法术快照；查询不读取静态技能清单或全表扫描。
+    result: pending
+    reason: null
+  - id: A7
+    source: brief.md
     text: A6：`PlayerSpells` 只有一份 Provider/法术索引；技能详情、动作条拖拽和 secure-spell 交互共用同一 item
       ID 与生命周期。
     result: pending
     reason: null
-  - id: A7
+  - id: A8
     source: brief.md
     text: A7：Host 统一创建/复用结果行和 Panel；结果支持 primary click/Enter、显式次级 action、专用 spell
       drag 和受限 secure-spell，第三方不能取得 Palette 根 frame 或 SecureButton。
     result: pending
     reason: null
-  - id: A8
+  - id: A9
     source: brief.md
     text: A8：`Lychee_Toggle` 委托 `PaletteController:Toggle()`；首次脱战且无冲突时尝试
       `ALT-SPACE`，战斗中静默，`PLAYER_REGEN_DISABLED` 关闭已打开 Palette，脱战后恢复。
     result: pending
     reason: null
-  - id: A9
+  - id: A10
     source: brief.md
     text: A9：隐藏 Palette 没有常驻 Lua OnUpdate；共享 ticker 无订阅者时隐藏；结果行、交互槽和临时表池化；setter 通过
       change guard，关闭/卸载清理 ticker、timer、事件和引用。
     result: pending
     reason: null
-  - id: A10
+  - id: A11
     source: brief.md
     text: A10：静态/离线测试覆盖 schema、Locale/alias、generation、状态机、战斗 guard、secure-spell 拒绝
       scripted click、拖拽 payload 校验、第三方 fixture 注册和性能静态规则。
     result: pending
     reason: null
-  - id: A11
+  - id: A12
     source: brief.md
     text: A11：`git diff --check`、Lua/XML/TOC 静态检查通过；提交只包含运行时代码、SDK 开发包和必要测试，不包含
       `analyze/`、`.comet/` 或归档。
     result: pending
     reason: null
 builder_handoff:
-  candidate_id: 67f2b33f-bbd4-4641-8f20-466efd9ee5c4
+  candidate_id: 7fe8bc4b-1bbe-41d2-9b5a-d1e483da737b
   identity_provider: skill-coordinated
-  builder_execution_ref: skill-coordinated:builder:492e88c2-2655-458a-9992-c2715619b772
+  builder_execution_ref: skill-coordinated:builder:4fa0f171-421d-43eb-8aa6-81fa4e892e21
   iteration: 1
   summary:
-    text: 已实现 package/Lychee Host AddOn 与 lychee-sdk 开发包。Host 包含 TOC/Bindings、Core
-      registry/catalog/broker/router/context/scheduler、Search
-      normalizer/index/query、UI Palette/Input/ResultList/ViewHost/Focus、Secure
-      descriptor/policy/broker、PlayerSpells 唯一法术索引与
-      Locale/俗称/副本传送别名、DungeonGuide fixture、_G.Lychee facade、Alt+Space 战斗保护。SDK
-      包含 API helper、stubs、README 和第三方 fixture。按 Ellesmere 性能原则使用事件驱动、无常驻
-      OnUpdate、行池、secure 槽复用、generation/session guard、预索引与局部更新。
+    text: 实现已修订为实时法术书架构：PlayerSpellProvider 在登录和法术/专精/天赋事件后调用 C_SpellBook
+      skill-line/item API 重建当前角色非被动非 off-spec 快照；AliasIndex 只投影 canonical spell
+      ID，离线 fixture 仅在 API 不可用时使用。其余 Host、SDK、交互、安全动作和 Ellesmere 性能约束保持不变。
     truncated: false
   addressed_acceptance_ids:
     - A1
@@ -116,6 +120,7 @@ builder_handoff:
     - A9
     - A10
     - A11
+    - A12
   checks:
     - name:
         text: luac syntax
@@ -129,14 +134,15 @@ builder_handoff:
         truncated: false
       result: passed
       note:
-        text: "tests/smoke.lua: wings/ruby/M1 aliases and generation"
+        text: tests/smoke.lua covers fallback aliases, generation, and mocked live
+          C_SpellBook refresh
         truncated: false
     - name:
         text: contract checks
         truncated: false
       result: passed
       note:
-        text: "tests/check_contract.ps1: TOC, legacy facade, no Palette OnUpdate"
+        text: TOC, legacy facade, no resident Palette OnUpdate
         truncated: false
     - name:
         text: git diff check
@@ -146,23 +152,35 @@ builder_handoff:
         text: git diff --check
         truncated: false
     - name:
-        text: git commits
+        text: wowdoc evidence
         truncated: false
       result: passed
       note:
-        text: 3546f3d implementation; 9540de1 Native state
+        text: Retail 12.1.0 commit 31c7f7b9; C_SpellBook skill-line/item structures
+          verified
         truncated: false
   checks_truncated: false
   known_limits:
     - text: 真实 WoW 客户端中的
-        SecureActionButton、C_Spell.PickupSpell、战斗锁定和鼠标拖拽尚未在客户端内验证；已通过静态合同和离线
-        fixture。
+        SecureActionButton、C_Spell.PickupSpell、战斗锁定和鼠标拖拽仍需客户端内验证；实时法术书 API 已按
+        Retail 12.1.0 文档实现并用 mock fixture 验证。
       truncated: false
   known_limits_truncated: false
-  submitted_at: 2026-08-25T16:26:05.880Z
+  submitted_at: 2026-08-25T16:34:29.877Z
 blockers: []
 verification: null
-history: []
+history:
+  - goal_cycle: 1
+    iteration: 1
+    attempt: 0
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: 需求修订：PlayerSpells 必须以当前角色实时法术书为事实源，使用 C_SpellBook skill-line/item API，并由
+        SPELLS_CHANGED、LEARNED_SPELL_IN_TAB、PLAYER_SPECIALIZATION_CHANGED、TRAIT_CONFIG_UPDATED
+        事件触发快照重建；静态表仅保留 alias 定义和离线 fallback。实现、正式文档与 smoke 已同步。
+      truncated: false
+    completed_at: 2026-08-25T16:33:39.931Z
 history_overflow:
   dropped_entries: 0
   first_dropped_at: null

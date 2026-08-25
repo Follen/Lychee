@@ -17,6 +17,8 @@ Core/Scheduler.lua
 Core/ExtensionRegistry.lua
 Search/QueryOrchestrator.lua
 PublicAPI/SDK.lua
+Builtin/Data/PlayerSpellAliases.lua
+Builtin/Data/DungeonGuide.lua
 Secure/Descriptor.lua
 Secure/Policy.lua
 Secure/SecureActionBroker.lua
