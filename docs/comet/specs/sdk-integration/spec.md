@@ -173,38 +173,24 @@ Host 只接受同一 Extension 的 PanelFactory ID。`transition.state` 必须�
 
 ### 法术结果、拖拽和真实点击
 
-玩家法术 Provider 只返回角色已知且可用的 spell。以下 item 同时提供查看详情、拖到动作条，以及真实点击施放：
+当前内置玩家法术 Source 只发布角色已知且可用的 spell。以下 SearchRecord 同时提供拖到动作条和真实点击施放，不经过 Command、CapabilityProvider 或 itemIntent：
 
 ```lua
 {
-    id = "spell-12345",
-    text = "红玉新生法池传送门",
-    subtext = "已知传送技能",
+    id = "spell:12345",
+    kind = "spell",
+    category = { id = "spells", title = "技能" },
+    title = "红玉新生法池传送门",
     icon = 123456,
     payload = { spellID = 12345 },
-    interaction = {
-        primaryActionID = "open-detail",
-        actions = {
-            { id = "open-detail", title = "查看详情", kind = "intent" },
-            { id = "cast", title = "施放", kind = "secure-spell", spellID = 12345 },
-        },
-        drag = { type = "spell", spellID = 12345 },
+    actions = {
+        { id = "cast", title = "施放", kind = "secure-spell", spellID = 12345 },
     },
+    drag = { type = "spell", spellID = 12345 },
 }
-
-itemIntent = function(item, actionID)
-    if actionID == "open-detail" then
-        return {
-            type = "player-spells.open-detail",
-            version = 1,
-            payload = { spellID = item.payload.spellID },
-        }
-    end
-    return nil, { code = "ACTION_UNAVAILABLE", retryable = false }
-end
 ```
 
-`cast` 不经过 `itemIntent`；Host 绑定安全按钮并等用户真实点击。按 Enter 仍执行 `open-detail`，不会施放。若某个 spell 希望点击整行直接施放，它可以将安全 action 设为 primary；这时 Host 把整行作为 secure 行，左键真实点击施放，而 Enter 必须返回 `ACTION_REQUIRES_HARDWARE_CLICK`。
+Host 为 `cast` 绑定安全按钮并等待用户真实点击；Enter 返回 `ACTION_REQUIRES_HARDWARE_CLICK`，不会模拟施放。未来只有在真实详情 UI 存在时才增加 PanelFactory 和详情 action，不注册空 Panel。
 
 ### 受控 custom-panel
 
@@ -297,6 +283,6 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 20. 单一普通 primary action 可由左键/Enter 触发；多 action 行只调用声明的 primary，次级 action 由 Host 可见按钮触发；action ID 不靠文本推断；
 21. spell item 仅从专用区域真实 `OnDragStart` 调用 `C_Spell.PickupSpell` 并可被标准动作条接收；普通点击、Enter、resolver 与 itemIntent 不触发 PickupSpell；
 22. secure-spell 行/按钮只在脱战绑定，真实鼠标点击才可施放；Enter、IntentRouter 和 scripted `Button:Click()` 返回拒绝且不能模拟点击；
-23. 详情、MRT/指南适配器缺席、旧 generation、关闭、进战、disable 和 unregister 分别不会留下普通动作、拖拽或 secure 绑定；
+23. MRT/指南适配器缺席、旧 generation、关闭、进战、disable 和 unregister 分别不会留下普通动作、拖拽或 secure 绑定；
 24. 怪物/怪物技能、玩家技能、Boss/赛季别名和已知副本传送技能四类内置搜索场景都通过同一 interaction 合同工作；副本传送与玩家技能共用 `PlayerSpells` Extension。
 25. 首次脱战初始化仅在 `TOGGLELYCHEE` 无绑定且 `ALT-SPACE` 空闲时写入默认 binding；已有 action、按键冲突、战斗中初始化、已设置 `defaultBindingAttempted` 以及玩家之后改键或解绑时，都不覆盖或回写。

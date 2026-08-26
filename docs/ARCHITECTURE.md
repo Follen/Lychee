@@ -126,10 +126,7 @@ Lychee/
 │  │  │  ├─ DungeonGuide/
 │  │  │  ├─ PlayerSpells/
 │  │  │  │  ├─ Provider.lua
-│  │  │  │  ├─ Command.lua
-│  │  │  │  ├─ AliasIndex.lua       # Locale 俗称与副本传送别名投影
-│  │  │  │  ├─ Intent.lua
-│  │  │  │  └─ Panel.lua
+│  │  │  │  └─ Init.lua
 │  │  │  ├─ DungeonAliases/
 │  │  │  ├─ Quests/
 │  │  │  └─ Cooldowns/
@@ -676,23 +673,21 @@ ContextStore 在构造或更新切片时执行第 5.4 节的递归访问检查�
 ```text
 Builtin module
   -> RegisterExtension
-  -> RegisterCapabilityProvider
-  -> RegisterCommand
-  -> RegisterIntentHandler
+  -> RegisterSearchSource
   -> Commit
-  -> same Catalog/Broker/Router/UI
+  -> same SearchIndex/UI
 ```
 
 内部模块可以使用额外 Host service，例如直接读取缓存后的 Context slice；它们不建立第二套索引、搜索或执行通道。建议的后续内置域包括 Blizzard 面板、法术、物品、宏、设置、插件、最近使用和收藏。
 
-内置的技能、任务、怪物技能、副本 CD 等内容域与第三方使用同一套 `catalog/ambient` Command、CapabilityProvider、item Intent、ExecutionResult transition 和 ViewHost 合同。数据可以来自 ContextStore、本地数据包或第三方 Provider，但数据来源不改变搜索对象和 UI 所有权。
+内置的技能、任务、怪物技能、副本 CD 等稳定实体与第三方使用同一套 SearchSource/SearchRecord 合同。只有固定命令、运行时组合查询或可复用能力才额外注册 Command/CapabilityProvider；数据来源不改变搜索对象和 UI 所有权。
 
 内置 Extension 按同一协议组织，避免为任一业务另建搜索或 UI 通道。当前运行时只交付 `PlayerSpells`；以下 DungeonGuide、DungeonAlias 和副本 CD 是待真实数据源或稳定适配器就绪后再注册的规划能力，生产包不得用 fixture 占位：
 
 1. 规划中的 `DungeonGuideProvider` 为大秘境小怪名与小怪技能建立怪物记录的反向索引；普通动作打开 Lychee 详情，并可提供打开外部指南的动作。
-2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知、有效法术索引；同目录的 `AliasIndex.lua` 在该索引上维护 Locale 搜索别名投影：既包括“复仇之怒”对应“翅膀”等技能俗称，也包括已知副本传送法术对应“红玉”等副本简称。结果统一支持详情、专用区域拖到动作条，以及可选的真实点击安全施放。
+2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知、有效法术快照，并通过一个 SearchSource 发布。`PlayerSpellAliases.lua` 只提供 Locale 别名投影：既包括“复仇之怒”对应“翅膀”等技能俗称，也包括已知副本传送法术对应“红玉”等副本简称。结果支持专用区域拖到动作条和真实点击安全施放；当前没有详情 Panel，不注册 Command、CapabilityProvider 或 IntentHandler。
 3. 规划中的 `DungeonAliasProvider` 把 Boss 名、赛季简称（如 `M1`）和版本别名映射为攻略实体；结果动作打开同 Extension 的详情 Panel。
-4. 副本传送搜索是第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；命中后仍返回同一个 canonical spell item，并沿用详情、拖拽和真实点击安全施放合同。
+4. 副本传送搜索是第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；命中后仍返回同一个 canonical spell item，并沿用拖拽和真实点击安全施放合同。
 
 `PlayerSpellProvider` 的法术源不是固定技能表：Retail 运行时在登录、`SPELLS_CHANGED`、`LEARNED_SPELL_IN_SKILL_LINE`、`PLAYER_SPECIALIZATION_CHANGED` 和 `TRAIT_CONFIG_UPDATED` 事件后，使用 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 与 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)` 重建当前角色的已知非被动、非 off-spec 法术快照。别名定义只作为 canonical spell ID 的投影；输入查询只读取快照和倒排别名索引。离线测试必须在 `tests/` 中注入 SpellBook fixture，生产 Provider 不包含固定技能回退。
 

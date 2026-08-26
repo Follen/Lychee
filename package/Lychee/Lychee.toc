@@ -28,10 +28,6 @@ UI/Input.lua
 UI/ResultList.lua
 UI/ViewHost.lua
 UI/Palette.lua
-Builtin/PlayerSpells/AliasIndex.lua
 Builtin/PlayerSpells/Provider.lua
-Builtin/PlayerSpells/Command.lua
-Builtin/PlayerSpells/Intent.lua
-Builtin/PlayerSpells/Panel.lua
 Builtin/PlayerSpells/Init.lua
 Builtin/Init.lua

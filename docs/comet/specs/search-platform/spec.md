@@ -64,10 +64,9 @@ Source 不得注册 Lychee 级快捷键、取得 Palette 根 frame、创建 Host
     icon = 4578416,
     scope = { product = "retail", minInterface = 120000, maxInterface = 120999 },
     actions = {
-        { id = "detail", kind = "open-panel", panel = "spell-detail" },
         { id = "cast", kind = "secure-spell", spellID = 393256 },
-        { id = "drag", kind = "drag-spell", spellID = 393256 },
     },
+    drag = { type = "spell", spellID = 393256 },
 }
 ```
 

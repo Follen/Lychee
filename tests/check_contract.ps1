@@ -17,6 +17,7 @@ if ($bindings -notmatch '<Binding\s+name="TOGGLELYCHEE"\s+category="BINDING_HEAD
 $playerSpells = Get-Content (Join-Path $root 'package/Lychee/Builtin/PlayerSpells/Init.lua') -Raw
 if ($playerSpells -match 'LEARNED_SPELL_IN_TAB') { throw 'Legacy spell learned event must not be registered' }
 if ($playerSpells -notmatch 'LEARNED_SPELL_IN_SKILL_LINE') { throw 'Retail spell learned event missing' }
+if ($playerSpells -match 'RegisterCommand|RegisterCapabilityProvider|RegisterIntentHandler|RegisterPanelFactory') { throw 'PlayerSpells must publish only SearchSource' }
 $paletteSource = Get-Content (Join-Path $root 'package/Lychee/UI/Palette.lua') -Raw
 if ($paletteSource -match 'Lychee\.UI\.PaletteController\s*=\s*self') { throw 'Palette controller must remain Host-private' }
 if ($paletteSource -notmatch 'ACTION_REQUIRES_HARDWARE_CLICK') { throw 'Secure scripted-click guard missing' }

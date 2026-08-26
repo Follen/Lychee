@@ -30,9 +30,8 @@ local files = {
     "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "PublicAPI/SDK.lua",
-    "Builtin/Data/PlayerSpellAliases.lua",
-    "Builtin/PlayerSpells/AliasIndex.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Command.lua",
-    "Builtin/PlayerSpells/Intent.lua", "Builtin/PlayerSpells/Panel.lua", "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua",
+    "Builtin/Data/PlayerSpellAliases.lua", "Builtin/PlayerSpells/Provider.lua",
+    "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua",
 }
 for i = 1, #files do dofile(root .. files[i]) end
 assert(_G.Lychee and _G.Lychee:Supports(1, 1))
@@ -52,8 +51,8 @@ local _, fixtureResults = q:Query("翅膀", {})
 assert(#fixtureResults > 0)
 local _, isolatedFixtureResults = q:Query("wings", {})
 assert(#isolatedFixtureResults == 0)
-local transition = _G.LycheeInternal.Router:Execute({ type = "builtin.player-spells.open", version = 1, payload = { spellID = 31884 } }, {})
-assert(transition and transition.ok == true and transition.transition and transition.transition.panelID == "spell-detail")
+assert(results[1].interaction and results[1].interaction.actions[1].kind == "secure-spell")
+assert(results[1].interaction.drag and results[1].interaction.drag.spellID == 31884)
 local publicDraft, publicErr = _G.Lychee:RegisterExtension({ id = "test.public-bad", apiVersion = 1, minApiRevision = 1, title = "Bad", version = "1.0.0" })
 assert(publicDraft and not publicErr)
 local publicCommand, commandErr = publicDraft:RegisterCommand({ id = "broken", title = "Broken", presentation = "dynamic-list" })
@@ -94,8 +93,11 @@ local bad = _G.LycheeInternal.Registry:Begin({ id = "test.bad", apiVersion = 1, 
 assert(bad and not bad:RegisterCommand({ id = "broken", title = "Broken" }))
 local panel = _G.LycheeInternal.Registry:Get("builtin.player-spells")
 assert(panel and panel:GetState().lifecycle == "enabled")
+local playerSpellsEntry = _G.LycheeInternal.Registry.entries["builtin.player-spells"]
+assert(playerSpellsEntry and #playerSpellsEntry.sources == 1)
+assert(#playerSpellsEntry.commands == 0 and #playerSpellsEntry.providers == 0)
+assert(#playerSpellsEntry.handlers == 0 and #playerSpellsEntry.panels == 0)
 assert(panel:Unregister())
-assert(_G.LycheeInternal.Router:Execute({ type = "builtin.player-spells.open", version = 1, payload = { spellID = 9001 } }, {}) == nil)
 assert(fixture:Unregister())
 assert(_G.LycheeInternal.Router:Execute({ type = "third-party-fixture.open-detail", version = 1, payload = { itemID = 12345 } }, {}) == nil)
 print("Lychee smoke PASS")

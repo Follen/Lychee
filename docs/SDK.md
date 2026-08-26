@@ -679,9 +679,9 @@ step 的返回约定固定为：`false` 表示让出并继续；`true, items` �
 Lychee 自己的功能也是 Extension/Provider，不绕开上述结果合同。当前运行时只交付 `PlayerSpells`；DungeonGuide 和 DungeonAlias 等能力必须等真实数据源或稳定适配器就绪后再注册，不能在生产包中使用 fixture 占位：
 
 - 规划中的 `DungeonGuideProvider`：通过 SearchSource 收录怪物名和怪物技能名；普通 action 打开 Lychee 详情 Panel。若安装了 MRT 或其他指南，适配器只能调用其稳定公开 API 打开对应页面；不得操作其内部 frame。
-- `PlayerSpells` Extension 的 `PlayerSpellProvider`：只建立一份当前角色已知且可用的法术索引，同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影；其中既包含“复仇之怒”对应“翅膀”等技能俗称，也包含已知传送法术对应“红玉”等副本简称。法术 SearchRecord 可提供详情 intent、`drag.type = "spell"`，以及可选 `secure-spell` 真实点击施放。
+- `PlayerSpells` Extension 的 `PlayerSpellProvider`：只建立一份当前角色已知且可用的法术快照，并通过一个 SearchSource 发布；`PlayerSpellAliases.lua` 只提供 Locale 别名投影，其中既包含“复仇之怒”对应“翅膀”等技能俗称，也包含已知传送法术对应“红玉”等副本简称。当前法术 SearchRecord 提供 `drag.type = "spell"` 和 `secure-spell` 真实点击施放，不注册 Command、CapabilityProvider、IntentHandler 或空详情 Panel。
 - 规划中的 `DungeonAliasProvider`：通过 SearchSource 将 Boss 名或赛季别名（如 `M1`）映射为副本/Boss 记录，而不是为每个别名建立独立快捷键或特殊 UI。
-- 副本传送搜索属于同一个 `PlayerSpells` Extension，不新增额外 Provider、独立目录或第二份法术索引。输入“红玉”等别名命中 canonical spell item，详情、拖拽和真实点击施放仍复用同一 item interaction。
+- 副本传送搜索属于同一个 `PlayerSpells` Extension，不新增额外 Provider、独立目录或第二份法术索引。输入“红玉”等别名命中 canonical spell item，拖拽和真实点击施放仍复用同一 item interaction。
 
 玩家法术索引必须以当前角色实时法术书为事实源。Host 在登录及法术/专精/天赋变化事件后批量刷新快照，读取 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 和 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)`；按键查询只访问预构建快照与 alias index。静态法术数据只能用于 alias 定义；离线测试的 SpellBook fixture 必须留在 `tests/`，生产 Provider 不提供固定技能回退。
 
@@ -1292,42 +1292,29 @@ committed:SetEnabled(true)
 33. 怪物/怪物技能、玩家技能、Boss/赛季别名和已知副本传送技能四类内置搜索场景均通过同一 interaction 合同工作；副本传送与玩家技能共用 `PlayerSpells` Extension；
 34. 首次脱战初始化仅在 `TOGGLELYCHEE` 未绑定且 `ALT-SPACE` 空闲时写入默认 binding；已有 action、按键冲突、战斗中初始化、已设置 `defaultBindingAttempted` 以及玩家后来改键或解绑时，均不覆盖或回写。
 
-### 17.3 玩家法术结果：详情、动作条拖拽与真实点击施放
+### 17.3 玩家法术结果：动作条拖拽与真实点击施放
 
-`PlayerSpellProvider` 只应返回当前角色已知且可用的法术。以下 resolver item 展示三种交互共存的声明；Host 负责在展示时再次确认法术可用性和脱战状态：
+`PlayerSpellProvider` 只应发布当前角色已知且可用的法术。当前内置实现直接提交 SearchRecord，不经过 Command resolver 或 CapabilityBroker；Host 负责在展示和执行时再次确认法术可用性、generation 与战斗状态：
 
 ```lua
-local function BuildPlayerSpellItem(spellID, name, icon)
+local function BuildPlayerSpellRecord(spellID, name, icon, aliases)
     return {
-        id = "spell-" .. spellID,
-        text = name,
-        subtext = "已知传送技能",
+        id = "spell:" .. spellID,
+        kind = "spell",
+        category = { id = "spells", title = { default = "Spells", zhCN = "技能" }, order = 10 },
+        title = name,
+        aliases = aliases,
         icon = icon,
         payload = { spellID = spellID },
-        interaction = {
-            primaryActionID = "open-detail",
-            actions = {
-                { id = "open-detail", title = "查看详情", kind = "intent" },
-                { id = "cast", title = "施放", kind = "secure-spell", spellID = spellID },
-            },
-            drag = { type = "spell", spellID = spellID },
+        actions = {
+            { id = "cast", title = "施放", kind = "secure-spell", spellID = spellID },
         },
+        drag = { type = "spell", spellID = spellID },
     }
-end
-
-local function PlayerSpellItemIntent(item, actionID)
-    if actionID == "open-detail" then
-        return {
-            type = "player-spells.open-detail",
-            version = 1,
-            payload = { spellID = item.payload.spellID },
-        }
-    end
-    return nil, { code = "ACTION_UNAVAILABLE", retryable = false }
 end
 ```
 
-这里 Enter 与点击主行只打开详情；行内“施放”必须由真实鼠标左键点击 Host 的 secure 按钮，拖拽必须从 Host 的专用区域开始。传送门仅是法术的别名索引，不另建动作协议。
+“施放”必须由真实鼠标左键点击 Host 的 secure 按钮，Enter 不模拟安全点击；拖拽必须从 Host 的专用区域开始。传送门仅是法术的别名索引，不另建动作协议。以后若实现真实详情页面，再为同一 Extension 增加 PanelFactory 和声明式 action，不预留空 Panel。
 
 ## 18. 接入检查清单
 

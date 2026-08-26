@@ -121,9 +121,9 @@ item Intent 成功后，Handler 可返回声明式视图转换：`transition = {
 四类内置搜索场景都遵循同一链路，其中玩家技能与副本传送共用 `PlayerSpells` Extension：
 
 1. `DungeonGuideProvider` 建立怪物名与怪物技能到怪物记录的反向索引；其 item 的普通动作打开 Lychee 详情或可选 MRT/指南 adapter。
-2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知的有效法术索引；同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影，包括“复仇之怒”对应“翅膀”等技能俗称和已知传送法术对应“红玉”等副本简称。其 item 可有详情 action、可选 secure-spell action 和 spell drag。
+2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知的有效法术快照，并通过一个 SearchSource 发布；`PlayerSpellAliases.lua` 只维护 Locale 别名投影，包括“复仇之怒”对应“翅膀”等技能俗称和已知传送法术对应“红玉”等副本简称。当前记录只提供 secure-spell action 和 spell drag，不注册 Command、CapabilityProvider、IntentHandler 或空详情 Panel。
 3. `DungeonAliasProvider` 将 Boss 名称、赛季简称（例如 `M1`）和版本别名映射为攻略实体；item action 打开同 Extension 的详情 Panel。
-4. 副本传送搜索属于第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；输入副本简称返回 canonical spell item，支持详情、专用区域拖拽和真实点击的 secure-spell action。
+4. 副本传送搜索属于第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；输入副本简称返回 canonical spell item，支持专用区域拖拽和真实点击的 secure-spell action。
 
 ## 生命周期和隔离
 
