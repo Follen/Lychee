@@ -4,6 +4,7 @@ _G.LycheeInternal = I
 I.VERSION = I.VERSION or { api = 1, revision = 1 }
 I.Modules = I.Modules or {}
 LycheeDB = LycheeDB or {}
+local pendingSearchSnapshot = LycheeDB.searchIndex
 
 local function wireRegistryLifecycle()
     if I._registryLifecycleWired or not I.Registry then return end
@@ -26,6 +27,11 @@ local function onLogin()
     end
     wireRegistryLifecycle()
     if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
+    if not I._searchSnapshotRestored and I.Search and I.Search.StaticIndex and type(pendingSearchSnapshot) == "table" then
+        I._searchSnapshotRestored = true
+        I.Search.StaticIndex:RestoreSnapshot(pendingSearchSnapshot)
+        pendingSearchSnapshot = nil
+    end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController
     if palette then I.WirePalette(palette) end
@@ -44,9 +50,18 @@ function I.WirePalette(palette)
     end)
     palette:SetActivateCallback(function(item, actionID)
             local command = item and item.command
-            if not command or type(command.itemIntent) ~= "function" then return false, "ACTION_UNAVAILABLE" end
-            local intent = command.itemIntent(item, actionID, I.Context and I.Context:Snapshot() or {})
-            local result, err = I.Router and I.Router:Execute(intent, I.Context and I.Context:Snapshot() or {}) or nil, "HANDLER_UNAVAILABLE"
+            local context = I.Context and I.Context:Snapshot() or {}
+            local intent
+            if command and type(command.itemIntent) == "function" then
+                intent = command.itemIntent(item, actionID, context)
+            elseif item and item.searchRecord and type(item.searchRecord.actions) == "table" then
+                for i = 1, #item.searchRecord.actions do
+                    local action = item.searchRecord.actions[i]
+                    if action.id == actionID and type(action.intent) == "table" then intent = action.intent; break end
+                end
+            end
+            if type(intent) ~= "table" then return false, "ACTION_UNAVAILABLE" end
+            local result, err = I.Router and I.Router:Execute(intent, context) or nil, "HANDLER_UNAVAILABLE"
             if not result then return false, err end
             local transition = result.transition
             if transition then

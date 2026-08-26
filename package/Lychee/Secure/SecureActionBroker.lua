@@ -57,8 +57,8 @@ end
 function Broker:ValidateToken(token)
     if type(token) ~= "table" then return false, "STALE_GENERATION" end
     local controller = token.controller or self:EnsureBound()
-    if not controller or not controller.IsRowCurrent then return false, "STALE_GENERATION" end
-    return controller:IsRowCurrent(token.row, token.session, token.generation, token.item, token.extensionID)
+    if not controller or not controller.ValidateRowAction then return false, "STALE_GENERATION" end
+    return controller:ValidateRowAction(token.row, token.session, token.generation, token.item, token.extensionID)
 end
 function Broker:IsTokenCurrent(token) return self:ValidateToken(token) == true end
 function Broker:Prepare(action, token)

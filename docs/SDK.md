@@ -21,15 +21,16 @@
 
 ```text
 Extension
-|- RegisterCommand(...)             用户能搜索什么
+|- RegisterCommand(...)             固定命令入口和动作
+|- RegisterSearchSource(...)        统一收录可搜索实体
 |- RegisterCapabilityProvider(...)  插件提供什么数据/能力
 |- RegisterIntentHandler(...)       选择后执行什么
 `- RegisterPanelFactory(...)        复杂交互如何挂载
 ```
 
-最常见的插件只需注册一个 Extension、一个 IntentHandler 和一个 `row` Command。Command、Provider 和 Intent 分层：Command 是唯一搜索入口，Provider 是可复用数据能力，IntentHandler 是经过校验的动作执行器。
+最常见的插件只需注册一个 Extension、一个 SearchSource（或固定 `row` Command）、一个 IntentHandler 和需要的 Panel。SearchRecord 是统一搜索对象；Command 是固定命令入口，CapabilityProvider 是可复用能力，IntentHandler 是经过校验的动作执行器。
 
-第三方接入必须由第三方 AddOn 主动完成：取得 Lychee 本体暴露的 `_G.Lychee` 公共 facade，创建 Extension 草稿，注册全部子声明，最后调用 `Commit()`。Lychee 不扫描插件目录来猜测或补造接入。**单独注册 Provider 不会产生任何搜索结果**；要让 Provider 的实体响应 Lychee 主输入框，同一 Extension 还必须注册一个引用该能力的 `ambient` `dynamic-list` Command，并将二者一起 Commit。
+第三方接入必须由第三方 AddOn 主动完成：取得 Lychee 本体暴露的 `_G.Lychee` 公共 facade，创建 Extension 草稿，注册全部子声明，最后调用 `Commit()`。Lychee 不扫描插件目录来猜测或补造接入。实体搜索应注册 SearchSource；CapabilityProvider 仍只发布可复用能力，若要通过动态 resolver 查询它，才额外注册 `ambient` `dynamic-list` Command。
 
 ## 2. TOC 与加载顺序
 
@@ -260,9 +261,10 @@ extension:Unregister()
 extension:GetState()
 extension:Invalidate(key)
 extension:QueryCapability(request, contextSnapshot)
+extension:GetSearchSource(sourceID)
 ```
 
-`GetState()` 返回只读快照，不返回内部表。`Invalidate(key)` 只接受该 Extension 在描述符中声明过的失效 key，Host 合并同帧重复失效。`QueryCapability` 只能在 Lychee Host ready 且 Extension enabled 时调用。
+`GetState()` 返回只读快照，不返回内部表。`Invalidate(key)` 只接受该 Extension 在描述符中声明过的失效 key，并只推进本 Extension 自己的 Source revision/generation。`QueryCapability` 只能在 Lychee Host ready 且 Extension enabled 时调用。`GetSearchSource(sourceID)` 返回 Host 校验过的窄 source handle，不暴露 SearchIndex。
 
 `SetEnabled` 只设置第三方自己的 owner-enabled 位。Extension 的实际可用状态是 owner-enabled、用户设置、Host 兼容性和健康熔断的合取；第三方不能用 `SetEnabled(true)` 覆盖用户禁用或 Host 熔断。
 
@@ -593,9 +595,57 @@ ambient 契约：
 - Palette 隐藏、进入战斗、Extension/Command 停用或注销时，取消 debounce、未运行的 resolver 和 deferred 队列；隐藏状态没有 ambient 后台查询。
 - resolver 只查询 Provider/模块维护的轻量预索引或缓存，不在每次按键枚举 AddOn、全量扫描原始数据库、创建 frame、注册事件或执行动作。
 
-Command 仍是唯一搜索对象。`RegisterCapabilityProvider(...)` 只是向 Broker 发布能力；要搜索该 Provider 的数据，必须再注册 ambient Command，在 resolver 中通过 `extension:QueryCapability(...)` 查询它，并与 Provider 一起 Commit。
+Command 是固定命令入口，不是唯一搜索对象。`RegisterCapabilityProvider(...)` 仍只向 Broker 发布可复用能力；实体直接搜索使用同一 Extension draft 的 `RegisterSearchSource(...)`。需要把能力查询和命令参数组合起来时，仍可额外注册 ambient Command，在 resolver 中通过 `extension:QueryCapability(...)` 查询 Provider。
 
-### 10.3 协作式 deferred resolver
+### 10.3 SearchSource 与统一 SearchRecord
+
+SearchSource 是 Buildin 和第三方实体进入 Lychee 搜索引擎的统一收录协议。Host 在注册/数据更新时建索引，按键查询只读取活动索引，不调用 Provider 扫描原始数据。
+
+```lua
+extension:RegisterSearchSource({
+    id = "creatures",
+    version = 1,
+    revision = 7,
+    priority = 80,
+    scope = { product = "retail", minInterface = 120000, maxInterface = 120999 },
+    snapshot = function(context)
+        return {
+            {
+                id = "creature:12345",
+                kind = "creature",
+                category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" } },
+                title = "红玉小怪",
+                aliases = { { text = "红玉", locale = "zhCN" } },
+                keywords = { { text = "M1", locale = "zhCN" } },
+                description = { { text = "打开对应指南页面。", locale = "zhCN" } },
+                actions = {
+                    { id = "open", kind = "intent", intent = { type = "sample.open", version = 1, payload = { creatureID = 12345 } } },
+                },
+            },
+        }
+    end,
+})
+```
+
+SearchRecord 的 `id` 必须稳定且全局唯一；`kind` 用于语义，`category` 用于结果前置标签和筛选。`title`、`aliases`、`keywords`、`description` 支持 locale 和 product/interface/build scope。当前 locale、`default`、当前 product/build 不匹配的文本只保留在 Source 数据中，不进入活动索引。
+
+Host 统一建立 canonical、alias、keyword、description 和 category title 的 exact/prefix/substring/n-gram 索引，并在查询长度和预算允许时执行有限 fuzzy 匹配。每个结果返回 `confidence`、`matchedField`、`matchedText`、`matchType`；精确标题/别名优先于前缀、关键词、描述和模糊结果。同一 stable record 被多个字段命中只显示一次，排序使用 confidence、Source priority、category order 和 stable ID。
+
+Source 必须显式声明 `version`、`revision`、`priority`、`scope`，并通过 `snapshot` 或静态 `records` 提供初始数据。后续使用 `BeginSnapshot`/`Upsert`/`Remove`/`CommitSnapshot` 更新；每次提交递增 revision，旧 generation 结果丢弃。Source 禁用或注销只移除自己的索引项。Provider 不画 UI、不注册 Lychee 快捷键、不返回 Frame；SearchResult 的 `actions` 由 Host 转成普通 Intent、Panel、secure-spell 或 drag，并重新校验 session、generation、source state、availability 和 combat。
+
+```lua
+local source = assert(extension:GetSearchSource("creatures"))
+local generation = assert(source:BeginSnapshot())
+assert(source:Upsert(nextRecord, generation))
+assert(source:Remove("creature:obsolete", generation))
+local ok, nextGeneration, nextRevision = source:CommitSnapshot(nil, nil, generation)
+```
+
+`BeginSnapshot()` 开启一次显式批量更新；同一 generation 的 `Upsert`/`Remove` 暂存到 `CommitSnapshot`，提交时只重建该 Source 的索引成员。未先调用 `BeginSnapshot` 时，Host 自动把同一帧的 `Upsert`/`Remove` 合并，并在帧末提交一次；需要明确提交边界时使用显式批量 API。`GetState()` 返回当前 revision、generation 和 enabled。第三方自定义 category 必须使用 `<extension-id>:<category>`；`spells`、`achievements`、`quests`、`dungeons`、`extensions` 是 Host 保留的共享类别。
+
+空输入时 Palette 显示 ZTools 风格 HomeView（最近、固定、分类、第三方入口）；有输入时显示带图标、category badge、描述、命中证据和动作槽的 SearchView。最近/固定只保存 stable ID，不保存完整 payload。搜索索引和结果行均池化，Palette 隐藏时没有常驻每帧工作。
+
+### 10.4 协作式 deferred resolver
 
 同步 resolver 必须快速返回。需要分批处理时，使用本次调用的临时 `runtime`：
 
@@ -624,18 +674,18 @@ step 的返回约定固定为：`false` 表示让出并继续；`true, items` �
 
 `deadlineMS` 是测量和调度预算，不是硬超时。WoW Lua 无法安全抢占正在运行的第三方回调；Host 只能在回调返回后记录超时。超时或连续 `PROVIDER_ERROR` 时，Host 保留对应 Command/Provider 的 dirty 标记，不发布不完整结果，进入 `slow`，并按统一的有界退避窗口重新调度（例如 50ms、100ms、250ms，达到本轮重试上限后等待下一次输入或显式 `Invalidate`）。退避期间不创建额外 ticker；新 generation、关闭 Palette、停用或注销会取消重试。只有成功刷新或明确确认数据不可用时才清除 dirty。
 
-### 10.4 Lychee 内置 Extension 的同协议用法
+### 10.5 Lychee 内置 Extension 的同协议用法
 
 Lychee 自己的功能也是 Extension/Provider，不绕开上述结果合同。这样内置数据和第三方数据在搜索、选择、详情与生命周期上遵循同一条链路：
 
-- `DungeonGuideProvider`：怪物名或怪物技能名通过 ambient `dynamic-list` 命中；普通 primary action 打开 Lychee 详情 Panel。若安装了 MRT 或其他指南，适配器只能调用其稳定公开 API 打开对应页面；不得操作其内部 frame。
-- `PlayerSpells` Extension 的 `PlayerSpellProvider`：只建立一份当前角色已知且可用的法术索引，同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影；其中既包含“复仇之怒”对应“翅膀”等技能俗称，也包含已知传送法术对应“红玉”等副本简称。法术结果可提供详情 intent、`drag.type = "spell"`，以及可选 `secure-spell` 真实点击施放。
-- `DungeonAliasProvider`：Boss 名或赛季别名（如 `M1`）映射到副本/Boss 详情 Panel，而不是为每个别名建立独立快捷键或特殊 UI。
+- `DungeonGuideProvider`：通过 SearchSource 收录怪物名和怪物技能名；普通 action 打开 Lychee 详情 Panel。若安装了 MRT 或其他指南，适配器只能调用其稳定公开 API 打开对应页面；不得操作其内部 frame。
+- `PlayerSpells` Extension 的 `PlayerSpellProvider`：只建立一份当前角色已知且可用的法术索引，同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影；其中既包含“复仇之怒”对应“翅膀”等技能俗称，也包含已知传送法术对应“红玉”等副本简称。法术 SearchRecord 可提供详情 intent、`drag.type = "spell"`，以及可选 `secure-spell` 真实点击施放。
+- `DungeonAliasProvider`：通过 SearchSource 将 Boss 名或赛季别名（如 `M1`）映射为副本/Boss 记录，而不是为每个别名建立独立快捷键或特殊 UI。
 - 副本传送搜索属于同一个 `PlayerSpells` Extension，不新增额外 Provider、独立目录或第二份法术索引。输入“红玉”等别名命中 canonical spell item，详情、拖拽和真实点击施放仍复用同一 item interaction。
 
 玩家法术索引必须以当前角色实时法术书为事实源。Host 在登录及法术/专精/天赋变化事件后批量刷新快照，读取 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 和 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)`；按键查询只访问预构建快照与 alias index。静态法术数据只能用于 alias 定义和无 WoW API 的离线 fixture，不能覆盖客户端实时已知技能。
 
-Provider 只维护预索引和数据查询；ambient Command 决定何时进入主输入框；`itemIntent`/Handler 决定普通选择后的 transition；Host 负责结果行和受保护输入。这些职责不因功能是内置或第三方而改变。
+Provider 只维护可复用能力和数据查询；稳定实体通过 SearchSource 进入主输入框，只有运行时组合查询才使用 ambient Command；SearchRecord Action/Handler 决定普通选择后的 transition；Host 负责结果行和受保护输入。这些职责不因功能是内置或第三方而改变。
 
 ## 11. CapabilityProvider
 

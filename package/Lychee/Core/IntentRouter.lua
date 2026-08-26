@@ -31,6 +31,7 @@ local function validateTransition(extensionID, transition)
     return true
 end
 function Router:Execute(intent, context)
+    if InCombatLockdown and InCombatLockdown() then return nil,{code="COMBAT_LOCKED",retryable=true} end
     if type(intent)~="table" or type(intent.type)~="string" or not integer(intent.version or 1) then return nil,{code="INTENT_INVALID",retryable=false} end
     local valid,why=I.Boundary:Validate(intent,"intent"); if not valid then return nil,why end
     local list=self.handlers[intent.type]; if not list or #list==0 then return nil,{code="HANDLER_UNAVAILABLE",retryable=false} end

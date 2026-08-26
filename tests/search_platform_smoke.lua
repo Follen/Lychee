@@ -1,0 +1,161 @@
+-- Unified SearchSource/SearchRecord contract smoke.
+_G = _G or {}
+_G.__locale = "zhCN"
+function GetLocale() return _G.__locale end
+function GetBuildInfo() return "12.1.0", "12345", "today", 120100 end
+function InCombatLockdown() return false end
+function CreateFrame()
+    local f = {}
+    function f:RegisterEvent() end
+    function f:SetScript() end
+    function f:Hide() end
+    function f:Show() end
+    return f
+end
+UIParent = {}
+
+local root = "package/Lychee/"
+local files = {
+    "Bootstrap.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
+    "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
+    "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua",
+    "PublicAPI/SDK.lua",
+}
+for i = 1, #files do dofile(root .. files[i]) end
+
+local I = _G.LycheeInternal
+local index = I.Search.StaticIndex:New()
+local sourceID = "search-platform-test"
+assert(index:RegisterSource({ id = sourceID, priority = 50, _extensionID = "test.search" }))
+assert(index:CommitSnapshot(sourceID, {
+    {
+        id = "spell:393256", kind = "spell",
+        category = { id = "spells", title = { default = "Spell", zhCN = "技能" } },
+        title = "利爪防御者之路",
+        aliases = { { text = "红玉", locale = "zhCN" }, { text = "ruby life pools", locale = "enUS" } },
+        keywords = { { text = "传送", locale = "zhCN" } },
+        description = { { text = "传送至红玉新生法池入口。", locale = "zhCN" } },
+        scope = { product = "retail", minInterface = 120000, maxInterface = 120999 },
+    },
+    {
+        id = "spell:old", kind = "spell", title = "过期技能",
+        aliases = { { text = "旧版本", locale = "zhCN", scope = { minBuild = 99999 } } },
+    },
+}, 1))
+
+local hits = index:Search("红玉", 10)
+assert(#hits == 1 and hits[1].item.id == "spell:393256")
+assert(hits[1].confidence == 0.98 and hits[1].evidence.matchedField == "alias")
+assert(I.Search.Normalizer:MatchText("红玉", "红玉", "title").confidence > I.Search.Normalizer:MatchText("红玉", "红玉", "alias").confidence)
+assert(I.Search.Normalizer:MatchText("红玉", "红玉新生", "alias").confidence > I.Search.Normalizer:MatchText("红玉", "红玉", "keyword").confidence)
+assert(I.Search.Normalizer:MatchText("红玉", "红玉", "keyword").confidence > I.Search.Normalizer:MatchText("红玉", "红玉", "description").confidence)
+local descriptionHits = index:Search("入口", 10)
+assert(#descriptionHits == 1 and descriptionHits[1].evidence.matchedField == "description")
+assert(#index:Search("旧版本", 10) == 0)
+local categoryHits = index:Search("技能 红玉", 10)
+assert(#categoryHits == 1 and categoryHits[1].evidence.matchType == "token")
+index:Search("红玉", 10)
+index:Search("红玉新", 10)
+assert(index:GetDiagnostics().reusedPrevious == true)
+
+assert(index:RegisterSource({ id = "mutation-test", revision = 1 }))
+assert(index:Upsert("mutation-test", {
+    id = "spell:393256", kind = "spell", category = { id = "spells", title = { zhCN = "技能" } },
+    title = "利爪防御者之路（更新）", aliases = { { text = "红玉新", locale = "zhCN" } },
+}, 2))
+local mutationHits = index:Search("红玉新", 10)
+local mutationFound = false
+for mutationIndex = 1, #mutationHits do if mutationHits[mutationIndex].sourceID == "mutation-test" then mutationFound = true end end
+assert(mutationFound)
+assert(index:Remove("mutation-test", "spell:393256", 3))
+local afterRemoveHits = index:Search("红玉新", 10)
+for removeIndex = 1, #afterRemoveHits do assert(afterRemoveHits[removeIndex].sourceID ~= "mutation-test") end
+assert(index:Invalidate("mutation-test", 4))
+assert(index:GetSignature():find("search%-schema%-2", 1, false))
+
+assert(index:RegisterSource({ id = "generation-test", revision = 2 }))
+assert(index:Upsert("generation-test", { id = "one", title = "代际记录" }, 2))
+local generation = index.sources["generation-test"]._generation
+assert(index:Upsert("generation-test", { id = "old", title = "旧代记录" }, 2, generation - 1) == false)
+
+_G.__locale = "enUS"
+I.Search.RuntimeIdentity:Refresh()
+I.Search.Normalizer.locale = "enUS"
+index:Rebuild()
+assert(#index:Search("红玉", 10) == 0)
+local english = index:Search("ruby life pools", 10)
+assert(#english == 1 and english[1].item.id == "spell:393256")
+
+-- Public Extension registration publishes a source into the Host index.
+_G.__locale = "zhCN"
+I.Search.RuntimeIdentity:Refresh()
+I.Search.Normalizer.locale = "zhCN"
+I.Search.StaticIndex:Clear()
+I.Registry:SetReady(true)
+local draft = I.Registry:Begin({ id = "test.search", apiVersion = 1, minApiRevision = 1, title = "Search fixture" })
+assert(draft)
+assert(draft:RegisterSearchSource({
+    id = "creatures", version = 1, revision = 1, priority = 50, scope = {},
+    records = {
+        { id = "creature:1", kind = "creature", category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" } }, title = "红玉小怪", aliases = { { text = "红玉小怪", locale = "zhCN" } } },
+    },
+}))
+local handle = draft:Commit()
+assert(handle and handle:GetState().effectiveEnabled == true)
+local sourceHandle = assert(handle:GetSearchSource("creatures"))
+local sourceState = sourceHandle:GetState()
+local snapshotGeneration = sourceHandle:BeginSnapshot()
+assert(sourceHandle:Upsert({ id = "creature:2", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "增量小怪" }, snapshotGeneration))
+assert(sourceHandle:CommitSnapshot(nil, nil, snapshotGeneration))
+assert(sourceHandle:GetState().revision > sourceState.revision)
+assert(#I.Search.StaticIndex:Search("增量小怪", 10) == 1)
+local generation, results = I.Search.Query:Query("红玉小怪", {})
+assert(generation and #results > 0 and results[1].searchRecord and results[1].category == "副本")
+
+-- Source-local updates preserve unrelated source entries and snapshots restore real records.
+local sourceB = "test.search:other"
+assert(I.Search.StaticIndex:RegisterSource({ id = sourceB, revision = 1, _extensionID = "test.search" }))
+assert(I.Search.StaticIndex:CommitSnapshot(sourceB, { { id = "other:1", kind = "creature", title = "保留记录" } }, 1))
+local unrelatedKey = sourceB .. ":other:1"
+local unrelatedEntry = I.Search.StaticIndex.entries[unrelatedKey]
+assert(sourceHandle:Upsert({ id = "creature:3", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "局部更新" }))
+assert(I.Search.StaticIndex.entries[unrelatedKey] == unrelatedEntry)
+local exported = I.Search.StaticIndex:ExportSnapshot()
+local restored = I.Search.StaticIndex:New()
+for sourceIndex = 1, #exported.sources do assert(restored:RegisterSource(exported.sources[sourceIndex])) end
+assert(restored:RestoreSnapshot(exported))
+assert(#restored:Search("保留记录", 10) == 1)
+
+-- Fuzzy work obeys a millisecond deadline and records a stable diagnostic code.
+local previousProfiler = debugprofilestop
+local clock = 0
+debugprofilestop = function() clock = clock + 10; return clock end
+I.Search.StaticIndex:Search("保留记绿", 10)
+debugprofilestop = previousProfiler
+assert((I.Search.StaticIndex:GetDiagnostics().FUZZY_TIME_BUDGET or 0) > 0)
+
+-- Public immediate mutations are staged and committed once per frame when the client timer exists.
+local scheduled = {}
+C_Timer = { After = function(_, callback) scheduled[#scheduled + 1] = callback end }
+local beforeBatch = sourceHandle:GetState()
+assert(sourceHandle:Upsert({ id = "creature:batched-one", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "批量一" }))
+assert(sourceHandle:Upsert({ id = "creature:batched-two", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "批量二" }))
+assert(#scheduled == 1 and sourceHandle:GetState().revision == beforeBatch.revision, "same-frame mutations are coalesced")
+scheduled[1]()
+assert(sourceHandle:GetState().revision == beforeBatch.revision + 1, "same-frame batch bumps once")
+C_Timer = { After = function(_, callback) callback() end }
+local synchronousBefore = sourceHandle:GetState().revision
+assert(sourceHandle:Upsert({ id = "creature:sync-timer", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "同步计时器" }))
+assert(sourceHandle:GetState().revision == synchronousBefore + 1, "synchronous timer commits staged mutation")
+C_Timer = nil
+
+local invalidCategoryDraft = I.Registry:Begin({ id = "test.category", apiVersion = 1, minApiRevision = 1, title = "Category" })
+assert(invalidCategoryDraft)
+assert(invalidCategoryDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 1, scope = {}, records = { { id = "one", kind = "other", category = { id = "unprefixed" }, title = "Bad" } } }))
+local invalidCategoryHandle, invalidCategoryErr = invalidCategoryDraft:Commit()
+assert(not invalidCategoryHandle and invalidCategoryErr and invalidCategoryErr.code == "INVALID_SCHEMA")
+assert(handle:Unregister())
+local _, removed = I.Search.Query:Query("红玉小怪", {})
+assert(#removed == 0)
+
+print("Lychee search platform PASS")

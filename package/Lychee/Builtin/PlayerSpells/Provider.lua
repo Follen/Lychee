@@ -204,9 +204,46 @@ function P:ClearDescriptionRequest(spellID)
     if type(spellID) == "number" then self.descriptionRequests[spellID] = nil end
 end
 
+function P:BuildSearchRecords()
+    local records, ids = {}, {}
+    for spellID in pairs(self.items) do ids[#ids + 1] = spellID end
+    table.sort(ids)
+    for index = 1, #ids do
+        local spellID, spell = ids[index], self.items[ids[index]]
+        if type(spell) == "table" and type(spell.name) == "string" and spell.name ~= "" then
+            records[#records + 1] = {
+                id = "spell:" .. tostring(spellID),
+                kind = "spell",
+                category = { id = "spells", title = { default = "Spells", zhCN = "技能" }, order = 10 },
+                title = spell.name,
+                aliases = spell.aliases or self.aliasDefinitions[spellID],
+                keywords = spell.subtext,
+                description = spell.description,
+                icon = spell.icon,
+                payload = { spellID = spellID },
+                actions = {
+                    { id = "open-detail", title = "查看详情", kind = "intent", intent = { type = "builtin.player-spells.open", version = 1, payload = { spellID = spellID, actionID = "open-detail" } } },
+                    { id = "cast", title = "施放", kind = "secure-spell", spellID = spellID },
+                },
+                drag = { type = "spell", spellID = spellID },
+            }
+        end
+    end
+    return records
+end
+
 function P:Refresh()
-    if not C_SpellBook or type(C_SpellBook.GetNumSpellBookSkillLines) ~= "function" then return self:RefreshOfflineFixture() end
-    return self:RefreshFromSpellBook()
+    local refreshed
+    if not C_SpellBook or type(C_SpellBook.GetNumSpellBookSkillLines) ~= "function" then
+        refreshed = self:RefreshOfflineFixture()
+    else
+        refreshed = self:RefreshFromSpellBook()
+    end
+    if refreshed and self.searchSourceID and I.Search and I.Search.StaticIndex then
+        self.searchRevision = (self.searchRevision or 1) + 1
+        I.Search.StaticIndex:CommitSnapshot(self.searchSourceID, self:BuildSearchRecords(), self.searchRevision)
+    end
+    return refreshed
 end
 
 function P:Query(request)

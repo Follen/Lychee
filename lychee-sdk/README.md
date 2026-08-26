@@ -29,26 +29,27 @@ end
 每个 Extension 通过一次草稿提交发布能力：
 
 1. `RegisterExtension(descriptor)`
-2. `RegisterCommand`
-3. `RegisterCapabilityProvider`
-4. `RegisterIntentHandler`
-5. `RegisterPanelFactory`
-6. `Commit()`
+2. `RegisterSearchSource`（实体搜索）
+3. `RegisterCommand`（固定命令或 ambient 动态入口）
+4. `RegisterCapabilityProvider`
+5. `RegisterIntentHandler`
+6. `RegisterPanelFactory`
+7. `Commit()`
 
-任一声明失败时调用 `Abort()`，不会留下部分搜索结果。`Commit()` 返回 `UNSUPPORTED_API` 时表示 SDK major/revision 不支持；返回 committed handle 但状态为 `pending/incompatible` 时表示当前 Host revision 不足（`INCOMPATIBLE_HOST`）。
+任一声明失败时调用 `Abort()`，不会留下部分搜索结果。`Commit()` 返回 `UNSUPPORTED_API` 时表示 SDK major/revision 不支持；返回 committed handle 但状态为 `pending/incompatible` 时表示当前 Host revision 不足（`INCOMPATIBLE_HOST`）。提交成功后用 `committed:GetSearchSource(id)` 取得窄 source handle；它提供 `GetState`、`BeginSnapshot`、`Upsert`、`Remove`、`CommitSnapshot` 和 `Invalidate`，所有 Record/Action 都会再次经过 Host Boundary 校验。
 
 ## 搜索与交互
 
-Command 的 `title`、`aliases` 和 Provider 实体索引支持 locale 别名，例如“复仇之怒”的中文俗称“翅膀”。动态 item 的 `interaction` 只能是 plain-data：普通 `intent`、Host 解释的 `secure-spell` 和受校验的 `drag` 描述。第三方不接触 Palette、SecureButton 或全局快捷键。
+Command 与 SearchRecord 的 `title`、`aliases`、`keywords`、`description` 支持 locale 别名，例如“复仇之怒”的中文俗称“翅膀”。SearchRecord action 只能是 plain-data：普通 `intent`、同 Extension 的 `open-panel`、Host 解释的 `secure-spell` 和受校验的 `drag-spell`。第三方不接触 SearchIndex、Palette、SecureButton 或全局快捷键。自定义 category 使用 `<extension-id>:<category>` 前缀；共享类别使用 Host 保留 ID。
 
 ## Fixture
 
 将 `examples/ThirdPartyFixture/` 复制为自己的 AddOn 目录即可测试完整注册链路。它演示：
 
 - `OptionalDeps: Lychee` 和 `_G.Lychee` 竞态处理；
-- Provider、ambient dynamic-list Command、IntentHandler、PanelFactory；
+- SearchSource、Provider、IntentHandler、PanelFactory；
 - Locale aliases（`复仇之怒` / `翅膀` / `wings`）；
-- 点击打开详情、拖拽 spell payload；
+- 点击打开详情；
 - `onHostAttached`、`onHostDetached`、`onEnabled`、`onDisabled` 生命周期。
 
 Fixture 使用静态有界数据，不创建常驻 `OnUpdate`，符合 EllesmereUI 的零空闲成本和事件驱动原则。

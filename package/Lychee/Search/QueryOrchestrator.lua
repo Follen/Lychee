@@ -3,18 +3,101 @@ local Q = { generation = 0, active = false, last = nil, pending = nil, timer = n
 I.Search.Query = Q
 
 local function resultLess(left, right)
-    local lp, rp = left.command and left.command.priority or 0, right.command and right.command.priority or 0
+    local lc, rc = left.confidence or 0, right.confidence or 0
+    if lc ~= rc then return lc > rc end
+    local lp = left.sourcePriority or (left.command and left.command.priority) or 0
+    local rp = right.sourcePriority or (right.command and right.command.priority) or 0
     if lp ~= rp then return lp > rp end
-    return (tostring(left._ext or "") .. ":" .. tostring(left.id or "")) < (tostring(right._ext or "") .. ":" .. tostring(right.id or ""))
+    local lco, rco = left.categoryOrder or 0, right.categoryOrder or 0
+    if lco ~= rco then return lco < rco end
+    return tostring(left.stableID or left._ext or "") .. ":" .. tostring(left.id or "") < tostring(right.stableID or right._ext or "") .. ":" .. tostring(right.id or "")
 end
 
 local function appendUnique(out, seen, item, command)
     if type(item) ~= "table" then return false end
     if command then item._ext, item.command = command._ext, command end
-    local key = tostring(item._ext or (item.command and item.command._ext) or "") .. ":" .. tostring(item.id or item.key or item.text or #out + 1)
+    local payload = item.payload
+    local canonical = item.stableID or (item.searchRecord and item.searchRecord.id) or item.id or item.key
+    if item.searchRecord and item.searchRecord.kind == "spell" and payload and payload.spellID then canonical = "spell:" .. tostring(payload.spellID) end
+    if item.searchRecord and item.searchRecord.kind == "creature" and payload and payload.creatureID then canonical = "creature:" .. tostring(payload.creatureID) end
+    local key
+    if item.searchRecord then key = "record:" .. tostring(canonical)
+    else key = tostring(item._ext or (item.command and item.command._ext) or "") .. ":" .. tostring(canonical or item.text or #out + 1) end
     if seen[key] then return false end
     seen[key] = true; out[#out + 1] = item
     return true
+end
+
+local function displayText(value)
+    if type(value) == "string" then return value end
+    if type(value) ~= "table" then return "" end
+    local normalizer = I.Search.Normalizer
+    local locale = normalizer.locale
+    local entries = normalizer:Localized(value)
+    local defaultText, englishText
+    for index = 1, #entries do
+        local entry = entries[index]
+        local identity = I.Search.RuntimeIdentity
+        if not identity or identity:MatchesScope(nil, entry) then
+            if entry.locale == locale then return entry.text end
+            if entry.locale == "default" and defaultText == nil then defaultText = entry.text end
+            if entry.locale == "enUS" and englishText == nil then englishText = entry.text end
+        end
+    end
+    return defaultText or englishText or ""
+end
+
+local function displayActions(actions)
+    if type(actions) ~= "table" then return actions end
+    local displayed = {}
+    for index = 1, #actions do
+        local action = actions[index]
+        if type(action) == "table" then
+            local copy = {}
+            for key, value in pairs(action) do copy[key] = value end
+            copy.title = displayText(action.title)
+            displayed[index] = copy
+        end
+    end
+    return displayed
+end
+
+local function searchRecordItem(hit)
+    local record = hit and hit.record
+    if not record or not hit.sourceID or hit.sourceID == "legacy" then return nil end
+    local item = {
+        id = record.id,
+        text = displayText(record.title),
+        subtext = displayText(record.subtitle or record.subtext),
+        description = displayText(record.description),
+        payload = record.payload or record,
+        icon = record.icon,
+        category = displayText(record.category and record.category.title or record.category),
+        source = hit.sourceID,
+        sourceID = hit.sourceID,
+        sourceGeneration = hit.sourceGeneration,
+        sourceRevision = hit.sourceRevision,
+        _ext = record._extensionID,
+        searchRecord = record,
+        confidence = hit.confidence,
+        evidence = hit.evidence,
+        sourcePriority = hit.sourcePriority,
+        categoryOrder = hit.categoryOrder,
+        stableID = hit.stableID,
+    }
+    if type(record.actions) == "table" then
+        item.interaction = {
+            primaryActionID = record.primaryActionID or (record.actions[1] and record.actions[1].id),
+            actions = displayActions(record.actions),
+            drag = record.drag,
+        }
+    elseif record.interaction then
+        local interaction = {}
+        for key, value in pairs(record.interaction) do interaction[key] = value end
+        interaction.actions = displayActions(record.interaction.actions)
+        item.interaction = interaction
+    end
+    return item
 end
 
 function Q:_BeginGeneration(externalGeneration)
@@ -25,7 +108,14 @@ end
 
 function Q:_BuildRequest(raw, context, generation)
     local normalized = I.Search.Normalizer:Normalize(raw)
-    return { generation = generation, raw = raw or "", normalized = normalized, tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit, contextToken = context and context.token }
+    return { generation = generation, raw = raw or "", normalized = normalized, tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit, contextToken = context and context.token, session = context and context.session, visible = context and context.visible }
+end
+
+function Q:_IsCurrent(generation, context)
+    if generation ~= self.generation then return false, "STALE_GENERATION" end
+    if context and context.visible == false then return false, "HIDDEN" end
+    if context and context.generation and context.generation ~= generation then return false, "STALE_CONTEXT" end
+    return true
 end
 
 function Q:_AmbientCommands(normalized)
@@ -34,7 +124,7 @@ function Q:_AmbientCommands(normalized)
     for key, command in pairs(I.Catalog.commands) do
         local match = command.match
         local minimum, maximum = match and match.minLength or 0, match and match.maxLength or math.huge
-        if command._enabled ~= false and match and match.type == "ambient" and self.ambientEnabled[key] ~= false
+        if command._enabled ~= false and command.entitySearch ~= false and match and match.type == "ambient" and self.ambientEnabled[key] ~= false
             and #normalized >= minimum and #normalized <= maximum and type(command.resolve) == "function" then
             commands[#commands + 1] = command
         end
@@ -52,6 +142,13 @@ function Q:_Execute(raw, context, generation)
     local catalogResults = I.Catalog and I.Catalog:Query(request, catalogBudget) or {}
     local out, seen = {}, {}
     for index = 1, #catalogResults do appendUnique(out, seen, catalogResults[index]) end
+    if I.Search and I.Search.StaticIndex then
+        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out))
+        for index = 1, #indexed do
+            local item = searchRecordItem(indexed[index])
+            if item then appendUnique(out, seen, item) end
+        end
+    end
     local ambientCommands, ambientAdded = self:_AmbientCommands(request.normalized), 0
     for commandIndex = 1, #ambientCommands do
         if ambientAdded >= ambientBudget or #out >= self.limit then break end
@@ -88,9 +185,13 @@ end
 function Q:Query(raw, context, externalGeneration)
     local generation = self:_BeginGeneration(externalGeneration)
     if externalGeneration and externalGeneration < self.generation then return generation, {} end
+    local current, reason = self:_IsCurrent(generation, context)
+    if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
     local results = self:_Execute(raw, context, generation)
     self.active = false
+    current, reason = self:_IsCurrent(generation, context)
+    if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     if not self:_Commit(generation, results) then return generation, {} end
     return generation, results
 end
@@ -134,7 +235,7 @@ end
 
 function Q:Invalidate()
     self:_CancelTimer()
-    self.generation, self.last, self.pending, self.active = self.generation + 1, nil, nil, false
+    self.generation, self.last, self.pending, self.active = self.generation + 1, { generation = self.generation + 1, results = {}, cancelled = "INVALIDATED" }, nil, false
 end
 
 function Q:SetAmbientEnabled(key, enabled) self.ambientEnabled[key] = enabled end

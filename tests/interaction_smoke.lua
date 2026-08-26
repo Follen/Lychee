@@ -46,6 +46,8 @@ local function object(kind, parent)
     function o:GetAttribute(k) return self.attrs[k] end
     function o:SetParent(parentValue) self.parent = parentValue end
     function o:GetParent() return self.parent end
+    function o:SetScrollChild(child) self.scrollChild = child end
+    function o:GetScrollChild() return self.scrollChild end
     function o:SetPropagateKeyboardInput() end
     return o
 end
@@ -130,12 +132,234 @@ assertEq(secureButton, nil, "combat secure prepare")
 assertEq(secureErr, "COMBAT_LOCKED", "combat secure error")
 _G.__combat = false
 
+local originalRefreshHomeSections = palette.RefreshHomeSections
+local showHomeRefreshes = 0
+palette.RefreshHomeSections = function(self, ...)
+    showHomeRefreshes = showHomeRefreshes + 1
+    return originalRefreshHomeSections(self, ...)
+end
 assert(palette:Show())
+assertEq(showHomeRefreshes, 1, "empty-query show refreshes home once")
+palette.RefreshHomeSections = originalRefreshHomeSections
+assert(palette.frame.scripts.OnEvent, "palette combat event handler")
+_G.__combat = true
+palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_DISABLED")
+assertEq(palette.visible, false, "combat event closes palette")
+assertEq(palette.frame:IsShown(), false, "combat event hides palette frame")
+_G.__combat = false
+assert(palette:Show())
+palette:SetQueryMode("")
+assertEq(palette.homeView.frame:IsShown(), true, "empty query shows home view")
+assertEq(palette.list.frame:IsShown(), false, "empty query hides search view")
+palette:SetQueryMode("技能")
+assertEq(palette.homeView.frame:IsShown(), false, "non-empty query hides home view")
+assertEq(palette.list.frame:IsShown(), true, "non-empty query shows search view")
+palette:SetQueryMode("")
+I.Registry:SetReady(true)
+
+-- SearchRecord actions stay declarative and route ordinary intents through the host router.
+local actionDraft = I.Registry:Begin({ id = "interaction.actions", apiVersion = 1, minApiRevision = 1, title = "Actions", version = "1.0.0" })
+assert(actionDraft)
+assert(actionDraft:RegisterSearchSource({
+    id = "records", version = 1, revision = 1, priority = 50, scope = {},
+    records = {
+        {
+            id = "spell:interaction-action", kind = "spell",
+            category = { id = "spells", title = { default = "Spells", zhCN = "技能" } },
+            title = "动作技能", aliases = { { text = "动作", locale = "zhCN" } },
+            description = { { text = "可执行普通动作。", locale = "zhCN" } },
+            actions = {
+                { id = "open", title = { zhCN = "打开", enUS = "Open" }, kind = "intent", intent = { type = "interaction.actions.open", version = 1, payload = {} } },
+                { id = "panel", title = "面板", kind = "open-panel", panel = "detail", state = { itemID = 7 } },
+                { id = "drag", title = "拖拽", kind = "drag-spell", spellID = 31884 },
+            },
+        },
+    },
+}))
+assert(actionDraft:RegisterSearchSource({
+    id = "secondary", version = 1, revision = 1, priority = 40, scope = {}, records = {},
+}))
+for sourceIndex = 1, 20 do
+    assert(actionDraft:RegisterSearchSource({
+        id = string.format("overflow-%02d", sourceIndex), version = 1, revision = 1,
+        priority = 20, scope = {}, records = {},
+    }))
+end
+local actionCalled = false
+assert(actionDraft:RegisterIntentHandler({
+    type = "interaction.actions.open", version = 1, schema = {},
+    handle = function() actionCalled = true; return { ok = true } end,
+}))
+local panelMounted = false
+assert(actionDraft:RegisterPanelFactory({
+    id = "detail", stateSchema = { itemID = "integer" },
+    create = function(_, state)
+        assert(state.itemID == 7)
+        return { Mount = function() panelMounted = true; return true end, Unmount = function() end, Dispose = function() end }
+    end,
+}))
+local actionHandle, actionCommitErr = actionDraft:Commit()
+assert(actionHandle, "action extension commit: " .. tostring(actionCommitErr and actionCommitErr.code) .. " " .. tostring(actionCommitErr and actionCommitErr.field))
+assert(actionHandle:GetState().effectiveEnabled == true)
+local actionGeneration, actionResults = I.Search.Query:Query("动作", { visible = true }, palette.generation)
+assert(#actionResults > 0, "search returned action record")
+local actionItem = actionResults[1]
+assertEq(actionItem.category, "技能", "search result category")
+assertEq(actionItem.description, "可执行普通动作。", "localized array description")
+assertEq(actionItem.interaction.actions[1].title, "打开", "localized action title")
+assert(actionItem.sourceID and actionItem.sourceGeneration and actionItem.sourceRevision, "source state retained on result")
+assert(actionItem.evidence and actionItem.evidence.matchedField == "alias", "search result evidence")
+assert(actionItem.confidence and actionItem.confidence >= 0.85, "search result confidence")
+local categoryGeneration, categoryResults = I.Search.Query:Query("技能 动作", { visible = true })
+assert(categoryGeneration and #categoryResults > 0 and categoryResults[1].category == "技能", "category filter result")
+palette:SetActivateCallback(function(item, actionID)
+    local actions = item and item.searchRecord and item.searchRecord.actions or {}
+    for index = 1, #actions do
+        if actions[index].id == actionID then return I.Router:Execute(actions[index].intent, {}) end
+    end
+    return false, "ACTION_UNAVAILABLE"
+end)
+palette:SetResults(actionResults, actionGeneration, palette.session)
+local actionRow = palette.list.rows[1]
+assert(actionRow.evidence and actionRow.evidence:GetText():find("命中", 1, true), "evidence slot rendered")
+assertEq(actionRow.actions[1].label:GetText(), "打开", "localized action title rendered")
+assert(palette:TouchRecent(actionItem))
+assert(palette:SetPinned(actionItem, true))
+palette:RefreshHomeSections()
+assert(LycheeDB and LycheeDB.palette and LycheeDB.palette.recent[1] == actionItem.id, "recent stores stable id")
+assert(LycheeDB.palette.pinned[1] == actionItem.id, "pinned stores stable id")
+local hasRecent, hasPinned, hasCategory, sourceEntries = false, false, false, 0
+for sectionIndex = 1, #(palette.homeView.sections or {}) do
+    local section = palette.homeView.sections[sectionIndex]
+    if section.id == "saved:" .. actionItem.id then hasRecent = true; hasPinned = true end
+    if section.id == "category:spells" then hasCategory = true end
+    if section.id == "source:interaction.actions:records" or section.id == "source:interaction.actions:secondary" then sourceEntries = sourceEntries + 1 end
+end
+assert(hasRecent and hasPinned and hasCategory and sourceEntries == 2, "home sections include saved/category/source entries")
+assert(#palette.homeView.sections > 16, "home sections exceed the old fixed tile limit")
+assert(#palette.homeView.tiles >= #palette.homeView.sections, "home tile pool grows to the section count")
+assertEq(palette.homeView.frame:GetScrollChild(), palette.homeView.content, "home uses a scroll child")
+assert(palette.homeView.content:GetHeight() > palette.homeView.frame:GetHeight(), "overflow home content is scrollable")
+local renderedSources = {}
+for tileIndex = 1, #palette.homeView.sections do
+    local tile = palette.homeView.tiles[tileIndex]
+    assert(tile and tile:IsShown() and tile.section == palette.homeView.sections[tileIndex], "home tile renders section " .. tileIndex)
+    if tile.section.id:sub(1, 7) == "source:" then renderedSources[tile.section.id] = true end
+end
+for sourceIndex = 1, 20 do
+    assert(renderedSources[string.format("source:interaction.actions:overflow-%02d", sourceIndex)], "overflow source remains accessible " .. sourceIndex)
+end
+local homeSetterCalls, restores = 0, {}
+local function countCalls(objectValue, method)
+    local original = objectValue[method]
+    restores[#restores + 1] = { objectValue, method, original }
+    objectValue[method] = function(self, ...)
+        homeSetterCalls = homeSetterCalls + 1
+        return original(self, ...)
+    end
+end
+for tileIndex = 1, #palette.homeView.sections do
+    local tile = palette.homeView.tiles[tileIndex]
+    countCalls(tile.title, "SetText")
+    countCalls(tile.meta, "SetText")
+    countCalls(tile.icon, "SetTexture")
+    countCalls(tile.icon, "SetShown")
+    countCalls(tile, "SetShown")
+end
+palette:RefreshHomeSections()
+assertEq(homeSetterCalls, 0, "unchanged home refresh skips native setters")
+for restoreIndex = 1, #restores do
+    local restore = restores[restoreIndex]
+    restore[1][restore[2]] = restore[3]
+end
+local ordinaryResult, ordinaryErr = palette:ActivateRowAction(actionRow, "open")
+assert(ordinaryResult and ordinaryResult.ok == true and actionCalled, "ordinary action execution: " .. tostring(ordinaryErr))
+local panelResult, panelErr = palette:ActivateRowAction(actionRow, "panel")
+assert(panelResult and panelMounted, "direct panel action: " .. tostring(panelErr))
+local pickupBefore = _G.__pickup or 0
+local dragResult, dragErr = palette:ActivateRowAction(actionRow, "drag")
+assert(dragResult and (_G.__pickup or 0) == pickupBefore + 1, "direct drag action: " .. tostring(dragErr))
+_G.__combat = true
+local combatAction, combatActionErr = palette:ActivateRowAction(actionRow, "open")
+assertEq(combatAction, false, "ordinary combat action")
+assertEq(combatActionErr, "COMBAT_LOCKED", "ordinary combat action error")
+local routedInCombat, routedCombatErr = I.Router:Execute({ type = "interaction.actions.open", version = 1, payload = {} }, {})
+assertEq(routedInCombat, nil, "router combat action")
+assert(routedCombatErr and routedCombatErr.code == "COMBAT_LOCKED", "router combat guard")
+_G.__combat = false
+actionItem.searchRecord.availability = { contextKey = "interactionReady", equals = true }
+I.Context:Set("interactionReady", false)
+local unavailableToken, unavailableTokenErr = secureBroker:ValidateToken({
+    controller = palette, row = actionRow, item = actionItem, extensionID = actionRow.extensionID,
+    session = palette.session, generation = palette.generation,
+})
+assertEq(unavailableToken, false, "secure token availability")
+assertEq(unavailableTokenErr, "ACTION_UNAVAILABLE", "secure token availability error")
+actionItem.interaction.drag = { type = "spell", spellID = 31884 }
+local unavailableDrag, unavailableDragErr = palette:BeginRowDrag(actionRow)
+assertEq(unavailableDrag, false, "drag availability")
+assertEq(unavailableDragErr, "ACTION_UNAVAILABLE", "drag availability error")
+local unavailableAction, unavailableErr = palette:ActivateRowAction(actionRow, "open")
+assertEq(unavailableAction, false, "record availability")
+assertEq(unavailableErr, "ACTION_UNAVAILABLE", "record availability error")
+I.Context:Set("interactionReady", true)
+actionItem.searchRecord.availability = nil
+
+-- SearchRecord action payloads are plain-data only; unknown executable fields are rejected.
+local invalidActionDraft = I.Registry:Begin({ id = "interaction.invalid-action", apiVersion = 1, minApiRevision = 1, title = "Invalid action", version = "1.0.0" })
+assert(invalidActionDraft)
+local invalidDeclaration, invalidDeclarationErr = invalidActionDraft:RegisterSearchSource({
+    id = "records", version = 1, revision = 1, priority = 1, scope = {},
+    records = { { id = "bad:record", kind = "spell", title = "Bad", actions = {
+        { id = "bad", kind = "secure-spell", spellID = 1, script = function() end },
+    } } },
+})
+assertEq(invalidDeclaration, nil, "invalid action declaration")
+assert(invalidDeclarationErr and invalidDeclarationErr.code == "INVALID_SCHEMA", "invalid action schema error")
+
+local missingIntentDraft = I.Registry:Begin({ id = "interaction.missing-intent", apiVersion = 1, minApiRevision = 1, title = "Missing intent", version = "1.0.0" })
+assert(missingIntentDraft)
+assert(missingIntentDraft:RegisterSearchSource({
+    id = "records", version = 1, revision = 1, priority = 1, scope = {},
+    records = { { id = "bad:missing-intent", kind = "spell", title = "Bad", actions = {
+        { id = "bad", kind = "intent" },
+    } } },
+}))
+local missingIntentHandle, missingIntentErr = missingIntentDraft:Commit()
+assertEq(missingIntentHandle, nil, "missing intent commit")
+assert(missingIntentErr and missingIntentErr.code == "INVALID_SCHEMA", "missing intent schema error")
+
+local missingSourceDraft = I.Registry:Begin({ id = "interaction.missing-source-fields", apiVersion = 1, minApiRevision = 1, title = "Missing source fields", version = "1.0.0" })
+assert(missingSourceDraft)
+local missingSource, missingSourceErr = missingSourceDraft:RegisterSearchSource({ id = "records", records = {} })
+assertEq(missingSource, nil, "missing source metadata")
+assert(missingSourceErr and missingSourceErr.code == "INVALID_SCHEMA", "missing source metadata error")
+
+-- Disabled extensions and stale generations invalidate result actions before execution.
+assert(actionHandle:SetEnabled(false))
+local disabledRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation)
+local disabledCurrent, disabledErr = palette:IsRowCurrent(disabledRow)
+assertEq(disabledCurrent, false, "disabled extension row")
+assertEq(disabledErr, "EXTENSION_DISABLED", "disabled extension error")
+assert(actionHandle:SetEnabled(true))
+local staleRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation - 1)
+local staleCurrent, staleGenerationErr = palette:IsRowCurrent(staleRow)
+assertEq(staleCurrent, false, "stale generation row")
+assertEq(staleGenerationErr, "STALE_GENERATION", "stale generation error")
+local actionSource = assert(actionHandle:GetSearchSource("records"))
+assert(actionSource:Upsert({ id = "spell:new-generation", kind = "spell", title = "新代记录" }))
+local sourceStaleRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation)
+local sourceCurrent, sourceCurrentErr = palette:IsRowCurrent(sourceStaleRow)
+assertEq(sourceCurrent, false, "stale source row")
+assertEq(sourceCurrentErr, "STALE_GENERATION", "stale source row error")
+assert(actionHandle:Unregister())
+
 local interactionItem = { interaction = {
     primaryActionID = "cast",
     actions = { { id = "cast", kind = "secure-spell", spellID = 31884 } },
     drag = { type = "not-spell", spellID = 31884 },
 } }
+assert(palette:Show())
 palette:SetResults({ interactionItem }, palette.generation, palette.session)
 local interactionRow = palette.list.rows[1]
 _G.__combat = true

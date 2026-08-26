@@ -17,5 +17,8 @@ function facade:RegisterReady(fn)
     return I.Registry:RegisterReady(function(info) pcall(fn, info) end)
 end
 function facade:IsReady() return I.Registry.ready end
+function facade:RegisterSearchSource(desc)
+    return nil, { code = "INVALID_SCHEMA", field = "searchSource", hint = "REGISTER_ON_EXTENSION_DRAFT" }
+end
 _G.Lychee = facade
 I.PublicAPI = facade

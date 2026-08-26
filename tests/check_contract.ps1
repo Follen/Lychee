@@ -26,15 +26,18 @@ if ($scheduler -notmatch 'driver|swap-remove|Hide') { throw 'Shared scheduler li
 $fixtureToc = Join-Path $root 'lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.toc'
 if ((Get-Content $fixtureToc -Raw) -notmatch 'OptionalDeps:\s*Lychee') { throw 'Third-party fixture OptionalDeps missing' }
 $fixture = Get-Content (Join-Path $root 'lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua') -Raw
-foreach ($marker in @('RegisterExtension','RegisterCapabilityProvider','RegisterPanelFactory','RegisterIntentHandler','RegisterCommand','Commit','ADDON_LOADED','state.committed')) {
+foreach ($marker in @('RegisterExtension','RegisterSearchSource','RegisterCapabilityProvider','RegisterPanelFactory','RegisterIntentHandler','Commit','ADDON_LOADED','state.committed')) {
     if ($fixture -notmatch [regex]::Escape($marker)) { throw "Third-party fixture marker missing: $marker" }
 }
+if ($fixture -match 'match\s*=\s*\{\s*type\s*=\s*"ambient"') { throw 'Stable fixture entities must not duplicate SearchSource through ambient Command' }
 $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
     & $lua.Source 'tests/interaction_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Interaction smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/search_platform_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Search platform smoke failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

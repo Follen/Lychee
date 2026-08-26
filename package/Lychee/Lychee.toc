@@ -8,6 +8,7 @@
 
 Bootstrap.lua
 Core/ContextStore.lua
+Search/RuntimeIdentity.lua
 Search/Normalizer.lua
 Search/StaticIndex.lua
 Core/CommandCatalog.lua

@@ -5,7 +5,7 @@ Lychee.UI = Lychee.UI or {}
 local ResultList = {}
 ResultList.__index = ResultList
 
-local ROWS = 12
+local ROWS = 6
 local EMPTY_ITEMS = {}
 
 local function setText(fontString, value)
@@ -21,6 +21,17 @@ local function extensionID(item)
     return item and (item._ext or (item.command and item.command._ext))
 end
 
+local function evidenceText(item)
+    local evidence = item and item.evidence
+    if type(evidence) ~= "table" then return "" end
+    local field = tostring(evidence.matchedField or "")
+    local matchType = tostring(evidence.matchType or "")
+    if field == "" and matchType == "" then return "" end
+    local confidence = tonumber(item.confidence)
+    if confidence then return string.format("命中 %s/%s %.0f%%", field, matchType, confidence * 100) end
+    return "命中 " .. field .. "/" .. matchType
+end
+
 -- Defined before Create so an early cursor transition cannot observe a partial method table.
 function ResultList:SelectRow(row)
     if row and row.index then self:Select(row.index) end
@@ -30,13 +41,13 @@ function ResultList:Create(parent, controller)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 12, -48)
     frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -12, -48)
-    frame:SetHeight(300)
+    frame:SetHeight(330)
     local self = setmetatable({ frame = frame, controller = controller, rows = {}, items = {}, selected = 1 }, ResultList)
     for i = 1, ROWS do
         local row = CreateFrame("Button", nil, frame)
-        row:SetHeight(34)
-        row:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -(i - 1) * 35)
-        row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -(i - 1) * 35)
+        row:SetHeight(52)
+        row:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -(i - 1) * 53)
+        row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -(i - 1) * 53)
         row:RegisterForClicks("LeftButtonUp")
         row:RegisterForDrag("LeftButton")
         row.bg = row:CreateTexture(nil, "BACKGROUND")
@@ -45,13 +56,27 @@ function ResultList:Create(parent, controller)
         row.icon:SetSize(24, 24)
         row.icon:SetPoint("LEFT", 6, 0)
         row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        row.title:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -1)
-        row.title:SetPoint("RIGHT", row, "RIGHT", -92, 0)
+        row.title:SetPoint("TOPLEFT", row.icon, "TOPRIGHT", 8, -2)
+        row.title:SetPoint("RIGHT", row, "RIGHT", -104, 0)
         row.title:SetJustifyH("LEFT")
         row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        row.subtext:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 1)
-        row.subtext:SetPoint("RIGHT", row, "RIGHT", -92, 0)
+        row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2)
+        row.subtext:SetPoint("RIGHT", row, "RIGHT", -104, 0)
         row.subtext:SetJustifyH("LEFT")
+        row.description = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.description:SetPoint("BOTTOMLEFT", row.icon, "BOTTOMRIGHT", 8, 1)
+        row.description:SetPoint("RIGHT", row, "RIGHT", -104, 0)
+        row.description:SetJustifyH("LEFT")
+        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        row.category:SetPoint("TOPRIGHT", row, "TOPRIGHT", -104, -4)
+        row.category:SetJustifyH("RIGHT")
+        row.source = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.source:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -104, 3)
+        row.source:SetJustifyH("RIGHT")
+        row.evidence = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        row.evidence:SetPoint("BOTTOMLEFT", row.description, "TOPLEFT", 0, 1)
+        row.evidence:SetPoint("RIGHT", row, "RIGHT", -104, 0)
+        row.evidence:SetJustifyH("LEFT")
         row.actions = {}
         for actionIndex = 1, 4 do
             local action = CreateFrame("Button", nil, row)
@@ -107,6 +132,10 @@ function ResultList:SetItems(items, session, generation)
         row.session, row.generation, row.extensionID = session, generation, extensionID(item)
         setText(row.title, item.text)
         setText(row.subtext, item.subtext)
+        setText(row.description, item.description or item.summary)
+        setText(row.category, item.category or item.categoryLabel)
+        setText(row.source, item.source or item.sourceLabel or row.extensionID)
+        setText(row.evidence, evidenceText(item))
         if item.icon and row.icon.SetTexture then
             if row._icon ~= item.icon then row.icon:SetTexture(item.icon); row._icon = item.icon end
             setShown(row.icon, true)

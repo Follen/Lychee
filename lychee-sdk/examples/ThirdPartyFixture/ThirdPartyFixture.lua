@@ -131,45 +131,37 @@ local function buildExtension(SDK)
         end,
     })) then return nil end
 
-    if not requireDeclaration(extension:RegisterCommand({
-        id = "find-fixture-item",
-        title = { default = "Find fixture item", zhCN = "查找示例法术" },
-        aliases = {
-            { text = "复仇之怒", locale = "zhCN" },
-            { text = "翅膀", locale = "zhCN" },
-            { text = "wings", locale = "enUS" },
-        },
-        presentation = "dynamic-list",
-        match = { type = "ambient", minLength = 2, maxLength = 64, priority = 10 },
-        resolve = function(query, context)
-            local records = extension:QueryCapability({
-                type = "third-party-fixture.items",
-                minVersion = 1,
-                maxVersion = 1,
-                request = { text = query.normalized, limit = query.limit },
-            }, context)
-            if not records then return {} end
-            local items = {}
-            for i = 1, #records do
-                local recordValue = records[i]
-                items[i] = {
-                    id = "fixture-item-" .. recordValue.itemID,
-                    text = recordValue.name,
-                    payload = { itemID = recordValue.itemID },
-                    interaction = {
-                        primaryActionID = "open-detail",
-                        actions = { { id = "open-detail", title = "查看详情", kind = "intent" } },
+    if not requireDeclaration(extension:RegisterSearchSource({
+        id = "fixture-records",
+        version = 1,
+        revision = 1,
+        priority = 40,
+        scope = { product = "retail" },
+        records = {
+            {
+                id = "fixture-item-12345",
+                kind = "spell",
+                category = { id = "spells", title = { default = "Spell", zhCN = "技能" } },
+                title = { default = "Avenging Wrath", zhCN = "复仇之怒" },
+                aliases = {
+                    { text = "翅膀", locale = "zhCN" },
+                    { text = "wings", locale = "enUS" },
+                },
+                description = { { text = "第三方示例技能。", locale = "zhCN" } },
+                actions = {
+                    {
+                        id = "open-detail",
+                        title = "查看详情",
+                        kind = "intent",
+                        intent = {
+                            type = "third-party-fixture.open-detail",
+                            version = 1,
+                            payload = { itemID = 12345 },
+                        },
                     },
-                }
-            end
-            return items
-        end,
-        itemIntent = function(item, actionID)
-            if actionID ~= "open-detail" then
-                return nil, { code = "ACTION_UNAVAILABLE", retryable = false }
-            end
-            return { type = "third-party-fixture.open-detail", version = 1, payload = { itemID = item.payload.itemID } }
-        end,
+                },
+            },
+        },
     })) then return nil end
 
     local committed, commitErr = extension:Commit()
@@ -179,6 +171,7 @@ local function buildExtension(SDK)
     end
     extension = committed
     state.committed = committed
+    state.searchSource = committed:GetSearchSource("fixture-records")
     return committed
 end
 
@@ -205,5 +198,6 @@ end
 
 _G.ThirdPartyFixture = {
     GetExtension = function() return state.committed end,
+    GetSearchSource = function() return state.searchSource end,
     GetDiagnostics = function() return state.diagnostics end,
 }

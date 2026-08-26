@@ -36,5 +36,15 @@ function M:Init()
     end
     local d=I.Registry:Begin({id=self.Provider.extensionID,apiVersion=1,minApiRevision=1,title="玩家技能"}); if not d then return end
     d:RegisterCapabilityProvider({id="player-spells.index",type="player.spells",version=1,priority=100,query=function(req) return self.Provider:Query(req) end})
+    self.Provider.searchRevision = self.Provider.searchRevision or 1
+    local sourceToken = d:RegisterSearchSource({
+        id = "records",
+        version = 1,
+        revision = self.Provider.searchRevision,
+        priority = 100,
+        scope = { product = "retail" },
+        snapshot = function() return self.Provider:BuildSearchRecords() end,
+    })
+    if sourceToken then self.Provider.searchSourceID = self.Provider.extensionID .. ":records" end
     d:RegisterCommand(self:BuildCommand()); d:RegisterIntentHandler(self:BuildHandler()); d:RegisterPanelFactory(self:BuildPanel()); self.handle=d:Commit()
 end

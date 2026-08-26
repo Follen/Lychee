@@ -12,11 +12,11 @@ Lychee 是 World of Warcraft 内的单入口命令平台。用户通过唯一全
 ### 1.1 目标
 
 - 一个全局 Binding：`TOGGLELYCHEE`。
-- 内置能力和第三方能力使用同一套 Command、CapabilityProvider 和 Intent 模型。
+- 内置能力和第三方能力使用同一套 Command、SearchSource/SearchRecord、CapabilityProvider 和 Intent 模型。
 - 普通结果和动态列表由 Lychee 统一绘制。
 - 复杂交互通过 Lychee 托管的 ViewHost 承载。
 - 中文、英文、拼音和别名使用确定性本地匹配，不依赖运行时网络或 AI。
-- 命令名和实体名共用一条搜索链路：Command 是唯一搜索入口，由 `dynamic-list` Command 显式声明是否参与主动内容匹配。
+- 命令名和实体名共用一个 Host 搜索引擎：Command 是固定命令入口，SearchSource/SearchRecord 是技能、任务、副本、成就和第三方实体的统一收录协议。
 - Palette 隐藏且无任务时，Lua 每帧工作为零。
 - 单个第三方扩展的错误、超时或卸载不影响其他扩展和 Palette 关闭。
 - Host 与 SDK 都采用轻量自有实现，不依赖 Ace3 全家桶。
@@ -35,7 +35,9 @@ Lychee 是 World of Warcraft 内的单入口命令平台。用户通过唯一全
 ```text
 Extension
 ├─ Command
-│  └─ searchable entry -> Presentation -> Intent
+│  └─ fixed searchable entry -> Presentation -> Intent
+├─ SearchSource
+│  └─ SearchRecord snapshot -> Host SearchIndex -> SearchResult
 ├─ CapabilityProvider
 │  └─ typed capability -> structured result
 ├─ IntentHandler
@@ -47,7 +49,9 @@ Extension
 | 概念 | 职责 | 明确排除 |
 | --- | --- | --- |
 | Extension | 内部模块或第三方 AddOn 的稳定身份和生命周期容器 | 搜索、绘制和执行策略 |
-| Command | 用户可搜索、选择的入口 | 共享数据服务和任意 UI frame |
+| Command | 用户可搜索、选择的固定入口 | 共享数据服务和任意 UI frame |
+| SearchSource | 发布可搜索实体的快照、增量更新和生命周期 | 匹配、排序、结果行和 Palette 根 frame |
+| SearchRecord | 描述一个稳定实体、类别、局部化文本和声明式动作 | 任意 Lua 回调、Frame 和第二套索引 |
 | CapabilityProvider | 提供可复用数据或能力 | 搜索入口、结果布局和 Palette 控制 |
 | IntentHandler | 执行已注册的结构化动作 | 按显示文本调用函数 |
 | PanelFactory | 为 `custom-panel` 创建受控 Panel 实例 | Palette 根 frame、全局焦点和全局快捷键 |
@@ -63,7 +67,7 @@ Extension 可以在同一注册草稿中发布一组 Command；这不是独立�
 系统始终只有以下实例：
 
 1. 一个 `ExtensionRegistry`：保存 SDK 和内部 Extension 的规范化状态。
-2. 一个 `CommandCatalog`：保存所有可搜索命令及静态索引。
+2. 一个 `SearchIndex`：保存 Command 和 SearchRecord 的活动静态索引；`CommandCatalog` 是固定 Command 的兼容视图。
 3. 一个 `QueryOrchestrator`：拥有输入 generation、调度和结果合并。
 4. 一个 `Ranker`：负责确定性评分和稳定排序。
 5. 一个 `ContextStore`：把 WoW 事件转换为版本化状态切片。
@@ -96,6 +100,7 @@ Lychee/
 │  │  │  ├─ Normalizer.lua
 │  │  │  ├─ Tokenizer.lua
 │  │  │  ├─ IntentParser.lua
+│  │  │  ├─ RuntimeIdentity.lua
 │  │  │  ├─ StaticIndex.lua
 │  │  │  ├─ Ranker.lua
 │  │  │  └─ QueryOrchestrator.lua
@@ -184,7 +189,7 @@ Lychee 本体加载
 第三方 AddOn 加载
   -> 取得 _G.Lychee 公共 API
   -> RegisterExtension(descriptor)
-  -> RegisterCommand/RegisterCapabilityProvider/RegisterIntentHandler/RegisterPanelFactory
+  -> RegisterCommand/RegisterSearchSource/RegisterCapabilityProvider/RegisterIntentHandler/RegisterPanelFactory
   -> Commit()
   -> 进入 Lychee ExtensionRegistry
   -> 建立 Command/Provider/Intent/Panel 索引
@@ -194,7 +199,7 @@ Lychee 本体加载
 
 `RegisterReady(callback)` 只能在 facade 已存在后调用，用于接收 Host ready 通知，不是创建 draft 或 `Commit()` 的前置条件。第三方不得在 `_G.Lychee` 不存在时调用它，也不需要用 timer 轮询 ready。ready callback 不负责创建 Palette、结果行或安全按钮。
 
-第三方必须主动通过 `_G.Lychee` 创建完整 Extension draft，注册需要的 Command、Provider、Handler 和 PanelFactory，并以 `Commit()` 一次性发布。Lychee 不扫描插件目录猜测接入；AddOn 已加载、TOC 已声明或单独注册 Provider 都不会自动变成搜索结果。要搜索实体名，同一 Extension 还必须注册引用该能力的 `ambient` `dynamic-list` Command。
+第三方必须主动通过 `_G.Lychee` 创建完整 Extension draft，注册需要的 SearchSource、Command、Provider、Handler 和 PanelFactory，并以 `Commit()` 一次性发布。Lychee 不扫描插件目录猜测接入；AddOn 已加载、TOC 已声明或单独注册 Provider 都不会自动变成搜索结果。实体名直接通过 SearchSource 收录；只有需要按输入即时组合能力时，才额外注册 `ambient` `dynamic-list` Command。
 
 Lychee PublicAPI 必须支持以下两个等价时序，并对每个 Extension 只提交一次注册事务：
 
@@ -274,9 +279,9 @@ Lychee facade detach 或版本切换时，`registered`/`enabled` Extension 先�
 
 同一 Extension ID 的重载不是覆盖操作。SDK/Host 收到新 draft 时，旧句柄必须先进入 `retiring`：立即停止新 Command/Provider/resolver 调度，使所有活动 generation 和待处理 transition 失效，尽力 `Unmount` 并 `Dispose` 已挂载 Panel，取消 timer/ticker/deferred 与 Host 托管驱动，最后移除 Catalog 条目和 Provider 私有索引引用。只有旧句柄进入 `removed` 且上述清理屏障完成后，registry 才接受同 ID 新句柄；新 draft 在此前保持 pending/reload-wait，不可见也不参与查询。旧回调不能通过新句柄的 ID 重新激活。
 
-## 7. Command 模型
+## 7. Command 与 SearchRecord 模型
 
-Command 是唯一可搜索对象。最小规范化形状：
+Command 是固定的可搜索入口；SearchRecord 是实体搜索对象。两者进入同一个 Host SearchIndex，使用同一套本地化、别名、匹配、置信度和排序规则。最小 Command 形状：
 
 ```lua
 {
@@ -313,12 +318,27 @@ match = {
 - availability 读取 ContextSnapshot，不产生副作用。
 - Command 不持有 Palette frame。
 - `match.type` 默认为 `catalog`：Command 只通过 title、alias、keyword、拼音或显式命令语法进入静态候选。`row` 和 `custom-panel` 只能使用该模式。
-- `match.type = "ambient"` 表示输入可以直接匹配 Command 背后的实体内容；它不是第二种可搜索对象或新 registry，只是 Command 的主动匹配模式。
+- `match.type = "ambient"` 表示输入可以直接匹配 Command 背后的动态内容；它不是第二种 registry。稳定实体优先使用 SearchSource，只有需要运行时组合或查询 Provider 的场景才使用 ambient。
 - `ambient` 只允许 `dynamic-list`，并必须显式声明 `minLength` 和 `maxLength`；`minLength >= 1` 且 `maxLength >= minLength`。Host 在注册期拒绝缺少/非法长度边界或 presentation 不匹配的整个 draft。
 - `ambient.match.priority` 只用于预算紧张时的稳定调度顺序，同优先级按全局 Command ID 排序；它不能绕过用户禁用、availability、健康熔断或预算。
 - `row` 必须声明静态 `intent`。
 - `dynamic-list` 必须声明 `resolve` 和 `itemIntent`；resolver 只返回结构化 item。
 - `custom-panel` 必须引用已注册的 PanelFactory ID，Panel 生命周期由 ViewHost 驱动。
+
+SearchSource 的最小规范化形状：
+
+```lua
+{
+    id = "player-spells",
+    version = 1,
+    priority = 80,
+    revision = 7,
+    scope = { product = "retail" },
+    snapshot = function(context) return records end,
+}
+```
+
+SearchRecord 至少包含稳定 `id`、`kind`、`category`、当前 locale 可用的 `title`，以及可选的 `aliases`、`keywords`、`description`、`scope` 和声明式 `actions`。`id` 指向同一个 canonical 实体；别名命中只产生一个结果，不复制实体。SearchSource 的 snapshot/upsert/remove 由 Host 校验后增量写入 SearchIndex；Source 禁用或注销只失效自己的记录。
 
 ## 8. CapabilityProvider 模型
 
@@ -344,7 +364,7 @@ Provider 以稳定 capability type 注册输入/输出契约：
 - 隔离错误并返回稳定错误码。
 - 缓存明确声明为可缓存的结果。
 
-Provider 不进入搜索结果、不控制结果布局、不注册快捷键。Host 内置 Provider 和第三方 Provider 进入同一 Broker；内部实现可以获得额外的 Host service，但输出必须规范化成相同 schema。
+Provider 本身不直接成为搜索结果、不控制结果布局、不注册快捷键；它可以被 SearchSource 用作数据源，也可以被 ambient resolver 查询。Host 内置 Provider 和第三方 Provider 进入同一 Broker；内部实现可以获得额外的 Host service，但输出必须规范化成相同 schema。
 
 技能、任务、怪物技能等大规模实体索引属于 Provider 或其所属模块的私有实现，不公开独立 Content Index registry。索引在注册、数据加载或相关 WoW 事件到达时增量构建；resolver 按键热路径只通过 CapabilityBroker 查询预索引/缓存，不全表扫描，不把每个实体注册成 Command。
 
@@ -427,17 +447,17 @@ Input text changed
   -> generation + 1
   -> normalize
   -> tokenize / intent parse
-  -> static candidate retrieval
+  -> SearchIndex candidate retrieval (Command + SearchRecord)
   -> prefilter eligible ambient dynamic Commands
   -> context availability filter
-  -> deterministic rank
-  -> publish row results
+  -> confidence/evidence scoring and deterministic rank
+  -> publish unified result cards
   -> invoke matched catalog/ambient dynamic resolvers
   -> verify generation + query key + context version
   -> merge and diff-render
 ```
 
-每次输入变化生成单调递增 generation。默认 `catalog` Command 通过静态索引命中；`ambient` Command 不需要用户先输入命令名，但只在规范化查询满足其长度边界、availability、Extension/Command 启用状态和 Host 静态预筛选时获得调度资格。Provider 本身不参与该预筛选。
+每次输入变化生成单调递增 generation。Command 和 SearchRecord 都通过 SearchIndex 的静态候选召回进入首屏；`ambient` Command 不需要用户先输入命令名，但只在规范化查询满足其长度边界、availability、Extension/Command 启用状态和 Host 静态预筛选时获得调度资格。Provider 本身不参与该预筛选。
 
 输入只有一个 debounce、一个 generation 和一份查询 ContextSnapshot，catalog 与 ambient 不建立两条并行状态机。动态结果返回时必须同时匹配当前 generation、query key 和它声明依赖的 context slice version；旧结果直接丢弃。
 
@@ -460,20 +480,21 @@ Command 的 title/aliases/keywords 和 Provider 实体的 canonical name/localiz
 
 ### 10.3 候选与排序
 
-静态索引维护 exact ID、title token、alias、keyword、pinyin 和 category 倒排表。候选上限默认 200，展示上限默认 20。
+静态索引维护 Command/SearchRecord 的 exact ID、title token、alias、keyword、description、pinyin 和 category 倒排表。候选上限默认 200，展示上限默认 20。每个候选保留最高置信度和一条 evidence（命中的字段、文本和匹配类型）。
 
-ambient item 只保留结构化轻量字段，由 Host 与 catalog 结果一起合并、去重和排序；详情数据在用户选中后再通过 Intent/Panel 链路加载。同分时先使用 Command 的稳定调度优先级，最后使用规范化 `extensionID:commandID:itemID` 破除平局。
+SearchRecord 和 ambient item 都只保留结构化轻量字段，由 Host 与 Command 结果一起合并、去重和排序；详情数据在用户选中后再通过 Intent/Panel 链路加载。同分时先使用置信度、source/Command 优先级、category order，最后使用规范化 stable ID 破除平局。
 
 排序因子按固定顺序组合：
 
 1. exact title/alias；
 2. prefix；
 3. token coverage；
-4. pinyin prefix；
-5. context relevance；
-6. favorite/recent；
-7. Extension priority；
-8. stable ID 作为最终 tie-break。
+4. substring/keyword/description；
+5. bounded fuzzy；
+6. context relevance；
+7. favorite/recent（只在同一匹配层级内有限加权）；
+8. source/Extension priority、category order；
+9. stable ID 作为最终 tie-break。
 
 相同输入、相同 ContextSnapshot 和相同索引版本必须产生相同顺序。
 
@@ -495,9 +516,9 @@ timer 契约依据同一 wowdoc 快照的 `Blizzard_APIDocumentationGenerated/UI
 
 ## 11. Presentation 与 UI 所有权
 
-### 11.1 `row`
+### 11.1 `row` 与统一结果卡片
 
-Lychee 绘制单行结果。Enter 或点击后生成并路由 Intent。
+Lychee 绘制统一结果卡片，至少包含 icon、category badge、localized title、description/subtext 和有限 action slots。Command 的 `row` 结果与 SearchRecord 使用同一 renderer；Enter 或点击后生成并路由 Intent。
 
 ### 11.2 `dynamic-list`
 
@@ -523,6 +544,8 @@ Lychee 绘制单行结果。Enter 或点击后生成并路由 Intent。
 ```
 
 Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态、空状态和 generation 校验。item payload 只传给所属 Command 的 `itemIntent`。
+
+空输入显示 Host-owned HomeView（最近、固定、按 category 分组和第三方入口）；有输入时切换 SearchView。两种状态共用 Palette session/generation、对象池和动作校验，不允许 Source 或 Command 创建第二个根窗口。
 
 `resolve` 由 QueryOrchestrator 调用，不由 ResultList 直接调用。返回 item 必须有 Extension 内稳定 ID；`itemIntent` 只把选中 item 转换为结构化 Intent，实际执行仍经过 IntentRouter。
 
@@ -830,9 +853,9 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 ## 21. 设计验收清单
 
-- [ ] 顶层公开模型为 Extension/Command/CapabilityProvider/IntentHandler/PanelFactory。
+- [ ] 顶层公开模型为 Extension/Command/SearchSource/SearchRecord/CapabilityProvider/IntentHandler/PanelFactory。
 - [ ] Lychee ExtensionRegistry 是接入唯一事实源，草稿不参与查询。
-- [ ] Command 是唯一搜索对象；Provider 只有被 `catalog/ambient` Command 引用时才间接参与搜索。
+- [ ] Command 与 SearchRecord 进入同一 SearchIndex；Provider 只能通过 SearchSource 或 `catalog/ambient` resolver 间接提供数据。
 - [ ] `ambient` 只能用于带明确长度边界的 `dynamic-list`，并经过单一 debounce/generation/context 和统一预算调度。
 - [ ] AddOn 枚举只用于诊断、兼容和 LoD。
 - [ ] 内置和第三方走同一 Catalog、Broker、Router 和 UI。
