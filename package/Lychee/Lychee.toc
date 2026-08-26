@@ -20,7 +20,6 @@ Core/ExtensionRegistry.lua
 Search/QueryOrchestrator.lua
 PublicAPI/SDK.lua
 Builtin/Data/PlayerSpellAliases.lua
-Builtin/Data/DungeonGuide.lua
 Secure/Descriptor.lua
 Secure/Policy.lua
 Secure/SecureActionBroker.lua
@@ -35,7 +34,4 @@ Builtin/PlayerSpells/Command.lua
 Builtin/PlayerSpells/Intent.lua
 Builtin/PlayerSpells/Panel.lua
 Builtin/PlayerSpells/Init.lua
-Builtin/DungeonGuide/Provider.lua
-Builtin/DungeonGuide/Command.lua
-Builtin/DungeonGuide/Init.lua
 Builtin/Init.lua

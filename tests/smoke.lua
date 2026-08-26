@@ -11,15 +11,28 @@ function CreateFrame()
     return f
 end
 UIParent = {}
+Enum = { SpellBookSpellBank = { Player = 0 } }
+C_Spell = {
+    GetSpellDescription = function(id)
+        if id == 393256 then return "传送至红玉新生法池入口。" end
+    end,
+}
+C_SpellBook = {
+    GetNumSpellBookSkillLines = function() return 1 end,
+    GetSpellBookSkillLineInfo = function() return { itemIndexOffset = 0, numSpellBookItems = 2 } end,
+    GetSpellBookItemInfo = function(slot)
+        if slot == 1 then return { spellID = 31884, name = "复仇之怒", iconID = 135875, isPassive = false, isOffSpec = false } end
+        if slot == 2 then return { spellID = 393256, name = "利爪防御者之路", iconID = 4578416, isPassive = false, isOffSpec = false } end
+    end,
+}
 local root = "package/Lychee/"
 local files = {
     "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "PublicAPI/SDK.lua",
-    "Builtin/Data/PlayerSpellAliases.lua", "Builtin/Data/DungeonGuide.lua",
+    "Builtin/Data/PlayerSpellAliases.lua",
     "Builtin/PlayerSpells/AliasIndex.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Command.lua",
-    "Builtin/PlayerSpells/Intent.lua", "Builtin/PlayerSpells/Panel.lua", "Builtin/PlayerSpells/Init.lua",
-    "Builtin/DungeonGuide/Provider.lua", "Builtin/DungeonGuide/Command.lua", "Builtin/DungeonGuide/Init.lua", "Builtin/Init.lua",
+    "Builtin/PlayerSpells/Intent.lua", "Builtin/PlayerSpells/Panel.lua", "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua",
 }
 for i = 1, #files do dofile(root .. files[i]) end
 assert(_G.Lychee and _G.Lychee:Supports(1, 1))
@@ -31,9 +44,7 @@ local _, results = q:Query("翅膀", {})
 assert(#results > 0 and results[1].payload and results[1].payload.spellID == 31884)
 local _, ruby = q:Query("红玉", {})
 assert(#ruby > 0 and ruby[1].payload.spellID == 393256)
-local _, m1 = q:Query("M1", {})
-assert(#m1 > 0)
-assert(q.generation >= 3)
+assert(q.generation >= 2)
 dofile("lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua")
 local fixture = _G.ThirdPartyFixture and _G.ThirdPartyFixture.GetExtension()
 assert(fixture and fixture:GetState().lifecycle == "enabled")
@@ -55,7 +66,6 @@ assert(not secretBad and secretErr and secretErr.code == "SECRET_VALUE")
 issecretvalue = oldSecret
 local scheduledGeneration = q:Schedule("翅膀", {}, nil, function(results, generation) assert(generation == q.generation and #results > 0) end, 0.05)
 assert(q:Flush(scheduledGeneration))
-Enum = { SpellBookSpellBank = { Player = 0 } }
 C_Spell = {
     GetSpellDescription = function(id) if id == 9001 then return "传送至测试副本入口。" end end,
 }

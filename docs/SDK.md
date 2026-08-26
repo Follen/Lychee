@@ -676,14 +676,14 @@ step 的返回约定固定为：`false` 表示让出并继续；`true, items` �
 
 ### 10.5 Lychee 内置 Extension 的同协议用法
 
-Lychee 自己的功能也是 Extension/Provider，不绕开上述结果合同。这样内置数据和第三方数据在搜索、选择、详情与生命周期上遵循同一条链路：
+Lychee 自己的功能也是 Extension/Provider，不绕开上述结果合同。当前运行时只交付 `PlayerSpells`；DungeonGuide 和 DungeonAlias 等能力必须等真实数据源或稳定适配器就绪后再注册，不能在生产包中使用 fixture 占位：
 
-- `DungeonGuideProvider`：通过 SearchSource 收录怪物名和怪物技能名；普通 action 打开 Lychee 详情 Panel。若安装了 MRT 或其他指南，适配器只能调用其稳定公开 API 打开对应页面；不得操作其内部 frame。
+- 规划中的 `DungeonGuideProvider`：通过 SearchSource 收录怪物名和怪物技能名；普通 action 打开 Lychee 详情 Panel。若安装了 MRT 或其他指南，适配器只能调用其稳定公开 API 打开对应页面；不得操作其内部 frame。
 - `PlayerSpells` Extension 的 `PlayerSpellProvider`：只建立一份当前角色已知且可用的法术索引，同目录的 `AliasIndex.lua` 在该索引上维护 Locale 别名投影；其中既包含“复仇之怒”对应“翅膀”等技能俗称，也包含已知传送法术对应“红玉”等副本简称。法术 SearchRecord 可提供详情 intent、`drag.type = "spell"`，以及可选 `secure-spell` 真实点击施放。
-- `DungeonAliasProvider`：通过 SearchSource 将 Boss 名或赛季别名（如 `M1`）映射为副本/Boss 记录，而不是为每个别名建立独立快捷键或特殊 UI。
+- 规划中的 `DungeonAliasProvider`：通过 SearchSource 将 Boss 名或赛季别名（如 `M1`）映射为副本/Boss 记录，而不是为每个别名建立独立快捷键或特殊 UI。
 - 副本传送搜索属于同一个 `PlayerSpells` Extension，不新增额外 Provider、独立目录或第二份法术索引。输入“红玉”等别名命中 canonical spell item，详情、拖拽和真实点击施放仍复用同一 item interaction。
 
-玩家法术索引必须以当前角色实时法术书为事实源。Host 在登录及法术/专精/天赋变化事件后批量刷新快照，读取 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 和 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)`；按键查询只访问预构建快照与 alias index。静态法术数据只能用于 alias 定义和无 WoW API 的离线 fixture，不能覆盖客户端实时已知技能。
+玩家法术索引必须以当前角色实时法术书为事实源。Host 在登录及法术/专精/天赋变化事件后批量刷新快照，读取 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 和 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)`；按键查询只访问预构建快照与 alias index。静态法术数据只能用于 alias 定义；离线测试的 SpellBook fixture 必须留在 `tests/`，生产 Provider 不提供固定技能回退。
 
 Provider 只维护可复用能力和数据查询；稳定实体通过 SearchSource 进入主输入框，只有运行时组合查询才使用 ambient Command；SearchRecord Action/Handler 决定普通选择后的 transition；Host 负责结果行和受保护输入。这些职责不因功能是内置或第三方而改变。
 

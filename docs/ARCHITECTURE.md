@@ -687,16 +687,16 @@ Builtin module
 
 内置的技能、任务、怪物技能、副本 CD 等内容域与第三方使用同一套 `catalog/ambient` Command、CapabilityProvider、item Intent、ExecutionResult transition 和 ViewHost 合同。数据可以来自 ContextStore、本地数据包或第三方 Provider，但数据来源不改变搜索对象和 UI 所有权。
 
-首批内置 Extension 按同一协议组织，避免为任一业务另建搜索或 UI 通道：
+内置 Extension 按同一协议组织，避免为任一业务另建搜索或 UI 通道。当前运行时只交付 `PlayerSpells`；以下 DungeonGuide、DungeonAlias 和副本 CD 是待真实数据源或稳定适配器就绪后再注册的规划能力，生产包不得用 fixture 占位：
 
-1. `DungeonGuideProvider` 为大秘境小怪名与小怪技能建立怪物记录的反向索引；普通动作打开 Lychee 详情，并可提供打开外部指南的动作。
+1. 规划中的 `DungeonGuideProvider` 为大秘境小怪名与小怪技能建立怪物记录的反向索引；普通动作打开 Lychee 详情，并可提供打开外部指南的动作。
 2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知、有效法术索引；同目录的 `AliasIndex.lua` 在该索引上维护 Locale 搜索别名投影：既包括“复仇之怒”对应“翅膀”等技能俗称，也包括已知副本传送法术对应“红玉”等副本简称。结果统一支持详情、专用区域拖到动作条，以及可选的真实点击安全施放。
-3. `DungeonAliasProvider` 把 Boss 名、赛季简称（如 `M1`）和版本别名映射为攻略实体；结果动作打开同 Extension 的详情 Panel。
+3. 规划中的 `DungeonAliasProvider` 把 Boss 名、赛季简称（如 `M1`）和版本别名映射为攻略实体；结果动作打开同 Extension 的详情 Panel。
 4. 副本传送搜索是第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；命中后仍返回同一个 canonical spell item，并沿用详情、拖拽和真实点击安全施放合同。
 
-`PlayerSpellProvider` 的法术源不是固定技能表：Retail 运行时在登录、`SPELLS_CHANGED`、`LEARNED_SPELL_IN_TAB`、`PLAYER_SPECIALIZATION_CHANGED` 和 `TRAIT_CONFIG_UPDATED` 事件后，使用 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 与 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)` 重建当前角色的已知非被动、非 off-spec 法术快照。别名定义只作为 canonical spell ID 的投影；输入查询只读取快照和倒排别名索引。WoW API 不存在的离线测试环境才使用有限 fixture fallback，不能作为客户端数据源。
+`PlayerSpellProvider` 的法术源不是固定技能表：Retail 运行时在登录、`SPELLS_CHANGED`、`LEARNED_SPELL_IN_SKILL_LINE`、`PLAYER_SPECIALIZATION_CHANGED` 和 `TRAIT_CONFIG_UPDATED` 事件后，使用 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 与 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)` 重建当前角色的已知非被动、非 off-spec 法术快照。别名定义只作为 canonical spell ID 的投影；输入查询只读取快照和倒排别名索引。离线测试必须在 `tests/` 中注入 SpellBook fixture，生产 Provider 不包含固定技能回退。
 
-外部指南是可选 adapter，不是 Host 特权路径。以 MRT 为例，`DungeonGuideProvider` 只能调用目标 AddOn 的稳定公开接口；目标未加载、未接入或不支持该实体时，该动作返回 `ACTION_UNAVAILABLE`，不操作其内部 frame，不影响 Lychee 详情动作或其他结果。
+外部指南是可选 adapter，不是 Host 特权路径。以 MRT 为例，未来的 `DungeonGuideProvider` 只能调用目标 AddOn 的稳定公开接口；目标未加载、未接入或不支持该实体时，该动作返回 `ACTION_UNAVAILABLE`，不操作其内部 frame，不影响 Lychee 详情动作或其他结果。
 
 内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
 

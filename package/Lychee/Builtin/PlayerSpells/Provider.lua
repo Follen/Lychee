@@ -147,7 +147,7 @@ end
 
 function P:RefreshFromSpellBook()
     if not C_SpellBook or type(C_SpellBook.GetNumSpellBookSkillLines) ~= "function" then
-        return false, "SPELLBOOK_API_UNAVAILABLE"
+        return refreshFailed(self, "SPELLBOOK_API_UNAVAILABLE")
     end
     local bank = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player
     if bank == nil then return refreshFailed(self, "SPELLBOOK_BANK_UNAVAILABLE") end
@@ -191,15 +191,6 @@ function P:RefreshFromSpellBook()
     return true
 end
 
-function P:RefreshOfflineFixture()
-    local items, buckets = {}, {}
-    addSpell(items, buckets, self.aliasDefinitions, { id = 31884, name = "Avenging Wrath", subtext = "offline fixture", aliases = self.aliasDefinitions[31884], icon = 135875 })
-    addSpell(items, buckets, self.aliasDefinitions, { id = 393256, name = "利爪防御者之路", description = "传送至红玉新生法池入口。", subtext = "offline fixture", aliases = self.aliasDefinitions[393256] })
-    addSpell(items, buckets, self.aliasDefinitions, { id = 373274, name = "Teleport: Mechagon", subtext = "offline fixture", aliases = self.aliasDefinitions[373274] })
-    commitSnapshot(self, items, buckets, "offline-fixture")
-    return true
-end
-
 function P:ClearDescriptionRequest(spellID)
     if type(spellID) == "number" then self.descriptionRequests[spellID] = nil end
 end
@@ -233,12 +224,7 @@ function P:BuildSearchRecords()
 end
 
 function P:Refresh()
-    local refreshed
-    if not C_SpellBook or type(C_SpellBook.GetNumSpellBookSkillLines) ~= "function" then
-        refreshed = self:RefreshOfflineFixture()
-    else
-        refreshed = self:RefreshFromSpellBook()
-    end
+    local refreshed = self:RefreshFromSpellBook()
     if refreshed and self.searchSourceID and I.Search and I.Search.StaticIndex then
         self.searchRevision = (self.searchRevision or 1) + 1
         I.Search.StaticIndex:CommitSnapshot(self.searchSourceID, self:BuildSearchRecords(), self.searchRevision)
