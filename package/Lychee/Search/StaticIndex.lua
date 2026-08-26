@@ -484,6 +484,7 @@ function Index:Search(query, limit)
                     record = entry.record,
                     item = entry.record.payload or entry.record,
                     sourceID = entry.sourceID,
+                    sourceExtensionID = entry.source.extensionID,
                     sourcePriority = entry.source.priority,
                     categoryOrder = entry.categoryOrder,
                     stableID = entry.stableID,

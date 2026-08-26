@@ -77,7 +77,7 @@ local function searchRecordItem(hit)
         sourceID = hit.sourceID,
         sourceGeneration = hit.sourceGeneration,
         sourceRevision = hit.sourceRevision,
-        _ext = record._extensionID,
+        _ext = record._extensionID or hit.sourceExtensionID,
         searchRecord = record,
         confidence = hit.confidence,
         evidence = hit.evidence,

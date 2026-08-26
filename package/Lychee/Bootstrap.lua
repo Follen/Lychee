@@ -61,11 +61,16 @@ function I.WirePalette(palette)
                 end
             end
             if type(intent) ~= "table" then return false, "ACTION_UNAVAILABLE" end
-            local result, err = I.Router and I.Router:Execute(intent, context) or nil, "HANDLER_UNAVAILABLE"
-            if not result then return false, err end
+            local result, err
+            if I.Router then
+                result, err = I.Router:Execute(intent, context)
+            end
+            if not result then
+                return false, type(err) == "table" and err.code or err or "HANDLER_UNAVAILABLE"
+            end
             local transition = result.transition
             if transition then
-                local extensionID = command._ext or item._ext
+                local extensionID = (command and command._ext) or (item and item._ext)
                 local panelID = transition.panelID or transition.panelFactoryID
                 local factory = extensionID and I.Router:ResolvePanel(extensionID, panelID)
                 if not factory then return false, "COMMAND_NOT_FOUND" end

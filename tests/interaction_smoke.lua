@@ -208,10 +208,21 @@ assertEq(actionItem.category, "技能", "search result category")
 assertEq(actionItem.description, "可执行普通动作。", "localized array description")
 assertEq(actionItem.interaction.actions[1].title, "打开", "localized action title")
 assert(actionItem.sourceID and actionItem.sourceGeneration and actionItem.sourceRevision, "source state retained on result")
+actionItem.searchRecord._extensionID = nil
+actionGeneration, actionResults = I.Search.Query:Query("动作", { visible = true }, palette.generation)
+actionItem = actionResults[1]
+assertEq(actionItem._ext, "interaction.actions", "search result extension ownership")
 assert(actionItem.evidence and actionItem.evidence.matchedField == "alias", "search result evidence")
 assert(actionItem.confidence and actionItem.confidence >= 0.85, "search result confidence")
 local categoryGeneration, categoryResults = I.Search.Query:Query("技能 动作", { visible = true })
 assert(categoryGeneration and #categoryResults > 0 and categoryResults[1].category == "技能", "category filter result")
+local originalActionHandler = I.Router.handlers["interaction.actions.open"][1].handler.handle
+I.Router.handlers["interaction.actions.open"][1].handler.handle = function()
+    return { ok = true, transition = { type = "custom-panel", panelFactoryID = "detail", state = { itemID = 7 } } }
+end
+local routedPanel, routedPanelErr = palette.onActivate(actionItem, "open", palette.session, categoryGeneration)
+assert(routedPanel and panelMounted, "search record intent mounts owner panel: " .. tostring(routedPanelErr))
+I.Router.handlers["interaction.actions.open"][1].handler.handle = originalActionHandler
 palette:SetActivateCallback(function(item, actionID)
     local actions = item and item.searchRecord and item.searchRecord.actions or {}
     for index = 1, #actions do
