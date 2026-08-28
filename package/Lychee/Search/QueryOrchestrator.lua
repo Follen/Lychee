@@ -1,5 +1,5 @@
 local I = _G.LycheeInternal
-local Q = { generation = 0, active = false, last = nil, pending = nil, timer = nil, timerToken = 0, ambientEnabled = {}, limit = 20, catalogLimit = 8, ambientLimit = 12, debounceSeconds = 0.04 }
+local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, ambientEnabled = {}, limit = 20, catalogLimit = 8, ambientLimit = 12, debounceSeconds = 0.04 }
 I.Search.Query = Q
 
 local function resultLess(left, right)
@@ -100,10 +100,11 @@ local function searchRecordItem(hit)
     return item
 end
 
-function Q:_BeginGeneration(externalGeneration)
-    local generation = externalGeneration or (self.generation + 1)
-    if generation > self.generation then self.generation = generation end
-    return generation
+function Q:_ResolveGeneration(externalGeneration, context)
+    if type(externalGeneration) == "number" then return externalGeneration end
+    if context and type(context.generation) == "number" then return context.generation end
+    local session = I.Search and I.Search.Session
+    return session and session.generation or 0
 end
 
 function Q:_BuildRequest(raw, context, generation)
@@ -112,36 +113,33 @@ function Q:_BuildRequest(raw, context, generation)
 end
 
 function Q:_IsCurrent(generation, context)
-    if generation ~= self.generation then return false, "STALE_GENERATION" end
     if context and context.visible == false then return false, "HIDDEN" end
     if context and context.generation and context.generation ~= generation then return false, "STALE_CONTEXT" end
+    local session = I.Search and I.Search.Session
+    if session and context and context.session then
+        return session:IsCurrent(context.session, generation)
+    end
     return true
 end
 
 function Q:_AmbientCommands(normalized)
-    local commands = {}
-    if normalized == "" or not I.Catalog then return commands end
-    for key, command in pairs(I.Catalog.commands) do
-        local match = command.match
-        local minimum, maximum = match and match.minLength or 0, match and match.maxLength or math.huge
-        if command._enabled ~= false and command.entitySearch ~= false and match and match.type == "ambient" and self.ambientEnabled[key] ~= false
-            and #normalized >= minimum and #normalized <= maximum and type(command.resolve) == "function" then
-            commands[#commands + 1] = command
-        end
-    end
-    table.sort(commands, function(left, right)
-        local lp, rp = left.priority or 0, right.priority or 0
-        return lp > rp or (lp == rp and left._key < right._key)
-    end)
-    return commands
+    if normalized == "" or not I.Catalog or type(I.Catalog.GetAmbientView) ~= "function" then return {} end
+    return I.Catalog:GetAmbientView(normalized, self.ambientEnabled)
 end
 
 function Q:_Execute(raw, context, generation)
     local request = self:_BuildRequest(raw, context, generation)
     local catalogBudget, ambientBudget = math.min(self.catalogLimit, self.limit), math.min(self.ambientLimit, self.limit - math.min(self.catalogLimit, self.limit))
     local catalogResults = I.Catalog and I.Catalog:Query(request, catalogBudget) or {}
-    local out, seen = {}, {}
-    for index = 1, #catalogResults do appendUnique(out, seen, catalogResults[index]) end
+    local out, seen, catalogDynamic = {}, {}, {}
+    for index = 1, #catalogResults do
+        local result = catalogResults[index]
+        if result.command and result.command.presentation == "dynamic-list" then
+            catalogDynamic[#catalogDynamic + 1] = result.command
+        else
+            appendUnique(out, seen, result)
+        end
+    end
     if I.Search and I.Search.StaticIndex then
         local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out))
         for index = 1, #indexed do
@@ -149,16 +147,32 @@ function Q:_Execute(raw, context, generation)
             if item then appendUnique(out, seen, item) end
         end
     end
-    local ambientCommands, ambientAdded = self:_AmbientCommands(request.normalized), 0
-    for commandIndex = 1, #ambientCommands do
-        if ambientAdded >= ambientBudget or #out >= self.limit then break end
-        request.limit = math.min(ambientBudget - ambientAdded, self.limit - #out)
-        local ok, items = pcall(ambientCommands[commandIndex].resolve, request, context or {})
+    local resolvedAdded = 0
+    for commandIndex = 1, #catalogDynamic do
+        if resolvedAdded >= ambientBudget or #out >= self.limit then break end
+        local command = catalogDynamic[commandIndex]
+        request.limit = math.min(ambientBudget - resolvedAdded, self.limit - #out)
+        local ok, items = pcall(command.resolve, request, context or {})
         if ok and type(items) == "table" then
             for itemIndex = 1, #items do
-                if appendUnique(out, seen, items[itemIndex], ambientCommands[commandIndex]) then
+                if appendUnique(out, seen, items[itemIndex], command) then
+                    resolvedAdded = resolvedAdded + 1
+                    if resolvedAdded >= ambientBudget or #out >= self.limit then break end
+                end
+            end
+        end
+    end
+    local ambientCommands, ambientAdded = self:_AmbientCommands(request.normalized), 0
+    for commandIndex = 1, #ambientCommands do
+        if resolvedAdded + ambientAdded >= ambientBudget or #out >= self.limit then break end
+        request.limit = math.min(ambientBudget - resolvedAdded - ambientAdded, self.limit - #out)
+        local schedulable = ambientCommands[commandIndex]
+        local ok, items = pcall(schedulable.resolve, request, context or {})
+        if ok and type(items) == "table" then
+            for itemIndex = 1, #items do
+                if appendUnique(out, seen, items[itemIndex], schedulable.command) then
                     ambientAdded = ambientAdded + 1
-                    if ambientAdded >= ambientBudget or #out >= self.limit then break end
+                    if resolvedAdded + ambientAdded >= ambientBudget or #out >= self.limit then break end
                 end
             end
         end
@@ -170,7 +184,6 @@ function Q:_Execute(raw, context, generation)
 end
 
 function Q:_Commit(generation, results)
-    if generation ~= self.generation then return false end
     self.last = { generation = generation, results = results }
     return true
 end
@@ -183,8 +196,7 @@ function Q:_CancelTimer()
 end
 
 function Q:Query(raw, context, externalGeneration)
-    local generation = self:_BeginGeneration(externalGeneration)
-    if externalGeneration and externalGeneration < self.generation then return generation, {} end
+    local generation = self:_ResolveGeneration(externalGeneration, context)
     local current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
@@ -197,8 +209,7 @@ function Q:Query(raw, context, externalGeneration)
 end
 
 function Q:Schedule(raw, context, externalGeneration, callback, delay)
-    local generation = self:_BeginGeneration(externalGeneration)
-    if externalGeneration and externalGeneration < self.generation then return generation, false end
+    local generation = self:_ResolveGeneration(externalGeneration, context)
     self:_CancelTimer()
     self.pending = { raw = raw, context = context, generation = generation, callback = callback }
     local wait = delay
@@ -225,17 +236,18 @@ end
 function Q:Flush(expectedGeneration)
     self:_CancelTimer()
     local pending = self.pending
-    if not pending or (expectedGeneration and pending.generation ~= expectedGeneration) or pending.generation ~= self.generation then return false end
+    if not pending or (expectedGeneration and pending.generation ~= expectedGeneration) then return false end
     self.pending = nil
     local generation, results = self:Query(pending.raw, pending.context, pending.generation)
-    if generation ~= self.generation then return false end
     if type(pending.callback) == "function" then pending.callback(results, generation) end
     return true, generation, results
 end
 
-function Q:Invalidate()
+function Q:Cancel(reason, generation)
     self:_CancelTimer()
-    self.generation, self.last, self.pending, self.active = self.generation + 1, { generation = self.generation + 1, results = {}, cancelled = "INVALIDATED" }, nil, false
+    self.last = { generation = generation, results = {}, cancelled = reason or "INVALIDATED" }
+    self.pending, self.active = nil, false
+    return true
 end
 
 function Q:SetAmbientEnabled(key, enabled) self.ambientEnabled[key] = enabled end

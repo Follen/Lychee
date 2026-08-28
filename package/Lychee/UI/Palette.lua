@@ -167,9 +167,8 @@ function Palette:Create()
     end
     self.viewHost = Lychee.UI.ViewHost:Create(frame)
     self.input:SetChangedCallback(function(text)
-        self.generation = self.generation + 1
         self:SetQueryMode(text)
-        if self.onQuery then self.onQuery(text, self.generation, self.session) end
+        if self.onQuery then self.onQuery(text) end
     end)
     self.input:SetSubmitCallback(function() self:ActivateSelected() end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -337,44 +336,15 @@ function Palette:SetQueryMode(text)
         self.list.frame:Show()
     end
 end
-function Palette:IsExtensionEnabled(extensionID)
-    if not extensionID then return true end
-    local registry = _G.LycheeInternal and _G.LycheeInternal.Registry
-    return not registry or registry:IsEnabled(extensionID)
-end
 function Palette:IsRowCurrent(row, session, generation, item, extensionID)
-    if not self.visible or not row or not row.item then return false, "STALE_GENERATION" end
-    if row.session ~= self.session or row.generation ~= self.generation then return false, "STALE_GENERATION" end
-    if session and session ~= self.session or generation and generation ~= self.generation then return false, "STALE_GENERATION" end
-    if item and row.item ~= item then return false, "STALE_GENERATION" end
-    extensionID = extensionID or row.extensionID
-    if not self:IsExtensionEnabled(extensionID) then return false, "EXTENSION_DISABLED" end
-    local rowItem = row.item
-    if rowItem.sourceID and rowItem.sourceGeneration then
-        local static = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.StaticIndex
-        local state = static and static:GetSourceState(rowItem.sourceID)
-        if not state or state.enabled == false or state.generation ~= rowItem.sourceGeneration
-            or state.revision ~= rowItem.sourceRevision then
-            return false, "STALE_GENERATION"
-        end
-    end
-    return true
-end
-function Palette:IsRecordAvailable(item)
-    local availability = item and item.searchRecord and item.searchRecord.availability
-    if type(availability) ~= "table" then return true end
-    local context = _G.LycheeInternal and _G.LycheeInternal.Context
-    context = context and context:Snapshot() or {}
-    local value = context[availability.contextKey]
-    if value == nil and type(context.values) == "table" then value = context.values[availability.contextKey] end
-    return value == availability.equals
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if not executor then return false, "STALE_GENERATION" end
+    return executor:IsRowCurrent(row, session, generation, item, extensionID)
 end
 function Palette:ValidateRowAction(row, session, generation, item, extensionID)
-    local current, err = self:IsRowCurrent(row, session, generation, item, extensionID)
-    if not current then return false, err end
-    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
-    if not self:IsRecordAvailable(row.item) then return false, "ACTION_UNAVAILABLE" end
-    return true
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if not executor then return false, "STALE_GENERATION" end
+    return executor:Validate(row, session, generation, item, extensionID)
 end
 function Palette:InvalidateRow(row)
     if self.secureBroker and self.secureBroker.InvalidateRow then self.secureBroker:InvalidateRow(row) end
@@ -397,61 +367,37 @@ function Palette:InvalidateExtension(extensionID)
     end
     return true
 end
-function Palette:SetResults(items, generation, session)
+function Palette:ApplyResults(items, generation, session)
     if not self.visible then return false end
     if session and session ~= self.session then return false end
-    -- Search owns the monotonic generation. Accept a newer result even if an
-    -- IME/composition callback advanced the palette locally; reject only stale work.
-    if generation and generation < self.generation then return false end
-    if generation then self.generation = generation end
+    if generation and generation ~= self.generation then return false end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
     self.list:SetItems(items or {}, self.session, self.generation)
-    if self.secureBroker and self.secureBroker.Prepare then
-        for i = 1, #self.list.rows do
-            local row = self.list.rows[i]
-            local interaction = row.item and row.item.interaction
-            local actions = interaction and interaction.actions
-            local current = self:IsRowCurrent(row)
-            if not current then self:InvalidateRow(row) end
-            if current and row:IsShown() and actions then
-                for j = 1, math.min(#actions, 4) do
-                    local action = actions[j]
-                    if action.kind == "secure-spell" then
-                        local button = self.secureBroker:Prepare(action, {
-                            controller = self, row = row, item = row.item, extensionID = row.extensionID,
-                            session = self.session, generation = self.generation,
-                        })
-                        if button then
-                            button:ClearAllPoints()
-                            button:SetPoint("CENTER", row.actions[j], "CENTER")
-                        end
-                    end
-                end
-            end
-        end
-    end
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if executor then executor:PrepareVisibleRows(self.list.rows) end
     return true
+end
+function Palette:SetResults(items, generation, session)
+    local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
+    if searchSession then return searchSession:_Accept(items, generation or searchSession.generation, session or searchSession.session) end
+    return self:ApplyResults(items, generation, session)
 end
 function Palette:Show()
     self:Create()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
-    self.session = self.session + 1
-    self.generation = self.generation + 1
     self.visible = true
+    local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
+    if searchSession then searchSession:Start() end
     self.frame:Show()
     self:SetQueryMode(self.input:GetText())
     self.input:Show(); self.input:Focus()
     return true
 end
 function Palette:Hide(reason)
-    local query = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Query
-    if query and (self.visible or query.pending or query.timer) and type(query.Invalidate) == "function" then
-        query:Invalidate()
-    end
+    local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
+    if searchSession then searchSession:Stop(reason or "hide") end
     if not self.frame or not self.visible then return true end
     self.visible = false
-    self.session = self.session + 1
-    self.generation = self.generation + 1
     self.list:Clear()
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
@@ -472,54 +418,14 @@ function Palette:ActivateRow(row)
 end
 function Palette:ActivateSelected() return self.list:ActivateSelected() end
 function Palette:ActivateRowAction(row, actionID)
-    if not self.visible then return false, "INVALID_STATE" end
-    local valid, err = self:ValidateRowAction(row)
-    if not valid then return self:RejectRow(row, err) end
-    local item = row and row.item
-    if not item then return false, "ACTION_UNAVAILABLE" end
-    self:TouchRecent(item)
-    local interaction = item.interaction
-    local action
-    if interaction and interaction.actions then for i = 1, #interaction.actions do if interaction.actions[i].id == actionID then action = interaction.actions[i]; break end end end
-    if action and action.kind == "open-panel" then
-        local extensionID = row.extensionID or item._ext
-        local panelID = action.panel
-        local registry = _G.LycheeInternal and _G.LycheeInternal.Registry
-        local factory = registry and registry:GetPanel(extensionID, panelID)
-        if not factory then return false, "COMMAND_NOT_FOUND" end
-        local state = action.state or item.payload or {}
-        local stateOK, stateErr = registry:ValidateSchema(state, factory.stateSchema or {}, "action.state")
-        if not stateOK then return false, stateErr and stateErr.code or "INVALID_SCHEMA" end
-        return self:OpenView(factory, { extensionID = extensionID, panelID = panelID, session = self.session, generation = self.generation }, state)
-    end
-    if action and action.kind == "drag-spell" then
-        local drag = { type = "spell", spellID = action.spellID }
-        if Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(drag.spellID) then return false, "ACTION_UNAVAILABLE" end
-        if C_Spell and C_Spell.PickupSpell then C_Spell.PickupSpell(drag.spellID); return true end
-        if PickupSpell then PickupSpell(drag.spellID); return true end
-        return false, "DRAG_UNSUPPORTED"
-    end
-    if action and action.kind == "secure-spell" then
-        if Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(action.spellID) then return false, "ACTION_UNAVAILABLE" end
-        if actionID == (interaction.primaryActionID or "") then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
-        return self.secureBroker and self.secureBroker:ShowFor(row, action, self.session, self.generation, item, row.extensionID) or false
-    end
-    if self.onActivate then return self.onActivate(item, actionID, self.session, self.generation) end
-    return false, "ACTION_UNAVAILABLE"
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if not executor then return false, "ACTION_UNAVAILABLE" end
+    return executor:Execute(row, actionID)
 end
 function Palette:BeginRowDrag(row)
-    local valid, err = self:ValidateRowAction(row)
-    if not valid then return self:RejectRow(row, err) end
-    if self.onDrag then return self.onDrag(row.item, self.session, self.generation) end
-    local drag = row.item.interaction and row.item.interaction.drag
-    if type(drag) ~= "table" or drag.type ~= "spell" or type(drag.spellID) ~= "number" then return false, "DRAG_UNSUPPORTED" end
-    if Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(drag.spellID) then return false, "ACTION_UNAVAILABLE" end
-    if C_Spell and C_Spell.PickupSpell then
-        C_Spell.PickupSpell(drag.spellID)
-        return true
-    end
-    if PickupSpell then PickupSpell(drag.spellID); return true end
-    return false, "DRAG_UNSUPPORTED"
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if not executor then return false, "DRAG_UNSUPPORTED" end
+    return executor:BeginDrag(row)
 end
 function Palette:OpenView(factory, context, state) return self.viewHost:Mount(factory, context or {}, state) end
 function Palette:CloseView(reason) return self.viewHost:Unmount(reason or "close") end

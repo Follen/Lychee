@@ -6,13 +6,14 @@
 
 ## 目标
 
-Lychee 提供一个单入口命令平台。用户输入只匹配 Command；Command 可调用一个或多个 CapabilityProvider，并通过 IntentHandler 执行普通或受保护动作。
+Lychee 提供一个单入口命令平台。用户输入统一匹配固定 Command 与 SearchSource 发布的 SearchRecord；真实动态组合查询由 ambient Command 调用一个或多个 CapabilityProvider。结果动作通过 IntentHandler 或 Host 声明式动作执行器完成。
 
 ## 核心模型
 
 ```text
 Extension
-├─ Command              发布可搜索入口（CommandSource 仅指该逻辑角色）
+├─ Command              发布固定入口或真实动态组合查询
+├─ SearchSource         发布稳定实体 SearchRecord
 ├─ CapabilityProvider  提供可复用数据/能力
 ├─ IntentHandler       执行白名单 Intent
 └─ PanelFactory        创建受 ViewHost 管理的复杂面板
@@ -22,11 +23,11 @@ Extension
 
 Extension 是内部模块或第三方插件的稳定身份，至少包含稳定 ID、API 版本、显示名称、能力声明和生命周期状态。第三方通过 Lychee Host 暴露的公共 API `_G.Lychee` 创建 draft，注册全部子声明后调用 `Commit()` 原子发布；Lychee facade 尚未 ready 时 committed registration 进入 pending registry，ready 后由 Lychee Host 一次性消费。
 
-第三方数据不会因 AddOn 已加载或 Provider 已注册而自动进入搜索。第三方若要让实体名称参与 Lychee 主输入框搜索，必须在同一 Extension draft 中同时注册 CapabilityProvider 和引用该能力的 `ambient` `dynamic-list` Command，再以 `Commit()` 原子发布。Lychee PublicAPI 返回的 Extension 句柄是状态查询、owner 启停和幂等 `Unregister()` 的唯一控制入口；Lychee 不通过扫描 AddOn 目录推断或补造搜索接入。
+第三方数据不会因 AddOn 已加载或 Provider 已注册而自动进入搜索。第三方若要让稳定实体名称参与 Lychee 主输入框搜索，必须在同一 Extension draft 中注册 SearchSource；只有需要在查询时组合参数或动态调用能力时，才注册引用 CapabilityProvider 的 `ambient` `dynamic-list` Command。所有声明通过 `Commit()` 原子发布。Lychee PublicAPI 返回的 Extension 句柄是状态查询、owner 启停和幂等 `Unregister()` 的唯一控制入口；Lychee 不通过扫描 AddOn 目录推断或补造搜索接入。
 
 ### Command
 
-Command 是唯一可搜索和选择的入口，至少包含 stable ID、标题、别名/关键词、match、presentation、参数描述和 Intent factory。Command 不直接暴露任意回调给 UI。Provider 中的实体不会自动进入全局搜索；需要直接搜索实体名称时，仍由一个 Command 声明主动匹配并调用 Provider。`dynamic-list` 的 item 可额外声明由 Host 处理的 `interaction`，但 interaction 不改变 Provider 与 Command 的分层。
+Command 是固定命令和真实动态组合查询的可搜索入口，至少包含 stable ID、标题、别名/关键词、match、presentation、参数描述和 Intent factory。Command 不直接暴露任意回调给 UI。稳定实体由 SearchSource 进入全局搜索；Provider 中的数据不会自动进入全局搜索，只有需要运行时组合查询时才由 ambient Command 主动调用 Provider。`dynamic-list` 的 item 可额外声明由 Host 处理的 `interaction`，但 interaction 不改变 SearchSource、Provider 与 Command 的分层。
 
 Command 的匹配模式：
 
@@ -47,6 +48,8 @@ Command 的匹配模式：
 
 CapabilityProvider 按稳定 capability type 注册输入/输出契约。它不进入搜索结果、不持有 Palette frame、不注册 Lychee 快捷键，也不决定结果行布局。一个 Provider 可服务多个 Command，同一 capability type 可有多个实现并由 Host/用户选择默认实现。
 
+CapabilityBroker 按 priority、Extension ID、Provider ID 确定性选择并在调用前检查 Extension 生命周期。错误稳定区分 `CAPABILITY_NOT_FOUND`、`PROVIDER_UNAVAILABLE`、`INVALID_SCHEMA`、`INVALID_RESULT`、`PROVIDER_ERROR` 和 `RESULT_LIMIT`；本版本不增加跨查询缓存或复杂 fallback。
+
 ### IntentHandler
 
 IntentHandler 只处理已注册的 Intent type。普通动作经错误边界执行；受保护动作使用声明式 Secure Descriptor，以及通过 `CreateFrame(..., "SecureActionButtonTemplate")` 创建并在脱战时配置的 Host 安全按钮。Lychee 采用严格的战斗策略：战斗中 Palette 不可用，所有 Lychee Intent 返回 `COMBAT_LOCKED`，不暴露战斗内真实点击入口；Enter、`dispatchIntent` 和 scripted `Button:Click()` 永远不能模拟硬件点击。UI 不按名称直接调用 Provider 函数。
@@ -59,7 +62,7 @@ Lychee 只注册 `TOGGLELYCHEE`。实现必须提供 `Bindings.xml` 中的 `<Bin
 
 ```text
 输入变化
-  -> generation + 1
+  -> SearchSession 推进 session/generation 并执行单一 debounce
   -> normalize/tokenize/intent parse
   -> 静态 Command Catalog 候选
   -> 计算满足规则的 ambient dynamic Command
@@ -67,9 +70,11 @@ Lychee 只注册 `TOGGLELYCHEE`。实现必须提供 `Bindings.xml` 中的 `<Bin
   -> stable rank
   -> 发布普通结果
   -> 只调用已命中的 catalog/ambient dynamic-list resolver
-  -> 校验 generation
+  -> SearchSession 校验当前 session/generation 并接纳结果
   -> diff render
 ```
+
+CommandCatalog 独占固定 Command 的私有索引和 ambient schedulable view；固定 Command 不再投影进 SearchSource/SearchIndex。QueryOrchestrator 只调用 Catalog 的查询与调度视图接口，不读取内部表。Palette 不直接推进 generation，输入替换、关闭、进战和 Extension 失效统一由 SearchSession 取消或用 token guard 丢弃迟到结果。
 
 输入合并使用唯一 debounce；新 generation 使旧动态结果失效。ambient Command 必须有全局调用数、每 Command 结果数和协作式耗时预算；Host 使用稳定优先级选择预算内的命令，并允许用户逐项停用主动匹配。短于 `minLength`、长于 `maxLength`、不可用、被停用或超出本次调度预算的 Command 不调用 resolver。Palette 隐藏时取消查询、清空 deferred 队列并停止驱动。
 
@@ -124,6 +129,8 @@ item Intent 成功后，Handler 可返回声明式视图转换：`transition = {
 2. `PlayerSpells` Extension 的 `PlayerSpellProvider` 只建立一份当前角色已知的有效法术快照，并通过一个 SearchSource 发布；`PlayerSpellAliases.lua` 只维护 Locale 别名投影，包括“复仇之怒”对应“翅膀”等技能俗称和已知传送法术对应“红玉”等副本简称。当前记录只提供 secure-spell action 和 spell drag，不注册 Command、CapabilityProvider、IntentHandler 或空详情 Panel。
 3. `DungeonAliasProvider` 将 Boss 名称、赛季简称（例如 `M1`）和版本别名映射为攻略实体；item action 打开同 Extension 的详情 Panel。
 4. 副本传送搜索属于第 2 项 `PlayerSpells` 的别名场景，不新增额外 Provider、独立目录或第二份法术索引；输入副本简称返回 canonical spell item，支持专用区域拖拽和真实点击的 secure-spell action。
+
+PlayerSpells Commit 后保存 `GetSearchSource("records")` 的窄 handle，事件合并刷新只通过该 handle 原子提交；停用时停止事件，重新启用后刷新，注销时释放 handle。业务模块不直接访问 StaticIndex 或维护 source generation。
 
 ## 生命周期和隔离
 

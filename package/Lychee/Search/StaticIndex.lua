@@ -18,6 +18,7 @@ local Index = {
     diagnostics = {},
     previousQuery = nil,
     previousCandidates = nil,
+    listeners = {},
 }
 I.Search.StaticIndex = Index
 
@@ -188,7 +189,17 @@ local function clearSourceEntries(self, source)
     wipeTable(source.entryKeys)
 end
 
-local function bump(self, source, revision)
+local function notifyChange(self, source, reason)
+    for index = 1, #self.listeners do
+        pcall(self.listeners[index], source.id, reason, {
+            revision = source.revision,
+            generation = source.generation,
+            enabled = source.enabled,
+        })
+    end
+end
+
+local function bump(self, source, revision, reason)
     local requested = tonumber(revision)
     if requested and requested > (source.revision or 0) then source.revision = requested
     else source.revision = (source.revision or 0) + 1 end
@@ -197,6 +208,7 @@ local function bump(self, source, revision)
     source._generation = source.generation
     self.version = self.version + 1
     self.previousQuery, self.previousCandidates = nil, nil
+    notifyChange(self, source, reason)
     return source.revision, source.generation
 end
 
@@ -224,7 +236,14 @@ function Index:New()
     value.sources, value.entries = {}, {}
     value.exact, value.prefix, value.tokens, value.grams, value.categories = {}, {}, {}, {}, {}
     value.diagnostics = {}
+    value.listeners = {}
     return setmetatable(value, { __index = self })
+end
+
+function Index:OnChange(callback)
+    if type(callback) ~= "function" then return false end
+    self.listeners[#self.listeners + 1] = callback
+    return true
 end
 
 function Index:Clear()
@@ -261,7 +280,7 @@ function Index:UnregisterSource(sourceID)
     local source = self.sources[sourceID]
     if not source then return true end
     clearSourceEntries(self, source)
-    bump(self, source)
+    bump(self, source, nil, "unregistered")
     self.sources[sourceID] = nil
     self:Persist()
     return true
@@ -272,7 +291,7 @@ function Index:TouchSource(sourceID, enabled)
     if not source then return nil, "SOURCE_NOT_FOUND" end
     if source.enabled == not not enabled then return true, source.generation, source.revision end
     source.enabled = not not enabled
-    local revision, generation = bump(self, source)
+    local revision, generation = bump(self, source, nil, "enabled")
     self:Persist()
     return true, generation, revision
 end
@@ -294,7 +313,7 @@ function Index:Upsert(sourceID, record, revision, generation)
         local entry = buildEntry(source, record)
         installEntry(self, entry)
         source.entryKeys[entry.key] = true
-        bump(self, source, revision)
+        bump(self, source, revision, "upserted")
         self:Persist()
         return true
     end
@@ -311,7 +330,7 @@ function Index:Remove(sourceID, recordID, revision, generation)
         local entryKey = sourceID .. ":" .. recordID
         removeEntry(self, self.entries[entryKey])
         source.entryKeys[entryKey] = nil
-        bump(self, source, revision)
+        bump(self, source, revision, "removed")
         self:Persist()
         return true
     end
@@ -347,7 +366,7 @@ function Index:CommitSnapshot(sourceID, records, revision, generation)
         source.entryKeys[entry.key] = true
     end
     source.pending = nil
-    local nextRevision, nextGeneration = bump(self, source, revision)
+    local nextRevision, nextGeneration = bump(self, source, revision, "snapshot")
     self:Persist()
     return true, nextGeneration, nextRevision
 end
@@ -363,7 +382,7 @@ function Index:AddRecord(sourceID, record, descriptor)
     local entry = buildEntry(source, record)
     installEntry(self, entry)
     source.entryKeys[entry.key] = true
-    bump(self, source)
+    bump(self, source, nil, "added")
     return true
 end
 
@@ -371,7 +390,7 @@ function Index:Invalidate(sourceID, key)
     local source = self.sources[sourceID]
     if not source then return nil, "SOURCE_NOT_FOUND" end
     source.invalidation[tostring(key or "*")] = true
-    local revision, generation = bump(self, source)
+    local revision, generation = bump(self, source, nil, "invalidated")
     return true, generation, revision
 end
 

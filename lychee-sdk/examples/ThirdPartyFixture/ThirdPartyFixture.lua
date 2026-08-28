@@ -200,4 +200,12 @@ _G.ThirdPartyFixture = {
     GetExtension = function() return state.committed end,
     GetSearchSource = function() return state.searchSource end,
     GetDiagnostics = function() return state.diagnostics end,
+    SetEnabled = function(enabled)
+        if not state.committed then return nil end
+        return state.committed:SetEnabled(enabled)
+    end,
+    Unregister = function()
+        if not state.committed then return true end
+        return state.committed:Unregister()
+    end,
 }

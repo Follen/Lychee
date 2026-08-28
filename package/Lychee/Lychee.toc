@@ -18,6 +18,7 @@ Core/IntentRouter.lua
 Core/Scheduler.lua
 Core/ExtensionRegistry.lua
 Search/QueryOrchestrator.lua
+Search/SearchSession.lua
 PublicAPI/SDK.lua
 Builtin/Data/PlayerSpellAliases.lua
 Secure/Descriptor.lua
@@ -27,6 +28,7 @@ UI/FocusController.lua
 UI/Input.lua
 UI/ResultList.lua
 UI/ViewHost.lua
+Core/ResultActionExecutor.lua
 UI/Palette.lua
 Builtin/PlayerSpells/Provider.lua
 Builtin/PlayerSpells/Init.lua

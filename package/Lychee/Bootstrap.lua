@@ -11,7 +11,8 @@ local function wireRegistryLifecycle()
     I._registryLifecycleWired = true
     I.Registry:OnChange(function(entry, state)
         if state ~= "disabled" and state ~= "retiring" and state ~= "removed" then return end
-        if I.Search and I.Search.Query then I.Search.Query:Invalidate() end
+        if I.Search and I.Search.Session then I.Search.Session:Invalidate("extension-" .. state)
+        elseif I.Search and I.Search.Query and I.Search.Query.Cancel then I.Search.Query:Cancel("extension-" .. state) end
         local palette = I.Host and I.Host.PaletteController
         if palette and palette.InvalidateExtension then palette:InvalidateExtension(entry.id, state) end
     end)
@@ -38,53 +39,11 @@ local function onLogin()
 end
 
 function I.WirePalette(palette)
-    if not palette or not I.Search or not I.Search.Query or I._paletteWired then return false end
+    if not palette or not I.Search or not I.Search.Session or not I.ResultActionExecutor or I._paletteWired then return false end
     I._paletteWired = true
-    palette:SetQueryCallback(function(raw, generation, session)
-            if InCombatLockdown and InCombatLockdown() then return end
-            local snapshot = I.Context and I.Context:Snapshot() or {}
-            local queryGeneration, results = I.Search.Query:Query(raw, snapshot)
-            if session ~= palette.session then return end
-            palette.generation = queryGeneration
-            palette:SetResults(results, queryGeneration, session)
-    end)
-    palette:SetActivateCallback(function(item, actionID)
-            local command = item and item.command
-            local context = I.Context and I.Context:Snapshot() or {}
-            local intent
-            if command and type(command.itemIntent) == "function" then
-                intent = command.itemIntent(item, actionID, context)
-            elseif item and item.searchRecord and type(item.searchRecord.actions) == "table" then
-                for i = 1, #item.searchRecord.actions do
-                    local action = item.searchRecord.actions[i]
-                    if action.id == actionID and type(action.intent) == "table" then intent = action.intent; break end
-                end
-            end
-            if type(intent) ~= "table" then return false, "ACTION_UNAVAILABLE" end
-            local result, err
-            if I.Router then
-                result, err = I.Router:Execute(intent, context)
-            end
-            if not result then
-                return false, type(err) == "table" and err.code or err or "HANDLER_UNAVAILABLE"
-            end
-            local transition = result.transition
-            if transition then
-                local extensionID = (command and command._ext) or (item and item._ext)
-                local panelID = transition.panelID or transition.panelFactoryID
-                local factory = extensionID and I.Router:ResolvePanel(extensionID, panelID)
-                if not factory then return false, "COMMAND_NOT_FOUND" end
-                local controller = I.Host and I.Host.PaletteController
-                if not controller or not controller.viewHost then return false, "PANEL_ERROR" end
-                local ok, mountErr = controller:OpenView(factory, { extensionID = extensionID, panelID = panelID, session = session, generation = generation }, transition.state or {})
-                if not ok then return false, mountErr or "PANEL_ERROR" end
-            end
-            if result.closePalette then
-                local controller = I.Host and I.Host.PaletteController
-                if controller then controller:Hide("intent") end
-            end
-            return result
-    end)
+    I.Search.Session:BindPalette(palette)
+    I.ResultActionExecutor:BindPalette(palette)
+    palette:SetQueryCallback(function(raw) return I.Search.Session:Input(raw) end)
     return true
 end
 

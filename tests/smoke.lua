@@ -29,7 +29,7 @@ local root = "package/Lychee/"
 local files = {
     "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
-    "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "PublicAPI/SDK.lua",
+    "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Core/ResultActionExecutor.lua", "PublicAPI/SDK.lua",
     "Builtin/Data/PlayerSpellAliases.lua", "Builtin/PlayerSpells/Provider.lua",
     "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua",
 }
@@ -39,18 +39,69 @@ assert(_G.LycheeInternal.Builtin and _G.LycheeInternal.Builtin.Init)
 _G.LycheeInternal.Builtin:Init()
 _G.LycheeInternal.Registry:SetReady(true)
 local q = _G.LycheeInternal.Search.Query
-local _, results = q:Query("翅膀", {})
+local queryToken, results = q:Query("翅膀", {})
+assert(queryToken ~= nil)
 assert(#results > 0 and results[1].payload and results[1].payload.spellID == 31884)
 local _, ruby = q:Query("红玉", {})
 assert(#ruby > 0 and ruby[1].payload.spellID == 393256)
-assert(q.generation >= 2)
 dofile("lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua")
 local fixture = _G.ThirdPartyFixture and _G.ThirdPartyFixture.GetExtension()
 assert(fixture and fixture:GetState().lifecycle == "enabled")
-local _, fixtureResults = q:Query("翅膀", {})
-assert(#fixtureResults > 0)
+local fixtureSource = _G.ThirdPartyFixture.GetSearchSource()
+assert(fixtureSource and fixtureSource:GetState().id == "third-party-fixture:fixture-records")
+local _, fixtureResults = q:Query("第三方示例技能", {})
+assert(#fixtureResults == 1 and fixtureResults[1].sourceID == "third-party-fixture:fixture-records")
+local fixtureItem = fixtureResults[1]
+local fixtureAction = fixtureItem.interaction and fixtureItem.interaction.actions[1]
+assert(fixtureAction and fixtureAction.kind == "intent" and fixtureAction.intent)
+local openedPanel
+local fixturePalette = {
+    visible = true,
+    session = 1,
+    generation = queryToken,
+    viewHost = {},
+    OpenView = function(_, factory, owner, panelState)
+        openedPanel = { factory = factory, owner = owner, state = panelState }
+        return true
+    end,
+    RejectRow = function(_, _, reason) return false, reason end,
+}
+assert(_G.LycheeInternal.ResultActionExecutor:BindPalette(fixturePalette))
+local actionResult, actionErr = _G.LycheeInternal.ResultActionExecutor:Execute({
+    item = fixtureItem,
+    extensionID = "third-party-fixture",
+    session = fixturePalette.session,
+    generation = fixturePalette.generation,
+}, fixtureAction.id)
+assert(actionResult and not actionErr and actionResult.ok == true)
+assert(actionResult.transition and actionResult.transition.type == "custom-panel")
+assert(actionResult.transition.panelFactoryID == "fixture-detail")
+assert(openedPanel and openedPanel.owner.extensionID == "third-party-fixture")
+assert(openedPanel.owner.panelID == "fixture-detail" and openedPanel.state.itemID == 12345)
+assert(openedPanel.factory == _G.LycheeInternal.Router:ResolvePanel("third-party-fixture", "fixture-detail"))
+local capabilityResult, capabilityErr, providerInfo = fixture:QueryCapability({
+    type = "third-party-fixture.items",
+    minVersion = 1,
+    maxVersion = 1,
+    request = { text = "翅膀", limit = 5 },
+}, {})
+assert(capabilityResult and not capabilityErr and capabilityResult[1].itemID == 12345)
+assert(providerInfo.extensionID == "third-party-fixture" and providerInfo.providerID == "fixture-items")
 local _, isolatedFixtureResults = q:Query("wings", {})
 assert(#isolatedFixtureResults == 0)
+assert(_G.ThirdPartyFixture.SetEnabled(false))
+assert(fixture:GetState().lifecycle == "disabled")
+local _, disabledFixtureResults = q:Query("第三方示例技能", {})
+assert(#disabledFixtureResults == 0)
+local disabledCapability, disabledErr = fixture:QueryCapability({
+    type = "third-party-fixture.items",
+    request = { text = "翅膀", limit = 5 },
+}, {})
+assert(not disabledCapability and disabledErr and disabledErr.code == "EXTENSION_DISABLED")
+assert(_G.ThirdPartyFixture.SetEnabled(true))
+assert(fixture:GetState().lifecycle == "enabled")
+local _, reenabledFixtureResults = q:Query("第三方示例技能", {})
+assert(#reenabledFixtureResults == 1 and reenabledFixtureResults[1].sourceID == "third-party-fixture:fixture-records")
 assert(results[1].interaction and results[1].interaction.actions[1].kind == "secure-spell")
 assert(results[1].interaction.drag and results[1].interaction.drag.spellID == 31884)
 local publicDraft, publicErr = _G.Lychee:RegisterExtension({ id = "test.public-bad", apiVersion = 1, minApiRevision = 1, title = "Bad", version = "1.0.0" })
@@ -63,8 +114,13 @@ issecretvalue = function(value) return value == "SECRET" end
 local secretBad, secretErr = _G.Lychee:RegisterExtension({ id = "test.secret", apiVersion = 1, minApiRevision = 1, title = "SECRET", version = "1.0.0" })
 assert(not secretBad and secretErr and secretErr.code == "SECRET_VALUE")
 issecretvalue = oldSecret
-local scheduledGeneration = q:Schedule("翅膀", {}, nil, function(results, generation) assert(generation == q.generation and #results > 0) end, 0.05)
-assert(q:Flush(scheduledGeneration))
+local callbackToken
+local scheduledToken = q:Schedule("翅膀", {}, nil, function(scheduledResults, token)
+    callbackToken = token
+    assert(#scheduledResults > 0)
+end, 0.05)
+assert(scheduledToken ~= nil and q:Flush(scheduledToken))
+assert(callbackToken == scheduledToken)
 C_Spell = {
     GetSpellDescription = function(id) if id == 9001 then return "传送至测试副本入口。" end end,
 }
@@ -97,7 +153,20 @@ local playerSpellsEntry = _G.LycheeInternal.Registry.entries["builtin.player-spe
 assert(playerSpellsEntry and #playerSpellsEntry.sources == 1)
 assert(#playerSpellsEntry.commands == 0 and #playerSpellsEntry.providers == 0)
 assert(#playerSpellsEntry.handlers == 0 and #playerSpellsEntry.panels == 0)
+local playerSpells = _G.LycheeInternal.Builtin.PlayerSpells
+local committedSourceHandle = playerSpells.Provider.sourceHandle
+assert(committedSourceHandle and playerSpells.Provider._active == true and playerSpells.Provider._eventFrame)
+assert(panel:SetEnabled(false))
+assert(playerSpells.Provider._active == false and playerSpells.Provider._eventFrame == nil)
+assert(playerSpells.Provider.sourceHandle == committedSourceHandle, "disable retains the committed source handle")
+assert(panel:SetEnabled(true))
+assert(playerSpells.Provider._active == true and playerSpells.Provider._eventFrame)
+assert(playerSpells.Provider.sourceHandle == committedSourceHandle, "enable reuses the committed source handle")
 assert(panel:Unregister())
-assert(fixture:Unregister())
+assert(playerSpells.Provider.sourceHandle == nil and playerSpells.Provider._eventFrame == nil)
+assert(playerSpells._initialized == nil and playerSpells.handle == nil)
+assert(_G.ThirdPartyFixture.Unregister())
+assert(_G.ThirdPartyFixture.Unregister())
+assert(fixture:GetState().lifecycle == "removed")
 assert(_G.LycheeInternal.Router:Execute({ type = "third-party-fixture.open-detail", version = 1, payload = { itemID = 12345 } }, {}) == nil)
 print("Lychee smoke PASS")

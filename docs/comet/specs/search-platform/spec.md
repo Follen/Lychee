@@ -18,6 +18,7 @@ SearchSource
 - `SearchRecord` 是可搜索实体，不区分技能、成就、任务、副本还是第三方内容。
 - `SearchIndex` 是 Host 所有的预索引，Provider 不直接操作桶、评分或 UI。
 - `Action` 是结构化动作描述；普通 Intent、Panel、secure spell 和 drag 都由 Host 验证后执行。
+- `SearchSession` 唯一拥有 Palette session、query generation、防抖、取消和结果接纳；`ResultActionExecutor` 统一验证并委托四类动作。
 
 ## 3. SearchSource
 
@@ -126,7 +127,7 @@ Host 为每条记录建立字段引用和倒排桶：canonical title、alias、k
 }
 ```
 
-Host 按 session、query generation、source state、availability 和 combat 状态重新校验结果。`open-panel` 通过同 Extension 的 PanelFactory；普通动作通过 IntentRouter；`secure-spell` 只能绑定 Host 自己的 SecureActionButton 并要求真实硬件点击；`drag-spell` 只能在脱战、当前玩家已知且可用时调用 `C_Spell.PickupSpell`。Provider 不直接执行这些动作。
+SearchSession 只发布当前 session/query generation 的结果；ResultActionExecutor 再按 source state、Extension 生命周期、availability 和 combat 状态校验每次交互。`open-panel` 通过同 Extension 的 PanelFactory；普通动作通过 IntentRouter；`secure-spell` 只能绑定 Host 自己的 SecureActionButton 并要求真实硬件点击；`drag-spell` 只能在脱战、当前玩家已知且可用时调用 `C_Spell.PickupSpell`。Provider 和 Palette 不直接执行这些动作。
 
 ## 9. 启动面板和搜索态
 
@@ -140,6 +141,7 @@ Alt+Space 打开 Host-owned Palette。空输入显示 ZTools 风格 HomeView：�
 
 - Source 注册、snapshot、upsert、remove、disable 和 unregister 都产生可追踪 revision；只失效所属记录。
 - Palette 隐藏时无常驻 per-frame Lua 回调；事件驱动刷新，必要的 debounce/ticker 可取消且有 generation guard。
+- 快速连续输入、IME 修订、关闭、进战和 source/Extension 失效使旧 token 失效；不可取消的迟到回调不能发布结果。
 - 索引、结果卡片、图标和动作槽池化复用；setter 有 change guard；Provider 数据更新不重建无关类别。
 - 每轮查询有候选上限、结果上限和 fuzzy 时间预算；超预算只保留已完成的高置信度候选并记录稳定诊断码。
 - 所有 Source/Record/Action 边界先执行 secret/inaccessible/plain-data/schema 校验，失败值不进索引、排序、缓存或日志。

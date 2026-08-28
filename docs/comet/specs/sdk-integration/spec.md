@@ -8,7 +8,7 @@
 
 Lychee 只发布一个 Host AddOn；SDK 是 Lychee 暴露的公共 API，公共 facade 为 `_G.Lychee`。它提供进程内 Lua API 和生命周期句柄，不模拟桌面应用的 IPC，不使用聊天频道传输注册信息。
 
-接入动作必须由第三方主动发起：第三方在自己的 AddOn 集成代码中通过 `_G.Lychee` 注册 Extension、Command、Provider、Handler 和可选 Panel，并调用 `Commit()`。Lychee 不扫描目录来自动生成接入。只有 Provider 的 Extension 不会产生搜索结果；需要让第三方数据响应 Lychee 主输入框时，同一 Extension 必须注册引用该 Provider 的 `ambient` `dynamic-list` Command。
+接入动作必须由第三方主动发起：第三方在自己的 AddOn 集成代码中通过 `_G.Lychee` 注册 Extension，以及按需注册 SearchSource、Command、Provider、Handler 和可选 Panel，再调用 `Commit()`。Lychee 不扫描目录来自动生成接入。稳定实体通过同一 Extension 的 SearchSource 发布；Provider 本身不会产生搜索结果，只有需要按输入即时组合能力时才由 `ambient` `dynamic-list` Command 调用。
 
 ## AddOn 加载契约
 
@@ -141,7 +141,7 @@ match = {
 }
 ```
 
-Lychee 负责单一输入 debounce、行池、键盘上下、鼠标点击、滚动、选中态、查询 generation 和过期结果丢弃。第三方只处理 payload 对应的 Intent，不创建 Palette 行 frame。Resolver 可以通过 CapabilityBroker 查询 Provider；Provider 自己维护实体名称的预索引/缓存，但不会自动成为搜索入口，也不向 Palette 推送 frame。
+Lychee 的 SearchSession 负责单一输入 debounce、session/query generation、取消和过期结果丢弃；Palette 只负责行池、键盘上下、鼠标点击、滚动和选中态。ResultActionExecutor 统一校验并委托 Intent、同 Extension Panel、spell drag 和 secure-spell。第三方只处理 payload 对应的 Intent，不创建 Palette 行 frame。稳定实体索引由所属模块在数据加载或事件刷新时构建为 SearchRecord，并通过 SearchSource 提交；只有动态组合 resolver 才通过 CapabilityBroker 查询 Provider。Provider 不会自动成为搜索入口，也不向 Palette 推送 frame。
 
 `interaction.actions` 最多四项，action ID 必须稳定、唯一且只含有限 plain-data。用户左键/Enter 触发 `primaryActionID`，行内其他 action 由 Host 绘制的明确按钮触发；Command 通过 `itemIntent(item, actionID, context)` 将普通 action 转为 Intent。第三方不能在 item 中放函数、Frame、宏文本、任意 secure 属性或鼠标脚本，也不能让 Host 从文字或图标推断动作。
 
@@ -149,7 +149,7 @@ Lychee 负责单一输入 debounce、行池、键盘上下、鼠标点击、滚�
 
 可施放 spell 只能由 `kind = "secure-spell"` 的 Host-owned 安全行/按钮承载。它使用已验证的声明式 spell ID，在脱战绑定，并只接受真实鼠标左键点击；Enter、普通 Handler、`dispatchIntent` 与 scripted `Button:Click()` 不得模拟施放。第三方不能拿到安全 button 或配置其属性。
 
-因此第三方可复用能力与可搜索入口是两份显式声明：`RegisterCapabilityProvider(...)` 让能力可被 Broker 调用，`RegisterCommand(...)` 决定该能力何时参与主输入框查询。两者只有在所属 Extension `Commit()` 成功后才同时可见；注销 Extension 时二者作为一个所有权单元退出。
+因此第三方按职责使用三类显式声明：`RegisterSearchSource(...)` 发布稳定可搜索实体，`RegisterCommand(...)` 发布固定入口或真实动态组合查询，`RegisterCapabilityProvider(...)` 让能力可被其他模块或 ambient resolver 复用。只声明实际需要的角色；它们在所属 Extension `Commit()` 成功后原子可见，注销 Extension 时作为一个所有权单元退出。
 
 ### 动态项进入详情 Panel
 
@@ -169,7 +169,7 @@ return {
 
 Host 只接受同一 Extension 的 PanelFactory ID。`transition.state` 必须通过 plain-data、secret/inaccessible、深度、字段数和 Panel 声明 schema 校验；校验失败时 Intent 返回稳定错误，不 Mount Panel。Handler 只返回描述符，不直接调用 ViewHost、PanelFactory 或 Palette frame。
 
-大秘境怪物接入的组合固定为：ambient `dynamic-list` Command 负责直接命中名称，creature CapabilityProvider 负责查询预索引数据，`itemIntent` 生成打开详情 Intent，IntentHandler 返回上述 transition，PanelFactory 负责详情内容。
+大秘境怪物接入的稳定实体链路为：SearchSource 发布怪物 SearchRecord，记录 action 生成打开详情 Intent，IntentHandler 返回上述 transition，PanelFactory 负责详情内容。需要向其他模块复用同一份怪物数据时可额外注册 creature CapabilityProvider；只有依据本次输入或 Context 即时组合结果时才额外使用 ambient `dynamic-list` Command。
 
 ### 法术结果、拖拽和真实点击
 
@@ -244,6 +244,8 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 | `ACTION_UNAVAILABLE` | action 的目标、指南 adapter 或 spell 当前不可用 |
 | `ACTION_REQUIRES_HARDWARE_CLICK` | 请求以 Enter/脚本路径触发 secure action，必须真实鼠标点击 |
 
+CapabilityBroker 另稳定区分：`CAPABILITY_NOT_FOUND`（type 未注册）、`PROVIDER_UNAVAILABLE`（Provider 均因生命周期不可调用）、`INVALID_SCHEMA`（请求非法）、`INVALID_RESULT`（结果非法）、`PROVIDER_ERROR`（回调异常）和 `RESULT_LIMIT`（结果超限）。Provider disable、retiring、removed 或 unregister 后不会被调用。
+
 错误对象仍遵守 Host 的公开错误格式，并且不得包含 payload、spell 名称、Frame 或第三方回调内容。
 
 ## 性能约束
@@ -275,7 +277,7 @@ Extension 状态：`draft -> pending -> registered -> enabled -> slow/disabled -
 12. 战斗中 `TOGGLELYCHEE` 静默失效且不启动查询，进战关闭已打开 Palette，脱战后同一 Binding 恢复；
 13. secret/inaccessible Context、payload 和返回值被递归拒绝，且不进入索引、Intent、日志或 SavedVariables；
 14. `IsAddOnLoaded` 的 loading/loaded 双状态、Panel 可取消 timer/ticker 与 `After` generation guard；
-15. 直接输入实体名时 ambient Command 返回动态项，不需要先输入命令标题；短于 `minLength` 时不调用 resolver；
+15. 直接输入稳定实体名时由 SearchSource 返回结果；运行时组合项可由 ambient Command 返回且不需要先输入命令标题，短于 `minLength` 时不调用 resolver；
 16. 多个 ambient Command 按启用状态和稳定预算调度，快速连续输入的旧结果不覆盖新结果；
 17. Provider 不可用、索引未就绪或 resolver 超预算时只影响所属结果组；
 18. item Intent 的合法 transition 挂载同 Extension Panel，跨 Extension、非法 state 或过期 session 转换被拒绝；

@@ -30,13 +30,21 @@ local function validateTransition(extensionID, transition)
     local ok,why=I.Registry:ValidateSchema(transition.state,panel.stateSchema,"transition.state"); if not ok then return nil,why end
     return true
 end
-function Router:Execute(intent, context)
+function Router:Execute(intent, context, ownerExtensionID)
     if InCombatLockdown and InCombatLockdown() then return nil,{code="COMBAT_LOCKED",retryable=true} end
     if type(intent)~="table" or type(intent.type)~="string" or not integer(intent.version or 1) then return nil,{code="INTENT_INVALID",retryable=false} end
+    if ownerExtensionID~=nil and (type(ownerExtensionID)~="string" or ownerExtensionID=="") then return nil,{code="INTENT_INVALID",field="ownerExtensionID",retryable=false} end
     local valid,why=I.Boundary:Validate(intent,"intent"); if not valid then return nil,why end
     local list=self.handlers[intent.type]; if not list or #list==0 then return nil,{code="HANDLER_UNAVAILABLE",retryable=false} end
-    local record; for i=1,#list do if I.Registry:IsEnabled(list[i].ext) then record=list[i]; break end end
+    local record
+    if ownerExtensionID then
+        for i=1,#list do if list[i].ext==ownerExtensionID then record=list[i]; break end end
+        if not record then return failure("HANDLER_UNAVAILABLE","ownerExtensionID",ownerExtensionID) end
+    else
+        for i=1,#list do if I.Registry:IsEnabled(list[i].ext) then record=list[i]; break end end
+    end
     if not record then return nil,{code="EXTENSION_DISABLED",retryable=false} end
+    if not I.Registry:IsEnabled(record.ext) then return failure("EXTENSION_DISABLED",nil,record.ext) end
     local handler=record.handler; if handler.version~=intent.version then return failure("INTENT_INVALID","version",record.ext) end
     if handler.schema then valid,why=I.Registry:ValidateSchema(intent.payload or {},handler.schema,"payload"); if not valid then return nil,why end end
     local ok,result

@@ -38,18 +38,23 @@ end
 
 任一声明失败时调用 `Abort()`，不会留下部分搜索结果。`Commit()` 返回 `UNSUPPORTED_API` 时表示 SDK major/revision 不支持；返回 committed handle 但状态为 `pending/incompatible` 时表示当前 Host revision 不足（`INCOMPATIBLE_HOST`）。提交成功后用 `committed:GetSearchSource(id)` 取得窄 source handle；它提供 `GetState`、`BeginSnapshot`、`Upsert`、`Remove`、`CommitSnapshot` 和 `Invalidate`，所有 Record/Action 都会再次经过 Host Boundary 校验。
 
+业务数据更新必须只使用这个窄 source handle，不保存 `_G.LycheeInternal`、不直接访问 SearchIndex，也不手拼 Host source ID。Extension disable/retiring/removed 后 Host 会阻止旧结果和动作；第三方仍需在 `onDisabled`/`onHostDetached` 停止自己的事件、timer 和待处理刷新。
+
 ## 搜索与交互
 
 Command 与 SearchRecord 的 `title`、`aliases`、`keywords`、`description` 支持 locale 别名，例如“复仇之怒”的中文俗称“翅膀”。SearchRecord action 只能是 plain-data：普通 `intent`、同 Extension 的 `open-panel`、Host 解释的 `secure-spell` 和受校验的 `drag-spell`。第三方不接触 SearchIndex、Palette、SecureButton 或全局快捷键。自定义 category 使用 `<extension-id>:<category>` 前缀；共享类别使用 Host 保留 ID。
+
+固定入口使用 Command，稳定实体使用 SearchSource，需要被其他模块复用的数据能力使用 CapabilityProvider。Capability 查询错误可区分 `CAPABILITY_NOT_FOUND`、`PROVIDER_UNAVAILABLE`、`INVALID_SCHEMA`、`INVALID_RESULT`、`PROVIDER_ERROR` 和 `RESULT_LIMIT`；不要把 Provider 注册本身当成搜索入口。
 
 ## Fixture
 
 将 `examples/ThirdPartyFixture/` 复制为自己的 AddOn 目录即可测试完整注册链路。它演示：
 
 - `OptionalDeps: Lychee` 和 `_G.Lychee` 竞态处理；
-- SearchSource、Provider、IntentHandler、PanelFactory；
+- SearchSource、CapabilityProvider、IntentHandler、PanelFactory；
 - Locale aliases（`复仇之怒` / `翅膀` / `wings`）；
-- 点击打开详情；
+- SearchRecord 普通 Intent 动作与同 Extension 详情 Panel transition；
+- Capability 查询、owner disable/enable 与幂等 Unregister；
 - `onHostAttached`、`onHostDetached`、`onEnabled`、`onDisabled` 生命周期。
 
 Fixture 使用静态有界数据，不创建常驻 `OnUpdate`，符合 EllesmereUI 的零空闲成本和事件驱动原则。

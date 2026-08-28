@@ -66,7 +66,7 @@ local function validateCommand(command)
     if command.presentation=="dynamic-list" and type(command.resolve)~="function" then return nil,failure("INVALID_SCHEMA","resolve") end
     if command.presentation=="row" and ((command.intent~=nil)==(type(command.intentFactory)=="function")) then return nil,failure("INVALID_SCHEMA","intent") end
     if command.presentation=="custom-panel" and not validID(command.panel) then return nil,failure("INVALID_SCHEMA","panel") end
-    if command.match~=nil and (type(command.match)~="table" or (command.match.type~="ambient" and command.match.type~="explicit")) then return nil,failure("INVALID_SCHEMA","match") end
+    if command.match~=nil and (type(command.match)~="table" or (command.match.type~="ambient" and command.match.type~="explicit" and command.match.type~="catalog")) then return nil,failure("INVALID_SCHEMA","match") end
     return true
 end
 local function validateProvider(provider, public)
@@ -262,7 +262,7 @@ function Registry:_Handle(entry)
         if entry.state~="enabled" then return nil,failure("EXTENSION_DISABLED",nil,entry.id) end
         local ok,why=I.Boundary:Validate(request,"request"); if not ok then return nil,why end
         if not I.Broker then return nil,failure("CAPABILITY_NOT_FOUND",nil,entry.id) end
-        return I.Broker:Query(request.type,request.request or request,context)
+        return I.Broker:Query(request,context)
     end
     function handle:Invalidate(key)
         local allowed = false
@@ -364,8 +364,8 @@ function Registry:_Handle(entry)
         if entry.state=="retiring" then return true end
         local wasEnabled=entry.state=="enabled"
         local wasAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled")
-        notify(entry,"retiring","unregister")
         if I.Catalog then I.Catalog:RemoveExtension(entry.id) end
+        notify(entry,"retiring","unregister")
         if I.Broker then I.Broker:RemoveExtension(entry.id) end
         if I.Router then I.Router:RemoveExtension(entry.id) end
         if I.Search and I.Search.StaticIndex then for i=1,#entry.sources do I.Search.StaticIndex:UnregisterSource(entry.id..":"..entry.sources[i].id) end end

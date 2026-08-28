@@ -169,9 +169,20 @@ end
 
 function P:Refresh()
     local refreshed = self:RefreshFromSpellBook()
-    if refreshed and self.searchSourceID and I.Search and I.Search.StaticIndex then
-        self.searchRevision = (self.searchRevision or 1) + 1
-        I.Search.StaticIndex:CommitSnapshot(self.searchSourceID, self:BuildSearchRecords(), self.searchRevision)
+    if refreshed and self.sourceHandle then
+        local committed = self.sourceHandle:CommitSnapshot(self:BuildSearchRecords())
+        if not committed then return refreshFailed(self, "SOURCE_COMMIT_FAILED") end
     end
     return refreshed
+end
+
+function P:Detach(releaseSource)
+    self._active = false
+    self._refreshPending = nil
+    if self._eventFrame then
+        if type(self._eventFrame.UnregisterAllEvents) == "function" then self._eventFrame:UnregisterAllEvents() end
+        self._eventFrame:SetScript("OnEvent", nil)
+    end
+    self._eventFrame = nil
+    if releaseSource then self.sourceHandle = nil end
 end

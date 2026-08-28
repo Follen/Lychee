@@ -58,7 +58,7 @@ Extension
 | Presentation | 描述结果由 Host 如何呈现 | 绕过 Host 生命周期 |
 | ContextSnapshot | Host 维护的只读游戏状态切片 | 第三方自建全量状态镜像 |
 
-Command 与 CapabilityProvider 必须分层。一个命令可以组合多个能力，一个能力也可以服务多个命令。新增数据源时注册 Provider；新增用户入口时注册 Command；新增执行动作时注册 IntentHandler。
+SearchSource、Command 与 CapabilityProvider 必须分层。新增稳定可搜索实体时注册 SearchSource；新增固定入口或真实动态组合查询时注册 Command；新增可复用数据能力时注册 CapabilityProvider；新增普通执行动作时注册 IntentHandler。一个 Command 可以组合多个能力，一个能力也可以服务多个模块，但业务域只声明自己实际需要的角色。
 
 Extension 可以在同一注册草稿中发布一组 Command；这不是独立的公共对象、registry 或第二套注册 API。公开接入统一使用 Extension draft 上的 `RegisterCommand`。
 
@@ -67,12 +67,15 @@ Extension 可以在同一注册草稿中发布一组 Command；这不是独立�
 系统始终只有以下实例：
 
 1. 一个 `ExtensionRegistry`：保存 SDK 和内部 Extension 的规范化状态。
-2. 一个 `SearchIndex`：保存 Command 和 SearchRecord 的活动静态索引；`CommandCatalog` 是固定 Command 的兼容视图。
-3. 一个 `QueryOrchestrator`：拥有输入 generation、调度和结果合并。
-4. 一个 `Ranker`：负责确定性评分和稳定排序。
-5. 一个 `ContextStore`：把 WoW 事件转换为版本化状态切片。
-6. 一个 `IntentRouter`：校验并路由普通和受保护 Intent。
-7. 一个 `PaletteController`：拥有快捷键、焦点、结果列表和 ViewHost。
+2. 一个 `CommandCatalog`：独占固定 Command 的私有索引、优先级、启停状态、查询和 ambient 调度视图；Command 不写入实体 SearchIndex。
+3. 一个 `SearchIndex`：只保存 SearchSource/SearchRecord 的活动实体索引。
+4. 一个 `SearchSession`：唯一拥有 Palette session、query generation、防抖、取消和结果接纳。
+5. 一个 `QueryOrchestrator`：执行 Catalog、实体索引和 ambient resolver 的查询与结果合并，不持有 UI 会话状态。
+6. 一个 `Ranker`：负责确定性评分和稳定排序。
+7. 一个 `ContextStore`：把 WoW 事件转换为版本化状态切片。
+8. 一个 `IntentRouter`：校验并路由普通 Intent。
+9. 一个 `ResultActionExecutor`：统一校验结果 token，并编排 Intent、Panel、drag 和 secure-spell。
+10. 一个 `PaletteController`：拥有快捷键、焦点、结果列表和 ViewHost，只转交查询与动作事件。
 
 UI 不按名称直接调用第三方函数。第三方不持有上述对象的可变表。
 
@@ -94,6 +97,7 @@ Lychee/
 │  │  │  ├─ CapabilityBroker.lua
 │  │  │  ├─ ContextStore.lua
 │  │  │  ├─ IntentRouter.lua
+│  │  │  ├─ ResultActionExecutor.lua
 │  │  │  ├─ Scheduler.lua
 │  │  │  └─ Diagnostics.lua
 │  │  ├─ Search/
@@ -103,7 +107,8 @@ Lychee/
 │  │  │  ├─ RuntimeIdentity.lua
 │  │  │  ├─ StaticIndex.lua
 │  │  │  ├─ Ranker.lua
-│  │  │  └─ QueryOrchestrator.lua
+│  │  │  ├─ QueryOrchestrator.lua
+│  │  │  └─ SearchSession.lua
 │  │  ├─ UI/
 │  │  │  ├─ Palette.lua
 │  │  │  ├─ Input.lua
@@ -278,7 +283,7 @@ Lychee facade detach 或版本切换时，`registered`/`enabled` Extension 先�
 
 ## 7. Command 与 SearchRecord 模型
 
-Command 是固定的可搜索入口；SearchRecord 是实体搜索对象。两者进入同一个 Host SearchIndex，使用同一套本地化、别名、匹配、置信度和排序规则。最小 Command 形状：
+Command 是固定的可搜索入口；SearchRecord 是实体搜索对象。CommandCatalog 使用自己的私有索引，SearchSource/SearchRecord 进入 Host 实体 SearchIndex；两者复用相同的规范化和评分规则，并在 QueryOrchestrator 中合并为统一结果。最小 Command 形状：
 
 ```lua
 {
@@ -359,11 +364,13 @@ Provider 以稳定 capability type 注册输入/输出契约：
 - 校验输入与输出 schema。
 - 设置耗时、结果数和调用深度预算；v1 Provider 只执行有界同步查询，昂贵数据必须来自事件驱动缓存或预索引。协作式 deferred queue 只提供给 `dynamic-list` resolver。
 - 隔离错误并返回稳定错误码。
-- 缓存明确声明为可缓存的结果。
+- 按 `priority desc -> extensionID -> providerID` 确定性选择；停用、retiring 或 removed 的 Provider 不调用。
+
+Broker 稳定区分：能力类型不存在 `CAPABILITY_NOT_FOUND`、当前没有可调用 Provider `PROVIDER_UNAVAILABLE`、请求不符合 schema `INVALID_SCHEMA`、返回值不符合 schema `INVALID_RESULT`、回调异常 `PROVIDER_ERROR`、结果超限 `RESULT_LIMIT`。本版本不提供跨查询缓存、自动重试或复杂 fallback。
 
 Provider 本身不直接成为搜索结果、不控制结果布局、不注册快捷键；它可以被 SearchSource 用作数据源，也可以被 ambient resolver 查询。Host 内置 Provider 和第三方 Provider 进入同一 Broker；内部实现可以获得额外的 Host service，但输出必须规范化成相同 schema。
 
-技能、任务、怪物技能等大规模实体索引属于 Provider 或其所属模块的私有实现，不公开独立 Content Index registry。索引在注册、数据加载或相关 WoW 事件到达时增量构建；resolver 按键热路径只通过 CapabilityBroker 查询预索引/缓存，不全表扫描，不把每个实体注册成 Command。
+技能、任务、怪物技能等大规模实体索引由所属业务模块在注册、数据加载或相关 WoW 事件到达时增量构建为 SearchRecord，并通过 SearchSource 原子提交；不公开独立 Content Index registry，也不把每个实体注册成 Command。只有真实动态组合查询才由 resolver 在按键热路径通过 CapabilityBroker 查询预索引/缓存，且不得全表扫描。
 
 Command 不持有 Provider 函数引用。需要能力时只提交 capability type、版本和结构化 request，由 Broker 完成选择、调用和校验。这保证更换或新增数据源不需要改写 Command 的 UI 契约。
 
@@ -441,20 +448,21 @@ Lychee 当前产品策略更严格：战斗中 Palette 必须关闭，`TOGGLELYC
 
 ```text
 Input text changed
-  -> generation + 1
+  -> SearchSession generation + 1 / debounce
   -> normalize
   -> tokenize / intent parse
-  -> SearchIndex candidate retrieval (Command + SearchRecord)
+  -> CommandCatalog fixed candidate retrieval
+  -> SearchIndex SearchRecord candidate retrieval
   -> prefilter eligible ambient dynamic Commands
   -> context availability filter
   -> confidence/evidence scoring and deterministic rank
   -> publish unified result cards
   -> invoke matched catalog/ambient dynamic resolvers
-  -> verify generation + query key + context version
+  -> SearchSession verifies generation + query key + context version
   -> merge and diff-render
 ```
 
-每次输入变化生成单调递增 generation。Command 和 SearchRecord 都通过 SearchIndex 的静态候选召回进入首屏；`ambient` Command 不需要用户先输入命令名，但只在规范化查询满足其长度边界、availability、Extension/Command 启用状态和 Host 静态预筛选时获得调度资格。Provider 本身不参与该预筛选。
+每次输入变化由 SearchSession 生成单调递增 generation。固定 Command 通过 CommandCatalog 私有索引召回，SearchRecord 通过实体 SearchIndex 召回；`ambient` Command 不需要用户先输入命令名，但只在规范化查询满足其长度边界、availability、Extension/Command 启用状态和 Host 静态预筛选时获得调度资格。Provider 本身不参与该预筛选。
 
 输入只有一个 debounce、一个 generation 和一份查询 ContextSnapshot，catalog 与 ambient 不建立两条并行状态机。动态结果返回时必须同时匹配当前 generation、query key 和它声明依赖的 context slice version；旧结果直接丢弃。
 
@@ -497,7 +505,7 @@ SearchRecord 和 ambient item 都只保留结构化轻量字段，由 Host 与 C
 
 ### 10.4 调度
 
-- 输入使用单一 debounce，建议默认 0.05 秒。
+- `SearchSession` 使用单一 debounce，拥有 session/generation、取消 token 和结果接纳；Palette/Bootstrap 不直接推进 generation。
 - 静态检索同步完成。
 - 只有通过 catalog 命中，或通过 ambient 长度、availability、启用状态和静态预筛选的 `dynamic-list` Command 才调用 resolver。用户可以逐个停用 ambient Command，该偏好由 Host 按 stable Command ID 保存。
 - QueryOrchestrator 按稳定优先级为 ambient Command 分配全局调用数、单 Command 结果数和协作式耗时预算。未获得本 generation 预算的 Command 不调用 resolver，不以不确定顺序超额执行。
@@ -540,7 +548,7 @@ Lychee 绘制统一结果卡片，至少包含 icon、category badge、localized
 }
 ```
 
-Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态、空状态和 generation 校验。item payload 只传给所属 Command 的 `itemIntent`。
+Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态和空状态。`SearchSession` 校验结果 generation，`ResultActionExecutor` 校验行/source/Extension token；item payload 只传给所属 Command 的 `itemIntent`。
 
 空输入显示 Host-owned HomeView（最近、固定、按 category 分组和第三方入口）；有输入时切换 SearchView。两种状态共用 Palette session/generation、对象池和动作校验，不允许 Source 或 Command 创建第二个根窗口。
 
@@ -548,7 +556,7 @@ Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态�
 
 #### 结果动作与拖拽
 
-`interaction` 是动态 item 的可选、有界声明，不是给结果行挂任意 Lua 回调的入口。`actions` 最多四项，ID 必须在同一 item 内稳定且唯一；Host 只接受 `intent` 和自行解释的 `secure-spell` 两种 kind。描述符不得包含 function、Frame、宏文本、任意 secure attribute 或无界数据。
+`interaction` 是动态 item 的可选、有界声明，不是给结果行挂任意 Lua 回调的入口。`actions` 最多四项，ID 必须在同一 item 内稳定且唯一；Host 只接受 `intent`、同 Extension 的 `open-panel`、自行解释的 `secure-spell` 和 `drag-spell` 四种 kind。描述符不得包含 function、Frame、宏文本、任意 secure attribute 或无界数据。
 
 - 只有一个普通主动作时，行左键和 Enter 都执行它；有多个动作时，二者仍只执行 `primaryActionID`，其余动作由 Host 在稳定的行内动作槽显示明确按钮。Host 不根据标题、图标或 Provider 名称猜测动作。
 - `intent` 动作只由所属 Command 的 `itemIntent(item, actionID, context)` 生成结构化 Intent，再交 IntentRouter；跨 Extension 的 Handler、PanelFactory 或 transition 一律拒绝。普通动作可执行操作，也可在成功后返回同 Extension 的声明式 `custom-panel` transition。
@@ -556,7 +564,7 @@ Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态�
 - `drag` 当前只支持 `{ type = "spell", spellID = number }`。Host 仅在结果可见、当前 generation、Extension 已启用、脱战且法术已知、可用、非被动时显示专用拖拽区域；真实 `OnDragStart` 调用 `C_Spell.PickupSpell(spellID)`，由标准动作条接收光标内容。点击行、Enter、resolver 和 `itemIntent` 绝不触发 PickupSpell。
 - 无效描述符、不支持类型、不可用法术、过期行或战斗状态分别返回稳定的 `INVALID_INTERACTION`、`DRAG_UNSUPPORTED`、`ACTION_UNAVAILABLE`、`STALE_GENERATION` 或 `COMBAT_LOCKED`，且不改变鼠标光标。
 
-动作、拖拽和安全按钮都绑定 `extensionID + itemID + actionID + Palette session/context token + generation`。输入变化、Palette 关闭、进入战斗、Extension disable、retiring 或 removed 后，Host 立即使对应绑定失效；旧行、旧回调和迟到 resolver 结果不能作用于新一轮结果。安全法术按钮只能在脱战按结果 diff 或 dirty flush 配置，进入战斗后保持冻结并等待脱战重建。
+动作、拖拽和安全按钮都绑定 `extensionID + itemID + actionID + Palette session/context token + generation`。所有入口由 `ResultActionExecutor` 按固定顺序校验当前会话、source revision/generation、Extension 状态、战斗和 availability，再委托 IntentRouter、ViewHost、spell drag adapter 或 SecureActionBroker。输入变化、Palette 关闭、进入战斗、Extension disable、retiring 或 removed 后，Host 立即使对应绑定失效；旧行、旧回调和迟到 resolver 结果不能作用于新一轮结果。
 
 主动内容搜索的端到端示例：
 
@@ -691,11 +699,13 @@ Builtin module
 
 `PlayerSpellProvider` 的法术源不是固定技能表：Retail 运行时在登录、`SPELLS_CHANGED`、`LEARNED_SPELL_IN_SKILL_LINE`、`PLAYER_SPECIALIZATION_CHANGED` 和 `TRAIT_CONFIG_UPDATED` 事件后，使用 `C_SpellBook.GetNumSpellBookSkillLines()`、`GetSpellBookSkillLineInfo()` 与 `GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)` 重建当前角色的已知非被动、非 off-spec 法术快照。别名定义只作为 canonical spell ID 的投影；输入查询只读取快照和倒排别名索引。离线测试必须在 `tests/` 中注入 SpellBook fixture，生产 Provider 不包含固定技能回退。
 
+PlayerSpells 先完成 Extension `Commit()`，再保存 `handle:GetSearchSource("records")` 返回的窄 source handle；后续刷新只调用该 handle 的 `CommitSnapshot`，不访问 StaticIndex、不手拼 source ID、不维护私有 source generation。停用时注销事件并保留 handle 供重新启用，重新启用后重建实时快照；注销时停止待处理刷新并释放事件 frame 与 source handle。SpellBook 短暂读取失败保留上一份已提交快照。
+
 外部指南是可选 adapter，不是 Host 特权路径。以 MRT 为例，未来的 `DungeonGuideProvider` 只能调用目标 AddOn 的稳定公开接口；目标未加载、未接入或不支持该实体时，该动作返回 `ACTION_UNAVAILABLE`，不操作其内部 frame，不影响 Lychee 详情动作或其他结果。
 
 内置复杂面板同样注册 PanelFactory，并挂载到同一个 ViewHost，遵循 `Mount/Update/Unmount/Dispose`。内部 PanelContext 可以增加明确列出的 Host service，例如 ContextStore 只读查询、配置 facade、CapabilityBroker 和诊断接口；这些服务仍通过窄接口提供。内置面板不直接接管 Palette 根 frame，也不绕过焦点、Esc、关闭、IntentRouter 和清理状态机。
 
-Builtin 按业务域垂直拆分，每个域维护自己的 Provider、Command、Intent、Panel、索引和数据适配器；域之间只通过 Core 的窄接口通信。新增技能、任务、怪物技能、副本 CD 或新的第三方适配器时，只新增一个 Extension/业务目录并提交注册，不修改 Palette、QueryOrchestrator、ResultList 或 IntentRouter 的核心协议。域可以独立启停、报错、超时和注销，不能污染其他域。
+Builtin 按业务域垂直拆分，每个域按需维护自己的 SearchSource、Command、Provider、Intent、Panel、索引和数据适配器，不要求每个域注册全部角色；域之间只通过 Core 的窄接口通信。新增技能、任务、怪物技能、副本 CD 或新的第三方适配器时，只新增一个 Extension/业务目录并提交注册，不修改 Palette、QueryOrchestrator、ResultList 或 IntentRouter 的核心协议。域可以独立启停、报错、超时和注销，不能污染其他域。
 
 Palette、输入框、结果列表和 ViewHost 本身属于 Host 基础 UI，不作为 Command 面板注册；用户实际搜索进入的设置、诊断、插件管理等功能页面则作为 Builtin Extension 的 Command/PanelFactory 接入。
 
@@ -812,7 +822,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | --- | --- |
 | 第三方先加载 | 集成代码等待 Lychee ready 后提交，Extension 进入 Lychee registry |
 | Lychee 先加载 | 第三方 Commit 后 Extension 立即注册 |
-| Provider 单独注册 | 不进入搜索；同 Extension 提交 ambient `dynamic-list` Command 后才可直接搜索实体 |
+| Provider 单独注册 | 不进入搜索；稳定实体由同 Extension 的 SearchSource 收录，只有运行时组合查询才额外提交 ambient `dynamic-list` Command |
 | Extension 句柄 | `SetEnabled` 只增量影响本 Extension 的 owner-enabled 位，重复设置和 `Unregister()` 幂等 |
 | 同 ID Extension 重载 | 旧句柄 retiring 后停调度、失效 generation/transition、清理 Panel/索引/驱动；屏障完成才接受新句柄 |
 | SDK 缺席 | 第三方只跳过 Lychee 接入，自身功能继续运行 |
@@ -821,7 +831,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | installed/loading/loaded/sdk-registered | 验证 `loadedOrLoading, loaded` 对应未加载、加载中、已加载三个业务状态，不由 TOC 元数据推断接入 |
 | LoD AddOn | 关键词候选、显式加载、加载状态与注册状态分别展示 |
 | 快速连续输入 | 旧 generation 结果被丢弃 |
-| 直接实体名 | 不输入 Command 名也能经 ambient resolver 得到结构化 item |
+| 直接实体名 | SearchSource 中的稳定实体不输入 Command 名即可得到结构化 item；动态组合项可由 ambient resolver 产生 |
 | ambient 短/超长输入 | 不满足 `minLength`/`maxLength` 时 resolver 调用数为零 |
 | 多个 ambient Command | 按稳定优先级和全局调用预算调度，合并排序可复现 |
 | Provider 不可用 | 只显示该 Command 的稳定 unavailable/空状态，其他结果继续工作 |
@@ -836,7 +846,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 | 动作生命周期 | 输入替换、关闭、进战、disable、retiring/removed 后旧 session/context/generation 的动作、拖拽和安全按钮均失效 |
 | custom-panel | 实例复用、Mount/Update/Unmount/Dispose、Esc、异常后 content frame 隐藏/清空、托管驱动注销，其他 Extension 继续工作 |
 | MRT/指南 adapter | 仅经稳定公开 API 打开支持的实体；目标不可用时返回 `ACTION_UNAVAILABLE`，不访问内部 frame |
-| 内置实体场景 | 小怪/小怪技能、角色技能、Boss/M1 别名和副本传送别名均经 Provider -> Command -> item Intent -> Host UI 链路 |
+| 内置实体场景 | 小怪/小怪技能、角色技能、Boss/M1 别名和副本传送别名均经 SearchSource -> SearchRecord -> action/Intent -> Host UI 链路；只有真实动态组合查询额外使用 ambient Command/CapabilityProvider |
 | 第三方报错 | 其他 Extension 和 Palette 继续工作 |
 | secret/inaccessible 数据 | 根、key、value 和嵌套 table 均在索引/Intent/日志/SavedVariables 前拒绝 |
 | timer 取消 | query 替换、关闭、Unmount、disable 和 detach 后句柄已 Cancel，After 旧 generation 无效果 |
@@ -850,7 +860,7 @@ SDK 暴露整数 `API_VERSION`（major）和 `API_REVISION`。新增可选字段
 
 - [ ] 顶层公开模型为 Extension/Command/SearchSource/SearchRecord/CapabilityProvider/IntentHandler/PanelFactory。
 - [ ] Lychee ExtensionRegistry 是接入唯一事实源，草稿不参与查询。
-- [ ] Command 与 SearchRecord 进入同一 SearchIndex；Provider 只能通过 SearchSource 或 `catalog/ambient` resolver 间接提供数据。
+- [ ] CommandCatalog 私有索引与 SearchRecord 实体索引互不污染，并由 QueryOrchestrator 合并为单一结果；Provider 只能通过 SearchSource 或 `catalog/ambient` resolver 间接提供数据。
 - [ ] `ambient` 只能用于带明确长度边界的 `dynamic-list`，并经过单一 debounce/generation/context 和统一预算调度。
 - [ ] AddOn 枚举只用于诊断、兼容和 LoD。
 - [ ] 内置和第三方走同一 Catalog、Broker、Router 和 UI。

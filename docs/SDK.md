@@ -301,7 +301,7 @@ payload、request、result 和动态 item 只能包含 `nil`、boolean、有限 
 
 ### 7.2 Locale 与搜索别名
 
-所有用户可见 title 使用 string 或 locale table；Host 在加载期读取一次 `GetLocale()`，按“当前 locale -> `default`”选择显示值。Command 的 `aliases`/`keywords` 以及 Provider 自有实体索引可以使用两种别名形状：
+所有用户可见 title 使用 string 或 locale table；Host 在加载期读取一次 `GetLocale()`，按“当前 locale -> `default`”选择显示值。Command 和 SearchRecord 的 `aliases`/`keywords` 可以使用两种别名形状：
 
 ```lua
 aliases = {
@@ -313,7 +313,7 @@ aliases = {
 
 `locale` 必须是 Host 支持的 WoW locale token 或 `default`。Host 只将当前 locale 和 `default` 的别名送入 Normalizer/Tokenizer/拼音索引；其他 locale 保留在注册数据中但不参与本次客户端搜索。别名必须是有限 plain data，按第 7.3 节的顺序先拒绝 secret/inaccessible 值，再做长度、数量、重复项和 locale token 校验。
 
-Provider 的实体别名由 Provider 在注册或数据更新时索引到 canonical stable item ID，resolver 只查询该预索引。命中别名仍返回当前 locale 的 canonical 名称和同一个 item ID；不得为“复仇之怒”和“翅膀”创建两个结果，也不得在每次按键临时翻译、扫描全表或调用网络/生成式模型。规范化后同名的多个实体作为多个候选交给 Host 稳定排序，索引不能用覆盖写入丢弃其中任意实体。
+稳定实体的别名随 SearchRecord 在注册或数据更新时索引到 canonical stable item ID。命中别名仍返回当前 locale 的 canonical 名称和同一个 item ID；不得为“复仇之怒”和“翅膀”创建两个结果，也不得在每次按键临时翻译、扫描全表或调用网络/生成式模型。规范化后同名的多个实体作为多个候选交给 Host 稳定排序，索引不能用覆盖写入丢弃其中任意实体。
 
 ### 7.3 Secret 与 inaccessible value
 
@@ -726,7 +726,7 @@ local result, queryErr, providerInfo = extension:QueryCapability({
 }, context)
 ```
 
-Broker 先校验 request，再按兼容版本、用户默认、availability、priority 和稳定全局 ID 选择一个 Provider，最后校验 result。成功返回 `result, nil, { extensionID, providerID, version }`；失败返回 `nil, errorObject`。递归调用带调用栈和深度上限，环依赖返回 `CALL_DEPTH_EXCEEDED`。
+`minVersion` 和 `maxVersion` 为可选整数；同时提供时必须满足 `minVersion <= maxVersion`，否则返回 `INVALID_SCHEMA`。Broker 先按版本范围过滤，再校验 request，并按用户默认、availability、priority 和稳定全局 ID 选择一个兼容 Provider，最后校验 result。没有兼容且可用的 Provider 时返回 `PROVIDER_UNAVAILABLE`。成功返回 `result, nil, { extensionID, providerID, version }`；其他失败返回 `nil, errorObject`。递归调用带调用栈和深度上限，环依赖返回 `CALL_DEPTH_EXCEEDED`。
 
 Provider 错误只影响本次 request。v1 Provider 同步返回；昂贵数据应由事件驱动缓存或预索引，不能在一次 capability 调用中启动无界扫描。
 
@@ -966,10 +966,12 @@ Host 在 SavedVariables 中记录一次性 `defaultBindingAttempted`。已有 `T
 | `HOST_UNAVAILABLE` | 操作需要 attached Host |
 | `EXTENSION_DISABLED` | Extension 当前停用 |
 | `COMMAND_NOT_FOUND` | Command 或 Panel 引用不存在 |
-| `CAPABILITY_NOT_FOUND` | 没有兼容且可用的 Provider |
+| `CAPABILITY_NOT_FOUND` | 没有注册该 capability type |
+| `PROVIDER_UNAVAILABLE` | capability 已注册，但当前 Provider 均因 Extension 生命周期不可调用 |
 | `CALL_DEPTH_EXCEEDED` | capability 调用过深或出现环依赖 |
 | `PROVIDER_TIMEOUT` | Provider/resolver 返回后测得超出软预算 |
-| `PROVIDER_ERROR` | Provider/resolver 回调报错或返回值无效 |
+| `PROVIDER_ERROR` | Provider/resolver 回调报错；不包含回调异常文本或 payload |
+| `INVALID_RESULT` | Provider 返回值不符合其 result schema |
 | `RESULT_LIMIT` | 结果超出声明上限并被拒绝或截断 |
 | `STALE_GENERATION` | 结果属于旧输入或旧 Context token |
 | `INTENT_INVALID` | Intent type、version 或 payload 无效 |
@@ -1054,9 +1056,9 @@ if not committed then
 end
 ```
 
-### 17.2 大秘境怪物 Provider + ambient Command + 详情 Panel
+### 17.2 大秘境怪物 SearchSource + 详情 Panel
 
-下面的组合是第三方实体搜索的完整模板。`SearchCreatureNameIndex` 和 `GetCreatureRecord` 代表第三方自己维护的预索引和数据表；索引在加载或数据变化时更新，不在每次输入时重建。
+下面的组合是第三方稳定实体搜索的完整模板。`BuildCreatureSearchRecords(project)`、`SearchCreatureNameIndex` 和 `GetCreatureRecord` 代表第三方自己维护的数据投影、预索引和数据表；记录在加载或数据变化时批量更新，不在每次输入时重建。需要向其他模块复用同一份数据时，可以额外注册 CapabilityProvider，但它不是搜索入口。
 
 ```lua
 local SDK = _G.Lychee
@@ -1078,7 +1080,41 @@ local function RequireDeclaration(token)
     return false
 end
 
--- Provider 发布可复用能力，但它自己不会出现在 Lychee 搜索结果中。
+local function ToSearchRecord(record)
+    return {
+        id = "creature-" .. record.creatureID,
+        kind = "creature",
+        category = {
+            id = "mythic-creatures:creatures",
+            title = "大秘境怪物",
+        },
+        title = record.name,
+        aliases = record.aliases,
+        keywords = record.keywords,
+        description = record.summary,
+        icon = record.icon,
+        payload = {
+            creatureID = record.creatureID,
+        },
+        primaryActionID = "open-detail",
+        actions = {
+            {
+                id = "open-detail",
+                title = "查看详情",
+                kind = "intent",
+                intent = {
+                    type = "mythic-creatures.open-creature-detail",
+                    version = 1,
+                    payload = {
+                        creatureID = record.creatureID,
+                    },
+                },
+            },
+        },
+    }
+end
+
+-- 这是可选的跨模块复用能力；它自己不会出现在 Lychee 搜索结果中。
 if not RequireDeclaration(Extension:RegisterCapabilityProvider({
     id = "creature-source",
     type = "mythic-creatures.creature-search",
@@ -1102,6 +1138,15 @@ if not RequireDeclaration(Extension:RegisterCapabilityProvider({
         -- 必须查询已构建的轻量名称索引，不在这里全量扫描原始数据。
         return SearchCreatureNameIndex(request.text, request.limit)
     end,
+})) then return end
+
+-- 稳定怪物实体直接通过 SearchSource 收录。
+if not RequireDeclaration(Extension:RegisterSearchSource({
+    id = "creature-records",
+    version = 1,
+    revision = 1,
+    priority = 40,
+    records = BuildCreatureSearchRecords(ToSearchRecord),
 })) then return end
 
 if not RequireDeclaration(Extension:RegisterPanelFactory({
@@ -1176,74 +1221,15 @@ if not RequireDeclaration(Extension:RegisterIntentHandler({
     end,
 })) then return end
 
--- 只有这个 ambient dynamic-list Command 会让怪物名称进入主输入框搜索。
-if not RequireDeclaration(Extension:RegisterCommand({
-    id = "find-creature",
-    title = "查找大秘境怪物",
-    aliases = { "怪物", "小怪", "creature" },
-    keywords = { "mythic", "dungeon" },
-    presentation = "dynamic-list",
-    match = {
-        type = "ambient",
-        minLength = 2,
-        maxLength = 64,
-        priority = 0,
-    },
-    resolve = function(query, context)
-        local records, queryErr = Extension:QueryCapability({
-            type = "mythic-creatures.creature-search",
-            minVersion = 1,
-            maxVersion = 1,
-            request = {
-                text = query.normalized,
-                limit = query.limit,
-            },
-        }, context)
-        if not records then
-            return nil, queryErr
-        end
-
-        local items = {}
-        for index = 1, #records do
-            local record = records[index]
-            items[index] = {
-                id = "creature-" .. record.creatureID,
-                text = record.name,
-                subtext = record.dungeonName,
-                icon = record.icon,
-                enabled = true,
-                payload = {
-                    creatureID = record.creatureID,
-                },
-                interaction = {
-                    primaryActionID = "open-detail",
-                    actions = {
-                        { id = "open-detail", title = "查看详情", kind = "intent" },
-                    },
-                },
-            }
-        end
-        return items
-    end,
-    itemIntent = function(item, actionID)
-        if actionID ~= "open-detail" then
-            return nil, { code = "ACTION_UNAVAILABLE", retryable = false }
-        end
-        return {
-            type = "mythic-creatures.open-creature-detail",
-            version = 1,
-            payload = {
-                creatureID = item.payload.creatureID,
-            },
-        }
-    end,
-})) then return end
-
 local committed, commitErr = Extension:Commit()
 if not committed then
-    -- Provider、Command、Handler 和 Panel 全部不可见，不会留下部分接入。
+    -- SearchSource、Provider、Handler 和 Panel 全部不可见，不会留下部分接入。
     return
 end
+
+-- 数据变化时，通过 committed handle 原子替换搜索快照。
+local source = committed:GetSearchSource("creature-records")
+source:CommitSnapshot(BuildCreatureSearchRecords(ToSearchRecord), 2)
 
 -- 可选的第三方所有者控制；不能覆盖用户禁用或 Host 健康熔断。
 committed:SetEnabled(true)
@@ -1252,7 +1238,7 @@ committed:SetEnabled(true)
 -- committed:Unregister()
 ```
 
-用户直接输入怪物名称后的固定链路是：ambient Command 通过长度和预算筛选 -> resolver 经 Broker 查询 Provider 预索引 -> Host 绘制 item -> `itemIntent` 生成结构化 Intent -> Handler 返回 transition -> Host 校验并由 ViewHost 挂载同 Extension 的 Panel。Provider、resolver 和 Handler 都不创建或接管 Palette UI。
+用户直接输入怪物名称后的固定链路是：SearchSource 发布稳定 SearchRecord -> Host 统一索引与排序 -> Host 绘制结果行 -> SearchRecord action 提交结构化 Intent -> Handler 返回 transition -> Host 校验并由 ViewHost 挂载同 Extension 的 Panel。CapabilityProvider 只供其他模块通过 Broker 复用数据；固定入口或需要依据本次 Context 临时组合结果时才注册 Command。SearchSource、Provider 和 Handler 都不创建或接管 Palette UI。
 
 实现阶段的 SDK fixture 必须验证：
 
@@ -1272,12 +1258,12 @@ committed:SetEnabled(true)
 14. 战斗中 `TOGGLELYCHEE` 不改变 UI、焦点、generation 和任务数量；已打开 Palette 在 `PLAYER_REGEN_DISABLED` 完整关闭；
 15. `PLAYER_REGEN_ENABLED` 自动恢复 Binding 处理但不自动重开旧会话，焦点恢复失败不阻塞关闭；
 16. secure descriptor 只在脱战准备，真实点击触发动作，脚本 `Click()` 不作为 secure execution。
-17. 直接输入实体名时 ambient Command 返回动态项，不需要先输入 Command title/alias；短于 `minLength` 或长于 `maxLength` 时 resolver 调用数为零；
-18. 多个 ambient Command 按 owner/user enable、availability、priority、稳定 ID 和全局调用预算调度；单 Command 结果不超过 `query.limit`，超出 `deadlineMS` 的返回被计入 slow/熔断；
+17. 直接输入稳定实体名或 Locale 别名时 SearchSource 返回对应记录，不需要先输入 Command title/alias；
+18. 固定入口与真正的动态组合查询使用 Command；多个 ambient Command 按 owner/user enable、availability、priority、稳定 ID 和全局调用预算调度；
 19. 快速连续输入只发布最新 generation；旧同步结果、deferred 结果和 Context token 均被丢弃；
-20. 只有 Provider 而没有 ambient Command 的 committed Extension 不产生搜索结果；Provider 不可用、索引未就绪或 resolver 报错只影响所属结果组；
+20. 只有 CapabilityProvider 而没有 SearchSource/Command 的 committed Extension 不产生搜索结果；Provider 不可用只影响能力消费者，SearchSource 索引未就绪只影响所属结果组；
 21. 合法 item Intent transition 挂载同 Extension Panel；跨 Extension Panel、非法/secret/inaccessible state、过期 session/generation 均不创建或挂载 Panel；
-22. Palette 关闭、进入战斗、`SetEnabled(false)` 或幂等 `Unregister()` 后，ambient resolver、deferred、Panel 和待处理 transition 均无效果；
+22. Palette 关闭、进入战斗、`SetEnabled(false)` 或幂等 `Unregister()` 后，SearchSource、Command resolver、deferred、Panel 和待处理 transition 均无效果；
 23. 第三方先/后加载 Lychee 最终都得到相同 registered Extension；facade 缺席时一次性 `ADDON_LOADED` 监听触发幂等注册，第三方无需轮询或重复提交；
 24. facade 缺席只记录一次 `SDK_UNAVAILABLE`；PublicAPI 不支持声明的 API major/minimum revision 时，`Commit()` 原子失败并只记录一次 `UNSUPPORTED_API`，两种路径都不影响第三方自身功能；
 25. PublicAPI 支持声明、但当前 Host revision 不足时，`Commit()` 成功，Extension 进入 `pending/incompatible` 并报告 `INCOMPATIBLE_HOST`，不执行第三方回调；
@@ -1294,7 +1280,7 @@ committed:SetEnabled(true)
 
 ### 17.3 玩家法术结果：动作条拖拽与真实点击施放
 
-`PlayerSpellProvider` 只应发布当前角色已知且可用的法术。当前内置实现直接提交 SearchRecord，不经过 Command resolver 或 CapabilityBroker；Host 负责在展示和执行时再次确认法术可用性、generation 与战斗状态：
+`PlayerSpellProvider` 只应发布当前角色已知且可用的法术。当前内置实现先 Commit Extension，再持有 `GetSearchSource("records")` 返回的窄 handle，通过 `CommitSnapshot` 原子替换实时记录；它不直接访问 Host SearchIndex，不经过 Command resolver 或 CapabilityBroker。停用/注销会停止事件和待处理刷新，临时 SpellBook 读取失败保留上一快照。Host 负责在展示和执行时再次确认法术可用性、generation 与战斗状态：
 
 ```lua
 local function BuildPlayerSpellRecord(spellID, name, icon, aliases)
@@ -1328,7 +1314,7 @@ end
 - [ ] 普通动作使用结构化 Intent，payload 只含有界 plain data。
 - [ ] Context、payload、request/result、item 和诊断字段先递归拒绝 secret/inaccessible value。
 - [ ] dynamic-list 返回稳定 item ID，不创建结果行 frame。
-- [ ] Provider 不作为搜索入口、不绘制 UI；需要实体搜索时，同一 Extension 还注册 ambient dynamic-list Command，并通过 Broker 调用 Provider。
+- [ ] 稳定实体通过 SearchSource 收录；Provider 只发布跨模块复用能力且不绘制 UI；固定入口或真正的动态组合查询才注册 Command。
 - [ ] ambient 只用于 dynamic-list，声明合法长度边界，并遵守 enable、availability、调用数、结果数、时间和 generation 预算。
 - [ ] resolver 超时/连续错误保留 dirty，进入 slow 并按退避窗口重试；取消路径不会留下 ticker 或任务。
 - [ ] itemIntent 先生成 Intent；Handler 只返回声明式 transition，Panel 所有权和 state 校验后才挂载。

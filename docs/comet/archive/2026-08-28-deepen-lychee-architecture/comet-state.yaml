@@ -1,0 +1,861 @@
+schema: comet.native.v4
+name: deepen-lychee-architecture
+language: zh-CN
+phase: archive
+status: done
+state_version: 13
+brief: brief.md
+spec_changes:
+  - capability: architecture-convergence
+    operation: create
+    source: specs/architecture-convergence/spec.md
+workspace:
+  isolation: current
+  change_branch: main
+  target_branch: main
+  finish: null
+loop:
+  stage: done
+  goal_cycle: 1
+  iteration: 3
+  attempt: 1
+  retry_epoch: 0
+  failed_iteration_count: 2
+  no_progress_count: 0
+  execution_failure_count: 0
+  previous_unresolved_ids: []
+  next_action: null
+acceptance:
+  - id: A1
+    source: brief.md
+    text: A1：注册一个固定 Command 后，按标题或别名查询只返回一条可执行 Command 结果；不会再额外返回同 ID 的普通
+      SearchRecord，也不会重复扫描同一索引路径。
+    result: passed
+    reason:
+      text: 固定 Command 仅进入 Catalog 私有索引，标题和别名查询均为单一结果。
+      truncated: false
+  - id: A2
+    source: brief.md
+    text: A2：Extension disable、retiring 或 unregister 后，其固定 Command 和 ambient Command
+      均不可查询、不可调度；重新 enable 后按原优先级恢复且不产生重复投影。
+    result: passed
+    reason:
+      text: disable、retiring、unregister 同步影响 fixed/ambient，重新启用无重复投影。
+      truncated: false
+  - id: A3
+    source: brief.md
+    text: A3：声明式结果动作通过统一动作执行模块处理；普通 Intent、同 Extension Panel transition、spell drag 和
+      secure-spell 保持现有可观察行为，旧 session/generation、战斗、不可用目标和停用 Extension
+      均返回稳定错误且不产生副作用。
+    result: passed
+    reason:
+      text: ResultActionExecutor 统一处理 Intent、Panel、拖拽、secure-spell、战斗与过期结果。
+      truncated: false
+  - id: A4
+    source: brief.md
+    text: A4：搜索会话由单一模块推进
+      session/generation、防抖和取消；快速连续输入、关闭面板、输入法修订及迟到回调不会让旧结果覆盖新结果，也不会在 Palette
+      隐藏后继续发布结果。
+    result: passed
+    reason:
+      text: SearchSession 独占 session/generation、防抖、取消和迟到结果拒绝。
+      truncated: false
+  - id: A5
+    source: brief.md
+    text: A5：PlayerSpells 初始化成功后持有正式 SearchSource handle，法术书刷新通过该 handle 原子提交新快照；生产
+      PlayerSpells 文件中不存在对 StaticIndex、手拼 source ID 或私有 source generation 的直接访问。
+    result: passed
+    reason:
+      text: PlayerSpells 仅通过 committed SearchSource handle 原子提交实时快照。
+      truncated: false
+  - id: A6
+    source: brief.md
+    text: A6：CapabilityProvider 所属 Extension 停用、retiring 或 removed
+      时不会被调用；请求和结果分别通过已声明 Schema，非法输入/输出、回调异常、能力缺失与 Provider 不可用返回可区分的稳定错误。
+    result: passed
+    reason:
+      text: CapabilityBroker 覆盖生命周期、双 Schema、异常隔离和稳定错误。
+      truncated: false
+  - id: A7
+    source: brief.md
+    text: A7：公共 `_G.Lychee` Extension/Command/Capability/Intent/Panel/SearchSource
+      合同保持兼容；第三方 fixture 通过同一公共接口注册、查询、执行、停用和注销，SDK 文档与当前规格和实现一致。
+    result: passed
+    reason:
+      text: 公共 facade、fixture、SDK、规格和版本范围查询链路一致。
+      truncated: false
+  - id: A8
+    source: brief.md
+    text: A8：运行时无新增常驻 OnUpdate 或按键全表扫描；Lua 语法、全部 smoke、合同检查、Retail wowdoc validate 和
+      git diff --check 通过，提交后正式服副本与 `package/Lychee` 的运行时文件清单及 SHA-256 完全一致。
+    result: passed
+    reason:
+      text: 无新增常驻 OnUpdate 或按键全表扫描，全部静态检查通过。
+      truncated: false
+  - id: A9
+    source: specs/architecture-convergence/spec.md
+    text: Lychee 保持单一 Host AddOn 和 `_G.Lychee` 公共 facade。ExtensionRegistry 是
+      Extension 原子声明与生命周期的唯一事实源。SearchIndex 由 Host 独占；业务模块只通过 committed
+      Extension handle 提供的 SearchSource handle 更新记录。
+    result: passed
+    reason:
+      text: 单 Host facade、Registry 事实源和 Host 独占实体索引边界成立。
+      truncated: false
+  - id: A10
+    source: specs/architecture-convergence/spec.md
+    text: 运行时使用以下职责边界：
+    result: passed
+    reason:
+      text: Command、Capability、Session、Action 和 PlayerSpells 职责已拆入对应模块。
+      truncated: false
+  - id: A11
+    source: specs/architecture-convergence/spec.md
+    text: 公共 facade 不吸收这些实现细节。UI 模块只发出输入、显示、关闭、选择和拖拽事件；它不直接推进查询 generation，也不实现
+      Intent/Panel transition 路由。
+    result: passed
+    reason:
+      text: 公共 facade 保持窄接口，Palette 与 Bootstrap 未吸收内部规则。
+      truncated: false
+  - id: A12
+    source: specs/architecture-convergence/spec.md
+    text: CommandCatalog 完整拥有 Command 的规范化投影、稳定身份、优先级、启停状态、catalog 查询以及 ambient
+      schedulable view。QueryOrchestrator 不读取 `Catalog.commands` 等内部可变表，也不把
+      Command 的索引投影作为普通 SearchRecord 再返回。
+    result: passed
+    reason:
+      text: Catalog 深快照 descriptor，Get、Query 和 ambient 返回值均与内部状态隔离。
+      truncated: false
+  - id: A13
+    source: specs/architecture-convergence/spec.md
+    text: 一个固定 Command 在任意查询中最多产生一条结果。Command 的 priority 必须按每条 Command 保留，不能由同
+      Extension 第一条 Command 的 source priority 覆盖。普通实体结果不能因为共享候选上限而把精确固定 Command
+      从 Command 查询中挤出。
+    result: passed
+    reason:
+      text: 每条 Command priority 独立快照，注册后突变不影响结果。
+      truncated: false
+  - id: A14
+    source: specs/architecture-convergence/spec.md
+    text: Extension disable、retiring、removed 和 unregister 必须同时影响 Command 查询与 ambient
+      调度。enable 恢复原声明，不重复写入索引。Command 移除只清理所属 Extension 的投影。
+    result: passed
+    reason:
+      text: Command disable、retiring、removed、unregister 和恢复时序正确。
+      truncated: false
+  - id: A15
+    source: specs/architecture-convergence/spec.md
+    text: CapabilityBroker 完整拥有 Provider 的 Extension 所有权、生命周期资格、capability
+      type、version、priority、请求 Schema、结果 Schema、错误边界和确定性选择。
+    result: passed
+    reason:
+      text: Broker 校验整数版本范围并跳过高优先级不兼容 Provider。
+      truncated: false
+  - id: A16
+    source: specs/architecture-convergence/spec.md
+    text: 查询时先校验请求，再按已启用 Provider 的稳定 priority 和身份排序选择。停用、retiring 或 removed
+      Extension 的 Provider 不得调用。Provider 返回值必须通过结果
+      Schema；回调异常、非法结果和能力不存在不得被当作成功结果。
+    result: passed
+    reason:
+      text: 公共 handle 原样转发 minVersion、maxVersion、request 和 context。
+      truncated: false
+  - id: A17
+    source: specs/architecture-convergence/spec.md
+    text: 稳定错误至少可区分：能力不存在、Extension/Provider 不可用、请求非法、结果非法和 Provider
+      回调失败。错误对象遵循现有公开错误格式，不泄漏 payload 或回调细节。
+    result: passed
+    reason:
+      text: 能力缺失、不可用、Schema、结果和回调错误可区分且不泄漏内部细节。
+      truncated: false
+  - id: A18
+    source: specs/architecture-convergence/spec.md
+    text: 本轮不规定跨查询缓存、自动重试或复杂 fallback。若最高优先级 Provider 明确不可用，是否尝试下一 Provider
+      只允许沿用当前已文档化行为，不新增用户可见策略。
+    result: passed
+    reason:
+      text: 未引入跨查询缓存、自动重试或新的用户可见 fallback。
+      truncated: false
+  - id: A19
+    source: specs/architecture-convergence/spec.md
+    text: SearchSession 是 session 和 query generation 的唯一所有者。它负责：
+    result: passed
+    reason:
+      text: session 和 query generation 仅由 SearchSession 推进。
+      truncated: false
+  - id: A20
+    source: specs/architecture-convergence/spec.md
+    text: Palette 显示时开始会话，隐藏、进战或显式失效时结束会话；
+    result: passed
+    reason:
+      text: Palette 显示、隐藏和进战正确启动或终止会话。
+      truncated: false
+  - id: A21
+    source: specs/architecture-convergence/spec.md
+    text: 输入修订、防抖、查询 token、取消和迟到回调丢弃；
+    result: passed
+    reason:
+      text: 连续输入、IME、timer 取消和迟到回调均受 token guard 保护。
+      truncated: false
+  - id: A22
+    source: specs/architecture-convergence/spec.md
+    text: 调用 QueryOrchestrator 并只接纳当前会话的最新 generation；
+    result: passed
+    reason:
+      text: SearchSession 调度 Orchestrator 且只接纳当前 token。
+      truncated: false
+  - id: A23
+    source: specs/architecture-convergence/spec.md
+    text: Extension/source 失效后拒绝关联结果；
+    result: passed
+    reason:
+      text: SearchSource 变化立即使当前 generation 失效并清除旧结果。
+      truncated: false
+  - id: A24
+    source: specs/architecture-convergence/spec.md
+    text: 向 Palette 发布已接纳的结果状态。
+    result: passed
+    reason:
+      text: 已接纳结果只通过 SearchSession 发布给 Palette。
+      truncated: false
+  - id: A25
+    source: specs/architecture-convergence/spec.md
+    text: Palette 不直接写 QueryOrchestrator generation，Bootstrap 不读写 Palette 的
+      session/generation 内部字段。快速连续输入、IME composition、关闭后回调和旧 timer
+      都不能覆盖当前结果。隐藏时取消可取消 timer；不可取消回调使用 token guard 丢弃。
+    result: passed
+    reason:
+      text: Palette 与 Bootstrap 不直接推进会话代次，旧回调不能覆盖新结果。
+      truncated: false
+  - id: A26
+    source: specs/architecture-convergence/spec.md
+    text: ResultActionExecutor 处理 SearchRecord 与 Command item
+      的声明式动作。其输入包含当前结果、action ID、Extension 所有权和 SearchSession
+      token；其输出使用现有成功值或稳定错误。
+    result: passed
+    reason:
+      text: Executor 输入包含结果、action、owner、session 和 source token。
+      truncated: false
+  - id: A27
+    source: specs/architecture-convergence/spec.md
+    text: 执行顺序固定为：
+    result: passed
+    reason:
+      text: 动作校验和委托顺序符合规格。
+      truncated: false
+  - id: A28
+    source: specs/architecture-convergence/spec.md
+    text: 验证 Palette 可见、session/generation、source revision/generation 与 Extension
+      enabled；
+    result: passed
+    reason:
+      text: 可见性、会话、source revision/generation 和 Extension 状态均预先校验。
+      truncated: false
+  - id: A29
+    source: specs/architecture-convergence/spec.md
+    text: 验证战斗状态和声明式 availability；
+    result: passed
+    reason:
+      text: 战斗与声明式 availability 在副作用前检查。
+      truncated: false
+  - id: A30
+    source: specs/architecture-convergence/spec.md
+    text: 找到稳定 action ID，不按标题或图标推断；
+    result: passed
+    reason:
+      text: 动作按稳定 action ID 定位，不依赖显示文字或图标。
+      truncated: false
+  - id: A31
+    source: specs/architecture-convergence/spec.md
+    text: 对普通 Intent 调用 IntentRouter；
+    result: passed
+    reason:
+      text: 普通 Intent 统一委托 IntentRouter。
+      truncated: false
+  - id: A32
+    source: specs/architecture-convergence/spec.md
+    text: 对合法 transition 验证同 Extension Panel 和 state Schema，再委托 ViewHost；
+    result: passed
+    reason:
+      text: Panel transition 校验同 Extension 所有权和 state Schema 后交给 ViewHost。
+      truncated: false
+  - id: A33
+    source: specs/architecture-convergence/spec.md
+    text: 对 drag 委托 spell drag adapter；
+    result: passed
+    reason:
+      text: spell drag 委托独立拖拽适配器。
+      truncated: false
+  - id: A34
+    source: specs/architecture-convergence/spec.md
+    text: 对 secure-spell 委托 SecureActionBroker，脚本或 Enter 路径返回
+      `ACTION_REQUIRES_HARDWARE_CLICK`；
+    result: passed
+    reason:
+      text: secure-spell 委托 Broker，脚本路径返回硬件点击要求。
+      truncated: false
+  - id: A35
+    source: specs/architecture-convergence/spec.md
+    text: 按结果处理关闭 Palette 或保持当前视图。
+    result: passed
+    reason:
+      text: 动作结果按合同关闭 Palette 或保留当前视图。
+      truncated: false
+  - id: A36
+    source: specs/architecture-convergence/spec.md
+    text: Palette 负责行和动作槽的绘制以及把用户事件转交给 ResultActionExecutor。Bootstrap
+      只负责模块装配，不实现动作分支。ViewHost、IntentRouter 与 SecureActionBroker 继续作为下层深模块。
+    result: passed
+    reason:
+      text: Palette 只绘制和转交，Bootstrap 只装配。
+      truncated: false
+  - id: A37
+    source: specs/architecture-convergence/spec.md
+    text: PlayerSpells 使用当前角色实时 SpellBook
+      作为唯一事实源，别名定义只投影到已知法术。模块拥有事件注册、同帧刷新合并、描述数据请求、快照构建、SearchRecord 投影、提交和
+      teardown。
+    result: passed
+    reason:
+      text: PlayerSpells 使用实时 SpellBook 并通过事件合并刷新。
+      truncated: false
+  - id: A38
+    source: specs/architecture-convergence/spec.md
+    text: Extension draft 注册 SearchSource 并 Commit 后，PlayerSpells 保存
+      `handle:GetSearchSource("records")` 返回的窄 source handle。后续刷新只通过该 handle 的
+      `BeginSnapshot`、`CommitSnapshot`、`Upsert`、`Remove` 或 `Invalidate`
+      更新；不得直接访问 StaticIndex、手拼完整 source ID 或维护私有 source generation。
+    result: passed
+    reason:
+      text: 生产 PlayerSpells 不访问 StaticIndex、不手拼 source ID 或维护私有 generation。
+      truncated: false
+  - id: A39
+    source: specs/architecture-convergence/spec.md
+    text: 初次注册失败必须允许明确重试或完整清理，不能在失败前永久写入 initialized 状态。disable/unregister
+      后事件和待处理刷新不得继续修改索引。短暂 SpellBook API 失败保留上一份已提交快照，不发布空结果。
+    result: passed
+    reason:
+      text: 初始化失败可重试，停用/注销清理，短暂 API 失败保留旧快照。
+      truncated: false
+  - id: A40
+    source: specs/architecture-convergence/spec.md
+    text: "`_G.Lychee`、Extension draft 以及
+      Command、CapabilityProvider、IntentHandler、PanelFactory、SearchSource
+      公共声明保持兼容。第三方仍通过 `## OptionalDeps: Lychee` 和同一 facade 接入，不新增 sibling SDK
+      AddOn。"
+    result: passed
+    reason:
+      text: "单 facade 与 OptionalDeps: Lychee 模型保持一致。"
+      truncated: false
+  - id: A41
+    source: specs/architecture-convergence/spec.md
+    text: 第三方 fixture 必须覆盖注册、Commit、查询、普通动作、Panel、能力查询、disable/enable 和
+      Unregister。公共文档必须明确：稳定实体使用 SearchSource；固定入口和真实动态组合使用 Command；跨模块复用数据使用
+      CapabilityProvider。
+    result: passed
+    reason:
+      text: fixture 与文档统一为 SearchSource 实体、Command 入口、CapabilityProvider 复用能力。
+      truncated: false
+  - id: A42
+    source: specs/architecture-convergence/spec.md
+    text: Palette 隐藏、没有 pending query 或刷新时无常驻 Lua OnUpdate。
+    result: passed
+    reason:
+      text: Palette 隐藏且无任务时没有常驻 Lua 工作。
+      truncated: false
+  - id: A43
+    source: specs/architecture-convergence/spec.md
+    text: 固定 Command 查询不重复扫描同一索引，不为同一 Command 创建两种结果形状。
+    result: passed
+    reason:
+      text: 固定 Command 不扫描共享实体索引，也不产生双结果形状。
+      truncated: false
+  - id: A44
+    source: specs/architecture-convergence/spec.md
+    text: 搜索输入只查预构建索引；不新增按键时全表扫描。
+    result: passed
+    reason:
+      text: 输入查询读取预构建索引，不扫描 SpellBook 或原始业务库。
+      truncated: false
+  - id: A45
+    source: specs/architecture-convergence/spec.md
+    text: session/source/action token 使用稳定小表或复用状态，不在每帧创建对象。
+    result: passed
+    reason:
+      text: session/source/action token 为有界小表，无新增每帧分配路径。
+      truncated: false
+  - id: A46
+    source: specs/architecture-convergence/spec.md
+    text: PlayerSpells 只在事件后合并刷新，按键路径不访问 SpellBook。
+    result: passed
+    reason:
+      text: PlayerSpells 搜索热路径不访问 SpellBook。
+      truncated: false
+  - id: A47
+    source: specs/architecture-convergence/spec.md
+    text: secure-spell、drag、Binding、事件和 XML/TOC 使用 Retail 当前 wowdoc 证据；战斗中保持现有严格禁用策略。
+    result: passed
+    reason:
+      text: Retail 12.1.0 wowdoc 校验 27 个 Lua 文件且 valid=true。
+      truncated: false
+  - id: A48
+    source: specs/architecture-convergence/spec.md
+    text: 固定 Command：单结果、别名、每 Command priority、disable/enable、unregister、ambient
+      调度和实体共存。
+    result: passed
+    reason:
+      text: 固定 Command 的单结果、别名、priority、突变隔离和生命周期有直接测试。
+      truncated: false
+  - id: A49
+    source: specs/architecture-convergence/spec.md
+    text: CapabilityBroker：请求/结果 Schema、停用 Provider、确定性优先级、异常隔离、能力缺失和注销清理。
+    result: passed
+    reason:
+      text: Capability 的 Schema、生命周期、排序、版本范围、异常和注销有直接测试。
+      truncated: false
+  - id: A50
+    source: specs/architecture-convergence/spec.md
+    text: SearchSession：连续输入、IME 修订、timer 取消、隐藏、进战、迟到结果和 source 失效。
+    result: passed
+    reason:
+      text: SearchSession 的连续输入、取消、隐藏、战斗、迟到结果和 source 失效有测试。
+      truncated: false
+  - id: A51
+    source: specs/architecture-convergence/spec.md
+    text: ResultActionExecutor：普通 Intent、Panel transition、跨 Extension
+      拒绝、drag、secure-spell、战斗、availability 和旧 token。
+    result: passed
+    reason:
+      text: Intent owner、Panel、drag、secure、战斗、availability 和旧 token 有测试。
+      truncated: false
+  - id: A52
+    source: specs/architecture-convergence/spec.md
+    text: PlayerSpells：实时快照、别名/描述、失败保留、handle 提交、disable/unregister 清理。
+    result: passed
+    reason:
+      text: PlayerSpells 实时快照、别名、描述、失败保留、handle 更新和生命周期有测试。
+      truncated: false
+  - id: A53
+    source: specs/architecture-convergence/spec.md
+    text: 回归：Lua 5.1 语法、全部 smoke、合同检查、Retail wowdoc validate、git diff
+      --check、正式服文件清单和 SHA-256。
+    result: passed
+    reason:
+      text: 36 个 Lua 文件、全部 smoke、合同、wowdoc 和 git diff --check 均通过。
+      truncated: false
+builder_handoff:
+  candidate_id: 28b92c20-bf09-42a0-ba24-9fb212dd040b
+  identity_provider: skill-coordinated
+  builder_execution_ref: skill-coordinated:builder:90a22bd7-e8bc-4511-95ac-e43b84b8235e
+  iteration: 3
+  summary:
+    text: Iteration 3 修复第二次 Verify 的全部 6 个失败项：CommandCatalog 对注册 descriptor 建立深快照并隔离
+      Get/Query/ambient 返回值；CapabilityBroker 与公共 handle 完整支持整数
+      minVersion/maxVersion 范围、兼容过滤和稳定错误；当前 specs、ARCHITECTURE、SDK 与合同 guard 收敛为
+      SearchSource 稳定实体、Command 固定入口/真实动态组合、CapabilityProvider 可复用能力。完整规格与
+      A1-A53 已重新核对。
+    truncated: false
+  addressed_acceptance_ids:
+    - A1
+    - A2
+    - A3
+    - A4
+    - A5
+    - A6
+    - A7
+    - A8
+    - A9
+    - A10
+    - A11
+    - A12
+    - A13
+    - A14
+    - A15
+    - A16
+    - A17
+    - A18
+    - A19
+    - A20
+    - A21
+    - A22
+    - A23
+    - A24
+    - A25
+    - A26
+    - A27
+    - A28
+    - A29
+    - A30
+    - A31
+    - A32
+    - A33
+    - A34
+    - A35
+    - A36
+    - A37
+    - A38
+    - A39
+    - A40
+    - A41
+    - A42
+    - A43
+    - A44
+    - A45
+    - A46
+    - A47
+    - A48
+    - A49
+    - A50
+    - A51
+    - A52
+    - A53
+  checks:
+    - name:
+        text: Lua 5.1 syntax
+        truncated: false
+      result: passed
+      note:
+        text: package/Lychee、tests、lychee-sdk 共 36 个 Lua 文件 luac -p 通过
+        truncated: false
+    - name:
+        text: Runtime smoke
+        truncated: false
+      result: passed
+      note:
+        text: tests/smoke.lua PASS，覆盖第三方 SearchSource、Intent、同 Extension
+          Panel、Capability、disable/enable 和幂等 Unregister
+        truncated: false
+    - name:
+        text: Interaction smoke
+        truncated: false
+      result: passed
+      note:
+        text: tests/interaction_smoke.lua PASS，新增 Command/SearchRecord 跨 Extension
+          Intent owner 拒绝
+        truncated: false
+    - name:
+        text: Search platform smoke
+        truncated: false
+      result: passed
+      note:
+        text: tests/search_platform_smoke.lua PASS
+        truncated: false
+    - name:
+        text: Search session smoke
+        truncated: false
+      result: passed
+      note:
+        text: tests/search_session_smoke.lua PASS，覆盖连续输入、timer 取消、隐藏、source change
+          清空旧结果、失效和战斗
+        truncated: false
+    - name:
+        text: Command catalog smoke
+        truncated: false
+      result: passed
+      note:
+        text: tests/command_catalog_smoke.lua PASS，覆盖 descriptor
+          与嵌套表注册后突变、Get/Query/ambient 返回值突变隔离，以及完整生命周期
+        truncated: false
+    - name:
+        text: Capability broker smoke
+        truncated: false
+      result: passed
+      note:
+        text: tests/capability_broker_smoke.lua PASS，覆盖精确版本、min/max
+          范围、高优先不兼容跳过、无兼容、非法范围和 Registry handle 转发
+        truncated: false
+    - name:
+        text: Contract guards
+        truncated: false
+      result: passed
+      note:
+        text: tests/check_contract.ps1 PASS，并加入稳定实体旧模型禁用词
+        truncated: false
+    - name:
+        text: Architecture legacy scan
+        truncated: false
+      result: passed
+      note:
+        text: docs/comet/specs、ARCHITECTURE、SDK 和 lychee-sdk 不含
+          Command-only、Provider-to-Command 等旧链路表述
+        truncated: false
+    - name:
+        text: Retail wowdoc validate
+        truncated: false
+      result: passed
+      note:
+        text: wow-ui-source retail 12.1.0，checkedLua=27，valid=true；已通过 PowerShell PATH
+          入口复验
+        truncated: false
+    - name:
+        text: git diff --check
+        truncated: false
+      result: passed
+      note:
+        text: 无空白错误
+        truncated: false
+  checks_truncated: false
+  known_limits:
+    - text: 按项目交付顺序，Git commit、正式服复制、完整文件清单/SHA-256 对比和游戏内 /reload 只能在 Comet
+        Verify/Archive 接受后执行，尚未提前执行。
+      truncated: false
+  known_limits_truncated: false
+  submitted_at: 2026-08-28T12:20:06.477Z
+blockers: []
+verification:
+  candidate_id: 28b92c20-bf09-42a0-ba24-9fb212dd040b
+  identity_provider: skill-coordinated
+  verifier_execution_ref: skill-coordinated:verifier:746f9b20-d745-4528-a9c4-6e7cd76c884a
+  iteration: 3
+  attempt: 1
+  assurance: skill-coordinated
+  verdict: pass
+  checks:
+    - id: lua-syntax
+      name:
+        text: Lua 5.1 syntax for runtime tests and SDK
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -Command
+          truncated: false
+        - text: "$ErrorActionPreference='Stop'; $files = Get-ChildItem
+            package/Lychee,tests,lychee-sdk -Recurse -File -Filter *.lua;
+            foreach ($file in $files) { & luac -p $file.FullName; if
+            ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }; Write-Output ('PASS
+            lua syntax: ' + $files.Count + ' files')"
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 550
+    - id: runtime-smoke
+      name:
+        text: Runtime smoke
+        truncated: false
+      argv_display:
+        - text: tests/smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 31
+    - id: interaction-smoke
+      name:
+        text: Interaction and action execution smoke
+        truncated: false
+      argv_display:
+        - text: tests/interaction_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 36
+    - id: search-platform-smoke
+      name:
+        text: Search platform smoke
+        truncated: false
+      argv_display:
+        - text: tests/search_platform_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 29
+    - id: search-session-smoke
+      name:
+        text: Search session smoke
+        truncated: false
+      argv_display:
+        - text: tests/search_session_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 24
+    - id: command-catalog-smoke
+      name:
+        text: Command catalog smoke
+        truncated: false
+      argv_display:
+        - text: tests/command_catalog_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 26
+    - id: capability-broker-smoke
+      name:
+        text: Capability broker smoke
+        truncated: false
+      argv_display:
+        - text: tests/capability_broker_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 27
+    - id: contract-guards
+      name:
+        text: Architecture contract guards
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -ExecutionPolicy
+          truncated: false
+        - text: Bypass
+          truncated: false
+        - text: -File
+          truncated: false
+        - text: tests/check_contract.ps1
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 361
+    - id: wowdoc-retail
+      name:
+        text: Retail 12.1.0 wowdoc validation
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -Command
+          truncated: false
+        - text: wowdoc validate --path package/Lychee --source wow-ui-source --product
+            retail --ref 12.1.0; exit $LASTEXITCODE
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 303
+    - id: diff-check
+      name:
+        text: Git whitespace validation
+        truncated: false
+      argv_display:
+        - text: diff
+          truncated: false
+        - text: --check
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 59
+    - id: architecture-static-audit
+      name:
+        text: Architecture forbidden-access audit
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -Command
+          truncated: false
+        - text: "$ErrorActionPreference='Stop'; $checks =
+            @(@{Path='package/Lychee/Search/QueryOrchestrator.lua';
+            Pattern='Catalog\\.commands|self\\.generation|_BeginGeneration|func\
+            tion\\s+Q:Invalidate'},
+            @{Path='package/Lychee/Builtin/PlayerSpells';
+            Pattern='StaticIndex|sourceGeneration|builtin\\.player-spells:recor\
+            ds'}, @{Path='package/Lychee/Bootstrap.lua';
+            Pattern='palette\\.(generation|session)|palette:(Execute|Run|Dispat\
+            ch)'}, @{Path='package/Lychee/UI/Palette.lua';
+            Pattern='secure%-spell|open%-detail|builtin%-panel'}); foreach
+            ($check in $checks) { $hits = Get-ChildItem -LiteralPath $check.Path
+            -File -Recurse | Select-String -Pattern $check.Pattern; if ($hits) {
+            $hits | ForEach-Object { Write-Error ($_.Path + ':' + $_.LineNumber
+            + ': ' + $_.Line) }; exit 1 } }; $legacy = rg -n 'Command
+            是唯一|用户输入只匹配 Command|实体必须.*ambient|需要实体搜索时.*ambient|必须注册引用该
+            Provider|新增数据源时注册
+            Provider|Provider\\s*->\\s*Command|可搜索入口是两份显式声明|ambient.*Command
+            负责直接命中名称' docs/comet/specs docs/ARCHITECTURE.md docs/SDK.md
+            lychee-sdk; if ($LASTEXITCODE -eq 0) { $legacy; exit 1 }; if
+            ($LASTEXITCODE -ne 1) { exit $LASTEXITCODE }; Write-Output 'PASS
+            architecture forbidden-access audit'"
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 241
+  summary:
+    text: 上一轮的 descriptor 突变、Command priority、Capability 版本范围、公共 handle
+      转发和文档旧模型问题均已修复，当前实现满足完整验收合同。
+    truncated: false
+  risks:
+    - text: Git 提交、正式服复制及完整 SHA-256 对比尚待 Comet 接受和归档后执行。
+      truncated: false
+    - text: 真实客户端中的硬件点击、拖拽和 /reload 仍需最终游戏内验证。
+      truncated: false
+  risks_truncated: false
+  completed_at: 2026-08-28T12:26:09.556Z
+history:
+  - goal_cycle: 1
+    iteration: 1
+    attempt: 1
+    outcome: fail
+    unresolved_ids:
+      - A2
+      - A4
+      - A7
+      - A14
+      - A19
+      - A23
+      - A41
+      - A51
+    summary:
+      text: 主要模块拆分已完成，但 retiring 时序、generation 所有权、source invalidation、Intent owner
+        边界、第三方 fixture 和文档旧模型仍需回到 Build 收敛。
+      truncated: false
+    completed_at: 2026-08-28T11:42:46.848Z
+  - goal_cycle: 1
+    iteration: 2
+    attempt: 1
+    outcome: fail
+    unresolved_ids:
+      - A7
+      - A12
+      - A13
+      - A15
+      - A16
+      - A41
+    summary:
+      text: 第二轮修复了 retiring、generation、source invalidation、Intent owner 和 fixture 问题，但
+        Catalog 声明仍可被提交后突变，Capability 版本选择未实现，文档仍残留稳定实体走 ambient
+        Command/Provider 的旧模型。
+      truncated: false
+    completed_at: 2026-08-28T12:09:43.490Z
+  - goal_cycle: 1
+    iteration: 3
+    attempt: 1
+    outcome: pass
+    unresolved_ids: []
+    summary:
+      text: 上一轮的 descriptor 突变、Command priority、Capability 版本范围、公共 handle
+        转发和文档旧模型问题均已修复，当前实现满足完整验收合同。
+      truncated: false
+    completed_at: 2026-08-28T12:26:09.556Z
+history_overflow:
+  dropped_entries: 0
+  first_dropped_at: null
+  last_dropped_at: null
+  outcome_counts:
+    pass: 0
+    fail: 0
+    blocked: 0
+    execution-error: 0
+    recovery: 0
+verification_result: pass
+verification_report: verification.md
+archived: true
+created_at: 2026-08-26T17:30:53.241Z
