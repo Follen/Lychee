@@ -9,11 +9,12 @@ function IsPlayerSpell(id) return id == 31884 end
 function PickupSpell() _G.__pickup = (_G.__pickup or 0) + 1 end
 
 local createdFrames = 0
+local homeGeometryCalls = { ClearAllPoints = 0, SetPoint = 0, SetVerticalScroll = 0 }
 local function object(kind, parent)
     local o = { kind = kind, parent = parent, shown = true, width = 800, height = 600, scripts = {}, attrs = {} }
     function o:SetAllPoints() end
-    function o:SetPoint() end
-    function o:ClearAllPoints() end
+    function o:SetPoint() homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
+    function o:ClearAllPoints() homeGeometryCalls.ClearAllPoints = homeGeometryCalls.ClearAllPoints + 1 end
     function o:SetSize(w, h) self.width, self.height = w, h end
     function o:SetHeight(h) self.height = h end
     function o:SetWidth(w) self.width = w end
@@ -49,6 +50,10 @@ local function object(kind, parent)
     function o:GetParent() return self.parent end
     function o:SetScrollChild(child) self.scrollChild = child end
     function o:GetScrollChild() return self.scrollChild end
+    function o:SetVerticalScroll(value)
+        homeGeometryCalls.SetVerticalScroll = homeGeometryCalls.SetVerticalScroll + 1
+        self.verticalScroll = value
+    end
     function o:SetPropagateKeyboardInput() end
     return o
 end
@@ -405,6 +410,11 @@ for sourceIndex = 1, 20 do
     assert(renderedSources[string.format("source:interaction.actions:overflow-%02d", sourceIndex)], "overflow source remains accessible " .. sourceIndex)
 end
 local homeSetterCalls, restores = 0, {}
+local function resetHomeGeometryCalls()
+    homeGeometryCalls.ClearAllPoints = 0
+    homeGeometryCalls.SetPoint = 0
+    homeGeometryCalls.SetVerticalScroll = 0
+end
 local function countCalls(objectValue, method)
     local original = objectValue[method]
     restores[#restores + 1] = { objectValue, method, original }
@@ -421,13 +431,39 @@ for tileIndex = 1, #palette.homeView.sections do
     countCalls(tile.icon, "SetShown")
     countCalls(tile, "SetShown")
 end
+resetHomeGeometryCalls()
 palette:RefreshHomeSections()
 assertEq(homeSetterCalls, 0, "unchanged home refresh skips native setters")
+assertEq(homeGeometryCalls.ClearAllPoints, 0, "unchanged home refresh preserves anchors")
+assertEq(homeGeometryCalls.SetPoint, 0, "unchanged home refresh skips anchor setters")
+assertEq(homeGeometryCalls.SetVerticalScroll, 0, "unchanged home refresh preserves scroll")
 assertEq(palette.homeView.tiles[1], firstHomeTile, "unchanged home refresh reuses tile objects")
 for restoreIndex = 1, #restores do
     local restore = restores[restoreIndex]
     restore[1][restore[2]] = restore[3]
 end
+
+local stableHomeSections = palette.homeView.sections
+palette.homeView.scroll = 42
+resetHomeGeometryCalls()
+palette.homeView:SetSections(stableHomeSections)
+assertEq(homeGeometryCalls.ClearAllPoints, 0, "scroll-only refresh preserves anchors")
+assertEq(homeGeometryCalls.SetPoint, 0, "scroll-only refresh skips anchor setters")
+assertEq(homeGeometryCalls.SetVerticalScroll, 1, "changed scroll reaches the native scroll frame")
+palette.homeView:SetSections(stableHomeSections)
+assertEq(homeGeometryCalls.SetVerticalScroll, 1, "unchanged scroll skips the native setter")
+
+local shiftedHomeSections = {}
+shiftedHomeSections[1] = {}
+for key, value in pairs(stableHomeSections[1]) do shiftedHomeSections[1][key] = value end
+shiftedHomeSections[1].id = "layout-test:" .. tostring(stableHomeSections[1].id)
+for sectionIndex = 1, #stableHomeSections do shiftedHomeSections[sectionIndex + 1] = stableHomeSections[sectionIndex] end
+resetHomeGeometryCalls()
+palette.homeView:SetSections(shiftedHomeSections, true)
+assert(homeGeometryCalls.ClearAllPoints > 0, "changed Home layout clears affected anchors")
+assert(homeGeometryCalls.SetPoint > 0, "changed Home layout applies affected anchors")
+palette.homeView.scroll = 0
+palette.homeView:SetSections(stableHomeSections, true)
 
 local categorySection, sourceSection
 for sectionIndex = 1, #palette.homeView.sections do

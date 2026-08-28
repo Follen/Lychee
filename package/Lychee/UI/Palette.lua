@@ -176,7 +176,10 @@ local function createHomeView(parent, controller)
         frame:SetScript("OnMouseWheel", function(_, delta)
             local maxScroll = math.max(0, (content:GetHeight() or 0) - (frame:GetHeight() or 0) + 20)
             view.scroll = math.max(0, math.min(maxScroll, (view.scroll or 0) - delta * 42))
-            frame:SetVerticalScroll(view.scroll)
+            if view._appliedScroll ~= view.scroll then
+                frame:SetVerticalScroll(view.scroll)
+                view._appliedScroll = view.scroll
+            end
         end)
     end
 
@@ -257,8 +260,12 @@ local function createHomeView(parent, controller)
                 headerCount = headerCount + 1
                 local header = self.headers[headerCount]
                 if not header then break end
-                header:ClearAllPoints()
-                header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -cursorY)
+                local anchorKey = cursorY
+                if header._homeAnchorKey ~= anchorKey then
+                    header:ClearAllPoints()
+                    header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -cursorY)
+                    header._homeAnchorKey = anchorKey
+                end
                 setText(header, homeLabel(section.groupTitle, section.groupID or ""))
                 setShown(header, true)
                 cursorY = cursorY + 24
@@ -268,9 +275,13 @@ local function createHomeView(parent, controller)
             if not tile then break end
             local row = math.floor(column / HOME_COLUMNS)
             local col = column % HOME_COLUMNS
-            tile:ClearAllPoints()
-            tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP),
-                -(cursorY + row * (HOME_TILE_HEIGHT + HOME_ROW_GAP)))
+            local layoutY = cursorY + row * (HOME_TILE_HEIGHT + HOME_ROW_GAP)
+            local anchorKey = layoutY * HOME_COLUMNS + col
+            if tile._homeAnchorKey ~= anchorKey then
+                tile:ClearAllPoints()
+                tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP), -layoutY)
+                tile._homeAnchorKey = anchorKey
+            end
             column = column + 1
             local nextSection = self.sections[index + 1]
             if not nextSection or nextSection.groupID ~= groupID then
@@ -302,7 +313,10 @@ local function createHomeView(parent, controller)
         if self.content:GetHeight() ~= height then self.content:SetHeight(height) end
         local maxScroll = math.max(0, height - (self.frame:GetHeight() or 0) + 20)
         self.scroll = math.min(self.scroll or 0, maxScroll)
-        if self.frame.SetVerticalScroll then self.frame:SetVerticalScroll(self.scroll) end
+        if self.frame.SetVerticalScroll and self._appliedScroll ~= self.scroll then
+            self.frame:SetVerticalScroll(self.scroll)
+            self._appliedScroll = self.scroll
+        end
         if not self.sections[self.selected] or self.sections[self.selected].enabled == false then
             local firstEnabled
             for index = 1, #self.sections do if self.sections[index].enabled ~= false then firstEnabled = index; break end end
