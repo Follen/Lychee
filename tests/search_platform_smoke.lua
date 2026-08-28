@@ -41,6 +41,15 @@ assert(index:CommitSnapshot(sourceID, {
         id = "spell:old", kind = "spell", title = "过期技能",
         aliases = { { text = "旧版本", locale = "zhCN", scope = { minBuild = 99999 } } },
     },
+    {
+        id = "spell:shared-filter", kind = "spell",
+        category = { id = "spells", title = { zhCN = "技能" } }, title = "共同过滤",
+    },
+}, 1))
+assert(index:RegisterSource({ id = "filter-other", priority = 40, _extensionID = "test.other" }))
+assert(index:CommitSnapshot("filter-other", {
+    { id = "achievement:shared-filter", kind = "achievement",
+        category = { id = "achievements", title = { zhCN = "成就" } }, title = "共同过滤" },
 }, 1))
 
 local hits = index:Search("红玉", 10)
@@ -54,6 +63,15 @@ assert(#descriptionHits == 1 and descriptionHits[1].evidence.matchedField == "de
 assert(#index:Search("旧版本", 10) == 0)
 local categoryHits = index:Search("技能 红玉", 10)
 assert(#categoryHits == 1 and categoryHits[1].evidence.matchType == "token")
+local categoryBrowse = index:Search("", 10, { categoryID = "spells" })
+assert(#categoryBrowse == 2, "empty query category browse uses the category bucket")
+for hitIndex = 1, #categoryBrowse do assert(categoryBrowse[hitIndex].record.category.id == "spells") end
+local sourceBrowse = index:Search("", 10, { sourceID = "filter-other" })
+assert(#sourceBrowse == 1 and sourceBrowse[1].sourceID == "filter-other", "empty query source browse uses source entry keys")
+local firstSourceShared = index:Search("共同过滤", 10, { sourceID = sourceID })
+local otherSourceShared = index:Search("共同过滤", 10, { sourceID = "filter-other" })
+assert(#firstSourceShared == 1 and firstSourceShared[1].sourceID == sourceID, "first source filter")
+assert(#otherSourceShared == 1 and otherSourceShared[1].sourceID == "filter-other", "filter key isolates candidate reuse")
 index:Search("红玉", 10)
 index:Search("红玉新", 10)
 assert(index:GetDiagnostics().reusedPrevious == true)

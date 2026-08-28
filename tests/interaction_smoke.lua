@@ -8,6 +8,7 @@ function geterrorhandler() return function(err) return err end end
 function IsPlayerSpell(id) return id == 31884 end
 function PickupSpell() _G.__pickup = (_G.__pickup or 0) + 1 end
 
+local createdFrames = 0
 local function object(kind, parent)
     local o = { kind = kind, parent = parent, shown = true, width = 800, height = 600, scripts = {}, attrs = {} }
     function o:SetAllPoints() end
@@ -51,7 +52,10 @@ local function object(kind, parent)
     function o:SetPropagateKeyboardInput() end
     return o
 end
-function CreateFrame(kind, name, parent) return object(kind, parent or UIParent) end
+function CreateFrame(kind, name, parent)
+    createdFrames = createdFrames + 1
+    return object(kind, parent or UIParent)
+end
 
 local root = "package/Lychee/"
 local files = {
@@ -181,6 +185,12 @@ assertEq(palette.viewHost:IsActive(), true, "palette view host active")
 assertEq(palette.homeView.frame:IsShown(), false, "panel hides home view")
 assertEq(palette.list.frame:IsShown(), false, "panel hides search view")
 assertEq(palette.emptyState:IsShown(), false, "panel hides empty state")
+assert(palette:SetResults({ { id = "panel-result", text = "Panel result" } }, palette.generation, palette.session))
+assertEq(palette.viewHost:IsActive(), true, "result callback keeps active panel mounted")
+assertEq(palette.viewHost.frame:IsShown(), true, "result callback keeps panel visible")
+assertEq(palette.homeView.frame:IsShown(), false, "result callback does not reveal home behind panel")
+assertEq(palette.list.frame:IsShown(), false, "result callback does not reveal results behind panel")
+assertEq(palette.emptyState:IsShown(), false, "result callback does not reveal empty state behind panel")
 palette:CloseView("fixture-close")
 assertEq(palette.homeView.frame:IsShown(), true, "closing panel restores current query mode")
 I.Registry:SetReady(true)
@@ -418,6 +428,77 @@ for restoreIndex = 1, #restores do
     local restore = restores[restoreIndex]
     restore[1][restore[2]] = restore[3]
 end
+
+local categorySection, sourceSection
+for sectionIndex = 1, #palette.homeView.sections do
+    local section = palette.homeView.sections[sectionIndex]
+    if section.id == "category:spells" then categorySection = section end
+    if section.id == "source:interaction.actions:records" then sourceSection = section end
+end
+assert(categorySection and categorySection.filter and not categorySection.query, "category tile uses a structured filter")
+assert(sourceSection and sourceSection.filter and not sourceSection.query, "source tile uses a structured filter")
+assert(palette:ActivateHomeFilter(categorySection.filter))
+assertEq(palette.input:GetText(), "", "category filter does not fake a text query")
+assert(#palette.list.items > 0, "category filter returns indexed records")
+for itemIndex = 1, #palette.list.items do
+    local category = palette.list.items[itemIndex].searchRecord.category
+    assert(type(category) == "table" and category.id == "spells", "category filter excludes other categories")
+end
+assert(palette:ActivateHomeFilter(sourceSection.filter))
+assert(#palette.list.items > 0, "source filter returns indexed records")
+for itemIndex = 1, #palette.list.items do
+    assertEq(palette.list.items[itemIndex].sourceID, "interaction.actions:records", "source filter excludes other sources")
+end
+
+palette.activeFilter = nil
+palette:SetQueryMode("")
+local scans = 0
+local originalIndexedRecordsByID = palette._IndexedRecordsByID
+palette._IndexedRecordsByID = function(self, ...)
+    scans = scans + 1
+    return originalIndexedRecordsByID(self, ...)
+end
+local framesBeforeTyping = createdFrames
+palette.input.frame:SetText("动")
+palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+palette.input.frame:SetText("动作")
+palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+assertEq(createdFrames, framesBeforeTyping, "input changes never create Home frames")
+assertEq(scans, 0, "ordinary keystrokes do not rebuild the Home index")
+assert(#palette.list.items > 0, "completed synchronous query produces results")
+palette.input.frame:SetText("不存在")
+palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+assertEq(#palette.list.items, 0, "query change clears stale rows before accepting replacement results")
+for rowIndex = 1, #palette.list.rows do assertEq(palette.list.rows[rowIndex]:IsShown(), false, "stale row hidden " .. rowIndex) end
+
+palette.input.frame:SetText("")
+palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+scans = 0
+assert(I.Search.StaticIndex:Invalidate("interaction.actions:records", "home-visible-refresh"))
+assertEq(scans, 1, "source lifecycle refreshes Home immediately while visible")
+palette.input.frame:SetText("动作")
+palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+scans = 0
+assert(I.Search.StaticIndex:Invalidate("interaction.actions:records", "search-hidden-home"))
+assertEq(scans, 0, "source lifecycle only marks Home dirty outside Home mode")
+palette._IndexedRecordsByID = originalIndexedRecordsByID
+
+local steadyColorCalls = 0
+local colorTile = palette.homeView.tiles[1]
+local originalSetColorTexture = colorTile.bg.SetColorTexture
+colorTile.bg.SetColorTexture = function(self, ...)
+    steadyColorCalls = steadyColorCalls + 1
+    return originalSetColorTexture(self, ...)
+end
+palette.homeView:RenderTileState(colorTile)
+palette.homeView:RenderTileState(colorTile)
+assertEq(steadyColorCalls, 0, "unchanged tile state skips native color setters")
+colorTile.bg.SetColorTexture = originalSetColorTexture
+palette.input.frame:SetText("动作")
+palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+actionRow = palette.list.rows[1]
+assert(actionRow and actionRow.item and actionRow.item.id == actionItem.id, "action fixture refreshes after source invalidation")
+actionItem = actionRow.item
 local ordinaryResult, ordinaryErr = palette:ActivateRowAction(actionRow, "open")
 assert(ordinaryResult and ordinaryResult.ok == true and actionCalled, "ordinary action execution: " .. tostring(ordinaryErr))
 assertEq(foreignActionCalls, 0, "SearchRecord rejects foreign same-type Handler")

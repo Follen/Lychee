@@ -110,6 +110,43 @@ local function extensionID(item)
     return item and (item._ext or (item.command and item.command._ext))
 end
 
+local function stableItemID(item)
+    if not item then return nil end
+    return item.stableID or item.id or item.itemID or item
+end
+
+local function cachedText(row, key, fontString, value)
+    value = value or ""
+    local rendered = row._rendered
+    if not rendered then
+        rendered = {}
+        row._rendered = rendered
+    end
+    if rendered[key] == value then return end
+    setText(fontString, value)
+    rendered[key] = value
+end
+
+local function categoryText(item)
+    local categoryValue = item.category or item.categoryLabel
+    local category = categoryValue
+    if type(categoryValue) == "table" then
+        local title = categoryValue.title
+        if type(title) == "table" then
+            local activeLocale = GetLocale and GetLocale() or "enUS"
+            category = title[activeLocale] or title.default or title.enUS or categoryValue.id
+        else
+            category = title or categoryValue.id
+        end
+    end
+    return category or "其他"
+end
+
+local function categoryColorID(item)
+    local category = item and item.searchRecord and item.searchRecord.category
+    return item and item.categoryID or (type(category) == "table" and category.id)
+end
+
 local function evidenceText(item)
     local evidence = item and item.evidence
     if type(evidence) ~= "table" then return "" end
@@ -163,13 +200,17 @@ end
 
 local function clearRow(row)
     row.item, row.index, row.session, row.generation, row.extensionID = nil, nil, nil, nil, nil
-    row._hovered, row._selected, row._icon = false, false, nil
-    setText(row.title, "")
-    setText(row.subtext, "")
-    setText(row.category, "")
-    setText(row.source, "")
-    setText(row.evidence, "")
-    if row.icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
+    row.stableID = nil
+    row._hovered, row._selected = false, false
+    cachedText(row, "title", row.title, "")
+    cachedText(row, "subtext", row.subtext, "")
+    cachedText(row, "category", row.category, "")
+    cachedText(row, "source", row.source, "")
+    cachedText(row, "evidence", row.evidence, "")
+    if row._icon ~= nil and row.icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
+    row._icon = nil
+    if row._categoryColorID ~= nil then setTextColor(row.category, "muted") end
+    row._categoryColorID = nil
     setShown(row.icon, false)
     setShown(row.categoryBG, false)
     for index = 1, ACTIONS do clearAction(row.actions[index]) end
@@ -351,6 +392,7 @@ function ResultList:Create(parent, controller)
             button._hovered = false
             renderRowState(button)
         end)
+        row._rendered = {}
         self.rows[index] = row
         clearRow(row)
     end
@@ -366,6 +408,8 @@ function ResultList:Clear()
 end
 
 function ResultList:SetItems(items, session, generation)
+    local selectedRow = self.rows[self.selected or 1]
+    local selectedID = selectedRow and selectedRow.stableID
     self.items = items or EMPTY_ITEMS
     self.session, self.generation = session, generation
     local count = math.min(#self.items, #self.rows)
@@ -373,46 +417,43 @@ function ResultList:SetItems(items, session, generation)
         local item, row = self.items[index], self.rows[index]
         row.item, row.index = item, index
         row.session, row.generation, row.extensionID = session, generation, extensionID(item)
-        setText(row.title, item.text)
+        row.stableID = stableItemID(item)
+        cachedText(row, "title", row.title, item.text)
         local detail = item.description or item.summary
         if not detail or detail == "" then detail = item.subtext end
-        setText(row.subtext, detail)
-        local categoryValue = item.category or item.categoryLabel
-        local category = categoryValue
-        if type(categoryValue) == "table" then
-            local title = categoryValue.title
-            if type(title) == "table" then
-                local activeLocale = GetLocale and GetLocale() or "enUS"
-                category = title[activeLocale] or title.default or title.enUS or categoryValue.id
-            else
-                category = title or categoryValue.id
-            end
+        cachedText(row, "subtext", row.subtext, detail)
+        local category = categoryText(item)
+        cachedText(row, "category", row.category, category)
+        local colorID = categoryColorID(item)
+        if row._categoryColorID ~= colorID then
+            setCategoryTextColor(row.category, item)
+            row._categoryColorID = colorID
         end
-        category = category or "其他"
-        setText(row.category, category)
-        setCategoryTextColor(row.category, item)
         setShown(row.categoryBG, category ~= "")
-        setText(row.source, item.sourceLabel or item.source or row.extensionID)
-        setText(row.evidence, evidenceText(item))
-        if item.icon and row.icon.SetTexture then
-            if row._icon ~= item.icon then row.icon:SetTexture(item.icon); row._icon = item.icon end
-            setShown(row.icon, true)
-        else
-            row._icon = nil
-            if type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
-            setShown(row.icon, false)
+        cachedText(row, "source", row.source, item.sourceLabel or item.source or row.extensionID)
+        cachedText(row, "evidence", row.evidence, evidenceText(item))
+        local icon = item.icon or nil
+        if row._icon ~= icon and type(row.icon.SetTexture) == "function" then
+            row.icon:SetTexture(icon)
+            row._icon = icon
         end
+        setShown(row.icon, icon ~= nil)
 
         local interaction = item.interaction
         local actions = interaction and interaction.actions
         for actionIndex = 1, ACTIONS do
             local button, action = row.actions[actionIndex], actions and actions[actionIndex]
             if action then
+                local wasEnabled = button._enabled
                 button.actionID, button.action = action.id, action
                 button.tooltip = action.tooltip or action.title
                 button._enabled = action.enabled ~= false and action.disabled ~= true and action.id ~= nil
                 setText(button.label, action.title or action.label or action.id)
-                renderActionState(button, "normal")
+                if not button._enabled then
+                    if button._state ~= "disabled" then renderActionState(button, "disabled") end
+                elseif not wasEnabled or button._state == "disabled" then
+                    renderActionState(button, "normal")
+                end
                 setShown(button, true)
             else
                 clearAction(button)
@@ -423,13 +464,20 @@ function ResultList:SetItems(items, session, generation)
         row.dragger.dragDescriptor = drag
         row.dragger._enabled = drag ~= nil
         setShown(row.dragger, drag ~= nil)
-        row._hovered, row._selected = false, false
-        renderRowState(row)
         setShown(row, true)
     end
     for index = count + 1, #self.rows do clearRow(self.rows[index]) end
 
-    self.selected = math.max(1, math.min(self.selected or 1, math.max(count, 1)))
+    local selected = math.max(1, math.min(self.selected or 1, math.max(count, 1)))
+    if selectedID ~= nil then
+        for index = 1, count do
+            if self.rows[index].stableID == selectedID then
+                selected = index
+                break
+            end
+        end
+    end
+    self.selected = selected
     self:Select(self.selected)
 end
 

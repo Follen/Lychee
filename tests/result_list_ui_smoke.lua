@@ -12,8 +12,14 @@ local function object(kind, parent)
         height = 500,
         scripts = {},
         points = {},
+        children = {},
+        setterCalls = {},
     }
+    if parent and parent.children then parent.children[#parent.children + 1] = value end
     created[#created + 1] = value
+    local function setter(name)
+        value.setterCalls[name] = (value.setterCalls[name] or 0) + 1
+    end
     function value:SetAllPoints() self.allPoints = true end
     function value:SetPoint(...) self.points[#self.points + 1] = { ... } end
     function value:SetSize(width, height) self.width, self.height = width, height end
@@ -21,7 +27,7 @@ local function object(kind, parent)
     function value:SetWidth(width) self.width = width end
     function value:GetHeight() return self.height end
     function value:GetWidth() return self.width end
-    function value:SetShown(shown) self.shown = not not shown end
+    function value:SetShown(shown) setter("SetShown"); self.shown = not not shown end
     function value:IsShown() return self.shown end
     function value:Show() self.shown = true end
     function value:Hide() self.shown = false end
@@ -32,15 +38,40 @@ local function object(kind, parent)
     function value:SetWordWrap(enabled) self.wordWrap = enabled end
     function value:SetNonSpaceWrap(enabled) self.nonSpaceWrap = enabled end
     function value:SetMaxLines(lines) self.maxLines = lines end
-    function value:SetText(text) self.text = text end
+    function value:SetText(text) setter("SetText"); self.text = text end
     function value:GetText() return self.text or "" end
-    function value:SetTextColor(...) self.textColor = { ... } end
-    function value:SetTexture(texture) self.texture = texture end
-    function value:SetColorTexture(...) self.color = { ... } end
+    function value:SetTextColor(...) setter("SetTextColor"); self.textColor = { ... } end
+    function value:SetTexture(texture) setter("SetTexture"); self.texture = texture end
+    function value:SetColorTexture(...) setter("SetColorTexture"); self.color = { ... } end
     function value:GetParent() return self.parent end
     function value:CreateTexture() return object("Texture", self) end
     function value:CreateFontString() return object("FontString", self) end
     return value
+end
+
+local SETTER_NAMES = { "SetShown", "SetText", "SetTextColor", "SetTexture", "SetColorTexture" }
+local function setterCounts(root)
+    local counts = {}
+    for index = 1, #SETTER_NAMES do counts[SETTER_NAMES[index]] = 0 end
+    local function visit(value)
+        for index = 1, #SETTER_NAMES do
+            local name = SETTER_NAMES[index]
+            counts[name] = counts[name] + (value.setterCalls[name] or 0)
+        end
+        for index = 1, #value.children do visit(value.children[index]) end
+    end
+    visit(root)
+    return counts
+end
+
+local function setterFingerprint(root)
+    local counts = setterCounts(root)
+    local parts = {}
+    for index = 1, #SETTER_NAMES do
+        local name = SETTER_NAMES[index]
+        parts[index] = name .. ":" .. counts[name]
+    end
+    return table.concat(parts, "|")
 end
 
 UIParent = object("UIParent")
@@ -84,6 +115,7 @@ local titlePointCount = #rowOne.title.points
 local longText = string.rep("很长的本地化技能说明", 20)
 local items = {
     {
+        stableID = "spell:393256",
         text = longText,
         description = longText,
         category = "技能",
@@ -103,6 +135,7 @@ local items = {
         },
     },
     {
+        stableID = "fixture:second",
         text = "第二项",
         subtext = "使用副标题作为详情",
         categoryLabel = "任务",
@@ -133,6 +166,33 @@ rowTwo.scripts.OnLeave(rowTwo)
 list:Move(1)
 assert(list.selected == 2 and rowTwo._selected and not rowOne._selected, "keyboard movement changes selection")
 
+rowOne.scripts.OnEnter(rowOne)
+local unchangedRowOne = setterFingerprint(rowOne)
+local unchangedRowTwo = setterFingerprint(rowTwo)
+list:SetItems(items, 12, 24)
+assert(setterFingerprint(rowOne) == unchangedRowOne and setterFingerprint(rowTwo) == unchangedRowTwo, "identical items cause zero native setter churn")
+assert(rowOne.session == 12 and rowOne.generation == 24, "identical visuals still refresh source freshness")
+assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "identical diff preserves keyboard selection and hover")
+
+local rowOneBeforeChange = setterFingerprint(rowOne)
+local rowTwoBeforeChange = setterFingerprint(rowTwo)
+local rowTwoCountsBeforeChange = setterCounts(rowTwo)
+local titleCallsBeforeChange = rowTwo.title.setterCalls.SetText or 0
+items[2].text = "第二项（更新）"
+list:SetItems(items, 13, 25)
+assert(setterFingerprint(rowOne) == rowOneBeforeChange, "changing the second item does not touch the first row")
+assert((rowTwo.title.setterCalls.SetText or 0) == titleCallsBeforeChange + 1, "changed title updates exactly once")
+assert(setterFingerprint(rowTwo) ~= rowTwoBeforeChange and rowTwo.title:GetText() == "第二项（更新）", "only the affected row is rendered")
+local rowTwoCountsAfterChange = setterCounts(rowTwo)
+assert(rowTwoCountsAfterChange.SetText == rowTwoCountsBeforeChange.SetText + 1, "changed title is the only text setter call")
+for index = 1, #SETTER_NAMES do
+    local name = SETTER_NAMES[index]
+    if name ~= "SetText" then
+        assert(rowTwoCountsAfterChange[name] == rowTwoCountsBeforeChange[name], "changed title does not churn " .. name)
+    end
+end
+assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
+
 rowOne.actions[1].scripts.OnEnter(rowOne.actions[1])
 assert(GameTooltip.shown and GameTooltip.text == "施放技能", "action hover shows tooltip")
 rowOne.actions[1].scripts.OnMouseDown(rowOne.actions[1])
@@ -144,7 +204,7 @@ assert(draggedRow == rowOne, "drag area delegates its owning row")
 rowOne.scripts.OnClick(rowOne)
 assert(activatedRow == rowOne and list.selected == 1, "row click selects and delegates activation")
 
-list:SetItems({ items[2] }, 12, 24)
+list:SetItems({ items[2] }, 14, 26)
 assert(#created == frameCount and list.rows[1] == rowOne and rowOne.actions[1] == actionOne, "shorter update reuses row and action objects")
 assert(not rowTwo:IsShown() and rowTwo.item == nil and rowTwo.session == nil and rowTwo.generation == nil, "shorter update clears stale row bindings")
 assert(rowTwo.title:GetText() == "" and rowTwo.icon.texture == nil and not rowTwo.dragger:IsShown(), "shorter update clears stale visuals and drag")

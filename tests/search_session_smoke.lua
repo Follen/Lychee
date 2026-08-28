@@ -52,21 +52,25 @@ assert(firstSession > 0 and initialGeneration > 0)
 assert(session:Input("旧查询"))
 local oldTimer = timers[#timers]
 local oldGeneration = session.generation
+assert(#accepted == 1 and #accepted[1].results == 0 and accepted[1].generation == oldGeneration,
+    "input must clear stale results before debounce")
 assert(session:Input("新查询"))
 local newTimer = timers[#timers]
 local newGeneration = session.generation
 assert(oldTimer.cancelled == true and newGeneration > oldGeneration)
+assert(#accepted == 2 and #accepted[2].results == 0 and accepted[2].generation == newGeneration,
+    "replacement input must clear the previous generation immediately")
 
 oldTimer.callback()
-assert(#accepted == 0, "cancelled input must not publish")
+assert(#accepted == 2, "cancelled input must not publish after its immediate clear")
 newTimer.callback()
-assert(#accepted == 1 and accepted[1].generation == newGeneration)
-assert(#accepted[1].results >= 1 and accepted[1].results[1].id == "new")
+assert(#accepted == 3 and accepted[3].generation == newGeneration)
+assert(#accepted[3].results >= 1 and accepted[3].results[1].id == "new")
 
 local beforeSourceInvalidation = session.generation
 assert(I.Search.StaticIndex:Invalidate("session-fixture", "fixture-refresh"))
 assert(session.generation > beforeSourceInvalidation, "source changes must invalidate the active session")
-assert(#accepted == 2 and #accepted[2].results == 0, "source changes must clear visible stale results")
+assert(#accepted == 4 and #accepted[4].results == 0, "source changes must clear visible stale results")
 
 assert(session:Input("旧查询"))
 local hiddenTimer = timers[#timers]
@@ -75,7 +79,7 @@ session:Stop("hidden")
 palette.visible = false
 assert(hiddenTimer.cancelled == true and session.generation > hiddenGeneration)
 hiddenTimer.callback()
-assert(#accepted == 2, "hidden session must reject late callback")
+assert(#accepted == 5, "hidden session must reject late callback")
 
 palette.visible = true
 local resumedSession = session:Start()
@@ -86,6 +90,18 @@ session:Invalidate("source-invalidated")
 local acceptedAfterInvalidation = #accepted
 invalidatedTimer.callback()
 assert(#accepted == acceptedAfterInvalidation, "invalidated generation must reject late callback")
+
+assert(session:Input("旧查询"))
+local pendingBeforeFilter = timers[#timers]
+local beforeFilter = #accepted
+local filtered, filterGeneration = session:Filter({ sourceID = "session-fixture" })
+assert(filtered and filterGeneration == session.generation, "filter request must use the active generation")
+assert(pendingBeforeFilter.cancelled == true, "filter request must cancel pending text debounce")
+assert(#accepted == beforeFilter + 2, "filter must clear then publish through the session owner")
+assert(#accepted[#accepted - 1].results == 0 and #accepted[#accepted].results == 2,
+    "source filter must publish only indexed source records")
+pendingBeforeFilter.callback()
+assert(#accepted == beforeFilter + 2, "cancelled text debounce must not publish after filter activation")
 
 _G.__combat = true
 local combatOK, combatErr = session:Input("新查询")

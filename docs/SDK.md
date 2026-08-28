@@ -643,9 +643,9 @@ local ok, nextGeneration, nextRevision = source:CommitSnapshot(nil, nil, generat
 
 `BeginSnapshot()` 开启一次显式批量更新；同一 generation 的 `Upsert`/`Remove` 暂存到 `CommitSnapshot`，提交时只重建该 Source 的索引成员。未先调用 `BeginSnapshot` 时，Host 自动把同一帧的 `Upsert`/`Remove` 合并，并在帧末提交一次；需要明确提交边界时使用显式批量 API。`GetState()` 返回当前 revision、generation 和 enabled。第三方自定义 category 必须使用 `<extension-id>:<category>`；`spells`、`achievements`、`quests`、`dungeons`、`extensions` 是 Host 保留的共享类别。
 
-空输入时 Palette 显示 ZTools 风格 HomeView（最近、固定、分类、第三方入口）；有输入时显示带图标、category badge、描述、命中证据和动作槽的 SearchView。最近/固定只保存 stable ID，不保存完整 payload。搜索索引和结果行均池化，Palette 隐藏时没有常驻每帧工作。
+空输入时 Palette 显示 ZTools 风格 HomeView（最近、固定、分类、第三方入口）；有输入时显示带图标、category badge、描述、命中证据和动作槽的 SearchView。最近/固定只保存 stable ID，不保存完整 payload。第三方 SearchSource 入口点击后由 Host 使用该 Source 的稳定 `sourceID` 做结构化浏览，不把 Extension 标题当作搜索词，也不向第三方开放 UI 回调。搜索索引和结果行均池化，Palette 隐藏时没有常驻每帧工作。
 
-Host 的根窗口是固定约 `720x500` UI 单位的 Header/Content/Footer 工作台。Content 同一时刻只显示 HomeView、SearchView、Host 无结果状态或 ViewHost Panel 之一；第三方不能覆盖 Header、Footer 或创建第二个 Palette。SearchView 复用固定结果行和最多四个 Host 动作槽，标题/描述/来源/命中证据被限制在稳定几何内；鼠标 hover 不改变键盘选中项。Source 禁用、结果缩短、查询清空或 Panel 切换时，Host 会清除不可见行的 item、action、drag、session/generation 和 Extension 绑定。
+Host 的根窗口是固定约 `720x500` UI 单位的 Header/Content/Footer 工作台。Content 同一时刻只显示 HomeView、SearchView、Host 无结果状态或 ViewHost Panel 之一；第三方不能覆盖 Header、Footer 或创建第二个 Palette。SearchView 复用固定结果行和最多四个 Host 动作槽，标题/描述/来源/命中证据被限制在稳定几何内；鼠标 hover 不改变键盘选中项。输入进入新 generation 时 Host 先清除旧结果再 debounce；等价刷新只更新 freshness token，不重复提交未变化的文字、颜色、纹理和显示 setter。Source 禁用、结果缩短、查询清空或 Panel 切换时，Host 会清除不可见行的 item、action、drag、session/generation 和 Extension 绑定。
 
 ### 10.4 协作式 deferred resolver
 

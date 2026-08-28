@@ -109,7 +109,10 @@ end
 
 function Q:_BuildRequest(raw, context, generation)
     local normalized = I.Search.Normalizer:Normalize(raw)
-    return { generation = generation, raw = raw or "", normalized = normalized, tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit, contextToken = context and context.token, session = context and context.session, visible = context and context.visible }
+    return { generation = generation, raw = raw or "", normalized = normalized,
+        tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit,
+        contextToken = context and context.token, session = context and context.session,
+        visible = context and context.visible, filter = context and context.searchFilter }
 end
 
 function Q:_IsCurrent(generation, context)
@@ -129,8 +132,10 @@ end
 
 function Q:_Execute(raw, context, generation)
     local request = self:_BuildRequest(raw, context, generation)
-    local catalogBudget, ambientBudget = math.min(self.catalogLimit, self.limit), math.min(self.ambientLimit, self.limit - math.min(self.catalogLimit, self.limit))
-    local catalogResults = I.Catalog and I.Catalog:Query(request, catalogBudget) or {}
+    local filtered = type(request.filter) == "table"
+    local catalogBudget = filtered and 0 or math.min(self.catalogLimit, self.limit)
+    local ambientBudget = filtered and self.limit or math.min(self.ambientLimit, self.limit - catalogBudget)
+    local catalogResults = not filtered and I.Catalog and I.Catalog:Query(request, catalogBudget) or {}
     local out, seen, catalogDynamic = {}, {}, {}
     for index = 1, #catalogResults do
         local result = catalogResults[index]
@@ -141,7 +146,7 @@ function Q:_Execute(raw, context, generation)
         end
     end
     if I.Search and I.Search.StaticIndex then
-        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out))
+        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter)
         for index = 1, #indexed do
             local item = searchRecordItem(indexed[index])
             if item then appendUnique(out, seen, item) end
@@ -162,7 +167,7 @@ function Q:_Execute(raw, context, generation)
             end
         end
     end
-    local ambientCommands, ambientAdded = self:_AmbientCommands(request.normalized), 0
+    local ambientCommands, ambientAdded = filtered and {} or self:_AmbientCommands(request.normalized), 0
     for commandIndex = 1, #ambientCommands do
         if resolvedAdded + ambientAdded >= ambientBudget or #out >= self.limit then break end
         request.limit = math.min(ambientBudget - resolvedAdded - ambientAdded, self.limit - #out)

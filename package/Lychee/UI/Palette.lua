@@ -13,6 +13,7 @@ local WIDTH, HEIGHT = 720, 500
 local HEADER_HEIGHT, FOOTER_HEIGHT = 72, 34
 local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 3, 208, 58
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 10, 8, 20
+local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 64
 
 local FALLBACK = {
     window = { 0.045, 0.048, 0.055, 0.985 }, header = { 0.065, 0.068, 0.078, 1 },
@@ -36,15 +37,21 @@ local function color(name)
 end
 
 local function paint(texture, value)
-    if texture and value and texture.SetColorTexture then
-        texture:SetColorTexture(value[1], value[2], value[3], value[4] or 1)
-    end
+    local theme = Lychee.UI.Theme
+    if theme and theme.SetColorTexture then return theme:SetColorTexture(texture, value) end
+    if not texture or not value or not texture.SetColorTexture or texture._lycheeColorToken == value then return false end
+    texture:SetColorTexture(value[1], value[2], value[3], value[4] or 1)
+    texture._lycheeColorToken = value
+    return true
 end
 
 local function tint(fontString, value)
-    if fontString and value and fontString.SetTextColor then
-        fontString:SetTextColor(value[1], value[2], value[3], value[4] or 1)
-    end
+    local theme = Lychee.UI.Theme
+    if theme and theme.SetTextColor then return theme:SetTextColor(fontString, value) end
+    if not fontString or not value or not fontString.SetTextColor or fontString._lycheeTextToken == value then return false end
+    fontString:SetTextColor(value[1], value[2], value[3], value[4] or 1)
+    fontString._lycheeTextToken = value
+    return true
 end
 
 local function paletteDB()
@@ -232,8 +239,14 @@ local function createHomeView(parent, controller)
         return tile
     end
 
-    function view:SetSections(sections)
+    function view:EnsureCapacity(headerCount, tileCount)
+        for index = #self.headers + 1, headerCount do self:AcquireHeader(index) end
+        for index = #self.tiles + 1, tileCount do self:AcquireTile(index) end
+    end
+
+    function view:SetSections(sections, allowExpand)
         self.sections = sections or {}
+        if allowExpand then self:EnsureCapacity(HOME_HEADER_COUNT, #self.sections) end
         local headerCount, tileCount, cursorY = 0, 0, 0
         local groupID, column = nil, 0
         for index = 1, #self.sections do
@@ -242,7 +255,8 @@ local function createHomeView(parent, controller)
                 if groupID ~= nil then cursorY = cursorY + HOME_GROUP_GAP end
                 groupID, column = section.groupID, 0
                 headerCount = headerCount + 1
-                local header = self:AcquireHeader(headerCount)
+                local header = self.headers[headerCount]
+                if not header then break end
                 header:ClearAllPoints()
                 header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -cursorY)
                 setText(header, homeLabel(section.groupTitle, section.groupID or ""))
@@ -250,7 +264,8 @@ local function createHomeView(parent, controller)
                 cursorY = cursorY + 24
             end
             tileCount = tileCount + 1
-            local tile = self:AcquireTile(tileCount)
+            local tile = self.tiles[tileCount]
+            if not tile then break end
             local row = math.floor(column / HOME_COLUMNS)
             local col = column % HOME_COLUMNS
             tile:ClearAllPoints()
@@ -295,6 +310,8 @@ local function createHomeView(parent, controller)
         end
         for index = 1, #self.tiles do self:RenderTileState(self.tiles[index]) end
     end
+
+    view:EnsureCapacity(HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE)
 
     return view
 end
@@ -392,14 +409,17 @@ function Palette:Create()
     self.list = Lychee.UI.ResultList:Create(self.content, self)
     self.homeView = createHomeView(self.content, self)
     self.homeView:SetSections({})
+    self.homeDirty = true
     self.onHomeSelect = function(section)
-        if section and section.query then self.input:SetText(section.query)
+        if section and section.filter then self:ActivateHomeFilter(section.filter)
+        elseif section and section.query then self.input:SetText(section.query)
         elseif section and section.id and self.onHomeCategory then self.onHomeCategory(section.id) end
     end
     self.viewHost = Lychee.UI.ViewHost:Create(self.content)
     self.input:SetChangedCallback(function(text)
-        self:SetQueryMode(text)
+        self.activeFilter = nil
         if self.onQuery then self.onQuery(text) end
+        self:SetQueryMode(text)
     end)
     self.input:SetSubmitCallback(function()
         if self.input:GetText() == "" then self.homeView:ActivateSelected() else self:ActivateSelected() end
@@ -422,6 +442,7 @@ function Palette:Create()
             internal._paletteLifecycleWired = true
             internal.Registry:OnChange(function(entry, state)
                 if state == "disabled" or state == "retiring" or state == "removed" then self:InvalidateExtension(entry and entry.id) end
+                self:MarkHomeDirty()
             end)
         end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
@@ -434,8 +455,39 @@ end
 function Palette:SetQueryCallback(callback) self.onQuery = callback end
 function Palette:SetActivateCallback(callback) self.onActivate = callback end
 function Palette:SetDragCallback(callback) self.onDrag = callback end
-function Palette:SetHomeSections(sections) if self.homeView then self.homeView:SetSections(sections or {}) end end
+function Palette:SetHomeSections(sections, allowExpand) if self.homeView then self.homeView:SetSections(sections or {}, allowExpand) end end
 function Palette:SetHomeCategoryCallback(callback) self.onHomeCategory = callback end
+
+function Palette:IsHomeVisible()
+    return self.visible and self.homeView and self.homeView.frame:IsShown()
+        and not (self.viewHost and self.viewHost:IsActive())
+end
+
+function Palette:EnsureHomeCapacity()
+    if not self.homeView or not self.homeView.EnsureCapacity then return false end
+    local db = paletteDB()
+    local required = math.max(1, #db.recent) + math.max(1, #db.pinned) + 5
+    local static = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.StaticIndex
+    local sourceCount = 0
+    if static and type(static.sources) == "table" then
+        for _, source in pairs(static.sources) do
+            local extensionID = source and source.extensionID
+            if source.enabled and type(extensionID) == "string" and extensionID:sub(1, 7) ~= "builtin" then
+                sourceCount = sourceCount + 1
+            end
+        end
+    end
+    required = required + math.max(1, sourceCount)
+    self.homeView:EnsureCapacity(HOME_HEADER_COUNT, required)
+    return true
+end
+
+function Palette:MarkHomeDirty()
+    self.homeDirty = true
+    self:EnsureHomeCapacity()
+    if self:IsHomeVisible() then return self:RefreshHomeSections(false) end
+    return true
+end
 
 function Palette:TouchRecent(item)
     local id = stableItemID(item)
@@ -444,6 +496,7 @@ function Palette:TouchRecent(item)
     for index = #db.recent, 1, -1 do if db.recent[index] == id then table.remove(db.recent, index) end end
     table.insert(db.recent, 1, id)
     while #db.recent > 8 do db.recent[#db.recent] = nil end
+    self:MarkHomeDirty()
     return true
 end
 
@@ -457,6 +510,7 @@ function Palette:SetPinned(item, pinned)
     end
     if pinned and not found then db.pinned[#db.pinned + 1] = id end
     while #db.pinned > 16 do table.remove(db.pinned, 1) end
+    self:MarkHomeDirty()
     return true
 end
 
@@ -473,7 +527,7 @@ function Palette:_IndexedRecordsByID()
     return records, index
 end
 
-function Palette:RefreshHomeSections()
+function Palette:RefreshHomeSections(allowExpand)
     if not self.homeView then return false end
     local records, byID = self:_IndexedRecordsByID()
     local db, sections = paletteDB(), {}
@@ -516,7 +570,7 @@ function Palette:RefreshHomeSections()
         sections[#sections + 1] = { id = "category:" .. category.id, groupID = "categories",
             groupTitle = localized({ zhCN = "分类", enUS = "Categories" }, "Categories"), title = title,
             meta = localized({ zhCN = "浏览此类内容", enUS = "Browse this category" }, "Browse"),
-            icon = representative and representative.icon, query = title }
+            icon = representative and representative.icon, filter = { categoryID = category.id } }
     end
 
     local internal = _G.LycheeInternal
@@ -536,7 +590,7 @@ function Palette:RefreshHomeSections()
             local extensionTitle = localized(entry and entry.descriptor and entry.descriptor.title, source.extensionID)
             sections[#sections + 1] = { id = "source:" .. sourceID, groupID = "extensions",
                 groupTitle = localized({ zhCN = "扩展来源", enUS = "Extension sources" }, "Extension sources"),
-                title = extensionTitle, meta = source.id:match("([^:]+)$") or source.id, query = extensionTitle }
+                title = extensionTitle, meta = source.id:match("([^:]+)$") or source.id, filter = { sourceID = sourceID } }
             sourceCount = sourceCount + 1
         end
     end
@@ -546,8 +600,21 @@ function Palette:RefreshHomeSections()
             title = localized({ zhCN = "暂无第三方来源", enUS = "No third-party sources" }, "No third-party sources"),
             meta = localized({ zhCN = "已启用的接入会显示在这里", enUS = "Enabled integrations appear here" }, ""), enabled = false }
     end
-    self:SetHomeSections(sections)
+    self:SetHomeSections(sections, allowExpand)
+    self.homeDirty = false
     return true
+end
+
+
+function Palette:ActivateHomeFilter(filter)
+    if type(filter) ~= "table" then return false, "INVALID_FILTER" end
+    self.activeFilter = { categoryID = filter.categoryID, sourceID = filter.sourceID }
+    self:SetQueryMode("")
+    local session = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
+    if not session or type(session.Filter) ~= "function" then return false, "SEARCH_UNAVAILABLE" end
+    local ok, generation = session:Filter(self.activeFilter)
+    if not ok then self.activeFilter = nil; self:SetQueryMode("") end
+    return ok, generation
 end
 
 function Palette:SetStatus(mode, count)
@@ -564,9 +631,10 @@ function Palette:SetQueryMode(text)
     if not self.homeView or not self.list then return end
     if self.viewHost and self.viewHost:IsActive() then self.viewHost:Unmount("query-change") end
     setShown(self.viewHost and self.viewHost.frame, false)
-    if empty then
+    if empty and not self.activeFilter then
         setShown(self.list.frame, false); setShown(self.emptyState, false)
-        self:RefreshHomeSections(); setShown(self.homeView.frame, true); self:SetStatus("home")
+        if self.homeDirty then self:RefreshHomeSections(false) end
+        setShown(self.homeView.frame, true); self:SetStatus("home")
     else
         setShown(self.homeView.frame, false)
         local hasItems = self.list.items and #self.list.items > 0
@@ -612,7 +680,10 @@ function Palette:ApplyResults(items, generation, session)
     self.list:SetItems(items, self.session, self.generation)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if executor then executor:PrepareVisibleRows(self.list.rows) end
-    if self.input:GetText() ~= "" then
+    if self.viewHost and self.viewHost:IsActive() then
+        setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
+        setShown(self.viewHost.frame, true); self:SetStatus("panel")
+    elseif self.input:GetText() ~= "" or self.activeFilter then
         setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0)
         self:SetStatus("search", #items)
     end
@@ -631,6 +702,7 @@ function Palette:Show()
     self.visible = true
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
+    if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
     self.frame:Show(); self:SetQueryMode(self.input:GetText()); self.input:Show(); self.input:Focus()
     return true
 end
@@ -639,6 +711,7 @@ function Palette:Hide(reason)
     if searchSession then searchSession:Stop(reason or "hide") end
     if not self.frame or not self.visible then return true end
     self.visible = false
+    self.activeFilter = nil
     self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end

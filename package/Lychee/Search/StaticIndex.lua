@@ -18,6 +18,7 @@ local Index = {
     diagnostics = {},
     previousQuery = nil,
     previousCandidates = nil,
+    previousFilterKey = nil,
     listeners = {},
 }
 I.Search.StaticIndex = Index
@@ -207,7 +208,7 @@ local function bump(self, source, revision, reason)
     source.generation = self.sourceGeneration
     source._generation = source.generation
     self.version = self.version + 1
-    self.previousQuery, self.previousCandidates = nil, nil
+    self.previousQuery, self.previousCandidates, self.previousFilterKey = nil, nil, nil
     notifyChange(self, source, reason)
     return source.revision, source.generation
 end
@@ -237,6 +238,7 @@ function Index:New()
     value.exact, value.prefix, value.tokens, value.grams, value.categories = {}, {}, {}, {}, {}
     value.diagnostics = {}
     value.listeners = {}
+    value.previousQuery, value.previousCandidates, value.previousFilterKey = nil, nil, nil
     return setmetatable(value, { __index = self })
 end
 
@@ -249,7 +251,7 @@ end
 function Index:Clear()
     self.sources, self.entries = {}, {}
     self.exact, self.prefix, self.tokens, self.grams, self.categories = {}, {}, {}, {}, {}
-    self.previousQuery, self.previousCandidates = nil, nil
+    self.previousQuery, self.previousCandidates, self.previousFilterKey = nil, nil, nil
     self.version = self.version + 1
 end
 
@@ -412,9 +414,30 @@ local function addCandidates(out, seen, set, maximum)
     return false
 end
 
-local function candidateKeys(self, normalized)
+local function filterIdentity(filter)
+    if type(filter) ~= "table" then return "" end
+    return tostring(filter.categoryID or "") .. "\0" .. tostring(filter.sourceID or "")
+end
+
+local function filteredSet(self, filter)
+    if type(filter) ~= "table" then return nil end
+    if filter.sourceID then
+        local source = self.sources[filter.sourceID]
+        return source and source.enabled and source.entryKeys or {}
+    end
+    if filter.categoryID then return self.categories[I.Search.Normalizer:Normalize(filter.categoryID)] or {} end
+    return nil
+end
+
+local function candidateKeys(self, normalized, filter)
     local out, seen = {}, {}
-    if self.previousQuery and self.previousCandidates and normalized:sub(1, #self.previousQuery) == self.previousQuery then
+    local identity = filterIdentity(filter)
+    if normalized == "" then
+        addCandidates(out, seen, filteredSet(self, filter), self.candidateLimit)
+        return out, false
+    end
+    if self.previousQuery and self.previousCandidates and self.previousFilterKey == identity
+        and normalized:sub(1, #self.previousQuery) == self.previousQuery then
         for index = 1, #self.previousCandidates do
             local key = self.previousCandidates[index]
             if self.entries[key] then seen[key] = true; out[#out + 1] = key end
@@ -438,6 +461,14 @@ local function candidateKeys(self, normalized)
     return out, false
 end
 
+
+local function matchesFilter(entry, filter)
+    if type(filter) ~= "table" then return true end
+    if filter.sourceID and entry.sourceID ~= filter.sourceID then return false end
+    if filter.categoryID and entry.categoryID ~= filter.categoryID then return false end
+    return true
+end
+
 local function better(left, right)
     if not right then return true end
     if left.confidence ~= right.confidence then return left.confidence > right.confidence end
@@ -451,20 +482,23 @@ local function resultLess(left, right)
     return left.stableID < right.stableID
 end
 
-function Index:Search(query, limit)
+function Index:Search(query, limit, filter)
     local normalized = I.Search.Normalizer:Normalize(query)
-    if normalized == "" then return {} end
+    if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
-    local candidates = candidateKeys(self, normalized)
+    local candidates = candidateKeys(self, normalized, filter)
     local queryTerms = I.Search.Normalizer:Terms(normalized)
     local out, byStableID, fuzzyCount = {}, {}, 0
     local started = nowMS()
     local deadline = started and (started + self.fuzzyBudgetMS) or nil
     for candidateIndex = 1, #candidates do
         local entry = self.entries[candidates[candidateIndex]]
-        if entry and entry.source.enabled then
+        if entry and entry.source.enabled and matchesFilter(entry, filter) then
             local best
             local allTokens = #queryTerms > 1
+            if normalized == "" then
+                best = { confidence = 1, evidence = { matchedField = "filter", matchedText = "", matchType = "filter" } }
+            end
             if allTokens then
                 for termIndex = 1, #queryTerms do
                     local tokenFound = false
@@ -523,7 +557,7 @@ function Index:Search(query, limit)
     end
     table.sort(out, resultLess)
     while #out > maximum do out[#out] = nil end
-    self.previousQuery, self.previousCandidates = normalized, candidates
+    self.previousQuery, self.previousCandidates, self.previousFilterKey = normalized, candidates, filterIdentity(filter)
     return out
 end
 

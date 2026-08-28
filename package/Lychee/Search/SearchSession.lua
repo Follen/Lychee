@@ -7,13 +7,16 @@ local Session = {
 }
 I.Search.Session = Session
 
-local function contextSnapshot(session, generation)
+local function contextSnapshot(session, generation, filter)
     local source = I.Context and I.Context:Snapshot() or {}
     local context = {}
     for key, value in pairs(source) do context[key] = value end
     context.session = session
     context.generation = generation
     context.visible = true
+    if type(filter) == "table" then
+        context.searchFilter = { categoryID = filter.categoryID, sourceID = filter.sourceID }
+    end
     return context
 end
 
@@ -88,7 +91,9 @@ function Session:Input(raw)
     local session = self.session
     local generation = self.generation + 1
     self.generation = generation
+    self.activeFilter = nil
     self:_SyncPalette()
+    self:_Accept({}, generation, session)
     local context = contextSnapshot(session, generation)
 
     if C_Timer and (type(C_Timer.NewTimer) == "function" or type(C_Timer.After) == "function") then
@@ -103,8 +108,30 @@ function Session:Input(raw)
     return true, completedGeneration
 end
 
+function Session:Filter(filter)
+    if not self.visible then return false, "HIDDEN" end
+    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    if type(filter) ~= "table" or (not filter.categoryID and not filter.sourceID) then return false, "INVALID_FILTER" end
+    local query = I.Search.Query
+    if not query then return false, "SEARCH_UNAVAILABLE" end
+
+    local session = self.session
+    local generation = self.generation + 1
+    self.generation = generation
+    self.activeFilter = { categoryID = filter.categoryID, sourceID = filter.sourceID }
+    self:_SyncPalette()
+    if type(query.Cancel) == "function" then query:Cancel("filter-change", generation) end
+    self:_Accept({}, generation, session)
+    local context = contextSnapshot(session, generation, self.activeFilter)
+    local completedGeneration, results = query:Query("", context, generation)
+    self:_Accept(results, completedGeneration, session)
+    return true, completedGeneration
+end
+
 if I.Search.StaticIndex and type(I.Search.StaticIndex.OnChange) == "function" then
     I.Search.StaticIndex:OnChange(function(_, reason)
+        local palette = Session.palette
+        if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
         Session:Invalidate("source-" .. tostring(reason or "changed"))
     end)
 end
