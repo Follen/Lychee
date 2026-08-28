@@ -645,6 +645,8 @@ local ok, nextGeneration, nextRevision = source:CommitSnapshot(nil, nil, generat
 
 空输入时 Palette 显示 ZTools 风格 HomeView（最近、固定、分类、第三方入口）；有输入时显示带图标、category badge、描述、命中证据和动作槽的 SearchView。最近/固定只保存 stable ID，不保存完整 payload。搜索索引和结果行均池化，Palette 隐藏时没有常驻每帧工作。
 
+Host 的根窗口是固定约 `720x500` UI 单位的 Header/Content/Footer 工作台。Content 同一时刻只显示 HomeView、SearchView、Host 无结果状态或 ViewHost Panel 之一；第三方不能覆盖 Header、Footer 或创建第二个 Palette。SearchView 复用固定结果行和最多四个 Host 动作槽，标题/描述/来源/命中证据被限制在稳定几何内；鼠标 hover 不改变键盘选中项。Source 禁用、结果缩短、查询清空或 Panel 切换时，Host 会清除不可见行的 item、action、drag、session/generation 和 Extension 绑定。
+
 ### 10.4 协作式 deferred resolver
 
 同步 resolver 必须快速返回。需要分批处理时，使用本次调用的临时 `runtime`：

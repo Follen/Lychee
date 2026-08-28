@@ -9,6 +9,44 @@ _G.BINDING_NAME_TOGGLELYCHEE = locale == "zhCN" and "打开/关闭 Lychee" or "O
 local Palette = {}
 Palette.__index = Palette
 
+local WIDTH, HEIGHT = 720, 500
+local HEADER_HEIGHT, FOOTER_HEIGHT = 72, 34
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 3, 208, 58
+local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 10, 8, 20
+
+local FALLBACK = {
+    window = { 0.045, 0.048, 0.055, 0.985 }, header = { 0.065, 0.068, 0.078, 1 },
+    content = { 0.035, 0.038, 0.044, 1 }, footer = { 0.050, 0.053, 0.061, 1 },
+    tile = { 0.075, 0.078, 0.088, 1 }, tileHover = { 0.105, 0.108, 0.120, 1 },
+    tileSelected = { 0.135, 0.090, 0.098, 1 },
+    border = { 0.18, 0.18, 0.20, 1 }, accent = { 0.90, 0.22, 0.29, 1 },
+    text = { 0.94, 0.92, 0.89, 1 }, muted = { 0.62, 0.61, 0.59, 1 },
+}
+
+local COLOR_ALIAS = {
+    tile = "surface",
+    tileHover = "surfaceHover",
+    tileSelected = "surfaceSelected",
+    muted = "textMuted",
+}
+
+local function color(name)
+    local theme = Lychee.UI.Theme
+    return theme and theme.GetColor and theme:GetColor(COLOR_ALIAS[name] or name) or FALLBACK[name]
+end
+
+local function paint(texture, value)
+    if texture and value and texture.SetColorTexture then
+        texture:SetColorTexture(value[1], value[2], value[3], value[4] or 1)
+    end
+end
+
+local function tint(fontString, value)
+    if fontString and value and fontString.SetTextColor then
+        fontString:SetTextColor(value[1], value[2], value[3], value[4] or 1)
+    end
+end
+
 local function paletteDB()
     LycheeDB = LycheeDB or {}
     LycheeDB.palette = LycheeDB.palette or {}
@@ -48,67 +86,186 @@ local function localized(value, fallback)
 end
 
 local function homeLabel(value, fallback)
-    if type(value) == "table" then return value.default or value.zhCN or fallback end
+    if type(value) == "table" then return localized(value, fallback) end
     return value or fallback
 end
 
 local function setShown(object, shown)
-    if object and object:IsShown() ~= shown then object:SetShown(shown) end
+    if object and object.IsShown and object:IsShown() ~= shown then object:SetShown(shown) end
+end
+
+local function setText(fontString, text)
+    text = text or ""
+    if fontString and fontString.GetText and fontString:GetText() ~= text then fontString:SetText(text) end
+end
+
+local function createBand(parent, height, top)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetHeight(height)
+    if top then
+        frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
+        frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
+    else
+        frame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0)
+        frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0)
+    end
+    frame.bg = frame:CreateTexture(nil, "BACKGROUND")
+    frame.bg:SetAllPoints()
+    paint(frame.bg, color(top and "header" or "footer"))
+    return frame
 end
 
 local function createHomeView(parent, controller)
-    local frame = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
-    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 12, -48)
-    frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -12, -48)
-    frame:SetHeight(350)
+    local frame = CreateFrame("ScrollFrame", nil, parent)
+    frame:SetAllPoints(parent)
     frame:Hide()
+    if frame.EnableMouseWheel then frame:EnableMouseWheel(true) end
     local content = CreateFrame("Frame", nil, frame)
-    content:SetSize(592, 1)
-    content:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    content:SetSize(664, 1)
+    content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -10)
     frame:SetScrollChild(content)
-    local view = { frame = frame, content = content, controller = controller, tiles = {}, sections = {} }
+    local view = { frame = frame, content = content, controller = controller, tiles = {}, headers = {}, sections = {}, scroll = 0, selected = 1 }
+
+    function view:RenderTileState(tile)
+        local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
+        paint(tile.bg, color(selected and "tileSelected" or (tile._hovered and "tileHover" or "tile")))
+        setShown(tile.focus, selected or (tile._hovered and tile.section and tile.section.enabled ~= false) or false)
+    end
+
+    function view:Select(index)
+        local count = #self.sections
+        if count == 0 then self.selected = 1; return nil end
+        index = math.max(1, math.min(index or 1, count))
+        if self.sections[index] and self.sections[index].enabled == false then
+            local direction = index >= (self.selected or 1) and 1 or -1
+            local candidate = index
+            repeat candidate = candidate + direction
+            until candidate < 1 or candidate > count or self.sections[candidate].enabled ~= false
+            if candidate < 1 or candidate > count then return nil end
+            index = candidate
+        end
+        self.selected = index
+        for tileIndex = 1, #self.tiles do self:RenderTileState(self.tiles[tileIndex]) end
+        return self.sections[index]
+    end
+
+    function view:Move(delta)
+        local direction = (delta or 0) < 0 and -1 or 1
+        local candidate = self.selected or 1
+        repeat candidate = candidate + direction
+        until candidate < 1 or candidate > #self.sections or self.sections[candidate].enabled ~= false
+        if candidate >= 1 and candidate <= #self.sections then return self:Select(candidate) end
+        return self.sections[self.selected]
+    end
+
+    function view:ActivateSelected()
+        local section = self.sections[self.selected]
+        if section and section.enabled ~= false and self.controller and self.controller.onHomeSelect then
+            self.controller.onHomeSelect(section)
+        end
+    end
+
+    if frame.SetVerticalScroll then
+        frame:SetScript("OnMouseWheel", function(_, delta)
+            local maxScroll = math.max(0, (content:GetHeight() or 0) - (frame:GetHeight() or 0) + 20)
+            view.scroll = math.max(0, math.min(maxScroll, (view.scroll or 0) - delta * 42))
+            frame:SetVerticalScroll(view.scroll)
+        end)
+    end
+
+    function view:AcquireHeader(index)
+        local header = self.headers[index]
+        if header then return header end
+        header = self.content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        header:SetJustifyH("LEFT")
+        tint(header, color("text"))
+        self.headers[index] = header
+        return header
+    end
+
     function view:AcquireTile(index)
         local existing = self.tiles[index]
         if existing then return existing end
         local tile = CreateFrame("Button", nil, self.content)
-        tile:SetSize(142, 70)
-        local column = (index - 1) % 4
-        local row = math.floor((index - 1) / 4)
-        tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", column * 150, -row * 80)
+        tile:SetSize(HOME_TILE_WIDTH, HOME_TILE_HEIGHT)
         tile:RegisterForClicks("LeftButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
         tile.bg:SetAllPoints()
-        tile.bg:SetColorTexture(0.10, 0.11, 0.14, 0.92)
+        paint(tile.bg, color("tile"))
+        tile.focus = tile:CreateTexture(nil, "BORDER")
+        tile.focus:SetPoint("TOPLEFT", tile, "TOPLEFT", 0, 0)
+        tile.focus:SetPoint("BOTTOMLEFT", tile, "BOTTOMLEFT", 0, 0)
+        tile.focus:SetWidth(1)
+        paint(tile.focus, color("accent"))
+        tile.focus:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
-        tile.icon:SetSize(24, 24)
-        tile.icon:SetPoint("LEFT", 8, 0)
+        tile.icon:SetSize(30, 30)
+        tile.icon:SetPoint("LEFT", tile, "LEFT", 10, 0)
         tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        tile.title:SetPoint("TOPLEFT", tile.icon, "TOPRIGHT", 7, -2)
-        tile.title:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
+        tile.title:SetPoint("TOPLEFT", tile.icon, "TOPRIGHT", 10, -10)
+        tile.title:SetPoint("RIGHT", tile, "RIGHT", -8, 0)
         tile.title:SetJustifyH("LEFT")
+        if tile.title.SetWordWrap then tile.title:SetWordWrap(false) end
+        tint(tile.title, color("text"))
         tile.meta = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        tile.meta:SetPoint("BOTTOMLEFT", tile.icon, "BOTTOMRIGHT", 7, 2)
-        tile.meta:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
+        tile.meta:SetPoint("TOPLEFT", tile.title, "BOTTOMLEFT", 0, -4)
+        tile.meta:SetPoint("RIGHT", tile, "RIGHT", -8, 0)
         tile.meta:SetJustifyH("LEFT")
+        if tile.meta.SetWordWrap then tile.meta:SetWordWrap(false) end
+        tint(tile.meta, color("muted"))
         tile:SetScript("OnClick", function(button)
             local section = button.section
-            if section and controller and controller.onHomeSelect then controller.onHomeSelect(section) end
+            if section and section.enabled ~= false and controller and controller.onHomeSelect then
+                view:Select(button.index)
+                controller.onHomeSelect(section)
+            end
         end)
-        tile:SetScript("OnEnter", function(button) button.bg:SetColorTexture(0.16, 0.20, 0.28, 1) end)
-        tile:SetScript("OnLeave", function(button) button.bg:SetColorTexture(0.10, 0.11, 0.14, 0.92) end)
+        tile:SetScript("OnEnter", function(button)
+            button._hovered = true
+            view:RenderTileState(button)
+        end)
+        tile:SetScript("OnLeave", function(button)
+            button._hovered = false
+            view:RenderTileState(button)
+        end)
         self.tiles[index] = tile
         return tile
     end
+
     function view:SetSections(sections)
         self.sections = sections or {}
-        local count = #self.sections
-        for i = 1, count do
-            local section, tile = self.sections[i], self:AcquireTile(i)
+        local headerCount, tileCount, cursorY = 0, 0, 0
+        local groupID, column = nil, 0
+        for index = 1, #self.sections do
+            local section = self.sections[index]
+            if section.groupID ~= groupID then
+                if groupID ~= nil then cursorY = cursorY + HOME_GROUP_GAP end
+                groupID, column = section.groupID, 0
+                headerCount = headerCount + 1
+                local header = self:AcquireHeader(headerCount)
+                header:ClearAllPoints()
+                header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -cursorY)
+                setText(header, homeLabel(section.groupTitle, section.groupID or ""))
+                setShown(header, true)
+                cursorY = cursorY + 24
+            end
+            tileCount = tileCount + 1
+            local tile = self:AcquireTile(tileCount)
+            local row = math.floor(column / HOME_COLUMNS)
+            local col = column % HOME_COLUMNS
+            tile:ClearAllPoints()
+            tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP),
+                -(cursorY + row * (HOME_TILE_HEIGHT + HOME_ROW_GAP)))
+            column = column + 1
+            local nextSection = self.sections[index + 1]
+            if not nextSection or nextSection.groupID ~= groupID then
+                local rows = math.max(1, math.ceil(column / HOME_COLUMNS))
+                cursorY = cursorY + rows * HOME_TILE_HEIGHT + math.max(0, rows - 1) * HOME_ROW_GAP
+            end
             tile.section = section
-            local title = homeLabel(section.title or section.text, "Lychee")
-            if tile._title ~= title then tile.title:SetText(title); tile._title = title end
-            local meta = homeLabel(section.meta or section.source, "")
-            if tile._meta ~= meta then tile.meta:SetText(meta); tile._meta = meta end
+            tile.index = index
+            setText(tile.title, homeLabel(section.title or section.text, "Lychee"))
+            setText(tile.meta, homeLabel(section.meta or section.source, ""))
             if section.icon then
                 if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); tile._icon = section.icon end
                 setShown(tile.icon, true)
@@ -117,62 +274,144 @@ local function createHomeView(parent, controller)
                 setShown(tile.icon, false)
             end
             setShown(tile, true)
+            self:RenderTileState(tile)
         end
-        for i = count + 1, #self.tiles do
-            local tile = self.tiles[i]
-            tile.section = nil
+        for index = tileCount + 1, #self.tiles do
+            local tile = self.tiles[index]
+            tile.section, tile.index, tile._hovered = nil, nil, nil
+            setShown(tile.focus, false)
             setShown(tile, false)
         end
-        local rows = math.ceil(count / 4)
-        local height = math.max(1, rows > 0 and (rows * 80 - 10) or 1)
+        for index = headerCount + 1, #self.headers do setShown(self.headers[index], false) end
+        local height = math.max(1, cursorY + 14)
         if self.content:GetHeight() ~= height then self.content:SetHeight(height) end
+        local maxScroll = math.max(0, height - (self.frame:GetHeight() or 0) + 20)
+        self.scroll = math.min(self.scroll or 0, maxScroll)
+        if self.frame.SetVerticalScroll then self.frame:SetVerticalScroll(self.scroll) end
+        if not self.sections[self.selected] or self.sections[self.selected].enabled == false then
+            local firstEnabled
+            for index = 1, #self.sections do if self.sections[index].enabled ~= false then firstEnabled = index; break end end
+            self.selected = firstEnabled or 1
+        end
+        for index = 1, #self.tiles do self:RenderTileState(self.tiles[index]) end
     end
-    function view:ShowSections(sections) self:SetSections(sections); self.frame:Show() end
-    function view:Hide() self.frame:Hide() end
+
     return view
+end
+
+function Palette:ApplyBoundedScale()
+    if not self.frame or not self.frame.SetScale then return end
+    local parentWidth = UIParent and UIParent.GetWidth and UIParent:GetWidth()
+    local parentHeight = UIParent and UIParent.GetHeight and UIParent:GetHeight()
+    if not parentWidth or not parentHeight or parentWidth <= 0 or parentHeight <= 0 then return end
+    local scale = math.max(0.72, math.min(1, (parentWidth - 48) / WIDTH, (parentHeight - 48) / HEIGHT))
+    if self._scale ~= scale then self.frame:SetScale(scale); self._scale = scale end
 end
 
 function Palette:Create()
     if self.frame then return self end
     local frame = CreateFrame("Frame", "LycheePalette", UIParent, "BackdropTemplate")
-    frame:SetSize(620, 420)
+    frame:SetSize(WIDTH, HEIGHT)
     frame:SetPoint("CENTER")
     frame:SetFrameStrata("DIALOG")
     frame:EnableMouse(true)
     if frame.SetBackdrop then
-        frame:SetBackdrop({
-            bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            tile = true, tileSize = 16, edgeSize = 12,
-            insets = { left = 3, right = 3, top = 3, bottom = 3 },
-        })
-        if frame.SetBackdropColor then frame:SetBackdropColor(0.035, 0.045, 0.065, 0.98) end
-        if frame.SetBackdropBorderColor then frame:SetBackdropBorderColor(0.25, 0.31, 0.42, 1) end
+        frame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8",
+            edgeSize = 1, insets = { left = 1, right = 1, top = 1, bottom = 1 } })
+        local window, border = color("window"), color("border")
+        if frame.SetBackdropColor then frame:SetBackdropColor(window[1], window[2], window[3], window[4]) end
+        if frame.SetBackdropBorderColor then frame:SetBackdropBorderColor(border[1], border[2], border[3], border[4]) end
     end
     frame:Hide()
     frame:SetScript("OnHide", function() if self.visible then self:Hide("external") end end)
     frame:SetScript("OnKeyDown", function(_, key) if key == "ESCAPE" then self:Hide("escape") end end)
     self.frame = frame
-    self.session = 0
-    self.generation = 0
-    self.visible = false
+    self.session, self.generation, self.visible = 0, 0, false
+    self.header = createBand(frame, HEADER_HEIGHT, true)
+    self.footer = createBand(frame, FOOTER_HEIGHT, false)
+    self.content = CreateFrame("Frame", nil, frame)
+    self.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -HEADER_HEIGHT)
+    self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
+    self.content.bg = self.content:CreateTexture(nil, "BACKGROUND")
+    self.content.bg:SetAllPoints()
+    paint(self.content.bg, color("content"))
+    self.brandMark = self.header:CreateTexture(nil, "ARTWORK")
+    self.brandMark:SetSize(3, 28)
+    self.brandMark:SetPoint("LEFT", self.header, "LEFT", 18, 0)
+    paint(self.brandMark, color("accent"))
+    self.brand = self.header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    self.brand:SetPoint("LEFT", self.brandMark, "RIGHT", 10, 1)
+    setText(self.brand, "Lychee")
+    tint(self.brand, color("text"))
+    self.close = CreateFrame("Button", nil, self.header)
+    self.close:SetSize(24, 24)
+    self.close:SetPoint("RIGHT", self.header, "RIGHT", -14, 0)
+    self.close.bg = self.close:CreateTexture(nil, "BACKGROUND")
+    self.close.bg:SetAllPoints()
+    paint(self.close.bg, color("header"))
+    self.close.label = self.close:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    self.close.label:SetAllPoints()
+    self.close.label:SetJustifyH("CENTER")
+    setText(self.close.label, "x")
+    tint(self.close.label, color("muted"))
+    self.close:SetScript("OnClick", function() self:Hide("close") end)
+    self.close:SetScript("OnEnter", function(button)
+        paint(button.bg, color("tileHover"))
+        tint(button.label, color("text"))
+        if GameTooltip then
+            GameTooltip:SetOwner(button, "ANCHOR_BOTTOM")
+            GameTooltip:SetText(localized({ zhCN = "关闭", enUS = "Close" }, "Close"))
+            GameTooltip:Show()
+        end
+    end)
+    self.close:SetScript("OnLeave", function(button)
+        paint(button.bg, color("header"))
+        tint(button.label, color("muted"))
+        if GameTooltip then GameTooltip:Hide() end
+    end)
+    self.status = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.status:SetPoint("LEFT", self.footer, "LEFT", 16, 0)
+    self.status:SetPoint("RIGHT", self.footer, "RIGHT", -16, 0)
+    self.status:SetJustifyH("LEFT")
+    tint(self.status, color("muted"))
+
+    self.emptyState = CreateFrame("Frame", nil, self.content)
+    self.emptyState:SetAllPoints(self.content)
+    self.emptyState:Hide()
+    self.emptyState.title = self.emptyState:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    self.emptyState.title:SetPoint("CENTER", self.emptyState, "CENTER", 0, 12)
+    setText(self.emptyState.title, localized({ zhCN = "没有找到结果", enUS = "No results found" }, "No results found"))
+    tint(self.emptyState.title, color("text"))
+    self.emptyState.detail = self.emptyState:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.emptyState.detail:SetPoint("TOP", self.emptyState.title, "BOTTOM", 0, -8)
+    setText(self.emptyState.detail, localized({ zhCN = "换一个名称、别名或描述试试", enUS = "Try another name, alias, or description" }, ""))
+    tint(self.emptyState.detail, color("muted"))
+
     self.focus = Lychee.UI.FocusController:New()
-    self.input = Lychee.UI.Input:Create(frame, self.focus)
-    self.list = Lychee.UI.ResultList:Create(frame, self)
-    self.homeView = createHomeView(frame, self)
+    self.input = Lychee.UI.Input:Create(self.header, self.focus)
+    self.list = Lychee.UI.ResultList:Create(self.content, self)
+    self.homeView = createHomeView(self.content, self)
     self.homeView:SetSections({})
     self.onHomeSelect = function(section)
         if section and section.query then self.input:SetText(section.query)
         elseif section and section.id and self.onHomeCategory then self.onHomeCategory(section.id) end
     end
-    self.viewHost = Lychee.UI.ViewHost:Create(frame)
+    self.viewHost = Lychee.UI.ViewHost:Create(self.content)
     self.input:SetChangedCallback(function(text)
         self:SetQueryMode(text)
         if self.onQuery then self.onQuery(text) end
     end)
-    self.input:SetSubmitCallback(function() self:ActivateSelected() end)
+    self.input:SetSubmitCallback(function()
+        if self.input:GetText() == "" then self.homeView:ActivateSelected() else self:ActivateSelected() end
+    end)
+    self.input:SetMoveCallback(function(delta)
+        if self.input:GetText() == "" then self.homeView:Move(delta) else self.list:Move(delta) end
+    end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-    frame:SetScript("OnEvent", function(_, event) if event == "PLAYER_REGEN_DISABLED" and self.visible then self:Hide("combat") end end)
+    frame:SetScript("OnEvent", function(_, event)
+        if event == "PLAYER_REGEN_DISABLED" and self.visible then self:Hide("combat") end
+    end)
+
     local internal = _G.LycheeInternal
     if internal then
         internal.Host = internal.Host or {}
@@ -182,9 +421,7 @@ function Palette:Create()
         if internal.Registry and internal.Registry.OnChange and not internal._paletteLifecycleWired then
             internal._paletteLifecycleWired = true
             internal.Registry:OnChange(function(entry, state)
-                if state == "disabled" or state == "retiring" or state == "removed" then
-                    self:InvalidateExtension(entry and entry.id)
-                end
+                if state == "disabled" or state == "retiring" or state == "removed" then self:InvalidateExtension(entry and entry.id) end
             end)
         end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
@@ -197,17 +434,14 @@ end
 function Palette:SetQueryCallback(callback) self.onQuery = callback end
 function Palette:SetActivateCallback(callback) self.onActivate = callback end
 function Palette:SetDragCallback(callback) self.onDrag = callback end
-function Palette:SetHomeSections(sections)
-    if self.homeView then self.homeView:SetSections(sections or {}) end
-end
+function Palette:SetHomeSections(sections) if self.homeView then self.homeView:SetSections(sections or {}) end end
 function Palette:SetHomeCategoryCallback(callback) self.onHomeCategory = callback end
+
 function Palette:TouchRecent(item)
     local id = stableItemID(item)
     if not id then return false end
     local db = paletteDB()
-    for index = #db.recent, 1, -1 do
-        if db.recent[index] == id then table.remove(db.recent, index) end
-    end
+    for index = #db.recent, 1, -1 do if db.recent[index] == id then table.remove(db.recent, index) end end
     table.insert(db.recent, 1, id)
     while #db.recent > 8 do db.recent[#db.recent] = nil end
     return true
@@ -233,8 +467,7 @@ function Palette:_IndexedRecordsByID()
     for _, entry in pairs(static.entries) do
         local record = entry and entry.record
         if type(record) == "table" and type(record.id) == "string" and not index[record.id] then
-            index[record.id] = record
-            records[#records + 1] = record
+            index[record.id], records[#records + 1] = record, record
         end
     end
     return records, index
@@ -243,99 +476,105 @@ end
 function Palette:RefreshHomeSections()
     if not self.homeView then return false end
     local records, byID = self:_IndexedRecordsByID()
-    local db = paletteDB()
-    local sections = {}
-    local function appendSaved(title, meta, ids)
+    local db, sections = paletteDB(), {}
+    local function appendSaved(groupID, groupTitle, emptyTitle, ids)
         local count = 0
         for index = 1, #ids do
             local record = byID[ids[index]]
             if record then
-                sections[#sections + 1] = {
-                    id = "saved:" .. ids[index],
+                sections[#sections + 1] = { id = "saved:" .. ids[index], groupID = groupID, groupTitle = groupTitle,
                     title = localized(record.title, ids[index]),
-                    meta = title .. "  " .. localized(record.category and record.category.title, meta),
-                    icon = record.icon,
-                    query = localized(record.title, ids[index]),
-                }
+                    meta = localized(record.category and record.category.title, localized({ zhCN = "实体", enUS = "Entity" }, "Entity")),
+                    icon = record.icon, query = localized(record.title, ids[index]) }
                 count = count + 1
             end
         end
         if count == 0 then
-            sections[#sections + 1] = {
-                id = string.lower(meta),
-                title = title,
-                meta = localized({ zhCN = "暂无记录", enUS = "No items" }, ""),
-            }
+            sections[#sections + 1] = { id = "empty:" .. groupID, groupID = groupID, groupTitle = groupTitle,
+                title = emptyTitle, meta = localized({ zhCN = "暂无内容", enUS = "Nothing here yet" }, "Nothing here yet"), enabled = false }
         end
-        return count
     end
-    appendSaved("最近使用", "Recent", db.recent)
-    appendSaved("固定项目", "Pinned", db.pinned)
+    appendSaved("recent", localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
+        localized({ zhCN = "还没有最近记录", enUS = "No recent items" }, "No recent items"), db.recent)
+    appendSaved("pinned", localized({ zhCN = "已固定", enUS = "Pinned" }, "Pinned"),
+        localized({ zhCN = "还没有固定项目", enUS = "No pinned items" }, "No pinned items"), db.pinned)
 
     local categoryLabels = {
-        { id = "spells", title = "技能", meta = "Spells" },
-        { id = "achievements", title = "成就", meta = "Achievements" },
-        { id = "quests", title = "任务", meta = "Quests" },
-        { id = "dungeons", title = "副本", meta = "Dungeons" },
-        { id = "extensions", title = "插件", meta = "Extensions" },
+        { id = "spells", title = { zhCN = "技能", enUS = "Spells" } },
+        { id = "achievements", title = { zhCN = "成就", enUS = "Achievements" } },
+        { id = "quests", title = { zhCN = "任务", enUS = "Quests" } },
+        { id = "dungeons", title = { zhCN = "副本", enUS = "Dungeons" } },
+        { id = "extensions", title = { zhCN = "插件", enUS = "Extensions" } },
     }
-    for i = 1, #categoryLabels do
-        local category = categoryLabels[i]
-        local representative
-        for j = 1, #records do
-            local value = records[j].category
-            local categoryID = type(value) == "table" and value.id or value
-            if categoryID == category.id then representative = records[j]; break end
+    for index = 1, #categoryLabels do
+        local category, representative = categoryLabels[index], nil
+        for recordIndex = 1, #records do
+            local value = records[recordIndex].category
+            if (type(value) == "table" and value.id or value) == category.id then representative = records[recordIndex]; break end
         end
-        sections[#sections + 1] = {
-            id = "category:" .. category.id,
-            title = category.title,
-            meta = category.meta,
-            icon = representative and representative.icon,
-            query = category.title,
-        }
+        local title = localized(category.title, category.id)
+        sections[#sections + 1] = { id = "category:" .. category.id, groupID = "categories",
+            groupTitle = localized({ zhCN = "分类", enUS = "Categories" }, "Categories"), title = title,
+            meta = localized({ zhCN = "浏览此类内容", enUS = "Browse this category" }, "Browse"),
+            icon = representative and representative.icon, query = title }
     end
 
     local internal = _G.LycheeInternal
     local registry = internal and internal.Registry
     local static = internal and internal.Search and internal.Search.StaticIndex
+    local sourceCount = 0
     if registry and static and type(static.sources) == "table" then
         local sourceIDs = {}
         for sourceID, source in pairs(static.sources) do
             local extensionID = source and source.extensionID
-            if source.enabled and type(extensionID) == "string" and extensionID:sub(1, 7) ~= "builtin" then
-                sourceIDs[#sourceIDs + 1] = sourceID
-            end
+            if source.enabled and type(extensionID) == "string" and extensionID:sub(1, 7) ~= "builtin" then sourceIDs[#sourceIDs + 1] = sourceID end
         end
         table.sort(sourceIDs)
         for index = 1, #sourceIDs do
-            local sourceID = sourceIDs[index]
-            local source = static.sources[sourceID]
+            local sourceID, source = sourceIDs[index], static.sources[sourceIDs[index]]
             local entry = registry.entries[source.extensionID]
             local extensionTitle = localized(entry and entry.descriptor and entry.descriptor.title, source.extensionID)
-            sections[#sections + 1] = {
-                id = "source:" .. sourceID,
-                title = extensionTitle,
-                meta = source.id:match("([^:]+)$") or source.id,
-                query = extensionTitle,
-            }
+            sections[#sections + 1] = { id = "source:" .. sourceID, groupID = "extensions",
+                groupTitle = localized({ zhCN = "扩展来源", enUS = "Extension sources" }, "Extension sources"),
+                title = extensionTitle, meta = source.id:match("([^:]+)$") or source.id, query = extensionTitle }
+            sourceCount = sourceCount + 1
         end
+    end
+    if sourceCount == 0 then
+        sections[#sections + 1] = { id = "empty:extensions", groupID = "extensions",
+            groupTitle = localized({ zhCN = "扩展来源", enUS = "Extension sources" }, "Extension sources"),
+            title = localized({ zhCN = "暂无第三方来源", enUS = "No third-party sources" }, "No third-party sources"),
+            meta = localized({ zhCN = "已启用的接入会显示在这里", enUS = "Enabled integrations appear here" }, ""), enabled = false }
     end
     self:SetHomeSections(sections)
     return true
 end
+
+function Palette:SetStatus(mode, count)
+    local text
+    if mode == "home" then text = localized({ zhCN = "主页", enUS = "Home" }, "Home")
+    elseif mode == "panel" then text = localized({ zhCN = "详情", enUS = "Detail" }, "Detail")
+    elseif count and count > 0 then text = localized({ zhCN = "搜索结果：", enUS = "Results: " }, "Results: ") .. tostring(count)
+    else text = localized({ zhCN = "没有结果", enUS = "No results" }, "No results") end
+    setText(self.status, text)
+end
+
 function Palette:SetQueryMode(text)
     local empty = (text or "") == ""
     if not self.homeView or not self.list then return end
+    if self.viewHost and self.viewHost:IsActive() then self.viewHost:Unmount("query-change") end
+    setShown(self.viewHost and self.viewHost.frame, false)
     if empty then
-        self.list.frame:Hide()
-        self:RefreshHomeSections()
-        self.homeView.frame:Show()
+        setShown(self.list.frame, false); setShown(self.emptyState, false)
+        self:RefreshHomeSections(); setShown(self.homeView.frame, true); self:SetStatus("home")
     else
-        self.homeView.frame:Hide()
-        self.list.frame:Show()
+        setShown(self.homeView.frame, false)
+        local hasItems = self.list.items and #self.list.items > 0
+        setShown(self.list.frame, hasItems)
+        setShown(self.emptyState, not hasItems); self:SetStatus("search", hasItems and #self.list.items or 0)
     end
 end
+
 function Palette:IsRowCurrent(row, session, generation, item, extensionID)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if not executor then return false, "STALE_GENERATION" end
@@ -356,25 +595,27 @@ function Palette:RejectRow(row, err)
 end
 function Palette:InvalidateExtension(extensionID)
     if not extensionID then return false end
-    if self.viewHost and self.viewHost.panel and self.viewHost.panel.context
-        and self.viewHost.panel.context.extensionID == extensionID then
+    if self.viewHost and self.viewHost.panel and self.viewHost.panel.context and self.viewHost.panel.context.extensionID == extensionID then
         self.viewHost:Unmount("extension-disabled")
     end
     if not self.list then return true end
-    for i = 1, #self.list.rows do
-        local row = self.list.rows[i]
-        if row.extensionID == extensionID then self:InvalidateRow(row) end
-    end
+    for index = 1, #self.list.rows do if self.list.rows[index].extensionID == extensionID then self:InvalidateRow(self.list.rows[index]) end end
     return true
 end
+
 function Palette:ApplyResults(items, generation, session)
     if not self.visible then return false end
     if session and session ~= self.session then return false end
     if generation and generation ~= self.generation then return false end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
-    self.list:SetItems(items or {}, self.session, self.generation)
+    items = items or {}
+    self.list:SetItems(items, self.session, self.generation)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if executor then executor:PrepareVisibleRows(self.list.rows) end
+    if self.input:GetText() ~= "" then
+        setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0)
+        self:SetStatus("search", #items)
+    end
     return true
 end
 function Palette:SetResults(items, generation, session)
@@ -382,15 +623,15 @@ function Palette:SetResults(items, generation, session)
     if searchSession then return searchSession:_Accept(items, generation or searchSession.generation, session or searchSession.session) end
     return self:ApplyResults(items, generation, session)
 end
+
 function Palette:Show()
     self:Create()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    self:ApplyBoundedScale()
     self.visible = true
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
-    self.frame:Show()
-    self:SetQueryMode(self.input:GetText())
-    self.input:Show(); self.input:Focus()
+    self.frame:Show(); self:SetQueryMode(self.input:GetText()); self.input:Show(); self.input:Focus()
     return true
 end
 function Palette:Hide(reason)
@@ -398,12 +639,10 @@ function Palette:Hide(reason)
     if searchSession then searchSession:Stop(reason or "hide") end
     if not self.frame or not self.visible then return true end
     self.visible = false
-    self.list:Clear()
+    self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
-    self.focus:Restore()
-    self.input:ClearFocus(); self.input:Hide()
-    self.frame:Hide()
+    self.focus:Restore(); self.input:ClearFocus(); self.input:Hide(); self.frame:Hide()
     return true
 end
 function Palette:Toggle()
@@ -427,8 +666,17 @@ function Palette:BeginRowDrag(row)
     if not executor then return false, "DRAG_UNSUPPORTED" end
     return executor:BeginDrag(row)
 end
-function Palette:OpenView(factory, context, state) return self.viewHost:Mount(factory, context or {}, state) end
-function Palette:CloseView(reason) return self.viewHost:Unmount(reason or "close") end
+function Palette:OpenView(factory, context, state)
+    setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)
+    local mounted, err = self.viewHost:Mount(factory, context or {}, state)
+    if mounted then self:SetStatus("panel") end
+    return mounted, err
+end
+function Palette:CloseView(reason)
+    local result = self.viewHost:Unmount(reason or "close")
+    self:SetQueryMode(self.input:GetText())
+    return result
+end
 
 function Lychee_Toggle()
     if InCombatLockdown and InCombatLockdown() then return end

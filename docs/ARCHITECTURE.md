@@ -111,6 +111,7 @@ Lychee/
 │  │  │  └─ SearchSession.lua
 │  │  ├─ UI/
 │  │  │  ├─ Palette.lua
+│  │  │  ├─ Theme.lua
 │  │  │  ├─ Input.lua
 │  │  │  ├─ ResultList.lua
 │  │  │  ├─ ViewHost.lua
@@ -551,6 +552,10 @@ Lychee 绘制统一结果卡片，至少包含 icon、category badge、localized
 Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态和空状态。`SearchSession` 校验结果 generation，`ResultActionExecutor` 校验行/source/Extension token；item payload 只传给所属 Command 的 `itemIntent`。
 
 空输入显示 Host-owned HomeView（最近、固定、按 category 分组和第三方入口）；有输入时切换 SearchView。两种状态共用 Palette session/generation、对象池和动作校验，不允许 Source 或 Command 创建第二个根窗口。
+
+Palette 使用约 `720x500` UI 单位的固定三段工作台：Header 承载品牌和无模板原生 EditBox，Content 在 HomeView、SearchView、无结果状态、ViewHost 之间保持单一可见状态，Footer 只显示当前模式或结果数。窗口在每次显示时依据 `UIParent` 可用尺寸做有界整体缩放，不注册常驻缩放轮询。`Theme.lua` 集中拥有石墨背景、暖白文字、荔枝红主强调、低饱和类别色、间距和固定尺寸 token；Input、Home tile、结果行和动作按钮只消费 token，不各自定义另一套视觉系统。
+
+HomeView 的最近、已固定、分类和第三方来源是四个真实分组，空分组显示不可点击的空状态而不伪造实体。SearchView 固定复用六个高信息密度结果行；每行保持类别 badge、图标、标题、受限描述、来源、命中证据、最多四个动作槽和可选拖拽区。键盘选中与鼠标 hover 是独立状态，长文本不改变行高或动作区宽度。清空、较短结果、Source 失效或 Panel 切换必须清除旧行、旧动作、旧拖拽绑定和旧视觉状态。
 
 `resolve` 由 QueryOrchestrator 调用，不由 ResultList 直接调用。返回 item 必须有 Extension 内稳定 ID；`itemIntent` 只把选中 item 转换为结构化 Intent，实际执行仍经过 IntentRouter。
 

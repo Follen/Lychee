@@ -59,7 +59,7 @@ local files = {
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "PublicAPI/SDK.lua",
     "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/Palette.lua",
+    "UI/FocusController.lua", "UI/Theme.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/Palette.lua",
 }
 for i = 1, #files do dofile(root .. files[i]) end
 
@@ -115,6 +115,12 @@ assertEq(disposed, true, "panel dispose cleanup")
 -- Palette combat/secure/drag guards.
 local palette = I.Host.PaletteController
 assert(palette)
+assertEq(palette.frame:GetWidth(), 720, "palette fixed width")
+assertEq(palette.frame:GetHeight(), 500, "palette fixed height")
+assert(palette.header and palette.content and palette.footer and palette.emptyState, "palette workbench regions")
+for _, region in ipairs({ palette.frame, palette.header, palette.content, palette.footer, palette.homeView.frame, palette.list.frame, palette.emptyState }) do
+    assert(not region.scripts.OnUpdate, "palette regions do not install OnUpdate")
+end
 assert(type(palette.onQuery) == "function", "palette query callback was not wired")
 assert(palette:Show())
 local firstSession, firstGeneration = palette.session, palette.generation
@@ -153,8 +159,30 @@ assertEq(palette.homeView.frame:IsShown(), true, "empty query shows home view")
 assertEq(palette.list.frame:IsShown(), false, "empty query hides search view")
 palette:SetQueryMode("技能")
 assertEq(palette.homeView.frame:IsShown(), false, "non-empty query hides home view")
-assertEq(palette.list.frame:IsShown(), true, "non-empty query shows search view")
+assertEq(palette.list.frame:IsShown(), false, "non-empty query without results hides search view")
+assertEq(palette.emptyState:IsShown(), true, "non-empty query without results shows empty state")
 palette:SetQueryMode("")
+assertEq(palette.emptyState:IsShown(), false, "home mode hides empty state")
+local homeSelection = palette.homeView.selected
+palette.input.frame.scripts.OnArrowPressed(palette.input.frame, "DOWN")
+assert(palette.homeView.selected ~= homeSelection, "home keyboard navigation advances selection")
+local keyboardSelection = palette.homeView.selected
+local hoverTile = palette.homeView.tiles[math.max(1, keyboardSelection - 1)]
+hoverTile.scripts.OnEnter(hoverTile)
+hoverTile.scripts.OnLeave(hoverTile)
+assertEq(palette.homeView.selected, keyboardSelection, "home hover does not replace keyboard selection")
+local palettePanel = {
+    create = function()
+        return { Mount = function() return true end, Unmount = function() end, Dispose = function() end }
+    end,
+}
+assert(palette:OpenView(palettePanel, {}, {}))
+assertEq(palette.viewHost:IsActive(), true, "palette view host active")
+assertEq(palette.homeView.frame:IsShown(), false, "panel hides home view")
+assertEq(palette.list.frame:IsShown(), false, "panel hides search view")
+assertEq(palette.emptyState:IsShown(), false, "panel hides empty state")
+palette:CloseView("fixture-close")
+assertEq(palette.homeView.frame:IsShown(), true, "closing panel restores current query mode")
 I.Registry:SetReady(true)
 
 -- Fixed row/custom-panel Commands and catalog dynamic-list use the production executor.
@@ -350,9 +378,14 @@ end
 assert(hasRecent and hasPinned and hasCategory and sourceEntries == 2, "home sections include saved/category/source entries")
 assert(#palette.homeView.sections > 16, "home sections exceed the old fixed tile limit")
 assert(#palette.homeView.tiles >= #palette.homeView.sections, "home tile pool grows to the section count")
+assert(#palette.homeView.headers == 4, "home renders four grouped sections")
+local groupIDs = {}
+for sectionIndex = 1, #palette.homeView.sections do groupIDs[palette.homeView.sections[sectionIndex].groupID] = true end
+assert(groupIDs.recent and groupIDs.pinned and groupIDs.categories and groupIDs.extensions, "home group identities")
 assertEq(palette.homeView.frame:GetScrollChild(), palette.homeView.content, "home uses a scroll child")
 assert(palette.homeView.content:GetHeight() > palette.homeView.frame:GetHeight(), "overflow home content is scrollable")
 local renderedSources = {}
+local firstHomeTile = palette.homeView.tiles[1]
 for tileIndex = 1, #palette.homeView.sections do
     local tile = palette.homeView.tiles[tileIndex]
     assert(tile and tile:IsShown() and tile.section == palette.homeView.sections[tileIndex], "home tile renders section " .. tileIndex)
@@ -380,6 +413,7 @@ for tileIndex = 1, #palette.homeView.sections do
 end
 palette:RefreshHomeSections()
 assertEq(homeSetterCalls, 0, "unchanged home refresh skips native setters")
+assertEq(palette.homeView.tiles[1], firstHomeTile, "unchanged home refresh reuses tile objects")
 for restoreIndex = 1, #restores do
     local restore = restores[restoreIndex]
     restore[1][restore[2]] = restore[3]

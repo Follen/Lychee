@@ -25,6 +25,7 @@ Secure/Descriptor.lua
 Secure/Policy.lua
 Secure/SecureActionBroker.lua
 UI/FocusController.lua
+UI/Theme.lua
 UI/Input.lua
 UI/ResultList.lua
 UI/ViewHost.lua
