@@ -354,7 +354,7 @@ function Palette:Create()
     self.content.bg = self.contentComponent.bg
     self.brandComponent = components:CreateBrand(self.header, {
         iconSize = 36,
-        texture = "Interface\\AddOns\\Lychee\\Media\\lychee-logo",
+        texture = "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga",
         point = "LEFT",
         x = 18,
     })

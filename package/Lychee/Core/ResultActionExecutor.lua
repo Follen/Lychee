@@ -254,8 +254,15 @@ function Executor:PrepareVisibleRows(rows)
                         generation = palette.generation,
                     })
                     if button then
+                        local target = row.actions[actionIndex]
                         button:ClearAllPoints()
-                        button:SetPoint("CENTER", row.actions[actionIndex], "CENTER")
+                        button:SetPoint("CENTER", target, "CENTER")
+                        -- Secure buttons are parented to the palette, so raise them
+                        -- above the pooled action slot that they proxy.
+                        if target and type(target.GetFrameLevel) == "function" and type(button.SetFrameLevel) == "function" then
+                            local targetLevel = target:GetFrameLevel()
+                            if type(targetLevel) == "number" then button:SetFrameLevel(targetLevel + 1) end
+                        end
                     end
                 end
             end

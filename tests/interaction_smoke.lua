@@ -21,7 +21,8 @@ local function object(kind, parent)
     function o:GetWidth() return self.width end
     function o:GetHeight() return self.height end
     function o:SetFrameStrata() end
-    function o:SetFrameLevel() end
+    function o:SetFrameLevel(value) self.frameLevel = value end
+    function o:GetFrameLevel() return self.frameLevel or 0 end
     function o:SetBackdrop() end
     function o:EnableMouse() end
     function o:SetAutoFocus() end
@@ -128,10 +129,10 @@ assertEq(palette.frame:GetWidth(), 720, "palette fixed width")
 assertEq(palette.frame:GetHeight(), 500, "palette fixed height")
 assert(palette.header and palette.content and palette.footer and palette.emptyState, "palette workbench regions")
 assert(palette.headerComponent and palette.footerComponent and palette.contentComponent, "palette uses reusable surface components")
-assert(palette.brandComponent and palette.brandComponent.icon.texture == "Interface\\AddOns\\Lychee\\Media\\lychee-logo", "palette logo component is wired")
+assert(palette.brandComponent and palette.brandComponent.icon.texture == "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga", "palette logo component is wired")
 assert(palette.closeComponent and palette.statusComponent and palette.emptyStateComponent, "palette control components are wired")
 local logoSetCalls = palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0
-assert(palette.brandComponent:SetTexture("Interface\\AddOns\\Lychee\\Media\\lychee-logo") == false, "brand texture setter is guarded")
+assert(palette.brandComponent:SetTexture("Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga") == false, "brand texture setter is guarded")
 assert((palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0) == logoSetCalls, "guarded logo setter does not repaint")
 for _, region in ipairs({ palette.frame, palette.header, palette.content, palette.footer, palette.homeView.frame, palette.list.frame, palette.emptyState }) do
     assert(not region.scripts.OnUpdate, "palette regions do not install OnUpdate")
@@ -648,6 +649,9 @@ local interactionItem = { interaction = {
 assert(palette:Show())
 palette:SetResults({ interactionItem }, palette.generation, palette.session)
 local interactionRow = palette.list.rows[1]
+local preparedSecure = secureBroker.buttons[1]
+assert(preparedSecure and preparedSecure:IsShown(), "secure spell button is prepared for visible row")
+assert(preparedSecure:GetFrameLevel() > interactionRow.actions[1]:GetFrameLevel(), "secure spell button is above its action slot")
 _G.__combat = true
 interactionRow.item.interaction.drag = { type = "spell", spellID = 31884 }
 local combatDragOK, combatDragErr = palette:BeginRowDrag(interactionRow)

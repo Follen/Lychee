@@ -94,7 +94,7 @@ function Components:CreateBrand(parent, options)
     options = options or {}
     local frame = CreateFrame("Frame", nil, parent)
     local iconSize = options.iconSize or 32
-    local asset = options.texture or "Interface\\AddOns\\Lychee\\Media\\lychee-logo"
+    local asset = options.texture or "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga"
     frame:SetSize(options.width or iconSize, options.height or iconSize)
     frame:SetPoint(options.point or "LEFT", parent, options.relativePoint or "LEFT", options.x or 16, options.y or 0)
 
