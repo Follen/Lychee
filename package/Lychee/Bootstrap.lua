@@ -21,7 +21,8 @@ end
 local function onLogin()
     if type(GetBindingKey)=="function" and type(GetBindingAction)=="function" and type(SetBinding)=="function" and type(SaveBindings)=="function" and type(GetCurrentBindingSet)=="function" and not LycheeDB.defaultBindingAttempted and not (InCombatLockdown and InCombatLockdown()) then
         LycheeDB.defaultBindingAttempted = true
-        if not GetBindingKey("TOGGLELYCHEE") and not GetBindingAction("ALT-SPACE") then
+        local existingAction = GetBindingAction("ALT-SPACE")
+        if not GetBindingKey("TOGGLELYCHEE") and (existingAction == nil or existingAction == "") then
             SetBinding("ALT-SPACE", "TOGGLELYCHEE")
             SaveBindings(GetCurrentBindingSet())
         end
