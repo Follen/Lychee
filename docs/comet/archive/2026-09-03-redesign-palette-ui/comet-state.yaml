@@ -1,0 +1,928 @@
+schema: comet.native.v4
+name: redesign-palette-ui
+language: zh-CN
+phase: archive
+status: done
+state_version: 24
+brief: brief.md
+spec_changes:
+  - capability: palette-ui
+    operation: create
+    source: specs/palette-ui/spec.md
+workspace:
+  isolation: current
+  change_branch: main
+  target_branch: main
+  finish: null
+loop:
+  stage: done
+  goal_cycle: 2
+  iteration: 2
+  attempt: 1
+  retry_epoch: 0
+  failed_iteration_count: 1
+  no_progress_count: 0
+  execution_failure_count: 0
+  previous_unresolved_ids: []
+  next_action: null
+acceptance:
+  - id: A1
+    source: brief.md
+    text: A1：脱战按 `Alt + Space` 后出现居中的完整 Palette 容器，而不是只有一条黑色输入框；窗口在常见 16:9 和超宽屏上不超出
+      UIParent。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A2
+    source: brief.md
+    text: A2：空输入时按“最近使用 / 已固定 / 分类 / 扩展来源”分组显示内容；无数据分组使用克制空状态，不用假数据填充。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A3
+    source: brief.md
+    text: A3：输入“红玉”后，搜索结果在同一面板内显示技能类别、图标、技能名、传送描述、来源/命中信息和可用动作，不退化成无层级下拉列表。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A4
+    source: brief.md
+    text: A4：键盘上下选择、鼠标悬停、当前选中、点击、Enter、行内动作和拖拽区域都有可区分且稳定的视觉状态；鼠标离开不会清除键盘选中态。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A5
+    source: brief.md
+    text: A5：结果标题、中文长描述、英文长词和最多四个动作在固定行尺寸内不重叠、不越界；次要信息可截断但主标题和主动作保持可用。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A6
+    source: brief.md
+    text: A6：空查询、无结果、查询刷新、Extension 失效、战斗关闭和 ViewHost Panel 切换不会留下旧行、旧选中高亮或可点击的过期动作。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A7
+    source: brief.md
+    text: A7：UI 颜色不再是单一蓝黑色；以石墨中性色为主体、暖白文字和克制荔枝红作为主强调，并为技能、任务、副本、成就、插件类别提供可区分但低饱和的辅助色。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A8
+    source: brief.md
+    text: A8：Palette 隐藏时没有常驻 `OnUpdate`；行、Tile、动作按钮和装饰纹理预创建复用，输入变化不创建 Frame、不重建静态样式。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A9
+    source: brief.md
+    text: A9：现有搜索、Intent、Panel、secure-spell、drag、recent/pinned 和第三方 fixture 测试继续通过。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A10
+    source: brief.md
+    text: A10：所有新增/修改的 Frame、Texture、FontString、Atlas、事件与 API 先经 Retail wowdoc
+      查证，并通过 `wowdoc validate`、Lua 语法、专项 UI smoke、合同检查和 `git diff --check`。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A11
+    source: specs/palette-ui/spec.md
+    text: Palette 是 Lychee Host 唯一的根搜索窗口。它承载空输入 HomeView、非空 SearchView 和 Extension
+      Panel ViewHost，但不拥有搜索 generation、动作路由或业务数据。UI 只绘制 Host
+      已接纳的状态，并把输入、选择、动作和拖拽事件交给现有控制模块。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A12
+    source: specs/palette-ui/spec.md
+    text: Palette 使用紧凑的三段式工作台：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A13
+    source: specs/palette-ui/spec.md
+    text: Header：品牌标识、搜索图标、无模板 EditBox 和必要的关闭控制。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A14
+    source: specs/palette-ui/spec.md
+    text: Content：HomeView、SearchView、无结果状态或 ViewHost 中任一状态，同一时刻只有一个可见。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A15
+    source: specs/palette-ui/spec.md
+    text: Footer：只显示当前结果/来源等状态信息，不显示功能教程或键盘快捷键说明。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A16
+    source: specs/palette-ui/spec.md
+    text: 基准窗口约 720x500 UI 单位，并在 UIParent
+      可用区域不足时进行有界整体缩放。窗口保持屏幕居中，不随结果数量改变尺寸。背景为石墨中性色分层，主文字使用暖白，荔枝红只用于品牌、当前选择和主动作；类别使用低饱和辅助色。边框、分隔线和焦点轮廓使用稳定
+      1px 视觉重量。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A17
+    source: specs/palette-ui/spec.md
+    text: EditBox 保留 WoW 原生文字输入、IME、左右移动、Enter、Esc 和焦点行为，但不使用 `InputBoxTemplate` 外观。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A18
+    source: specs/palette-ui/spec.md
+    text: 搜索容器拥有明确焦点态；无焦点、悬停、聚焦和禁用状态可区分。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A19
+    source: specs/palette-ui/spec.md
+    text: Placeholder 使用 Locale 文案，输入文字与前后图标/按钮保持固定 inset，不互相覆盖。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A20
+    source: specs/palette-ui/spec.md
+    text: Header 高度固定；输入变化不改变窗口几何或创建新对象。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A21
+    source: specs/palette-ui/spec.md
+    text: HomeView 按以下顺序组织真实数据：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A22
+    source: specs/palette-ui/spec.md
+    text: 最近使用；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A23
+    source: specs/palette-ui/spec.md
+    text: 已固定；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A24
+    source: specs/palette-ui/spec.md
+    text: 分类入口；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A25
+    source: specs/palette-ui/spec.md
+    text: 第三方 Extension/SearchSource 入口。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A26
+    source: specs/palette-ui/spec.md
+    text: 每个分组有紧凑标题和稳定网格。实体 Tile 显示图标、标题和类别/来源；导航 Tile 显示类别或 Extension
+      名。无数据时显示占位行但不伪造实体。Tile 预创建并复用，Hover 与键盘焦点不会改变几何。点击实体把 canonical title
+      写入输入并进入 SearchView；点击类别/来源走 Host 的过滤或查询入口。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A27
+    source: specs/palette-ui/spec.md
+    text: SearchView 使用单列结果卡。每行的优先级为：
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A28
+    source: specs/palette-ui/spec.md
+    text: 类别 badge 与图标；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A29
+    source: specs/palette-ui/spec.md
+    text: localized title；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A30
+    source: specs/palette-ui/spec.md
+    text: description/subtext；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A31
+    source: specs/palette-ui/spec.md
+    text: source 和轻量 evidence；
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A32
+    source: specs/palette-ui/spec.md
+    text: 最多四个声明式动作槽和可选 spell drag 区域。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A33
+    source: specs/palette-ui/spec.md
+    text: 行高和动作区宽度固定。长文本使用单行截断或受控两行，不与
+      badge、图标和动作重叠。没有图标时文字左边界仍稳定。选中态由左侧荔枝红强调条、轻背景和焦点轮廓共同表达；Hover
+      只增加轻微明度，不覆盖键盘选中态。动作按钮拥有 default、hover、pressed、disabled 状态与 tooltip。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A34
+    source: specs/palette-ui/spec.md
+    text: 空输入：HomeView 可见，SearchView 和 ViewHost 隐藏。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A35
+    source: specs/palette-ui/spec.md
+    text: 非空输入且有结果：SearchView 可见，按当前 session/generation 更新池化行。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A36
+    source: specs/palette-ui/spec.md
+    text: 非空输入且无结果：显示 Host-owned 空状态，所有旧行和旧动作隐藏并清空绑定。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A37
+    source: specs/palette-ui/spec.md
+    text: Extension/source 失效：对应行立即失效，选中位置收敛到仍可用行。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A38
+    source: specs/palette-ui/spec.md
+    text: Panel transition：Content 切换到 ViewHost，Header 保持可用；返回后恢复当前查询结果，不创建第二个根窗口。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A39
+    source: specs/palette-ui/spec.md
+    text: 战斗：沿用严格策略关闭 Palette，清除焦点并终止待处理查询。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A40
+    source: specs/palette-ui/spec.md
+    text: Palette 隐藏时没有常驻 `OnUpdate`、动画或轮询。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A41
+    source: specs/palette-ui/spec.md
+    text: Frame、FontString、Texture、结果行、Home Tile 和动作按钮在创建期或受控扩容时建立，按键查询只复用。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A42
+    source: specs/palette-ui/spec.md
+    text: 静态样式只在创建时应用；动态更新使用 applied value guard。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A43
+    source: specs/palette-ui/spec.md
+    text: HomeView 只在打开、recent/pinned 改变或 source 生命周期改变时重建数据投影，不在每次按键时扫描完整索引。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A44
+    source: specs/palette-ui/spec.md
+    text: 搜索结果 diff 只更新改变的行和状态，不重建 Palette 或 ViewHost。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A45
+    source: specs/palette-ui/spec.md
+    text: SearchSession 继续独占 session/generation、防抖、取消和结果接纳。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A46
+    source: specs/palette-ui/spec.md
+    text: ResultActionExecutor 继续独占动作校验与 Intent/Panel/drag/secure 分派。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A47
+    source: specs/palette-ui/spec.md
+    text: UI 不读取第三方函数，不暴露安全按钮，不允许第三方自定义根 Frame 或结果行布局。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A48
+    source: specs/palette-ui/spec.md
+    text: SearchRecord、Command item、第三方 fixture 和现有 Presentation 数据形状保持兼容。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A49
+    source: specs/palette-ui/spec.md
+    text: "`Alt + Space`、Esc、进战关闭、脱战恢复、真实鼠标点击和拖拽安全合同不变。"
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A50
+    source: specs/palette-ui/spec.md
+    text: 离线 UI fixture 覆盖 Home/Search/Empty/ViewHost
+      状态、键盘选择、Hover、长文本、多动作、拖拽显隐和对象复用。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A51
+    source: specs/palette-ui/spec.md
+    text: 现有 smoke、interaction、search session、command catalog、capability broker
+      和合同检查全部通过。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A52
+    source: specs/palette-ui/spec.md
+    text: Retail wowdoc validate 通过，且新增 API/Atlas/Frame 使用有精确查档证据。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+  - id: A53
+    source: specs/palette-ui/spec.md
+    text: 真实客户端的像素级视觉、字体裁切和整体观感由后续 UI change 结合游戏内截图继续验收，不作为本规格归档门禁。
+    result: passed
+    reason:
+      text: "User confirmed degraded completion without independent semantic
+        verification: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。"
+      truncated: false
+builder_handoff:
+  candidate_id: 30605e96-f6a4-41fa-8cee-466c15739f11
+  identity_provider: skill-coordinated
+  builder_execution_ref: skill-coordinated:builder:b593f063-6e72-46dc-bdf2-701cbb6dbf00
+  iteration: 2
+  summary:
+    text: 修复首次安装默认 Alt+Space 不注册的问题：显式把 GetBindingAction 返回 nil
+      或空字符串视为未占用，并新增三种绑定状态回归测试。提交 4d13dca 已复制到正式服，30/30 文件哈希一致。视觉打磨仍留给后续 UI
+      change。
+    truncated: false
+  addressed_acceptance_ids:
+    - A1
+    - A49
+  checks:
+    - name:
+        text: default-binding-smoke
+        truncated: false
+      result: passed
+      note:
+        text: 空字符串会注册默认绑定；已有按键占用或已有 Lychee 绑定均不会覆盖。
+        truncated: false
+    - name:
+        text: all-lua-syntax
+        truncated: false
+      result: passed
+      note:
+        text: 39 个 Lua 文件通过 luac -p。
+        truncated: false
+    - name:
+        text: runtime-smoke
+        truncated: false
+      result: passed
+      note:
+        text: 全部七项原有 smoke 通过。
+        truncated: false
+    - name:
+        text: contract-checks
+        truncated: false
+      result: passed
+      note:
+        text: tests/check_contract.ps1 通过。
+        truncated: false
+    - name:
+        text: wowdoc-retail
+        truncated: false
+      result: passed
+      note:
+        text: wow-ui-source retail 12.1.0 commit
+          8ea15b61e45c0ed4eba01439c90757f86eb78d34，Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Keybindings.lua:127-128
+          以 oldAction ~= empty string 判断占用；本地 validate valid=true。
+        truncated: false
+    - name:
+        text: git-and-delivery
+        truncated: false
+      result: passed
+      note:
+        text: 提交 4d13dca；正式服源/目标各 30 个运行时文件，缺失、额外、SHA-256 不一致均为 0。
+        truncated: false
+  checks_truncated: false
+  known_limits:
+    - text: 真实 WoW 客户端的字体、裁切、层级和整体视觉仍需在后续 UI change 中结合截图继续调整。
+      truncated: false
+  known_limits_truncated: false
+  submitted_at: 2026-09-03T10:34:04.570Z
+blockers: []
+verification:
+  candidate_id: 30605e96-f6a4-41fa-8cee-466c15739f11
+  identity_provider: skill-coordinated
+  verifier_execution_ref: skill-coordinated:verifier:ebcb2a7c-53b3-466c-8f4d-0cbea459e2c1
+  iteration: 2
+  attempt: 1
+  assurance: user-confirmed-degraded
+  verdict: pass
+  checks:
+    - id: lua-syntax
+      name:
+        text: Lua syntax
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -Command
+          truncated: false
+        - text: "$files = Get-ChildItem package/Lychee,lychee-sdk,tests -Recurse -File
+            -Filter *.lua; foreach($f in $files){ & luac -p $f.FullName;
+            if($LASTEXITCODE -ne 0){ exit $LASTEXITCODE } }; Write-Output ('PASS
+            lua syntax: ' + $files.Count + ' files')"
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 439
+    - id: runtime-smoke
+      name:
+        text: Runtime smoke
+        truncated: false
+      argv_display:
+        - text: tests/smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 34
+    - id: default-binding-smoke
+      name:
+        text: Default binding smoke
+        truncated: false
+      argv_display:
+        - text: tests/default_binding_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 23
+    - id: search-platform-smoke
+      name:
+        text: Search platform smoke
+        truncated: false
+      argv_display:
+        - text: tests/search_platform_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 31
+    - id: search-session-smoke
+      name:
+        text: Search session smoke
+        truncated: false
+      argv_display:
+        - text: tests/search_session_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 25
+    - id: command-catalog-smoke
+      name:
+        text: Command catalog smoke
+        truncated: false
+      argv_display:
+        - text: tests/command_catalog_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 26
+    - id: capability-broker-smoke
+      name:
+        text: Capability broker smoke
+        truncated: false
+      argv_display:
+        - text: tests/capability_broker_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 27
+    - id: interaction-smoke
+      name:
+        text: Interaction smoke
+        truncated: false
+      argv_display:
+        - text: tests/interaction_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 49
+    - id: result-list-ui-smoke
+      name:
+        text: Result list UI smoke
+        truncated: false
+      argv_display:
+        - text: tests/result_list_ui_smoke.lua
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 25
+    - id: contract-checks
+      name:
+        text: Contract checks
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -ExecutionPolicy
+          truncated: false
+        - text: Bypass
+          truncated: false
+        - text: -File
+          truncated: false
+        - text: tests/check_contract.ps1
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 343
+    - id: wowdoc-retail
+      name:
+        text: Retail wowdoc validation
+        truncated: false
+      argv_display:
+        - text: -NoProfile
+          truncated: false
+        - text: -Command
+          truncated: false
+        - text: wowdoc validate --path package/Lychee --source wow-ui-source --product
+            retail --ref 12.1.0; exit $LASTEXITCODE
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 287
+    - id: diff-check
+      name:
+        text: Git whitespace validation
+        truncated: false
+      argv_display:
+        - text: diff
+          truncated: false
+        - text: --check
+          truncated: false
+      argv_truncated: false
+      cwd_ref: .
+      status: passed
+      exit_code: 0
+      duration_ms: 46
+  summary:
+    text: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+      修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。
+    truncated: false
+  risks:
+    - text: No independent semantic Verifier execution was available; Runtime checks
+        alone do not cover acceptance semantics.
+      truncated: false
+  risks_truncated: false
+  completed_at: 2026-09-03T10:39:47.947Z
+history:
+  - goal_cycle: 1
+    iteration: 1
+    attempt: 1
+    outcome: fail
+    unresolved_ids:
+      - A6
+      - A8
+      - A14
+      - A26
+      - A42
+      - A43
+      - A44
+      - A52
+      - A53
+    summary:
+      text: Runtime checks passed, but A6, A8, A14, A26, A42, A43, A44, and A52
+        require implementation or evidence repairs; A53 remains externally
+        blocked without in-game screenshots.
+      truncated: false
+    completed_at: 2026-08-28T14:41:48.258Z
+  - goal_cycle: 1
+    iteration: 2
+    attempt: 1
+    outcome: fail
+    unresolved_ids:
+      - A42
+      - A53
+    summary:
+      text: A1-A41、A43-A52 通过；A42 因 Home 动态布局缺少几何 applied guard 未通过；A53
+        因缺少真实游戏内截图暂时阻塞。所有静态、smoke、合同和 wowdoc 检查通过，未使用 Computer Use。
+      truncated: false
+    completed_at: 2026-08-28T15:04:27.565Z
+  - goal_cycle: 1
+    iteration: 3
+    attempt: 1
+    outcome: blocked
+    unresolved_ids:
+      - A53
+    summary:
+      text: A1-A52 通过。A42 已修复并独立验证；A53 因缺少四类真实游戏截图 blocked。全程未使用 Computer
+        Use、浏览器或桌面/游戏自动化。
+      truncated: false
+    completed_at: 2026-08-28T15:31:47.721Z
+  - goal_cycle: 1
+    iteration: 3
+    attempt: 2
+    outcome: blocked
+    unresolved_ids:
+      - A53
+    summary:
+      text: A1-A52 通过，A53 因缺少真实游戏截图而 blocked；用户明确要求先归档，保留视觉未最终验收的风险。
+      truncated: false
+    completed_at: 2026-09-03T10:18:23.261Z
+  - goal_cycle: 1
+    iteration: 3
+    attempt: 2
+    outcome: recovery
+    unresolved_ids: []
+    summary:
+      text: 用户确认当前 change 先归档；将真实游戏截图与主观视觉打磨从本轮验收移至后续独立 UI change，现有结构、性能和交互实现保持不变。
+      truncated: false
+    completed_at: 2026-09-03T10:19:06.671Z
+  - goal_cycle: 2
+    iteration: 1
+    attempt: 1
+    outcome: fail
+    unresolved_ids:
+      - A1
+      - A49
+    summary:
+      text: A1、A49 因首次 Alt+Space 默认绑定判断错误未通过；其余验收项通过。
+      truncated: false
+    completed_at: 2026-09-03T10:28:44.283Z
+  - goal_cycle: 2
+    iteration: 2
+    attempt: 1
+    outcome: blocked
+    unresolved_ids:
+      - A1
+      - A2
+      - A3
+      - A4
+      - A5
+      - A6
+      - A7
+      - A8
+      - A9
+      - A10
+      - A11
+      - A12
+      - A13
+      - A14
+      - A15
+      - A16
+      - A17
+      - A18
+      - A19
+      - A20
+      - A21
+      - A22
+      - A23
+      - A24
+      - A25
+      - A26
+      - A27
+      - A28
+      - A29
+      - A30
+      - A31
+      - A32
+      - A33
+      - A34
+      - A35
+      - A36
+      - A37
+      - A38
+      - A39
+      - A40
+      - A41
+      - A42
+      - A43
+      - A44
+      - A45
+      - A46
+      - A47
+      - A48
+      - A49
+      - A50
+      - A51
+      - A52
+      - A53
+    summary:
+      text: 独立 Verifier 任务已启动，但宿主将任务正文传为不可读编码串；Verifier 请求重发，而协作 follow-up
+        通道未成功建立。Runtime 的 12 项检查全部通过，包括新增 default-binding-smoke。
+      truncated: false
+    completed_at: 2026-09-03T10:39:33.387Z
+  - goal_cycle: 2
+    iteration: 2
+    attempt: 1
+    outcome: pass
+    unresolved_ids: []
+    summary:
+      text: 用户明确要求先归档；接受本轮 12 项 Runtime 检查通过的降级验收。默认 Alt+Space
+        修复已由新增回归测试覆盖并提交同步，视觉打磨留给后续 change。
+      truncated: false
+    completed_at: 2026-09-03T10:39:47.947Z
+history_overflow:
+  dropped_entries: 0
+  first_dropped_at: null
+  last_dropped_at: null
+  outcome_counts:
+    pass: 0
+    fail: 0
+    blocked: 0
+    execution-error: 0
+    recovery: 0
+verification_result: pass
+verification_report: verification.md
+archived: true
+created_at: 2026-08-28T14:08:30.280Z
