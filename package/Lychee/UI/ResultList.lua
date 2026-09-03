@@ -10,6 +10,18 @@ local ROW_HEIGHT = 56
 local ROW_GAP = 4
 local ACTIONS = 4
 local EMPTY_ITEMS = {}
+local UI_LOCALE = GetLocale and GetLocale() or "enUS"
+local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
+local MATCH_FIELD_NAMES = UI_CHINESE and {
+    title = "名称", alias = "别名", description = "描述", keywords = "关键词", tokens = "关键词", filter = "分类",
+} or {
+    title = "name", alias = "alias", description = "description", keywords = "keyword", tokens = "keyword", filter = "category",
+}
+local MATCH_TYPE_NAMES = UI_CHINESE and {
+    exact = "精确", prefix = "前缀", substring = "包含", fuzzy = "模糊", token = "关键词", filter = "筛选",
+} or {
+    exact = "exact", prefix = "prefix", substring = "contains", fuzzy = "fuzzy", token = "keyword", filter = "filter",
+}
 
 local FALLBACK = {
     row = { 0.075, 0.078, 0.09, 0.96 },
@@ -150,12 +162,26 @@ end
 local function evidenceText(item)
     local evidence = item and item.evidence
     if type(evidence) ~= "table" then return "" end
-    local field = tostring(evidence.matchedField or "")
-    local matchType = tostring(evidence.matchType or "")
+    local field = MATCH_FIELD_NAMES[tostring(evidence.matchedField or "")] or ""
+    local matchType = MATCH_TYPE_NAMES[tostring(evidence.matchType or "")] or ""
     if field == "" and matchType == "" then return "" end
     local confidence = tonumber(item.confidence)
-    if confidence then return string.format("命中 %s/%s %.0f%%", field, matchType, confidence * 100) end
-    return "命中 " .. field .. "/" .. matchType
+    local prefix = UI_CHINESE and "匹配 " or "Match "
+    local detail = field
+    if matchType ~= "" then detail = detail == "" and matchType or (detail .. " · " .. matchType) end
+    if confidence then return string.format("%s%s %.0f%%", prefix, detail, confidence * 100) end
+    return prefix .. detail
+end
+
+local function sourceText(item)
+    if type(item) ~= "table" then return "" end
+    if type(item.sourceLabel) == "string" and item.sourceLabel ~= "" then return item.sourceLabel end
+    if type(item.sourceTitle) == "string" and item.sourceTitle ~= "" then return item.sourceTitle end
+    local source = tostring(item.source or "")
+    if source:sub(1, 7) == "builtin" then
+        return UI_CHINESE and "Lychee 内置" or "Lychee built-in"
+    end
+    return UI_CHINESE and "第三方插件" or "Extension"
 end
 
 local function hideTooltip()
@@ -176,7 +202,7 @@ local function renderRowState(row)
     local background = row._selected and "rowSelected" or (row._hovered and "rowHover" or "row")
     setTextureColor(row.bg, background)
     setShown(row.accent, row._selected == true)
-    setShown(row.outline, row._selected == true)
+    setShown(row.outline, row._hovered == true and row._selected ~= true)
 end
 
 local function renderActionState(button, state)
@@ -306,22 +332,22 @@ function ResultList:Create(parent, controller)
         setTextureColor(row.accent, "accent")
 
         row.categoryBG = row:CreateTexture(nil, "ARTWORK")
-        row.categoryBG:SetSize(50, 18)
+        row.categoryBG:SetSize(56, 20)
         row.categoryBG:SetPoint("LEFT", row, "LEFT", 10, 0)
         setTextureColor(row.categoryBG, "badge")
         row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         row.category:SetPoint("CENTER", row.categoryBG, "CENTER", 0, 0)
-        row.category:SetWidth(44)
+        row.category:SetWidth(50)
         row.category:SetJustifyH("CENTER")
         singleLine(row.category)
         setTextColor(row.category, "muted")
 
         row.icon = row:CreateTexture(nil, "ARTWORK")
         row.icon:SetSize(34, 34)
-        row.icon:SetPoint("LEFT", row, "LEFT", 70, 0)
+        row.icon:SetPoint("LEFT", row, "LEFT", 78, 0)
 
         row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 114, -6)
+        row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 122, -7)
         row.title:SetPoint("RIGHT", row, "RIGHT", -200, 0)
         row.title:SetHeight(16)
         row.title:SetJustifyH("LEFT")
@@ -357,8 +383,8 @@ function ResultList:Create(parent, controller)
         for actionIndex = 1, ACTIONS do row.actions[actionIndex] = createAction(row, self, actionIndex) end
 
         row.dragger = CreateFrame("Button", nil, row)
-        row.dragger:SetSize(28, 28)
-        row.dragger:SetPoint("RIGHT", row, "RIGHT", -198, 0)
+        row.dragger:SetSize(38, 28)
+        row.dragger:SetPoint("RIGHT", row, "RIGHT", -196, 0)
         row.dragger:RegisterForDrag("LeftButton")
         row.dragger.bg = row.dragger:CreateTexture(nil, "BACKGROUND")
         row.dragger.bg:SetAllPoints()
@@ -366,7 +392,7 @@ function ResultList:Create(parent, controller)
         row.dragger.label = row.dragger:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         row.dragger.label:SetAllPoints()
         row.dragger.label:SetJustifyH("CENTER")
-        setText(row.dragger.label, "拖")
+        setText(row.dragger.label, "拖动")
         setTextColor(row.dragger.label, "muted")
         row.dragger:SetScript("OnDragStart", function(button)
             if button._enabled and self.controller then self.controller:BeginRowDrag(button:GetParent()) end
@@ -430,7 +456,7 @@ function ResultList:SetItems(items, session, generation)
             row._categoryColorID = colorID
         end
         setShown(row.categoryBG, category ~= "")
-        cachedText(row, "source", row.source, item.sourceLabel or item.source or row.extensionID)
+        cachedText(row, "source", row.source, sourceText(item))
         cachedText(row, "evidence", row.evidence, evidenceText(item))
         local icon = item.icon or nil
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then

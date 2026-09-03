@@ -382,7 +382,7 @@ assert(routedPanel and panelMounted, "search record intent mounts owner panel: "
 ownerActionHandler.handler.handle = originalActionHandler
 palette:SetResults(actionResults, actionGeneration, palette.session)
 local actionRow = palette.list.rows[1]
-assert(actionRow.evidence and actionRow.evidence:GetText():find("命中", 1, true), "evidence slot rendered")
+assert(actionRow.evidence and actionRow.evidence:GetText():find("匹配", 1, true), "evidence slot rendered")
 assertEq(actionRow.actions[1].label:GetText(), "打开", "localized action title rendered")
 assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))

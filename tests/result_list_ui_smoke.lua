@@ -75,6 +75,7 @@ local function setterFingerprint(root)
 end
 
 UIParent = object("UIParent")
+function GetLocale() return "zhCN" end
 function CreateFrame(kind, _, parent) return object(kind, parent or UIParent) end
 
 local tooltip = { shown = false }
@@ -154,7 +155,7 @@ assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 56, "lo
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
 assert(rowOne.category:GetText() == "技能" and rowOne.categoryBG:IsShown(), "category badge is rendered")
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")
-assert(rowOne.source:GetText() == "builtin.player-spells:records", "source is rendered")
+assert(rowOne.source:GetText() == "Lychee 内置", "source is rendered with user-facing label")
 assert(rowOne.evidence:GetText():find("98%%"), "confidence evidence is rendered")
 assert(rowOne.dragger:IsShown() and rowOne.dragger.dragDescriptor.spellID == 393256, "drag area binds descriptor")
 assert(rowOne.actions[4]:IsShown() and rowOne.actions[3]._state == "disabled", "four stable action slots expose disabled state")
