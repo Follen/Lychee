@@ -555,6 +555,8 @@ Lychee 拥有行 frame、对象池、滚动、键盘上下、鼠标、选中态�
 
 Palette 使用约 `720x500` UI 单位的固定三段工作台：Header 承载品牌和无模板原生 EditBox，Content 在 HomeView、SearchView、无结果状态、ViewHost 之间保持单一可见状态，Footer 只显示当前模式或结果数。窗口在每次显示时依据 `UIParent` 可用尺寸做有界整体缩放，不注册常驻缩放轮询。`Theme.lua` 集中拥有石墨背景、暖白文字、荔枝红主强调、低饱和类别色、间距和固定尺寸 token；Input、Home tile、结果行和动作按钮只消费 token，不各自定义另一套视觉系统。
 
+Host 基础视觉原语集中在 `UI/Components.lua`，按组件库方式返回带 `frame` 的实例对象，而不是把子控件散落在 Palette：`CreateBand`、`CreateSurface`、`CreateBrand`、`CreateButton`、`CreateStatus` 和 `CreateEmptyState` 分别拥有自己的视觉状态、资源引用和幂等 setter。组件在创建期建立固定的 frame/texture/font 结构，后续只通过 `SetText`、`SetState`、`SetTexture`、`SetColor` 或 `SetShown` 做 change guard；组件不注册常驻 `OnUpdate`、不创建业务 timer，也不触碰搜索、焦点和 Panel 生命周期。Palette 只负责组合这些实例、连接点击回调和切换可见状态；新增 Host 视觉组件应扩展该目录，而不是把创建细节重新写回 `Palette:Create()`。
+
 HomeView 的最近、已固定、分类和第三方来源是四个真实分组，空分组显示不可点击的空状态而不伪造实体。分类和来源入口提交结构化 `categoryID` / `sourceID` filter，由 SearchSession 推进 generation、QueryOrchestrator 分配索引预算、StaticIndex 使用分类桶或来源 entry keys 返回实体；不得把显示标题伪装成普通文本查询。Home 标题和常用 Tile 在 Palette 创建期预建，超过预分配容量时只允许在打开、recent/pinned 变化或 Source 生命周期变化路径受控扩容，输入路径不得创建 Frame 或重扫完整索引。
 
 SearchView 固定复用六个高信息密度结果行；每行保持类别 badge、图标、标题、受限描述、来源、命中证据、最多四个动作槽和可选拖拽区。键盘选中与鼠标 hover 是独立状态，长文本不改变行高或动作区宽度。新文本 generation 必须先清除上一代已接纳结果再进入 debounce；Panel 激活时异步结果只能更新缓存，不能让 SearchView 或空状态重新可见。结果刷新按 stable ID 和逐字段缓存做差量 setter，freshness token 始终更新，但未变化的文字、颜色、纹理、动作和显示状态不重复调用原生 setter。清空、较短结果、Source 失效或 Panel 切换必须清除旧行、旧动作、旧拖拽绑定和旧视觉状态。

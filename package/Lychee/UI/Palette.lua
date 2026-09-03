@@ -106,22 +106,6 @@ local function setText(fontString, text)
     if fontString and fontString.GetText and fontString:GetText() ~= text then fontString:SetText(text) end
 end
 
-local function createBand(parent, height, top)
-    local frame = CreateFrame("Frame", nil, parent)
-    frame:SetHeight(height)
-    if top then
-        frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
-        frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
-    else
-        frame:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 0, 0)
-        frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 0)
-    end
-    frame.bg = frame:CreateTexture(nil, "BACKGROUND")
-    frame.bg:SetAllPoints()
-    paint(frame.bg, color(top and "header" or "footer"))
-    return frame
-end
-
 local function createHomeView(parent, controller)
     local frame = CreateFrame("ScrollFrame", nil, parent)
     frame:SetAllPoints(parent)
@@ -358,37 +342,35 @@ function Palette:Create()
     frame:SetScript("OnKeyDown", function(_, key) if key == "ESCAPE" then self:Hide("escape") end end)
     self.frame = frame
     self.session, self.generation, self.visible = 0, 0, false
-    self.header = createBand(frame, HEADER_HEIGHT, true)
-    self.footer = createBand(frame, FOOTER_HEIGHT, false)
-    self.content = CreateFrame("Frame", nil, frame)
+    local components = Lychee.UI.Components
+    self.headerComponent = components:CreateBand(frame, { height = HEADER_HEIGHT, top = true, color = "header" })
+    self.header = self.headerComponent.frame
+    self.footerComponent = components:CreateBand(frame, { height = FOOTER_HEIGHT, top = false, color = "footer" })
+    self.footer = self.footerComponent.frame
+    self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
+    self.content = self.contentComponent.frame
     self.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -HEADER_HEIGHT)
     self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
-    self.content.bg = self.content:CreateTexture(nil, "BACKGROUND")
-    self.content.bg:SetAllPoints()
-    paint(self.content.bg, color("content"))
-    self.brandMark = self.header:CreateTexture(nil, "ARTWORK")
-    self.brandMark:SetSize(3, 28)
-    self.brandMark:SetPoint("LEFT", self.header, "LEFT", 18, 0)
-    paint(self.brandMark, color("accent"))
-    self.brand = self.header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    self.brand:SetPoint("LEFT", self.brandMark, "RIGHT", 10, 1)
-    setText(self.brand, "Lychee")
-    tint(self.brand, color("text"))
-    self.close = CreateFrame("Button", nil, self.header)
-    self.close:SetSize(24, 24)
-    self.close:SetPoint("RIGHT", self.header, "RIGHT", -14, 0)
-    self.close.bg = self.close:CreateTexture(nil, "BACKGROUND")
-    self.close.bg:SetAllPoints()
-    paint(self.close.bg, color("header"))
-    self.close.label = self.close:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    self.close.label:SetAllPoints()
-    self.close.label:SetJustifyH("CENTER")
-    setText(self.close.label, "x")
-    tint(self.close.label, color("muted"))
+    self.content.bg = self.contentComponent.bg
+    self.brandComponent = components:CreateBrand(self.header, {
+        iconSize = 36,
+        texture = "Interface\\AddOns\\Lychee\\Media\\lychee-logo",
+        point = "LEFT",
+        x = 18,
+    })
+    self.brandMark = self.brandComponent.icon
+    self.brand = self.brandComponent.label
+    self.closeComponent = components:CreateButton(self.header, {
+        width = 24, height = 24, point = "RIGHT", relativePoint = "RIGHT", x = -14,
+        text = "x",
+        colors = { normal = "header", hover = "tileHover", pressed = "tileHover" },
+        textColors = { normal = "muted", hover = "text", pressed = "text" },
+        onClick = function() self:Hide("close") end,
+    })
+    self.close = self.closeComponent.frame
     self.close:SetScript("OnClick", function() self:Hide("close") end)
     self.close:SetScript("OnEnter", function(button)
-        paint(button.bg, color("tileHover"))
-        tint(button.label, color("text"))
+        self.closeComponent:SetState("hover")
         if GameTooltip then
             GameTooltip:SetOwner(button, "ANCHOR_BOTTOM")
             GameTooltip:SetText(localized({ zhCN = "关闭", enUS = "Close" }, "Close"))
@@ -396,27 +378,18 @@ function Palette:Create()
         end
     end)
     self.close:SetScript("OnLeave", function(button)
-        paint(button.bg, color("header"))
-        tint(button.label, color("muted"))
+        self.closeComponent:SetState("normal")
         if GameTooltip then GameTooltip:Hide() end
     end)
-    self.status = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.status:SetPoint("LEFT", self.footer, "LEFT", 16, 0)
-    self.status:SetPoint("RIGHT", self.footer, "RIGHT", -16, 0)
-    self.status:SetJustifyH("LEFT")
-    tint(self.status, color("muted"))
+    self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted" })
+    self.status = self.statusComponent.label
 
-    self.emptyState = CreateFrame("Frame", nil, self.content)
-    self.emptyState:SetAllPoints(self.content)
-    self.emptyState:Hide()
-    self.emptyState.title = self.emptyState:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    self.emptyState.title:SetPoint("CENTER", self.emptyState, "CENTER", 0, 12)
-    setText(self.emptyState.title, localized({ zhCN = "没有找到结果", enUS = "No results found" }, "No results found"))
-    tint(self.emptyState.title, color("text"))
-    self.emptyState.detail = self.emptyState:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.emptyState.detail:SetPoint("TOP", self.emptyState.title, "BOTTOM", 0, -8)
-    setText(self.emptyState.detail, localized({ zhCN = "换一个名称、别名或描述试试", enUS = "Try another name, alias, or description" }, ""))
-    tint(self.emptyState.detail, color("muted"))
+    self.emptyStateComponent = components:CreateEmptyState(self.content, {
+        title = localized({ zhCN = "没有找到结果", enUS = "No results found" }, "No results found"),
+        detail = localized({ zhCN = "换一个名称、别名或描述试试", enUS = "Try another name, alias, or description" }, ""),
+        titleColor = "text", detailColor = "textMuted", shown = false,
+    })
+    self.emptyState = self.emptyStateComponent.frame
 
     self.focus = Lychee.UI.FocusController:New()
     self.input = Lychee.UI.Input:Create(self.header, self.focus)

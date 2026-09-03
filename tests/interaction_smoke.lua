@@ -68,7 +68,7 @@ local files = {
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "PublicAPI/SDK.lua",
     "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/Palette.lua",
+    "UI/FocusController.lua", "UI/Theme.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/Palette.lua",
 }
 for i = 1, #files do dofile(root .. files[i]) end
 
@@ -127,6 +127,12 @@ assert(palette)
 assertEq(palette.frame:GetWidth(), 720, "palette fixed width")
 assertEq(palette.frame:GetHeight(), 500, "palette fixed height")
 assert(palette.header and palette.content and palette.footer and palette.emptyState, "palette workbench regions")
+assert(palette.headerComponent and palette.footerComponent and palette.contentComponent, "palette uses reusable surface components")
+assert(palette.brandComponent and palette.brandComponent.icon.texture == "Interface\\AddOns\\Lychee\\Media\\lychee-logo", "palette logo component is wired")
+assert(palette.closeComponent and palette.statusComponent and palette.emptyStateComponent, "palette control components are wired")
+local logoSetCalls = palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0
+assert(palette.brandComponent:SetTexture("Interface\\AddOns\\Lychee\\Media\\lychee-logo") == false, "brand texture setter is guarded")
+assert((palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0) == logoSetCalls, "guarded logo setter does not repaint")
 for _, region in ipairs({ palette.frame, palette.header, palette.content, palette.footer, palette.homeView.frame, palette.list.frame, palette.emptyState }) do
     assert(not region.scripts.OnUpdate, "palette regions do not install OnUpdate")
 end
