@@ -64,6 +64,7 @@ end
 
 function Executor:IsAvailable(item)
     local command = item and item.command
+    if type(command) ~= "table" then command = nil end
     if command and type(command.availability) == "function" then
         local context = I.Context and I.Context:Snapshot() or {}
         local ok, available = xpcall(function()
@@ -177,6 +178,7 @@ function Executor:Execute(row, actionID)
     if not valid then return palette:RejectRow(row, err) end
     local item = row.item
     local command = item and item.command
+    if type(command) ~= "table" then command = nil end
     local result, actionErr, handled
 
     if command and command.presentation == "row" and actionID == "default" then

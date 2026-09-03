@@ -46,14 +46,14 @@ function Input:Create(parent, focusController)
     local height = theme and theme.Metrics.inputHeight or 44
     local container = CreateFrame("Frame", nil, parent)
     container:SetHeight(height)
-    container:SetPoint("TOPLEFT", parent, "TOPLEFT", 118, -14)
+    container:SetPoint("TOPLEFT", parent, "TOPLEFT", 62, -16)
     container:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -50, -14)
     container:EnableMouse(true)
     if theme then theme:CreateSurface(container, "input", "border") end
 
     local edit = CreateFrame("EditBox", nil, container)
     edit:SetAutoFocus(false)
-    edit:SetTextInsets(40, 14, 0, 0)
+    if edit.SetTextInsets then edit:SetTextInsets(40, 112, 0, 0) end
     edit:SetAllPoints(container)
     if edit.SetFontObject then edit:SetFontObject("GameFontHighlight") end
 
@@ -64,15 +64,22 @@ function Input:Create(parent, focusController)
 
     local placeholder = container:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     placeholder:SetPoint("LEFT", container, "LEFT", 40, 0)
-    placeholder:SetPoint("RIGHT", container, "RIGHT", -14, 0)
+    placeholder:SetPoint("RIGHT", container, "RIGHT", -112, 0)
     placeholder:SetJustifyH("LEFT")
     placeholder:SetText(localizedPlaceholder())
+
+    local hint = container:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    hint:SetPoint("RIGHT", container, "RIGHT", -12, 0)
+    hint:SetJustifyH("RIGHT")
+    hint:SetText((GetLocale and (GetLocale() == "zhCN" or GetLocale() == "zhTW"))
+        and "Enter 执行   ↑↓ 选择   Esc 关闭" or "Enter run   ↑↓ select   Esc close")
 
     local self = setmetatable({
         frame = edit,
         container = container,
         searchIcon = searchIcon,
         placeholder = placeholder,
+        hint = hint,
         focus = focusController,
         enabled = true,
         focused = false,

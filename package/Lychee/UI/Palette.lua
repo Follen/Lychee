@@ -10,7 +10,7 @@ local Palette = {}
 Palette.__index = Palette
 
 local WIDTH, HEIGHT = 720, 500
-local HEADER_HEIGHT, FOOTER_HEIGHT = 72, 34
+local HEADER_HEIGHT, FOOTER_HEIGHT = 76, 28
 local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 3, 208, 58
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 10, 8, 20
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 64
@@ -353,10 +353,10 @@ function Palette:Create()
     self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
     self.content.bg = self.contentComponent.bg
     self.brandComponent = components:CreateBrand(self.header, {
-        iconSize = 36,
+        iconSize = 30,
         texture = "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga",
         point = "LEFT",
-        x = 18,
+        x = 16,
     })
     self.brandMark = self.brandComponent.icon
     self.brand = self.brandComponent.label
@@ -613,16 +613,73 @@ function Palette:SetStatus(mode, count)
     setText(self.status, text)
 end
 
+function Palette:ResizeForMode(mode, count)
+    if not self.frame or not self.frame.SetHeight then return false end
+    if mode == "home" or mode == "panel" then
+        if self.frame:GetHeight() ~= HEIGHT then self.frame:SetHeight(HEIGHT) end
+        return true
+    end
+    local theme = Lychee.UI and Lychee.UI.Theme
+    local metrics = theme and theme.Metrics or {}
+    local minHeight = metrics.paletteMinHeight or 220
+    local maxHeight = metrics.paletteMaxHeight or HEIGHT
+    local rowHeight = metrics.rowHeight or 56
+    local rowGap = metrics.rowGap or 4
+    local padding = metrics.resultPadding or 20
+    local rows = math.max(0, math.min(tonumber(count) or 0, self.list and self.list.maxRows or 6))
+    local listHeight = rows > 0 and (rows * rowHeight + (rows - 1) * rowGap) or 0
+    local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
+    desired = math.max(minHeight, math.min(maxHeight, desired))
+    if self.frame:GetHeight() ~= desired then self.frame:SetHeight(desired) end
+    return true
+end
+
+function Palette:ReportActionResult(result, err)
+    local ok = result == true or (type(result) == "table" and result.ok == true)
+    if ok then
+        setText(self.status, localized({ zhCN = "已提交", enUS = "Submitted" }, "Submitted"))
+        return true
+    end
+    local labels = {
+        COMBAT_LOCKED = { zhCN = "战斗中不可用", enUS = "Unavailable in combat" },
+        ACTION_UNAVAILABLE = { zhCN = "当前不可用", enUS = "Currently unavailable" },
+        ACTION_REQUIRES_HARDWARE_CLICK = { zhCN = "请点击施放", enUS = "Click to cast" },
+        HANDLER_UNAVAILABLE = { zhCN = "功能暂不可用", enUS = "Feature unavailable" },
+        DRAG_UNSUPPORTED = { zhCN = "不支持拖动", enUS = "Drag unsupported" },
+    }
+    local text = labels[err]
+    setText(self.status, localized(text or { zhCN = "执行失败", enUS = "Action failed" }, "Action failed"))
+    return false
+end
+
+function Palette:SetActionFeedback(state, actionOrError)
+    local title = type(actionOrError) == "table" and (actionOrError.title or actionOrError.label) or nil
+    if state == "pending" then
+        setText(self.status, (locale == "zhCN" or locale == "zhTW")
+            and ("正在施放" .. (title and ("：" .. title) or ""))
+            or ("Casting" .. (title and (": " .. title) or "")))
+    elseif state == "success" then
+        setText(self.status, (locale == "zhCN" or locale == "zhTW")
+            and ("已施放" .. (title and ("：" .. title) or ""))
+            or ("Cast" .. (title and (": " .. title) or "")))
+    else
+        self:ReportActionResult(false, type(actionOrError) == "string" and actionOrError or nil)
+    end
+    return true
+end
+
 function Palette:SetQueryMode(text)
     local empty = (text or "") == ""
     if not self.homeView or not self.list then return end
     if self.viewHost and self.viewHost:IsActive() then self.viewHost:Unmount("query-change") end
     setShown(self.viewHost and self.viewHost.frame, false)
     if empty and not self.activeFilter then
+        self:ResizeForMode("home")
         setShown(self.list.frame, false); setShown(self.emptyState, false)
         if self.homeDirty then self:RefreshHomeSections(false) end
         setShown(self.homeView.frame, true); self:SetStatus("home")
     else
+        self:ResizeForMode("search", self.list.items and #self.list.items or 0)
         setShown(self.homeView.frame, false)
         local hasItems = self.list.items and #self.list.items > 0
         setShown(self.list.frame, hasItems)
@@ -646,6 +703,7 @@ function Palette:InvalidateRow(row)
 end
 function Palette:RejectRow(row, err)
     if err == "STALE_GENERATION" or err == "EXTENSION_DISABLED" then self:InvalidateRow(row) end
+    self:ReportActionResult(false, err)
     return false, err
 end
 function Palette:InvalidateExtension(extensionID)
@@ -671,6 +729,7 @@ function Palette:ApplyResults(items, generation, session)
         setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
         setShown(self.viewHost.frame, true); self:SetStatus("panel")
     elseif self.input:GetText() ~= "" or self.activeFilter then
+        self:ResizeForMode("search", #items)
         setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0)
         self:SetStatus("search", #items)
     end
@@ -687,6 +746,7 @@ function Palette:Show()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     self:ApplyBoundedScale()
     self.visible = true
+    self:ResizeForMode("home")
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
     if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
@@ -719,12 +779,16 @@ function Palette:ActivateSelected() return self.list:ActivateSelected() end
 function Palette:ActivateRowAction(row, actionID)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if not executor then return false, "ACTION_UNAVAILABLE" end
-    return executor:Execute(row, actionID)
+    local result, err = executor:Execute(row, actionID)
+    self:ReportActionResult(result, err)
+    return result, err
 end
 function Palette:BeginRowDrag(row)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if not executor then return false, "DRAG_UNSUPPORTED" end
-    return executor:BeginDrag(row)
+    local result, err = executor:BeginDrag(row)
+    self:ReportActionResult(result, err)
+    return result, err
 end
 function Palette:OpenView(factory, context, state)
     setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)

@@ -5,9 +5,7 @@ Lychee.UI = Lychee.UI or {}
 local ResultList = {}
 ResultList.__index = ResultList
 
-local ROWS = 6
-local ROW_HEIGHT = 56
-local ROW_GAP = 4
+local DEFAULT_ROWS = 6
 local ACTIONS = 4
 local EMPTY_ITEMS = {}
 local UI_LOCALE = GetLocale and GetLocale() or "enUS"
@@ -47,6 +45,7 @@ local THEME_KEY = {
     badge = "surfaceHover",
     actionPressed = "surface",
     actionDisabled = "disabled",
+    rowPressed = "surface",
     muted = "textMuted",
     dim = "textDim",
 }
@@ -184,6 +183,18 @@ local function sourceText(item)
     return UI_CHINESE and "第三方插件" or "Extension"
 end
 
+local function rowTooltipDetail(item)
+    if type(item) ~= "table" then return "" end
+    local parts = {}
+    local description = item.description or item.summary or item.subtext
+    if type(description) == "string" and description ~= "" then parts[#parts + 1] = description end
+    local evidence = evidenceText(item)
+    if evidence ~= "" then parts[#parts + 1] = evidence end
+    local source = sourceText(item)
+    if source ~= "" then parts[#parts + 1] = source end
+    return table.concat(parts, "\n")
+end
+
 local function hideTooltip()
     if GameTooltip and type(GameTooltip.Hide) == "function" then GameTooltip:Hide() end
 end
@@ -199,7 +210,8 @@ local function showTooltip(owner, title, detail)
 end
 
 local function renderRowState(row)
-    local background = row._selected and "rowSelected" or (row._hovered and "rowHover" or "row")
+    local background = row._pressed and "rowPressed"
+        or (row._selected and "rowSelected" or (row._hovered and "rowHover" or "row"))
     setTextureColor(row.bg, background)
     setShown(row.accent, row._selected == true)
     setShown(row.outline, row._hovered == true and row._selected ~= true)
@@ -227,7 +239,7 @@ end
 local function clearRow(row)
     row.item, row.index, row.session, row.generation, row.extensionID = nil, nil, nil, nil, nil
     row.stableID = nil
-    row._hovered, row._selected = false, false
+    row._hovered, row._selected, row._pressed = false, false, false
     cachedText(row, "title", row.title, "")
     cachedText(row, "subtext", row.subtext, "")
     cachedText(row, "category", row.category, "")
@@ -247,10 +259,10 @@ local function clearRow(row)
     setShown(row, false)
 end
 
-local function createAction(row, self, index)
+local function createAction(row, self, index, layout)
     local button = CreateFrame("Button", nil, row)
-    button:SetSize(42, 28)
-    button:SetPoint("RIGHT", row, "RIGHT", -((ACTIONS - index) * 46 + 10), 0)
+    button:SetSize(layout.actionWidth, 28)
+    button:SetPoint("RIGHT", row, "RIGHT", -((ACTIONS - index) * (layout.actionWidth + layout.actionGap) + layout.actionInset), 0)
     button:RegisterForClicks("LeftButtonUp")
     button.bg = button:CreateTexture(nil, "BACKGROUND")
     button.bg:SetAllPoints()
@@ -285,17 +297,30 @@ function ResultList:SelectRow(row)
 end
 
 function ResultList:Create(parent, controller)
+    local theme = Lychee.UI and Lychee.UI.Theme
+    local metrics = theme and theme.Metrics or {}
+    local rows = metrics.resultRows or DEFAULT_ROWS
+    local rowHeight = metrics.rowHeight or 56
+    local rowGap = metrics.rowGap or 4
+    local actionWidth = metrics.actionWidth or 42
+    local actionGap = metrics.actionGap or 4
+    local actionInset = metrics.actionInset or 10
+    local categoryWidth = metrics.categoryWidth or 56
+    local categoryHeight = metrics.categoryHeight or 20
+    local iconSize = metrics.iconSize or 34
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10)
     frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -10, -10)
-    frame:SetHeight(ROWS * ROW_HEIGHT + (ROWS - 1) * ROW_GAP)
-    local self = setmetatable({ frame = frame, controller = controller, rows = {}, items = EMPTY_ITEMS, selected = 1 }, ResultList)
+    frame:SetHeight(rows * rowHeight + (rows - 1) * rowGap)
+    local self = setmetatable({ frame = frame, controller = controller, rows = {}, items = EMPTY_ITEMS, selected = 1,
+        rowHeight = rowHeight, rowGap = rowGap, maxRows = rows, actionWidth = actionWidth,
+        actionGap = actionGap, actionInset = actionInset, dragWidth = metrics.dragWidth or 38 }, ResultList)
 
-    for index = 1, ROWS do
+    for index = 1, rows do
         local row = CreateFrame("Button", nil, frame)
-        row:SetHeight(ROW_HEIGHT)
-        row:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -(index - 1) * (ROW_HEIGHT + ROW_GAP))
-        row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -(index - 1) * (ROW_HEIGHT + ROW_GAP))
+        row:SetHeight(rowHeight)
+        row:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -(index - 1) * (rowHeight + rowGap))
+        row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -(index - 1) * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
         row.bg = row:CreateTexture(nil, "BACKGROUND")
         row.bg:SetAllPoints()
@@ -332,7 +357,7 @@ function ResultList:Create(parent, controller)
         setTextureColor(row.accent, "accent")
 
         row.categoryBG = row:CreateTexture(nil, "ARTWORK")
-        row.categoryBG:SetSize(56, 20)
+        row.categoryBG:SetSize(categoryWidth, categoryHeight)
         row.categoryBG:SetPoint("LEFT", row, "LEFT", 10, 0)
         setTextureColor(row.categoryBG, "badge")
         row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -343,7 +368,7 @@ function ResultList:Create(parent, controller)
         setTextColor(row.category, "muted")
 
         row.icon = row:CreateTexture(nil, "ARTWORK")
-        row.icon:SetSize(34, 34)
+        row.icon:SetSize(iconSize, iconSize)
         row.icon:SetPoint("LEFT", row, "LEFT", 78, 0)
 
         row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -370,6 +395,7 @@ function ResultList:Create(parent, controller)
         row.evidence:SetJustifyH("LEFT")
         singleLine(row.evidence)
         setTextColor(row.evidence, "dim")
+        row.evidence:Hide()
 
         row.source = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         row.source:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -200, 5)
@@ -378,12 +404,13 @@ function ResultList:Create(parent, controller)
         row.source:SetJustifyH("RIGHT")
         singleLine(row.source)
         setTextColor(row.source, "dim")
+        row.source:Hide()
 
         row.actions = {}
-        for actionIndex = 1, ACTIONS do row.actions[actionIndex] = createAction(row, self, actionIndex) end
+        for actionIndex = 1, ACTIONS do row.actions[actionIndex] = createAction(row, self, actionIndex, self) end
 
         row.dragger = CreateFrame("Button", nil, row)
-        row.dragger:SetSize(38, 28)
+        row.dragger:SetSize(self.dragWidth, 28)
         row.dragger:SetPoint("RIGHT", row, "RIGHT", -196, 0)
         row.dragger:RegisterForDrag("LeftButton")
         row.dragger.bg = row.dragger:CreateTexture(nil, "BACKGROUND")
@@ -410,19 +437,36 @@ function ResultList:Create(parent, controller)
             self:SelectRow(button)
             if self.controller then self.controller:ActivateRow(button) end
         end)
+        row:SetScript("OnMouseDown", function(button)
+            button._pressed = true
+            renderRowState(button)
+        end)
+        row:SetScript("OnMouseUp", function(button)
+            button._pressed = false
+            renderRowState(button)
+        end)
         row:SetScript("OnEnter", function(button)
             button._hovered = true
             renderRowState(button)
+            if button.item then showTooltip(button, button.title:GetText(), rowTooltipDetail(button.item)) end
         end)
         row:SetScript("OnLeave", function(button)
             button._hovered = false
             renderRowState(button)
+            hideTooltip()
         end)
         row._rendered = {}
         self.rows[index] = row
         clearRow(row)
     end
     return self
+end
+
+function ResultList:Resize(count)
+    count = math.max(0, math.min(tonumber(count) or 0, self.maxRows or DEFAULT_ROWS))
+    local height = count > 0 and (count * self.rowHeight + (count - 1) * self.rowGap) or 0
+    if self.frame and self.frame.GetHeight and self.frame:GetHeight() ~= height then self.frame:SetHeight(height) end
+    return height
 end
 
 function ResultList:Clear()
@@ -439,6 +483,7 @@ function ResultList:SetItems(items, session, generation)
     self.items = items or EMPTY_ITEMS
     self.session, self.generation = session, generation
     local count = math.min(#self.items, #self.rows)
+    self:Resize(count)
     for index = 1, count do
         local item, row = self.items[index], self.rows[index]
         row.item, row.index = item, index
@@ -458,6 +503,8 @@ function ResultList:SetItems(items, session, generation)
         setShown(row.categoryBG, category ~= "")
         cachedText(row, "source", row.source, sourceText(item))
         cachedText(row, "evidence", row.evidence, evidenceText(item))
+        setShown(row.source, false)
+        setShown(row.evidence, false)
         local icon = item.icon or nil
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then
             row.icon:SetTexture(icon)

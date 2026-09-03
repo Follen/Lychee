@@ -9,7 +9,22 @@ function Broker:Create(parent)
     local self = setmetatable({ parent = parent or UIParent, buttons = {}, active = {}, dirty = false }, Broker)
     self.eventFrame = CreateFrame("Frame")
     self.eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-    self.eventFrame:SetScript("OnEvent", function() self:Flush() end)
+    if self.eventFrame.RegisterUnitEvent then
+        self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+        self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player")
+        self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "player")
+    else
+        self.eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+        self.eventFrame:RegisterEvent("UNIT_SPELLCAST_FAILED")
+        self.eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+    end
+    self.eventFrame:SetScript("OnEvent", function(_, event, unit, _, spellID, reason)
+        if event == "PLAYER_REGEN_ENABLED" then
+            self:Flush()
+        elseif unit == nil or unit == "player" then
+            self:FinishCast(event, spellID, reason)
+        end
+    end)
     self:EnsureBound()
     local internal = _G.LycheeInternal
     if internal then
@@ -39,7 +54,14 @@ function Broker:_Acquire()
     button:SetSize(24, 24)
     button:Hide()
     button:SetScript("PreClick", function(current)
-        if self:ValidateToken(current.token) then return end
+        local valid, tokenErr = self:ValidateToken(current.token)
+        if valid then
+            current.pendingCast = true
+            self.pendingButton = current
+            self:Notify("pending", current.action)
+            return
+        end
+        self:Notify("failed", current.action, tokenErr)
         if not (InCombatLockdown and InCombatLockdown()) then
             current:SetAttribute("type", nil)
             current:SetAttribute("spell", nil)
@@ -48,7 +70,7 @@ function Broker:_Acquire()
             current.pendingRelease = true
             self.dirty = true
         end
-        current.busy, current.token, current.action = false, nil, nil
+        current.busy, current.token, current.action, current.pendingCast = false, nil, nil, nil
     end)
     button.busy = true
     self.buttons[#self.buttons + 1] = button
@@ -78,9 +100,39 @@ function Broker:Prepare(action, token)
     button:SetAttribute("spell", descriptor.spellID)
     button.token = token
     button.action = action
+    button.spellID = descriptor.spellID
+    button.pendingCast = false
     button:Show()
     self.active[#self.active + 1] = button
     return button
+end
+
+function Broker:Notify(state, action, reason)
+    local palette = self:EnsureBound()
+    if not palette then return false end
+    if state == "pending" then
+        if palette.SetActionFeedback then palette:SetActionFeedback("pending", action) end
+    elseif state == "success" then
+        if palette.SetActionFeedback then palette:SetActionFeedback("success", action) end
+    elseif palette.SetActionFeedback then
+        palette:SetActionFeedback("failed", reason)
+    end
+    return true
+end
+
+function Broker:FinishCast(event, spellID, reason)
+    local button = self.pendingButton
+    if not button or not button.pendingCast then return false end
+    if spellID and button.spellID and spellID ~= button.spellID then return false end
+    button.pendingCast = false
+    self.pendingButton = nil
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        self:Notify("success", button.action)
+    else
+        self:Notify("failed", button.action, reason)
+    end
+    self:Release(button)
+    return true
 end
 function Broker:Release(button)
     if not button then return end
@@ -90,7 +142,7 @@ function Broker:Release(button)
         return
     end
     button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
-    button.busy, button.pendingRelease, button.token, button.action = false, nil, nil, nil
+    button.busy, button.pendingRelease, button.token, button.action, button.spellID, button.pendingCast = false, nil, nil, nil, nil, nil
 end
 function Broker:ShowFor(row, action, session, generation, item, extensionID)
     local button, err = self:Prepare(action, {

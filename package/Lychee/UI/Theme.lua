@@ -48,8 +48,20 @@ Theme.Metrics = {
     footerHeight = 28,
     contentPadding = 16,
     inputHeight = 44,
-    rowHeight = 66,
-    rowGap = 6,
+    resultRows = 6,
+    rowHeight = 56,
+    rowGap = 4,
+    resultPadding = 20,
+    paletteMinHeight = 220,
+    paletteMaxHeight = 500,
+    actionWidth = 42,
+    actionGap = 4,
+    actionInset = 10,
+    dragWidth = 38,
+    categoryWidth = 56,
+    categoryHeight = 20,
+    iconSize = 34,
+    actionColumnWidth = 200,
     actionSize = 28,
     border = 1,
 }
@@ -117,7 +129,8 @@ end
 
 function Theme:SetShown(region, shown)
     shown = shown == true
-    if not region or region:IsShown() == shown then return false end
+    if not region or type(region.IsShown) ~= "function" then return false end
+    if region:IsShown() == shown then return false end
     region:SetShown(shown)
     return true
 end
