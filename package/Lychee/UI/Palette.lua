@@ -730,7 +730,7 @@ function Palette:Show()
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
     if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
-    self.frame:Show(); self:SetQueryMode(self.input:GetText()); self.input:Show(); self.input:Focus()
+    self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show(); self.input:Focus()
     animate(self.frame, "lychee.palette.open", 0, 1, 0.18)
     return true
 end
