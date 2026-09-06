@@ -376,10 +376,11 @@ function Palette:Create()
     self.header = self.headerComponent.frame
     self.footerComponent = components:CreateBand(frame, { height = FOOTER_HEIGHT, top = false, color = "footer" })
     self.footer = self.footerComponent.frame
+    self.footer:Hide()
     self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
     self.content = self.contentComponent.frame
     self.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -HEADER_HEIGHT)
-    self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
+    self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, 12)
     self.content.bg = self.contentComponent.bg
     self.brandComponent = components:CreateBrand(self.header, {
         iconSize = 30,
@@ -653,7 +654,7 @@ function Palette:ResizeForMode(mode, count)
     local columns = self.list and self.list.gridColumns or 4
     local rows = tiles > 0 and math.ceil(tiles / columns) or 0
     local listHeight = rows > 0 and (rows * rowHeight + (rows - 1) * rowGap) or 0
-    local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
+    local desired = HEADER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
     if self.frame:GetHeight() ~= desired then self.frame:SetHeight(desired) end
     return true
