@@ -462,13 +462,12 @@ local function candidateKeys(self, normalized, filter)
         addCandidates(out, seen, self.grams[gramValues[index]], self.candidateLimit)
     end
     -- 动态中文数据可能在建立 gram 前才加载；避免短中文查询直接零候选。
-    if #out == 0 and hasNonASCII(normalized) then
+    if hasNonASCII(normalized) then
         local added = 0
         for key, entry in pairs(self.entries) do
             local filterOK = entry and (not filter or (not filter.sourceID or entry.sourceID == filter.sourceID) and (not filter.categoryID or entry.categoryID == filter.categoryID))
             if entry and entry.source.enabled and filterOK and not seen[key] then
                 seen[key] = true; out[#out + 1] = key; added = added + 1
-                if added >= self.candidateLimit then break end
             end
         end
     end
