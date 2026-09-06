@@ -149,18 +149,12 @@ local function sourceText(item)
         or (UI_CHINESE and "第三方插件" or "Extension")
 end
 
-local KIND_NAMES = UI_CHINESE and {
-    spell = "技能", quest = "任务", achievement = "成就", creature = "生物", dungeon = "副本",
-    item = "物品", command = "命令", extension = "插件",
-} or {
-    spell = "Spell", quest = "Quest", achievement = "Achievement", creature = "Creature", dungeon = "Dungeon",
-    item = "Item", command = "Command", extension = "Extension",
-}
-
 local function kindText(item)
     local record = item and item.searchRecord
+    local title = item and item.kindTitle or record and record.kindTitle
+    if type(title) == "string" and title ~= "" then return title end
     local kind = item and (item.kind or item.type) or record and (record.kind or record.type)
-    return KIND_NAMES[tostring(kind or "")] or tostring(kind or (UI_CHINESE and "内容" or "Content"))
+    return tostring(kind or (UI_CHINESE and "内容" or "Content"))
 end
 
 local function rowTooltipDetail(item)

@@ -343,7 +343,7 @@ SearchSource 的最小规范化形状：
 }
 ```
 
-SearchRecord 至少包含稳定 `id`、`kind`、`category`、当前 locale 可用的 `title`，以及可选的 `aliases`、`keywords`、`description`、`scope` 和声明式 `actions`。`id` 指向同一个 canonical 实体；别名命中只产生一个结果，不复制实体。SearchSource 的 snapshot/upsert/remove 由 Host 校验后增量写入 SearchIndex；Source 禁用或注销只失效自己的记录。
+SearchRecord 至少包含稳定 `id`、`kind`、当前 locale 可用的 `kindTitle`（由 Source/Provider 提供）和 `category`、当前 locale 可用的 `title`，以及可选的 `aliases`、`keywords`、`description`、`scope` 和声明式 `actions`。Host 不维护 `kind` 到本地化类型文案的字典；缺少 `kindTitle` 时只显示稳定的 `kind` 标识。`id` 指向同一个 canonical 实体；别名命中只产生一个结果，不复制实体。SearchSource 的 snapshot/upsert/remove 由 Host 校验后增量写入 SearchIndex；Source 禁用或注销只失效自己的记录。
 
 ## 8. CapabilityProvider 模型
 

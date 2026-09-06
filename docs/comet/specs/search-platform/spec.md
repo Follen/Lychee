@@ -71,7 +71,7 @@ Source 不得注册 Lychee 级快捷键、取得 Palette 根 frame、创建 Host
 }
 ```
 
-`id` 是全局稳定实体 ID；同一技能的 canonical title、别名、关键词和描述都必须指向同一个 ID。`kind` 用于语义和 renderer，`category` 用于用户可见前置标签和类别筛选。类别文案、title、aliases、keywords、description 可以是 string 或带 locale/scope 的文本条目。
+`id` 是全局稳定实体 ID；同一技能的 canonical title、别名、关键词和描述都必须指向同一个 ID。`kind` 用于稳定语义，`kindTitle` 由 Source/Provider 提供类型显示名，`category` 用于用户可见前置标签和类别筛选。类别文案、kindTitle、title、aliases、keywords、description 可以是 string 或带 locale/scope 的文本条目；Host 不维护 kind 到文案的字典。
 
 ## 5. Locale/Build scope
 

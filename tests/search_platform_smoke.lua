@@ -30,6 +30,7 @@ assert(index:RegisterSource({ id = sourceID, priority = 50, _extensionID = "test
 assert(index:CommitSnapshot(sourceID, {
     {
         id = "spell:393256", kind = "spell",
+        kindTitle = { default = "Spell", zhCN = "技能" },
         category = { id = "spells", title = { default = "Spell", zhCN = "技能" } },
         title = "利爪防御者之路",
         aliases = { { text = "红玉", locale = "zhCN" }, { text = "ruby life pools", locale = "enUS" } },
@@ -115,7 +116,7 @@ assert(draft)
 assert(draft:RegisterSearchSource({
     id = "creatures", version = 1, revision = 1, priority = 50, scope = {},
     records = {
-        { id = "creature:1", kind = "creature", category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" } }, title = "红玉小怪", aliases = { { text = "红玉小怪", locale = "zhCN" } } },
+        { id = "creature:1", kind = "creature", kindTitle = { default = "Creature", zhCN = "生物" }, category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" } }, title = "红玉小怪", aliases = { { text = "红玉小怪", locale = "zhCN" } } },
     },
 }))
 local handle = draft:Commit()
@@ -129,6 +130,9 @@ assert(sourceHandle:GetState().revision > sourceState.revision)
 assert(#I.Search.StaticIndex:Search("增量小怪", 10) == 1)
 local generation, results = I.Search.Query:Query("红玉小怪", {})
 assert(generation and #results > 0 and results[1].searchRecord and results[1].category == "副本")
+
+local typedGeneration, typedResults = I.Search.Query:Query("红玉小怪", {})
+assert(typedGeneration and typedResults[1].kindTitle == "生物", "SearchRecord kindTitle is projected without a Host kind dictionary")
 
 -- Source-local updates preserve unrelated source entries and snapshots restore real records.
 local sourceB = "test.search:other"

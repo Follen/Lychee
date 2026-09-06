@@ -116,6 +116,7 @@ SearchRecord 的核心字段：
 | --- | --- |
 | `id` | 必填稳定全局 ID，如 `spell:393256`、`quest:12345` |
 | `kind` | 必填实体类型，如 `spell`、`quest`、`creature` |
+| `kindTitle` | 可选类型显示名，由 Source/Provider 提供的 string 或 locale table；Host 不维护 `kind` 到文案的字典 |
 | `category` | 可选类别 ID 或带本地化标题的类别对象 |
 | `title` | 可选主标题，string 或 locale table |
 | `subtitle`/`description` | 可选副标题和描述 |
@@ -141,7 +142,7 @@ aliases = {
 }
 ```
 
-`locale` 必须是 WoW locale token 或 `default`。Host 按“当前 locale -> `default`”选择显示和索引文本；其他 locale 保留在 Source 数据中但不进入当前活动索引。版本、赛季简称和玩家俗称放入 `aliases` 或 `keywords`，不创建重复实体。规范化后的同名实体仍作为不同 stable ID 候选交给排序器。
+`locale` 必须是 WoW locale token 或 `default`。Host 按“当前 locale -> `default`”选择显示和索引文本；其他 locale 保留在 Source 数据中但不进入当前活动索引。`kindTitle` 与其他用户可见文本遵循相同的 locale 选择规则。版本、赛季简称和玩家俗称放入 `aliases` 或 `keywords`，不创建重复实体。规范化后的同名实体仍作为不同 stable ID 候选交给排序器。
 
 文本还可以声明 product/interface/build scope。当前客户端不匹配的投影不索引。加载期读取 locale 与运行时身份；按键查询不做翻译、网络请求或全量扫描。
 
@@ -166,7 +167,7 @@ Host 为 canonical title、alias、keyword、description 和 category title 建�
 
 ### Tooltip 合同
 
-结果行和默认网格只显示图标、类别和标题；描述性信息由 Host 统一放入 tooltip。tooltip 依次展示 canonical `title`、由 `kind` 映射的类型、`description`/`subtitle`、来源、可选匹配证据（字段、匹配类型、置信度）以及已声明动作。空字段省略。第三方只提供这些 plain-data 字段，不创建或接管 `GameTooltip`。不得显示 Enter、方向键、Esc 等教学文字、异常堆栈、secret/inaccessible 值或未声明动作。
+结果行和默认网格只显示图标、类别和标题；描述性信息由 Host 统一放入 tooltip。tooltip 依次展示 canonical `title`、Source/Provider 提供的 `kindTitle`（缺省时显示稳定的 `kind` 标识）、`description`/`subtitle`、来源、可选匹配证据（字段、匹配类型、置信度）以及已声明动作。Host 不维护实体类型到本地化文案的映射。空字段省略。第三方只提供这些 plain-data 字段，不创建或接管 `GameTooltip`。不得显示 Enter、方向键、Esc 等教学文字、异常堆栈、secret/inaccessible 值或未声明动作。
 
 ```lua
 interaction = {

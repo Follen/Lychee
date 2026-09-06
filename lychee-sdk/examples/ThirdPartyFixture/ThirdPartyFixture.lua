@@ -141,6 +141,7 @@ local function buildExtension(SDK)
             {
                 id = "fixture-item-12345",
                 kind = "spell",
+                kindTitle = { default = "Spell", zhCN = "技能" },
                 category = { id = "spells", title = { default = "Spell", zhCN = "技能" } },
                 title = { default = "Avenging Wrath", zhCN = "复仇之怒" },
                 aliases = {

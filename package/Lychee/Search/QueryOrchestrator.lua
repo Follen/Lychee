@@ -68,6 +68,7 @@ local function searchRecordItem(hit)
     local item = {
         id = record.id,
         text = displayText(record.title),
+        kindTitle = displayText(record.kindTitle),
         subtext = displayText(record.subtitle or record.subtext),
         description = displayText(record.description),
         payload = record.payload or record,

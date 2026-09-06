@@ -118,6 +118,7 @@ local items = {
     {
         stableID = "spell:393256",
         text = longText,
+        kindTitle = "自定义类型",
         description = longText,
         category = "技能",
         source = "builtin.player-spells:records",
@@ -194,7 +195,7 @@ end
 assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
 
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-assert(GameTooltip.shown and GameTooltip.text == longText and GameTooltip.detail:find("类型", 1, true) and GameTooltip.detail:find("匹配", 1, true), "primary hover exposes typed diagnostic tooltip")
+assert(GameTooltip.shown and GameTooltip.text == longText and GameTooltip.detail:find("自定义类型", 1, true) and GameTooltip.detail:find("匹配", 1, true), "primary hover exposes provider typed diagnostic tooltip")
 rowOne.secondary.scripts.OnClick(rowOne.secondary)
 assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)

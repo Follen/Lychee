@@ -202,6 +202,7 @@ function P:BuildSearchRecords()
             records[#records + 1] = {
                 id = "spell:" .. tostring(spellID),
                 kind = "spell",
+                kindTitle = { default = "Spell", zhCN = "技能" },
                 category = { id = "spells", title = { default = "Spells", zhCN = "技能" }, order = 10 },
                 title = spell.name,
                 aliases = spell.aliases or self.aliasDefinitions[spellID],

@@ -95,6 +95,7 @@ function Catalog:Add(extensionID, command)
         local added, addErr = commandIndex:AddRecord(privateSourceID, {
             id = key,
             kind = "command",
+            kindTitle = stored.kindTitle,
             title = stored.title,
             aliases = stored.aliases,
             keywords = stored.keywords,
@@ -180,6 +181,7 @@ function Catalog:Query(request, limit)
             out[#out + 1] = {
                 id = command.id,
                 text = display(command.title),
+                kindTitle = display(command.kindTitle),
                 subtext = display(command.subtitle or command.subtext),
                 description = display(command.description),
                 icon = command.icon,

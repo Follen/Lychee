@@ -184,7 +184,7 @@ function Boundary:ValidateSearchRecord(record, field)
     local ok, why = self:Validate(record, field)
     if not ok then return nil, why end
     local keyOK, keyErr = allowedKeys(record, {
-        id = true, kind = true, category = true, title = true, subtitle = true, subtext = true,
+        id = true, kind = true, kindTitle = true, category = true, title = true, subtitle = true, subtext = true,
         aliases = true, keywords = true, description = true, icon = true, scope = true,
         actions = true, primaryActionID = true, drag = true, payload = true,
         availability = true,
@@ -197,7 +197,7 @@ function Boundary:ValidateSearchRecord(record, field)
     if not record.title and not record.aliases and not record.keywords and not record.description and not record.category then
         return schemaFailure(field .. ".content")
     end
-    for _, name in ipairs({ "title", "subtitle", "subtext", "aliases", "keywords", "description" }) do
+    for _, name in ipairs({ "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }) do
         local textOK, textErr = validateTextField(record[name], field .. "." .. name)
         if not textOK then return nil, textErr end
     end
