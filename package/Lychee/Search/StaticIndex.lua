@@ -89,6 +89,10 @@ local function grams(text)
     return out
 end
 
+local function hasNonASCII(text)
+    return tostring(text or ""):find("[^%z\1-\127]") ~= nil
+end
+
 local function categoryID(record)
     local category = record and record.category
     if type(category) == "table" then return category.id end
@@ -141,7 +145,7 @@ local function buildEntry(source, record)
     addText(entry, "title", record.title, record.scope or source.scope)
     addText(entry, "alias", record.aliases, record.scope or source.scope)
     addText(entry, "keyword", record.keywords, record.scope or source.scope)
-    -- 描述只用于 Tooltip 展示，不参与搜索因子，避免长文本和说明词污染结果。
+    addText(entry, "description", record.description, record.scope or source.scope)
     local category = record.category
     addText(entry, "category", type(category) == "table" and (category.title or category.id) or category, record.scope or source.scope)
     return entry
@@ -456,6 +460,17 @@ local function candidateKeys(self, normalized, filter)
     for index = 1, #gramValues do
         if #out >= self.candidateLimit then break end
         addCandidates(out, seen, self.grams[gramValues[index]], self.candidateLimit)
+    end
+    -- 动态中文数据可能在建立 gram 前才加载；避免短中文查询直接零候选。
+    if #out == 0 and hasNonASCII(normalized) then
+        local added = 0
+        for key, entry in pairs(self.entries) do
+            local filterOK = entry and (not filter or (not filter.sourceID or entry.sourceID == filter.sourceID) and (not filter.categoryID or entry.categoryID == filter.categoryID))
+            if entry and entry.source.enabled and filterOK and not seen[key] then
+                seen[key] = true; out[#out + 1] = key; added = added + 1
+                if added >= self.candidateLimit then break end
+            end
+        end
     end
     if #out >= self.candidateLimit then diagnose(self, "CANDIDATE_LIMIT") end
     return out, false

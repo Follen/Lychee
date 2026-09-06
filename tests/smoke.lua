@@ -133,7 +133,7 @@ _G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh()
 local _, live = q:Query("实时技能", {})
 assert(#live > 0 and live[1].payload.spellID == 9001)
 local _, descriptionMatch = q:Query("测试副本", {})
-assert(#descriptionMatch == 0, "spell descriptions stay out of search factors")
+assert(#descriptionMatch > 0 and descriptionMatch[1].payload.spellID == 9001)
 C_SpellBook.GetSpellBookItemInfo = function() error("transient") end
 assert(_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh() == false)
 local _, retained = q:Query("实时技能", {})
