@@ -80,6 +80,47 @@ local function addKnownAliasSpells(self, items, aliasDefinitions)
     end
 end
 
+local function spellIcon(spellID, fallback)
+    if C_Spell and type(C_Spell.GetSpellTexture) == "function" then
+        local ok, icon = pcall(C_Spell.GetSpellTexture, spellID)
+        if ok and icon then return icon end
+    end
+    if C_Spell and type(C_Spell.GetSpellInfo) == "function" then
+        local ok, info = pcall(C_Spell.GetSpellInfo, spellID)
+        if ok and type(info) == "table" and info.iconID then return info.iconID end
+    end
+    return fallback
+end
+
+local function addFlyoutSpells(self, items, flyoutID)
+    if type(GetFlyoutInfo) ~= "function" or type(GetFlyoutSlotInfo) ~= "function" then return 0 end
+    local ok, _, _, count, known = pcall(GetFlyoutInfo, flyoutID)
+    if not ok or not known or type(count) ~= "number" or count <= 0 then return 0 end
+    local added = 0
+    for slot = 1, count do
+        local slotOK, spellID, overrideSpellID, isKnown, name = pcall(GetFlyoutSlotInfo, flyoutID, slot)
+        if slotOK and isKnown and type(spellID) == "number" and spellID > 0 then
+            local resolvedID = spellID
+            local iconID = type(overrideSpellID) == "number" and overrideSpellID > 0 and overrideSpellID or spellID
+            local resolvedName = type(name) == "string" and name ~= "" and name or spellName(resolvedID)
+            if resolvedName then
+                addSpell(items, self.aliasDefinitions, {
+                    id = resolvedID, name = resolvedName, icon = spellIcon(iconID),
+                    aliases = self.aliasDefinitions[resolvedID],
+                    description = spellDescription(self, resolvedID),
+                })
+                added = added + 1
+            end
+        end
+    end
+    return added
+end
+
+local function isFlyoutItem(itemType)
+    local enumValue = Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.Flyout
+    return itemType == (enumValue or 4)
+end
+
 local function commitSnapshot(self, items, source)
     self.items = items
     self.lastRefresh, self.lastError, self.dirty = source, nil, false
@@ -124,6 +165,14 @@ function P:RefreshFromSpellBook()
                                 subtext = item.subName, aliases = self.aliasDefinitions[item.spellID],
                                 description = spellDescription(self, item.spellID),
                             })
+                        end
+                    end
+                    -- SpellBook flyouts (itemType 4) expose their real spells
+                    -- through GetFlyoutSlotInfo rather than item.spellID.
+                    if itemOK and type(GetSpellBookItemType) == "function" then
+                        local typeOK, itemType, flyoutID = pcall(GetSpellBookItemType, slot, bank)
+                        if typeOK and isFlyoutItem(itemType) and type(flyoutID) == "number" then
+                            addFlyoutSpells(self, nextItems, flyoutID)
                         end
                     end
                 end
