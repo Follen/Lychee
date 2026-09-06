@@ -4,6 +4,8 @@
 >
 > 本文定义 Lychee 本体暴露的 `LycheeSDK` 公共 API 必须满足的契约。SDK 不是独立运行时 AddOn；第三方插件把接入代码集成到自己的 AddOn 中，由 Lychee Host 提供实际注册、搜索、Panel 和执行能力。
 
+> 所有字段和运行时行为协议以 [PROTOCOLS.md](PROTOCOLS.md) 为准。
+
 证据基线：wowdoc source `wow-ui-source`，product `retail`，Tag `12.1.0`，commit `31c7f7b9cc79e56c986b365c06a6afbcf3c9177b`。本文使用的关键证据为：
 
 - `Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua:48`（`canaccesstable`）、`:65`（`canaccessvalue`）、`:263`（`issecretvalue`）；
