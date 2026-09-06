@@ -397,6 +397,8 @@ function Palette:Create()
         onClick = function() self:Hide("close") end,
     })
     self.close = self.closeComponent.frame
+    -- 关闭仍由 Esc 和快捷键处理，界面不显示额外的 x 控件。
+    self.close:Hide()
     self.close:SetScript("OnClick", function() self:Hide("close") end)
     self.close:SetScript("OnEnter", function(button)
         self.closeComponent:SetState("hover")
@@ -647,7 +649,9 @@ function Palette:ResizeForMode(mode, count)
     local rowHeight = metrics.rowHeight or 56
     local rowGap = metrics.rowGap or 4
     local padding = metrics.resultPadding or 20
-    local rows = math.max(0, math.min(tonumber(count) or 0, self.list and self.list.maxRows or 6))
+    local tiles = math.max(0, math.min(tonumber(count) or 0, self.list and self.list.maxRows or 12))
+    local columns = self.list and self.list.gridColumns or 4
+    local rows = tiles > 0 and math.ceil(tiles / columns) or 0
     local listHeight = rows > 0 and (rows * rowHeight + (rows - 1) * rowGap) or 0
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))

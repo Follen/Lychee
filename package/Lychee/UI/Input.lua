@@ -64,7 +64,7 @@ function Input:Create(parent, focusController)
 
     local placeholder = container:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     placeholder:SetPoint("LEFT", container, "LEFT", 40, 0)
-    placeholder:SetPoint("RIGHT", container, "RIGHT", -112, 0)
+    placeholder:SetPoint("RIGHT", container, "RIGHT", -20, 0)
     placeholder:SetJustifyH("LEFT")
     placeholder:SetText(localizedPlaceholder())
 

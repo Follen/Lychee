@@ -5,7 +5,9 @@ Lychee.UI = Lychee.UI or {}
 local ResultList = {}
 ResultList.__index = ResultList
 
-local DEFAULT_ROWS = 6
+local GRID_COLUMNS = 4
+local DEFAULT_TILES = 12
+local TILE_WIDTH, TILE_HEIGHT = 156, 72
 local EMPTY_ITEMS = {}
 local UI_LOCALE = GetLocale and GetLocale() or "enUS"
 local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
@@ -241,19 +243,23 @@ end
 function ResultList:Create(parent, controller)
     local theme = Lychee.UI and Lychee.UI.Theme
     local metrics = theme and theme.Metrics or {}
-    local rows, rowHeight, rowGap = metrics.resultRows or DEFAULT_ROWS, metrics.rowHeight or 52, metrics.rowGap or 4
+    local columns = metrics.resultColumns or GRID_COLUMNS
+    local tiles, rowHeight, rowGap = metrics.resultTiles or DEFAULT_TILES, metrics.rowHeight or TILE_HEIGHT, metrics.rowGap or 8
+    local tileWidth = metrics.resultTileWidth or TILE_WIDTH
     local iconSize = metrics.iconSize or 32
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -10, -10)
-    frame:SetHeight(rows * rowHeight + (rows - 1) * rowGap)
+    local gridRows = math.ceil(tiles / columns)
+    frame:SetHeight(gridRows * rowHeight + math.max(0, gridRows - 1) * rowGap)
     local self = setmetatable({ frame = frame, controller = controller, rows = {}, items = EMPTY_ITEMS, selected = 1,
-        rowHeight = rowHeight, rowGap = rowGap, maxRows = rows }, ResultList)
+        rowHeight = rowHeight, rowGap = rowGap, tileWidth = tileWidth, gridColumns = columns, maxRows = tiles }, ResultList)
 
-    for index = 1, rows do
+    for index = 1, tiles do
         local row = CreateFrame("Button", nil, frame)
-        row:SetHeight(rowHeight)
-        row:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -(index - 1) * (rowHeight + rowGap))
-        row:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, -(index - 1) * (rowHeight + rowGap))
+        row:SetSize(tileWidth, rowHeight)
+        local column = (index - 1) % columns
+        local gridRow = math.floor((index - 1) / columns)
+        row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
         row.bg = row:CreateTexture(nil, "BACKGROUND"); row.bg:SetAllPoints()
         row.outline = CreateFrame("Frame", nil, row); row.outline:SetPoint("TOPLEFT", row, "TOPLEFT", 1, -1); row.outline:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -1, 1)
@@ -283,7 +289,7 @@ function ResultList:Create(parent, controller)
         end)
 
         row.primaryTarget = CreateFrame("Button", nil, row)
-        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 56, 1); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -8, -1); row.primaryTarget:RegisterForClicks("LeftButtonUp")
+        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 4, 2); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2); row.primaryTarget:RegisterForClicks("LeftButtonUp")
         row.primaryTarget:SetScript("OnClick", function(button)
             local owner = button:GetParent(); self:SelectRow(owner)
             if self.controller then self.controller:ActivateRow(owner) end
@@ -293,8 +299,8 @@ function ResultList:Create(parent, controller)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
-        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("TOPLEFT", row, "TOPLEFT", 58, -7); row.category:SetWidth(42); row.category:SetJustifyH("LEFT"); singleLine(row.category)
-        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 103, -6); row.title:SetPoint("RIGHT", row, "RIGHT", -20, 0); row.title:SetHeight(16); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
+        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -12); row.category:SetWidth(tileWidth - 68); row.category:SetJustifyH("LEFT"); singleLine(row.category)
+        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -31); row.title:SetPoint("RIGHT", row, "RIGHT", -8, 0); row.title:SetHeight(18); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
         row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2); row.subtext:SetPoint("RIGHT", row, "RIGHT", -20, 0); row.subtext:SetHeight(13); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); row.subtext:Hide(); setTextColor(row.subtext, "muted")
         row.description = row.subtext
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
@@ -324,8 +330,9 @@ function ResultList:Create(parent, controller)
 end
 
 function ResultList:Resize(count)
-    count = math.max(0, math.min(tonumber(count) or 0, self.maxRows or DEFAULT_ROWS))
-    local height = count > 0 and (count * self.rowHeight + (count - 1) * self.rowGap) or 0
+    count = math.max(0, math.min(tonumber(count) or 0, self.maxRows or DEFAULT_TILES))
+    local gridRows = count > 0 and math.ceil(count / self.gridColumns) or 0
+    local height = gridRows > 0 and (gridRows * self.rowHeight + (gridRows - 1) * self.rowGap) or 0
     if self.frame and self.frame.GetHeight and self.frame:GetHeight() ~= height then self.frame:SetHeight(height) end
     return height
 end
