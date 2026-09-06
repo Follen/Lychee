@@ -105,7 +105,10 @@ function P:RefreshFromSpellBook()
     local readableItems = 0
     for line = 1, count do
         local lineOK, info = pcall(C_SpellBook.GetSpellBookSkillLineInfo, line)
-        if lineOK and type(info) == "table" and not info.shouldHide and not info.isGuild then
+        -- Hidden skill lines can still contain real player spells (teleports,
+        -- utility and encounter unlocks). Keep the player-bank boundary, but
+        -- do not discard records solely because Blizzard hides their line.
+        if lineOK and type(info) == "table" and not info.isGuild then
             local offset, itemCount = info.itemIndexOffset, info.numSpellBookItems
             if type(offset) == "number" and type(itemCount) == "number" and itemCount >= 0 then
                 local first, last = offset + 1, offset + itemCount
