@@ -726,8 +726,6 @@ function Palette:Show()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     self:ApplyBoundedScale()
     self.visible = true
-    self.activeFilter = nil
-    self.input:SetText("")
     self:ResizeForMode("home")
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
