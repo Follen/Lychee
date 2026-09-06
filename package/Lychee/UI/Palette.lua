@@ -11,8 +11,8 @@ Palette.__index = Palette
 
 local WIDTH, HEIGHT = 720, 500
 local HEADER_HEIGHT, FOOTER_HEIGHT = 76, 28
-local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 120, 74
-local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 6, 104, 92
+local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 12, 14, 18
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 64
 
 local FALLBACK = {
@@ -142,8 +142,8 @@ local function createHomeView(parent, controller)
 
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
-        paint(tile.bg, color(selected and "tileSelected" or (tile._hovered and "tileHover" or "tile")))
-        setShown(tile.focus, selected or (tile._hovered and tile.section and tile.section.enabled ~= false) or false)
+        paint(tile.bg, color((selected or tile._hovered) and "tileHover" or "content"))
+        setShown(tile.focus, false)
     end
 
     function view:Select(index)
@@ -208,7 +208,7 @@ local function createHomeView(parent, controller)
         tile:RegisterForClicks("LeftButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
         tile.bg:SetAllPoints()
-        paint(tile.bg, color("tile"))
+        paint(tile.bg, color("content"))
         tile.focus = tile:CreateTexture(nil, "BORDER")
         tile.focus:SetPoint("TOPLEFT", tile, "TOPLEFT", 0, 0)
         tile.focus:SetPoint("BOTTOMLEFT", tile, "BOTTOMLEFT", 0, 0)
@@ -216,10 +216,10 @@ local function createHomeView(parent, controller)
         paint(tile.focus, color("accent"))
         tile.focus:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
-        tile.icon:SetSize(32, 32)
+        tile.icon:SetSize(40, 40)
         tile.icon:SetPoint("TOP", tile, "TOP", 0, -10)
         tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 6, -48)
+        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 5, -58)
         tile.title:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
         tile.title:SetJustifyH("CENTER")
         if tile.title.SetWordWrap then tile.title:SetWordWrap(false) end
@@ -569,52 +569,6 @@ function Palette:RefreshHomeSections(allowExpand)
     end
     appendSaved("recent", localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
         localized({ zhCN = "还没有最近记录", enUS = "No recent items" }, "No recent items"), db.recent)
-    appendSaved("pinned", localized({ zhCN = "已固定", enUS = "Pinned" }, "Pinned"),
-        localized({ zhCN = "还没有固定项目", enUS = "No pinned items" }, "No pinned items"), db.pinned)
-
-    local categoryLabels = {
-        { id = "spells", title = { zhCN = "技能", enUS = "Spells" } },
-        { id = "achievements", title = { zhCN = "成就", enUS = "Achievements" } },
-        { id = "quests", title = { zhCN = "任务", enUS = "Quests" } },
-        { id = "dungeons", title = { zhCN = "副本", enUS = "Dungeons" } },
-        { id = "extensions", title = { zhCN = "插件", enUS = "Extensions" } },
-    }
-    for index = 1, #categoryLabels do
-        local category, representative = categoryLabels[index], nil
-        for recordIndex = 1, #records do
-            local value = records[recordIndex].category
-            if (type(value) == "table" and value.id or value) == category.id then representative = records[recordIndex]; break end
-        end
-        local title = localized(category.title, category.id)
-        if representative then
-            sections[#sections + 1] = { id = "category:" .. category.id, groupID = "categories",
-                groupTitle = localized({ zhCN = "分类", enUS = "Categories" }, "Categories"), title = title,
-                meta = "", tooltip = localized(representative.description, ""),
-                icon = representative.icon, filter = { categoryID = category.id } }
-        end
-    end
-
-    local internal = _G.LycheeInternal
-    local registry = internal and internal.Registry
-    local static = internal and internal.Search and internal.Search.StaticIndex
-    local sourceCount = 0
-    if registry and static and type(static.sources) == "table" then
-        local sourceIDs = {}
-        for sourceID, source in pairs(static.sources) do
-            local extensionID = source and source.extensionID
-            if source.enabled and type(extensionID) == "string" and extensionID:sub(1, 7) ~= "builtin" then sourceIDs[#sourceIDs + 1] = sourceID end
-        end
-        table.sort(sourceIDs)
-        for index = 1, #sourceIDs do
-            local sourceID, source = sourceIDs[index], static.sources[sourceIDs[index]]
-            local entry = registry.entries[source.extensionID]
-            local extensionTitle = localized(entry and entry.descriptor and entry.descriptor.title, source.extensionID)
-            sections[#sections + 1] = { id = "source:" .. sourceID, groupID = "extensions",
-                groupTitle = localized({ zhCN = "扩展来源", enUS = "Extension sources" }, "Extension sources"),
-                title = extensionTitle, meta = source.id:match("([^:]+)$") or source.id, filter = { sourceID = sourceID } }
-            sourceCount = sourceCount + 1
-        end
-    end
     self:SetHomeSections(sections, allowExpand)
     self.homeDirty = false
     return true
