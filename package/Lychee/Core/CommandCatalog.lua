@@ -60,7 +60,7 @@ local function ambientLess(left, right)
     return left.priority > right.priority or (left.priority == right.priority and left.key < right.key)
 end
 
-function Catalog:Add(extensionID, command)
+function Catalog:Add(extensionID, command, extensionTitle)
     if type(extensionID) ~= "string" or extensionID == "" or type(command) ~= "table" or type(command.id) ~= "string" then
         return nil, { code = "INVALID_COMMAND" }
     end
@@ -70,6 +70,7 @@ function Catalog:Add(extensionID, command)
     if commands[key] then return nil, { code = "DUPLICATE_COMMAND" } end
 
     stored._ext, stored._key = extensionID, key
+    stored.sourceTitle = stored.sourceTitle or extensionTitle
     stored._enabled = stored._enabled ~= false
     commands[key] = stored
     local extensionCommands = byExtension[extensionID]
@@ -185,7 +186,9 @@ function Catalog:Query(request, limit)
                 subtext = display(command.subtitle or command.subtext),
                 description = display(command.description),
                 icon = command.icon,
+                sourceTitle = display(command.sourceTitle),
                 category = display(category and category.title or category),
+                categoryColor = category and category.color,
                 command = exposedCommand,
                 payload = copyValue(command.payload or {}),
                 confidence = hit.confidence,

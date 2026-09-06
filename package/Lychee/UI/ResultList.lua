@@ -64,8 +64,7 @@ end
 local function setCategoryTextColor(fontString, item)
     local theme = Lychee.UI and Lychee.UI.Theme
     local category = item and item.searchRecord and item.searchRecord.category
-    local categoryID = item and item.categoryID or (type(category) == "table" and category.id)
-    local value = categoryID and theme and type(theme.GetCategoryColor) == "function" and theme:GetCategoryColor(categoryID)
+    local value = item and item.categoryColor or (type(category) == "table" and category.color)
     if value and type(fontString.SetTextColor) == "function" then
         if type(theme.SetTextColor) == "function" then theme:SetTextColor(fontString, value)
         elseif fontString._lycheeResultTextToken ~= value then
@@ -126,7 +125,7 @@ end
 
 local function categoryColorID(item)
     local category = item and item.searchRecord and item.searchRecord.category
-    return item and item.categoryID or (type(category) == "table" and category.id)
+    return item and item.categoryColor or (type(category) == "table" and category.color)
 end
 
 local function evidenceText(item)
@@ -145,8 +144,8 @@ local function sourceText(item)
     if type(item) ~= "table" then return "" end
     if type(item.sourceLabel) == "string" and item.sourceLabel ~= "" then return item.sourceLabel end
     if type(item.sourceTitle) == "string" and item.sourceTitle ~= "" then return item.sourceTitle end
-    return tostring(item.source or ""):sub(1, 7) == "builtin" and (UI_CHINESE and "Lychee 内置" or "Lychee built-in")
-        or (UI_CHINESE and "第三方插件" or "Extension")
+    if item.command and type(item.command.sourceTitle) == "string" and item.command.sourceTitle ~= "" then return item.command.sourceTitle end
+    return ""
 end
 
 local function kindText(item)

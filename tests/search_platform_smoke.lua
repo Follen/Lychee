@@ -114,9 +114,9 @@ I.Registry:SetReady(true)
 local draft = I.Registry:Begin({ id = "test.search", apiVersion = 1, minApiRevision = 1, title = "Search fixture" })
 assert(draft)
 assert(draft:RegisterSearchSource({
-    id = "creatures", version = 1, revision = 1, priority = 50, scope = {},
+    id = "creatures", version = 1, revision = 1, priority = 50, scope = {}, title = { default = "Creature source", zhCN = "生物来源" },
     records = {
-        { id = "creature:1", kind = "creature", kindTitle = { default = "Creature", zhCN = "生物" }, category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" } }, title = "红玉小怪", aliases = { { text = "红玉小怪", locale = "zhCN" } } },
+        { id = "creature:1", kind = "creature", kindTitle = { default = "Creature", zhCN = "生物" }, category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" }, color = { 0.8, 0.4, 0.7, 1 } }, title = "红玉小怪", aliases = { { text = "红玉小怪", locale = "zhCN" } } },
     },
 }))
 local handle = draft:Commit()
@@ -133,6 +133,8 @@ assert(generation and #results > 0 and results[1].searchRecord and results[1].ca
 
 local typedGeneration, typedResults = I.Search.Query:Query("红玉小怪", {})
 assert(typedGeneration and typedResults[1].kindTitle == "生物", "SearchRecord kindTitle is projected without a Host kind dictionary")
+assert(typedResults[1].sourceTitle == "生物来源", "result source title comes from the Source declaration")
+assert(typedResults[1].categoryColor and typedResults[1].categoryColor[1] == 0.8, "category color comes from the SearchRecord")
 
 -- Source-local updates preserve unrelated source entries and snapshots restore real records.
 local sourceB = "test.search:other"

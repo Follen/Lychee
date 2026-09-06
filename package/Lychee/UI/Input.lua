@@ -12,10 +12,8 @@ end
 
 local function localizedPlaceholder()
     local locale = GetLocale and GetLocale() or "enUS"
-    if locale == "zhCN" or locale == "zhTW" then
-        return "搜索技能、任务、副本或插件..."
-    end
-    return "Search spells, quests, dungeons, or extensions..."
+    if locale == "zhCN" or locale == "zhTW" then return "搜索..." end
+    return "Search..."
 end
 
 function Input:_ApplyVisualState()

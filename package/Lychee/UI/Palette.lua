@@ -494,17 +494,6 @@ function Palette:EnsureHomeCapacity()
     if not self.homeView or not self.homeView.EnsureCapacity then return false end
     local db = paletteDB()
     local required = math.max(1, #db.recent) + math.max(1, #db.pinned) + 5
-    local static = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.StaticIndex
-    local sourceCount = 0
-    if static and type(static.sources) == "table" then
-        for _, source in pairs(static.sources) do
-            local extensionID = source and source.extensionID
-            if source.enabled and type(extensionID) == "string" and extensionID:sub(1, 7) ~= "builtin" then
-                sourceCount = sourceCount + 1
-            end
-        end
-    end
-    required = required + math.max(1, sourceCount)
     self.homeView:EnsureCapacity(HOME_HEADER_COUNT, required)
     return true
 end

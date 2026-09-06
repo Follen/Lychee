@@ -16,10 +16,7 @@ end
 local function appendUnique(out, seen, item, command)
     if type(item) ~= "table" then return false end
     if command then item._ext, item.command = command._ext, command end
-    local payload = item.payload
     local canonical = item.stableID or (item.searchRecord and item.searchRecord.id) or item.id or item.key
-    if item.searchRecord and item.searchRecord.kind == "spell" and payload and payload.spellID then canonical = "spell:" .. tostring(payload.spellID) end
-    if item.searchRecord and item.searchRecord.kind == "creature" and payload and payload.creatureID then canonical = "creature:" .. tostring(payload.creatureID) end
     local key
     if item.searchRecord then key = "record:" .. tostring(canonical)
     else key = tostring(item._ext or (item.command and item.command._ext) or "") .. ":" .. tostring(canonical or item.text or #out + 1) end
@@ -74,8 +71,10 @@ local function searchRecordItem(hit)
         payload = record.payload or record,
         icon = record.icon,
         category = displayText(record.category and record.category.title or record.category),
+        categoryColor = record.category and record.category.color,
         source = hit.sourceID,
         sourceID = hit.sourceID,
+        sourceTitle = displayText(hit.sourceTitle),
         sourceGeneration = hit.sourceGeneration,
         sourceRevision = hit.sourceRevision,
         _ext = record._extensionID or hit.sourceExtensionID,

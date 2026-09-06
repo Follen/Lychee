@@ -32,15 +32,6 @@ Theme.Colors = {
     danger = { 0.895, 0.300, 0.315, 1 },
 }
 
-Theme.CategoryColors = {
-    spells = { 0.455, 0.670, 0.925, 1 },
-    achievements = { 0.930, 0.690, 0.285, 1 },
-    quests = { 0.535, 0.760, 0.405, 1 },
-    dungeons = { 0.805, 0.455, 0.680, 1 },
-    extensions = { 0.505, 0.730, 0.700, 1 },
-    commands = { 0.760, 0.595, 0.390, 1 },
-}
-
 Theme.Metrics = {
     paletteWidth = 720,
     paletteHeight = 500,
@@ -84,10 +75,6 @@ end
 
 function Theme:GetColor(name)
     return self.Colors[name] or self.Colors.text
-end
-
-function Theme:GetCategoryColor(categoryID)
-    return self.CategoryColors[categoryID] or self.Colors.textMuted
 end
 
 function Theme:SetColorTexture(texture, color)

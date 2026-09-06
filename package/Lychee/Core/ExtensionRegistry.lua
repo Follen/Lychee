@@ -99,6 +99,10 @@ local function validateSearchSource(source, public)
         or (type(source.snapshot)~="function" and type(source.records)~="table") then
         return nil,failure("INVALID_SCHEMA","searchSource")
     end
+    if source.title ~= nil then
+        local titleOK, titleErr = I.Boundary:ValidateText(source.title, "searchSource.title")
+        if not titleOK then return nil, titleErr end
+    end
     return true
 end
 
@@ -208,7 +212,7 @@ function Registry:_Publish(entry)
             local source=entry.sources[i]
             local sourceID=entry.id..":"..source.id
             source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled
-            local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,revision=source.revision,_enabled=source._enabled,_extensionID=entry.id})
+            local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,revision=source.revision,title=source.title,extensionTitle=entry.descriptor.title,_enabled=source._enabled,_extensionID=entry.id})
             if not registered then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","searchSource",entry.id) end
             local records=source.records
             if type(source.snapshot)=="function" then
@@ -227,7 +231,7 @@ function Registry:_Publish(entry)
             if not committed then self:_Rollback(entry); return nil,failure(commitErr or "INVALID_SCHEMA","searchSource",entry.id) end
         end
     end
-    if I.Catalog then for i=1,#entry.commands do local ok=I.Catalog:Add(entry.id,entry.commands[i]); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","command",entry.id) end end end
+    if I.Catalog then for i=1,#entry.commands do local ok=I.Catalog:Add(entry.id,entry.commands[i],entry.descriptor.title); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","command",entry.id) end end end
     if I.Broker then for i=1,#entry.providers do local ok=I.Broker:Add(entry.id,entry.providers[i]); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","provider",entry.id) end end end
     if I.Router then for i=1,#entry.handlers do local ok=I.Router:Add(entry.id,entry.handlers[i]); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","handler",entry.id) end end end
     self.panelsByExtension[entry.id]={}

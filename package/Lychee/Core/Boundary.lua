@@ -178,6 +178,22 @@ local function validateTextField(value, field)
     return true
 end
 
+function Boundary:ValidateText(value, field)
+    return validateTextField(value, field or "text")
+end
+
+local function validateColor(value, field)
+    if value == nil then return true end
+    if type(value) ~= "table" or #value < 3 or #value > 4 then return schemaFailure(field) end
+    for index = 1, #value do
+        if type(value[index]) ~= "number" or value[index] < 0 or value[index] > 1 then return schemaFailure(field .. "[" .. index .. "]") end
+    end
+    for key in pairs(value) do
+        if type(key) ~= "number" or key < 1 or key > 4 or key ~= math.floor(key) then return schemaFailure(field) end
+    end
+    return true
+end
+
 function Boundary:ValidateSearchRecord(record, field)
     field = field or "record"
     if type(record) ~= "table" then return schemaFailure(field) end
@@ -203,7 +219,18 @@ function Boundary:ValidateSearchRecord(record, field)
     end
     if record.category ~= nil then
         if type(record.category) ~= "string" and type(record.category) ~= "table" then return schemaFailure(field .. ".category") end
-        if type(record.category) == "table" and record.category.id ~= nil and not stableID(record.category.id, 64) then return schemaFailure(field .. ".category.id") end
+        if type(record.category) == "table" then
+            local categoryKeysOK, categoryKeysErr = allowedKeys(record.category, { id = true, title = true, order = true, color = true }, field .. ".category")
+            if not categoryKeysOK then return nil, categoryKeysErr end
+            if record.category.id ~= nil and not stableID(record.category.id, 64) then return schemaFailure(field .. ".category.id") end
+            local titleOK, titleErr = validateTextField(record.category.title, field .. ".category.title")
+            if not titleOK then return nil, titleErr end
+            if record.category.order ~= nil and (type(record.category.order) ~= "number" or record.category.order ~= math.floor(record.category.order)) then
+                return schemaFailure(field .. ".category.order")
+            end
+            local colorOK, colorErr = validateColor(record.category.color, field .. ".category.color")
+            if not colorOK then return nil, colorErr end
+        end
     end
     if record.actions ~= nil then
         if type(record.actions) ~= "table" or #record.actions > 4 then return schemaFailure(field .. ".actions") end

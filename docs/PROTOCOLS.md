@@ -105,6 +105,7 @@ extension:RegisterSearchSource({
 Source 约束：
 
 - `id` 在 Extension 内唯一；Host 使用 `<extensionID>:<sourceID>` 作为全局 ID。
+- `title` 可选，为 Source 自己的本地化显示名；未提供时 Host 使用 Extension 声明的标题，不根据 source ID 前缀猜测来源。`title` 遵循 locale table 规则。
 - 必须声明 `version`、`revision`、`priority`、`scope`，并提供 `records` 或 `snapshot`。
 - 使用 `BeginSnapshot`/`Upsert`/`Remove`/`CommitSnapshot` 做批量更新；同帧散更新由 Host 合并。
 - 每次提交推进 `revision` 和 `generation`；Source 禁用或注销只删除自己的索引成员。
@@ -117,7 +118,7 @@ SearchRecord 的核心字段：
 | `id` | 必填稳定全局 ID，如 `spell:393256`、`quest:12345` |
 | `kind` | 必填实体类型，如 `spell`、`quest`、`creature` |
 | `kindTitle` | 可选类型显示名，由 Source/Provider 提供的 string 或 locale table；Host 不维护 `kind` 到文案的字典 |
-| `category` | 可选类别 ID 或带本地化标题的类别对象 |
+| `category` | 可选类别 ID 或带本地化标题、排序和可选 `color` 的类别对象；颜色由 Source/Provider 提供，取值为 3 或 4 个 0..1 数字 |
 | `title` | 可选主标题，string 或 locale table |
 | `subtitle`/`description` | 可选副标题和描述 |
 | `aliases` | 可选本地化别名数组 |
@@ -167,7 +168,7 @@ Host 为 canonical title、alias、keyword、description 和 category title 建�
 
 ### Tooltip 合同
 
-结果行和默认网格只显示图标、类别和标题；描述性信息由 Host 统一放入 tooltip。tooltip 依次展示 canonical `title`、Source/Provider 提供的 `kindTitle`（缺省时显示稳定的 `kind` 标识）、`description`/`subtitle`、来源、可选匹配证据（字段、匹配类型、置信度）以及已声明动作。Host 不维护实体类型到本地化文案的映射。空字段省略。第三方只提供这些 plain-data 字段，不创建或接管 `GameTooltip`。不得显示 Enter、方向键、Esc 等教学文字、异常堆栈、secret/inaccessible 值或未声明动作。
+结果行和默认网格只显示图标、类别和标题；描述性信息由 Host 统一放入 tooltip。tooltip 依次展示 canonical `title`、Source/Provider 提供的 `kindTitle`（缺省时显示稳定的 `kind` 标识）、`description`/`subtitle`、Source 或 Extension 提供的来源标题、可选匹配证据（字段、匹配类型、置信度）以及已声明动作。Host 不维护实体类型、来源 ID 或类别 ID 到文案和颜色的映射。空字段省略。第三方只提供这些 plain-data 字段，不创建或接管 `GameTooltip`。不得显示 Enter、方向键、Esc 等教学文字、异常堆栈、secret/inaccessible 值或未声明动作。
 
 ```lua
 interaction = {

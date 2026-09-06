@@ -273,6 +273,8 @@ function Index:RegisterSource(descriptor)
         _generation = self.sourceGeneration,
         enabled = descriptor._enabled ~= false,
         extensionID = descriptor._extensionID or descriptor.extensionID,
+        title = descriptor.title,
+        extensionTitle = descriptor.extensionTitle,
         entryKeys = {},
         pending = nil,
         invalidation = {},
@@ -552,6 +554,7 @@ function Index:Search(query, limit, filter)
                     item = entry.record.payload or entry.record,
                     sourceID = entry.sourceID,
                     sourceExtensionID = entry.source.extensionID,
+                    sourceTitle = entry.source.title or entry.source.extensionTitle,
                     sourcePriority = entry.source.priority,
                     categoryOrder = entry.categoryOrder,
                     stableID = entry.stableID,
@@ -620,6 +623,7 @@ function Index:ExportSnapshot()
             sources[#sources + 1] = {
                 id = sourceID, version = source.version, priority = source.priority, scope = copyPlain(source.scope),
                 revision = source.revision, enabled = source.enabled, extensionID = source.extensionID,
+                title = copyPlain(source.title), extensionTitle = copyPlain(source.extensionTitle),
             }
             records[sourceID] = sourceRecords
         end
