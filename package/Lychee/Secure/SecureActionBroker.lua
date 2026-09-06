@@ -163,7 +163,8 @@ function Broker:ShowFor(row, action, session, generation, item, extensionID)
         extensionID = extensionID or (row and row.extensionID), session = session, generation = generation,
     })
     if not button then return false, err end
-    button:ClearAllPoints(); button:SetPoint("RIGHT", row, "RIGHT", -4, 0)
+    -- 让已准备的安全按钮覆盖整张卡片，用户无需寻找角落里的小按钮。
+    button:ClearAllPoints(); button:SetPoint("TOPLEFT", row, "TOPLEFT", 4, 2); button:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2)
     return true
 end
 function Broker:InvalidateRow(row)
