@@ -12,6 +12,18 @@ local function actionFor(item, actionID)
     end
 end
 
+local function primaryActionFor(item)
+    local interaction = item and item.interaction
+    local actions = interaction and interaction.actions
+    if type(actions) ~= "table" then return nil, interaction end
+    local primaryID = interaction.primaryActionID
+    if type(primaryID) == "string" then
+        local action = actionFor(item, primaryID)
+        if action then return action, interaction end
+    end
+    return actions[1], interaction
+end
+
 local function extensionID(row, item)
     return row and row.extensionID or item and (item._ext or (item.command and item.command._ext))
 end
@@ -222,6 +234,15 @@ function Executor:Execute(row, actionID)
     return result, actionErr
 end
 
+function Executor:ExecutePrimary(row)
+    local item = row and row.item
+    local action = primaryActionFor(item)
+    -- A protected spell must receive the physical click on its prepared secure
+    -- button.  Keyboard submission and scripted row activation stay honest.
+    if action and action.kind == "secure-spell" then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
+    return self:Execute(row, action and action.id or "default")
+end
+
 function Executor:BeginDrag(row)
     local valid, err = self:Validate(row)
     if not valid then return self.palette:RejectRow(row, err) end
@@ -242,29 +263,25 @@ function Executor:PrepareVisibleRows(rows)
         if not current then
             palette:InvalidateRow(row)
         elseif row:IsShown() then
-            local interaction = row.item and row.item.interaction
-            local actions = interaction and interaction.actions
-            for actionIndex = 1, math.min(type(actions) == "table" and #actions or 0, 4) do
-                local action = actions[actionIndex]
-                if action.kind == "secure-spell" then
-                    local button = broker:Prepare(action, {
-                        controller = palette,
-                        row = row,
-                        item = row.item,
-                        extensionID = row.extensionID,
-                        session = palette.session,
-                        generation = palette.generation,
-                    })
-                    if button then
-                        local target = row.actions[actionIndex]
-                        button:ClearAllPoints()
-                        button:SetPoint("CENTER", target, "CENTER")
-                        -- Secure buttons are parented to the palette, so raise them
-                        -- above the pooled action slot that they proxy.
-                        if target and type(target.GetFrameLevel) == "function" and type(button.SetFrameLevel) == "function" then
-                            local targetLevel = target:GetFrameLevel()
-                            if type(targetLevel) == "number" then button:SetFrameLevel(targetLevel + 1) end
-                        end
+            local action = primaryActionFor(row.item)
+            if action and action.kind == "secure-spell" then
+                local button = broker:Prepare(action, {
+                    controller = palette,
+                    row = row,
+                    item = row.item,
+                    extensionID = row.extensionID,
+                    session = palette.session,
+                    generation = palette.generation,
+                })
+                if button then
+                    -- The target is declared by the generic list renderer.  Older
+                    -- renderers retain the action-slot fallback during migration.
+                    local target = row.primaryTarget or (row.actions and row.actions[1]) or row
+                    button:ClearAllPoints()
+                    if type(button.SetAllPoints) == "function" then button:SetAllPoints(target) else button:SetPoint("CENTER", target, "CENTER") end
+                    if target and type(target.GetFrameLevel) == "function" and type(button.SetFrameLevel) == "function" then
+                        local targetLevel = target:GetFrameLevel()
+                        if type(targetLevel) == "number" then button:SetFrameLevel(targetLevel + 1) end
                     end
                 end
             end

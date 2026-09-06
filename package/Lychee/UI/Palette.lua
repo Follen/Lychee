@@ -773,7 +773,11 @@ end
 function Palette:ActivateRow(row)
     local valid, err = self:IsRowCurrent(row)
     if not valid then return self:RejectRow(row, err) end
-    return self:ActivateRowAction(row, row.item.interaction and row.item.interaction.primaryActionID or "default")
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if not executor then return false, "ACTION_UNAVAILABLE" end
+    local result, actionErr = executor:ExecutePrimary(row)
+    self:ReportActionResult(result, actionErr)
+    return result, actionErr
 end
 function Palette:ActivateSelected() return self.list:ActivateSelected() end
 function Palette:ActivateRowAction(row, actionID)

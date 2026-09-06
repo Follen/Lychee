@@ -383,8 +383,8 @@ assert(routedPanel and panelMounted, "search record intent mounts owner panel: "
 ownerActionHandler.handler.handle = originalActionHandler
 palette:SetResults(actionResults, actionGeneration, palette.session)
 local actionRow = palette.list.rows[1]
-assert(actionRow.evidence and actionRow.evidence:GetText():find("匹配", 1, true), "evidence slot rendered")
-assertEq(actionRow.actions[1].label:GetText(), "打开", "localized action title rendered")
+assert(actionRow.primaryAction and actionRow.primaryAction.id == "open", "primary action is rendered from the generic protocol")
+assertEq(actionRow.primaryHint:GetText(), "打开", "localized primary action title rendered")
 assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()
@@ -651,7 +651,7 @@ palette:SetResults({ interactionItem }, palette.generation, palette.session)
 local interactionRow = palette.list.rows[1]
 local preparedSecure = secureBroker.buttons[1]
 assert(preparedSecure and preparedSecure:IsShown(), "secure spell button is prepared for visible row")
-assert(preparedSecure:GetFrameLevel() > interactionRow.actions[1]:GetFrameLevel(), "secure spell button is above its action slot")
+assert(preparedSecure:GetFrameLevel() > interactionRow.primaryTarget:GetFrameLevel(), "secure spell button is above its primary target")
 _G.__combat = true
 interactionRow.item.interaction.drag = { type = "spell", spellID = 31884 }
 local combatDragOK, combatDragErr = palette:BeginRowDrag(interactionRow)
@@ -662,6 +662,9 @@ interactionRow.item.interaction.drag = { type = "not-spell", spellID = 31884 }
 local actionOK, actionErr = palette:ActivateRowAction(interactionRow, "cast")
 assertEq(actionOK, false, "scripted secure click")
 assertEq(actionErr, "ACTION_REQUIRES_HARDWARE_CLICK", "scripted secure error")
+local primaryOK, primaryErr = palette:ActivateRow(interactionRow)
+assertEq(primaryOK, false, "scripted primary secure action")
+assertEq(primaryErr, "ACTION_REQUIRES_HARDWARE_CLICK", "scripted primary secure error")
 local invalidDragOK, invalidDragErr = palette:BeginRowDrag(interactionRow)
 assertEq(invalidDragOK, false, "invalid drag payload")
 assertEq(invalidDragErr, "DRAG_UNSUPPORTED", "invalid drag error")

@@ -100,17 +100,17 @@ parent:SetSize(720, 500)
 local list = _G.Lychee.UI.ResultList:Create(parent, controller)
 
 assert(#list.rows == 6, "six result rows are precreated")
-assert(list.frame:GetHeight() == 356, "result list has fixed six-row height")
+assert(list.frame:GetHeight() == 332, "result list has fixed six-row height")
 for index = 1, 6 do
     local row = list.rows[index]
-    assert(row:GetHeight() == 56, "row height remains fixed")
-    assert(#row.actions == 4, "four action slots are precreated")
+    assert(row:GetHeight() == 52, "row height remains fixed")
+    assert(row.primaryTarget and row.secondary, "primary and secondary interaction targets are precreated")
     assert(not row:IsShown(), "new row starts cleared")
 end
 
 local frameCount = #created
 local rowOne, rowTwo = list.rows[1], list.rows[2]
-local actionOne = rowOne.actions[1]
+local primaryTarget = rowOne.primaryTarget
 local titlePointCount = #rowOne.title.points
 
 local longText = string.rep("很长的本地化技能说明", 20)
@@ -151,14 +151,13 @@ assert(#created == frameCount, "query update does not create frames or regions")
 assert(rowOne:IsShown() and rowTwo:IsShown() and not list.rows[3]:IsShown(), "only populated rows are shown")
 assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "builtin.player-spells", "freshness fields bind to row")
 assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == longText, "long localized text is retained for native clipping")
-assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 56, "long text cannot mutate row geometry")
+assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 52, "long text cannot mutate row geometry")
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
-assert(rowOne.category:GetText() == "技能" and rowOne.categoryBG:IsShown(), "category badge is rendered")
+assert(rowOne.category:GetText() == "技能", "category label is rendered")
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")
-assert(rowOne.source:GetText() == "Lychee 内置", "source is rendered with user-facing label")
-assert(rowOne.evidence:GetText():find("98%%"), "confidence evidence is rendered")
-assert(rowOne.dragger:IsShown() and rowOne.dragger.dragDescriptor.spellID == 393256, "drag area binds descriptor")
-assert(rowOne.actions[4]:IsShown() and rowOne.actions[3]._state == "disabled", "four stable action slots expose disabled state")
+assert(rowOne.dragger:IsShown() and rowOne.dragDescriptor.spellID == 393256, "drag area binds descriptor")
+assert(rowOne.primaryAction.id == "cast" and rowOne.primaryHint:GetText() == "施放", "declared primary action is rendered")
+assert(rowOne.secondaryAction.id == "detail" and rowOne.secondary:IsShown(), "first non-primary action is exposed as secondary")
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
 rowTwo.scripts.OnEnter(rowTwo)
@@ -194,28 +193,24 @@ for index = 1, #SETTER_NAMES do
 end
 assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
 
-rowOne.actions[1].scripts.OnEnter(rowOne.actions[1])
-assert(GameTooltip.shown and GameTooltip.text == "施放技能", "action hover shows tooltip")
-rowOne.actions[1].scripts.OnMouseDown(rowOne.actions[1])
-assert(rowOne.actions[1]._state == "pressed", "action pressed state is explicit")
-rowOne.actions[1].scripts.OnClick(rowOne.actions[1])
-assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "cast", "action delegates stable action ID")
+rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
+assert(GameTooltip.shown and GameTooltip.text == longText and GameTooltip.detail:find("匹配", 1, true), "primary hover exposes compact diagnostic tooltip")
+rowOne.secondary.scripts.OnClick(rowOne.secondary)
+assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)
 assert(draggedRow == rowOne, "drag area delegates its owning row")
-rowOne.scripts.OnClick(rowOne)
+rowOne.primaryTarget.scripts.OnClick(rowOne.primaryTarget)
 assert(activatedRow == rowOne and list.selected == 1, "row click selects and delegates activation")
 
 list:SetItems({ items[2] }, 14, 26)
-assert(#created == frameCount and list.rows[1] == rowOne and rowOne.actions[1] == actionOne, "shorter update reuses row and action objects")
+assert(#created == frameCount and list.rows[1] == rowOne and rowOne.primaryTarget == primaryTarget, "shorter update reuses row and primary target")
 assert(not rowTwo:IsShown() and rowTwo.item == nil and rowTwo.session == nil and rowTwo.generation == nil, "shorter update clears stale row bindings")
 assert(rowTwo.title:GetText() == "" and rowTwo.icon.texture == nil and not rowTwo.dragger:IsShown(), "shorter update clears stale visuals and drag")
-for index = 1, 4 do
-    assert(rowTwo.actions[index].actionID == nil and rowTwo.actions[index].action == nil and not rowTwo.actions[index]:IsShown(), "shorter update clears stale action")
-end
+assert(rowTwo.primaryAction == nil and rowTwo.secondaryAction == nil and rowTwo.dragDescriptor == nil, "shorter update clears stale interactions")
 
 assert(list:InvalidateRow(rowOne), "visible row can be invalidated")
 assert(not rowOne:IsShown() and rowOne.item == nil and rowOne.extensionID == nil, "invalidate clears identity and visibility")
-assert(rowOne.title:GetText() == "" and rowOne.source:GetText() == "" and rowOne.evidence:GetText() == "", "invalidate clears all text")
+assert(rowOne.title:GetText() == "" and rowOne.subtext:GetText() == "" and rowOne.category:GetText() == "", "invalidate clears all text")
 assert(not rowOne.accent:IsShown() and not rowOne.outline:IsShown(), "invalidate clears selected visuals")
 assert(list:GetSelected() == nil, "invalidated final row leaves no selected item")
 

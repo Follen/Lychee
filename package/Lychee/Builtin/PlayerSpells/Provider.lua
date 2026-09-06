@@ -157,6 +157,9 @@ function P:BuildSearchRecords()
                 description = spell.description,
                 icon = spell.icon,
                 payload = { spellID = spellID },
+                -- The search protocol keeps the default interaction explicit.  The
+                -- renderer never has to infer spell behavior from `kind`.
+                primaryActionID = "cast",
                 actions = {
                     { id = "cast", title = "施放", kind = "secure-spell", spellID = spellID },
                 },

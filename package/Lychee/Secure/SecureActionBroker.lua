@@ -53,6 +53,19 @@ function Broker:_Acquire()
     button:RegisterForClicks("LeftButtonUp")
     button:SetSize(24, 24)
     button:Hide()
+    -- The secure button covers the renderer's primary target.  Forward hover
+    -- state to the owning pooled row so the protected layer stays visually
+    -- indistinguishable from an ordinary primary action.
+    button:SetScript("OnEnter", function(current)
+        local token, controller = current.token, current.token and current.token.controller
+        local list = controller and controller.list
+        if token and list and list.SetHover then list:SetHover(token.row, true) end
+    end)
+    button:SetScript("OnLeave", function(current)
+        local token, controller = current.token, current.token and current.token.controller
+        local list = controller and controller.list
+        if token and list and list.SetHover then list:SetHover(token.row, false) end
+    end)
     button:SetScript("PreClick", function(current)
         local valid, tokenErr = self:ValidateToken(current.token)
         if valid then
