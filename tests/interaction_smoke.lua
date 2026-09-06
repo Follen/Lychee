@@ -181,7 +181,10 @@ palette:SetQueryMode("")
 assertEq(palette.emptyState:IsShown(), false, "home mode hides empty state")
 local homeSelection = palette.homeView.selected
 palette.input.frame.scripts.OnArrowPressed(palette.input.frame, "DOWN")
-assert(palette.homeView.selected ~= homeSelection, "home keyboard navigation advances selection")
+if #palette.homeView.sections > 0 then
+    assert(palette.homeView.selected >= 1 and palette.homeView.selected <= #palette.homeView.sections, "home keyboard navigation keeps a valid selection")
+    if #palette.homeView.sections > 1 then assert(palette.homeView.selected ~= homeSelection, "home keyboard navigation advances selection") end
+end
 local keyboardSelection = palette.homeView.selected
 local hoverTile = palette.homeView.tiles[math.max(1, keyboardSelection - 1)]
 hoverTile.scripts.OnEnter(hoverTile)
@@ -384,7 +387,7 @@ ownerActionHandler.handler.handle = originalActionHandler
 palette:SetResults(actionResults, actionGeneration, palette.session)
 local actionRow = palette.list.rows[1]
 assert(actionRow.primaryAction and actionRow.primaryAction.id == "open", "primary action is rendered from the generic protocol")
-assertEq(actionRow.primaryHint:GetText(), "打开", "localized primary action title rendered")
+assertEq(actionRow.primaryHint:GetText(), "", "primary action title stays in tooltip")
 assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()

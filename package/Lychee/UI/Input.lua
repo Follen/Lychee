@@ -53,7 +53,7 @@ function Input:Create(parent, focusController)
 
     local edit = CreateFrame("EditBox", nil, container)
     edit:SetAutoFocus(false)
-    if edit.SetTextInsets then edit:SetTextInsets(40, 112, 0, 0) end
+    if edit.SetTextInsets then edit:SetTextInsets(40, 20, 0, 0) end
     edit:SetAllPoints(container)
     if edit.SetFontObject then edit:SetFontObject("GameFontHighlight") end
 
@@ -69,10 +69,7 @@ function Input:Create(parent, focusController)
     placeholder:SetText(localizedPlaceholder())
 
     local hint = container:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    hint:SetPoint("RIGHT", container, "RIGHT", -12, 0)
-    hint:SetJustifyH("RIGHT")
-    hint:SetText((GetLocale and (GetLocale() == "zhCN" or GetLocale() == "zhTW"))
-        and "Enter 执行   ↑↓ 选择   Esc 关闭" or "Enter run   ↑↓ select   Esc close")
+    hint:Hide()
 
     local self = setmetatable({
         frame = edit,

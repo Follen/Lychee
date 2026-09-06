@@ -11,8 +11,8 @@ Palette.__index = Palette
 
 local WIDTH, HEIGHT = 720, 500
 local HEADER_HEIGHT, FOOTER_HEIGHT = 76, 28
-local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 3, 208, 58
-local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 10, 8, 20
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 6, 102, 74
+local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 64
 
 local FALLBACK = {
@@ -106,6 +106,28 @@ local function setText(fontString, text)
     if fontString and fontString.GetText and fontString:GetText() ~= text then fontString:SetText(text) end
 end
 
+local function setAlpha(region, alpha)
+    if region and type(region.SetAlpha) == "function" then region:SetAlpha(alpha); return true end
+    return false
+end
+
+local function animate(region, key, from, to, duration, done)
+    if not setAlpha(region, from) then if done then done() end; return false end
+    local driver = _G.LycheeInternal and _G.LycheeInternal.Scheduler
+    if not driver then setAlpha(region, to); if done then done() end; return false end
+    driver:Remove(key)
+    local elapsed = 0
+    driver:Add(key, function(delta)
+        elapsed = elapsed + (delta or 0)
+        local progress = math.min(1, elapsed / duration)
+        local eased = 1 - (1 - progress) * (1 - progress) * (1 - progress)
+        setAlpha(region, from + (to - from) * eased)
+        if progress >= 1 then if done then done() end; return false end
+        return true
+    end)
+    return true
+end
+
 local function createHomeView(parent, controller)
     local frame = CreateFrame("ScrollFrame", nil, parent)
     frame:SetAllPoints(parent)
@@ -193,18 +215,18 @@ local function createHomeView(parent, controller)
         paint(tile.focus, color("accent"))
         tile.focus:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
-        tile.icon:SetSize(30, 30)
-        tile.icon:SetPoint("LEFT", tile, "LEFT", 10, 0)
+        tile.icon:SetSize(32, 32)
+        tile.icon:SetPoint("TOP", tile, "TOP", 0, -10)
         tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        tile.title:SetPoint("TOPLEFT", tile.icon, "TOPRIGHT", 10, -10)
-        tile.title:SetPoint("RIGHT", tile, "RIGHT", -8, 0)
-        tile.title:SetJustifyH("LEFT")
+        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 6, -48)
+        tile.title:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
+        tile.title:SetJustifyH("CENTER")
         if tile.title.SetWordWrap then tile.title:SetWordWrap(false) end
         tint(tile.title, color("text"))
         tile.meta = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        tile.meta:SetPoint("TOPLEFT", tile.title, "BOTTOMLEFT", 0, -4)
-        tile.meta:SetPoint("RIGHT", tile, "RIGHT", -8, 0)
-        tile.meta:SetJustifyH("LEFT")
+        tile.meta:SetPoint("TOPLEFT", tile.title, "BOTTOMLEFT", 0, -2)
+        tile.meta:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
+        tile.meta:SetJustifyH("CENTER")
         if tile.meta.SetWordWrap then tile.meta:SetWordWrap(false) end
         tint(tile.meta, color("muted"))
         tile:SetScript("OnClick", function(button)
@@ -217,10 +239,17 @@ local function createHomeView(parent, controller)
         tile:SetScript("OnEnter", function(button)
             button._hovered = true
             view:RenderTileState(button)
+            if GameTooltip and button.section and GameTooltip.SetOwner then
+                GameTooltip:SetOwner(button, "ANCHOR_TOP")
+                GameTooltip:SetText(homeLabel(button.section.title or button.section.text, "Lychee"))
+                if button.section.tooltip and GameTooltip.AddLine then GameTooltip:AddLine(button.section.tooltip, 0.78, 0.78, 0.82, true) end
+                if GameTooltip.Show then GameTooltip:Show() end
+            end
         end)
         tile:SetScript("OnLeave", function(button)
             button._hovered = false
             view:RenderTileState(button)
+            if GameTooltip and GameTooltip.Hide then GameTooltip:Hide() end
         end)
         self.tiles[index] = tile
         return tile
@@ -331,8 +360,8 @@ function Palette:Create()
     frame:SetFrameStrata("DIALOG")
     frame:EnableMouse(true)
     if frame.SetBackdrop then
-        frame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8",
-            edgeSize = 1, insets = { left = 1, right = 1, top = 1, bottom = 1 } })
+        frame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+            edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
         local window, border = color("window"), color("border")
         if frame.SetBackdropColor then frame:SetBackdropColor(window[1], window[2], window[3], window[4]) end
         if frame.SetBackdropBorderColor then frame:SetBackdropBorderColor(border[1], border[2], border[3], border[4]) end
@@ -386,7 +415,7 @@ function Palette:Create()
 
     self.emptyStateComponent = components:CreateEmptyState(self.content, {
         title = localized({ zhCN = "没有找到结果", enUS = "No results found" }, "No results found"),
-        detail = localized({ zhCN = "换一个名称、别名或描述试试", enUS = "Try another name, alias, or description" }, ""),
+        detail = "",
         titleColor = "text", detailColor = "textMuted", shown = false,
     })
     self.emptyState = self.emptyStateComponent.frame
@@ -530,10 +559,6 @@ function Palette:RefreshHomeSections(allowExpand)
                 count = count + 1
             end
         end
-        if count == 0 then
-            sections[#sections + 1] = { id = "empty:" .. groupID, groupID = groupID, groupTitle = groupTitle,
-                title = emptyTitle, meta = localized({ zhCN = "暂无内容", enUS = "Nothing here yet" }, "Nothing here yet"), enabled = false }
-        end
     end
     appendSaved("recent", localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
         localized({ zhCN = "还没有最近记录", enUS = "No recent items" }, "No recent items"), db.recent)
@@ -554,10 +579,12 @@ function Palette:RefreshHomeSections(allowExpand)
             if (type(value) == "table" and value.id or value) == category.id then representative = records[recordIndex]; break end
         end
         local title = localized(category.title, category.id)
-        sections[#sections + 1] = { id = "category:" .. category.id, groupID = "categories",
-            groupTitle = localized({ zhCN = "分类", enUS = "Categories" }, "Categories"), title = title,
-            meta = localized({ zhCN = "浏览此类内容", enUS = "Browse this category" }, "Browse"),
-            icon = representative and representative.icon, filter = { categoryID = category.id } }
+        if representative then
+            sections[#sections + 1] = { id = "category:" .. category.id, groupID = "categories",
+                groupTitle = localized({ zhCN = "分类", enUS = "Categories" }, "Categories"), title = title,
+                meta = "", tooltip = localized(representative.description, ""),
+                icon = representative.icon, filter = { categoryID = category.id } }
+        end
     end
 
     local internal = _G.LycheeInternal
@@ -580,12 +607,6 @@ function Palette:RefreshHomeSections(allowExpand)
                 title = extensionTitle, meta = source.id:match("([^:]+)$") or source.id, filter = { sourceID = sourceID } }
             sourceCount = sourceCount + 1
         end
-    end
-    if sourceCount == 0 then
-        sections[#sections + 1] = { id = "empty:extensions", groupID = "extensions",
-            groupTitle = localized({ zhCN = "扩展来源", enUS = "Extension sources" }, "Extension sources"),
-            title = localized({ zhCN = "暂无第三方来源", enUS = "No third-party sources" }, "No third-party sources"),
-            meta = localized({ zhCN = "已启用的接入会显示在这里", enUS = "Enabled integrations appear here" }, ""), enabled = false }
     end
     self:SetHomeSections(sections, allowExpand)
     self.homeDirty = false
@@ -637,7 +658,7 @@ end
 function Palette:ReportActionResult(result, err)
     local ok = result == true or (type(result) == "table" and result.ok == true)
     if ok then
-        setText(self.status, localized({ zhCN = "已提交", enUS = "Submitted" }, "Submitted"))
+        setText(self.status, "")
         return true
     end
     local labels = {
@@ -655,13 +676,9 @@ end
 function Palette:SetActionFeedback(state, actionOrError)
     local title = type(actionOrError) == "table" and (actionOrError.title or actionOrError.label) or nil
     if state == "pending" then
-        setText(self.status, (locale == "zhCN" or locale == "zhTW")
-            and ("正在施放" .. (title and ("：" .. title) or ""))
-            or ("Casting" .. (title and (": " .. title) or "")))
+        setText(self.status, "")
     elseif state == "success" then
-        setText(self.status, (locale == "zhCN" or locale == "zhTW")
-            and ("已施放" .. (title and ("：" .. title) or ""))
-            or ("Cast" .. (title and (": " .. title) or "")))
+        setText(self.status, "")
     else
         self:ReportActionResult(false, type(actionOrError) == "string" and actionOrError or nil)
     end
@@ -751,6 +768,7 @@ function Palette:Show()
     if searchSession then searchSession:Start() end
     if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
     self.frame:Show(); self:SetQueryMode(self.input:GetText()); self.input:Show(); self.input:Focus()
+    animate(self.frame, "lychee.palette.open", 0, 1, 0.18)
     return true
 end
 function Palette:Hide(reason)
@@ -762,7 +780,10 @@ function Palette:Hide(reason)
     self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
-    self.focus:Restore(); self.input:ClearFocus(); self.input:Hide(); self.frame:Hide()
+    self.focus:Restore(); self.input:ClearFocus(); self.input:Hide()
+    animate(self.frame, "lychee.palette.close", 1, 0, 0.14, function()
+        self.frame:Hide(); setAlpha(self.frame, 1)
+    end)
     return true
 end
 function Palette:Toggle()

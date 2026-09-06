@@ -164,6 +164,10 @@ Host 为 canonical title、alias、keyword、description 和 category title 建�
 
 结果交互是 plain-data `interaction`，最多四个 action。每个 action 的 `id` 在 item 内稳定且唯一；`primaryActionID` 必须引用已有 action。未声明 interaction 时，Host 提供隐式 `{ id = "default", kind = "intent" }`。
 
+### Tooltip 合同
+
+结果行和默认网格只显示图标、类别和标题；描述性信息由 Host 统一放入 tooltip。tooltip 依次展示 canonical `title`、由 `kind` 映射的类型、`description`/`subtitle`、来源、可选匹配证据（字段、匹配类型、置信度）以及已声明动作。空字段省略。第三方只提供这些 plain-data 字段，不创建或接管 `GameTooltip`。不得显示 Enter、方向键、Esc 等教学文字、异常堆栈、secret/inaccessible 值或未声明动作。
+
 ```lua
 interaction = {
     primaryActionID = "cast",

@@ -143,14 +143,35 @@ local function sourceText(item)
         or (UI_CHINESE and "第三方插件" or "Extension")
 end
 
+local KIND_NAMES = UI_CHINESE and {
+    spell = "技能", quest = "任务", achievement = "成就", creature = "生物", dungeon = "副本",
+    item = "物品", command = "命令", extension = "插件",
+} or {
+    spell = "Spell", quest = "Quest", achievement = "Achievement", creature = "Creature", dungeon = "Dungeon",
+    item = "Item", command = "Command", extension = "Extension",
+}
+
+local function kindText(item)
+    local record = item and item.searchRecord
+    local kind = item and (item.kind or item.type) or record and (record.kind or record.type)
+    return KIND_NAMES[tostring(kind or "")] or tostring(kind or (UI_CHINESE and "内容" or "Content"))
+end
+
 local function rowTooltipDetail(item)
     if type(item) ~= "table" then return "" end
-    local parts, description = {}, item.description or item.summary or item.subtext
+    local parts, description = { (UI_CHINESE and "类型：" or "Type: ") .. kindText(item) }, item.description or item.summary or item.subtext
     if type(description) == "string" and description ~= "" then parts[#parts + 1] = description end
     local evidence = evidenceText(item)
     if evidence ~= "" then parts[#parts + 1] = evidence end
     local source = sourceText(item)
     if source ~= "" then parts[#parts + 1] = source end
+    local interaction = item.interaction
+    local actions = interaction and interaction.actions
+    if type(actions) == "table" and #actions > 0 then
+        local labels = {}
+        for index = 1, #actions do labels[#labels + 1] = actionLabel(actions[index]) end
+        parts[#parts + 1] = (UI_CHINESE and "操作：" or "Actions: ") .. table.concat(labels, "、")
+    end
     return table.concat(parts, "\n")
 end
 
@@ -262,7 +283,7 @@ function ResultList:Create(parent, controller)
         end)
 
         row.primaryTarget = CreateFrame("Button", nil, row)
-        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 56, 1); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -46, -1); row.primaryTarget:RegisterForClicks("LeftButtonUp")
+        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 56, 1); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -8, -1); row.primaryTarget:RegisterForClicks("LeftButtonUp")
         row.primaryTarget:SetScript("OnClick", function(button)
             local owner = button:GetParent(); self:SelectRow(owner)
             if self.controller then self.controller:ActivateRow(owner) end
@@ -273,10 +294,10 @@ function ResultList:Create(parent, controller)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
         row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("TOPLEFT", row, "TOPLEFT", 58, -7); row.category:SetWidth(42); row.category:SetJustifyH("LEFT"); singleLine(row.category)
-        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 103, -6); row.title:SetPoint("RIGHT", row, "RIGHT", -82, 0); row.title:SetHeight(16); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
-        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2); row.subtext:SetPoint("RIGHT", row, "RIGHT", -82, 0); row.subtext:SetHeight(13); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
+        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 103, -6); row.title:SetPoint("RIGHT", row, "RIGHT", -20, 0); row.title:SetHeight(16); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
+        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2); row.subtext:SetPoint("RIGHT", row, "RIGHT", -20, 0); row.subtext:SetHeight(13); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); row.subtext:Hide(); setTextColor(row.subtext, "muted")
         row.description = row.subtext
-        row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:SetPoint("RIGHT", row, "RIGHT", -42, 0); row.primaryHint:SetWidth(34); row.primaryHint:SetJustifyH("RIGHT"); singleLine(row.primaryHint); setTextColor(row.primaryHint, "muted")
+        row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
 
         row.secondary = CreateFrame("Button", nil, row); row.secondary:SetSize(24, 24); row.secondary:SetPoint("RIGHT", row, "RIGHT", -9, 0); row.secondary:RegisterForClicks("LeftButtonUp")
         row.secondary.bg = row.secondary:CreateTexture(nil, "BACKGROUND"); row.secondary.bg:SetAllPoints(); setTextureColor(row.secondary.bg, "action")
@@ -326,7 +347,7 @@ function ResultList:SetItems(items, session, generation)
         row.item, row.index = item, index
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
         cachedText(row, "title", row.title, item.text)
-        cachedText(row, "subtext", row.subtext, item.description or item.summary or item.subtext)
+        cachedText(row, "subtext", row.subtext, "")
         cachedText(row, "category", row.category, categoryText(item))
         local colorID = categoryColorID(item)
         if row._categoryColorID ~= colorID then setCategoryTextColor(row.category, item); row._categoryColorID = colorID end
@@ -335,7 +356,7 @@ function ResultList:SetItems(items, session, generation)
         setShown(row.icon, icon ~= nil)
         local interaction = item.interaction
         row.primaryAction, row.secondaryAction, row.dragDescriptor = primaryAction(interaction), secondaryAction(interaction), interaction and interaction.drag
-        cachedText(row, "primaryHint", row.primaryHint, actionLabel(row.primaryAction))
+        cachedText(row, "primaryHint", row.primaryHint, "")
         row.secondary.actionID, row.secondary.action, row.secondary.tooltip = row.secondaryAction and row.secondaryAction.id, row.secondaryAction, actionLabel(row.secondaryAction)
         setShown(row.dragger, row.dragDescriptor ~= nil)
         renderRowState(row); setShown(row, true)

@@ -558,6 +558,10 @@ Resolver 只读取 query 和 ContextSnapshot，不创建 frame、不注册事件
 
 ### 10.1 结果交互、拖拽与安全施放
 
+#### Tooltip 合同
+
+结果行保持紧凑；Host tooltip 依次包含 canonical 标题、由 `kind` 映射的类型、描述/副标题、来源、匹配证据（字段、匹配类型、置信度）和已声明动作。第三方只提交 plain-data 字段，不创建或接管 `GameTooltip`；空字段省略，禁止写入 Enter、方向键、Esc 教学、异常堆栈、secret/inaccessible 值或未声明动作。
+
 `interaction` 是可选 plain-data 描述符。未声明时，Host 视为一个隐式普通 primary action：`id = "default"`、`kind = "intent"`，并以 `itemIntent(item, "default", context)` 路由，从而兼容只有单一普通选择动作的动态列表。声明时，它的 `actions` 最多四项；每个 action 的 `id` 在 item 内稳定且唯一，`primaryActionID` 必须引用其中一项。Host 拒绝未知 action kind、重复/不稳定 action ID、函数、Frame、宏文本、任意 secure 属性或鼠标脚本。动作不从 `text`、图标或 payload 猜测。
 
 - `kind = "intent"`：Host 将当前 Extension ID、item ID、action ID、Palette session、query generation 和 Context token 绑定为一次动作。左键点击结果行和 Enter 都只请求 `primaryActionID`；若 primary 是普通 intent，Host 调用 `itemIntent(item, actionID, context)`，再走 IntentRouter。其他普通动作必须是 Host 绘制的可见行内按钮，点击后使用相同链路。
