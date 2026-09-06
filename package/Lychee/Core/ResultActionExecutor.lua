@@ -283,6 +283,9 @@ function Executor:PrepareVisibleRows(rows)
                         local targetLevel = target:GetFrameLevel()
                         if type(targetLevel) == "number" then button:SetFrameLevel(targetLevel + 1) end
                     end
+                    if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then
+                        row.primaryTarget:EnableMouse(false)
+                    end
                 end
             end
         end

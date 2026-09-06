@@ -208,7 +208,7 @@ local function secondaryAction(interaction)
 end
 
 local function renderRowState(row)
-    local background = row._pressed and "rowPressed" or (row._selected and "rowSelected" or (row._hovered and "rowHover" or "row"))
+    local background = row._pressed and "rowPressed" or ((row._selected or row._hovered) and "rowHover" or "row")
     setTextureColor(row.bg, background)
     -- Selection uses the same neutral outline as hover; no persistent red bar.
     setShown(row.accent, false)
@@ -368,6 +368,7 @@ function ResultList:SetItems(items, session, generation)
         setShown(row.icon, icon ~= nil)
         local interaction = item.interaction
         row.primaryAction, row.secondaryAction, row.dragDescriptor = primaryAction(interaction), secondaryAction(interaction), interaction and interaction.drag
+        if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then row.primaryTarget:EnableMouse(true) end
         cachedText(row, "primaryHint", row.primaryHint, "")
         row.secondary.actionID, row.secondary.action, row.secondary.tooltip = row.secondaryAction and row.secondaryAction.id, row.secondaryAction, actionLabel(row.secondaryAction)
         setShown(row.dragger, row.dragDescriptor ~= nil)
