@@ -11,7 +11,7 @@ Palette.__index = Palette
 
 local WIDTH, HEIGHT = 720, 500
 local HEADER_HEIGHT, FOOTER_HEIGHT = 76, 28
-local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 6, 102, 74
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 120, 74
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 64
 
@@ -132,6 +132,7 @@ local function createHomeView(parent, controller)
     local frame = CreateFrame("ScrollFrame", nil, parent)
     frame:SetAllPoints(parent)
     frame:Hide()
+    if frame.EnableKeyboard then frame:EnableKeyboard(false) end
     if frame.EnableMouseWheel then frame:EnableMouseWheel(true) end
     local content = CreateFrame("Frame", nil, frame)
     content:SetSize(664, 1)
@@ -222,6 +223,7 @@ local function createHomeView(parent, controller)
         tile.title:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
         tile.title:SetJustifyH("CENTER")
         if tile.title.SetWordWrap then tile.title:SetWordWrap(false) end
+        if tile.title.SetMaxLines then tile.title:SetMaxLines(1) end
         tint(tile.title, color("text"))
         tile.meta = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         tile.meta:SetPoint("TOPLEFT", tile.title, "BOTTOMLEFT", 0, -2)

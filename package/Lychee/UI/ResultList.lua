@@ -289,7 +289,8 @@ function ResultList:Create(parent, controller)
         end)
 
         row.primaryTarget = CreateFrame("Button", nil, row)
-        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 4, 2); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2); row.primaryTarget:RegisterForClicks("LeftButtonUp")
+        -- 图标区域专用于拖动；点击层从图标右侧开始，避免吞掉拖动事件。
+        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 56, 2); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2); row.primaryTarget:RegisterForClicks("LeftButtonUp")
         row.primaryTarget:SetScript("OnClick", function(button)
             local owner = button:GetParent(); self:SelectRow(owner)
             if self.controller then self.controller:ActivateRow(owner) end
@@ -320,8 +321,11 @@ function ResultList:Create(parent, controller)
         row:SetScript("OnClick", function(button) self:SelectRow(button); if self.controller then self.controller:ActivateRow(button) end end)
         row:SetScript("OnMouseDown", function(button) button._pressed = true; renderRowState(button) end)
         row:SetScript("OnMouseUp", function(button) button._pressed = false; renderRowState(button) end)
-        row:SetScript("OnEnter", function(button) self:SetHover(button, true); showTooltip(button, button.title:GetText(), rowTooltipDetail(button.item)) end)
-        row:SetScript("OnLeave", function(button) self:SetHover(button, false); hideTooltip() end)
+        row:SetScript("OnEnter", function(button) self:SetHover(button, true) end)
+        row:SetScript("OnLeave", function(button)
+            self:SetHover(button, false)
+            if not button.IsMouseOver or not button:IsMouseOver() then hideTooltip() end
+        end)
         row._rendered = {}
         self.rows[index] = row
         clearRow(row)
