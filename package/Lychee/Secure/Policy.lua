@@ -8,7 +8,9 @@ function Policy:IsSpellAvailable(spellID)
     if type(spellID) ~= "number" then return false end
     local known = IsPlayerSpell and IsPlayerSpell(spellID)
     if known == false then return false end
-    if C_Spell and C_Spell.IsSpellUsable then local usable = C_Spell.IsSpellUsable(spellID); if usable == false then return false end end
+    -- Usability changes with cooldown, resources and destination state. It must
+    -- not prevent preparing the secure button; the hardware click applies the
+    -- game's current usability rules.
     if IsPassiveSpell and IsPassiveSpell(spellID) then return false end
     return true
 end

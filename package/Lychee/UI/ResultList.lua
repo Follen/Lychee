@@ -210,8 +210,9 @@ end
 local function renderRowState(row)
     local background = row._pressed and "rowPressed" or (row._selected and "rowSelected" or (row._hovered and "rowHover" or "row"))
     setTextureColor(row.bg, background)
-    setShown(row.accent, row._selected == true)
-    setShown(row.outline, row._hovered == true and row._selected ~= true)
+    -- Selection uses the same neutral outline as hover; no persistent red bar.
+    setShown(row.accent, false)
+    setShown(row.outline, row._hovered == true or row._selected == true)
     setShown(row.secondary, row.secondaryAction and (row._hovered or row._selected) or false)
     setShown(row.dragHighlight, row._dragHovered == true)
 end
