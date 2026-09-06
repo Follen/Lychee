@@ -59,7 +59,7 @@ assert(I.Search.Normalizer:MatchText("红玉", "红玉", "title").confidence > I
 assert(I.Search.Normalizer:MatchText("红玉", "红玉新生", "alias").confidence > I.Search.Normalizer:MatchText("红玉", "红玉", "keyword").confidence)
 assert(I.Search.Normalizer:MatchText("红玉", "红玉", "keyword").confidence > I.Search.Normalizer:MatchText("红玉", "红玉", "description").confidence)
 local descriptionHits = index:Search("入口", 10)
-assert(#descriptionHits == 1 and descriptionHits[1].evidence.matchedField == "description")
+assert(#descriptionHits == 0, "description is presentation-only and must not affect search")
 assert(#index:Search("旧版本", 10) == 0)
 local categoryHits = index:Search("技能 红玉", 10)
 assert(#categoryHits == 1 and categoryHits[1].evidence.matchType == "token")

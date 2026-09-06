@@ -141,7 +141,7 @@ local function buildEntry(source, record)
     addText(entry, "title", record.title, record.scope or source.scope)
     addText(entry, "alias", record.aliases, record.scope or source.scope)
     addText(entry, "keyword", record.keywords, record.scope or source.scope)
-    addText(entry, "description", record.description, record.scope or source.scope)
+    -- 描述只用于 Tooltip 展示，不参与搜索因子，避免长文本和说明词污染结果。
     local category = record.category
     addText(entry, "category", type(category) == "table" and (category.title or category.id) or category, record.scope or source.scope)
     return entry
