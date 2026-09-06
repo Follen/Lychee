@@ -629,7 +629,7 @@ end
 
 function Palette:SetStatus(mode, count)
     local text
-    if mode == "home" then text = localized({ zhCN = "主页", enUS = "Home" }, "Home")
+    if mode == "home" then text = ""
     elseif mode == "panel" then text = localized({ zhCN = "详情", enUS = "Detail" }, "Detail")
     elseif count and count > 0 then text = localized({ zhCN = "搜索结果：", enUS = "Results: " }, "Results: ") .. tostring(count)
     else text = localized({ zhCN = "没有结果", enUS = "No results" }, "No results") end
