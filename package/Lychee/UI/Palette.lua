@@ -306,7 +306,9 @@ local function createHomeView(parent, controller)
             tile.section = section
             tile.index = index
             setText(tile.title, homeLabel(section.title or section.text, "Lychee"))
-            setText(tile.meta, homeLabel(section.meta or section.source, ""))
+            -- 主页卡片只保留名称；类型与来源通过 Tooltip 展示，避免卡片出现第二行说明。
+            setText(tile.meta, "")
+            setShown(tile.meta, false)
             if section.icon then
                 if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); tile._icon = section.icon end
                 setShown(tile.icon, true)
