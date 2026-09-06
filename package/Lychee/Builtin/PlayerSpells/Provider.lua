@@ -169,8 +169,8 @@ function P:RefreshFromSpellBook()
                     end
                     -- SpellBook flyouts (itemType 4) expose their real spells
                     -- through GetFlyoutSlotInfo rather than item.spellID.
-                    if itemOK and type(GetSpellBookItemType) == "function" then
-                        local typeOK, itemType, flyoutID = pcall(GetSpellBookItemType, slot, bank)
+                    if itemOK and C_SpellBook and type(C_SpellBook.GetSpellBookItemType) == "function" then
+                        local typeOK, itemType, flyoutID = pcall(C_SpellBook.GetSpellBookItemType, slot, bank)
                         if typeOK and isFlyoutItem(itemType) and type(flyoutID) == "number" then
                             addFlyoutSpells(self, nextItems, flyoutID)
                         end
