@@ -106,6 +106,10 @@ local function setText(fontString, text)
     if fontString and fontString.GetText and fontString:GetText() ~= text then fontString:SetText(text) end
 end
 
+local function cropIcon(texture)
+    if texture and type(texture.SetTexCoord) == "function" then texture:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
+end
+
 local function setAlpha(region, alpha)
     if region and type(region.SetAlpha) == "function" then region:SetAlpha(alpha); return true end
     return false
@@ -310,7 +314,7 @@ local function createHomeView(parent, controller)
             setText(tile.meta, "")
             setShown(tile.meta, false)
             if section.icon then
-                if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); tile._icon = section.icon end
+                if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end
                 setShown(tile.icon, true)
             else
                 tile._icon = nil

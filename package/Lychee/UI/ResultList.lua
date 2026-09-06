@@ -81,6 +81,10 @@ local function setShown(object, shown)
     if object and type(object.IsShown) == "function" and object:IsShown() ~= shown then object:SetShown(shown) end
 end
 
+local function cropIcon(texture)
+    if texture and type(texture.SetTexCoord) == "function" then texture:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
+end
+
 local function setTextureColor(texture, name)
     if not texture or type(texture.SetColorTexture) ~= "function" then return end
     local theme, key = Lychee.UI and Lychee.UI.Theme, THEME_KEY[name] or name
@@ -364,7 +368,7 @@ function ResultList:SetItems(items, session, generation)
         local colorID = categoryColorID(item)
         if row._categoryColorID ~= colorID then setCategoryTextColor(row.category, item); row._categoryColorID = colorID end
         local icon = item.icon
-        if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); row._icon = icon end
+        if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); cropIcon(row.icon); row._icon = icon end
         setShown(row.icon, icon ~= nil)
         local interaction = item.interaction
         row.primaryAction, row.secondaryAction, row.dragDescriptor = primaryAction(interaction), secondaryAction(interaction), interaction and interaction.drag
