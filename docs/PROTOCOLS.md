@@ -226,7 +226,7 @@ Command 是固定可搜索入口：
 - `ambient` 必须声明合法 `minLength`/`maxLength`，共享单一 debounce、generation 和全局调用预算；
 - `custom-panel` 只返回 PanelFactory 引用，不直接创建或操作面板。
 
-Intent 必须包含 `type`、`version` 和 schema 约束的 plain-data `payload`。第三方 type 以 `<extensionID>.` 开头，`lychee.*` 保留给 Host。Handler 返回 `{ ok = true, closePalette? }` 或稳定业务错误，也可以返回声明式：
+Intent 必须包含 `type`、`version` 和 schema 约束的 plain-data `payload`。第三方 type 以 `<extensionID>.` 开头，`lychee.*` 保留给 Host。Handler 返回 `{ ok = true, closePalette? }` 或稳定业务错误，也可以返回统一的 `custom-panel` 声明式视图转换：
 
 ```lua
 transition = { type = "custom-panel", panelFactoryID = "details", state = plainData }

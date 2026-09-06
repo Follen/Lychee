@@ -18,12 +18,6 @@ function Router:RemoveExtension(extensionID)
 end
 local function validateTransition(extensionID, transition)
     if type(transition)~="table" then return failure("INTENT_INVALID","transition",extensionID) end
-    if transition.type=="builtin-panel" and extensionID:sub(1,7)=="builtin" then
-        if type(transition.panelID)~="string" then return failure("INTENT_INVALID","panelID",extensionID) end
-        local panel=I.Registry:GetPanel(extensionID,transition.panelID); if not panel then return failure("COMMAND_NOT_FOUND","panelID",extensionID) end
-        if transition.state~=nil then local ok,why=I.Boundary:Validate(transition.state,"transition.state"); if not ok then return nil,why end end
-        return true
-    end
     if transition.type~="custom-panel" or type(transition.panelFactoryID)~="string" then return failure("INTENT_INVALID","transition",extensionID) end
     local panel=I.Registry:GetPanel(extensionID,transition.panelFactoryID); if not panel then return failure("COMMAND_NOT_FOUND","panelFactoryID",extensionID) end
     if transition.state==nil then transition.state={} end
