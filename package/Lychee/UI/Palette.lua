@@ -383,13 +383,10 @@ function Palette:Create()
     end
     frame:Hide()
     frame:SetScript("OnHide", function() if self.visible then self:Hide("external") end end)
-    frame:SetScript("OnKeyDown", function(_, key)
-        -- 挂载 OnKeyDown 后面板会接管键盘输入且默认不向下传播；除 Escape
-        -- 用于关闭面板外必须放行，否则输入框失焦时游戏的移动、聊天等
-        -- 按键会被面板全部吞掉。
-        frame:SetPropagateKeyboardInput(key ~= "ESCAPE")
-        if key == "ESCAPE" then self:Hide("escape") end
-    end)
+    -- 不注册 Frame 级 OnKeyDown：显示中的 Frame 挂 OnKeyDown 会吞掉全部键盘
+    -- 输入（DestinyFrame 即此用途），且 SetPropagateKeyboardInput 在 Blizzard
+    -- 代码中零先例、行为不可依赖。Escape 关闭由输入框 OnEscapePressed 处理，
+    -- 输入框失焦后按键全部直达游戏。
     self.frame = frame
     self.session, self.generation, self.visible = 0, 0, false
     local components = Lychee.UI.Components
