@@ -82,6 +82,7 @@ function Input:Create(parent, focusController)
         onChanged = nil,
         onSubmit = nil,
         onMove = nil,
+        onFocusChanged = nil,
     }, Input)
     edit:SetScript("OnTextChanged", function(box, userInput)
         setShown(placeholder, (box:GetText() or "") == "")
@@ -100,10 +101,12 @@ function Input:Create(parent, focusController)
     edit:SetScript("OnEditFocusGained", function()
         self.focused = true
         self:_ApplyVisualState()
+        if self.onFocusChanged then self.onFocusChanged(true) end
     end)
     edit:SetScript("OnEditFocusLost", function()
         self.focused = false
         self:_ApplyVisualState()
+        if self.onFocusChanged then self.onFocusChanged(false) end
     end)
     container:SetScript("OnEnter", function()
         self.hovered = true

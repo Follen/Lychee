@@ -446,6 +446,17 @@ function Palette:Create()
 
     self.focus = Lychee.UI.FocusController:New()
     self.input = Lychee.UI.Input:Create(self.header, self.focus)
+    -- EditBox 的键盘焦点不会因为点击游戏世界而自动释放，需要一个位于面板
+    -- 下方的全屏捕获层：仅在输入框聚焦期间启用鼠标，点击面板外部即释放
+    -- 焦点，把键盘还给游戏。
+    local clickCatcher = CreateFrame("Frame", nil, UIParent)
+    clickCatcher:SetFrameStrata("DIALOG")
+    clickCatcher:SetAllPoints(UIParent)
+    clickCatcher:SetFrameLevel(math.max(0, frame:GetFrameLevel() - 1))
+    clickCatcher:EnableMouse(false)
+    clickCatcher:SetScript("OnMouseDown", function() self.input:ClearFocus() end)
+    self.clickCatcher = clickCatcher
+    self.input.onFocusChanged = function(focused) clickCatcher:EnableMouse(focused == true) end
     self.list = Lychee.UI.ResultList:Create(self.content, self)
     self.homeView = createHomeView(self.content, self)
     self.homeView:SetSections({})
