@@ -723,7 +723,17 @@ function Palette:Show()
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
     if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
-    self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show(); self.input:Focus()
+    self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
+    -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
+    -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
+    -- the same input dispatch; focusing synchronously would swallow it as query text.
+    if C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(0, function()
+            if self.visible then self.input:Focus() end
+        end)
+    else
+        self.input:Focus()
+    end
     animate(self.frame, "lychee.palette.open", 0, 1, 0.18)
     return true
 end
