@@ -473,9 +473,13 @@ function Palette:Create()
             self:Hide("combat")
         elseif event == "GLOBAL_MOUSE_DOWN" then
             -- EditBox 的键盘焦点不会因点击游戏世界自动释放；沿用 Blizzard
-            -- ColorPickerFrame 的外部点击判定（GLOBAL_MOUSE_DOWN 事件在 Show
-            -- 时注册、Hide 时注销），把键盘还给游戏而不吞掉这次点击。
-            if self.visible and self.input.focused and not DoesAncestryIncludeAny(self.frame, GetMouseFoci()) then
+            -- ColorPickerFrame 的外部点击判定（事件在 Show 注册、Hide 注销），
+            -- 把键盘还给游戏而不吞掉这次点击。focused 标记可能与真实键盘
+            -- 焦点失步，用 GetCurrentKeyBoardFocus 复核；IsMouseOver 按矩形
+            -- 判定，点击面板上的非鼠标区域时不会误清焦点。
+            local focused = self.input.focused
+                or (GetCurrentKeyBoardFocus and GetCurrentKeyBoardFocus() == self.input.frame)
+            if self.visible and focused and not self.frame:IsMouseOver() then
                 self.input:ClearFocus()
             end
         end
