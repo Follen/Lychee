@@ -310,9 +310,16 @@ local function createHomeView(parent, controller)
             tile.section = section
             tile.index = index
             setText(tile.title, homeLabel(section.title or section.text, "Lychee"))
-            -- 主页卡片只保留名称；类型与来源通过 Tooltip 展示，避免卡片出现第二行说明。
-            setText(tile.meta, "")
-            setShown(tile.meta, false)
+            -- 名称下方展示类别标签（如"技能"），让最近使用的条目有上下文；
+            -- 没有类别信息的磁贴整行隐藏。
+            local metaText = homeLabel(section.meta, "")
+            if metaText ~= "" then
+                setText(tile.meta, metaText)
+                setShown(tile.meta, true)
+            else
+                setText(tile.meta, "")
+                setShown(tile.meta, false)
+            end
             if section.icon then
                 if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end
                 setShown(tile.icon, true)
@@ -376,7 +383,13 @@ function Palette:Create()
     end
     frame:Hide()
     frame:SetScript("OnHide", function() if self.visible then self:Hide("external") end end)
-    frame:SetScript("OnKeyDown", function(_, key) if key == "ESCAPE" then self:Hide("escape") end end)
+    frame:SetScript("OnKeyDown", function(_, key)
+        -- 挂载 OnKeyDown 后面板会接管键盘输入且默认不向下传播；除 Escape
+        -- 用于关闭面板外必须放行，否则输入框失焦时游戏的移动、聊天等
+        -- 按键会被面板全部吞掉。
+        frame:SetPropagateKeyboardInput(key ~= "ESCAPE")
+        if key == "ESCAPE" then self:Hide("escape") end
+    end)
     self.frame = frame
     self.session, self.generation, self.visible = 0, 0, false
     local components = Lychee.UI.Components
