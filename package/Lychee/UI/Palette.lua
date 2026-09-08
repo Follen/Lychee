@@ -446,17 +446,6 @@ function Palette:Create()
 
     self.focus = Lychee.UI.FocusController:New()
     self.input = Lychee.UI.Input:Create(self.header, self.focus)
-    -- EditBox 的键盘焦点不会因为点击游戏世界而自动释放，需要一个位于面板
-    -- 下方的全屏捕获层：仅在输入框聚焦期间启用鼠标，点击面板外部即释放
-    -- 焦点，把键盘还给游戏。
-    local clickCatcher = CreateFrame("Frame", nil, UIParent)
-    clickCatcher:SetFrameStrata("DIALOG")
-    clickCatcher:SetAllPoints(UIParent)
-    clickCatcher:SetFrameLevel(math.max(0, frame:GetFrameLevel() - 1))
-    clickCatcher:EnableMouse(false)
-    clickCatcher:SetScript("OnMouseDown", function() self.input:ClearFocus() end)
-    self.clickCatcher = clickCatcher
-    self.input.onFocusChanged = function(focused) clickCatcher:EnableMouse(focused == true) end
     self.list = Lychee.UI.ResultList:Create(self.content, self)
     self.homeView = createHomeView(self.content, self)
     self.homeView:SetSections({})
@@ -480,7 +469,16 @@ function Palette:Create()
     end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:SetScript("OnEvent", function(_, event)
-        if event == "PLAYER_REGEN_DISABLED" and self.visible then self:Hide("combat") end
+        if event == "PLAYER_REGEN_DISABLED" and self.visible then
+            self:Hide("combat")
+        elseif event == "GLOBAL_MOUSE_DOWN" then
+            -- EditBox 的键盘焦点不会因点击游戏世界自动释放；沿用 Blizzard
+            -- ColorPickerFrame 的外部点击判定（GLOBAL_MOUSE_DOWN 事件在 Show
+            -- 时注册、Hide 时注销），把键盘还给游戏而不吞掉这次点击。
+            if self.visible and self.input.focused and not DoesAncestryIncludeAny(self.frame, GetMouseFoci()) then
+                self.input:ClearFocus()
+            end
+        end
     end)
 
     local internal = _G.LycheeInternal
@@ -743,6 +741,7 @@ function Palette:Show()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     self:ApplyBoundedScale()
     self.visible = true
+    self.frame:RegisterEvent("GLOBAL_MOUSE_DOWN")
     self:ResizeForMode("home")
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
@@ -766,6 +765,7 @@ function Palette:Hide(reason)
     if searchSession then searchSession:Stop(reason or "hide") end
     if not self.frame or not self.visible then return true end
     self.visible = false
+    self.frame:UnregisterEvent("GLOBAL_MOUSE_DOWN")
     self.activeFilter = nil
     self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
