@@ -313,6 +313,11 @@ local function createHomeView(parent, controller)
             -- 名称下方展示类别标签（如"技能"），让最近使用的条目有上下文；
             -- 没有类别信息的磁贴整行隐藏。
             local metaText = homeLabel(section.meta, "")
+            local metaColor = section.categoryColor or color("muted")
+            if tile._metaColor ~= metaColor then
+                tint(tile.meta, metaColor)
+                tile._metaColor = metaColor
+            end
             if metaText ~= "" then
                 setText(tile.meta, metaText)
                 setShown(tile.meta, true)
@@ -578,6 +583,7 @@ function Palette:RefreshHomeSections(allowExpand)
                 sections[#sections + 1] = { id = "saved:" .. ids[index], groupID = groupID, groupTitle = groupTitle,
                     title = localized(record.title, ids[index]),
                     meta = localized(record.category and record.category.title, localized({ zhCN = "实体", enUS = "Entity" }, "Entity")),
+                    categoryColor = record.category and record.category.color,
                     icon = record.icon, query = localized(record.title, ids[index]) }
                 count = count + 1
             end
