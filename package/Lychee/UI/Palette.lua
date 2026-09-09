@@ -208,7 +208,7 @@ local function createHomeView(parent, controller)
         tile.ownerView = self
         tile:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
-        tile.bg:SetSize(18, 2)
+        tile.bg:SetSize(40, 2)
         paint(tile.bg, color("accent"))
         tile.bg:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")

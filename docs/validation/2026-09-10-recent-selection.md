@@ -14,3 +14,11 @@
 查档 sourceId=wow-ui-source、product=retail、requestedRef=latest、resolvedCommit=8ea15b61e45c0ed4eba01439c90757f86eb78d34。[本次来源](../architecture/2026-09-10-recent-selection-wowdoc.json) 保存 SetJustifyV（SimpleFontStringAPIDocumentation.lua:570）、SetSize（SimpleScriptRegionResizingAPIDocumentation.lua:163）、SetPoint（同文件:135）的 path/line/excerpt；GetStringHeight 证据沿用[同版本字体查档](../architecture/2026-09-10-ui-refinement-wowdoc.json)中的 SimpleFontStringAPIDocumentation.lua:325。[静态验证结果](../architecture/2026-09-10-recent-selection-validate.json)。
 
 本轮仅有修改前实机截图。更新后的观感、真实字体高度、缩放与客户端性能仍待 /reload 后验证；离线测试不代替实机证据。提交成功后只同步 package/Lychee 的运行时文件并核对 SHA-256；无 TOC 变化，可 /reload 加载。回滚使用新 git revert 提交并按相同流程验证与同步。
+
+## 同日追加：红线长度与通用条目说明
+
+用户要求红线更长，并询问任务、小怪、装备等内容的最近使用展示。以 e75c6f6 为基线，将红线宽度从 18 调整为 40，高度仍为 2；没有新增对象或运行路径。修改前再次读取同一 WoW 来源的 SetSize 证据（SimpleScriptRegionResizingAPIDocumentation.lua:163），与上方归档版本一致。
+
+核对 RefreshHomeSections、QueryOrchestrator 与共享提示框后，确认最近使用保留完整的当前条目并使用 Provider 的图标、名称、类型、说明及动作，支持混排；SDK 文档补充任务、小怪、装备的示例，明确这些不是已内置的数据源。
+
+追加验证：10 项契约测试、45 个 Lua 文件解析、Bindings.xml 与 wowdoc validate 全部通过，git diff --check 通过。新长度的实机观感仍待 /reload 验证。
