@@ -80,8 +80,8 @@ function CreateFrame(kind, _, parent) return object(kind, parent or UIParent) en
 
 local tooltip = { shown = false }
 function tooltip:SetOwner(owner, anchor) self.owner, self.anchor = owner, anchor end
-function tooltip:SetText(text) self.text = text end
-function tooltip:AddLine(text) self.detail = text end
+function tooltip:SetText(text, ...) self.text = text; self.titleColor = { ... }; self.lines = {}; self.detail = "" end
+function tooltip:AddLine(text, ...) self.lines[#self.lines + 1] = { text = text, color = { ... } }; self.detail = self.detail .. text .. "\n" end
 function tooltip:Show() self.shown = true end
 function tooltip:Hide() self.shown = false; self.owner = nil end
 GameTooltip = tooltip
@@ -195,7 +195,10 @@ end
 assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
 
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-assert(GameTooltip.shown and GameTooltip.text == longText and GameTooltip.detail:find("自定义类型", 1, true) and GameTooltip.detail:find("匹配", 1, true), "primary hover exposes provider typed diagnostic tooltip")
+assert(GameTooltip.shown and GameTooltip.text == longText, "hover keeps the item title")
+assert(#GameTooltip.lines >= 4, "tooltip separates metadata, spacing, description and action hint")
+assert(GameTooltip.detail:find("自定义类型", 1, true) and not GameTooltip.detail:find("匹配", 1, true), "tooltip keeps useful type without internal search diagnostics")
+assert(GameTooltip.detail:find("施放", 1, true) and not GameTooltip.detail:find("不可用", 1, true), "tooltip shows the primary action without dumping disabled actions")
 rowOne.secondary.scripts.OnClick(rowOne.secondary)
 assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)

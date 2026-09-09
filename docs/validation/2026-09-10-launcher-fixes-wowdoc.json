@@ -1,0 +1,292 @@
+{
+  "ok": true,
+  "data": {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "AddonTooltip_Update",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "835: function AddonTooltip_Update(owner)\n836: \tlocal id = owner:GetID();\n837: \tlocal name = C_AddOns.GetAddOnName(id);\n838: \tlocal title = C_AddOns.GetAddOnTitle(id);\n839: \tlocal notes = C_AddOns.GetAddOnNotes(id);\n840: \tlocal security = C_AddOns.GetAddOnSecurity(id);\n841: \tAddonTooltip:ClearLines();\n842: \tif ( security == \"BANNED\" ) then\n843: \t\tAddonTooltip:SetText(ADDON_BANNED_TOOLTIP);\n844: \telse\n845: \t\tlocal tooltipTitle = title or name;\n846: \t\tlocal version = C_AddOns.GetAddOnMetadata(id, \"Version\");\n847: \t\tAddonTooltip:AddDoubleLine(tooltipTitle, version);\n848: \t\tAddonTooltip:AddLine(notes, 1.0, 1.0, 1.0, true);\n849: \t\tGameTooltip_AddColoredLine(AddonTooltip, AddonTooltip_BuildDeps(C_AddOns.GetAddOnDependencies(id)), NORMAL_FONT_COLOR, true);\n850: \tend\n851: \tif ADDON_ACTIONS_BLOCKED[name] then\n852: \t\tAddonTooltip:AddLine(INTERFACE_ACTION_BLOCKED_TOOLTIP:format(ADDON_ACTIONS_BLOCKED[name]));\n853: \tend\n854: \n855: \tlocal loaded = C_AddOns.IsAddOnLoaded(name);\n856: \tif loaded and C_AddOnProfiler.IsEnabled() and not InGlue() then\n857: \t\tGameTooltip_AddBlankLineToTooltip(AddonTooltip);\n858: \n859: \t\tAddonTooltip_AddAddonMetric(AddonTooltip, name, ADDON_LIST_PERFORMANCE_AVERAGE_CPU, Enum.AddOnProfilerMetric.SessionAverageTime);\n860: \n861: \t\tlocal showWarningOnly = true;\n862: \t\tAddonTooltip_AddAddonMetric(AddonTooltip, name, ADDON_LIST_PERFORMANCE_CURRENT_CPU, Enum.AddOnProfilerMetric.RecentAverageTime, showWarningOnly);\n863: \t\tAddonTooltip_AddAddonMetric(AddonTooltip, name, ADDON_LIST_PERFORMANCE_PEAK_CPU, Enum.AddOnProfilerMetric.PeakTime, showWarningOnly);\n864: \t\tAddonTooltip_AddAddonMetric(AddonTooltip, name, ADDON_LIST_PERFORMANCE_ENCOUNTER_CPU, Enum.AddOnProfilerMetric.EncounterAverageTime, showWarningOnly);\n865: \n866: \t\tlocal mem = GetAddOnMemoryUsage(name);\n867: \t\tif mem > 0 then\n868: \t\t\tif mem > 1024 then\n869: \t\t\t\tGameTooltip_AddColoredLine(AddonTooltip, ADDON_LIST_PERFORMANCE_MEMORY_MB:format(mem / 1024), WHITE_FONT_COLOR);\n870: \t\t\telse\n871: \t\t\t\tGameTooltip_AddColoredLine(AddonTooltip, ADDON_LIST_PERFORMANCE_MEMORY_KB:format(mem), WHITE_FONT_COLOR);\n872: \t\t\tend\n873: \t\tend\n874: \tend\n875: \n876: \tAddonTooltip:Show()\n877: end",
+        "contentHash": "ca77ae4736725ebd9ec1fe4a1abef0fd0e5a12295f6f47ff5a318e38df496ca2",
+        "line": 835,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "832: \tend\n833: end\n834: \n835: function AddonTooltip_Update(owner)\n836: \tlocal id = owner:GetID();\n837: \tlocal name = C_AddOns.GetAddOnName(id);\n838: \tlocal title = C_AddOns.GetAddOnTitle(id);",
+        "contentHash": "ca77ae4736725ebd9ec1fe4a1abef0fd0e5a12295f6f47ff5a318e38df496ca2",
+        "line": 835,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "AddonTooltip_Update",
+        "target": "owner:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 836
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.GetAddOnName",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 837
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.GetAddOnTitle",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 838
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.GetAddOnNotes",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 839
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.GetAddOnSecurity",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 840
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip:ClearLines",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 841
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip:SetText",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 843
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.GetAddOnMetadata",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 846
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip:AddDoubleLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 847
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip:AddLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 848
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.GetAddOnDependencies",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 849
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip_BuildDeps",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 849
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "GameTooltip_AddColoredLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 849
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip:AddLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 852
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "INTERFACE_ACTION_BLOCKED_TOOLTIP:format",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 852
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOns.IsAddOnLoaded",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 855
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOnProfiler.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 856
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "InGlue",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 856
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "GameTooltip_AddBlankLineToTooltip",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 857
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip_AddAddonMetric",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 859
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip_AddAddonMetric",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 862
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip_AddAddonMetric",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 863
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip_AddAddonMetric",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 864
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "GetAddOnMemoryUsage",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 866
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "GameTooltip_AddColoredLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 869
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "ADDON_LIST_PERFORMANCE_MEMORY_MB:format",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 869
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "GameTooltip_AddColoredLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 871
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "ADDON_LIST_PERFORMANCE_MEMORY_KB:format",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 871
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "AddonTooltip:Show",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 876
+      },
+      {
+        "source": "AddonListEntryMixin:OnLoad",
+        "target": "AddonTooltip_Update",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 990
+      },
+      {
+        "source": "AddonListEntryMixin:OnLoad",
+        "target": "AddonTooltip_Update",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 994
+      }
+    ]
+  }
+}

@@ -19,7 +19,7 @@ end
 local function object(kind, parent)
     local o = { kind = kind, parent = parent, shown = true, width = 800, height = 600, scripts = {}, attrs = {} }
     function o:SetAllPoints() mutation(self, "SetAllPoints") end
-    function o:SetPoint() mutation(self, "SetPoint"); homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
+    function o:SetPoint(...) mutation(self, "SetPoint"); self.point = { ... }; homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
     function o:ClearAllPoints() mutation(self, "ClearAllPoints"); homeGeometryCalls.ClearAllPoints = homeGeometryCalls.ClearAllPoints + 1 end
     function o:SetSize(w, h) mutation(self, "SetSize"); self.width, self.height = w, h end
     function o:SetHeight(h) mutation(self, "SetHeight"); self.height = h end
@@ -419,6 +419,8 @@ end
 assert(hasRecent and #palette.homeView.sections == 1, "home contains recent items only")
 assert(#palette.homeView.tiles >= #palette.homeView.sections, "home tile pool grows to the section count")
 assert(#palette.homeView.headers >= 1, "home renders the recent group header")
+assertEq(palette.homeView.headers[1].point[4], 12, "recent title has its own horizontal inset")
+assertEq(palette.homeView.headers[1].point[5], -10, "recent title clears the header divider")
 local groupIDs = {}
 for sectionIndex = 1, #palette.homeView.sections do groupIDs[palette.homeView.sections[sectionIndex].groupID] = true end
 assert(groupIDs.recent and not groupIDs.pinned and not groupIDs.categories and not groupIDs.extensions, "home group identity is recent only")

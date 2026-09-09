@@ -11,17 +11,6 @@ local TILE_WIDTH, TILE_HEIGHT = 608, 58
 local EMPTY_ITEMS = {}
 local UI_LOCALE = GetLocale and GetLocale() or "enUS"
 local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
-local MATCH_FIELD_NAMES = UI_CHINESE and {
-    title = "名称", alias = "别名", description = "描述", keywords = "关键词", tokens = "关键词", filter = "分类",
-} or {
-    title = "name", alias = "alias", description = "description", keywords = "keyword", tokens = "keyword", filter = "filter",
-}
-local MATCH_TYPE_NAMES = UI_CHINESE and {
-    exact = "精确", prefix = "前缀", substring = "包含", fuzzy = "模糊", token = "关键词", filter = "筛选",
-} or {
-    exact = "exact", prefix = "prefix", substring = "contains", fuzzy = "fuzzy", token = "keyword", filter = "filter",
-}
-
 local FALLBACK = {
     row = { 0.075, 0.078, 0.09, 0.96 }, rowHover = { 0.105, 0.108, 0.122, 0.98 },
     rowSelected = { 0.145, 0.105, 0.115, 0.98 }, outline = { 0.30, 0.19, 0.21, 0.85 },
@@ -128,50 +117,12 @@ local function categoryColorID(item)
     return item and item.categoryColor or (type(category) == "table" and category.color)
 end
 
-local function evidenceText(item)
-    local evidence = item and item.evidence
-    if type(evidence) ~= "table" then return "" end
-    local field = MATCH_FIELD_NAMES[tostring(evidence.matchedField or "")] or ""
-    local matchType = MATCH_TYPE_NAMES[tostring(evidence.matchType or "")] or ""
-    if field == "" and matchType == "" then return "" end
-    local detail = matchType ~= "" and (field == "" and matchType or field .. " · " .. matchType) or field
-    local confidence = tonumber(item.confidence)
-    if confidence then return (UI_CHINESE and "匹配 " or "Match ") .. detail .. string.format(" %.0f%%", confidence * 100) end
-    return (UI_CHINESE and "匹配 " or "Match ") .. detail
-end
-
-local function sourceText(item)
-    if type(item) ~= "table" then return "" end
-    if type(item.sourceLabel) == "string" and item.sourceLabel ~= "" then return item.sourceLabel end
-    if type(item.sourceTitle) == "string" and item.sourceTitle ~= "" then return item.sourceTitle end
-    if item.command and type(item.command.sourceTitle) == "string" and item.command.sourceTitle ~= "" then return item.command.sourceTitle end
-    return ""
-end
-
 local function kindText(item)
     local record = item and item.searchRecord
     local title = item and item.kindTitle or record and record.kindTitle
     if type(title) == "string" and title ~= "" then return title end
     local kind = item and (item.kind or item.type) or record and (record.kind or record.type)
     return tostring(kind or (UI_CHINESE and "内容" or "Content"))
-end
-
-local function rowTooltipDetail(item)
-    if type(item) ~= "table" then return "" end
-    local parts, description = { (UI_CHINESE and "类型：" or "Type: ") .. kindText(item) }, item.description or item.summary or item.subtext
-    if type(description) == "string" and description ~= "" then parts[#parts + 1] = description end
-    local evidence = evidenceText(item)
-    if evidence ~= "" then parts[#parts + 1] = evidence end
-    local source = sourceText(item)
-    if source ~= "" then parts[#parts + 1] = source end
-    local interaction = item.interaction
-    local actions = interaction and interaction.actions
-    if type(actions) == "table" and #actions > 0 then
-        local labels = {}
-        for index = 1, #actions do labels[#labels + 1] = actionLabel(actions[index]) end
-        parts[#parts + 1] = (UI_CHINESE and "操作：" or "Actions: ") .. table.concat(labels, "、")
-    end
-    return table.concat(parts, "\n")
 end
 
 local function hideTooltip()
@@ -181,8 +132,29 @@ end
 local function showTooltip(owner, title, detail)
     if not GameTooltip or type(GameTooltip.SetOwner) ~= "function" then return end
     GameTooltip:SetOwner(owner, "ANCHOR_TOP")
-    if type(GameTooltip.SetText) == "function" then GameTooltip:SetText(title or "") end
-    if detail and detail ~= "" and detail ~= title and type(GameTooltip.AddLine) == "function" then GameTooltip:AddLine(detail, 0.78, 0.78, 0.82, true) end
+    if type(GameTooltip.SetText) == "function" then GameTooltip:SetText(title or "", 0.96, 0.95, 0.94, 1, true) end
+    if type(detail) == "table" and type(GameTooltip.AddLine) == "function" then
+        GameTooltip:AddLine(kindText(detail), 0.58, 0.58, 0.62)
+        local description = detail.description or detail.summary or detail.subtext
+        if type(description) == "string" and description ~= "" then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(description, 0.82, 0.82, 0.85, true)
+        end
+        local interaction = detail.interaction
+        local actions = interaction and interaction.actions
+        local primary = type(actions) == "table" and actions[1]
+        if primary and interaction.primaryActionID then
+            for index = 1, #actions do
+                if actions[index].id == interaction.primaryActionID then primary = actions[index]; break end
+            end
+        end
+        if actionEnabled(primary) then
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine((UI_CHINESE and "点击 · " or "Click · ") .. actionLabel(primary), 0.90, 0.35, 0.40, true)
+        end
+    elseif detail and detail ~= "" and detail ~= title and type(GameTooltip.AddLine) == "function" then
+        GameTooltip:AddLine(detail, 0.78, 0.78, 0.82, true)
+    end
     if type(GameTooltip.Show) == "function" then GameTooltip:Show() end
 end
 
@@ -239,7 +211,7 @@ function ResultList:SetHover(row, hovered)
 end
 
 function ResultList:ShowTooltip(row, owner)
-    showTooltip(owner or row, row.title:GetText(), rowTooltipDetail(row.item))
+    showTooltip(owner or row, row.title:GetText(), row.item)
 end
 
 function ResultList:Create(parent, controller)
@@ -300,7 +272,7 @@ function ResultList:Create(parent, controller)
             if self.controller then self.controller:ActivateRow(owner) end
         end)
         row.primaryTarget:SetScript("OnEnter", function(button)
-            local owner = button:GetParent(); self:SetHover(owner, true); showTooltip(button, owner.title:GetText(), rowTooltipDetail(owner.item))
+            local owner = button:GetParent(); self:SetHover(owner, true); showTooltip(button, owner.title:GetText(), owner.item)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 

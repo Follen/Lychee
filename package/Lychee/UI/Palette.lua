@@ -117,8 +117,7 @@ local function createHomeView(parent, controller)
     if frame.EnableKeyboard then frame:EnableKeyboard(false) end
     if frame.EnableMouseWheel then frame:EnableMouseWheel(true) end
     local content = CreateFrame("Frame", nil, frame)
-    content:SetSize(WIDTH - 48, 1)
-    content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -10)
+    content:SetSize(WIDTH - 24, 1)
     frame:SetScrollChild(content)
     local view = { frame = frame, content = content, controller = controller, tiles = {}, headers = {}, sections = {}, scroll = 0, selected = 1 }
     view.empty = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -191,9 +190,9 @@ local function createHomeView(parent, controller)
     function view:AcquireHeader(index)
         local header = self.headers[index]
         if header then return header end
-        header = self.content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        header = self.content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         header:SetJustifyH("LEFT")
-        tint(header, color("text"))
+        tint(header, color("muted"))
         self.headers[index] = header
         return header
     end
@@ -265,7 +264,8 @@ local function createHomeView(parent, controller)
         self.sections = sections or {}
         setShown(self.empty, #self.sections == 0)
         if allowExpand then self:EnsureCapacity(HOME_HEADER_COUNT, #self.sections) end
-        local headerCount, tileCount, cursorY = 0, 0, 0
+        -- ScrollFrame owns the child origin; keep padding in content anchors.
+        local headerCount, tileCount, cursorY = 0, 0, 10
         local groupID, column = nil, 0
         for index = 1, #self.sections do
             local section = self.sections[index]
@@ -278,7 +278,7 @@ local function createHomeView(parent, controller)
                 local anchorKey = cursorY
                 if header._homeAnchorKey ~= anchorKey then
                     header:ClearAllPoints()
-                    header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, -cursorY)
+                    header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 12, -cursorY)
                     header._homeAnchorKey = anchorKey
                 end
                 setText(header, homeLabel(section.groupTitle, section.groupID or ""))
@@ -294,7 +294,7 @@ local function createHomeView(parent, controller)
             local anchorKey = layoutY * HOME_COLUMNS + col
             if tile._homeAnchorKey ~= anchorKey then
                 tile:ClearAllPoints()
-                tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP), -layoutY)
+                tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", 12 + col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP), -layoutY)
                 tile._homeAnchorKey = anchorKey
             end
             column = column + 1
@@ -663,7 +663,10 @@ function Palette:ResizeForMode(mode, count)
     local columns = self.list and self.list.gridColumns or 4
     local rows = tiles > 0 and math.ceil(tiles / columns) or 0
     local listHeight = rows > 0 and (rows * rowHeight + (rows - 1) * rowGap) or 0
-    if mode == "home" then listHeight = self.homeView and self.homeView.content:GetHeight() or 0 end
+    if mode == "home" then
+        listHeight = self.homeView and self.homeView.content:GetHeight() or 0
+        padding = 0 -- Home content includes its own top and bottom spacing.
+    end
     if mode == "panel" then listHeight = 360 end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
