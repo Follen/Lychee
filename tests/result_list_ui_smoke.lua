@@ -172,6 +172,8 @@ assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is render
 assert(rowOne.dragger:IsShown() and rowOne.dragDescriptor.spellID == 393256, "drag area binds descriptor")
 assert(rowOne.primaryAction.id == "cast" and rowOne.primaryHint:GetText() == "", "primary action label stays out of the compact row")
 assert(rowOne.secondaryAction.id == "detail" and rowOne.secondary:IsShown(), "first non-primary action is exposed as secondary")
+assert(rowOne._categoryInset == 42, "visible secondary button keeps label clear")
+assert(rowTwo._categoryInset == 12, "label without visible secondary button matches icon inset")
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
 rowTwo.scripts.OnEnter(rowTwo)

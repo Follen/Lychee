@@ -232,7 +232,13 @@ local function renderRowState(row)
     local background = row._selected and "rowSelected" or "row"
     setTextureColor(row.bg, background)
     setShown(row.accent, row._selected == true)
-    setShown(row.secondary, row.secondaryAction and row._selected or false)
+    local showSecondary = row.secondaryAction and row._selected or false
+    setShown(row.secondary, showSecondary)
+    local categoryInset = showSecondary and 42 or 12
+    if row.category and row._categoryInset ~= categoryInset then
+        row.category:SetPoint("RIGHT", row, "RIGHT", -categoryInset, 0)
+        row._categoryInset = categoryInset
+    end
     setShown(row.dragHighlight, row._selected and row._dragHovered == true or false)
 end
 
@@ -327,7 +333,7 @@ function ResultList:Create(parent, controller)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
-        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -42, 0); row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
+        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -12, 0); row._categoryInset = 12; row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
         setTextColor(row.category, "dim")
         row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -10); row.title:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.title:SetHeight(19); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
         if theme then theme:SetFont(row.title, "title"); theme:SetFont(row.category, "meta") end
