@@ -3,22 +3,19 @@ local facade = _G.Lychee or {}
 facade.API_VERSION = I.VERSION.api
 facade.API_REVISION = I.VERSION.revision
 function facade:Supports(api, revision)
-    return api == self.API_VERSION and (revision or 1) <= self.API_REVISION
+    revision = revision == nil and 1 or revision
+    return type(api) == "number" and api == self.API_VERSION
+        and type(revision) == "number" and revision >= 1 and revision < math.huge
+        and revision == math.floor(revision) and revision <= self.API_REVISION
 end
-function facade:RegisterExtension(desc)
-    if type(desc)~="table" then return nil,{code="INVALID_SCHEMA",field="descriptor",retryable=false} end
-    if not self:Supports(desc.apiVersion or 0, desc.minApiRevision or 1) then
-        return nil, { code = "UNSUPPORTED_API" }
-    end
-    return I.Registry:Begin(desc,{public=true})
+function facade:RegisterProvider(desc)
+    return I.Providers:Register(desc)
 end
 function facade:RegisterReady(fn)
     if type(fn) ~= "function" then return nil, { code = "INVALID_CALLBACK" } end
-    return I.Registry:RegisterReady(function(info) pcall(fn, info) end)
+    return I.Registry:RegisterReady(fn)
 end
 function facade:IsReady() return I.Registry.ready end
-function facade:RegisterSearchSource(desc)
-    return nil, { code = "INVALID_SCHEMA", field = "searchSource", hint = "REGISTER_ON_EXTENSION_DRAFT" }
-end
+facade.RegisterExtension, facade.RegisterSearchSource = nil, nil
 _G.Lychee = facade
 I.PublicAPI = facade

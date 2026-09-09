@@ -26,7 +26,8 @@ if ($bindings -notmatch '<Binding\s+name="TOGGLELYCHEE"\s+category="BINDING_HEAD
 $playerSpells = Get-Content (Join-Path $root 'package/Lychee/Builtin/PlayerSpells/Init.lua') -Raw
 if ($playerSpells -match 'LEARNED_SPELL_IN_TAB') { throw 'Legacy spell learned event must not be registered' }
 if ($playerSpells -notmatch 'LEARNED_SPELL_IN_SKILL_LINE') { throw 'Retail spell learned event missing' }
-if ($playerSpells -match 'RegisterCommand|RegisterCapabilityProvider|RegisterIntentHandler|RegisterPanelFactory') { throw 'PlayerSpells must publish only SearchSource' }
+if ($playerSpells -match 'Registry:Begin|RegisterSearchSource|RegisterCommand|RegisterCapabilityProvider|RegisterIntentHandler|RegisterPanelFactory') { throw 'PlayerSpells must use the public Provider facade' }
+if ($playerSpells -notmatch 'RegisterProvider') { throw 'Built-in public Provider registration missing' }
 $paletteSource = Get-Content (Join-Path $root 'package/Lychee/UI/Palette.lua') -Raw
 if ($paletteSource -match 'Lychee\.UI\.PaletteController\s*=\s*self') { throw 'Palette controller must remain Host-private' }
 $executorSource = Get-Content (Join-Path $root 'package/Lychee/Core/ResultActionExecutor.lua') -Raw
@@ -45,14 +46,27 @@ if ($scheduler -notmatch 'driver|swap-remove|Hide') { throw 'Shared scheduler li
 $fixtureToc = Join-Path $root 'lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.toc'
 if ((Get-Content $fixtureToc -Raw) -notmatch 'OptionalDeps:\s*Lychee') { throw 'Third-party fixture OptionalDeps missing' }
 $fixture = Get-Content (Join-Path $root 'lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua') -Raw
-foreach ($marker in @('RegisterExtension','RegisterSearchSource','RegisterCapabilityProvider','RegisterPanelFactory','RegisterIntentHandler','Commit','ADDON_LOADED','state.committed')) {
+foreach ($marker in @('RegisterProvider','actions=','views=','drags=','ADDON_LOADED','state.committed')) {
     if ($fixture -notmatch [regex]::Escape($marker)) { throw "Third-party fixture marker missing: $marker" }
 }
 if ($fixture -match 'match\s*=\s*\{\s*type\s*=\s*"ambient"') { throw 'Stable fixture entities must not duplicate SearchSource through ambient Command' }
+if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on API 2' }
+$provider = Get-Content (Join-Path $root 'package/Lychee/Core/ProviderRuntime.lua') -Raw
+if ($provider -match 'OnUpdate') { throw 'Provider runtime must not add idle OnUpdate work' }
+$sdk = Get-Content (Join-Path $root 'package/Lychee/PublicAPI/SDK.lua') -Raw
+if ($sdk -match 'function facade:RegisterExtension|function facade:RegisterSearchSource') { throw 'Old public registration must not be exposed' }
 $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
+    & $lua.Source 'tests/provider_sdk_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Provider SDK smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/framework_sdk_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Registry boundary smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Built-in/SDK integration smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/default_binding_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Default binding smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/interaction_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Interaction smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/result_list_ui_smoke.lua'

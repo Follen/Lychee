@@ -1,60 +1,14 @@
-# Lychee SDK 开发包
+# lychee-sdk
 
-这是 Lychee 的第三方开发包，包含 API 桩、契约说明入口和一个可复制的 AddOn fixture。它不是运行时插件，也不需要把本目录安装到 WoW 的 `AddOns` 目录。
+Provider API 2 / revision 1 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
 
-## 接入方式
+- [接入教程](../docs/SDK.md)
+- [协议参考](../docs/PROTOCOLS.md)
+- `ApiStubs.lua`：LuaLS 类型声明，仅供编辑器使用，不写入运行时 TOC。
+- `LycheeAPI.lua`：可选的 facade 检测、版本判断和 RegisterProvider 转发。
+- `examples/ThirdPartyFixture/`：可独立安装的演示 AddOn，覆盖普通动作、信息条目、拖动与托管视图。
+- `examples/DeferredProvider.lua`：可调用的延迟查询示例。
 
-第三方 AddOn 在自己的 TOC 中声明：
+实际插件只依赖 Host `_G.Lychee`。TOC 使用 `## OptionalDeps: Lychee`。先判断 `Supports(2,1)`，再调用一次 RegisterProvider；后续通过返回句柄更新或注销。
 
-```toc
-## OptionalDeps: Lychee
-```
-
-代码只读取 Lychee 本体暴露的 `_G.Lychee` facade：
-
-```lua
-local SDK = _G.Lychee
-if not SDK then
-    -- Lychee 未安装或尚未加载；第三方功能继续运行
-    return
-end
-```
-
-没有名为 `LycheeSDK` 的 sibling AddOn。`lychee-sdk/` 只是开发期的文档、桩和示例。
-
-## 公共 API
-
-`LycheeAPI.lua` 提供 API 版本、稳定错误码、facade 检测和 `RegisterExtension` 转发 helper。正式 AddOn 不应复制 Host 内部 registry，也不应保存 `_G.LycheeInternal`。
-
-每个 Extension 通过一次草稿提交发布能力：
-
-1. `RegisterExtension(descriptor)`
-2. `RegisterSearchSource`（实体搜索）
-3. `RegisterCommand`（固定命令或 ambient 动态入口）
-4. `RegisterCapabilityProvider`
-5. `RegisterIntentHandler`
-6. `RegisterPanelFactory`
-7. `Commit()`
-
-任一声明失败时调用 `Abort()`，不会留下部分搜索结果。`Commit()` 返回 `UNSUPPORTED_API` 时表示 SDK major/revision 不支持；返回 committed handle 但状态为 `pending/incompatible` 时表示当前 Host revision 不足（`INCOMPATIBLE_HOST`）。提交成功后用 `committed:GetSearchSource(id)` 取得窄 source handle；它提供 `GetState`、`BeginSnapshot`、`Upsert`、`Remove`、`CommitSnapshot` 和 `Invalidate`，所有 Record/Action 都会再次经过 Host Boundary 校验。
-
-业务数据更新必须只使用这个窄 source handle，不保存 `_G.LycheeInternal`、不直接访问 SearchIndex，也不手拼 Host source ID。Extension disable/retiring/removed 后 Host 会阻止旧结果和动作；第三方仍需在 `onDisabled`/`onHostDetached` 停止自己的事件、timer 和待处理刷新。
-
-## 搜索与交互
-
-Command 与 SearchRecord 的 `title`、`aliases`、`keywords`、`description` 支持 locale 别名，例如“复仇之怒”的中文俗称“翅膀”。SearchRecord action 只能是 plain-data：普通 `intent`、同 Extension 的 `open-panel`、Host 解释的 `secure-spell` 和受校验的 `drag-spell`。第三方不接触 SearchIndex、Palette、SecureButton 或全局快捷键。自定义 category 使用 `<extension-id>:<category>` 前缀；共享类别使用 Host 保留 ID。
-
-固定入口使用 Command，稳定实体使用 SearchSource，需要被其他模块复用的数据能力使用 CapabilityProvider。Capability 查询错误可区分 `CAPABILITY_NOT_FOUND`、`PROVIDER_UNAVAILABLE`、`INVALID_SCHEMA`、`INVALID_RESULT`、`PROVIDER_ERROR` 和 `RESULT_LIMIT`；不要把 Provider 注册本身当成搜索入口。
-
-## Fixture
-
-将 `examples/ThirdPartyFixture/` 复制为自己的 AddOn 目录即可测试完整注册链路。它演示：
-
-- `OptionalDeps: Lychee` 和 `_G.Lychee` 竞态处理；
-- SearchSource、CapabilityProvider、IntentHandler、PanelFactory；
-- Locale aliases（`复仇之怒` / `翅膀` / `wings`）；
-- SearchRecord 普通 Intent 动作与同 Extension 详情 Panel transition；
-- Capability 查询、owner disable/enable 与幂等 Unregister；
-- `onHostAttached`、`onHostDetached`、`onEnabled`、`onDisabled` 生命周期。
-
-Fixture 使用静态有界数据，不创建常驻 `OnUpdate`，符合 EllesmereUI 的零空闲成本和事件驱动原则。
+API 2 不保留旧 Extension/Command 多角色接入流程，也不迁移旧数据。内置玩家技能使用相同公共入口，可以作为较完整的事件驱动实现参考。

@@ -1,49 +1,22 @@
--- Development-only API helper. This file is not loaded by the Lychee Host.
--- Third-party AddOns depend on OptionalDeps: Lychee and consume _G.Lychee.
-local API = {
-    API_VERSION = 1,
-    API_REVISION = 1,
-    ERROR_CODES = {
-        SDK_UNAVAILABLE = "SDK_UNAVAILABLE",
-        UNSUPPORTED_API = "UNSUPPORTED_API",
-        INCOMPATIBLE_HOST = "INCOMPATIBLE_HOST",
-        INVALID_SCHEMA = "INVALID_SCHEMA",
-        INVALID_RESULT = "INVALID_RESULT",
-        INVALID_INTERACTION = "INVALID_INTERACTION",
-        REGISTRATION_CLOSED = "REGISTRATION_CLOSED",
-        CALLBACK_ERROR = "CALLBACK_ERROR",
-        CAPABILITY_NOT_FOUND = "CAPABILITY_NOT_FOUND",
-        PROVIDER_UNAVAILABLE = "PROVIDER_UNAVAILABLE",
-        PROVIDER_ERROR = "PROVIDER_ERROR",
-        RESULT_LIMIT = "RESULT_LIMIT",
-        COMBAT_LOCKED = "COMBAT_LOCKED",
-        ACTION_UNAVAILABLE = "ACTION_UNAVAILABLE",
-        DRAG_UNSUPPORTED = "DRAG_UNSUPPORTED",
-    },
-}
-
-function API.GetFacade()
-    return _G.Lychee
+-- Optional helper; not an AddOn and never a second Host implementation.
+local API = { API_VERSION=2, API_REVISION=1, ERROR_CODES={} }
+for _, code in ipairs({ "SDK_UNAVAILABLE", "UNSUPPORTED_API", "INVALID_SCHEMA", "DUPLICATE_ID", "RESULT_LIMIT",
+    "UNKNOWN_ACTION", "UNKNOWN_VIEW", "UNKNOWN_DRAG", "STALE_HANDLE", "PROVIDER_DISABLED", "STALE_REQUEST",
+    "STALE_RESULT", "UPDATE_IN_PROGRESS", "CALLBACK_ERROR", "INVALID_CALLBACK", "INVALID_RESULT", "QUERY_TIMEOUT", "ACTION_FAILED",
+    "ACTION_UNAVAILABLE", "COMBAT_LOCKED", "ACTION_REQUIRES_HARDWARE_CLICK", "MENU_UNAVAILABLE", "NO_ACTION" }) do
+    API.ERROR_CODES[code]=code
 end
-
+function API.GetFacade() return _G.Lychee end
 function API.Supports(facade, apiVersion, minRevision)
-    if type(facade) ~= "table" or type(facade.Supports) ~= "function" then
-        return false, { code = API.ERROR_CODES.SDK_UNAVAILABLE, retryable = true }
-    end
-    local ok, supported = pcall(facade.Supports, facade, apiVersion or API.API_VERSION, minRevision or 1)
-    if not ok or not supported then
-        return false, { code = API.ERROR_CODES.UNSUPPORTED_API, retryable = false }
-    end
+    if type(facade)~="table" or type(facade.Supports)~="function" then return false,{code="SDK_UNAVAILABLE",retryable=true} end
+    if apiVersion==nil then apiVersion=API.API_VERSION end
+    if minRevision==nil then minRevision=1 end
+    local ok,supported=pcall(facade.Supports,facade,apiVersion,minRevision)
+    if not ok or not supported then return false,{code="UNSUPPORTED_API",retryable=false} end
     return true
 end
-
--- This helper intentionally forwards only the public facade. It never creates a
--- sibling AddOn or mutates Host registries.
-function API.RegisterExtension(facade, descriptor)
-    if type(facade) ~= "table" or type(facade.RegisterExtension) ~= "function" then
-        return nil, { code = API.ERROR_CODES.SDK_UNAVAILABLE, retryable = true }
-    end
-    return facade:RegisterExtension(descriptor)
+function API.RegisterProvider(facade, definition)
+    if type(facade)~="table" or type(facade.RegisterProvider)~="function" then return nil,{code="SDK_UNAVAILABLE",retryable=true} end
+    return facade:RegisterProvider(definition)
 end
-
 return API

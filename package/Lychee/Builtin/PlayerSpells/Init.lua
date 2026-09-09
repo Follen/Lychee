@@ -39,41 +39,21 @@ function M:Init()
     local refreshed, refreshErr = self.Provider:Refresh()
     if not refreshed then return false, refreshErr end
     local module = self
-    local d=I.Registry:Begin({
-        id=self.Provider.extensionID,apiVersion=1,minApiRevision=1,title="玩家技能",
-        onEnabled=function()
-            if not module._initialized then return end
-            module.Provider._active=true
+    local handle, err = _G.Lychee:RegisterProvider({
+        id = self.Provider.extensionID, apiVersion = 2, version = "2.0.0", title = "玩家技能",
+        scope = { product = "retail" }, entries = self.Provider:BuildSearchRecords(),
+        onEnable = function(providerHandle)
+            module.Provider.providerHandle = providerHandle
+            module.Provider._active = true
             attachEvents(module.Provider)
             module.Provider:Refresh()
+            return function(reason)
+                module.Provider:Detach(reason == "unregister")
+                if reason == "unregister" then module.handle, module._initialized = nil, nil end
+            end
         end,
-        onDisabled=function()
-            if module._initialized then module.Provider:Detach(false) end
-        end,
-        onHostDetached=function()
-            module.Provider:Detach(true)
-            module.handle=nil
-            module._initialized=nil
-        end,
-    }); if not d then return false, "REGISTRATION_UNAVAILABLE" end
-    local sourceToken = d:RegisterSearchSource({
-        id = "records",
-        version = 1,
-        revision = 1,
-        priority = 100,
-        scope = { product = "retail" },
-        snapshot = function() return self.Provider:BuildSearchRecords() end,
     })
-    if not sourceToken then d:Abort(); return false, "SOURCE_REGISTRATION_FAILED" end
-    local handle, commitErr=d:Commit()
-    if not handle then return false, commitErr end
-    local sourceHandle, sourceErr=handle:GetSearchSource("records")
-    if not sourceHandle then handle:Unregister(); return false, sourceErr end
-
-    self.handle=handle
-    self.Provider.sourceHandle=sourceHandle
-    self.Provider._active=true
-    attachEvents(self.Provider)
-    self._initialized=true
+    if not handle then return false, err end
+    self.handle, self.Provider.providerHandle, self._initialized = handle, handle, true
     return true
 end

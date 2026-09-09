@@ -51,6 +51,7 @@ end
 function Executor:GetDragDescriptor(item)
     local drag = item and item.interaction and item.interaction.drag
     if type(drag) == "table" and drag.type == "spell" and type(drag.spellID) == "number" and drag.spellID > 0 then return drag end
+    if type(drag) == "table" and drag.type == "provider" and item.providerID and type(drag.handler) == "string" then return drag end
 end
 
 function Executor:ConfigureDragTarget(target, item)
@@ -76,6 +77,7 @@ function Executor:IsRowCurrent(row, session, generation, item, owner)
     owner = owner or extensionID(row, row.item)
     if owner and I.Registry and not I.Registry:IsEnabled(owner) then return false, "EXTENSION_DISABLED" end
     local rowItem = row.item
+    if I.Providers and not I.Providers:IsCurrent(rowItem) then return false, "STALE_GENERATION" end
     if rowItem.sourceID and rowItem.sourceGeneration then
         local static = I.Search and I.Search.StaticIndex
         local state = static and static:GetSourceState(rowItem.sourceID)
@@ -230,7 +232,13 @@ function Executor:Execute(row, actionID)
 
     local action, interaction = actionFor(item, actionID)
 
-    if action and action.kind == "open-panel" then
+    if action and action.kind == "provider" then
+        result, actionErr = I.Providers:Execute(item, actionID, I.Context and I.Context:Snapshot() or {})
+        if result then
+            result, actionErr = self:_Transition(result, item, row, palette.session, palette.generation)
+            if result and result.closePalette then palette:Hide("provider-action") end
+        end
+    elseif action and action.kind == "open-panel" then
         result, actionErr = self:_OpenPanel(item, row, action.panel, action.state or item.payload or {}, palette.session, palette.generation)
     elseif action and action.kind == "drag-spell" then
         result, actionErr = pickupSpell(action.spellID)
@@ -241,16 +249,18 @@ function Executor:Execute(row, actionID)
         end
         if actionID == (interaction and interaction.primaryActionID or "") then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
         result, actionErr = palette.secureBroker and palette.secureBroker:ShowFor(row, action, palette.session, palette.generation, item, row.extensionID) or false
+        if result then result = { ok=true, awaitingHardwareClick=true, actionTitle=action.title } end
     else
         result, actionErr = self:_Intent(item, actionID, row, palette.session, palette.generation)
     end
-    if succeeded(result) and palette.TouchRecent then palette:TouchRecent(item) end
+    if succeeded(result) and not (type(result) == "table" and result.awaitingHardwareClick) and palette.TouchRecent then palette:TouchRecent(item) end
     return result, actionErr
 end
 
 function Executor:ExecutePrimary(row)
     local item = row and row.item
     local action = primaryActionFor(item)
+    if item and item.providerID and not action then return false, "NO_ACTION" end
     -- A protected spell must receive the physical click on its prepared secure
     -- button.  Keyboard submission and scripted row activation stay honest.
     if action and action.kind == "secure-spell" then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
@@ -262,7 +272,33 @@ function Executor:BeginDrag(row)
     if not valid then return self.palette:RejectRow(row, err) end
     local drag = self:GetDragDescriptor(row.item)
     if not drag then return false, "DRAG_UNSUPPORTED" end
+    if drag.type == "provider" then return I.Providers:Execute(row.item, drag.handler, I.Context and I.Context:Snapshot() or {}, true) end
     return pickupSpell(drag.spellID)
+end
+
+function Executor:ShowActions(row)
+    local valid, err = self:Validate(row)
+    if not valid then return false, err end
+    if not MenuUtil or type(MenuUtil.CreateContextMenu) ~= "function" then return false, "MENU_UNAVAILABLE" end
+    local item, session, generation = row.item, row.session, row.generation
+    local actions = item.interaction and item.interaction.actions or {}
+    if #actions == 0 then return false, "NO_ACTION" end
+    local menu
+    menu = MenuUtil.CreateContextMenu(row, function(_, root)
+        for index = 1, #actions do
+            local actionID, title = actions[index].id, actions[index].title
+            root:CreateButton(title or actionID, function()
+                if self.palette and self.palette.actionMenu == menu then self.palette.actionMenu = nil end
+                local current, reason = self:Validate(row, session, generation, item)
+                if not current then return false, reason end
+                local result, actionError = self:Execute(row, actionID)
+                if self.palette then self.palette:ReportActionResult(result, actionError) end
+                return result
+            end)
+        end
+    end)
+    if self.palette then self.palette.actionMenu = menu end
+    return true
 end
 
 function Executor:PrepareVisibleRows(rows)

@@ -1,8 +1,8 @@
 ## Interface: 120100
 ## Title: Lychee
-## Notes: Single-entry command platform
+## Notes: General in-game search platform
 ## Author: Lychee
-## Version: 0.1.0
+## Version: 0.2.0
 ## SavedVariables: LycheeDB
 ## Bindings: Bindings.xml
 
@@ -19,6 +19,7 @@ Core/Scheduler.lua
 Core/ExtensionRegistry.lua
 Search/QueryOrchestrator.lua
 Search/SearchSession.lua
+Core/ProviderRuntime.lua
 PublicAPI/SDK.lua
 Builtin/Data/PlayerSpellAliases.lua
 Secure/Descriptor.lua

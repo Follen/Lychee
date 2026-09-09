@@ -135,7 +135,7 @@ local function buildEntry(source, record)
         sourceID = source.id,
         source = source,
         record = record,
-        stableID = record.id,
+        stableID = (source.extensionID or source.id) .. ":" .. record.id,
         fields = {},
         memberships = {},
         membershipSeen = {},
@@ -347,6 +347,49 @@ function Index:Remove(sourceID, recordID, revision, generation)
     return true
 end
 
+local function sameRecord(left, right)
+    if left == right then return true end
+    if type(left) ~= "table" or type(right) ~= "table" then return false end
+    for key, value in pairs(left) do if not sameRecord(value, right[key]) then return false end end
+    for key in pairs(right) do if left[key] == nil then return false end end
+    return true
+end
+
+local function applyChanges(self, source, replacements, removals, revision, reason)
+    if #replacements == 0 and #removals == 0 and (not revision or revision <= source.revision) then
+        return true, source.generation, source.revision, false
+    end
+    for index = 1, #removals do
+        local key = removals[index]
+        removeEntry(self, self.entries[key]); source.entryKeys[key] = nil
+    end
+    for index = 1, #replacements do
+        local entry = replacements[index]
+        if self.entries[entry.key] then removeEntry(self, self.entries[entry.key]) end
+        installEntry(self, entry); source.entryKeys[entry.key] = true
+    end
+    local nextRevision, nextGeneration = bump(self, source, revision, reason)
+    self:Persist()
+    return true, nextGeneration, nextRevision, true
+end
+
+function Index:ApplyDelta(sourceID, records, removedIDs)
+    local source = self.sources[sourceID]
+    if not source then return nil, "SOURCE_NOT_FOUND" end
+    if source.pending then return nil, "INVALID_STATE" end
+    local replacements, removals = {}, {}
+    for index = 1, #records do
+        local record = records[index]
+        local old = self.entries[sourceID .. ":" .. record.id]
+        if not old or not sameRecord(old.record, record) then replacements[#replacements + 1] = buildEntry(source, record) end
+    end
+    for index = 1, #removedIDs do
+        local key = sourceID .. ":" .. removedIDs[index]
+        if self.entries[key] then removals[#removals + 1] = key end
+    end
+    return applyChanges(self, source, replacements, removals, nil, "delta")
+end
+
 function Index:CommitSnapshot(sourceID, records, revision, generation)
     local source = self.sources[sourceID]
     if not source then return nil, "SOURCE_NOT_FOUND" end
@@ -364,19 +407,24 @@ function Index:CommitSnapshot(sourceID, records, revision, generation)
     else
         return nil, "INVALID_SCHEMA"
     end
-    clearSourceEntries(self, source)
+    local removed, replacements = {}, {}
+    for key in pairs(source.entryKeys) do
+        local old = self.entries[key]
+        if old and not nextRecords[old.record.id] then removed[#removed + 1] = key end
+    end
     local ids = {}
     for recordID in pairs(nextRecords) do ids[#ids + 1] = recordID end
     table.sort(ids)
     for index = 1, #ids do
-        local entry = buildEntry(source, nextRecords[ids[index]])
-        installEntry(self, entry)
-        source.entryKeys[entry.key] = true
+        local record = nextRecords[ids[index]]
+        local key = source.id .. ":" .. record.id
+        local old = self.entries[key]
+        if not old or not sameRecord(old.record, record) then
+            replacements[#replacements + 1] = buildEntry(source, record)
+        end
     end
     source.pending = nil
-    local nextRevision, nextGeneration = bump(self, source, revision, "snapshot")
-    self:Persist()
-    return true, nextGeneration, nextRevision
+    return applyChanges(self, source, replacements, removed, revision, "snapshot")
 end
 
 function Index:AddRecord(sourceID, record, descriptor)
@@ -662,9 +710,8 @@ function Index:RestoreSnapshot(snapshot)
 end
 
 function Index:Persist()
-    if type(LycheeDB) ~= "table" then return false end
-    LycheeDB.searchIndex = self:ExportSnapshot()
-    return true
+    -- Runtime data and executable descriptors are reconstructed by Providers.
+    return false
 end
 
 function Index:Rebuild()

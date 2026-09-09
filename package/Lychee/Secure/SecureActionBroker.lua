@@ -51,6 +51,12 @@ function Broker:_Acquire()
     if InCombatLockdown and InCombatLockdown() then return nil end
     local button = CreateFrame("Button", "LycheeSecureActionButton" .. tostring(#self.buttons + 1), self.parent, "SecureActionButtonTemplate")
     button:RegisterForClicks("LeftButtonUp")
+    button:SetScript("OnMouseDown", function(current, mouseButton)
+        local token = current.token
+        if mouseButton == "RightButton" and token and token.controller and token.controller.ShowRowActions then
+            token.controller:ShowRowActions(token.row)
+        end
+    end)
     button:SetAttribute("useOnKeyDown", false)
     button:SetScript("OnDragStart", function(current)
         local token = current.token
@@ -65,7 +71,9 @@ function Broker:_Acquire()
         local token, controller = current.token, current.token and current.token.controller
         local list = token and (token.row.ownerView or (controller and controller.list))
         if token and list and list.SetHover then list:SetHover(token.row, true) end
-        if token and list and list.ShowTooltip then list:ShowTooltip(token.row, current) end
+        if current.armedSecondary and controller and controller.list and controller.list.ShowActionTooltip then
+            controller.list:ShowActionTooltip(current.action, current)
+        elseif token and list and list.ShowTooltip then list:ShowTooltip(token.row, current) end
     end)
     button:SetScript("OnLeave", function(current)
         local token, controller = current.token, current.token and current.token.controller
@@ -133,6 +141,7 @@ function Broker:Prepare(action, token)
     if executor then executor:ConfigureDragTarget(button, token and (token.item or token.row and token.row.item)) end
     button:Show()
     self.active[#self.active + 1] = button
+    button.activeIndex = #self.active
     return button
 end
 
@@ -177,8 +186,15 @@ function Broker:Release(button)
         return
     end
     button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
+    if button.activeIndex then
+        local index, last = button.activeIndex, self.active[#self.active]
+        self.active[index] = last
+        if last then last.activeIndex = index end
+        self.active[#self.active], button.activeIndex = nil, nil
+    end
     if self.pendingButton == button then self.pendingButton = nil end
     button.busy, button.pendingRelease, button.token, button.action, button.spellID, button.pendingCast = false, nil, nil, nil, nil, nil
+    button.armedSecondary = nil
 end
 function Broker:ShowFor(row, action, session, generation, item, extensionID)
     local button, err = self:Prepare(action, {
@@ -186,7 +202,13 @@ function Broker:ShowFor(row, action, session, generation, item, extensionID)
         extensionID = extensionID or (row and row.extensionID), session = session, generation = generation,
     })
     if not button then return false, err end
-    -- 让已准备的安全按钮覆盖整张卡片，用户无需寻找角落里的小按钮。
+    for index = 1, #self.buttons do
+        local previous = self.buttons[index]
+        if previous ~= button and previous.token and previous.token.row == row then self:Release(previous) end
+    end
+    button.armedSecondary, button.action, button._target = true, action, nil
+    if button:GetParent() ~= row then button:SetParent(row) end
+    if row.GetFrameLevel and button.SetFrameLevel and button:GetFrameLevel() ~= row:GetFrameLevel() + 3 then button:SetFrameLevel(row:GetFrameLevel() + 3) end
     button:ClearAllPoints(); button:SetPoint("TOPLEFT", row, "TOPLEFT", 4, 2); button:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2)
     return true
 end
@@ -216,7 +238,6 @@ end
 function Broker:Invalidate() self.dirty = true end
 function Broker:ReleaseAll()
     for i = 1, #self.buttons do self:Release(self.buttons[i]) end
-    self.active = {}
 end
 function Broker:Destroy()
     self:ReleaseAll()

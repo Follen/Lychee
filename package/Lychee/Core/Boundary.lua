@@ -137,15 +137,22 @@ function Boundary:ValidateSearchAction(action, field)
     if not keyOK then return nil, keyErr end
     if not stableID(action.id, 64) then return schemaFailure(field .. ".id") end
     local kind = action.kind
-    if kind ~= "intent" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "drag-spell" then
+    if kind ~= "provider" and kind ~= "intent" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "drag-spell" then
         return schemaFailure(field .. ".kind")
     end
+    local kindKeys = { id=true, title=true, kind=true }
+    if kind == "intent" then kindKeys.intent = true
+    elseif kind == "open-panel" then kindKeys.panel, kindKeys.state = true, true
+    elseif kind == "secure-spell" or kind == "drag-spell" then kindKeys.spellID = true end
+    keyOK, keyErr = allowedKeys(action, kindKeys, field)
+    if not keyOK then return nil, keyErr end
     if action.title ~= nil and type(action.title) ~= "string" and type(action.title) ~= "table" then
         return schemaFailure(field .. ".title")
     end
     if kind == "intent" and action.intent == nil then return schemaFailure(field .. ".intent") end
     if kind == "open-panel" and not stableID(action.panel, 96) then return schemaFailure(field .. ".panel") end
     if kind == "open-panel" and action.state ~= nil then
+        if type(action.state) ~= "table" then return schemaFailure(field .. ".state") end
         local stateOK, stateErr = self:Validate(action.state, field .. ".state")
         if not stateOK then return nil, stateErr end
     end
@@ -222,7 +229,7 @@ function Boundary:ValidateSearchRecord(record, field)
         if type(record.category) == "table" then
             local categoryKeysOK, categoryKeysErr = allowedKeys(record.category, { id = true, title = true, order = true, color = true }, field .. ".category")
             if not categoryKeysOK then return nil, categoryKeysErr end
-            if record.category.id ~= nil and not stableID(record.category.id, 64) then return schemaFailure(field .. ".category.id") end
+            if record.category.id ~= nil and not stableID(record.category.id, 192) then return schemaFailure(field .. ".category.id") end
             local titleOK, titleErr = validateTextField(record.category.title, field .. ".category.title")
             if not titleOK then return nil, titleErr end
             if record.category.order ~= nil and (type(record.category.order) ~= "number" or record.category.order ~= math.floor(record.category.order)) then
@@ -233,7 +240,7 @@ function Boundary:ValidateSearchRecord(record, field)
         end
     end
     if record.actions ~= nil then
-        if type(record.actions) ~= "table" or #record.actions > 4 then return schemaFailure(field .. ".actions") end
+        if type(record.actions) ~= "table" or #record.actions > 16 then return schemaFailure(field .. ".actions") end
         local seen = {}
         for index = 1, #record.actions do
             local action = record.actions[index]
@@ -249,12 +256,17 @@ function Boundary:ValidateSearchRecord(record, field)
         return schemaFailure(field .. ".primaryActionID")
     end
     if record.drag ~= nil then
-        if type(record.drag) ~= "table" or record.drag.type ~= "spell" or not positiveInteger(record.drag.spellID) then
+        if type(record.drag) ~= "table" or (record.drag.type ~= "spell" and record.drag.type ~= "provider") then
             return schemaFailure(field .. ".drag")
         end
+        if record.drag.type == "spell" and not positiveInteger(record.drag.spellID) then return schemaFailure(field .. ".drag.spellID") end
+        if record.drag.type == "provider" and not stableID(record.drag.handler, 64) then return schemaFailure(field .. ".drag.handler") end
+        if record.drag.type == "spell" and record.drag.handler ~= nil then return schemaFailure(field .. ".drag.handler") end
+        if record.drag.type == "provider" and record.drag.spellID ~= nil then return schemaFailure(field .. ".drag.spellID") end
+        if record.drag.title ~= nil and type(record.drag.title) ~= "string" then return schemaFailure(field .. ".drag.title") end
         local dragOK, dragErr = self:Validate(record.drag, field .. ".drag")
         if not dragOK then return nil, dragErr end
-        for key in pairs(record.drag) do if key ~= "type" and key ~= "spellID" then return schemaFailure(field .. ".drag." .. tostring(key)) end end
+        for key in pairs(record.drag) do if key ~= "type" and key ~= "spellID" and key ~= "handler" and key ~= "title" then return schemaFailure(field .. ".drag." .. tostring(key)) end end
     end
     if record.availability ~= nil then
         if type(record.availability) ~= "table" or type(record.availability.contextKey) ~= "string" then

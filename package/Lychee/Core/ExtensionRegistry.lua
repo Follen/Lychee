@@ -22,10 +22,16 @@ local descriptorCallbacks = {
 local function failure(code, field, extensionID)
     return { code=code, field=field, extensionID=extensionID, retryable=false }
 end
+local function copyValue(value)
+    if type(value) ~= "table" then return value end
+    local copy = {}
+    for key, child in pairs(value) do copy[key] = copyValue(child) end
+    return copy
+end
 local function validID(value)
     return type(value)=="string" and #value<=64 and value:match("^[a-z0-9][a-z0-9%.%-]*$")~=nil
 end
-local function integer(value) return type(value)=="number" and value==math.floor(value) end
+local function integer(value) return type(value)=="number" and value > -math.huge and value < math.huge and value==math.floor(value) end
 local function validTitle(value)
     return (type(value)=="string" and value~="") or
         (type(value)=="table" and type(value.default)=="string" and value.default~="")
@@ -92,7 +98,7 @@ local function validatePanel(panel, public)
     return true
 end
 local function validateSearchSource(source, public)
-    local boundaryOK, boundaryErr=I.Boundary:Validate(source,"searchSource",{callbacks=descriptorCallbacks}); if not boundaryOK then return nil,boundaryErr end
+    local boundaryOK, boundaryErr=I.Boundary:Validate(source,"searchSource",{callbacks=descriptorCallbacks,maxFields=4096,maxDepth=I.Boundary.MAX_DEPTH+2}); if not boundaryOK then return nil,boundaryErr end
     if type(source)~="table" or not validID(source.id) or not integer(source.version) or source.version < 1
         or type(source.priority)~="number" or type(source.scope)~="table"
         or not integer(source.revision) or source.revision < 0
@@ -108,10 +114,20 @@ end
 
 local function validateSearchRecords(records, field)
     if type(records) ~= "table" then return nil, failure("INVALID_SCHEMA", field) end
-    if #records > 256 then return nil, failure("RESULT_LIMIT", field) end
+    if #records > 4096 then return nil, failure("RESULT_LIMIT", field) end
+    local boundaryOK, boundaryErr = I.Boundary:Validate(records, field, { maxFields = 4096, maxDepth = I.Boundary.MAX_DEPTH + 1 })
+    if not boundaryOK then return nil, boundaryErr end
+    local count, seen = 0, {}
+    for key in pairs(records) do
+        if type(key) ~= "number" or key < 1 or key ~= math.floor(key) or key > #records then return nil, failure("INVALID_SCHEMA", field) end
+        count = count + 1
+    end
+    if count ~= #records then return nil, failure("INVALID_SCHEMA", field) end
     for index = 1, #records do
         local ok, why = I.Boundary:ValidateSearchRecord(records[index], field .. "[" .. index .. "]")
         if not ok then return nil, why end
+        if seen[records[index].id] then return nil, failure("DUPLICATE_ID", field .. ".id") end
+        seen[records[index].id] = true
     end
     return true
 end
@@ -133,16 +149,26 @@ function Registry:OnChange(callback)
     return nil,failure("INVALID_SCHEMA","callback")
 end
 function Registry:RegisterReady(callback)
-    if self.ready then invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision}); return true end
-    self.readyListeners[#self.readyListeners+1]=callback
-    return true
+    if type(callback) ~= "function" then return nil, failure("INVALID_CALLBACK", "callback") end
+    local listener = { callback = callback }
+    local token = {}
+    function token:Cancel() listener.callback = nil; return true end
+    if self.ready then
+        invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
+        listener.callback = nil
+    else self.readyListeners[#self.readyListeners+1]=listener end
+    return token
 end
 function Registry:SetReady(ready)
     local becameReady=not self.ready and not not ready
     self.ready=not not ready
     if not becameReady then return end
     local callbacks=self.readyListeners; self.readyListeners={}
-    for i=1,#callbacks do invoke(callbacks[i],{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision}) end
+    for i=1,#callbacks do
+        local callback = callbacks[i].callback
+        callbacks[i].callback = nil
+        if callback then invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision}) end
+    end
     local pending={}
     for i=1,#self.order do local entry=self.entries[self.order[i]]; if entry and entry.state=="pending" and not entry.incompatible then pending[#pending+1]=entry end end
     table.sort(pending,function(a,b) return a.id<b.id end)
@@ -152,6 +178,7 @@ end
 function Registry:Begin(desc, options)
     local public=options and options.public==true
     local ok,why=validateDescriptor(desc,public); if not ok then return nil,why end
+    desc = copyValue(desc)
     if self.drafts[desc.id] or (self.entries[desc.id] and self.entries[desc.id].state~="removed") then return nil,failure("DUPLICATE_ID","id",desc.id) end
     local registry=self
     local draft={descriptor=desc,commands={},providers={},handlers={},panels={},sources={},state="draft",public=public}
@@ -160,6 +187,8 @@ function Registry:Begin(desc, options)
         if draft.state~="draft" then return nil,failure("REGISTRATION_CLOSED",collection,desc.id) end
         local valid,invalid=validator(value,public)
         if not valid then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,invalid end
+        value = copyValue(value)
+        if collection == "handlers" and type(value.handle) ~= "function" then value.handle = value.execute end
         local key=value[idField or "id"]
         for i=1,#draft[collection] do if draft[collection][i][idField or "id"]==key then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("DUPLICATE_ID",collection,desc.id) end end
         draft[collection][#draft[collection]+1]=value
@@ -168,7 +197,6 @@ function Registry:Begin(desc, options)
     function draft:RegisterCommand(value) return add("commands",value,validateCommand) end
     function draft:RegisterCapabilityProvider(value) return add("providers",value,validateProvider) end
     function draft:RegisterIntentHandler(value)
-        if type(value)=="table" and type(value.handle)~="function" and type(value.execute)=="function" then value.handle=value.execute end
         return add("handlers",value,validateHandler,"type")
     end
     function draft:RegisterPanelFactory(value) return add("panels",value,validatePanel) end
@@ -189,6 +217,14 @@ function Registry:Begin(desc, options)
         local handle=registry:_Handle(entry)
         if registry.ready and not entry.incompatible then local published,publishErr=registry:_Publish(entry); if not published then return nil,publishErr end end
         return handle
+    end
+    if public then
+        local facade = {}
+        for _, name in ipairs({ "RegisterCommand", "RegisterCapabilityProvider", "RegisterIntentHandler", "RegisterPanelFactory", "RegisterSearchSource", "Abort", "Commit" }) do
+            local method = draft[name]
+            facade[name] = function(_, ...) return method(draft, ...) end
+        end
+        return facade
     end
     return draft
 end
@@ -222,6 +258,7 @@ function Registry:_Publish(entry)
             end
             local recordsOK, recordsErr = validateSearchRecords(records, "searchSource." .. source.id .. ".records")
             if not recordsOK then self:_Rollback(entry); return nil, recordsErr end
+            records = copyValue(records)
             for recordIndex = 1, #records do
                 local categoryOK, categoryErr = validateCategoryOwnership(records[recordIndex], entry.id, "searchSource." .. source.id .. ".records[" .. recordIndex .. "]")
                 if not categoryOK then self:_Rollback(entry); return nil, categoryErr end
@@ -258,7 +295,12 @@ function Registry:IsEnabled(extensionID) local entry=self.entries[extensionID]; 
 
 function Registry:_Handle(entry)
     local registry=self
-    local handle={id=entry.id,_entry=entry}
+    local handle={id=entry.id}
+    local function currentEntry(mutation)
+        if registry.entries[entry.id] ~= entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("STALE_HANDLE", nil, entry.id) end
+        if mutation and entry.state ~= "enabled" and entry.state ~= "registered" then return nil, failure("EXTENSION_DISABLED", nil, entry.id) end
+        return true
+    end
     function handle:GetState()
         return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=true,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled",errorCode=entry.incompatible and "INCOMPATIBLE_HOST" or nil}
     end
@@ -269,6 +311,7 @@ function Registry:_Handle(entry)
         return I.Broker:Query(request,context)
     end
     function handle:Invalidate(key)
+        local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
         local allowed = false
         local keys = entry.descriptor.invalidationKeys or {}
         for index = 1, #keys do if keys[index] == key then allowed = true; break end end
@@ -283,37 +326,48 @@ function Registry:_Handle(entry)
         return true, states
     end
     function handle:GetSearchSource(sourceID)
+        local current, currentErr = currentEntry(false); if not current then return nil, currentErr end
         if type(sourceID) ~= "string" then return nil, failure("INVALID_SCHEMA", "sourceID", entry.id) end
         for index = 1, #entry.sources do
             local source = entry.sources[index]
             if source.id == sourceID then
                 local fullID = entry.id .. ":" .. source.id
                 local token = { id = source.id, extensionID = entry.id, sourceID = fullID }
-                function token:GetState() return I.Search.StaticIndex:GetSourceState(fullID) end
-                function token:BeginSnapshot() return I.Search.StaticIndex:BeginSnapshot(fullID) end
+                local autoGeneration, scheduledGeneration
+                function token:GetState()
+                    local ok, err = currentEntry(false); if not ok then return nil, err end
+                    return I.Search.StaticIndex:GetSourceState(fullID)
+                end
+                function token:BeginSnapshot()
+                    local ok, err = currentEntry(true); if not ok then return nil, err end
+                    return I.Search.StaticIndex:BeginSnapshot(fullID)
+                end
                 local function beginAutoSnapshot()
-                    if token._autoGeneration then return token._autoGeneration end
+                    if autoGeneration then return autoGeneration end
                     local generation, beginErr = I.Search.StaticIndex:BeginSnapshot(fullID)
                     if not generation then return nil, beginErr end
-                    token._autoGeneration = generation
+                    autoGeneration = generation
                     return generation
                 end
                 local function scheduleCommit(generation)
-                    if token._autoScheduledGeneration == generation then return end
-                    token._autoScheduledGeneration = generation
+                    if scheduledGeneration == generation then return end
+                    scheduledGeneration = generation
                     C_Timer.After(0, function()
-                        if token._autoScheduledGeneration == generation then token._autoScheduledGeneration = nil end
-                        if token._autoGeneration ~= generation then return end
-                        token._autoGeneration = nil
+                        if scheduledGeneration == generation then scheduledGeneration = nil end
+                        if autoGeneration ~= generation then return end
+                        autoGeneration = nil
+                        if not currentEntry(true) then return end
                         local ok, _, revision = I.Search.StaticIndex:CommitSnapshot(fullID, nil, nil, generation)
                         if ok then source.revision = revision or source.revision end
                     end)
                 end
                 function token:Upsert(record, generation)
+                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
                     local ok, why = I.Boundary:ValidateSearchRecord(record, "searchSource." .. source.id)
                     if not ok then return nil, why end
                     local categoryOK, categoryErr = validateCategoryOwnership(record, entry.id, "searchSource." .. source.id)
                     if not categoryOK then return nil, categoryErr end
+                    record = copyValue(record)
                     record._extensionID = entry.id
                     if generation == nil and C_Timer and type(C_Timer.After) == "function" then
                         local autoGeneration, autoErr = beginAutoSnapshot()
@@ -325,6 +379,8 @@ function Registry:_Handle(entry)
                     return I.Search.StaticIndex:Upsert(fullID, record, nil, generation)
                 end
                 function token:Remove(recordID, generation)
+                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
+                    if type(recordID) ~= "string" or recordID == "" then return nil, failure("INVALID_SCHEMA", "recordID", entry.id) end
                     if generation == nil and C_Timer and type(C_Timer.After) == "function" then
                         local autoGeneration, autoErr = beginAutoSnapshot()
                         if not autoGeneration then return nil, autoErr end
@@ -335,22 +391,57 @@ function Registry:_Handle(entry)
                     return I.Search.StaticIndex:Remove(fullID, recordID, nil, generation)
                 end
                 function token:CommitSnapshot(records, revision, generation)
-                    if generation == nil and token._autoGeneration then generation = token._autoGeneration end
-                    if generation == token._autoGeneration then token._autoGeneration = nil end
+                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
+                    if revision ~= nil and (not integer(revision) or revision < 0) then return nil, failure("INVALID_SCHEMA", "revision", entry.id) end
+                    if generation == nil and autoGeneration then generation = autoGeneration end
                     if records ~= nil then
                         local valid, why = validateSearchRecords(records, "searchSource." .. source.id .. ".records")
                         if not valid then return nil, why end
+                        records = copyValue(records)
                         for i = 1, #records do
                             local categoryOK, categoryErr = validateCategoryOwnership(records[i], entry.id, "searchSource." .. source.id .. ".records[" .. i .. "]")
                             if not categoryOK then return nil, categoryErr end
                             records[i]._extensionID = entry.id
                         end
                     end
-                    local ok, a, b = I.Search.StaticIndex:CommitSnapshot(fullID, records, revision, generation)
-                    if ok then source.revision = b or source.revision end
-                    return ok, a, b
+                    local ok, a, b, changed = I.Search.StaticIndex:CommitSnapshot(fullID, records, revision, generation)
+                    if ok then
+                        source.revision = b or source.revision
+                        if generation == autoGeneration then autoGeneration = nil end
+                    end
+                    return ok, a, b, changed
                 end
-                function token:Invalidate(key) return I.Search.StaticIndex:Invalidate(fullID, key) end
+                function token:ApplyDelta(records, removedIDs)
+                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
+                    local valid, why = validateSearchRecords(records, "searchSource.delta")
+                    if not valid then return nil, why end
+                    local removeOK, removeErr = I.Boundary:Validate(removedIDs, "searchSource.remove", { maxFields = 4096 })
+                    if not removeOK then return nil, removeErr end
+                    if type(removedIDs) ~= "table" or #removedIDs > 4096 then return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id) end
+                    local count, seen = 0, {}
+                    for key, id in pairs(removedIDs) do
+                        if type(key) ~= "number" or key < 1 or key > #removedIDs or key ~= math.floor(key) or type(id) ~= "string" or id == "" or seen[id] then
+                            return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id)
+                        end
+                        count, seen[id] = count + 1, true
+                    end
+                    if count ~= #removedIDs then return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id) end
+                    records = copyValue(records)
+                    for index = 1, #records do
+                        if seen[records[index].id] then return nil, failure("INVALID_SCHEMA", "searchSource.delta", entry.id) end
+                        local categoryOK, categoryErr = validateCategoryOwnership(records[index], entry.id, "searchSource.delta")
+                        if not categoryOK then return nil, categoryErr end
+                        records[index]._extensionID = entry.id
+                    end
+                    local ok, a, b, changed = I.Search.StaticIndex:ApplyDelta(fullID, records, removedIDs)
+                    if ok then source.revision = b or source.revision end
+                    return ok, a, b, changed
+                end
+                function token:Invalidate(key)
+                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
+                    if type(key) ~= "string" or key == "" then return nil, failure("INVALID_SCHEMA", "key", entry.id) end
+                    return I.Search.StaticIndex:Invalidate(fullID, key)
+                end
                 return token
             end
         end

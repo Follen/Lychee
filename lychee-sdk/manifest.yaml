@@ -3,7 +3,7 @@ kind: development-package
 runtimeAddon: false
 hostAddon: Lychee
 facade: _G.Lychee
-apiVersion: 1
+apiVersion: 2
 apiRevision: 1
 contents:
   - README.md
@@ -11,3 +11,5 @@ contents:
   - ApiStubs.lua
   - examples/ThirdPartyFixture/ThirdPartyFixture.toc
   - examples/ThirdPartyFixture/ThirdPartyFixture.lua
+
+  - examples/DeferredProvider.lua

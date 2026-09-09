@@ -81,7 +81,7 @@ local root = "package/Lychee/"
 local files = {
     "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
-    "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "PublicAPI/SDK.lua",
+    "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
     "UI/FocusController.lua", "UI/Theme.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/Palette.lua",
 }
@@ -241,7 +241,7 @@ assertEq(palette.homeView.frame:IsShown(), true, "closing panel restores current
 I.Registry:SetReady(true)
 
 -- Fixed row/custom-panel Commands and catalog dynamic-list use the production executor.
-local foreignDraft = I.Registry:Begin({ id = "interaction.foreign", apiVersion = 1, minApiRevision = 1, title = "Foreign", version = "1.0.0" })
+local foreignDraft = I.Registry:Begin({ id = "interaction.foreign", apiVersion = 2, minApiRevision = 1, title = "Foreign", version = "1.0.0" })
 assert(foreignDraft)
 local foreignCommandCalls, foreignActionCalls, foreignOnlyCommandCalls, foreignOnlyActionCalls = 0, 0, 0, 0
 assert(foreignDraft:RegisterIntentHandler({
@@ -262,7 +262,7 @@ assert(foreignDraft:RegisterIntentHandler({
 }))
 local foreignHandle = assert(foreignDraft:Commit())
 
-local commandDraft = I.Registry:Begin({ id = "interaction.commands", apiVersion = 1, minApiRevision = 1, title = "Commands", version = "1.0.0" })
+local commandDraft = I.Registry:Begin({ id = "interaction.commands", apiVersion = 2, minApiRevision = 1, title = "Commands", version = "1.0.0" })
 assert(commandDraft)
 local fixedCommandCalls = 0
 assert(commandDraft:RegisterIntentHandler({
@@ -334,7 +334,7 @@ assertEq(foreignCommandCalls, 0, "Command owner mismatch does not invoke foreign
 assert(commandHandle:Unregister())
 
 -- SearchRecord actions stay declarative and route ordinary intents through the host router.
-local actionDraft = I.Registry:Begin({ id = "interaction.actions", apiVersion = 1, minApiRevision = 1, title = "Actions", version = "1.0.0" })
+local actionDraft = I.Registry:Begin({ id = "interaction.actions", apiVersion = 2, minApiRevision = 1, title = "Actions", version = "1.0.0" })
 assert(actionDraft)
 assert(actionDraft:RegisterSearchSource({
     id = "records", version = 1, revision = 1, priority = 50, scope = {},
@@ -421,12 +421,12 @@ assertEq(actionRow.primaryHint:GetText(), "", "primary action title stays in too
 assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()
-assert(LycheeDB and LycheeDB.palette and LycheeDB.palette.recent[1] == actionItem.id, "recent stores stable id")
+assert(LycheeDB and LycheeDB.palette and LycheeDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
 assert(LycheeDB.palette.pinned[1] == actionItem.id, "pinned stores stable id")
 local hasRecent = false
 for sectionIndex = 1, #(palette.homeView.sections or {}) do
     local section = palette.homeView.sections[sectionIndex]
-    if section.id == "saved:" .. actionItem.id then hasRecent = true end
+    if section.id == "saved:" .. actionItem.ref.providerID .. ":" .. actionItem.id then hasRecent = true end
 end
 assert(hasRecent and #palette.homeView.sections == 1, "home contains recent items only")
 assert(#palette.homeView.tiles >= #palette.homeView.sections, "home tile pool grows to the section count")
@@ -599,7 +599,7 @@ I.Context:Set("interactionReady", true)
 actionItem.searchRecord.availability = nil
 
 -- SearchRecord action payloads are plain-data only; unknown executable fields are rejected.
-local invalidActionDraft = I.Registry:Begin({ id = "interaction.invalid-action", apiVersion = 1, minApiRevision = 1, title = "Invalid action", version = "1.0.0" })
+local invalidActionDraft = I.Registry:Begin({ id = "interaction.invalid-action", apiVersion = 2, minApiRevision = 1, title = "Invalid action", version = "1.0.0" })
 assert(invalidActionDraft)
 local invalidDeclaration, invalidDeclarationErr = invalidActionDraft:RegisterSearchSource({
     id = "records", version = 1, revision = 1, priority = 1, scope = {},
@@ -610,7 +610,7 @@ local invalidDeclaration, invalidDeclarationErr = invalidActionDraft:RegisterSea
 assertEq(invalidDeclaration, nil, "invalid action declaration")
 assert(invalidDeclarationErr and invalidDeclarationErr.code == "INVALID_SCHEMA", "invalid action schema error")
 
-local missingIntentDraft = I.Registry:Begin({ id = "interaction.missing-intent", apiVersion = 1, minApiRevision = 1, title = "Missing intent", version = "1.0.0" })
+local missingIntentDraft = I.Registry:Begin({ id = "interaction.missing-intent", apiVersion = 2, minApiRevision = 1, title = "Missing intent", version = "1.0.0" })
 assert(missingIntentDraft)
 assert(missingIntentDraft:RegisterSearchSource({
     id = "records", version = 1, revision = 1, priority = 1, scope = {},
@@ -622,7 +622,7 @@ local missingIntentHandle, missingIntentErr = missingIntentDraft:Commit()
 assertEq(missingIntentHandle, nil, "missing intent commit")
 assert(missingIntentErr and missingIntentErr.code == "INVALID_SCHEMA", "missing intent schema error")
 
-local missingSourceDraft = I.Registry:Begin({ id = "interaction.missing-source-fields", apiVersion = 1, minApiRevision = 1, title = "Missing source fields", version = "1.0.0" })
+local missingSourceDraft = I.Registry:Begin({ id = "interaction.missing-source-fields", apiVersion = 2, minApiRevision = 1, title = "Missing source fields", version = "1.0.0" })
 assert(missingSourceDraft)
 local missingSource, missingSourceErr = missingSourceDraft:RegisterSearchSource({ id = "records", records = {} })
 assertEq(missingSource, nil, "missing source metadata")
@@ -678,7 +678,7 @@ assertEq(invalidDragErr, "DRAG_UNSUPPORTED", "invalid drag error")
 palette:Hide("interaction-smoke")
 
 -- A stale row must not invoke an unregistered extension action.
-local draft = I.Registry:Begin({ id = "interaction.stale", apiVersion = 1, minApiRevision = 1, title = "Stale", version = "1.0.0" })
+local draft = I.Registry:Begin({ id = "interaction.stale", apiVersion = 2, minApiRevision = 1, title = "Stale", version = "1.0.0" })
 assert(draft)
 local called = false
 assert(draft:RegisterCommand({
@@ -699,7 +699,7 @@ assert(staleErr == "HANDLER_UNAVAILABLE" or staleErr == "EXTENSION_DISABLED", "u
 -- Launcher regressions: effective visibility, direct recent clicks, bounded
 -- scrolling and secure combat cleanup, using the real host and broker.
 palette:Hide("launcher-fixture")
-local launcherDraft = assert(I.Registry:Begin({ id = "interaction.launcher", apiVersion = 1, minApiRevision = 1, title = "Launcher", version = "1.0.0" }))
+local launcherDraft = assert(I.Registry:Begin({ id = "interaction.launcher", apiVersion = 2, minApiRevision = 1, title = "Launcher", version = "1.0.0" }))
 local launcherRecords = {}
 for index = 1, 12 do
     launcherRecords[index] = { id = "launcher:" .. index, kind = "spell", title = "入口测试 " .. index,
@@ -758,7 +758,7 @@ assert(palette.visible and launcherButton.busy and launcherButton:IsShown(), "fa
 launcherButton.scripts.PreClick(launcherButton)
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED", 31884))
 assert(not palette.visible and not palette.frame:IsShown(), "successful spell closes launcher")
-assertEq(LycheeDB.palette.recent[1], clickedID, "successful spell records stable recent ID")
+assertEq(LycheeDB.palette.recent[1].entryID, clickedID, "successful spell records stable recent ID")
 assert(palette:Show())
 assertEq(palette.input:GetText(), "", "reopening clears previous query")
 assert(palette:IsHomeVisible(), "reopening returns to recent homepage")
@@ -803,11 +803,11 @@ for index = 1, #secureBroker.buttons do
 end
 C_Timer = nil
 assert(launcherHandle:SetEnabled(false))
-assertEq(#I.Search.Query:ResolveRecent({ clickedID }, 5), 0, "disabled source is absent from recent launcher")
+assertEq(#I.Search.Query:ResolveRecent({ { providerID = "interaction.launcher", entryID = clickedID, sourceID = "interaction.launcher:records" } }, 5), 0, "disabled source is absent from recent launcher")
 assert(launcherHandle:Unregister())
 
 -- A mixed source owns actions and drag independently of presentation kind.
-local mixedDraft = assert(I.Registry:Begin({ id = "interaction.mixed", apiVersion = 1, minApiRevision = 1, title = "Mixed" }))
+local mixedDraft = assert(I.Registry:Begin({ id = "interaction.mixed", apiVersion = 2, minApiRevision = 1, title = "Mixed" }))
 assert(mixedDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 100, scope = {}, records = {
     { id = "mixed:cast", kind = "spell", title = "混合入口施放", actions = {
         { id = "cast", title = "施放", kind = "secure-spell", spellID = 31884 },
@@ -879,6 +879,76 @@ palette:CloseView("mixed-panel")
 local commandTile = findEntry(palette.homeView.tiles, "mixed:command")
 commandTile.scripts.OnClick(commandTile)
 assertEq(mixedRuns, 1, "recent click runs the provider command")
-assertEq(LycheeDB.palette.recent[1], "mixed:command", "successful ordinary action updates recency")
+assertEq(LycheeDB.palette.recent[1].entryID, "mixed:command", "successful ordinary action updates recency")
 assert(mixedHandle:Unregister())
-print("Lychee interaction smoke PASS (launcher, secure combat, recent and scrolling)")
+-- The distributable API 2 fixture must work through real Host rendering/view code.
+dofile("lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua")
+local fixtureProvider = assert(ThirdPartyFixture.GetProvider())
+assert(palette:Show())
+typeQuery("第三方示例条目")
+local fixtureRow = findEntry(palette.list.rows, "fixture-item-12345")
+assertEq(fixtureRow.primaryAction.kind, "provider", "ordinary Provider action reaches the shared renderer")
+assertEq(fixtureRow.dragger.dragButtons[1], "LeftButton", "custom Provider drag is registered")
+fixtureRow.primaryTarget.scripts.OnClick(fixtureRow.primaryTarget, "LeftButton")
+local fixturePanel = assert(ThirdPartyFixture.GetPanel())
+assertEq(fixturePanel.text:GetText(), "Item 12345", "view Mount receives and renders initial state")
+assert(palette.viewHost:Update({ itemID=9 }))
+assertEq(fixturePanel.text:GetText(), "Item 9", "view Update receives state directly")
+palette:Hide("fixture-close")
+assert(not fixturePanel.frame:IsShown() and not palette.viewHost:IsActive(), "view teardown stops display")
+assert(palette:Show())
+local fixtureTile = findEntry(palette.homeView.tiles, "fixture-item-12345")
+local menuEntries = {}
+MenuUtil = { CreateContextMenu=function(_, generator)
+    generator(nil, { CreateButton=function(_, title, callback) menuEntries[#menuEntries+1]={title=title,callback=callback} end })
+end }
+fixtureTile.scripts.OnClick(fixtureTile, "RightButton")
+assertEq(#menuEntries, 2, "recent Provider entry exposes all actions")
+local originalMouseOver = palette.frame.IsMouseOver
+palette.frame.IsMouseOver = function() return false end
+palette.actionMenu = { IsShown=function() return true end, IsMouseOver=function() return true end }
+palette.input:Focus()
+palette.input.frame:SetFocus()
+palette.input.focused = true -- The frame adapter does not dispatch OnEditFocusGained.
+palette.frame.scripts.OnEvent(palette.frame,"GLOBAL_MOUSE_DOWN")
+assert(palette.input.frame.focused, "clicking an owned menu preserves search focus")
+palette.actionMenu = nil
+palette.frame.scripts.OnEvent(palette.frame,"GLOBAL_MOUSE_DOWN")
+assert(not palette.input.frame.focused, "outside click still releases keyboard focus")
+palette.frame.IsMouseOver = originalMouseOver
+palette.input:Focus()
+assert(menuEntries[1].callback())
+assertEq(fixturePanel.text:GetText(), "Item 12345", "recent restores current state before opening the view")
+palette:Hide("fixture-done")
+assert(ThirdPartyFixture.Unregister())
+
+local menuRan = 0
+local secureMenuProvider = assert(Lychee:RegisterProvider({id="ui.sdk-menu",apiVersion=2,version="1.0.0",title="Menu",
+    entries={{id="secure-menu",title="安全菜单入口",actions={{id="cast",title="施放",kind="secure-spell",spellID=31884},"info",
+        {id="secondary-cast",title="次要施放",kind="secure-spell",spellID=31884}}}},
+    actions={info={title="查看",run=function() menuRan=menuRan+1; return {ok=true} end}},
+}))
+assert(palette:Show())
+typeQuery("安全菜单入口")
+local secureMenuRow = findEntry(palette.list.rows, "secure-menu")
+local secureMenuButton = assert(boundButton(secureMenuRow))
+menuEntries={}
+secureMenuButton.scripts.OnMouseDown(secureMenuButton, "RightButton")
+assertEq(#menuEntries, 3, "secure overlay exposes the same action menu")
+assert(not secureMenuButton.pendingCast, "right-button menu does not initiate a protected cast")
+assert(menuEntries[2].callback() and menuRan==1)
+LycheeDB.palette.recent={}
+local preparedSecondary=menuEntries[3].callback()
+assert(preparedSecondary.awaitingHardwareClick and #LycheeDB.palette.recent==0, "arming a secure action is not successful execution")
+assert(secureMenuButton:GetParent()==secureMenuRow and secureMenuButton.armedSecondary, "secondary secure action covers the correct row")
+assert(palette.status:GetText():find("次要施放",1,true), "status names the prepared action")
+secureMenuButton.scripts.OnEnter(secureMenuButton)
+assert(GameTooltip.text:find("次要施放",1,true), "armed tooltip describes the actual next action")
+secureMenuButton.scripts.PreClick(secureMenuButton)
+assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",31884))
+assertEq(LycheeDB.palette.recent[1].entryID,"secure-menu","successful cast records recency")
+assertEq(#secureBroker.active,0,"released secure buttons leave no active references")
+palette:Hide("menu-done")
+assert(secureMenuProvider:Unregister())
+MenuUtil=nil
+print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)")

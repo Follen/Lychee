@@ -225,8 +225,8 @@ end
 
 function P:Refresh()
     local refreshed = self:RefreshFromSpellBook()
-    if refreshed and self.sourceHandle then
-        local committed = self.sourceHandle:CommitSnapshot(self:BuildSearchRecords())
+    if refreshed and self.providerHandle then
+        local committed = self.providerHandle:Update({ replace = self:BuildSearchRecords() })
         if not committed then return refreshFailed(self, "SOURCE_COMMIT_FAILED") end
     end
     return refreshed
@@ -240,5 +240,5 @@ function P:Detach(releaseSource)
         self._eventFrame:SetScript("OnEvent", nil)
     end
     self._eventFrame = nil
-    if releaseSource then self.sourceHandle = nil end
+    if releaseSource then self.providerHandle = nil end
 end

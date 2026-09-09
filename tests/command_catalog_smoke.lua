@@ -130,7 +130,7 @@ assert(ambientAfterMutation[1].command.match.minLength == 2)
 assert(ambientAfterMutation[1].command.payload.nested.value == "ambient-registered")
 
 assert(catalog:SetExtensionEnabled("test.high", false))
-assert(LycheeDB.searchIndex.marker == "shared-index", "private enable state must not persist over the shared index")
+assert(LycheeDB.schemaVersion == 2 and LycheeDB.searchIndex == nil, "old search data is discarded and private enable state does not persist an index")
 fixed = catalog:Query({ normalized = "打开设置" }, 10)
 assert(#fixed == 1 and fixed[1].command.id == "low", "disabled fixed commands leave the catalog query")
 assert(catalog:SetExtensionEnabled("test.high", true))
@@ -142,13 +142,13 @@ assert(#catalog:GetAmbientView("动态", {}) == 0, "disabled ambient commands ar
 
 assert(catalog:Get("test.low:low").id == "low")
 assert(catalog:RemoveExtension("test.low"))
-assert(LycheeDB.searchIndex.marker == "shared-index", "private removal must not persist over the shared index")
+assert(LycheeDB.searchIndex == nil, "private removal does not persist executable search data")
 assert(catalog:Get("test.low:low") == nil)
 assert(#catalog:Query({ normalized = "打开设置" }, 10) == 0)
 
 local retiringDraft = assert(I.Registry:Begin({
     id = "test.retiring",
-    apiVersion = 1,
+    apiVersion = 2,
     minApiRevision = 1,
     title = "Retiring lifecycle fixture",
 }))

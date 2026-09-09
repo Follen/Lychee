@@ -44,6 +44,7 @@ function Session:Start()
 end
 
 function Session:Invalidate(reason)
+    self:CancelSourceRefresh()
     local query = I.Search.Query
     self.generation = self.generation + 1
     if query and type(query.Cancel) == "function" then query:Cancel(reason, self.generation) end
@@ -87,6 +88,8 @@ function Session:Input(raw)
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     local query = I.Search.Query
     if not query then return false, "SEARCH_UNAVAILABLE" end
+    self:CancelSourceRefresh()
+    self.raw = raw or ""
 
     local session = self.session
     local generation = self.generation + 1
@@ -114,6 +117,8 @@ function Session:Filter(filter)
     if type(filter) ~= "table" or (not filter.categoryID and not filter.sourceID) then return false, "INVALID_FILTER" end
     local query = I.Search.Query
     if not query then return false, "SEARCH_UNAVAILABLE" end
+    self:CancelSourceRefresh()
+    self.raw = ""
 
     local session = self.session
     local generation = self.generation + 1
@@ -128,10 +133,42 @@ function Session:Filter(filter)
     return true, completedGeneration
 end
 
-if I.Search.StaticIndex and type(I.Search.StaticIndex.OnChange) == "function" then
-    I.Search.StaticIndex:OnChange(function(_, reason)
-        local palette = Session.palette
-        if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
-        Session:Invalidate("source-" .. tostring(reason or "changed"))
+function Session:CancelSourceRefresh()
+    if self.sourceRefreshTimer then self.sourceRefreshTimer:Cancel(); self.sourceRefreshTimer = nil end
+    self.sourceRefreshPending = nil
+end
+
+function Session:RefreshSource()
+    if not self.sourceRefreshPending then return false end
+    self.sourceRefreshPending = nil
+    if not self.visible or not self.palette or not self.palette.visible or (InCombatLockdown and InCombatLockdown()) then return false end
+    local currentSession, generation = self.session, self.generation
+    local context = contextSnapshot(currentSession, generation, self.activeFilter)
+    local token, results = I.Search.Query:Query(self.raw or "", context, generation, function(items, completed)
+        self:_Accept(items, completed, currentSession)
     end)
+    return self:_Accept(results, token, currentSession)
+end
+
+function Session:SourceChanged(reason)
+    local palette = self.palette
+    if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
+    self.generation = self.generation + 1
+    if I.Search.Query then I.Search.Query:Cancel("source-" .. tostring(reason or "changed"), self.generation) end
+    self:_SyncPalette()
+    if not self.visible then return end
+    self.sourceRefreshPending = true
+    if not self.sourceRefreshTimer and C_Timer and C_Timer.NewTimer then
+        local timer
+        timer = C_Timer.NewTimer(0, function()
+            if self.sourceRefreshTimer ~= timer then return end
+            self.sourceRefreshTimer = nil
+            self:RefreshSource()
+        end)
+        self.sourceRefreshTimer = timer
+    end
+end
+
+if I.Search.StaticIndex and type(I.Search.StaticIndex.OnChange) == "function" then
+    I.Search.StaticIndex:OnChange(function(_, reason) Session:SourceChanged(reason) end)
 end

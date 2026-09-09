@@ -1,0 +1,31 @@
+{
+  "current": {
+    "entries": 1000,
+    "updates": 10,
+    "coldMS": 58.0,
+    "meanUpdateMS": 2.4,
+    "meanSearchMS": 2.01,
+    "retainedKB": 14613.7,
+    "unchangedEntryRetained": 10
+  },
+  "environment": "Offline Windows Lua 5.1; not WoW runtime measurements",
+  "baselineCommit": "884ad34",
+  "baseline": {
+    "entries": 1000,
+    "updates": 10,
+    "coldMS": 54.0,
+    "meanUpdateMS": 64.1,
+    "meanSearchMS": 2.02,
+    "retainedKB": 14857.5,
+    "unchangedEntryRetained": 0
+  },
+  "currentDelta": {
+    "entries": 1000,
+    "updates": 100,
+    "coldMS": 49.0,
+    "meanUpdateMS": 0.04,
+    "meanSearchMS": 2.01,
+    "retainedKB": 14613.7,
+    "unchangedEntryRetained": 100
+  }
+}

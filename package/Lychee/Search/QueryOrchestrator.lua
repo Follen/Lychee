@@ -18,7 +18,7 @@ local function appendUnique(out, seen, item, command)
     if command then item._ext, item.command = command._ext, command end
     local canonical = item.stableID or (item.searchRecord and item.searchRecord.id) or item.id or item.key
     local key
-    if item.searchRecord then key = "record:" .. tostring(canonical)
+    if item.searchRecord then key = "record:" .. tostring(item._ext or item.sourceID or "") .. ":" .. tostring(item.id)
     else key = tostring(item._ext or (item.command and item.command._ext) or "") .. ":" .. tostring(canonical or item.text or #out + 1) end
     if seen[key] then return false end
     seen[key] = true; out[#out + 1] = item
@@ -97,8 +97,10 @@ local function searchRecordItem(hit)
         interaction.actions = displayActions(record.interaction.actions)
         item.interaction = interaction
     end
-    return item
+    return I.Providers and I.Providers:Stamp(item) or item
 end
+
+function Q:Materialize(hit) return searchRecordItem(hit) end
 
 function Q:_ResolveGeneration(externalGeneration, context)
     if type(externalGeneration) == "number" then return externalGeneration end
@@ -109,24 +111,10 @@ end
 
 -- Resolve saved identities without running a fuzzy query or changing the active
 -- search generation. Materialization stays identical to normal search results.
-function Q:ResolveRecent(ids, limit)
-    local wanted, found, out = {}, {}, {}
-    for index = 1, #ids do wanted[ids[index]] = true end
-    local static = I.Search.StaticIndex
-    for _, entry in pairs(static and static.entries or {}) do
-        local source, record = entry.source, entry.record
-        if source and source.enabled and record and wanted[record.id]
-            and (not source.extensionID or not I.Registry or I.Registry:IsEnabled(source.extensionID)) then
-            local item = searchRecordItem({ record = record, sourceID = entry.sourceID,
-                sourceExtensionID = source.extensionID, sourceTitle = source.title or source.extensionTitle,
-                sourcePriority = source.priority, sourceGeneration = source.generation,
-                sourceRevision = source.revision, stableID = entry.stableID })
-            local previous = found[record.id]
-            if item and (not previous or resultLess(item, previous)) then found[record.id] = item end
-        end
-    end
-    for index = 1, #ids do
-        local item = found[ids[index]]
+function Q:ResolveRecent(refs, limit)
+    local out = {}
+    for index = 1, #refs do
+        local item = I.Providers and I.Providers:Resolve(refs[index], I.Context and I.Context:Snapshot() or {})
         if item then out[#out + 1] = item end
         if #out >= (limit or 5) then break end
     end
@@ -160,7 +148,7 @@ function Q:_Execute(raw, context, generation)
     local request = self:_BuildRequest(raw, context, generation)
     local filtered = type(request.filter) == "table"
     local catalogBudget = filtered and 0 or math.min(self.catalogLimit, self.limit)
-    local ambientBudget = filtered and self.limit or math.min(self.ambientLimit, self.limit - catalogBudget)
+    local ambientBudget = self.limit
     local catalogResults = not filtered and I.Catalog and I.Catalog:Query(request, catalogBudget) or {}
     local out, seen, catalogDynamic = {}, {}, {}
     for index = 1, #catalogResults do
@@ -171,6 +159,7 @@ function Q:_Execute(raw, context, generation)
             appendUnique(out, seen, result)
         end
     end
+    ambientBudget = math.max(0, self.limit - #out)
     if I.Search and I.Search.StaticIndex then
         local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter)
         for index = 1, #indexed do
@@ -226,12 +215,31 @@ function Q:_CancelTimer()
     if timer and type(timer.Cancel) == "function" then pcall(timer.Cancel, timer) end
 end
 
-function Q:Query(raw, context, externalGeneration)
+function Q:Query(raw, context, externalGeneration, callback)
+    if I.Providers then I.Providers:CancelQueries("query-replaced") end
     local generation = self:_ResolveGeneration(externalGeneration, context)
     local current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
     local results = self:_Execute(raw, context, generation)
+    if I.Providers and raw ~= "" then
+        local base = results
+        local function merge(dynamic)
+            local combined, seen = {}, {}
+            for _, item in ipairs(base) do appendUnique(combined, seen, item) end
+            for _, item in ipairs(dynamic) do appendUnique(combined, seen, item) end
+            table.sort(combined, resultLess)
+            while #combined > self.limit do combined[#combined] = nil end
+            return combined
+        end
+        local dynamic = I.Providers:Search(self:_BuildRequest(raw, context, generation), context, function(items)
+            if not self:_IsCurrent(generation, context) then return end
+            local combined = merge(items)
+            self:_Commit(generation, combined)
+            if callback then callback(combined, generation) end
+        end)
+        results = merge(dynamic)
+    end
     self.active = false
     current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
@@ -240,6 +248,7 @@ function Q:Query(raw, context, externalGeneration)
 end
 
 function Q:Schedule(raw, context, externalGeneration, callback, delay)
+    if I.Providers then I.Providers:CancelQueries("input-changed") end
     local generation = self:_ResolveGeneration(externalGeneration, context)
     self:_CancelTimer()
     self.pending = { raw = raw, context = context, generation = generation, callback = callback }
@@ -269,12 +278,13 @@ function Q:Flush(expectedGeneration)
     local pending = self.pending
     if not pending or (expectedGeneration and pending.generation ~= expectedGeneration) then return false end
     self.pending = nil
-    local generation, results = self:Query(pending.raw, pending.context, pending.generation)
+    local generation, results = self:Query(pending.raw, pending.context, pending.generation, pending.callback)
     if type(pending.callback) == "function" then pending.callback(results, generation) end
     return true, generation, results
 end
 
 function Q:Cancel(reason, generation)
+    if I.Providers then I.Providers:CancelQueries(reason) end
     self:_CancelTimer()
     self.last = { generation = generation, results = {}, cancelled = reason or "INVALIDATED" }
     self.pending, self.active = nil, false

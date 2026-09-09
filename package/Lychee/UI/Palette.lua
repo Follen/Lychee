@@ -1,3 +1,4 @@
+local I = _G.LycheeInternal
 local Lychee = _G.Lychee or {}
 _G.Lychee = Lychee
 Lychee.UI = Lychee.UI or {}
@@ -205,7 +206,7 @@ local function createHomeView(parent, controller)
         local tile = CreateFrame("Button", nil, self.content)
         tile:SetSize(HOME_TILE_WIDTH, HOME_TILE_HEIGHT)
         tile.ownerView = self
-        tile:RegisterForClicks("LeftButtonUp")
+        tile:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
         tile.bg:SetSize(48, 48)
         paint(tile.bg, color("tileSelected"))
@@ -232,7 +233,12 @@ local function createHomeView(parent, controller)
         if tile.title.SetNonSpaceWrap then tile.title:SetNonSpaceWrap(true) end
         if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
-        tile:SetScript("OnClick", function(button)
+        tile:SetScript("OnClick", function(button, mouseButton)
+            if mouseButton == "RightButton" and controller and button.item then
+                view:Select(button.index)
+                controller:ShowRowActions(button)
+                return
+            end
             local section = button.section
             if section and section.enabled ~= false and controller and controller.onHomeSelect then
                 view:Select(button.index)
@@ -471,6 +477,9 @@ function Palette:Create()
         elseif event == "PLAYER_REGEN_ENABLED" and self.combatCleanupPending then
             self:FinishHide("combat")
         elseif event == "GLOBAL_MOUSE_DOWN" then
+            local menu = self.actionMenu
+            if menu and menu.IsShown and menu:IsShown() and menu.IsMouseOver and menu:IsMouseOver() then return end
+            self.actionMenu = nil
             -- EditBox 的键盘焦点不会因点击游戏世界自动释放；沿用 Blizzard
             -- ColorPickerFrame 的外部点击判定（事件在 Show 注册、Hide 注销），
             -- 把键盘还给游戏而不吞掉这次点击。focused 标记可能与真实键盘
@@ -532,11 +541,14 @@ function Palette:MarkHomeDirty()
 end
 
 function Palette:TouchRecent(item)
-    local id = stableItemID(item)
-    if not id then return false end
+    if not item or not item.ref or not I.Providers or not I.Providers:CanRemember(item) then return false end
+    local ref = item.ref
     local db = paletteDB()
-    for index = #db.recent, 1, -1 do if db.recent[index] == id then table.remove(db.recent, index) end end
-    table.insert(db.recent, 1, id)
+    for index = #db.recent, 1, -1 do
+        local previous = db.recent[index]
+        if previous.providerID == ref.providerID and previous.entryID == ref.entryID then table.remove(db.recent, index) end
+    end
+    table.insert(db.recent, 1, { providerID = ref.providerID, entryID = ref.entryID, sourceID = ref.sourceID })
     while #db.recent > 8 do db.recent[#db.recent] = nil end
     self:MarkHomeDirty()
     return true
@@ -578,7 +590,7 @@ function Palette:RefreshHomeSections(allowExpand)
     local items = query and query:ResolveRecent(db.recent, HOME_COLUMNS) or {}
     for index = 1, #items do
         local item = items[index]
-        sections[#sections + 1] = { id = "saved:" .. item.id, groupID = "recent",
+        sections[#sections + 1] = { id = "saved:" .. item.ref.providerID .. ":" .. item.id, groupID = "recent",
             groupTitle = localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
             title = item.text, icon = item.icon, item = item, meta = item.category, categoryColor = item.categoryColor }
     end
@@ -652,9 +664,17 @@ end
 function Palette:ReportActionResult(result, err)
     local ok = result == true or (type(result) == "table" and result.ok == true)
     if ok then
+        if type(result) == "table" and result.awaitingHardwareClick then
+            local title = type(result.actionTitle) == "string" and (" · " .. result.actionTitle) or ""
+            setText(self.status, localized({zhCN="点击施放",enUS="Click to cast"}) .. title)
+            return true
+        end
         setText(self.status, "")
         return true
     end
+    local code = type(err) == "table" and err.code or err
+    if code == "NO_ACTION" then setText(self.status, ""); return false end
+    if type(err) == "table" and type(err.message) == "string" and err.message ~= "" then setText(self.status, err.message); return false end
     local labels = {
         COMBAT_LOCKED = { zhCN = "战斗中不可用", enUS = "Unavailable in combat" },
         ACTION_UNAVAILABLE = { zhCN = "当前不可用", enUS = "Currently unavailable" },
@@ -662,7 +682,7 @@ function Palette:ReportActionResult(result, err)
         HANDLER_UNAVAILABLE = { zhCN = "功能暂不可用", enUS = "Feature unavailable" },
         DRAG_UNSUPPORTED = { zhCN = "不支持拖动", enUS = "Drag unsupported" },
     }
-    local text = labels[err]
+    local text = labels[code]
     setText(self.status, localized(text or { zhCN = "执行失败", enUS = "Action failed" }, "Action failed"))
     return false
 end
@@ -793,6 +813,7 @@ function Palette:Hide(reason)
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
+    self.actionMenu = nil
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Stop(reason or "hide") end
     if not self.frame then return true end
@@ -837,6 +858,11 @@ function Palette:ActivateRowAction(row, actionID)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if not executor then return false, "ACTION_UNAVAILABLE" end
     local result, err = executor:Execute(row, actionID)
+    self:ReportActionResult(result, err)
+    return result, err
+end
+function Palette:ShowRowActions(row)
+    local result, err = I.ResultActionExecutor:ShowActions(row)
     self:ReportActionResult(result, err)
     return result, err
 end

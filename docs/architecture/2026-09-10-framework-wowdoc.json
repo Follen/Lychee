@@ -1,0 +1,208 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Timer.NewTimer",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "39: \t\t\tName = \"NewTimer\",\n40: \t\t\tType = \"Function\",\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n46: \t\t\t\t{ Name = \"callback\", Type = \"TickerCallback\", Nilable = false },\n47: \t\t\t},\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"cbObject\", Type = \"TickerCallback\", Nilable = false },\n52: \t\t\t},\n53: \t\t},",
+        "contentHash": "72b5d79e91b3d8185cff68e5a6cd91498cb3aecd8ea6809a84e4d0edc805bc4c",
+        "line": 39,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuUtil.CreateContextMenu",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "151: function MenuUtil.CreateContextMenu(ownerRegion, generator, ...)\n152: \tif not ownerRegion then\n153: \t\townerRegion = GetAppropriateTopLevelParent();\n154: \tend\n155: \n156: \tlocal menuMixin = securecallfunction(SecureGetMenuMixin, ownerRegion);\n157: \tlocal elementDescription = MenuUtil.CreateRootMenuDescription(menuMixin);\n158: \n159: \tMenu.PopulateDescription(generator, ownerRegion, elementDescription, ...);\n160: \n161: \tlocal menu = Menu.GetManager():OpenContextMenu(ownerRegion, elementDescription);\n162: \tif menu then\n163: \t\tPlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);\n164: \tend\n165: \n166: \treturn menu;\n167: end",
+        "contentHash": "21904561943c3bfb0ad8a451778e2d4cddb361ec7b1a73c0e428d870ed1581f4",
+        "line": 151,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.PickupSpell",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "928: \t\t\tName = \"PickupSpell\",\n929: \t\t\tType = \"Function\",\n930: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n931: \n932: \t\t\tArguments =\n933: \t\t\t{\n934: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n935: \t\t\t},\n936: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 928,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "UnregisterAllEvents",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1586: \t\t\tName = \"UnregisterAllEvents\",\n1587: \t\t\tType = \"Function\",\n1588: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1589: \t\t\tAddsForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1590: \n1591: \t\t\tArguments =\n1592: \t\t\t{\n1593: \t\t\t},\n1594: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1586,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "927: \t\t\tlocal hasChildren = #self.treeNode.nodes > 0;\n928: \n929: \t\t\tif isAddon then\n930: \t\t\t\trootDescription:CreateButton(ADDON_LIST_ENABLE_DEPENDENCIES, function()\n931: \t\t\t\t\tself:SetEnabledDependencies(true);\n932: \t\t\t\t\tPlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF);\n933: \t\t\t\tend);",
+        "contentHash": "ca77ae4736725ebd9ec1fe4a1abef0fd0e5a12295f6f47ff5a318e38df496ca2",
+        "line": 930,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "results": [
+      {
+        "kind": "function",
+        "name": "AlliedRacesModelControlButtonMixin:OnMouseDown",
+        "path": "Interface/AddOns/Blizzard_AlliedRacesUI/AlliedRacesModelControlButtonMixin.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "11: function AlliedRacesModelControlButtonMixin:OnMouseDown()\n12: \tself.Icon:SetPoint(\"CENTER\", 1, -1);\n13: end",
+        "contentHash": "16519499b80a1948c4bb7cccdef5f17583e1c9df4b39093e22a2c875b0292bcf",
+        "line": 11,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "product": "retail"
+  },
+  {
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetFrameLevel",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1280: \t\t\tName = \"SetFrameLevel\",\n1281: \t\t\tType = \"Function\",\n1282: \t\t\tIsProtectedFunction = true,\n1283: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.FrameLevel },\n1284: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1285: \n1286: \t\t\tArguments =\n1287: \t\t\t{\n1288: \t\t\t\t{ Name = \"frameLevel\", Type = \"number\", Nilable = false },\n1289: \t\t\t},\n1290: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1280,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail",
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetParent",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "592: \t\t\tName = \"SetParent\",\n593: \t\t\tType = \"Function\",\n594: \t\t\tIsProtectedFunction = true,\n595: \t\t\tCheckAllowChangeParent = true,\n596: \t\t\tSecretArguments = \"NotAllowed\",\n597: \n598: \t\t\tArguments =\n599: \t\t\t{\n600: \t\t\t\t{ Name = \"parent\", Type = \"SimpleFrame\", Nilable = true },\n601: \t\t\t},\n602: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 592,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "product": "retail",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuManagerMixin:OpenContextMenu",
+        "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2510: function MenuManagerMixin:OpenContextMenu(ownerRegion, menuDescription)\n2511: \t--[[\n2512: \tThe region is required for closing the menu when the region becomes hidden,\n2513: \tbut otherwise the menu should open at the position of the cursor.\n2514: \t]]--\n2515: \tassert(ownerRegion, \"MenuManagerMixin:OpenContextMenu(ownerRegion, menuDescription): ownerRegion was not provided.\");\n2516: \n2517: \tlocal function SetMenuPosition(menuFrame)\n2518: \t\tInputUtil.AnchorRegionToCursor(menuFrame, \"TOPLEFT\");\n2519: \tend\n2520: \n2521: \tlocal params = {};\n2522: \tparams.asContextMenu = true;\n2523: \tparams.ownerRegion = ownerRegion;\n2524: \tparams.menuDescription = menuDescription;\n2525: \tparams.menuPositionFunc = SetMenuPosition;\n2526: \treturn self:OpenMenuInternal(params);\n2527: end",
+        "contentHash": "25d5bf5e7e53c2963ffa9ecebc323a27dfd07f4b3901379668a438ccfa14738d",
+        "line": 2510,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source"
+  }
+]

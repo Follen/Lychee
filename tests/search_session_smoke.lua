@@ -70,7 +70,12 @@ assert(#accepted[3].results >= 1 and accepted[3].results[1].id == "new")
 local beforeSourceInvalidation = session.generation
 assert(I.Search.StaticIndex:Invalidate("session-fixture", "fixture-refresh"))
 assert(session.generation > beforeSourceInvalidation, "source changes must invalidate the active session")
-assert(#accepted == 4 and #accepted[4].results == 0, "source changes must clear visible stale results")
+assert(#accepted == 3, "source changes retain the current display until the coalesced replacement")
+local sourceTimer = timers[#timers]
+assert(I.Search.StaticIndex:Invalidate("session-fixture", "second-refresh"))
+assert(timers[#timers] == sourceTimer, "same-frame source updates use one refresh")
+sourceTimer.callback()
+assert(#accepted == 4 and #accepted[4].results > 0, "source refresh reruns the current search without an empty flash")
 
 assert(session:Input("旧查询"))
 local hiddenTimer = timers[#timers]

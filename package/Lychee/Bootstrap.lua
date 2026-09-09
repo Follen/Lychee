@@ -1,10 +1,10 @@
 local addonName = ...
 local I = _G.LycheeInternal or {}
 _G.LycheeInternal = I
-I.VERSION = I.VERSION or { api = 1, revision = 1 }
+I.VERSION = { api = 2, revision = 1 }
 I.Modules = I.Modules or {}
 LycheeDB = LycheeDB or {}
-local pendingSearchSnapshot = LycheeDB.searchIndex
+if LycheeDB.schemaVersion ~= 2 then LycheeDB = { schemaVersion = 2 } end
 
 local function wireRegistryLifecycle()
     if I._registryLifecycleWired or not I.Registry then return end
@@ -29,11 +29,6 @@ local function onLogin()
     end
     wireRegistryLifecycle()
     if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
-    if not I._searchSnapshotRestored and I.Search and I.Search.StaticIndex and type(pendingSearchSnapshot) == "table" then
-        I._searchSnapshotRestored = true
-        I.Search.StaticIndex:RestoreSnapshot(pendingSearchSnapshot)
-        pendingSearchSnapshot = nil
-    end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController
     if palette then I.WirePalette(palette) end

@@ -153,7 +153,9 @@ local function showTooltip(owner, title, detail)
             GameTooltip:AddLine((UI_CHINESE and "点击 · " or "Click · ") .. actionLabel(primary), 0.90, 0.35, 0.40, true)
         end
         if interaction and interaction.drag then
-            GameTooltip:AddLine(UI_CHINESE and "拖动 · 放到动作条" or "Drag · Place on an action bar", 0.71, 0.705, 0.69, true)
+            local drag = interaction.drag
+            local title = drag.title or (drag.type == "spell" and (UI_CHINESE and "放到动作条" or "Place on an action bar")) or (UI_CHINESE and "拖动" or "Drag")
+            GameTooltip:AddLine((UI_CHINESE and "拖动 · " or "Drag · ") .. title, 0.71, 0.705, 0.69, true)
         end
     elseif detail and detail ~= "" and detail ~= title and type(GameTooltip.AddLine) == "function" then
         GameTooltip:AddLine(detail, 0.78, 0.78, 0.82, true)
@@ -175,7 +177,7 @@ local function secondaryAction(interaction)
     if type(actions) ~= "table" then return nil end
     for index = 1, #actions do
         local action = actions[index]
-        if action ~= primary and action.kind ~= "secure-spell" then return action end
+        if action ~= primary then return action end
     end
 end
 
@@ -216,6 +218,10 @@ end
 
 function ResultList:ShowItemTooltip(item, owner)
     if item then showTooltip(owner, item.text, item) end
+end
+
+function ResultList:ShowActionTooltip(action, owner)
+    showTooltip(owner, actionLabel(action), UI_CHINESE and "点击施放" or "Click to cast")
 end
 
 function ResultList:ShowTooltip(row, owner)
@@ -267,16 +273,17 @@ function ResultList:Create(parent, controller)
         end)
         row.dragger:SetScript("OnEnter", function(button)
             local owner = button:GetParent(); owner._dragHovered = true; self:SetHover(owner, true); renderRowState(owner)
-            showTooltip(button, UI_CHINESE and "拖到动作条" or "Drag to action bar", UI_CHINESE and "拖动这个图标到动作条" or "Drag this icon onto an action bar")
+            showTooltip(button, owner.item and owner.item.text, owner.item)
         end)
         row.dragger:SetScript("OnLeave", function(button)
             local owner = button:GetParent(); owner._dragHovered = false; self:SetHover(owner, false); renderRowState(owner); hideTooltip()
         end)
 
         row.primaryTarget = CreateFrame("Button", nil, row)
-        row.primaryTarget:SetAllPoints(row); row.primaryTarget:RegisterForClicks("LeftButtonUp")
-        row.primaryTarget:SetScript("OnClick", function(button)
+        row.primaryTarget:SetAllPoints(row); row.primaryTarget:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        row.primaryTarget:SetScript("OnClick", function(button, mouseButton)
             local owner = button:GetParent(); self:SelectRow(owner)
+            if mouseButton == "RightButton" and self.controller and self.controller.ShowRowActions then self.controller:ShowRowActions(owner); return end
             if self.controller then self.controller:ActivateRow(owner) end
         end)
         row.primaryTarget:SetScript("OnEnter", function(button)
@@ -296,6 +303,8 @@ function ResultList:Create(parent, controller)
         row.secondary.label = row.secondary:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.secondary.label:SetAllPoints(); row.secondary.label:SetJustifyH("CENTER"); setText(row.secondary.label, "..."); setTextColor(row.secondary.label, "text")
         row.secondary:SetScript("OnClick", function(button)
             local owner = button:GetParent()
+            local actions = owner.item and owner.item.interaction and owner.item.interaction.actions or {}
+            if #actions > 2 and self.controller and self.controller.ShowRowActions then self.controller:ShowRowActions(owner); return end
             if actionEnabled(owner.secondaryAction) and self.controller then self.controller:ActivateRowAction(owner, owner.secondaryAction.id) end
         end)
         row.secondary:SetScript("OnEnter", function(button)
