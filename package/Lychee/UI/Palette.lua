@@ -129,7 +129,7 @@ local function createHomeView(parent, controller)
 
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
-        paint(tile.bg, color("tileSelected"))
+        paint(tile.bg, color("accent"))
         setShown(tile.bg, selected == true)
     end
 
@@ -208,13 +208,12 @@ local function createHomeView(parent, controller)
         tile.ownerView = self
         tile:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
-        tile.bg:SetSize(48, 48)
-        paint(tile.bg, color("tileSelected"))
+        tile.bg:SetSize(18, 2)
+        paint(tile.bg, color("accent"))
         tile.bg:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
         tile.icon:SetSize(34, 34)
         tile.icon:SetPoint("TOP", tile, "TOP", 0, -12)
-        tile.bg:SetPoint("CENTER", tile.icon, "CENTER")
         tile.fallback = {}
         for index = 1, 4 do
             local dot = tile:CreateTexture(nil, "ARTWORK")
@@ -225,15 +224,17 @@ local function createHomeView(parent, controller)
             tile.fallback[index] = dot
         end
         tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 4, -60)
+        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 4, -54)
         tile.title:SetPoint("RIGHT", tile, "RIGHT", -4, 0)
-        tile.title:SetHeight(32)
+        tile.title:SetHeight(28)
         tile.title:SetJustifyH("CENTER")
+        if tile.title.SetJustifyV then tile.title:SetJustifyV("TOP") end
         if tile.title.SetWordWrap then tile.title:SetWordWrap(true) end
         if tile.title.SetNonSpaceWrap then tile.title:SetNonSpaceWrap(true) end
         if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
         Lychee.UI.Theme:SetFont(tile.title, "body")
+        tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -6)
         tile:SetScript("OnClick", function(button, mouseButton)
             if mouseButton == "RightButton" and controller and button.item then
                 view:Select(button.index)
@@ -314,7 +315,15 @@ local function createHomeView(parent, controller)
             if executor then executor:ConfigureDragTarget(tile, tile.item) end
             tile.session, tile.generation = controller.session, controller.generation
             tile.extensionID = section.item and section.item._ext
-            setText(tile.title, homeLabel(section.title or section.text, "Lychee"))
+            local title = homeLabel(section.title or section.text, "Lychee")
+            if tile._title ~= title then
+                setText(tile.title, title)
+                if tile.title.GetStringHeight then
+                    local height = math.max(14, math.min(28, tile.title:GetStringHeight()))
+                    if tile.title:GetHeight() ~= height then tile.title:SetHeight(height) end
+                end
+                tile._title = title
+            end
             if section.icon then
                 if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end
                 setShown(tile.icon, true)

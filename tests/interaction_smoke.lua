@@ -774,8 +774,8 @@ assert(palette:IsHomeVisible(), "reopening returns to recent homepage")
 assert(palette.frame:GetHeight() < 260, "one-row home contracts around content")
 local recentTile = palette.homeView.tiles[1]
 local recentButton = assert(boundButton(recentTile), "recent tile has a prepared direct spell click")
-assertEq(recentTile.bg:GetWidth(), recentTile.bg:GetHeight(), "recent highlight is square")
-assert(recentTile.bg:GetWidth() < recentTile:GetWidth(), "recent highlight covers only the icon area")
+assert(recentTile.bg:GetWidth() > recentTile.bg:GetHeight(), "recent selection uses an underline")
+assertEq(recentTile.bg.point[2], recentTile.title, "recent selection follows the caption instead of boxing the icon")
 assertEq(recentTile.title.maxLines, 2, "recent entry names allow two lines")
 assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
 local beforeDrag = _G.__pickup or 0
