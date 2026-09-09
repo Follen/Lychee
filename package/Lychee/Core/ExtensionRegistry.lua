@@ -211,7 +211,9 @@ function Registry:Begin(desc, options)
         if #draft.commands+#draft.providers+#draft.handlers+#draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
         local panels={}; for i=1,#draft.panels do panels[draft.panels[i].id]=true end
         for i=1,#draft.commands do local c=draft.commands[i]; if c.presentation=="custom-panel" and not panels[c.panel] then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("COMMAND_NOT_FOUND","panel",desc.id) end end
-        local entry={id=desc.id,descriptor=desc,commands=draft.commands,providers=draft.providers,handlers=draft.handlers,panels=draft.panels,sources=draft.sources,ownerEnabled=true,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
+        local disabled = LycheeDB and LycheeDB.disabledProviders
+        local userEnabled = desc.id == "lychee.settings" or not (type(disabled) == "table" and disabled[desc.id])
+        local entry={id=desc.id,descriptor=desc,commands=draft.commands,providers=draft.providers,handlers=draft.handlers,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
         notify(entry,"pending",entry.incompatible and "INCOMPATIBLE_HOST" or nil)
         local handle=registry:_Handle(entry)
@@ -243,11 +245,14 @@ function Registry:_Rollback(entry)
 end
 function Registry:_Publish(entry)
     if entry.state~="pending" then return nil,failure("INVALID_STATE",nil,entry.id) end
+    -- Pending providers may register before WoW restores SavedVariables.
+    local disabled = _G.LycheeDB and _G.LycheeDB.disabledProviders
+    entry.userEnabled = entry.id == "lychee.settings" or not (type(disabled) == "table" and disabled[entry.id])
     if I.Search and I.Search.StaticIndex and entry.sources then
         for i=1,#entry.sources do
             local source=entry.sources[i]
             local sourceID=entry.id..":"..source.id
-            source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled
+            source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled and entry.userEnabled
             local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,revision=source.revision,title=source.title,extensionTitle=entry.descriptor.title,_enabled=source._enabled,_extensionID=entry.id})
             if not registered then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","searchSource",entry.id) end
             local records=source.records
@@ -275,7 +280,11 @@ function Registry:_Publish(entry)
     for i=1,#entry.panels do local panel=entry.panels[i]; local key=entry.id..":"..panel.id; if self.panels[key] then self:_Rollback(entry); return nil,failure("DUPLICATE_ID","panel",entry.id) end; self.panels[key]={extensionID=entry.id,descriptor=panel}; self.panelsByExtension[entry.id][panel.id]=key end
     notify(entry,"registered")
     invoke(entry.descriptor.onHostAttached,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
-    if entry.ownerEnabled then notify(entry,"enabled"); invoke(entry.descriptor.onEnabled) else notify(entry,"disabled") end
+    if entry.ownerEnabled and entry.userEnabled then notify(entry,"enabled"); invoke(entry.descriptor.onEnabled)
+    else
+        if I.Catalog then I.Catalog:SetExtensionEnabled(entry.id, false) end
+        notify(entry,"disabled")
+    end
     return true
 end
 
@@ -293,6 +302,31 @@ function Registry:GetPanel(extensionID,panelID)
 end
 function Registry:IsEnabled(extensionID) local entry=self.entries[extensionID]; return entry~=nil and entry.state=="enabled" end
 
+function Registry:_ApplyEnabled(entry, reason)
+    local enabled = entry.ownerEnabled and entry.userEnabled
+    if (entry.state ~= "enabled" and entry.state ~= "disabled") or (entry.state == "enabled") == enabled then return true end
+    if I.Catalog then I.Catalog:SetExtensionEnabled(entry.id, enabled) end
+    if I.Search and I.Search.StaticIndex then
+        for index = 1, #entry.sources do I.Search.StaticIndex:TouchSource(entry.id .. ":" .. entry.sources[index].id, enabled) end
+    end
+    if enabled then notify(entry, "enabled"); invoke(entry.descriptor.onEnabled)
+    else notify(entry, "disabled", reason); invoke(entry.descriptor.onDisabled, reason) end
+    return true
+end
+
+function Registry:SetUserEnabled(id, enabled)
+    if id == "lychee.settings" then return nil, failure("REQUIRED_PROVIDER", nil, id) end
+    if InCombatLockdown and InCombatLockdown() then return nil, failure("COMBAT_LOCKED", nil, id) end
+    local entry = self.entries[id]
+    if not entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("INVALID_STATE", nil, id) end
+    if type(enabled) ~= "boolean" then return nil, failure("INVALID_SCHEMA", "enabled", id) end
+    LycheeDB = LycheeDB or {}
+    LycheeDB.disabledProviders = type(LycheeDB.disabledProviders) == "table" and LycheeDB.disabledProviders or {}
+    if enabled then LycheeDB.disabledProviders[id] = nil else LycheeDB.disabledProviders[id] = true end
+    entry.userEnabled = enabled
+    return self:_ApplyEnabled(entry, "user")
+end
+
 function Registry:_Handle(entry)
     local registry=self
     local handle={id=entry.id}
@@ -302,7 +336,7 @@ function Registry:_Handle(entry)
         return true
     end
     function handle:GetState()
-        return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=true,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled",errorCode=entry.incompatible and "INCOMPATIBLE_HOST" or nil}
+        return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=entry.userEnabled,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled",errorCode=entry.incompatible and "INCOMPATIBLE_HOST" or nil}
     end
     function handle:QueryCapability(request,context)
         if entry.state~="enabled" then return nil,failure("EXTENSION_DISABLED",nil,entry.id) end
@@ -450,9 +484,7 @@ function Registry:_Handle(entry)
     function handle:SetEnabled(enabled)
         if entry.state=="removed" or entry.state=="retiring" then return nil,failure("INVALID_STATE",nil,entry.id) end
         entry.ownerEnabled=not not enabled
-        if entry.state=="enabled" and not entry.ownerEnabled then if I.Catalog then I.Catalog:SetExtensionEnabled(entry.id,false) end; if I.Search and I.Search.StaticIndex then for i=1,#entry.sources do I.Search.StaticIndex:TouchSource(entry.id..":"..entry.sources[i].id, false) end end; notify(entry,"disabled","owner"); invoke(entry.descriptor.onDisabled,"owner")
-        elseif entry.state=="disabled" and entry.ownerEnabled then if I.Catalog then I.Catalog:SetExtensionEnabled(entry.id,true) end; if I.Search and I.Search.StaticIndex then for i=1,#entry.sources do I.Search.StaticIndex:TouchSource(entry.id..":"..entry.sources[i].id, true) end end; notify(entry,"enabled"); invoke(entry.descriptor.onEnabled) end
-        return true
+        return registry:_ApplyEnabled(entry, "owner")
     end
     function handle:Unregister()
         if entry.state=="removed" then return true end

@@ -1,0 +1,116 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetPoint",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 135,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetTextColor",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "902: \t\t\tName = \"SetTextColor\",\n903: \t\t\tType = \"Function\",\n904: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n905: \n906: \t\t\tArguments =\n907: \t\t\t{\n908: \t\t\t\t{ Name = \"colorR\", Type = \"number\", Nilable = false },\n909: \t\t\t\t{ Name = \"colorG\", Type = \"number\", Nilable = false },\n910: \t\t\t\t{ Name = \"colorB\", Type = \"number\", Nilable = false },\n911: \t\t\t\t{ Name = \"a\", Type = \"SingleColorValue\", Nilable = true },\n912: \t\t\t},\n913: \t\t},",
+        "contentHash": "197d0d7321b78b8e57542dc80f35e2409bb338fe42f1d3899bcf59be74baba4c",
+        "line": 902,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "RegisterForDrag",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1053: \t\t\tName = \"RegisterForDrag\",\n1054: \t\t\tType = \"Function\",\n1055: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1056: \n1057: \t\t\tArguments =\n1058: \t\t\t{\n1059: \t\t\t\t{ Name = \"buttons\", Type = \"MouseButton\", Nilable = false, StrideIndex = 1 },\n1060: \t\t\t},\n1061: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1053,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "BattlefieldMapTabMixin:OnDragStop",
+        "path": "Interface/AddOns/Blizzard_BattlefieldMap/Classic/Blizzard_BattlefieldMap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "112: function BattlefieldMapTabMixin:OnDragStop()\n113: \tBattlefieldMapFrame:StopMovingOrSizing();\n114: \tValidateFramePosition(self);\n115: end",
+        "contentHash": "1f0527e6b2427f8966246a480e3866b5b5dbd7200987621b3ba223f3943d77a9",
+        "line": 112,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_UIParentPanelManager/Shared/UIParentPanelManager.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "17: \t\"GearManagerDialog\",\n18: };\n19: \n20: UISpecialFrames = {\n21: \t\"ItemRefTooltip\",\n22: \t\"ColorPickerFrame\",\n23: \t\"FloatingPetBattleAbilityTooltip\",",
+        "contentHash": "3987ca8721c3ee9fda39f75a3606efdcb7db5d5ed12d848979a882a6e4727cac",
+        "line": 20,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

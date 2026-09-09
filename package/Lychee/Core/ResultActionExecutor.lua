@@ -64,7 +64,7 @@ end
 
 function Executor:IsRowCurrent(row, session, generation, item, owner)
     local palette = self.palette
-    if not palette or not palette.visible or not row or not row.item then return false, "STALE_GENERATION" end
+    if not palette or not palette.visible or palette.settingsOpen or not row or not row.item then return false, "STALE_GENERATION" end
     local searchSession = I.Search and I.Search.Session
     if searchSession then
         local current, err = searchSession:IsCurrent(session or row.session, generation or row.generation)
@@ -285,7 +285,8 @@ function Executor:ShowActions(row)
     if not MenuUtil or type(MenuUtil.CreateContextMenu) ~= "function" then return false, "MENU_UNAVAILABLE" end
     local item, session, generation = row.item, row.session, row.generation
     local actions = item.interaction and item.interaction.actions or {}
-    if #actions == 0 then return false, "NO_ACTION" end
+    local canPin = I.UserPreferences and I.UserPreferences:CanPin(item)
+    if #actions == 0 and not canPin then return false, "NO_ACTION" end
     local components = _G.Lychee and _G.Lychee.UI and _G.Lychee.UI.Components
     if components then components:StyleActionMenuOwner(row) end
     local menu
@@ -302,6 +303,19 @@ function Executor:ShowActions(row)
             end)
             if components then components:StyleActionMenuButton(description) end
         end
+        if canPin then
+            local pinned = I.UserPreferences:PinIndex(item.ref) ~= nil
+            if #actions > 0 and root.CreateDivider then root:CreateDivider() end
+            local description = root:CreateButton(pinned and "取消固定" or "固定到首页", function()
+                local current, reason = self:Validate(row, session, generation, item)
+                if not current then return false, reason end
+                local ok, pinError = self.palette:SetPinned(item, not pinned)
+                if ok then self.palette:SetStatusText(pinned and "已取消固定" or "已固定到首页")
+                else self.palette:ReportActionResult(false, pinError) end
+                return ok
+            end)
+            if components then components:StyleActionMenuButton(description) end
+        end
     end)
     if self.palette then self.palette.actionMenu = menu end
     return true
@@ -314,7 +328,9 @@ function Executor:PrepareVisibleRows(rows)
     for rowIndex = 1, #(rows or {}) do
         local row = rows[rowIndex]
         local current = self:IsRowCurrent(row)
-        if not current then
+        if not current and row.section and row.section.pinnedRef and not row.item then
+            broker:InvalidateRow(row)
+        elseif not current then
             palette:InvalidateRow(row)
         elseif row:IsShown() then
             self:ConfigureDragTarget(row.dragger or row, row.item)

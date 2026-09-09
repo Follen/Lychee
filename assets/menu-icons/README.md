@@ -1,5 +1,11 @@
 # Lychee menu icon sources
 
+## Current flat assets
+
+`flat-atlas.png` contains generated light silver / warm ivory / lychee red artwork for a dark UI. Export the magenta matte to transparency and build 36 runtime icons with `node tests/build_flat_menu_icons.cjs` (requires `sharp`). The exporter writes 64×64 uncompressed RGBA TGA files and a dark-background preview at 28/34/48 pixels. Source and output hashes are in `docs/architecture/2026-09-10-flat-menu-icons.json`. Original skill, mount and currency game textures are unaffected.
+
+## Previous outline assets (reference only)
+
 34 icons from [ByteDance IconPark](https://github.com/bytedance/IconPark), npm `@icon-park/svg` **1.4.2**, Apache-2.0. The original license is in [LICENSE.txt](LICENSE.txt).
 
 `selection.json` maps stable menu IDs to upstream export names. `upstream/*.svg` contains original geometry exported with the official renderer: outline theme, 48×48, stroke width 3, round joins/caps, black strokes. `accent` identifies existing SVG shape elements in document order (negative indices count from the end). The build recolors these elements red and the remaining elements ivory; it does not redraw paths.

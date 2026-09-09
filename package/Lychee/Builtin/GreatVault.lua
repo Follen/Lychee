@@ -13,7 +13,7 @@ function M:Init()
         id="builtin.great-vault", apiVersion=2, version="1.0.0", title="宏伟宝库", scope={product="retail"},
         entries={{id="great-vault", title="宏伟宝库", kindTitle="每周奖励", subtitle="查看宏伟宝库进度与奖励",
             aliases={"低保", "宝库", "每周奖励", "大秘境低保", "great vault", "weekly rewards"},
-            icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\currency.tga", actions={"open"}}},
+            icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\great-vault.tga", actions={"open"}}},
         actions={open={title="打开宏伟宝库", run=function() return A:Run(openVault) end}},
         onEnable=function() return function(reason) if reason == "unregister" then M.handle=nil end end end,
     })

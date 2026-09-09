@@ -1,0 +1,265 @@
+{
+  "generator": "tests/build_flat_menu_icons.cjs",
+  "source": "assets/menu-icons/flat-atlas.png",
+  "sourceSha256": "9c7347b6a1129a5e05b42a1c6b29a3957073200039049551cd1c94c338d7cfa5",
+  "style": "Light silver, warm ivory, lychee red. Flat shapes for dark UI.",
+  "previewSizes": [
+    28,
+    34,
+    48
+  ],
+  "icons": [
+    {
+      "id": "character",
+      "label": "角色",
+      "sha256": "b87b45ab2f67f7dd021fe695555f1c13c0242619282d0e3f397e6ddd09e5401b",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "reputation",
+      "label": "声望",
+      "sha256": "36ddf5bd4b625e6f78d63ca62f0261b0348942f7979b9c4416bab7597a020c95",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "currency",
+      "label": "货币",
+      "sha256": "fb16c393340572704374d2e3b1a87ecf3977665aabd77ef7ae4b72f66803a0ce",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "talents",
+      "label": "天赋",
+      "sha256": "9b1f26e20ce4525fa8f880807df8b0beea9dc5b9657633bbe75b0325af462cdb",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "specialization",
+      "label": "专精",
+      "sha256": "5405b1ab562569928fade29703fb316f080ac98d1b0a4a582766768ff8d26bc1",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "spellbook",
+      "label": "法术书",
+      "sha256": "daae315f884fc28dad2cae4934e8cbe7c49c439e29839441be95ea43ef45b6c5",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "professions",
+      "label": "专业技能",
+      "sha256": "9a89dcb88aa1f16cda820d56c9073a39a4fd1e5db7a0edec7c277aff115e69e4",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "mounts",
+      "label": "坐骑",
+      "sha256": "1cb4b2abb9586c05611f97737b915c6ad95a6bdb3815978a259374f103a27ebe",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "pets",
+      "label": "宠物手册",
+      "sha256": "bd9f94cd889daebdc804a758e92e991ad206eb24eb7648c5eeed031855c339fd",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "toys",
+      "label": "玩具箱",
+      "sha256": "8ad4a7d16dd81dfce19d1666b035c29794696dcb10b0ae745bed2686afa1e0b1",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "heirlooms",
+      "label": "传家宝",
+      "sha256": "bd8c0b301cdb367d745f121bd56e512ef4f1e80ad604e66c296ffaafe92d4144",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "appearances",
+      "label": "外观",
+      "sha256": "158811c58c92d48f999201563f12a95e06bb9ab626e75fec8250fe61eb41b570",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "warband-scenes",
+      "label": "战团营地",
+      "sha256": "4a2fcb49db3833fe48330b58819aaf4d77b5bf54e27837eed68212d17e021c93",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "achievements",
+      "label": "成就",
+      "sha256": "317712d820bc5a5317f99b343ab0928d8e05d3cb9ff4be00562dfb28d7e761c5",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "quests",
+      "label": "任务日志",
+      "sha256": "b760398b5b0b2dad98b31562ee3b23bb8fb9499c6d6152b9263f83fa7f8ea5fc",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "map",
+      "label": "世界地图",
+      "sha256": "80570c5d801d7b4fabf1a2bbd41cb5452670de0c0a5fe8e765f10d54ce171ed6",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "friends",
+      "label": "好友",
+      "sha256": "88e11588542fb104a6018072cb3d514911010a2cfffcba5f4236e81ef9ef759a",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "guild",
+      "label": "公会与社区",
+      "sha256": "7d26a59ec2069ae813eeaac63fd14a4629b3cc1ccbf709b718a4e249e68c208e",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "group-finder",
+      "label": "地下城和团队",
+      "sha256": "f434cfa3ed638677eb4600ee9469e9ec88e566a81bf55d200e81e0b62ab3fae4",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "dungeon-finder",
+      "label": "地下城查找器",
+      "sha256": "04fee6fbc23da11a8073fe8daac487fa886e49798263bc2d1787475b19b758c3",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "raid-finder",
+      "label": "团队查找器",
+      "sha256": "3094159f480262ba6810cc9bd9a118f9b7010c854a793f001b0c8c57e6c06bdb",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "premade-groups",
+      "label": "预创建队伍",
+      "sha256": "be1a8af1afd0ea7dcbbd82a741f97fb5584d0dd12a5c7c7fe5e3fa6add00b83e",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "pvp",
+      "label": "PvP",
+      "sha256": "686157df39b1a608f3a62d173db7b93af81df42e03bf16d3c838d70ac4ea333c",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "journal",
+      "label": "冒险指南",
+      "sha256": "d483171a733b0b27940815d107c5bb5481f4a64bb9498911cd43348cb8abe95a",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "journeys",
+      "label": "旅程",
+      "sha256": "2c9b307dd6af486b52e404638e454f58fc50afd0209a68b049efc992b3b83aaa",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "travelers-log",
+      "label": "旅行者日志",
+      "sha256": "31c7f62eccb6ade8a4af2c2fd219811c9be8e60f8a6e3620f1a4650beebe186e",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "suggested-content",
+      "label": "推荐玩法",
+      "sha256": "091fa493e75d5bd7261e208fdfe4ba78169e1a633718b2cf4825b8efcf460dc7",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "journal-dungeons",
+      "label": "地下城",
+      "sha256": "690e692cdc9c389af9bed3d6298e970e2fc66f95573eda18454a13a4f9d2c7cd",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "journal-raids",
+      "label": "团队副本",
+      "sha256": "e602ba66168f9af838a39bdf30bde0c02bd3829f498cb707d45e3462be3b9e1a",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "tutorials",
+      "label": "教程",
+      "sha256": "6ecb5f003f8d476eb7c6f6de11600745741df0734e694afe1759b8f3bc6ce6fc",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "calendar",
+      "label": "日历",
+      "sha256": "5a39caee69513dd75be8dabfaa4a3fa1e2e6f9d7336231ffda20fc063ae2990e",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "macros",
+      "label": "宏命令",
+      "sha256": "cdf834c4a54ff936547ec495d132c69a443164ef478cce818b22317a124aa1d2",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "settings",
+      "label": "设置",
+      "sha256": "681e60aeeeaf327e557e904b63c8d02bbad51d855c0c02c7fb679ff933421145",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "game-menu",
+      "label": "游戏菜单",
+      "sha256": "245f3a483ba9fd881d3acbeb5c732cf9694619817c5283d5523e51534f15bf49",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "great-vault",
+      "label": "宏伟宝库",
+      "sha256": "58b2b8be1bc6f54399c62c63dbed5d8d4e972da577a5fe48b58656749214c120",
+      "size": 64,
+      "alpha": true
+    },
+    {
+      "id": "homepin",
+      "label": "固定",
+      "sha256": "030773e54e93f041aaf11952a92ef917717186319b80f787b4dc76ea6014a70d",
+      "size": 64,
+      "alpha": true
+    }
+  ]
+}

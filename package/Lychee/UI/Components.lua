@@ -221,7 +221,7 @@ function Components:CreateEmptyState(parent, options)
     return component
 end
 
-local actionMenuInset = { left = 5, right = 5, top = 5, bottom = 5 }
+local actionMenuInset = { left = 4, right = 4, top = 4, bottom = 4 }
 local actionMenuPadding = { width = 0, height = 0 }
 local actionMenuStyle = {}
 function actionMenuStyle:GetInset() return actionMenuInset end
@@ -233,7 +233,7 @@ function actionMenuStyle:Generate()
     local border = self:AttachTexture()
     border:SetAllPoints()
     border:SetDrawLayer("BACKGROUND", -1)
-    border:SetColorTexture(unpack(colors.borderStrong))
+    border:SetColorTexture(unpack(colors.border))
     local background = self:AttachTexture()
     background:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1)
     background:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1)
@@ -247,7 +247,7 @@ local function initializeActionMenuButton(button)
     label:SetFont(STANDARD_TEXT_FONT, theme.FontSizes.body, "")
     label:SetShadowOffset(0, 0)
     label:SetTextColor(unpack(theme.Colors.text))
-    local width = math.max(176, math.min(360, label:GetStringWidth() + 24))
+    local width = math.max(132, math.min(280, label:GetStringWidth() + 20))
     label:ClearAllPoints()
     label:SetPoint("LEFT", button, "LEFT", 12, 0)
     label:SetPoint("RIGHT", button, "RIGHT", -12, 0)
@@ -256,7 +256,7 @@ local function initializeActionMenuButton(button)
     label:SetWordWrap(false)
     button.highlight:SetBlendMode("BLEND")
     button.highlight:SetColorTexture(unpack(theme.Colors.surfaceSelected))
-    return width, 32
+    return width, 28
 end
 
 function Components:StyleActionMenuOwner(owner)

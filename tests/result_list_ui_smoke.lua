@@ -334,10 +334,10 @@ function menuButton.fontString:GetStringWidth() return self.measuredWidth or 100
 menuButton.highlight = object("Texture", menuButton)
 function menuButton.highlight:SetBlendMode(mode) self.blendMode = mode end
 local menuWidth, menuHeight = menuInitializer(menuButton)
-assert(menuWidth == 176 and menuHeight == 32, "single action retains comfortable menu dimensions")
+assert(menuWidth == 132 and menuHeight == 28, "single action retains comfortable menu dimensions")
 assert(menuButton.fontString.font[2] == 12 and menuButton.fontString.wordWrap == false, "menu uses readable single-line body text")
 assert(menuButton.highlight.blendMode == "BLEND", "menu removes additive gold highlight")
 menuButton.fontString.measuredWidth = 600
 local longMenuWidth = menuInitializer(menuButton)
-assert(longMenuWidth == 360, "long action text cannot create an unbounded menu")
+assert(longMenuWidth == 280, "long action text cannot create an unbounded menu")
 print("Lychee result list UI smoke PASS")

@@ -239,3 +239,34 @@ assert(helper.Supports(SDK) and not helper.Supports(SDK,2,false))
 assert(next(I.Providers.jobs)==nil)
 assert(LycheeDB.searchIndex==nil, "executable search data is not persisted")
 print("Lychee Provider API 2 contract PASS")
+
+do
+    local starts, stops = 0, 0
+    LycheeDB.disabledProviders = {["test.user-preference"]=true}
+    local def = definition("test.user-preference", {{id="item",title="User preference fixture"}})
+    def.onEnable = function() starts=starts+1; return function() stops=stops+1 end end
+    local handle = assert(SDK:RegisterProvider(def))
+    assert(not handle:GetState().enabled and not handle:GetState().userEnabled and starts==0)
+    assert(#query("User preference fixture")==0, "saved disable applies before initial publication")
+    assert(I.Registry:SetUserEnabled(handle.id,true))
+    assert(starts==1 and #query("User preference fixture")==1)
+    assert(handle:SetEnabled(false) and stops==1)
+    assert(I.Registry:SetUserEnabled(handle.id,false))
+    assert(handle:SetEnabled(true))
+    assert(not handle:GetState().enabled and starts==1, "owner enable cannot override user disable")
+    assert(I.Registry:SetUserEnabled(handle.id,true) and starts==2)
+    assert(I.Registry:SetUserEnabled(handle.id,true) and starts==2, "repeat toggle does not restart provider")
+    assert(I.Registry:SetUserEnabled(handle.id,false) and stops==2)
+    assert(handle:Unregister())
+    local restored=assert(SDK:RegisterProvider(def))
+    assert(not restored:GetState().enabled and starts==2, "disable survives re-registration")
+    assert(restored:Unregister())
+    I.Registry:SetReady(false)
+    local pending=assert(SDK:RegisterProvider(definition("test.pending-preference",{{id="item",title="Pending preference"}})))
+    LycheeDB.disabledProviders["test.pending-preference"]=true
+    I.Registry:SetReady(true)
+    assert(not pending:GetState().enabled and not pending:GetState().userEnabled, "publication reads restored SavedVariables")
+    assert(pending:Unregister())
+    expect("REQUIRED_PROVIDER",function() return I.Registry:SetUserEnabled("lychee.settings",false) end)
+    print("Lychee persistent Provider preference PASS")
+end

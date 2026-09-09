@@ -12,8 +12,9 @@ Palette.__index = Palette
 
 local WIDTH, HEIGHT = 640, 220
 local HEADER_HEIGHT, FOOTER_HEIGHT = 56, 28
-local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 112, 96
-local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 7, 81, 76
+local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 4, 6, 18
+local RECENT_LIMIT, RECENT_HEIGHT = 5, 46
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 8
 
 local FALLBACK = {
@@ -62,12 +63,6 @@ local function paletteDB()
     db.recent = type(db.recent) == "table" and db.recent or {}
     db.pinned = type(db.pinned) == "table" and db.pinned or {}
     return db
-end
-
-local function stableItemID(item)
-    if type(item) ~= "table" then return nil end
-    local record = item.searchRecord
-    return (record and record.id) or item.id
 end
 
 local function localized(value, fallback)
@@ -127,6 +122,11 @@ local function createHomeView(parent, controller)
     view.empty:SetText(localized({ zhCN = "搜索并使用后，常用入口会出现在这里", enUS = "Your recently used actions will appear here" }))
     tint(view.empty, color("muted"))
     Lychee.UI.Theme:SetFont(view.empty, "body")
+    view.manage = Lychee.UI.Components:CreateButton(view.content, {width=48,height=20,text="管理",
+        colors={normal="transparent",hover="surfaceHover"},textColors={normal="textMuted",hover="text"},
+        onClick=function() controller:OpenSettings("pins") end})
+    Lychee.UI.Theme:SetFont(view.manage.label, "meta")
+    view.manage.frame:Hide()
 
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
@@ -213,7 +213,7 @@ local function createHomeView(parent, controller)
         paint(tile.bg, color("accent"))
         tile.bg:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
-        tile.icon:SetSize(34, 34)
+        tile.icon:SetSize(28, 28)
         tile.icon:SetPoint("TOP", tile, "TOP", 0, -12)
         tile.fallback = {}
         for index = 1, 4 do
@@ -236,8 +236,14 @@ local function createHomeView(parent, controller)
         tint(tile.title, color("text"))
         Lychee.UI.Theme:SetFont(tile.title, "body")
         tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -6)
+        tile.category = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        tile.category:SetPoint("RIGHT", tile, "RIGHT", -12, 0)
+        tile.category:SetWidth(90)
+        tile.category:SetJustifyH("RIGHT")
+        Lychee.UI.Theme:SetFont(tile.category, "meta")
+        tint(tile.category, color("muted"))
         tile:SetScript("OnClick", function(button, mouseButton)
-            if mouseButton == "RightButton" and controller and button.item then
+            if mouseButton == "RightButton" and controller and (button.item or button.section and button.section.pinnedRef) then
                 view:Select(button.index)
                 controller:ShowRowActions(button)
                 return
@@ -261,6 +267,36 @@ local function createHomeView(parent, controller)
         return tile
     end
 
+    function view:ConfigureLayout(tile, recent)
+        if tile._recentLayout == recent then return end
+        tile._recentLayout = recent
+        tile:SetSize(recent and 592 or HOME_TILE_WIDTH, recent and RECENT_HEIGHT or HOME_TILE_HEIGHT)
+        tile.icon:ClearAllPoints()
+        tile.title:ClearAllPoints()
+        tile.bg:ClearAllPoints()
+        if recent then
+            tile.icon:SetPoint("LEFT", tile, "LEFT", 8, 0)
+            tile.title:SetPoint("LEFT", tile, "LEFT", 48, 0)
+            tile.title:SetPoint("RIGHT", tile, "RIGHT", -112, 0)
+            tile.title:SetJustifyH("LEFT")
+            tile.title:SetHeight(18)
+            tile.bg:SetSize(2, 22)
+            tile.bg:SetPoint("LEFT", tile, "LEFT", 0, 0)
+        else
+            tile.icon:SetPoint("TOP", tile, "TOP", 0, -8)
+            tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 2, -43)
+            tile.title:SetPoint("RIGHT", tile, "RIGHT", -2, 0)
+            tile.title:SetJustifyH("CENTER")
+            tile.title:SetHeight(28)
+            tile.bg:SetSize(24, 2)
+            tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -3)
+        end
+        if tile.title.SetWordWrap then tile.title:SetWordWrap(not recent) end
+        if tile.title.SetMaxLines then tile.title:SetMaxLines(recent and 1 or 2) end
+        Lychee.UI.Theme:SetFont(tile.title, recent and "body" or "meta")
+        setShown(tile.category, recent)
+    end
+
     function view:EnsureCapacity(headerCount, tileCount)
         for index = #self.headers + 1, headerCount do self:AcquireHeader(index) end
         for index = #self.tiles + 1, tileCount do self:AcquireTile(index) end
@@ -273,6 +309,7 @@ local function createHomeView(parent, controller)
         if allowExpand then self:EnsureCapacity(HOME_HEADER_COUNT, #self.sections) end
         -- ScrollFrame owns the child origin; keep padding in content anchors.
         local headerCount, tileCount, cursorY = 0, 0, 10
+        local pinnedHeader
         local groupID, column = nil, 0
         for index = 1, #self.sections do
             local section = self.sections[index]
@@ -290,14 +327,26 @@ local function createHomeView(parent, controller)
                 end
                 setText(header, homeLabel(section.groupTitle, section.groupID or ""))
                 setShown(header, true)
+                if groupID == "pinned" then
+                    pinnedHeader = true
+                    if self._manageY ~= cursorY then
+                        self.manage.frame:ClearAllPoints()
+                        self.manage.frame:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", -14, -cursorY+3)
+                        self._manageY = cursorY
+                    end
+                end
                 cursorY = cursorY + 24
             end
             tileCount = tileCount + 1
             local tile = self.tiles[tileCount]
             if not tile then break end
-            local row = math.floor(column / HOME_COLUMNS)
-            local col = column % HOME_COLUMNS
-            local layoutY = cursorY + row * (HOME_TILE_HEIGHT + HOME_ROW_GAP)
+            local recent = section.groupID == "recent"
+            self:ConfigureLayout(tile, recent)
+            local columns = recent and 1 or HOME_COLUMNS
+            local tileHeight = recent and RECENT_HEIGHT or HOME_TILE_HEIGHT
+            local row = math.floor(column / columns)
+            local col = column % columns
+            local layoutY = cursorY + row * (tileHeight + HOME_ROW_GAP)
             local anchorKey = layoutY * HOME_COLUMNS + col
             if tile._homeAnchorKey ~= anchorKey then
                 tile:ClearAllPoints()
@@ -307,8 +356,8 @@ local function createHomeView(parent, controller)
             column = column + 1
             local nextSection = self.sections[index + 1]
             if not nextSection or nextSection.groupID ~= groupID then
-                local rows = math.max(1, math.ceil(column / HOME_COLUMNS))
-                cursorY = cursorY + rows * HOME_TILE_HEIGHT + math.max(0, rows - 1) * HOME_ROW_GAP
+                local rows = math.max(1, math.ceil(column / columns))
+                cursorY = cursorY + rows * tileHeight + math.max(0, rows - 1) * HOME_ROW_GAP
             end
             tile.section = section
             tile.index = index
@@ -318,9 +367,11 @@ local function createHomeView(parent, controller)
             tile.session, tile.generation = controller.session, controller.generation
             tile.extensionID = section.item and section.item._ext
             local title = homeLabel(section.title or section.text, "Lychee")
+            setText(tile.category, homeLabel(section.meta, ""))
+            tint(tile.title, color(section.enabled == false and "muted" or "text"))
             if tile._title ~= title then
                 setText(tile.title, title)
-                if tile.title.GetStringHeight then
+                if not recent and tile.title.GetStringHeight then
                     local height = math.max(14, math.min(28, tile.title:GetStringHeight()))
                     if tile.title:GetHeight() ~= height then tile.title:SetHeight(height) end
                 end
@@ -337,6 +388,7 @@ local function createHomeView(parent, controller)
             setShown(tile, true)
             self:RenderTileState(tile)
         end
+        setShown(self.manage.frame, pinnedHeader == true)
         for index = tileCount + 1, #self.tiles do
             local tile = self.tiles[index]
             tile.section, tile.index, tile._hovered = nil, nil, nil
@@ -424,6 +476,17 @@ function Palette:Create()
     })
     self.brandMark = self.brandComponent.icon
     self.brand = self.brandComponent.label
+    self.settingsButton = CreateFrame("Button", nil, self.header)
+    self.settingsButton:SetAllPoints(self.brandMark)
+    self.settingsButton:SetScript("OnClick", function() self:OpenSettings() end)
+    self.settingsTitle = self.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    self.settingsTitle:SetPoint("LEFT", self.header, "LEFT", 82, 0)
+    Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
+    Lychee.UI.Theme:SetTextColor(self.settingsTitle, "text")
+    self.settingsTitle:SetText("荔枝设置"); self.settingsTitle:Hide()
+    self.settingsBack = components:CreateButton(self.header, {width=72,height=28,point="RIGHT",relativePoint="RIGHT",x=-72,
+        text="返回搜索",colors={normal="transparent",hover="surfaceHover"},onClick=function() self:CloseSettings() end})
+    self.settingsBack.frame:Hide()
     self.closeComponent = components:CreateButton(self.header, {
         width = 38, height = 26, point = "RIGHT", relativePoint = "RIGHT", x = -16,
         text = "Esc",
@@ -519,13 +582,59 @@ function Palette:Create()
             internal.Registry:OnChange(function(entry, state)
                 if state == "disabled" or state == "retiring" or state == "removed" then self:InvalidateExtension(entry and entry.id) end
                 self:MarkHomeDirty()
+                if self.settingsOpen and C_Timer and C_Timer.After and not self.settingsRefreshPending then
+                    self.settingsRefreshPending = true
+                    C_Timer.After(0, function()
+                        self.settingsRefreshPending = nil
+                        if self.visible and self.settingsOpen then self.settingsView:Refresh() end
+                    end)
+                end
             end)
         end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
         if not internal.Host.TogglePalette then internal.Host.TogglePalette = function() return self:Toggle() end end
         if internal.WirePalette then internal.WirePalette(self) end
     end
+    if Lychee.RegisterProvider then
+        self.settingsProvider = Lychee:RegisterProvider({id="lychee.settings",apiVersion=2,version="1.0.0",title="荔枝设置",
+            entries={{id="settings",title="荔枝设置",kindTitle="设置",aliases={"设置","荔枝设置","lychee settings"},
+                icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga",actions={"open"}}},
+            actions={open={title="打开荔枝设置",run=function() local ok,err=self:OpenSettings();if not ok then return nil,err end;return {ok=true,close=false} end}}})
+    end
     return self
+end
+
+function Palette:SetStatusText(value)
+    setText(self.status, value); setText(self.footerHint, "")
+end
+
+function Palette:OpenSettings(tab)
+    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    if not self.visible then self:Show() end
+    self.settingsOpen = true
+    if I.Search.Session then I.Search.Session:Stop("settings") end
+    Lychee.UI.ResultList:HideTooltip()
+    if self.secureBroker then self.secureBroker:ReleaseAll() end
+    if self.viewHost then self.viewHost:Unmount("settings") end
+    self.input:ClearFocus(); self.input:Hide()
+    setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
+    if not self.settingsView then self.settingsView = Lychee.UI.SettingsView:Create(self.content, self) end
+    self.settingsView.frame:Show(); self.settingsView:SetTab(tab or "providers")
+    self.settingsTitle:Show(); self.settingsBack.frame:Show()
+    self:ResizeForMode("settings"); self:SetStatusText("更改即时生效")
+    return true
+end
+
+function Palette:CloseSettings(clearQuery)
+    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    self.settingsOpen = false
+    if self.settingsView then self.settingsView.frame:Hide() end
+    self.settingsTitle:Hide(); self.settingsBack.frame:Hide(); self.input:Show()
+    if I.Search.Session then I.Search.Session:Start() end
+    if clearQuery then self.input:SetText("") end
+    if self.onQuery then self.onQuery(self.input:GetText()) end
+    self:EnsureHomeCapacity(); self:SetQueryMode(self.input:GetText()); self.input:Focus()
+    return true
 end
 
 function Palette:SetQueryCallback(callback) self.onQuery = callback end
@@ -535,7 +644,7 @@ function Palette:SetHomeSections(sections, allowExpand) if self.homeView then se
 function Palette:SetHomeCategoryCallback(callback) self.onHomeCategory = callback end
 
 function Palette:IsHomeVisible()
-    return self.visible and self.homeView and self.homeView.frame:IsShown()
+    return self.visible and not self.settingsOpen and self.homeView and self.homeView.frame:IsShown()
         and not (self.viewHost and self.viewHost:IsActive())
 end
 
@@ -556,7 +665,7 @@ function Palette:MarkHomeDirty()
 end
 
 function Palette:TouchRecent(item)
-    if not item or not item.ref or not I.Providers or not I.Providers:CanRemember(item) then return false end
+    if not item or not item.ref or item.ref.providerID == "lychee.settings" or not I.Providers or not I.Providers:CanRemember(item) then return false end
     local ref = item.ref
     local db = paletteDB()
     for index = #db.recent, 1, -1 do
@@ -570,30 +679,18 @@ function Palette:TouchRecent(item)
 end
 
 function Palette:SetPinned(item, pinned)
-    local id = stableItemID(item)
-    if not id then return false end
-    local db = paletteDB()
-    local found
-    for index = #db.pinned, 1, -1 do
-        if db.pinned[index] == id then found = true; if not pinned then table.remove(db.pinned, index) end end
+    local preferences = I.UserPreferences
+    if not preferences or not item then return false end
+    if pinned then
+        local ok, err = preferences:Pin(item)
+        if not ok then return false, err end
+    else
+        local index = preferences:PinIndex(item.ref)
+        if index then preferences:Remove(index) end
     end
-    if pinned and not found then db.pinned[#db.pinned + 1] = id end
-    while #db.pinned > 16 do table.remove(db.pinned, 1) end
-    self:MarkHomeDirty()
+    self:EnsureHomeCapacity(); self:MarkHomeDirty()
+    if self.settingsOpen then self.settingsView:Refresh() end
     return true
-end
-
-function Palette:_IndexedRecordsByID()
-    local records, index = {}, {}
-    local static = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.StaticIndex
-    if not static or type(static.entries) ~= "table" then return records, index end
-    for _, entry in pairs(static.entries) do
-        local record = entry and entry.record
-        if type(record) == "table" and type(record.id) == "string" and not index[record.id] then
-            index[record.id], records[#records + 1] = record, record
-        end
-    end
-    return records, index
 end
 
 function Palette:RefreshHomeSections(allowExpand)
@@ -602,12 +699,23 @@ function Palette:RefreshHomeSections(allowExpand)
     local db, sections = paletteDB(), {}
     local internal = _G.LycheeInternal
     local query = internal and internal.Search and internal.Search.Query
-    local items = query and query:ResolveRecent(db.recent, HOME_COLUMNS) or {}
+    local preferences = I.UserPreferences
+    if preferences then
+        preferences:MigratePins()
+        for index, pin in ipairs(preferences:GetPins()) do
+            local item = preferences:Resolve(pin)
+            local title = type(pin) == "table" and (pin.title or pin.entryID) or tostring(pin)
+            sections[#sections + 1] = {id="pin:" .. index, groupID="pinned", groupTitle=localized({zhCN="已固定",enUS="Pinned"}),
+                title=item and item.text or title, icon=item and item.icon or type(pin)=="table" and pin.icon,
+                item=item, pinnedRef=pin, enabled=item~=nil, meta=item and item.kindTitle or ""}
+        end
+    end
+    local items = query and query:ResolveRecent(db.recent, RECENT_LIMIT) or {}
     for index = 1, #items do
         local item = items[index]
         sections[#sections + 1] = { id = "saved:" .. item.ref.providerID .. ":" .. item.id, groupID = "recent",
             groupTitle = localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
-            title = item.text, icon = item.icon, item = item, meta = item.category, categoryColor = item.categoryColor }
+            title = item.text, icon = item.icon, item = item, meta = item.kindTitle or "", categoryColor = item.categoryColor }
     end
     if self.secureBroker then
         for index = 1, #self.homeView.tiles do self.secureBroker:InvalidateRow(self.homeView.tiles[index]) end
@@ -669,6 +777,7 @@ function Palette:ResizeForMode(mode, count)
         padding = 0 -- Home content includes its own top and bottom spacing.
     end
     if mode == "panel" then listHeight = 360 end
+    if mode == "settings" then listHeight = 430 end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
     if self.frame:GetHeight() ~= desired then self.frame:SetHeight(desired) end
@@ -715,6 +824,7 @@ function Palette:SetActionFeedback(state, actionOrError)
 end
 
 function Palette:SetQueryMode(text)
+    if self.settingsOpen then return false end
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
     local empty = (text or "") == ""
     if not self.homeView or not self.list then return end
@@ -771,6 +881,7 @@ function Palette:InvalidateExtension(extensionID)
 end
 
 function Palette:ApplyResults(items, generation, session, offset)
+    if self.settingsOpen then return false end
     if not self.visible then return false end
     if InCombatLockdown and InCombatLockdown() then return false end
     if session and session ~= self.session then return false end
@@ -818,7 +929,7 @@ function Palette:Show()
     if C_Timer and type(C_Timer.After) == "function" then
         local focusSession = self.session
         C_Timer.After(0, function()
-            if self.visible and self.session == focusSession then self.input:Focus() end
+            if self.visible and not self.settingsOpen and self.session == focusSession then self.input:Focus() end
         end)
     else
         self.input:Focus()
@@ -848,6 +959,9 @@ end
 function Palette:FinishHide(reason)
     if InCombatLockdown and InCombatLockdown() then return false end
     self.combatCleanupPending = false
+    self.settingsOpen = false
+    if self.settingsView then self.settingsView.frame:Hide() end
+    self.settingsTitle:Hide(); self.settingsBack.frame:Hide()
     self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
@@ -880,6 +994,21 @@ function Palette:ActivateRowAction(row, actionID)
 end
 function Palette:ShowRowActions(row)
     Lychee.UI.ResultList:HideTooltip()
+    if row and not row.item and row.section and row.section.pinnedRef and MenuUtil and MenuUtil.CreateContextMenu then
+        if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+        local pin = row.section.pinnedRef
+        Lychee.UI.Components:StyleActionMenuOwner(row)
+        self.actionMenu = MenuUtil.CreateContextMenu(row, function(_, root)
+            local description = root:CreateButton("取消固定", function()
+                if not self.visible or self.settingsOpen or InCombatLockdown() then return false end
+                for index, current in ipairs(I.UserPreferences:GetPins()) do
+                    if current == pin then I.UserPreferences:Remove(index); self:MarkHomeDirty(); return true end
+                end
+            end)
+            Lychee.UI.Components:StyleActionMenuButton(description)
+        end)
+        return true
+    end
     local result, err = I.ResultActionExecutor:ShowActions(row)
     self:ReportActionResult(result, err)
     return result, err

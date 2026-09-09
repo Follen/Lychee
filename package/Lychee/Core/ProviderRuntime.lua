@@ -248,7 +248,8 @@ function P:Register(definition)
     function handle:GetState()
         if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end
         local state = internal:GetState()
-        return { enabled = active(entry), lifecycle = state.lifecycle, revision = entry.revision, lastError = copy(entry.lastError) }
+        return { enabled = active(entry), ownerEnabled = state.ownerEnabled, userEnabled = state.userEnabled,
+            lifecycle = state.lifecycle, revision = entry.revision, lastError = copy(entry.lastError) }
     end
     function handle:SetEnabled(enabled)
         if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end

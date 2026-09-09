@@ -94,8 +94,8 @@ local files = {
     "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
-    "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/Palette.lua",
+    "Core/UserPreferences.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
+    "UI/FocusController.lua", "UI/Theme.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/SettingsView.lua", "UI/Palette.lua",
 }
 for i = 1, #files do dofile(root .. files[i]) end
 
@@ -440,21 +440,23 @@ assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()
 assert(LycheeDB and LycheeDB.palette and LycheeDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
-assert(LycheeDB.palette.pinned[1] == actionItem.id, "pinned stores stable id")
+assert(LycheeDB.palette.pinned[1].entryID == actionItem.id and LycheeDB.palette.pinned[1].providerID == actionItem.ref.providerID, "pinned stores qualified stable ref")
 local hasRecent = false
 for sectionIndex = 1, #(palette.homeView.sections or {}) do
     local section = palette.homeView.sections[sectionIndex]
     if section.id == "saved:" .. actionItem.ref.providerID .. ":" .. actionItem.id then hasRecent = true end
 end
-assert(hasRecent and #palette.homeView.sections == 1, "home contains recent items only")
+assert(hasRecent and #palette.homeView.sections == 2, "home contains pins and recent items")
 assert(#palette.homeView.tiles >= #palette.homeView.sections, "home tile pool grows to the section count")
 assert(#palette.homeView.headers >= 1, "home renders the recent group header")
 assertEq(palette.homeView.headers[1].point[4], 12, "recent title has its own horizontal inset")
 assertEq(palette.homeView.headers[1].point[5], -10, "recent title clears the header divider")
 local groupIDs = {}
 for sectionIndex = 1, #palette.homeView.sections do groupIDs[palette.homeView.sections[sectionIndex].groupID] = true end
-assert(groupIDs.recent and not groupIDs.pinned and not groupIDs.categories and not groupIDs.extensions, "home group identity is recent only")
+assert(groupIDs.recent and groupIDs.pinned and not groupIDs.categories and not groupIDs.extensions, "home groups are pins and recent")
 assertEq(palette.homeView.frame:GetScrollChild(), palette.homeView.content, "home uses a scroll child")
+assert(palette:SetPinned(actionItem, false))
+palette:RefreshHomeSections()
 assert(palette.homeView.content:GetHeight() >= 1, "home content has measurable height")
 local renderedSources = {}
 local firstHomeTile = palette.homeView.tiles[1]
@@ -783,9 +785,9 @@ assert(palette:IsHomeVisible(), "reopening returns to recent homepage")
 assert(palette.frame:GetHeight() < 260, "one-row home contracts around content")
 local recentTile = palette.homeView.tiles[1]
 local recentButton = assert(boundButton(recentTile), "recent tile has a prepared direct spell click")
-assert(recentTile.bg:GetWidth() > recentTile.bg:GetHeight(), "recent selection uses an underline")
-assertEq(recentTile.bg.point[2], recentTile.title, "recent selection follows the caption instead of boxing the icon")
-assertEq(recentTile.title.maxLines, 2, "recent entry names allow two lines")
+assert(recentTile.bg:GetWidth() < recentTile.bg:GetHeight(), "recent list selection uses a side accent")
+assertEq(recentTile:GetWidth(), 592, "recent entry is a full-width list row")
+assertEq(recentTile.title.wordWrap, false, "recent entry names use one line")
 assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
 local beforeDrag = _G.__pickup or 0
 recentButton.scripts.OnDragStart(recentButton)
@@ -928,7 +930,7 @@ MenuUtil = { CreateContextMenu=function(_, generator)
     end })
 end }
 fixtureTile.scripts.OnClick(fixtureTile, "RightButton")
-assertEq(#menuEntries, 2, "recent Provider entry exposes all actions")
+assertEq(#menuEntries, 3, "recent Provider entry exposes all actions and pin")
 assert(fixtureTile.menuMixin and menuEntries[1].initializer, "recent action menu receives Lychee styling")
 local originalMouseOver = palette.frame.IsMouseOver
 palette.frame.IsMouseOver = function() return false end
@@ -960,7 +962,7 @@ local secureMenuRow = findEntry(palette.list.rows, "secure-menu")
 local secureMenuButton = assert(boundButton(secureMenuRow))
 menuEntries={}
 secureMenuButton.scripts.OnMouseDown(secureMenuButton, "RightButton")
-assertEq(#menuEntries, 3, "secure overlay exposes the same action menu")
+assertEq(#menuEntries, 4, "secure overlay exposes the same actions and pin")
 assert(not secureMenuButton.pendingCast, "right-button menu does not initiate a protected cast")
 assert(menuEntries[2].callback() and menuRan==1)
 LycheeDB.palette.recent={}
@@ -1075,3 +1077,47 @@ print("Already released button attribute writes: " .. calls)
 assert(calls == 0, "repeated release does not mutate idle pooled buttons")
 end)()
 print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)")
+
+;(function()
+    local savedTimers=C_Timer; C_Timer=nil
+    local controller=Lychee.UI.Palette
+    local prefs=I.UserPreferences
+    LycheeDB.palette.pinned={};LycheeDB.palette.recent={}
+    local source=assert(Lychee:RegisterProvider({id="settings.fixture",apiVersion=2,version="1.0.0",title="设置测试来源",
+        entries={{id="a",title="设置固定甲",actions={"open"}},{id="b",title="设置固定乙",actions={"open"}}},
+        actions={open={title="打开",run=function() return {ok=true} end}}}))
+    controller:Show()
+    local a=assert(prefs:Resolve({providerID=source.id,entryID="a"}))
+    local b=assert(prefs:Resolve({providerID=source.id,entryID="b"}))
+    assert(controller:SetPinned(a,true) and controller:SetPinned(b,true))
+    assert(controller:SetPinned(a,true) and #prefs:GetPins()==2, "pins are idempotent")
+    assert(controller:OpenSettings("pins"))
+    assert(controller.settingsOpen and not I.Search.Session.visible and not controller.input.container:IsShown())
+    assert(not controller:ApplyResults({a},controller.generation,controller.session), "settings suppresses search results")
+    local view=controller.settingsView
+    view:Move(2,-1);assert(prefs:GetPins()[1].entryID=="b")
+    view.rows[1].remove.frame.scripts.OnClick()
+    assert(#prefs:GetPins()==1 and view.undo.frame:IsShown())
+    view.undo.frame.scripts.OnClick();assert(prefs:GetPins()[1].entryID=="b" and #prefs:GetPins()==2)
+    view:SetTab("providers")
+    local fixtureRow
+    for _,row in ipairs(view.rows) do if row.providerID==source.id then fixtureRow=row end end
+    assert(fixtureRow, "settings lists third-party providers")
+    fixtureRow.toggle.scripts.OnClick()
+    assert(not source:GetState().enabled and #prefs:GetPins()==2)
+    assert(controller:CloseSettings(true))
+    assert(controller:IsHomeVisible() and I.Search.Session.visible and #controller.homeView.sections==2)
+    assert(controller.homeView.tiles[1]:IsShown() and not controller.homeView.tiles[1].item, "disabled pin stays visible")
+    assert(I.Registry:SetUserEnabled(source.id,true))
+    controller:RefreshHomeSections(true)
+    assert(controller.homeView.tiles[1].item and controller.homeView.tiles[1]:GetWidth()==81)
+    typeQuery("荔枝设置")
+    local settingRow=findEntry(controller.list.rows,"settings")
+    assert(settingRow and controller:ActivateRow(settingRow) and controller.settingsOpen, "search opens same settings page")
+    controller:Hide("settings-test")
+    assert(not controller.settingsOpen and not view.frame:IsShown())
+    controller:Show();assert(controller:IsHomeVisible() and controller.input.container:IsShown())
+    assert(not prefs:CanPin(prefs:Resolve({providerID="lychee.settings",entryID="settings"})))
+    controller:Hide("done");assert(source:Unregister());C_Timer=savedTimers
+    print("Lychee settings and pins interaction PASS")
+end)()
