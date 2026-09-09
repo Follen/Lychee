@@ -26,4 +26,8 @@ Source `wow-ui-source`, product `retail`, requestedRef `latest`, resolvedCommit 
 
 ## Delivery and rollback
 
+Follow-up screenshot request: remove the homepage footer's `Lychee` wordmark. The home hint now clears to an empty string; result-mode interaction hints remain available. The screenshot still showed the old bold white recent title, whereas delivered source uses the small subdued title and internal padding; a client `/reload` is needed to load the changes.
+
+Before this follow-up edit, `wowdoc source check` confirmed local and remote retail commits still matched `8ea15b61e45c0ed4eba01439c90757f86eb78d34`. `wowdoc inspect --symbol AccountStoreBaseCardMixin:SetItemID` returned `Interface/AddOns/Blizzard_AccountStore/Blizzard_AccountStoreCardTemplates.lua:136`, excerpt `self.Name:SetText(itemInfo.name);`, confirming the existing text setter path for source `wow-ui-source`, product `retail`, requestedRef `latest` at that commit.
+
 Commit the related runtime, tests and documentation after checks, then copy runtime files only to `D:\Game\World of Warcraft\_retail_\Interface\AddOns\Lychee`, with file-list and SHA256 verification. Do not delete destination extras. Rollback uses a new `git revert` commit and the same validated copy procedure.

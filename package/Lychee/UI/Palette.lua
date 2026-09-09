@@ -646,7 +646,7 @@ function Palette:SetStatus(mode, count)
     elseif count and count > 0 then text = localized({ zhCN = "搜索结果：", enUS = "Results: " }, "Results: ") .. tostring(count)
     else text = localized({ zhCN = "没有结果", enUS = "No results" }, "No results") end
     setText(self.status, text)
-    setText(self.footerHint, mode == "home" and "Lychee" or localized({ zhCN = "↑ ↓ 选择   ·   点击使用", enUS = "↑ ↓ Select   ·   Click to use" }))
+    setText(self.footerHint, mode == "home" and "" or localized({ zhCN = "↑ ↓ 选择   ·   点击使用", enUS = "↑ ↓ Select   ·   Click to use" }))
 end
 
 function Palette:ResizeForMode(mode, count)
