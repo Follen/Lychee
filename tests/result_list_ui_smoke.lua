@@ -131,6 +131,7 @@ local items = {
         kindTitle = "自定义类型",
         description = longText,
         category = "技能",
+        categoryColor = { 0.455, 0.670, 0.925, 1 },
         source = "builtin.player-spells:records",
         icon = 4578416,
         _ext = "builtin.player-spells",
@@ -164,7 +165,9 @@ assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID =
 assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == longText, "name and description remain separately constrained")
 assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 58, "long text cannot mutate row geometry")
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
-assert(rowOne.category:GetText() == "技能", "category label is rendered")
+assert(rowOne.category:GetText() == "自定义类型", "type label takes precedence over category")
+assert(rowOne.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim and rowTwo.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim,
+    "all result labels use the same subdued theme color, including colored provider categories")
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")
 assert(rowOne.dragger:IsShown() and rowOne.dragDescriptor.spellID == 393256, "drag area binds descriptor")
 assert(rowOne.primaryAction.id == "cast" and rowOne.primaryHint:GetText() == "", "primary action label stays out of the compact row")
@@ -285,5 +288,26 @@ assert(recentTip:GetParent() == UIParent, "tooltip keeps a non-clipping root par
 list.frame.scripts.OnHide(list.frame)
 assert(not recentTip:IsShown() and recentTip._owner == nil, "hiding the result view clears the root-owned tooltip")
 Lychee.UI.ResultList:HideTooltip()
+
+local mixedTypes = {
+    {text="技能结果",kindTitle="技能",category="旧分类",categoryColor={0.455,0.670,0.925,1}},
+    {text="首领结果",kindTitle="首领"},
+    {text="菜单结果",kindTitle="游戏菜单"},
+    {text="纹章结果",kindTitle="角色货币"},
+    {text="第三方结果",sourceTitle="第三方工具"},
+    {text="本地化类型",kindTitle={default="Item",zhCN="装备"}},
+    {text="仅分类结果",category={id="tasks",title={default="Tasks",zhCN="任务"}}},
+    {text="无类型结果"},
+}
+local expectedTypes={"技能","首领","游戏菜单","角色货币","第三方工具","装备","任务","内容"}
+local createdBeforeTypes=#created
+list:SetItems(mixedTypes,50,60)
+for index=1,#expectedTypes do
+    local label=list.rows[index].category
+    assert(label:GetText()==expectedTypes[index], "mixed Provider type label "..index)
+    assert(label._lycheeTextToken==Lychee.UI.Theme.Colors.textDim and label.font[2]==11, "consistent type-label style")
+end
+assert(#created==createdBeforeTypes, "type labels reuse existing rows and regions")
+list:Clear()
 
 print("Lychee result list UI smoke PASS")

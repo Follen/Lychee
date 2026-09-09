@@ -51,7 +51,7 @@ replace 与增量字段互斥；数组必须稠密且无重复条目 ID。Update
 | id | 必填 string，1–128 字节，ASCII 字母/数字起始，随后可含 `._:/-`。Provider 内稳定唯一。 |
 | title | 必填 Text。 |
 | kind | 可选非空 string，缺省 entry；仅作为语义/展示元数据，不决定交互。 |
-| kindTitle | 可选 Text，用户可读类型名。 |
+| kindTitle | 可选 Text，用户可读类型名。用于搜索结果右侧标签与提示框；缺省时依次回退分类显示名、Provider 显示名和“内容”。标签颜色统一由 Host 主题决定。 |
 | subtitle / subtext | 可选 Text，短说明；subtitle 优先。 |
 | description | 可选 Text，搜索说明与 tooltip 正文。 |
 | aliases / keywords | 可选 Text，可用字符串数组。 |

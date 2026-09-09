@@ -50,21 +50,6 @@ local function setTextColor(fontString, name)
     end
 end
 
-local function setCategoryTextColor(fontString, item)
-    local theme = Lychee.UI and Lychee.UI.Theme
-    local category = item and item.searchRecord and item.searchRecord.category
-    local value = item and item.categoryColor or (type(category) == "table" and category.color)
-    if value and type(fontString.SetTextColor) == "function" then
-        if type(theme.SetTextColor) == "function" then theme:SetTextColor(fontString, value)
-        elseif fontString._lycheeResultTextToken ~= value then
-            fontString:SetTextColor(value[1], value[2], value[3], value[4] or 1)
-            fontString._lycheeResultTextToken = value
-        end
-    else
-        setTextColor(fontString, "muted")
-    end
-end
-
 local function setShown(object, shown)
     if object and type(object.IsShown) == "function" and object:IsShown() ~= shown then object:SetShown(shown) end
 end
@@ -103,26 +88,18 @@ local function cachedText(row, key, fontString, value)
     row._rendered[key] = value
 end
 
-local function categoryText(item)
-    local category = item and (item.category or item.categoryLabel)
-    if type(category) == "table" then
-        local title, locale = category.title, GetLocale and GetLocale() or "enUS"
-        category = type(title) == "table" and (title[locale] or title.default or title.enUS or category.id) or (title or category.id)
-    end
-    return category or ""
-end
-
-local function categoryColorID(item)
-    local category = item and item.searchRecord and item.searchRecord.category
-    return item and item.categoryColor or (type(category) == "table" and category.color)
+local function labelText(value)
+    if type(value) == "table" then value = value[UI_LOCALE] or value.default or value.enUS end
+    if type(value) == "string" and value ~= "" then return value end
 end
 
 local function kindText(item)
     local record = item and item.searchRecord
-    local title = item and item.kindTitle or record and record.kindTitle
-    if type(title) == "string" and title ~= "" then return title end
-    local kind = item and (item.kind or item.type) or record and (record.kind or record.type)
-    return tostring(kind or (UI_CHINESE and "内容" or "Content"))
+    local title = labelText(item and item.kindTitle) or labelText(record and record.kindTitle)
+    if title then return title end
+    local category = item and (item.category or item.categoryLabel) or record and record.category
+    if type(category) == "table" then category = category.title or category.id end
+    return labelText(category) or labelText(item and item.sourceTitle) or (UI_CHINESE and "内容" or "Content")
 end
 
 local function hideTooltip()
@@ -268,7 +245,7 @@ local function clearRow(row)
     cachedText(row, "category", row.category, "")
     cachedText(row, "primaryHint", row.primaryHint, "")
     if row._icon ~= nil and row.icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
-    row._icon, row._categoryColorID = nil, nil
+    row._icon = nil
     if row.secondary then row.secondary.actionID, row.secondary.action, row.secondary.tooltip = nil, nil, nil end
     setShown(row.icon, false); setShown(row.dragger, false); renderRowState(row); setShown(row, false)
 end
@@ -351,6 +328,7 @@ function ResultList:Create(parent, controller)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
         row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -42, 0); row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
+        setTextColor(row.category, "dim")
         row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -10); row.title:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.title:SetHeight(19); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
         if theme then theme:SetFont(row.title, "title"); theme:SetFont(row.category, "meta") end
         row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -3); row.subtext:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.subtext:SetHeight(14); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
@@ -416,9 +394,7 @@ function ResultList:SetItems(items, session, generation, offset)
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
         cachedText(row, "title", row.title, item.text)
         cachedText(row, "subtext", row.subtext, item.subtext ~= "" and item.subtext or item.description or item.summary or "")
-        cachedText(row, "category", row.category, categoryText(item))
-        local colorID = categoryColorID(item)
-        if row._categoryColorID ~= colorID then setCategoryTextColor(row.category, item); row._categoryColorID = colorID end
+        cachedText(row, "category", row.category, kindText(item))
         local icon = item.icon
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); cropIcon(row.icon); row._icon = icon end
         setShown(row.icon, icon ~= nil)
