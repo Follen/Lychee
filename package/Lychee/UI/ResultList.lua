@@ -5,9 +5,9 @@ Lychee.UI = Lychee.UI or {}
 local ResultList = {}
 ResultList.__index = ResultList
 
-local GRID_COLUMNS = 4
-local DEFAULT_TILES = 12
-local TILE_WIDTH, TILE_HEIGHT = 156, 72
+local GRID_COLUMNS = 1
+local DEFAULT_TILES = 8
+local TILE_WIDTH, TILE_HEIGHT = 608, 58
 local EMPTY_ITEMS = {}
 local UI_LOCALE = GetLocale and GetLocale() or "enUS"
 local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
@@ -31,7 +31,7 @@ local FALLBACK = {
 }
 local THEME_KEY = {
     row = "surface", rowHover = "surfaceHover", rowSelected = "surfaceSelected", rowPressed = "surface",
-    outline = "borderStrong", action = "surfaceHover", actionHover = "surfaceSelected", muted = "textMuted", dim = "textDim",
+    outline = "accentMuted", action = "surfaceHover", actionHover = "surfaceSelected", muted = "textMuted", dim = "textDim",
 }
 
 local function color(name)
@@ -205,9 +205,9 @@ local function secondaryAction(interaction)
 end
 
 local function renderRowState(row)
-    local background = row._pressed and "rowPressed" or ((row._selected or row._hovered) and "rowHover" or "row")
+    local background = row._selected and "rowSelected" or ((row._pressed or row._hovered) and "rowHover" or "row")
     setTextureColor(row.bg, background)
-    -- Selection uses the same neutral outline as hover; no persistent red bar.
+    -- Red stays inside the selected row; the search field has no boxed focus ring.
     setShown(row.accent, false)
     setShown(row.outline, row._hovered == true or row._selected == true)
     setShown(row.secondary, row.secondaryAction and (row._hovered or row._selected) or false)
@@ -238,6 +238,10 @@ function ResultList:SetHover(row, hovered)
     renderRowState(row)
 end
 
+function ResultList:ShowTooltip(row, owner)
+    showTooltip(owner or row, row.title:GetText(), rowTooltipDetail(row.item))
+end
+
 function ResultList:Create(parent, controller)
     local theme = Lychee.UI and Lychee.UI.Theme
     local metrics = theme and theme.Metrics or {}
@@ -246,15 +250,18 @@ function ResultList:Create(parent, controller)
     local tileWidth = metrics.resultTileWidth or TILE_WIDTH
     local iconSize = metrics.iconSize or 32
     local frame = CreateFrame("Frame", nil, parent)
-    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -10, -10)
+    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, -10)
     local gridRows = math.ceil(tiles / columns)
     frame:SetHeight(gridRows * rowHeight + math.max(0, gridRows - 1) * rowGap)
     local self = setmetatable({ frame = frame, controller = controller, rows = {}, items = EMPTY_ITEMS, selected = 1,
-        rowHeight = rowHeight, rowGap = rowGap, tileWidth = tileWidth, gridColumns = columns, maxRows = tiles }, ResultList)
+        rowHeight = rowHeight, rowGap = rowGap, tileWidth = tileWidth, gridColumns = columns, maxRows = tiles, offset = 0 }, ResultList)
+    if frame.EnableMouseWheel then frame:EnableMouseWheel(true) end
+    frame:SetScript("OnMouseWheel", function(_, delta) self:Scroll(delta > 0 and -1 or 1) end)
 
     for index = 1, tiles do
         local row = CreateFrame("Button", nil, frame)
         row:SetSize(tileWidth, rowHeight)
+        row.ownerView = self
         local column = (index - 1) % columns
         local gridRow = math.floor((index - 1) / columns)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
@@ -287,8 +294,7 @@ function ResultList:Create(parent, controller)
         end)
 
         row.primaryTarget = CreateFrame("Button", nil, row)
-        -- 图标区域专用于拖动；点击层从图标右侧开始，避免吞掉拖动事件。
-        row.primaryTarget:SetPoint("TOPLEFT", row, "TOPLEFT", 56, 2); row.primaryTarget:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2); row.primaryTarget:RegisterForClicks("LeftButtonUp")
+        row.primaryTarget:SetAllPoints(row); row.primaryTarget:RegisterForClicks("LeftButtonUp")
         row.primaryTarget:SetScript("OnClick", function(button)
             local owner = button:GetParent(); self:SelectRow(owner)
             if self.controller then self.controller:ActivateRow(owner) end
@@ -298,9 +304,10 @@ function ResultList:Create(parent, controller)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
-        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -12); row.category:SetWidth(tileWidth - 68); row.category:SetJustifyH("LEFT"); singleLine(row.category)
-        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -31); row.title:SetPoint("RIGHT", row, "RIGHT", -8, 0); row.title:SetHeight(18); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
-        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2); row.subtext:SetPoint("RIGHT", row, "RIGHT", -20, 0); row.subtext:SetHeight(13); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); row.subtext:Hide(); setTextColor(row.subtext, "muted")
+        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -42, 0); row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
+        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -10); row.title:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.title:SetHeight(19); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
+        if row.title.SetFont and STANDARD_TEXT_FONT then row.title:SetFont(STANDARD_TEXT_FONT, 15, "") end
+        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -3); row.subtext:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.subtext:SetHeight(14); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
         row.description = row.subtext
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
 
@@ -342,21 +349,23 @@ end
 function ResultList:Clear()
     hideTooltip()
     for index = 1, #self.rows do clearRow(self.rows[index]) end
-    self.items = EMPTY_ITEMS; self.session, self.generation, self.selected = nil, nil, 1
+    self.items = EMPTY_ITEMS; self.session, self.generation, self.selected, self.offset = nil, nil, 1, 0
 end
 
-function ResultList:SetItems(items, session, generation)
+function ResultList:SetItems(items, session, generation, offset)
     local selectedRow = self.rows[self.selected or 1]
     local selectedID = selectedRow and selectedRow.stableID
     self.items, self.session, self.generation = items or EMPTY_ITEMS, session, generation
-    local count = math.min(#self.items, #self.rows)
+    self.offset = math.max(0, math.min(offset or 0, math.max(0, #self.items - #self.rows)))
+    local count = math.min(#self.items - self.offset, #self.rows)
     self:Resize(count)
     for index = 1, count do
-        local item, row = self.items[index], self.rows[index]
+        local item, row = self.items[index + self.offset], self.rows[index]
+        if type(item) == "table" then
         row.item, row.index = item, index
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
         cachedText(row, "title", row.title, item.text)
-        cachedText(row, "subtext", row.subtext, "")
+        cachedText(row, "subtext", row.subtext, item.subtext ~= "" and item.subtext or item.description or item.summary or "")
         cachedText(row, "category", row.category, categoryText(item))
         local colorID = categoryColorID(item)
         if row._categoryColorID ~= colorID then setCategoryTextColor(row.category, item); row._categoryColorID = colorID end
@@ -370,6 +379,9 @@ function ResultList:SetItems(items, session, generation)
         row.secondary.actionID, row.secondary.action, row.secondary.tooltip = row.secondaryAction and row.secondaryAction.id, row.secondaryAction, actionLabel(row.secondaryAction)
         setShown(row.dragger, row.dragDescriptor ~= nil)
         renderRowState(row); setShown(row, true)
+        else
+            clearRow(row)
+        end
     end
     for index = count + 1, #self.rows do clearRow(self.rows[index]) end
     local selected = math.max(1, math.min(self.selected or 1, math.max(count, 1)))
@@ -381,7 +393,7 @@ function ResultList:InvalidateRow(row)
     if not row then return false end
     local index = row.index
     clearRow(row)
-    if index and self.items[index] then self.items[index] = false end
+    if index and self.items[index + self.offset] then self.items[index + self.offset] = false end
     if index == self.selected then
         local nextIndex
         for candidate = index + 1, #self.rows do if self.rows[candidate]:IsShown() then nextIndex = candidate; break end end
@@ -417,11 +429,25 @@ function ResultList:Move(delta)
     if remaining == 0 then return self:GetSelected() end
     while remaining > 0 do
         repeat index = index + direction until index < 1 or index > #self.rows or self.rows[index]:IsShown()
-        if index < 1 or index > #self.rows then break end
+        if index < 1 or index > #self.rows then
+            if self:Scroll(direction) then
+                self:Select(direction > 0 and #self.rows or 1)
+                return self:GetSelected()
+            end
+            break
+        end
         remaining = remaining - 1
     end
     if index >= 1 and index <= #self.rows and self.rows[index]:IsShown() then self:Select(index) end
     return self:GetSelected()
+end
+
+function ResultList:Scroll(delta)
+    if InCombatLockdown and InCombatLockdown() then return false end
+    local offset = math.max(0, math.min(self.offset + delta, math.max(0, #self.items - #self.rows)))
+    if offset == self.offset then return false end
+    if not self.controller or not self.controller.ApplyResults then return false end
+    return self.controller:ApplyResults(self.items, self.generation, self.session, offset)
 end
 
 function ResultList:ActivateSelected()

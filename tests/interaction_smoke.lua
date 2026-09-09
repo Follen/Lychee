@@ -10,18 +10,24 @@ function PickupSpell() _G.__pickup = (_G.__pickup or 0) + 1 end
 
 local createdFrames = 0
 local homeGeometryCalls = { ClearAllPoints = 0, SetPoint = 0, SetVerticalScroll = 0 }
+local function protect(o)
+    while o and o ~= UIParent do o.protected = true; o = o.parent end
+end
+local function mutation(o, name)
+    assert(not (o.protected and InCombatLockdown() and not _G.__secureSnippet), "insecure combat mutation: " .. name)
+end
 local function object(kind, parent)
     local o = { kind = kind, parent = parent, shown = true, width = 800, height = 600, scripts = {}, attrs = {} }
-    function o:SetAllPoints() end
-    function o:SetPoint() homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
-    function o:ClearAllPoints() homeGeometryCalls.ClearAllPoints = homeGeometryCalls.ClearAllPoints + 1 end
-    function o:SetSize(w, h) self.width, self.height = w, h end
-    function o:SetHeight(h) self.height = h end
-    function o:SetWidth(w) self.width = w end
+    function o:SetAllPoints() mutation(self, "SetAllPoints") end
+    function o:SetPoint() mutation(self, "SetPoint"); homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
+    function o:ClearAllPoints() mutation(self, "ClearAllPoints"); homeGeometryCalls.ClearAllPoints = homeGeometryCalls.ClearAllPoints + 1 end
+    function o:SetSize(w, h) mutation(self, "SetSize"); self.width, self.height = w, h end
+    function o:SetHeight(h) mutation(self, "SetHeight"); self.height = h end
+    function o:SetWidth(w) mutation(self, "SetWidth"); self.width = w end
     function o:GetWidth() return self.width end
     function o:GetHeight() return self.height end
     function o:SetFrameStrata() end
-    function o:SetFrameLevel(value) self.frameLevel = value end
+    function o:SetFrameLevel(value) mutation(self, "SetFrameLevel"); self.frameLevel = value end
     function o:GetFrameLevel() return self.frameLevel or 0 end
     function o:SetBackdrop() end
     function o:EnableMouse() end
@@ -30,9 +36,9 @@ local function object(kind, parent)
     function o:RegisterForClicks() end
     function o:RegisterForDrag() end
     function o:SetJustifyH() end
-    function o:SetShown(v) self.shown = not not v end
-    function o:Show() self.shown = true end
-    function o:Hide() self.shown = false end
+    function o:SetShown(v) mutation(self, "SetShown"); self.shown = not not v end
+    function o:Show() mutation(self, "Show"); self.shown = true end
+    function o:Hide() mutation(self, "Hide"); self.shown = false end
     function o:IsShown() return self.shown end
     function o:SetScript(name, fn) self.scripts[name] = fn end
     function o:RegisterEvent(name) self.events = self.events or {}; self.events[name] = true end
@@ -45,9 +51,9 @@ local function object(kind, parent)
     function o:GetText() return self.text or "" end
     function o:ClearFocus() self.focused = false end
     function o:SetFocus() self.focused = true end
-    function o:SetAttribute(k, v) self.attrs[k] = v end
+    function o:SetAttribute(k, v) mutation(self, "SetAttribute"); self.attrs[k] = v end
     function o:GetAttribute(k) return self.attrs[k] end
-    function o:SetParent(parentValue) self.parent = parentValue end
+    function o:SetParent(parentValue) mutation(self, "SetParent"); self.parent = parentValue; if self.protected then protect(parentValue) end end
     function o:GetParent() return self.parent end
     function o:SetScrollChild(child) self.scrollChild = child end
     function o:GetScrollChild() return self.scrollChild end
@@ -58,9 +64,14 @@ local function object(kind, parent)
     function o:SetPropagateKeyboardInput() end
     return o
 end
-function CreateFrame(kind, name, parent)
+function CreateFrame(kind, name, parent, template)
     createdFrames = createdFrames + 1
-    return object(kind, parent or UIParent)
+    local frame = object(kind, parent or UIParent)
+    if template and template:find("Secure") then protect(frame) end
+    return frame
+end
+function RegisterStateDriver(frame, state, condition)
+    frame.stateDriver = { state = state, condition = condition }
 end
 
 local root = "package/Lychee/"
@@ -125,8 +136,8 @@ assertEq(disposed, true, "panel dispose cleanup")
 -- Palette combat/secure/drag guards.
 local palette = I.Host.PaletteController
 assert(palette)
-assertEq(palette.frame:GetWidth(), 720, "palette fixed width")
-assertEq(palette.frame:GetHeight(), 500, "palette fixed height")
+assertEq(palette.frame:GetWidth(), 640, "compact palette width")
+assertEq(palette.frame:GetHeight(), 220, "initial palette height")
 assert(palette.header and palette.content and palette.footer and palette.emptyState, "palette workbench regions")
 assert(palette.headerComponent and palette.footerComponent and palette.contentComponent, "palette uses reusable surface components")
 assert(palette.brandComponent and palette.brandComponent.icon.texture == "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga", "palette logo component is wired")
@@ -165,10 +176,17 @@ assertEq(showHomeRefreshes, 1, "empty-query show refreshes home once")
 palette.RefreshHomeSections = originalRefreshHomeSections
 assert(palette.frame.scripts.OnEvent, "palette combat event handler")
 _G.__combat = true
+-- The engine evaluates this snippet securely; the Lua event only stops work.
+assertEq(palette.frame:GetAttribute("_onstate-combat"), 'if newstate == "hide" then self:Hide() end', "combat secure hide snippet")
+_G.__secureSnippet = true
+palette.frame:Hide()
+_G.__secureSnippet = false
 palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_DISABLED")
 assertEq(palette.visible, false, "combat event closes palette")
 assertEq(palette.frame:IsShown(), false, "combat event hides palette frame")
 _G.__combat = false
+palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_ENABLED")
+assertEq(palette.frame:IsShown(), false, "leaving combat does not reopen palette")
 assert(palette:Show())
 palette:SetQueryMode("")
 assertEq(palette.homeView.frame:IsShown(), true, "empty query shows home view")
@@ -472,10 +490,10 @@ palette.homeView:SetSections(stableHomeSections, true)
 palette.activeFilter = nil
 palette:SetQueryMode("")
 local scans = 0
-local originalIndexedRecordsByID = palette._IndexedRecordsByID
-palette._IndexedRecordsByID = function(self, ...)
+local originalResolveRecent = I.Search.Query.ResolveRecent
+I.Search.Query.ResolveRecent = function(self, ...)
     scans = scans + 1
-    return originalIndexedRecordsByID(self, ...)
+    return originalResolveRecent(self, ...)
 end
 local framesBeforeTyping = createdFrames
 palette.input.frame:SetText("动")
@@ -500,7 +518,7 @@ palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
 scans = 0
 assert(I.Search.StaticIndex:Invalidate("interaction.actions:records", "search-hidden-home"))
 assertEq(scans, 0, "source lifecycle only marks Home dirty outside Home mode")
-palette._IndexedRecordsByID = originalIndexedRecordsByID
+I.Search.Query.ResolveRecent = originalResolveRecent
 
 local steadyColorCalls = 0
 local colorTile = palette.homeView.tiles[1]
@@ -665,4 +683,110 @@ local staleOK, staleErr = palette:ActivateRowAction(staleRow, "default")
 assertEq(staleOK, false, "unregistered stale action")
 assert(staleErr == "HANDLER_UNAVAILABLE" or staleErr == "EXTENSION_DISABLED", "unregistered stale action error: " .. tostring(staleErr))
 
-print("Lychee interaction smoke PASS")
+-- Launcher regressions: effective visibility, direct recent clicks, bounded
+-- scrolling and secure combat cleanup, using the real host and broker.
+palette:Hide("launcher-fixture")
+local launcherDraft = assert(I.Registry:Begin({ id = "interaction.launcher", apiVersion = 1, minApiRevision = 1, title = "Launcher", version = "1.0.0" }))
+local launcherRecords = {}
+for index = 1, 12 do
+    launcherRecords[index] = { id = "launcher:" .. index, kind = "spell", title = "入口测试 " .. index,
+        actions = { { id = "cast", kind = "secure-spell", spellID = 31884 } },
+        drag = { type = "spell", spellID = 31884 } }
+end
+assert(launcherDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 100, scope = {}, records = launcherRecords }))
+local launcherHandle = assert(launcherDraft:Commit())
+local function effectiveVisibility(self)
+    local current = self
+    while current do
+        if current.IsShown and not current:IsShown() then return false end
+        current = current.parent
+    end
+    return true
+end
+for _, rows in ipairs({ palette.list.rows, palette.homeView.tiles }) do
+    for index = 1, #rows do rows[index].IsVisible = effectiveVisibility end
+end
+local function typeQuery(text)
+    palette.input.frame:SetText(text)
+    palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
+end
+local function boundButton(row)
+    for index = 1, #secureBroker.buttons do
+        local button = secureBroker.buttons[index]
+        if button.busy and button.token and button.token.row == row then return button end
+    end
+end
+assert(palette:Show())
+assert(not palette.list.frame:IsShown(), "search list starts with a hidden ancestor")
+typeQuery("入口测试")
+local launcherRow = palette.list.rows[1]
+local launcherButton = assert(boundButton(launcherRow), "first search prepares a secure button before list visibility changes")
+assertEq(launcherButton:GetAttribute("useOnKeyDown"), false, "mouse-up action overrides key-down CVar")
+assertEq(launcherButton:GetParent(), launcherRow, "secure target inherits row visibility")
+assert(launcherRow:IsVisible(), "accepted results are effectively visible")
+assert(not launcherRow.dragger:IsShown(), "secure layer owns drag without a click-blocking icon overlay")
+local warmFrames = createdFrames
+palette.list:Select(8)
+assert(palette.list:Move(1))
+assertEq(palette.list.offset, 1, "keyboard reaches results beyond eight visible rows")
+assertEq(palette.list.rows[8].item, palette.list.items[9], "scrolled row binds the ninth result")
+assertEq(boundButton(palette.list.rows[8]).token.item, palette.list.items[9], "secure click rebinds after scrolling")
+palette:InvalidateRow(palette.list.rows[2])
+assert(palette.list:Scroll(1), "scrolling tolerates an invalidated false slot")
+assertEq(createdFrames, warmFrames, "scrolling reuses all UI and secure buttons")
+typeQuery("入口测试")
+launcherRow = palette.list.rows[1]
+launcherButton = assert(boundButton(launcherRow))
+local clickedID = launcherButton.token.item.id
+launcherButton.scripts.PreClick(launcherButton)
+assert(launcherButton.pendingCast, "physical pre-click arms cast observation")
+assert(secureBroker:FinishCast("UNIT_SPELLCAST_FAILED", 31884))
+assert(palette.visible and launcherButton.busy and launcherButton:IsShown(), "failed cast remains retryable")
+launcherButton.scripts.PreClick(launcherButton)
+assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED", 31884))
+assert(not palette.visible and not palette.frame:IsShown(), "successful spell closes launcher")
+assertEq(LycheeDB.palette.recent[1], clickedID, "successful spell records stable recent ID")
+assert(palette:Show())
+assertEq(palette.input:GetText(), "", "reopening clears previous query")
+assert(palette:IsHomeVisible(), "reopening returns to recent homepage")
+assert(palette.frame:GetHeight() < 260, "one-row home contracts around content")
+local recentTile = palette.homeView.tiles[1]
+local recentButton = assert(boundButton(recentTile), "recent tile has a prepared direct spell click")
+assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
+local beforeDrag = _G.__pickup or 0
+recentButton.scripts.OnDragStart(recentButton)
+assertEq(_G.__pickup, beforeDrag + 1, "recent spell keeps action-bar drag support")
+
+local pendingTimer
+C_Timer = { NewTimer = function(_, callback)
+    pendingTimer = { callback = callback }
+    function pendingTimer:Cancel() self.cancelled = true end
+    return pendingTimer
+end }
+typeQuery("入口测试")
+_G.__combat = true
+palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_DISABLED")
+assert(pendingTimer.cancelled and not I.Search.Session.visible, "combat cancels asynchronous search")
+_G.__secureSnippet = true
+palette.frame:Hide()
+_G.__secureSnippet = false
+palette.frame.scripts.OnHide(palette.frame)
+assert(not palette.visible and palette.combatCleanupPending, "combat queues protected cleanup")
+assertEq(palette:Show(), false, "Show cannot bypass combat guard")
+assertEq(palette:Toggle(), false, "Toggle cannot bypass combat guard")
+assertEq(palette:ApplyResults({}, palette.generation, palette.session), false, "late results cannot repaint combat UI")
+pendingTimer.callback()
+assert(not palette.frame:IsShown(), "late timer does not reopen hidden launcher")
+_G.__combat = false
+secureBroker:Flush()
+palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_ENABLED")
+assert(not palette.frame:IsShown() and not palette.combatCleanupPending, "regen cleans up without reopening")
+for index = 1, #secureBroker.buttons do
+    local button = secureBroker.buttons[index]
+    assert(not button.busy and button.token == nil and button:GetAttribute("type") == nil, "regen removes every active secure binding")
+end
+C_Timer = nil
+assert(launcherHandle:SetEnabled(false))
+assertEq(#I.Search.Query:ResolveRecent({ clickedID }, 5), 0, "disabled source is absent from recent launcher")
+assert(launcherHandle:Unregister())
+print("Lychee interaction smoke PASS (launcher, secure combat, recent and scrolling)")

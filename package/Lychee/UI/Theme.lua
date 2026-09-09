@@ -7,16 +7,16 @@ local Theme = {}
 -- Canonical tokens are immutable by convention. Their table identity is also
 -- used as the native-setter cache key, so callers should reference, not copy.
 Theme.Colors = {
-    window = { 0.035, 0.037, 0.043, 0.985 },
-    header = { 0.055, 0.057, 0.065, 1 },
-    content = { 0.043, 0.045, 0.052, 1 },
-    footer = { 0.032, 0.034, 0.040, 1 },
-    surface = { 0.075, 0.078, 0.088, 1 },
-    surfaceHover = { 0.105, 0.108, 0.120, 1 },
-    surfaceSelected = { 0.135, 0.090, 0.098, 1 },
-    input = { 0.028, 0.030, 0.036, 1 },
-    inputHover = { 0.040, 0.042, 0.050, 1 },
-    inputFocus = { 0.050, 0.046, 0.052, 1 },
+    window = { 0.055, 0.055, 0.063, 1 },
+    header = { 0.055, 0.055, 0.063, 1 },
+    content = { 0.055, 0.055, 0.063, 1 },
+    footer = { 0.055, 0.055, 0.063, 1 },
+    surface = { 0.055, 0.055, 0.063, 1 },
+    surfaceHover = { 0.145, 0.075, 0.086, 1 },
+    surfaceSelected = { 0.205, 0.082, 0.098, 1 },
+    input = { 0.055, 0.055, 0.063, 1 },
+    inputHover = { 0.055, 0.055, 0.063, 1 },
+    inputFocus = { 0.055, 0.055, 0.063, 1 },
     action = { 0.075, 0.078, 0.088, 1 },
     actionHover = { 0.175, 0.115, 0.125, 1 },
     border = { 0.165, 0.170, 0.188, 1 },
@@ -25,7 +25,7 @@ Theme.Colors = {
     accentMuted = { 0.440, 0.155, 0.185, 1 },
     text = { 0.940, 0.932, 0.910, 1 },
     textMuted = { 0.710, 0.705, 0.690, 1 },
-    textDim = { 0.500, 0.500, 0.500, 1 },
+    textDim = { 0.590, 0.580, 0.590, 1 },
     disabled = { 0.315, 0.315, 0.325, 1 },
     success = { 0.310, 0.690, 0.455, 1 },
     warning = { 0.880, 0.645, 0.250, 1 },
@@ -33,20 +33,20 @@ Theme.Colors = {
 }
 
 Theme.Metrics = {
-    paletteWidth = 720,
-    paletteHeight = 500,
-    headerHeight = 76,
-    footerHeight = 28,
+    paletteWidth = 640,
+    paletteHeight = 220,
+    headerHeight = 64,
+    footerHeight = 32,
     contentPadding = 16,
-    inputHeight = 44,
-    resultColumns = 4,
-    resultTiles = 12,
-    resultTileWidth = 156,
-    rowHeight = 72,
-    rowGap = 8,
+    inputHeight = 48,
+    resultColumns = 1,
+    resultTiles = 8,
+    resultTileWidth = 608,
+    rowHeight = 58,
+    rowGap = 2,
     resultPadding = 20,
-    paletteMinHeight = 220,
-    paletteMaxHeight = 500,
+    paletteMinHeight = 164,
+    paletteMaxHeight = 600,
     iconSize = 32,
     border = 1,
 }
@@ -150,6 +150,35 @@ function Theme:ApplySurface(frame, backgroundColor, borderColor)
         if self:SetColorTexture(surface.border[index], borderColor) then changed = true end
     end
     return changed
+end
+
+-- Seven reusable regions keep the corner radius fixed as the window grows.
+function Theme:CreateRoundedSurface(frame, token, radius)
+    radius = radius or 10
+    local middle = frame:CreateTexture(nil, "BACKGROUND")
+    middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius, 0)
+    middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius, 0)
+    self:SetColorTexture(middle, token)
+    for _, side in ipairs({ "LEFT", "RIGHT" }) do
+        local strip = frame:CreateTexture(nil, "BACKGROUND")
+        strip:SetPoint("TOP" .. side, frame, "TOP" .. side, 0, -radius)
+        strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, 0, radius)
+        strip:SetWidth(radius)
+        self:SetColorTexture(strip, token)
+    end
+    local corners = {
+        { "TOPLEFT", 0, 1, 0, 1 }, { "TOPRIGHT", 1, 0, 0, 1 },
+        { "BOTTOMLEFT", 0, 1, 1, 0 }, { "BOTTOMRIGHT", 1, 0, 1, 0 },
+    }
+    for index = 1, #corners do
+        local corner = corners[index]
+        local texture = frame:CreateTexture(nil, "BACKGROUND")
+        texture:SetSize(radius, radius)
+        texture:SetPoint(corner[1], frame, corner[1], 0, 0)
+        texture:SetTexture("Interface\\AddOns\\Lychee\\Media\\rounded-corner.tga")
+        if texture.SetTexCoord then texture:SetTexCoord(corner[2], corner[3], corner[4], corner[5]) end
+        self:SetVertexColor(texture, token)
+    end
 end
 
 Lychee.UI.Theme = Theme

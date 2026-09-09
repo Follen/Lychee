@@ -9,11 +9,11 @@ _G.BINDING_NAME_TOGGLELYCHEE = locale == "zhCN" and "打开/关闭 Lychee" or "O
 local Palette = {}
 Palette.__index = Palette
 
-local WIDTH, HEIGHT = 720, 500
-local HEADER_HEIGHT, FOOTER_HEIGHT = 76, 28
-local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 6, 104, 92
-local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 12, 14, 18
-local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 64
+local WIDTH, HEIGHT = 640, 220
+local HEADER_HEIGHT, FOOTER_HEIGHT = 64, 32
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 112, 84
+local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
+local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 8
 
 local FALLBACK = {
     window = { 0.045, 0.048, 0.055, 0.985 }, header = { 0.065, 0.068, 0.078, 1 },
@@ -110,28 +110,6 @@ local function cropIcon(texture)
     if texture and type(texture.SetTexCoord) == "function" then texture:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
 end
 
-local function setAlpha(region, alpha)
-    if region and type(region.SetAlpha) == "function" then region:SetAlpha(alpha); return true end
-    return false
-end
-
-local function animate(region, key, from, to, duration, done)
-    if not setAlpha(region, from) then if done then done() end; return false end
-    local driver = _G.LycheeInternal and _G.LycheeInternal.Scheduler
-    if not driver then setAlpha(region, to); if done then done() end; return false end
-    driver:Remove(key)
-    local elapsed = 0
-    driver:Add(key, function(delta)
-        elapsed = elapsed + (delta or 0)
-        local progress = math.min(1, elapsed / duration)
-        local eased = 1 - (1 - progress) * (1 - progress) * (1 - progress)
-        setAlpha(region, from + (to - from) * eased)
-        if progress >= 1 then if done then done() end; return false end
-        return true
-    end)
-    return true
-end
-
 local function createHomeView(parent, controller)
     local frame = CreateFrame("ScrollFrame", nil, parent)
     frame:SetAllPoints(parent)
@@ -139,15 +117,31 @@ local function createHomeView(parent, controller)
     if frame.EnableKeyboard then frame:EnableKeyboard(false) end
     if frame.EnableMouseWheel then frame:EnableMouseWheel(true) end
     local content = CreateFrame("Frame", nil, frame)
-    content:SetSize(664, 1)
+    content:SetSize(WIDTH - 48, 1)
     content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -10)
     frame:SetScrollChild(content)
     local view = { frame = frame, content = content, controller = controller, tiles = {}, headers = {}, sections = {}, scroll = 0, selected = 1 }
+    view.empty = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    view.empty:SetPoint("CENTER", frame, "CENTER", 0, 0)
+    view.empty:SetText(localized({ zhCN = "搜索并使用后，常用入口会出现在这里", enUS = "Your recently used actions will appear here" }))
+    tint(view.empty, color("muted"))
 
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
-        paint(tile.bg, color((selected or tile._hovered) and "tileHover" or "content"))
+        paint(tile.bg, color(selected and "tileSelected" or (tile._hovered and "tileHover" or "content")))
         setShown(tile.focus, false)
+    end
+
+    function view:SetHover(tile, hovered)
+        tile._hovered = hovered == true
+        self:RenderTileState(tile)
+    end
+
+    function view:ShowTooltip(tile, owner)
+        if not GameTooltip or not tile.section then return end
+        GameTooltip:SetOwner(owner or tile, "ANCHOR_TOP")
+        GameTooltip:SetText(homeLabel(tile.section.title, "Lychee"))
+        GameTooltip:Show()
     end
 
     function view:Select(index)
@@ -179,7 +173,7 @@ local function createHomeView(parent, controller)
     function view:ActivateSelected()
         local section = self.sections[self.selected]
         if section and section.enabled ~= false and self.controller and self.controller.onHomeSelect then
-            self.controller.onHomeSelect(section)
+            self.controller.onHomeSelect(section, self.tiles[self.selected])
         end
     end
 
@@ -209,6 +203,7 @@ local function createHomeView(parent, controller)
         if existing then return existing end
         local tile = CreateFrame("Button", nil, self.content)
         tile:SetSize(HOME_TILE_WIDTH, HOME_TILE_HEIGHT)
+        tile.ownerView = self
         tile:RegisterForClicks("LeftButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
         tile.bg:SetAllPoints()
@@ -220,10 +215,10 @@ local function createHomeView(parent, controller)
         paint(tile.focus, color("accent"))
         tile.focus:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
-        tile.icon:SetSize(40, 40)
-        tile.icon:SetPoint("TOP", tile, "TOP", 0, -10)
+        tile.icon:SetSize(34, 34)
+        tile.icon:SetPoint("TOP", tile, "TOP", 0, -8)
         tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 5, -58)
+        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 2, -50)
         tile.title:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
         tile.title:SetJustifyH("CENTER")
         if tile.title.SetWordWrap then tile.title:SetWordWrap(false) end
@@ -239,7 +234,7 @@ local function createHomeView(parent, controller)
             local section = button.section
             if section and section.enabled ~= false and controller and controller.onHomeSelect then
                 view:Select(button.index)
-                controller.onHomeSelect(section)
+                controller.onHomeSelect(section, button)
             end
         end)
         tile:SetScript("OnEnter", function(button)
@@ -268,6 +263,7 @@ local function createHomeView(parent, controller)
 
     function view:SetSections(sections, allowExpand)
         self.sections = sections or {}
+        setShown(self.empty, #self.sections == 0)
         if allowExpand then self:EnsureCapacity(HOME_HEADER_COUNT, #self.sections) end
         local headerCount, tileCount, cursorY = 0, 0, 0
         local groupID, column = nil, 0
@@ -309,10 +305,13 @@ local function createHomeView(parent, controller)
             end
             tile.section = section
             tile.index = index
+            tile.item = section.item
+            tile.session, tile.generation = controller.session, controller.generation
+            tile.extensionID = section.item and section.item._ext
             setText(tile.title, homeLabel(section.title or section.text, "Lychee"))
             -- 名称下方展示类别标签（如"技能"），让最近使用的条目有上下文；
             -- 没有类别信息的磁贴整行隐藏。
-            local metaText = homeLabel(section.meta, "")
+            local metaText = ""
             local metaColor = section.categoryColor or color("muted")
             if tile._metaColor ~= metaColor then
                 tint(tile.meta, metaColor)
@@ -338,6 +337,7 @@ local function createHomeView(parent, controller)
         for index = tileCount + 1, #self.tiles do
             local tile = self.tiles[index]
             tile.section, tile.index, tile._hovered = nil, nil, nil
+            tile.item, tile.session, tile.generation, tile.extensionID = nil, nil, nil, nil
             setShown(tile.focus, false)
             setShown(tile, false)
         end
@@ -368,25 +368,30 @@ function Palette:ApplyBoundedScale()
     local parentWidth = UIParent and UIParent.GetWidth and UIParent:GetWidth()
     local parentHeight = UIParent and UIParent.GetHeight and UIParent:GetHeight()
     if not parentWidth or not parentHeight or parentWidth <= 0 or parentHeight <= 0 then return end
-    local scale = math.max(0.72, math.min(1, (parentWidth - 48) / WIDTH, (parentHeight - 48) / HEIGHT))
+    local scale = math.min(1, (parentWidth - 48) / WIDTH, (parentHeight - 48) / 600)
     if self._scale ~= scale then self.frame:SetScale(scale); self._scale = scale end
+    local inset = math.max(24, (parentHeight - 600 * scale) / 2)
+    if self._topInset ~= inset then
+        self.frame:ClearAllPoints()
+        self.frame:SetPoint("TOP", UIParent, "TOP", 0, -inset / scale)
+        self._topInset = inset
+    end
 end
 
 function Palette:Create()
     if self.frame then return self end
-    local frame = CreateFrame("Frame", "LycheePalette", UIParent, "BackdropTemplate")
+    if InCombatLockdown and InCombatLockdown() then return self end
+    local frame = CreateFrame("Frame", "LycheePalette", UIParent, "SecureHandlerStateTemplate")
     frame:SetSize(WIDTH, HEIGHT)
-    frame:SetPoint("CENTER")
+    frame:SetPoint("TOP", UIParent, "CENTER", 0, 180)
     frame:SetFrameStrata("DIALOG")
     frame:EnableMouse(true)
-    if frame.SetBackdrop then
-        frame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
-        local window, border = color("window"), color("border")
-        if frame.SetBackdropColor then frame:SetBackdropColor(window[1], window[2], window[3], window[4]) end
-        if frame.SetBackdropBorderColor then frame:SetBackdropBorderColor(border[1], border[2], border[3], border[4]) end
-    end
+    Lychee.UI.Theme:CreateRoundedSurface(frame, "window", 10)
     frame:Hide()
+    -- Only the secure snippet hides a protected hierarchy during combat. The
+    -- non-combat state deliberately does nothing, so leaving combat never opens it.
+    frame:SetAttribute("_onstate-combat", [[if newstate == "hide" then self:Hide() end]])
+    if RegisterStateDriver then RegisterStateDriver(frame, "combat", "[combat] hide; idle") end
     frame:SetScript("OnHide", function() if self.visible then self:Hide("external") end end)
     -- 不注册 Frame 级 OnKeyDown：显示中的 Frame 挂 OnKeyDown 会吞掉全部键盘
     -- 输入（DestinyFrame 即此用途），且 SetPropagateKeyboardInput 在 Blizzard
@@ -397,32 +402,31 @@ function Palette:Create()
     local components = Lychee.UI.Components
     self.headerComponent = components:CreateBand(frame, { height = HEADER_HEIGHT, top = true, color = "header" })
     self.header = self.headerComponent.frame
+    self.headerComponent.bg:Hide()
     self.footerComponent = components:CreateBand(frame, { height = FOOTER_HEIGHT, top = false, color = "footer" })
     self.footer = self.footerComponent.frame
-    self.footer:Hide()
+    self.footerComponent.bg:Hide()
     self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
     self.content = self.contentComponent.frame
     self.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -HEADER_HEIGHT)
-    self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, 12)
+    self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
     self.content.bg = self.contentComponent.bg
     self.brandComponent = components:CreateBrand(self.header, {
-        iconSize = 30,
+        iconSize = 42,
         texture = "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga",
         point = "LEFT",
-        x = 16,
+        x = 14,
     })
     self.brandMark = self.brandComponent.icon
     self.brand = self.brandComponent.label
     self.closeComponent = components:CreateButton(self.header, {
-        width = 24, height = 24, point = "RIGHT", relativePoint = "RIGHT", x = -14,
-        text = "x",
+        width = 38, height = 26, point = "RIGHT", relativePoint = "RIGHT", x = -16,
+        text = "Esc",
         colors = { normal = "header", hover = "tileHover", pressed = "tileHover" },
         textColors = { normal = "muted", hover = "text", pressed = "text" },
         onClick = function() self:Hide("close") end,
     })
     self.close = self.closeComponent.frame
-    -- 关闭仍由 Esc 和快捷键处理，界面不显示额外的 x 控件。
-    self.close:Hide()
     self.close:SetScript("OnClick", function() self:Hide("close") end)
     self.close:SetScript("OnEnter", function(button)
         self.closeComponent:SetState("hover")
@@ -438,6 +442,21 @@ function Palette:Create()
     end)
     self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted" })
     self.status = self.statusComponent.label
+    self.footerHint = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -18, 0)
+    tint(self.footerHint, color("muted"))
+    for _, band in ipairs({ self.header, self.footer }) do
+        local line = band:CreateTexture(nil, "BORDER")
+        local edge = band == self.header and "BOTTOM" or "TOP"
+        line:SetPoint(edge .. "LEFT", band, edge .. "LEFT", 1, 0)
+        line:SetPoint(edge .. "RIGHT", band, edge .. "RIGHT", -1, 0)
+        line:SetHeight(1)
+        paint(line, color("border"))
+    end
+    local divider = self.header:CreateTexture(nil, "BORDER")
+    divider:SetPoint("LEFT", self.header, "LEFT", 62, 0)
+    divider:SetSize(1, 26)
+    paint(divider, color("border"))
 
     self.emptyStateComponent = components:CreateEmptyState(self.content, {
         title = localized({ zhCN = "没有找到结果", enUS = "No results found" }, "No results found"),
@@ -452,8 +471,9 @@ function Palette:Create()
     self.homeView = createHomeView(self.content, self)
     self.homeView:SetSections({})
     self.homeDirty = true
-    self.onHomeSelect = function(section)
-        if section and section.filter then self:ActivateHomeFilter(section.filter)
+    self.onHomeSelect = function(section, tile)
+        if section and section.item and tile then self:ActivateRow(tile)
+        elseif section and section.filter then self:ActivateHomeFilter(section.filter)
         elseif section and section.query then self.input:SetText(section.query)
         elseif section and section.id and self.onHomeCategory then self.onHomeCategory(section.id) end
     end
@@ -470,9 +490,12 @@ function Palette:Create()
         if self.input:GetText() == "" then self.homeView:Move(delta) else self.list:Move(delta) end
     end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
+    frame:RegisterEvent("PLAYER_REGEN_ENABLED")
     frame:SetScript("OnEvent", function(_, event)
         if event == "PLAYER_REGEN_DISABLED" and self.visible then
             self:Hide("combat")
+        elseif event == "PLAYER_REGEN_ENABLED" and self.combatCleanupPending then
+            self:FinishHide("combat")
         elseif event == "GLOBAL_MOUSE_DOWN" then
             -- EditBox 的键盘焦点不会因点击游戏世界自动释放；沿用 Blizzard
             -- ColorPickerFrame 的外部点击判定（事件在 Show 注册、Hide 注销），
@@ -519,6 +542,7 @@ function Palette:IsHomeVisible()
 end
 
 function Palette:EnsureHomeCapacity()
+    if InCombatLockdown and InCombatLockdown() then return false end
     if not self.homeView or not self.homeView.EnsureCapacity then return false end
     local db = paletteDB()
     local required = math.max(1, #db.recent) + math.max(1, #db.pinned) + 5
@@ -528,7 +552,7 @@ end
 
 function Palette:MarkHomeDirty()
     self.homeDirty = true
-    self:EnsureHomeCapacity()
+    if InCombatLockdown and InCombatLockdown() then return false end
     if self:IsHomeVisible() then return self:RefreshHomeSections(false) end
     return true
 end
@@ -573,27 +597,34 @@ end
 
 function Palette:RefreshHomeSections(allowExpand)
     if not self.homeView then return false end
-    local records, byID = self:_IndexedRecordsByID()
+    if InCombatLockdown and InCombatLockdown() then self.homeDirty = true; return false end
     local db, sections = paletteDB(), {}
-    local function appendSaved(groupID, groupTitle, emptyTitle, ids)
-        local count = 0
-        for index = 1, #ids do
-            local record = byID[ids[index]]
-            if record then
-                sections[#sections + 1] = { id = "saved:" .. ids[index], groupID = groupID, groupTitle = groupTitle,
-                    title = localized(record.title, ids[index]),
-                    meta = localized(record.category and record.category.title, localized({ zhCN = "实体", enUS = "Entity" }, "Entity")),
-                    categoryColor = record.category and record.category.color,
-                    icon = record.icon, query = localized(record.title, ids[index]) }
-                count = count + 1
-            end
-        end
+    local internal = _G.LycheeInternal
+    local query = internal and internal.Search and internal.Search.Query
+    local items = query and query:ResolveRecent(db.recent, HOME_COLUMNS) or {}
+    for index = 1, #items do
+        local item = items[index]
+        sections[#sections + 1] = { id = "saved:" .. item.id, groupID = "recent",
+            groupTitle = localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
+            title = item.text, icon = item.icon, item = item, meta = item.category, categoryColor = item.categoryColor }
     end
-    appendSaved("recent", localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
-        localized({ zhCN = "还没有最近记录", enUS = "No recent items" }, "No recent items"), db.recent)
+    if self.secureBroker then
+        for index = 1, #self.homeView.tiles do self.secureBroker:InvalidateRow(self.homeView.tiles[index]) end
+    end
     self:SetHomeSections(sections, allowExpand)
     self.homeDirty = false
+    if self:IsHomeVisible() then self:PrepareHome(); self:ResizeForMode("home") end
     return true
+end
+
+function Palette:PrepareHome()
+    if not self.visible or (InCombatLockdown and InCombatLockdown()) then return end
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    for index = 1, #self.homeView.sections do
+        local tile = self.homeView.tiles[index]
+        tile.session, tile.generation = self.session, self.generation
+    end
+    if executor then executor:PrepareVisibleRows(self.homeView.tiles) end
 end
 
 
@@ -610,19 +641,17 @@ end
 
 function Palette:SetStatus(mode, count)
     local text
-    if mode == "home" then text = ""
+    if mode == "home" then text = localized({ zhCN = "输入即搜索", enUS = "Type to search" })
     elseif mode == "panel" then text = localized({ zhCN = "详情", enUS = "Detail" }, "Detail")
     elseif count and count > 0 then text = localized({ zhCN = "搜索结果：", enUS = "Results: " }, "Results: ") .. tostring(count)
     else text = localized({ zhCN = "没有结果", enUS = "No results" }, "No results") end
     setText(self.status, text)
+    setText(self.footerHint, mode == "home" and "Lychee" or localized({ zhCN = "↑ ↓ 选择   ·   点击使用", enUS = "↑ ↓ Select   ·   Click to use" }))
 end
 
 function Palette:ResizeForMode(mode, count)
     if not self.frame or not self.frame.SetHeight then return false end
-    if mode == "home" or mode == "panel" then
-        if self.frame:GetHeight() ~= HEIGHT then self.frame:SetHeight(HEIGHT) end
-        return true
-    end
+    if InCombatLockdown and InCombatLockdown() then return false end
     local theme = Lychee.UI and Lychee.UI.Theme
     local metrics = theme and theme.Metrics or {}
     local minHeight = metrics.paletteMinHeight or 220
@@ -634,9 +663,12 @@ function Palette:ResizeForMode(mode, count)
     local columns = self.list and self.list.gridColumns or 4
     local rows = tiles > 0 and math.ceil(tiles / columns) or 0
     local listHeight = rows > 0 and (rows * rowHeight + (rows - 1) * rowGap) or 0
-    local desired = HEADER_HEIGHT + padding + listHeight
+    if mode == "home" then listHeight = self.homeView and self.homeView.content:GetHeight() or 0 end
+    if mode == "panel" then listHeight = 360 end
+    local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
     if self.frame:GetHeight() ~= desired then self.frame:SetHeight(desired) end
+    self:ApplyBoundedScale()
     return true
 end
 
@@ -671,15 +703,15 @@ function Palette:SetActionFeedback(state, actionOrError)
 end
 
 function Palette:SetQueryMode(text)
+    if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
     local empty = (text or "") == ""
     if not self.homeView or not self.list then return end
     if self.viewHost and self.viewHost:IsActive() then self.viewHost:Unmount("query-change") end
     setShown(self.viewHost and self.viewHost.frame, false)
     if empty and not self.activeFilter then
-        self:ResizeForMode("home")
         setShown(self.list.frame, false); setShown(self.emptyState, false)
         if self.homeDirty then self:RefreshHomeSections(false) end
-        setShown(self.homeView.frame, true); self:SetStatus("home")
+        setShown(self.homeView.frame, true); self:ResizeForMode("home"); self:PrepareHome(); self:SetStatus("home")
     else
         self:ResizeForMode("search", self.list.items and #self.list.items or 0)
         setShown(self.homeView.frame, false)
@@ -694,13 +726,19 @@ function Palette:IsRowCurrent(row, session, generation, item, extensionID)
     if not executor then return false, "STALE_GENERATION" end
     return executor:IsRowCurrent(row, session, generation, item, extensionID)
 end
-function Palette:ValidateRowAction(row, session, generation, item, extensionID)
+function Palette:ValidateRowAction(row, session, generation, item, extensionID, preparing)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if not executor then return false, "STALE_GENERATION" end
-    return executor:Validate(row, session, generation, item, extensionID)
+    return executor:Validate(row, session, generation, item, extensionID, preparing)
 end
 function Palette:InvalidateRow(row)
     if self.secureBroker and self.secureBroker.InvalidateRow then self.secureBroker:InvalidateRow(row) end
+    if InCombatLockdown and InCombatLockdown() then self.homeDirty = true; return end
+    if row and row.ownerView == self.homeView then
+        row.item = nil
+        setShown(row, false)
+        return
+    end
     if self.list and self.list.InvalidateRow then self.list:InvalidateRow(row) end
 end
 function Palette:RejectRow(row, err)
@@ -710,6 +748,7 @@ function Palette:RejectRow(row, err)
 end
 function Palette:InvalidateExtension(extensionID)
     if not extensionID then return false end
+    if InCombatLockdown and InCombatLockdown() then self.homeDirty = true; return false end
     if self.viewHost and self.viewHost.panel and self.viewHost.panel.context and self.viewHost.panel.context.extensionID == extensionID then
         self.viewHost:Unmount("extension-disabled")
     end
@@ -718,13 +757,14 @@ function Palette:InvalidateExtension(extensionID)
     return true
 end
 
-function Palette:ApplyResults(items, generation, session)
+function Palette:ApplyResults(items, generation, session, offset)
     if not self.visible then return false end
+    if InCombatLockdown and InCombatLockdown() then return false end
     if session and session ~= self.session then return false end
     if generation and generation ~= self.generation then return false end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
     items = items or {}
-    self.list:SetItems(items, self.session, self.generation)
+    self.list:SetItems(items, self.session, self.generation, offset)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if executor then executor:PrepareVisibleRows(self.list.rows) end
     if self.viewHost and self.viewHost:IsActive() then
@@ -734,6 +774,8 @@ function Palette:ApplyResults(items, generation, session)
         self:ResizeForMode("search", #items)
         setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0)
         self:SetStatus("search", #items)
+    elseif self:IsHomeVisible() then
+        self:PrepareHome()
     end
     return true
 end
@@ -744,8 +786,11 @@ function Palette:SetResults(items, generation, session)
 end
 
 function Palette:Show()
-    self:Create()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    if self.visible then return true end
+    self:Create()
+    if self.combatCleanupPending then self:FinishHide("combat") end
+    self.input:SetText("")
     self:ApplyBoundedScale()
     self.visible = true
     self.frame:RegisterEvent("GLOBAL_MOUSE_DOWN")
@@ -758,29 +803,42 @@ function Palette:Show()
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
     -- the same input dispatch; focusing synchronously would swallow it as query text.
     if C_Timer and type(C_Timer.After) == "function" then
+        local focusSession = self.session
         C_Timer.After(0, function()
-            if self.visible then self.input:Focus() end
+            if self.visible and self.session == focusSession then self.input:Focus() end
         end)
     else
         self.input:Focus()
     end
-    animate(self.frame, "lychee.palette.open", 0, 1, 0.18)
     return true
 end
 function Palette:Hide(reason)
+    -- Invalidate the session only after marking the UI inactive; a synchronous
+    -- result callback must not repaint a protected row on combat entry.
+    self.visible = false
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Stop(reason or "hide") end
-    if not self.frame or not self.visible then return true end
-    self.visible = false
+    if not self.frame then return true end
     self.frame:UnregisterEvent("GLOBAL_MOUSE_DOWN")
     self.activeFilter = nil
+    if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
+    self.input:ClearFocus()
+    if InCombatLockdown and InCombatLockdown() then
+        self.combatCleanupPending = true
+        return true
+    end
+    return self:FinishHide(reason)
+end
+
+function Palette:FinishHide(reason)
+    if InCombatLockdown and InCombatLockdown() then return false end
+    self.combatCleanupPending = false
     self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
-    self.focus:Restore(); self.input:ClearFocus(); self.input:Hide()
-    animate(self.frame, "lychee.palette.close", 1, 0, 0.14, function()
-        self.frame:Hide(); setAlpha(self.frame, 1)
-    end)
+    if reason == "combat" then self.focus:Clear(); self.focus.previous = nil else self.focus:Restore() end
+    self.input:ClearFocus(); self.input:Hide()
+    self.frame:Hide()
     return true
 end
 function Palette:Toggle()
@@ -813,12 +871,14 @@ function Palette:BeginRowDrag(row)
     return result, err
 end
 function Palette:OpenView(factory, context, state)
+    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)
     local mounted, err = self.viewHost:Mount(factory, context or {}, state)
-    if mounted then self:SetStatus("panel") end
+    if mounted then self:ResizeForMode("panel"); self:SetStatus("panel") end
     return mounted, err
 end
 function Palette:CloseView(reason)
+    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     local result = self.viewHost:Unmount(reason or "close")
     self:SetQueryMode(self.input:GetText())
     return result

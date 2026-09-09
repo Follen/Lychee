@@ -12,8 +12,8 @@ end
 
 local function localizedPlaceholder()
     local locale = GetLocale and GetLocale() or "enUS"
-    if locale == "zhCN" or locale == "zhTW" then return "搜索..." end
-    return "Search..."
+    if locale == "zhCN" or locale == "zhTW" then return "搜索技能、插件、命令…" end
+    return "Search spells, addons, commands…"
 end
 
 function Input:_ApplyVisualState()
@@ -23,11 +23,11 @@ function Input:_ApplyVisualState()
     if not self.enabled then
         background, border, text = "input", "border", "disabled"
     elseif self.focused then
-        background, border, text = "inputFocus", "accent", "text"
+        background, border, text = "inputFocus", "inputFocus", "text"
     elseif self.hovered then
-        background, border, text = "inputHover", "borderStrong", "text"
+        background, border, text = "inputHover", "inputHover", "text"
     else
-        background, border, text = "input", "border", "text"
+        background, border, text = "input", "input", "text"
     end
     local stateKey = background .. ":" .. border .. ":" .. text
     if self._visualState == stateKey then return false end
@@ -44,8 +44,8 @@ function Input:Create(parent, focusController)
     local height = theme and theme.Metrics.inputHeight or 44
     local container = CreateFrame("Frame", nil, parent)
     container:SetHeight(height)
-    container:SetPoint("TOPLEFT", parent, "TOPLEFT", 62, -16)
-    container:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -50, -14)
+    container:SetPoint("TOPLEFT", parent, "TOPLEFT", 64, -8)
+    container:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -64, -8)
     container:EnableMouse(true)
     if theme then theme:CreateSurface(container, "input", "border") end
 
@@ -54,6 +54,7 @@ function Input:Create(parent, focusController)
     if edit.SetTextInsets then edit:SetTextInsets(40, 20, 0, 0) end
     edit:SetAllPoints(container)
     if edit.SetFontObject then edit:SetFontObject("GameFontHighlight") end
+    if edit.SetFont and STANDARD_TEXT_FONT then edit:SetFont(STANDARD_TEXT_FONT, 16, "") end
 
     local searchIcon = container:CreateTexture(nil, "ARTWORK")
     searchIcon:SetSize(16, 16)
@@ -65,6 +66,7 @@ function Input:Create(parent, focusController)
     placeholder:SetPoint("RIGHT", container, "RIGHT", -20, 0)
     placeholder:SetJustifyH("LEFT")
     placeholder:SetText(localizedPlaceholder())
+    if placeholder.SetFont and STANDARD_TEXT_FONT then placeholder:SetFont(STANDARD_TEXT_FONT, 16, "") end
 
     local hint = container:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:Hide()

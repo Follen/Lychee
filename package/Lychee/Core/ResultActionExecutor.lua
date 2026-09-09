@@ -92,10 +92,11 @@ function Executor:IsAvailable(item)
     return value == availability.equals
 end
 
-function Executor:Validate(row, session, generation, item, owner)
+function Executor:Validate(row, session, generation, item, owner, preparing)
     local current, err = self:IsRowCurrent(row, session, generation, item, owner)
     if not current then return false, err end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    if not preparing and row.IsVisible and not row:IsVisible() then return false, "STALE_GENERATION" end
     if not self:IsAvailable(row.item) then return false, "ACTION_UNAVAILABLE" end
     return true
 end
@@ -277,12 +278,20 @@ function Executor:PrepareVisibleRows(rows)
                     -- The target is declared by the generic list renderer.  Older
                     -- renderers retain the action-slot fallback during migration.
                     local target = row.primaryTarget or (row.actions and row.actions[1]) or row
-                    button:ClearAllPoints()
-                    if type(button.SetAllPoints) == "function" then button:SetAllPoints(target) else button:SetPoint("CENTER", target, "CENTER") end
+                    if button._target ~= target then
+                        button:SetParent(row)
+                        button:ClearAllPoints()
+                        if type(button.SetAllPoints) == "function" then button:SetAllPoints(target) else button:SetPoint("CENTER", target, "CENTER") end
+                        button._target = target
+                    end
                     if target and type(target.GetFrameLevel) == "function" and type(button.SetFrameLevel) == "function" then
                         local targetLevel = target:GetFrameLevel()
-                        if type(targetLevel) == "number" then button:SetFrameLevel(targetLevel + 1) end
+                        if type(targetLevel) == "number" and button:GetFrameLevel() ~= targetLevel + 1 then button:SetFrameLevel(targetLevel + 1) end
                     end
+                    if row.secondary and row.secondary.SetFrameLevel and row.secondary:GetFrameLevel() ~= button:GetFrameLevel() + 1 then
+                        row.secondary:SetFrameLevel(button:GetFrameLevel() + 1)
+                    end
+                    if row.dragger and row.dragger:IsShown() then row.dragger:Hide() end
                     if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then
                         row.primaryTarget:EnableMouse(false)
                     end

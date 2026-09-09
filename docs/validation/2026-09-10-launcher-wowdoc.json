@@ -1,0 +1,275 @@
+[
+  {
+    "symbol": "SecureActionButton_OnClick",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+        "line": 805,
+        "excerpt": "805: function SecureActionButton_OnClick(self, inputButton, down, isKeyPress, isSecureAction)\n806: \t-- Why are we adding extra arguments, 'isKeyPress' and 'isSecureAction', to an _OnClick handler?\n807: \t-- We want to prevent mouse actions from triggering press-and-hold behavior for now, but we do want to allow AddOns\n808: \t-- to function as they did before. This is a problem since there's no difference between an AddOn's key press behavior\n809: \t-- and mouse click behavior. So if we don't know where this is coming from, it's from an AddOn and should be treated as\n810: \t-- a key press not a mouse press for 'useOnKeyDown' purposes.\n811: \tlocal isSecureMousePress = not isKeyPress and isSecureAction;\n812: \tlocal pressAndHoldAction = SecureButton_GetAttribute(self, \"pressAndHoldAction\");\n813: \tlocal useOnKeyDown = not isSecureMousePress and (SecureActionButton_ShouldUseOnKeyDown(self) or pressAndHoldAction);\n814: \tlocal clickAction = (down and useOnKeyDown) or (not down and not useOnKeyDown);\n815: \tlocal releasePressAndHoldAction = (not down) and (pressAndHoldAction or GetCVarBool(\"ActionButtonUseKeyHeldSpell\"));\n816: \n817: \tif clickAction then\n818: \t\t-- Only treat a key down action as a key press. Treating key up actions as a key press will result in the held\n819: \t\t-- spell being cast indefinitely since there's no release to stop it.\n820: \t\tlocal treatAsKeyPress = down and isKeyPress;\n821: \t\tOnActionButtonClick(self, inputButton, down, treatAsKeyPress);\n822: \t\treturn true;\n823: \telseif releasePressAndHoldAction then\n824: \t\tOnActionButtonPressAndHoldRelease(self, inputButton);\n825: \t\treturn true;\n826: \tend\n827: \n828: \treturn false;\n829: end",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+        "line": 112,
+        "excerpt": "109: function TryUseActionButton(self, checkingFromDown)\n110: \tlocal isKeyPress = true;\n111: \tlocal isSecureAction = true;\n112: \tlocal usedActionButton = SecureActionButton_OnClick(self, \"LeftButton\", checkingFromDown, isKeyPress, isSecureAction);\n113: \tif usedActionButton then\n114: \t\tif GetNewActionHighlightMark(self.action) then\n115: \t\t\tClearNewActionHighlight(self.action);",
+        "matchedBy": "fts5"
+      }
+    ]
+  },
+  {
+    "symbol": "SecureActionButton_ShouldUseOnKeyDown",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+        "line": 795,
+        "excerpt": "795: function SecureActionButton_ShouldUseOnKeyDown(self)\n796: \tlocal useOnKeyDown = SecureButton_GetAttribute(self, \"useOnKeyDown\");\n797: \n798: \tif useOnKeyDown == nil then\n799: \t\tuseOnKeyDown = GetCVarBool(\"ActionButtonUseKeyDown\");\n800: \tend\n801: \n802: \treturn useOnKeyDown;\n803: end",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+        "line": 795,
+        "excerpt": "792: \tPerformAction(self, button, unit, actionType, false);\n793: end\n794: \n795: function SecureActionButton_ShouldUseOnKeyDown(self)\n796: \tlocal useOnKeyDown = SecureButton_GetAttribute(self, \"useOnKeyDown\");\n797: \n798: \tif useOnKeyDown == nil then",
+        "matchedBy": "fts5"
+      }
+    ]
+  },
+  {
+    "symbol": "RegisterStateDriver",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedEnvironment.lua",
+        "line": 241,
+        "excerpt": "241: function ENV.RegisterStateDriver(frameHandle, ...)\n242: \t_G.RegisterStateDriver(GetFrameHandleFrame(frameHandle), scrub(...));\n243: end",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureStateDriver.lua",
+        "line": 26,
+        "excerpt": "26: function RegisterStateDriver(frame, state, values)\n27: \tRegisterAttributeDriver(frame, \"state-\" .. state, values);\n28: end",
+        "matchedBy": "exact_symbol"
+      }
+    ]
+  },
+  {
+    "symbol": "SecureHandlerStateTemplate",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlerTemplates.xml",
+        "line": 13,
+        "excerpt": "10: \t\t</Scripts>\n11: \t</Frame>\n12: \n13: \t<Frame name=\"SecureHandlerStateTemplate\" inherits=\"SecureFrameTemplate\" virtual=\"true\">\n14: \t\t<Size x=\"2\" y=\"2\"/>\n15: \t\t<Scripts>\n16: \t\t\t<OnLoad function=\"SecureHandler_OnLoad\"/>",
+        "matchedBy": "exact_fact"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlerTemplates.xml",
+        "line": 13,
+        "excerpt": "10: \t\t</Scripts>\n11: \t</Frame>\n12: \n13: \t<Frame name=\"SecureHandlerStateTemplate\" inherits=\"SecureFrameTemplate\" virtual=\"true\">\n14: \t\t<Size x=\"2\" y=\"2\"/>\n15: \t\t<Scripts>\n16: \t\t\t<OnLoad function=\"SecureHandler_OnLoad\"/>",
+        "matchedBy": "fts5"
+      }
+    ]
+  },
+  {
+    "symbol": "SecureHandler_StateOnAttributeChanged",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlers.lua",
+        "line": 107,
+        "excerpt": "107: function SecureHandler_StateOnAttributeChanged(self, name, value)\n108: \tlocal stateid = name:match(\"^state%-(.+)\");\n109: \tif (stateid) then\n110: \t\tlocal body = self:GetAttribute(\"_onstate-\" .. stateid);\n111: \t\tif (body) then\n112: \t\t\tSecureHandler_Self_Execute(self, \"self,stateid,newstate\", body, stateid, value);\n113: \t\tend\n114: \tend\n115: end",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlerTemplates.xml",
+        "line": 17,
+        "excerpt": "14: \t\t<Size x=\"2\" y=\"2\"/>\n15: \t\t<Scripts>\n16: \t\t\t<OnLoad function=\"SecureHandler_OnLoad\"/>\n17: \t\t\t<OnAttributeChanged function=\"SecureHandler_StateOnAttributeChanged\"/>\n18: \t\t</Scripts>\n19: \t</Frame>\n20: ",
+        "matchedBy": "fts5"
+      }
+    ]
+  },
+  {
+    "symbol": "InCombatLockdown",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/RestrictedActionsDocumentation.lua",
+        "line": 45,
+        "excerpt": "45: \t\t\tName = \"InCombatLockdown\",\n46: \t\t\tType = \"Function\",\n47: \t\t\tNamespace = \"\",\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"inCombatLockdown\", Type = \"bool\", Nilable = false },\n52: \t\t\t},\n53: \t\t},",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/RestrictedActionsDocumentation.lua",
+        "line": 45,
+        "excerpt": "42: \t\t\t},\n43: \t\t},\n44: \t\t{\n45: \t\t\tName = \"InCombatLockdown\",\n46: \t\t\tType = \"Function\",\n47: \t\t\tNamespace = \"\",\n48: ",
+        "matchedBy": "fts5"
+      }
+    ]
+  },
+  {
+    "symbol": "IsVisible",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPIModelSceneFrameActorBaseDocumentation.lua",
+        "line": 306,
+        "excerpt": "306: \t\t\tName = \"IsVisible\",\n307: \t\t\tType = \"Function\",\n308: \n309: \t\t\tArguments =\n310: \t\t\t{\n311: \t\t\t},\n312: \n313: \t\t\tReturns =\n314: \t\t\t{\n315: \t\t\t\t{ Name = \"isVisible\", Type = \"bool\", Nilable = false },\n316: \t\t\t},\n317: \t\t},",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "line": 968,
+        "excerpt": "968: \t\t\tName = \"IsVisible\",\n969: \t\t\tType = \"Function\",\n970: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Shown },\n971: \n972: \t\t\tArguments =\n973: \t\t\t{\n974: \t\t\t},\n975: \n976: \t\t\tReturns =\n977: \t\t\t{\n978: \t\t\t\t{ Name = \"isVisible\", Type = \"bool\", Nilable = false },\n979: \t\t\t},\n980: \t\t},",
+        "matchedBy": "exact_symbol"
+      }
+    ]
+  },
+  {
+    "symbol": "RegisterForClicks",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleButtonAPIDocumentation.lua",
+        "line": 271,
+        "excerpt": "271: \t\t\tName = \"RegisterForClicks\",\n272: \t\t\tType = \"Function\",\n273: \t\t\tIsProtectedFunction = true,\n274: \t\t\tSecretArguments = \"NotAllowed\",\n275: \n276: \t\t\tArguments =\n277: \t\t\t{\n278: \t\t\t\t{ Name = \"buttons\", Type = \"ClickButton\", Nilable = false, StrideIndex = 1 },\n279: \t\t\t},\n280: \t\t},",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleButtonAPIDocumentation.lua",
+        "line": 271,
+        "excerpt": "268: \t\t\t},\n269: \t\t},\n270: \t\t{\n271: \t\t\tName = \"RegisterForClicks\",\n272: \t\t\tType = \"Function\",\n273: \t\t\tIsProtectedFunction = true,\n274: \t\t\tSecretArguments = \"NotAllowed\",",
+        "matchedBy": "fts5"
+      }
+    ]
+  },
+  {
+    "symbol": "SetFont",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua",
+        "line": 677,
+        "excerpt": "677: \t\t\tName = \"SetFont\",\n678: \t\t\tType = \"Function\",\n679: \t\t\tRequiresValidFontAsset = true,\n680: \t\t\tRequiresValidFontHeight = true,\n681: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n682: \n683: \t\t\tArguments =\n684: \t\t\t{\n685: \t\t\t\t{ Name = \"fontFile\", Type = \"cstring\", Nilable = false },\n686: \t\t\t\t{ Name = \"height\", Type = \"uiFontHeight\", Nilable = false },\n687: \t\t\t\t{ Name = \"flags\", Type = \"TBFFlags\", Nilable = false },\n688: \t\t\t},\n689: \n690: \t\t\tReturns =\n691: \t\t\t{\n692: \t\t\t\t{ Name = \"success\", Type = \"bool\", Nilable = false },\n693: \t\t\t},\n694: \t\t},",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontAPIDocumentation.lua",
+        "line": 199,
+        "excerpt": "199: \t\t\tName = \"SetFont\",\n200: \t\t\tType = \"Function\",\n201: \t\t\tRequiresValidFontAsset = true,\n202: \t\t\tRequiresValidFontHeight = true,\n203: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n204: \n205: \t\t\tArguments =\n206: \t\t\t{\n207: \t\t\t\t{ Name = \"fontFile\", Type = \"cstring\", Nilable = false },\n208: \t\t\t\t{ Name = \"height\", Type = \"uiFontHeight\", Nilable = false },\n209: \t\t\t\t{ Name = \"flags\", Type = \"TBFFlags\", Nilable = false },\n210: \t\t\t},\n211: \t\t},",
+        "matchedBy": "exact_symbol"
+      }
+    ]
+  },
+  {
+    "symbol": "SetTexCoord",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleTextureBaseAPIDocumentation.lua",
+        "line": 576,
+        "excerpt": "576: \t\t\tName = \"SetTexCoord\",\n577: \t\t\tType = \"Function\",\n578: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.TexCoords },\n579: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n580: \n581: \t\t\tArguments =\n582: \t\t\t{\n583: \t\t\t\t{ Name = \"left\", Type = \"number\", Nilable = false },\n584: \t\t\t\t{ Name = \"right\", Type = \"number\", Nilable = false },\n585: \t\t\t\t{ Name = \"bottom\", Type = \"number\", Nilable = false },\n586: \t\t\t\t{ Name = \"top\", Type = \"number\", Nilable = false },\n587: \t\t\t},\n588: \t\t},",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+        "line": 534,
+        "excerpt": "531: \t\t\t},\n532: \t\t},\n533: \t\t{\n534: \t\t\tName = \"SetTexCoordRange\",\n535: \t\t\tType = \"Function\",\n536: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n537: ",
+        "matchedBy": "symbol_prefix"
+      }
+    ]
+  },
+  {
+    "symbol": "SetParent",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "line": 332,
+        "excerpt": "332: \t\t\tName = \"SetParent\",\n333: \t\t\tType = \"Function\",\n334: \t\t\tCheckAllowChangeParent = true,\n335: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n336: \n337: \t\t\tArguments =\n338: \t\t\t{\n339: \t\t\t\t{ Name = \"parent\", Type = \"SimpleAnimGroup\", Nilable = false },\n340: \t\t\t\t{ Name = \"order\", Type = \"number\", Nilable = true },\n341: \t\t\t},\n342: \t\t},",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleControlPointAPIDocumentation.lua",
+        "line": 58,
+        "excerpt": "58: \t\t\tName = \"SetParent\",\n59: \t\t\tType = \"Function\",\n60: \t\t\tCheckAllowChangeParent = true,\n61: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n62: \n63: \t\t\tArguments =\n64: \t\t\t{\n65: \t\t\t\t{ Name = \"parent\", Type = \"SimplePathAnim\", Nilable = false },\n66: \t\t\t\t{ Name = \"order\", Type = \"number\", Nilable = true },\n67: \t\t\t},\n68: \t\t},",
+        "matchedBy": "exact_symbol"
+      }
+    ]
+  },
+  {
+    "symbol": "PLAYER_REGEN_DISABLED",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "line": 1497,
+        "excerpt": "1497: function Class_LootCorpseWatcher:PLAYER_REGEN_DISABLED(...)\n1498: \tself:SuppressChildren();\n1499: end",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "line": 2144,
+        "excerpt": "2144: function Class_AbilityUse_Watcher:PLAYER_REGEN_DISABLED()\n2145: \tDispatcher:RegisterEvent(\"OnUpdate\", self);\n2146: end",
+        "matchedBy": "exact_symbol"
+      }
+    ]
+  },
+  {
+    "symbol": "PLAYER_REGEN_ENABLED",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "line": 1502,
+        "excerpt": "1502: function Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED(...)\n1503: \tself:UnsuppressChildren();\n1504: end",
+        "matchedBy": "exact_symbol"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "line": 2149,
+        "excerpt": "2149: function Class_AbilityUse_Watcher:PLAYER_REGEN_ENABLED()\n2150: \tDispatcher:UnregisterEvent(\"OnUpdate\", self);\n2151: end",
+        "matchedBy": "exact_symbol"
+      }
+    ]
+  }
+]

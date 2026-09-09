@@ -99,11 +99,11 @@ local parent = CreateFrame("Frame", nil, UIParent)
 parent:SetSize(720, 500)
 local list = _G.Lychee.UI.ResultList:Create(parent, controller)
 
-assert(#list.rows == 12, "twelve result tiles are precreated")
-assert(list.gridColumns == 4 and list.frame:GetHeight() == 232, "result list uses a four-column grid")
-for index = 1, 12 do
+assert(#list.rows == 8, "eight visible result rows are precreated")
+assert(list.gridColumns == 1 and list.frame:GetHeight() == 478, "result list uses a compact single column")
+for index = 1, 8 do
     local row = list.rows[index]
-    assert(row:GetHeight() == 72, "tile height remains fixed")
+    assert(row:GetHeight() == 58, "row height remains fixed")
     assert(row.primaryTarget and row.secondary, "primary and secondary interaction targets are precreated")
     assert(not row:IsShown(), "new row starts cleared")
 end
@@ -151,8 +151,8 @@ list:SetItems(items, 11, 23)
 assert(#created == frameCount, "query update does not create frames or regions")
 assert(rowOne:IsShown() and rowTwo:IsShown() and not list.rows[3]:IsShown(), "only populated rows are shown")
 assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "builtin.player-spells", "freshness fields bind to row")
-assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == "", "description stays out of the compact row")
-assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 72, "long text cannot mutate tile geometry")
+assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == longText, "name and description remain separately constrained")
+assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 58, "long text cannot mutate row geometry")
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
 assert(rowOne.category:GetText() == "技能", "category label is rendered")
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")

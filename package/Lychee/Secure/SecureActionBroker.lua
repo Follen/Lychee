@@ -51,6 +51,12 @@ function Broker:_Acquire()
     if InCombatLockdown and InCombatLockdown() then return nil end
     local button = CreateFrame("Button", "LycheeSecureActionButton" .. tostring(#self.buttons + 1), self.parent, "SecureActionButtonTemplate")
     button:RegisterForClicks("LeftButtonUp")
+    button:SetAttribute("useOnKeyDown", false)
+    button:RegisterForDrag("LeftButton")
+    button:SetScript("OnDragStart", function(current)
+        local token = current.token
+        if token and token.controller then token.controller:BeginRowDrag(token.row) end
+    end)
     button:SetSize(24, 24)
     button:Hide()
     -- The secure button covers the renderer's primary target.  Forward hover
@@ -58,13 +64,15 @@ function Broker:_Acquire()
     -- indistinguishable from an ordinary primary action.
     button:SetScript("OnEnter", function(current)
         local token, controller = current.token, current.token and current.token.controller
-        local list = controller and controller.list
+        local list = token and (token.row.ownerView or (controller and controller.list))
         if token and list and list.SetHover then list:SetHover(token.row, true) end
+        if token and list and list.ShowTooltip then list:ShowTooltip(token.row, current) end
     end)
     button:SetScript("OnLeave", function(current)
         local token, controller = current.token, current.token and current.token.controller
-        local list = controller and controller.list
+        local list = token and (token.row.ownerView or (controller and controller.list))
         if token and list and list.SetHover then list:SetHover(token.row, false) end
+        if GameTooltip then GameTooltip:Hide() end
     end)
     button:SetScript("PreClick", function(current)
         local valid, tokenErr = self:ValidateToken(current.token)
@@ -89,17 +97,17 @@ function Broker:_Acquire()
     self.buttons[#self.buttons + 1] = button
     return button
 end
-function Broker:ValidateToken(token)
+function Broker:ValidateToken(token, preparing)
     if type(token) ~= "table" then return false, "STALE_GENERATION" end
     local controller = token.controller or self:EnsureBound()
     if not controller or not controller.ValidateRowAction then return false, "STALE_GENERATION" end
-    return controller:ValidateRowAction(token.row, token.session, token.generation, token.item, token.extensionID)
+    return controller:ValidateRowAction(token.row, token.session, token.generation, token.item, token.extensionID, preparing)
 end
 function Broker:IsTokenCurrent(token) return self:ValidateToken(token) == true end
 function Broker:Prepare(action, token)
     self:EnsureBound()
     if token and token.row then
-        local current, tokenErr = self:ValidateToken(token)
+        local current, tokenErr = self:ValidateToken(token, true)
         if not current then return nil, tokenErr end
     end
     local descriptor, err = Lychee.Secure.Descriptor.FromAction(action)
@@ -107,6 +115,13 @@ function Broker:Prepare(action, token)
     local ok, policyErr = Lychee.Secure.Policy:Check(descriptor)
     if not ok then self.dirty = true; return nil, policyErr end
     if InCombatLockdown and InCombatLockdown() then self.dirty = true; return nil, "COMBAT_LOCKED" end
+    for index = 1, #self.buttons do
+        local existing = self.buttons[index]
+        local bound = existing.token
+        if existing.busy and not existing.pendingRelease and bound and token and bound.row == token.row
+            and bound.item == token.item and bound.session == token.session and bound.generation == token.generation
+            and existing.spellID == descriptor.spellID then return existing end
+    end
     local button = self:_Acquire()
     if not button then self.dirty = true; return nil, "COMBAT_LOCKED" end
     button:SetAttribute("type", "spell")
@@ -140,11 +155,17 @@ function Broker:FinishCast(event, spellID, reason)
     button.pendingCast = false
     self.pendingButton = nil
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        local item = button.token and button.token.item
         self:Notify("success", button.action)
+        self:Release(button)
+        local palette = self:EnsureBound()
+        if palette then
+            palette:Hide("spell-success")
+            if item then palette:TouchRecent(item) end
+        end
     else
         self:Notify("failed", button.action, reason)
     end
-    self:Release(button)
     return true
 end
 function Broker:Release(button)
@@ -155,6 +176,7 @@ function Broker:Release(button)
         return
     end
     button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
+    if self.pendingButton == button then self.pendingButton = nil end
     button.busy, button.pendingRelease, button.token, button.action, button.spellID, button.pendingCast = false, nil, nil, nil, nil, nil
 end
 function Broker:ShowFor(row, action, session, generation, item, extensionID)

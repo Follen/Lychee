@@ -107,6 +107,32 @@ function Q:_ResolveGeneration(externalGeneration, context)
     return session and session.generation or 0
 end
 
+-- Resolve saved identities without running a fuzzy query or changing the active
+-- search generation. Materialization stays identical to normal search results.
+function Q:ResolveRecent(ids, limit)
+    local wanted, found, out = {}, {}, {}
+    for index = 1, #ids do wanted[ids[index]] = true end
+    local static = I.Search.StaticIndex
+    for _, entry in pairs(static and static.entries or {}) do
+        local source, record = entry.source, entry.record
+        if source and source.enabled and record and wanted[record.id]
+            and (not source.extensionID or not I.Registry or I.Registry:IsEnabled(source.extensionID)) then
+            local item = searchRecordItem({ record = record, sourceID = entry.sourceID,
+                sourceExtensionID = source.extensionID, sourceTitle = source.title or source.extensionTitle,
+                sourcePriority = source.priority, sourceGeneration = source.generation,
+                sourceRevision = source.revision, stableID = entry.stableID })
+            local previous = found[record.id]
+            if item and (not previous or resultLess(item, previous)) then found[record.id] = item end
+        end
+    end
+    for index = 1, #ids do
+        local item = found[ids[index]]
+        if item then out[#out + 1] = item end
+        if #out >= (limit or 5) then break end
+    end
+    return out
+end
+
 function Q:_BuildRequest(raw, context, generation)
     local normalized = I.Search.Normalizer:Normalize(raw)
     return { generation = generation, raw = raw or "", normalized = normalized,
