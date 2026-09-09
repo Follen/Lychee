@@ -11,7 +11,7 @@ local Palette = {}
 Palette.__index = Palette
 
 local WIDTH, HEIGHT = 640, 220
-local HEADER_HEIGHT, FOOTER_HEIGHT = 64, 32
+local HEADER_HEIGHT, FOOTER_HEIGHT = 56, 28
 local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 112, 96
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 8
@@ -125,6 +125,7 @@ local function createHomeView(parent, controller)
     view.empty:SetPoint("CENTER", frame, "CENTER", 0, 0)
     view.empty:SetText(localized({ zhCN = "搜索并使用后，常用入口会出现在这里", enUS = "Your recently used actions will appear here" }))
     tint(view.empty, color("muted"))
+    Lychee.UI.Theme:SetFont(view.empty, "body")
 
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
@@ -139,11 +140,9 @@ local function createHomeView(parent, controller)
     end
 
     function view:ShowTooltip(tile, owner)
-        if not GameTooltip or not tile.section then return end
+        if not tile.section then return end
         if tile.item then return Lychee.UI.ResultList:ShowItemTooltip(tile.item, owner or tile) end
-        GameTooltip:SetOwner(owner or tile, "ANCHOR_TOP")
-        GameTooltip:SetText(homeLabel(tile.section.title, "Lychee"))
-        GameTooltip:Show()
+        Lychee.UI.ResultList:ShowTextTooltip(homeLabel(tile.section.title, "Lychee"), owner or tile)
     end
 
     function view:Select(index)
@@ -196,6 +195,7 @@ local function createHomeView(parent, controller)
         header = self.content:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         header:SetJustifyH("LEFT")
         tint(header, color("muted"))
+        Lychee.UI.Theme:SetFont(header, "meta")
         self.headers[index] = header
         return header
     end
@@ -233,6 +233,7 @@ local function createHomeView(parent, controller)
         if tile.title.SetNonSpaceWrap then tile.title:SetNonSpaceWrap(true) end
         if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
+        Lychee.UI.Theme:SetFont(tile.title, "body")
         tile:SetScript("OnClick", function(button, mouseButton)
             if mouseButton == "RightButton" and controller and button.item then
                 view:Select(button.index)
@@ -251,7 +252,7 @@ local function createHomeView(parent, controller)
         end)
         tile:SetScript("OnLeave", function(button)
             view:SetHover(button, false)
-            if GameTooltip and GameTooltip.Hide then GameTooltip:Hide() end
+            Lychee.UI.ResultList:HideTooltip()
         end)
         tile:SetScript("OnDragStart", function(button) controller:BeginRowDrag(button) end)
         self.tiles[index] = tile
@@ -420,22 +421,25 @@ function Palette:Create()
         onClick = function() self:Hide("close") end,
     })
     self.close = self.closeComponent.frame
+    Lychee.UI.Theme:SetFont(self.closeComponent.label, "body")
     self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted" })
     self.status = self.statusComponent.label
+    Lychee.UI.Theme:SetFont(self.status, "meta")
     self.footerHint = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -18, 0)
     tint(self.footerHint, color("muted"))
-    for _, band in ipairs({ self.header, self.footer }) do
+    Lychee.UI.Theme:SetFont(self.footerHint, "meta")
+    for _, band in ipairs({ self.footer }) do
         local line = band:CreateTexture(nil, "BORDER")
         local edge = band == self.header and "BOTTOM" or "TOP"
-        line:SetPoint(edge .. "LEFT", band, edge .. "LEFT", 1, 0)
-        line:SetPoint(edge .. "RIGHT", band, edge .. "RIGHT", -1, 0)
+        line:SetPoint(edge .. "LEFT", band, edge .. "LEFT", 16, 0)
+        line:SetPoint(edge .. "RIGHT", band, edge .. "RIGHT", -16, 0)
         line:SetHeight(1)
         paint(line, color("border"))
     end
     local divider = self.header:CreateTexture(nil, "BORDER")
     divider:SetPoint("LEFT", self.header, "LEFT", 62, 0)
-    divider:SetSize(1, 26)
+    divider:SetSize(1, 18)
     paint(divider, color("border"))
 
     self.emptyStateComponent = components:CreateEmptyState(self.content, {
@@ -810,6 +814,7 @@ function Palette:Show()
     return true
 end
 function Palette:Hide(reason)
+    Lychee.UI.ResultList:HideTooltip()
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false

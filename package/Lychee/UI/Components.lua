@@ -197,9 +197,12 @@ function Components:CreateEmptyState(parent, options)
     local title = frame:CreateFontString(nil, "OVERLAY", options.titleFont or "GameFontNormalLarge")
     title:SetPoint("CENTER", frame, "CENTER", 0, options.titleY or 12)
     setTextColor(title, options.titleColor or "text")
+    local theme = getTheme()
+    if theme then theme:SetFont(title, "title") end
     local detail = frame:CreateFontString(nil, "OVERLAY", options.detailFont or "GameFontHighlightSmall")
     detail:SetPoint("TOP", title, "BOTTOM", 0, options.detailGap or -8)
     setTextColor(detail, options.detailColor or "textMuted")
+    if theme then theme:SetFont(detail, "body") end
     local component = { frame = frame, title = title, detail = detail, _title = nil, _detail = nil }
     function component:SetTitle(value)
         if self._title == value then return false end

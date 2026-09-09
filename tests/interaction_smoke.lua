@@ -26,6 +26,8 @@ local function object(kind, parent)
     function o:SetWidth(w) mutation(self, "SetWidth"); self.width = w end
     function o:GetWidth() return self.width end
     function o:GetHeight() return self.height end
+    function o:GetStringHeight() return 15 end
+    function o:SetClampedToScreen(enabled) self.clamped = enabled end
     function o:SetFrameStrata() end
     function o:SetFrameLevel(value) mutation(self, "SetFrameLevel"); self.frameLevel = value end
     function o:GetFrameLevel() return self.frameLevel or 0 end
@@ -75,6 +77,13 @@ function CreateFrame(kind, name, parent, template)
 end
 function RegisterStateDriver(frame, state, condition)
     frame.stateDriver = { state = state, condition = condition }
+end
+
+local function tooltipText()
+    local tip = Lychee.UI.ResultList.tooltip
+    local lines = {}
+    for index = 1, 5 do lines[index] = tip.labels[index]:GetText() end
+    return table.concat(lines, "\n")
 end
 
 local root = "package/Lychee/"
@@ -849,7 +858,7 @@ assertEq(panelRow.dragger.dragButtons[1], "LeftButton", "ordinary result binds d
 panelRow.dragger.scripts.OnDragStart(panelRow.dragger)
 assertEq(_G.__pickup, mixedPickups + 1, "ordinary result executes declared drag")
 palette.list:ShowTooltip(panelRow)
-local panelTooltip = GameTooltip.text .. table.concat(GameTooltip.lines, "\n")
+local panelTooltip = tooltipText()
 assert(panelTooltip:find("打开面板", 1, true) and panelTooltip:find("拖动", 1, true), "tooltip describes provider primary and drag")
 local mixedItems = { castRow.item, panelRow.item, commandRow.item }
 LycheeDB.palette.recent = {}
@@ -864,7 +873,7 @@ assertEq(#castTile.dragButtons, 0, "recent does not infer drag from spell kind")
 assertEq(#assert(boundButton(castTile)).dragButtons, 0, "recent secure overlay also has no undeclared drag")
 assert(panelTile.fallback[1]:IsShown() and not panelTile.icon:IsShown(), "iconless entries have a neutral fallback")
 palette.homeView:ShowTooltip(panelTile)
-assertEq(GameTooltip.text .. table.concat(GameTooltip.lines, "\n"), panelTooltip, "home and results share action tooltip")
+assertEq(tooltipText(), panelTooltip, "home and results share action tooltip")
 panelTile.scripts.OnDragStart(panelTile)
 assertEq(_G.__pickup, mixedPickups + 2, "recent panel executes the same declared drag")
 palette.homeView.tiles[2].scripts.OnEnter(palette.homeView.tiles[2])
@@ -943,7 +952,7 @@ assert(preparedSecondary.awaitingHardwareClick and #LycheeDB.palette.recent==0, 
 assert(secureMenuButton:GetParent()==secureMenuRow and secureMenuButton.armedSecondary, "secondary secure action covers the correct row")
 assert(palette.status:GetText():find("次要施放",1,true), "status names the prepared action")
 secureMenuButton.scripts.OnEnter(secureMenuButton)
-assert(GameTooltip.text:find("次要施放",1,true), "armed tooltip describes the actual next action")
+assert(Lychee.UI.ResultList.tooltip.labels[1]:GetText():find("次要施放",1,true), "armed tooltip describes the actual next action")
 secureMenuButton.scripts.PreClick(secureMenuButton)
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",31884))
 assertEq(LycheeDB.palette.recent[1].entryID,"secure-menu","successful cast records recency")

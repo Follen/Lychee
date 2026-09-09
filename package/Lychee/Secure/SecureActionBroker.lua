@@ -79,7 +79,7 @@ function Broker:_Acquire()
         local token, controller = current.token, current.token and current.token.controller
         local list = token and (token.row.ownerView or (controller and controller.list))
         if token and list and list.SetHover then list:SetHover(token.row, false) end
-        if GameTooltip then GameTooltip:Hide() end
+        if controller and controller.list and controller.list.HideTooltip then controller.list:HideTooltip() end
     end)
     button:SetScript("PreClick", function(current)
         local valid, tokenErr = self:ValidateToken(current.token)

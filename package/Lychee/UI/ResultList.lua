@@ -126,20 +126,72 @@ local function kindText(item)
 end
 
 local function hideTooltip()
-    if GameTooltip and type(GameTooltip.Hide) == "function" then GameTooltip:Hide() end
+    local tip = ResultList.tooltip
+    if not tip then return end
+    setShown(tip, false)
+    if tip._owner then
+        tip:ClearAllPoints()
+        tip:SetParent(UIParent)
+        tip._owner = nil
+    end
+end
+
+local function acquireTooltip()
+    if ResultList.tooltip then return ResultList.tooltip end
+    local theme = Lychee.UI.Theme
+    local tip = CreateFrame("Frame", nil, UIParent)
+    tip:SetWidth(280)
+    tip:SetFrameStrata("TOOLTIP")
+    tip:SetClampedToScreen(true)
+    tip:EnableMouse(false)
+    theme:CreateRoundedSurface(tip, "tooltip", 8)
+    tip.labels = {}
+    for index = 1, 5 do
+        local label = tip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        label:SetWidth(252)
+        label:SetJustifyH("LEFT")
+        label:SetWordWrap(true)
+        if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
+        theme:SetFont(label, index == 1 and "title" or index == 2 and "meta" or "body")
+        theme:SetTextColor(label, index == 1 and "text" or "textMuted")
+        tip.labels[index] = label
+    end
+    tip.divider = tip:CreateTexture(nil, "ARTWORK")
+    tip.divider:SetSize(252, 1)
+    theme:SetColorTexture(tip.divider, "border")
+    tip:Hide()
+    ResultList.tooltip = tip
+    return tip
+end
+
+local function tooltipLine(tip, index, text, y, gap)
+    local label = tip.labels[index]
+    text = text or ""
+    setText(label, text)
+    setShown(label, text ~= "")
+    if text == "" then return y end
+    y = y + (gap or 0)
+    if label._y ~= y then
+        label:ClearAllPoints()
+        label:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
+        label._y = y
+    end
+    return y + math.max(label:GetStringHeight(), index == 1 and 18 or 15)
 end
 
 local function showTooltip(owner, title, detail)
-    if not GameTooltip or type(GameTooltip.SetOwner) ~= "function" then return end
-    GameTooltip:SetOwner(owner, "ANCHOR_TOP")
-    if type(GameTooltip.SetText) == "function" then GameTooltip:SetText(title or "", 0.96, 0.95, 0.94, 1, true) end
-    if type(detail) == "table" and type(GameTooltip.AddLine) == "function" then
-        GameTooltip:AddLine(kindText(detail), 0.58, 0.58, 0.62)
-        local description = detail.description or detail.summary or detail.subtext
-        if type(description) == "string" and description ~= "" then
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(description, 0.82, 0.82, 0.85, true)
-        end
+    if not owner or (InCombatLockdown and InCombatLockdown()) then return end
+    local tip = acquireTooltip()
+    if tip._owner ~= owner then
+        tip:ClearAllPoints()
+        tip:SetParent(owner)
+        tip:SetPoint("BOTTOMLEFT", owner, "TOPRIGHT", 8, 8)
+        tip._owner = owner
+    end
+    local kind, description, clickHint, dragHint
+    if type(detail) == "table" then
+        kind = kindText(detail)
+        description = detail.description or detail.summary or detail.subtext
         local interaction = detail.interaction
         local actions = interaction and interaction.actions
         local primary = type(actions) == "table" and actions[1]
@@ -149,19 +201,38 @@ local function showTooltip(owner, title, detail)
             end
         end
         if actionEnabled(primary) then
-            GameTooltip:AddLine(" ")
-            GameTooltip:AddLine((UI_CHINESE and "点击 · " or "Click · ") .. actionLabel(primary), 0.90, 0.35, 0.40, true)
+            clickHint = (UI_CHINESE and "点击  " or "Click  ") .. actionLabel(primary)
         end
         if interaction and interaction.drag then
             local drag = interaction.drag
             local title = drag.title or (drag.type == "spell" and (UI_CHINESE and "放到动作条" or "Place on an action bar")) or (UI_CHINESE and "拖动" or "Drag")
-            GameTooltip:AddLine((UI_CHINESE and "拖动 · " or "Drag · ") .. title, 0.71, 0.705, 0.69, true)
+            dragHint = (UI_CHINESE and "拖动  " or "Drag  ") .. title
         end
-    elseif detail and detail ~= "" and detail ~= title and type(GameTooltip.AddLine) == "function" then
-        GameTooltip:AddLine(detail, 0.78, 0.78, 0.82, true)
+    elseif detail and detail ~= "" and detail ~= title then
+        description = detail
     end
-    if type(GameTooltip.Show) == "function" then GameTooltip:Show() end
+    local y = tooltipLine(tip, 1, title, 14)
+    y = tooltipLine(tip, 2, kind, y, 3)
+    y = tooltipLine(tip, 3, description, y, 10)
+    local hasActions = clickHint ~= nil or dragHint ~= nil
+    setShown(tip.divider, hasActions)
+    if hasActions then
+        y = y + 10
+        if tip.divider._y ~= y then
+            tip.divider:ClearAllPoints()
+            tip.divider:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
+            tip.divider._y = y
+        end
+        y = y + 8
+    end
+    y = tooltipLine(tip, 4, clickHint, y)
+    y = tooltipLine(tip, 5, dragHint, y, clickHint and 4 or 0)
+    if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
+    setShown(tip, true)
 end
+
+function ResultList:HideTooltip() hideTooltip() end
+function ResultList:ShowTextTooltip(title, owner) showTooltip(owner, title) end
 
 local function primaryAction(interaction)
     local actions = interaction and interaction.actions
@@ -184,9 +255,7 @@ end
 local function renderRowState(row)
     local background = row._selected and "rowSelected" or "row"
     setTextureColor(row.bg, background)
-    -- Red stays inside the selected row; the search field has no boxed focus ring.
-    setShown(row.accent, false)
-    setShown(row.outline, row._selected == true)
+    setShown(row.accent, row._selected == true)
     setShown(row.secondary, row.secondaryAction and row._selected or false)
     setShown(row.dragHighlight, row._selected and row._dragHovered == true or false)
 end
@@ -253,17 +322,7 @@ function ResultList:Create(parent, controller)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
         row.bg = row:CreateTexture(nil, "BACKGROUND"); row.bg:SetAllPoints()
-        row.outline = CreateFrame("Frame", nil, row); row.outline:SetPoint("TOPLEFT", row, "TOPLEFT", 1, -1); row.outline:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -1, 1)
-        row.outline.edges = {}
-        for edgeIndex = 1, 4 do
-            local edge = row.outline:CreateTexture(nil, "BORDER")
-            if edgeIndex == 1 then edge:SetPoint("TOPLEFT", row.outline, "TOPLEFT"); edge:SetPoint("TOPRIGHT", row.outline, "TOPRIGHT"); edge:SetHeight(1)
-            elseif edgeIndex == 2 then edge:SetPoint("BOTTOMLEFT", row.outline, "BOTTOMLEFT"); edge:SetPoint("BOTTOMRIGHT", row.outline, "BOTTOMRIGHT"); edge:SetHeight(1)
-            elseif edgeIndex == 3 then edge:SetPoint("TOPLEFT", row.outline, "TOPLEFT"); edge:SetPoint("BOTTOMLEFT", row.outline, "BOTTOMLEFT"); edge:SetWidth(1)
-            else edge:SetPoint("TOPRIGHT", row.outline, "TOPRIGHT"); edge:SetPoint("BOTTOMRIGHT", row.outline, "BOTTOMRIGHT"); edge:SetWidth(1) end
-            setTextureColor(edge, "outline"); row.outline.edges[edgeIndex] = edge
-        end
-        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetWidth(3); row.accent:SetPoint("TOPLEFT", row, "TOPLEFT"); row.accent:SetPoint("BOTTOMLEFT", row, "BOTTOMLEFT"); setTextureColor(row.accent, "accent")
+        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(1, 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
 
         row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", 12, 0)
         row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); setTextureColor(row.dragHighlight, "actionHover")
@@ -293,9 +352,10 @@ function ResultList:Create(parent, controller)
 
         row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -42, 0); row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
         row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -10); row.title:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.title:SetHeight(19); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
-        if row.title.SetFont and STANDARD_TEXT_FONT then row.title:SetFont(STANDARD_TEXT_FONT, 15, "") end
+        if theme then theme:SetFont(row.title, "title"); theme:SetFont(row.category, "meta") end
         row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -3); row.subtext:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.subtext:SetHeight(14); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
         row.description = row.subtext
+        if theme then theme:SetFont(row.subtext, "body") end
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
 
         row.secondary = CreateFrame("Button", nil, row); row.secondary:SetSize(24, 24); row.secondary:SetPoint("RIGHT", row, "RIGHT", -9, 0); row.secondary:RegisterForClicks("LeftButtonUp")
@@ -342,6 +402,7 @@ function ResultList:Clear()
 end
 
 function ResultList:SetItems(items, session, generation, offset)
+    hideTooltip()
     local selectedRow = self.rows[self.selected or 1]
     local selectedID = selectedRow and selectedRow.stableID
     self.items, self.session, self.generation = items or EMPTY_ITEMS, session, generation
@@ -380,6 +441,7 @@ end
 
 function ResultList:InvalidateRow(row)
     if not row then return false end
+    hideTooltip()
     local index = row.index
     clearRow(row)
     if index and self.items[index + self.offset] then self.items[index + self.offset] = false end

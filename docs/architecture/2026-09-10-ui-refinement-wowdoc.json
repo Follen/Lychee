@@ -1,0 +1,212 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetShadowOffset",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetShadowOffset",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "633: \t\t\tName = \"SetShadowOffset\",\n634: \t\t\tType = \"Function\",\n635: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n636: \n637: \t\t\tArguments =\n638: \t\t\t{\n639: \t\t\t\t{ Name = \"offsetX\", Type = \"number\", Nilable = false },\n640: \t\t\t\t{ Name = \"offsetY\", Type = \"number\", Nilable = false },\n641: \t\t\t},\n642: \t\t},",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 633,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "GetStringHeight",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "GetStringHeight",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "325: \t\t\tName = \"GetStringHeight\",\n326: \t\t\tType = \"Function\",\n327: \t\t\tSecretWhenAnchoringSecret = true,\n328: \n329: \t\t\tArguments =\n330: \t\t\t{\n331: \t\t\t},\n332: \n333: \t\t\tReturns =\n334: \t\t\t{\n335: \t\t\t\t{ Name = \"height\", Type = \"uiUnit\", Nilable = false },\n336: \t\t\t},\n337: \t\t},",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 325,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "322: \t\t\t},\n323: \t\t},\n324: \t\t{\n325: \t\t\tName = \"GetStringHeight\",\n326: \t\t\tType = \"Function\",\n327: \t\t\tSecretWhenAnchoringSecret = true,\n328: ",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 325,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetFont",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetFont",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "500: \t\t\tName = \"SetFont\",\n501: \t\t\tType = \"Function\",\n502: \t\t\tRequiresValidFontAsset = true,\n503: \t\t\tRequiresValidFontHeight = true,\n504: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n505: \n506: \t\t\tArguments =\n507: \t\t\t{\n508: \t\t\t\t{ Name = \"fontFile\", Type = \"FontAsset\", Nilable = false },\n509: \t\t\t\t{ Name = \"fontHeight\", Type = \"uiFontHeight\", Nilable = false },\n510: \t\t\t\t{ Name = \"flags\", Type = \"TBFFlags\", Nilable = true },\n511: \t\t\t},\n512: \n513: \t\t\tReturns =\n514: \t\t\t{\n515: \t\t\t\t{ Name = \"success\", Type = \"bool\", Nilable = false },\n516: \t\t\t},\n517: \t\t},",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 500,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetPoint",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetPoint",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 135,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetParent",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetParent",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "592: \t\t\tName = \"SetParent\",\n593: \t\t\tType = \"Function\",\n594: \t\t\tIsProtectedFunction = true,\n595: \t\t\tCheckAllowChangeParent = true,\n596: \t\t\tSecretArguments = \"NotAllowed\",\n597: \n598: \t\t\tArguments =\n599: \t\t\t{\n600: \t\t\t\t{ Name = \"parent\", Type = \"SimpleFrame\", Nilable = true },\n601: \t\t\t},\n602: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 592,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetClampedToScreen",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetClampedToScreen",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1206: \t\t\tName = \"SetClampedToScreen\",\n1207: \t\t\tType = \"Function\",\n1208: \t\t\tIsProtectedFunction = true,\n1209: \t\t\tSecretArguments = \"NotAllowed\",\n1210: \n1211: \t\t\tArguments =\n1212: \t\t\t{\n1213: \t\t\t\t{ Name = \"clampedToScreen\", Type = \"bool\", Nilable = false },\n1214: \t\t\t},\n1215: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1206,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "1203: \t\t\t},\n1204: \t\t},\n1205: \t\t{\n1206: \t\t\tName = \"SetClampedToScreen\",\n1207: \t\t\tType = \"Function\",\n1208: \t\t\tIsProtectedFunction = true,\n1209: \t\t\tSecretArguments = \"NotAllowed\",",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1206,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetFrameStrata",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetFrameStrata",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1292: \t\t\tName = \"SetFrameStrata\",\n1293: \t\t\tType = \"Function\",\n1294: \t\t\tIsProtectedFunction = true,\n1295: \t\t\tSecretArguments = \"NotAllowed\",\n1296: \n1297: \t\t\tArguments =\n1298: \t\t\t{\n1299: \t\t\t\t{ Name = \"strata\", Type = \"FrameStrata\", Nilable = false },\n1300: \t\t\t},\n1301: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1292,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "1289: \t\t\t},\n1290: \t\t},\n1291: \t\t{\n1292: \t\t\tName = \"SetFrameStrata\",\n1293: \t\t\tType = \"Function\",\n1294: \t\t\tIsProtectedFunction = true,\n1295: \t\t\tSecretArguments = \"NotAllowed\",",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1292,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

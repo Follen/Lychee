@@ -20,6 +20,15 @@ local function object(kind, parent)
     local function setter(name)
         value.setterCalls[name] = (value.setterCalls[name] or 0) + 1
     end
+    function value:ClearAllPoints() self.points = {} end
+    function value:SetParent(parentValue) self.parent = parentValue end
+    function value:SetFrameStrata(strata) self.strata = strata end
+    function value:SetClampedToScreen(enabled) self.clamped = enabled end
+    function value:EnableMouse(enabled) self.mouseEnabled = enabled end
+    function value:GetStringHeight() return self.measuredHeight or 15 end
+    function value:SetFont(path, size, flags) self.font = {path, size, flags}; return true end
+    function value:SetShadowOffset(x, y) self.shadow = {x, y} end
+    function value:SetVertexColor() end
     function value:SetAllPoints() self.allPoints = true end
     function value:SetPoint(...) self.points[#self.points + 1] = { ... } end
     function value:SetSize(width, height) self.width, self.height = width, height end
@@ -74,6 +83,7 @@ local function setterFingerprint(root)
     return table.concat(parts, "|")
 end
 
+STANDARD_TEXT_FONT = "Fonts/test.ttf"
 UIParent = object("UIParent")
 function GetLocale() return "zhCN" end
 function CreateFrame(kind, _, parent) return object(kind, parent or UIParent) end
@@ -163,14 +173,14 @@ assert(rowOne.secondaryAction.id == "detail" and rowOne.secondary:IsShown(), "fi
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
 rowTwo.scripts.OnEnter(rowTwo)
 assert(list.selected == 2 and not rowOne._selected and rowTwo._selected, "hover moves the single current selection")
-assert(not rowOne.outline:IsShown() and rowTwo.outline:IsShown(), "only the hovered current row has an outline")
+assert(not rowOne.accent:IsShown() and rowTwo.accent:IsShown(), "only the hovered current row has an accent")
 rowTwo.scripts.OnLeave(rowTwo)
 list:Move(-1)
 assert(list.selected == 1 and rowOne._selected and not rowTwo._selected, "keyboard movement uses the same selection")
 
 rowOne.scripts.OnEnter(rowOne)
 list:Move(1)
-assert(not rowOne.outline:IsShown() and rowTwo.outline:IsShown(), "keyboard navigation leaves no second hover highlight")
+assert(not rowOne.accent:IsShown() and rowTwo.accent:IsShown(), "keyboard navigation leaves no second hover highlight")
 local unchangedRowOne = setterFingerprint(rowOne)
 local unchangedRowTwo = setterFingerprint(rowTwo)
 list:SetItems(items, 12, 24)
@@ -198,10 +208,25 @@ end
 assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
 
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-assert(GameTooltip.shown and GameTooltip.text == longText, "hover keeps the item title")
-assert(#GameTooltip.lines >= 4, "tooltip separates metadata, spacing, description and action hint")
-assert(GameTooltip.detail:find("自定义类型", 1, true) and not GameTooltip.detail:find("匹配", 1, true), "tooltip keeps useful type without internal search diagnostics")
-assert(GameTooltip.detail:find("施放", 1, true) and not GameTooltip.detail:find("不可用", 1, true), "tooltip shows the primary action without dumping disabled actions")
+local tip = Lychee.UI.ResultList.tooltip
+assert(tip:IsShown() and tip.labels[1]:GetText() == longText, "hover keeps the item title")
+assert(tip.labels[2]:GetText() == "自定义类型", "tooltip keeps useful type without internal search diagnostics")
+assert(tip.labels[4]:GetText():find("施放",1,true), "tooltip shows the declared primary action")
+assert(not GameTooltip.shown and GameTooltip.text == nil, "result tooltip never changes the global tooltip")
+assert(tip.clamped and not tip.mouseEnabled, "tooltip stays on screen without intercepting clicks")
+assert(tip.labels[1].font[2] > tip.labels[2].font[2] and tip.labels[1].shadow[1] == 0, "owned fonts preserve hierarchy without inherited shadows")
+frameCount = #created
+rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
+assert(#created == frameCount and Lychee.UI.ResultList.tooltip == tip, "repeat hover reuses all tooltip objects")
+tip.labels[3].measuredHeight = 60
+rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
+local expandedHeight = tip:GetHeight()
+assert(tip.labels[4]._y >= tip.labels[3]._y + 60, "wrapped description cannot overlap actions")
+tip.labels[3].measuredHeight = 15
+rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
+assert(tip:GetHeight() < expandedHeight, "tooltip shrinks again when measured content shortens")
+rowOne.primaryTarget.scripts.OnLeave(rowOne.primaryTarget)
+assert(not tip:IsShown() and tip._owner == nil, "leave hides tooltip and releases owner")
 rowOne.secondary.scripts.OnClick(rowOne.secondary)
 assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)
@@ -209,7 +234,10 @@ assert(draggedRow == rowOne, "drag area delegates its owning row")
 rowOne.primaryTarget.scripts.OnClick(rowOne.primaryTarget)
 assert(activatedRow == rowOne and list.selected == 1, "row click selects and delegates activation")
 
+rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
+assert(tip:IsShown(), "stale tooltip fixture starts visible")
 list:SetItems({ items[2] }, 14, 26)
+assert(not tip:IsShown(), "result replacement hides stale tooltip")
 assert(#created == frameCount and list.rows[1] == rowOne and rowOne.primaryTarget == primaryTarget, "shorter update reuses row and primary target")
 assert(not rowTwo:IsShown() and rowTwo.item == nil and rowTwo.session == nil and rowTwo.generation == nil, "shorter update clears stale row bindings")
 assert(rowTwo.title:GetText() == "" and rowTwo.icon.texture == nil and not rowTwo.dragger:IsShown(), "shorter update clears stale visuals and drag")
@@ -218,7 +246,7 @@ assert(rowTwo.primaryAction == nil and rowTwo.secondaryAction == nil and rowTwo.
 assert(list:InvalidateRow(rowOne), "visible row can be invalidated")
 assert(not rowOne:IsShown() and rowOne.item == nil and rowOne.extensionID == nil, "invalidate clears identity and visibility")
 assert(rowOne.title:GetText() == "" and rowOne.subtext:GetText() == "" and rowOne.category:GetText() == "", "invalidate clears all text")
-assert(not rowOne.accent:IsShown() and not rowOne.outline:IsShown(), "invalidate clears selected visuals")
+assert(not rowOne.accent:IsShown(), "invalidate clears selected visuals")
 assert(list:GetSelected() == nil, "invalidated final row leaves no selected item")
 
 list:SetItems(items, 31, 41)

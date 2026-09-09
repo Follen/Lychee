@@ -54,7 +54,7 @@ function Input:Create(parent, focusController)
     if edit.SetTextInsets then edit:SetTextInsets(40, 20, 0, 0) end
     edit:SetAllPoints(container)
     if edit.SetFontObject then edit:SetFontObject("GameFontHighlight") end
-    if edit.SetFont and STANDARD_TEXT_FONT then edit:SetFont(STANDARD_TEXT_FONT, 16, "") end
+    if theme then theme:SetFont(edit, "input") end
 
     local searchIcon = container:CreateTexture(nil, "ARTWORK")
     searchIcon:SetSize(16, 16)
@@ -66,7 +66,7 @@ function Input:Create(parent, focusController)
     placeholder:SetPoint("RIGHT", container, "RIGHT", -20, 0)
     placeholder:SetJustifyH("LEFT")
     placeholder:SetText(localizedPlaceholder())
-    if placeholder.SetFont and STANDARD_TEXT_FONT then placeholder:SetFont(STANDARD_TEXT_FONT, 16, "") end
+    if theme then theme:SetFont(placeholder, "input") end
 
     local hint = container:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     hint:Hide()

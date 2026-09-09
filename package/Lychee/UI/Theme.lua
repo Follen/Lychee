@@ -12,14 +12,14 @@ Theme.Colors = {
     content = { 0.055, 0.055, 0.063, 1 },
     footer = { 0.055, 0.055, 0.063, 1 },
     surface = { 0.055, 0.055, 0.063, 1 },
-    surfaceHover = { 0.145, 0.075, 0.086, 1 },
-    surfaceSelected = { 0.205, 0.082, 0.098, 1 },
+    surfaceHover = { 0.090, 0.080, 0.088, 1 },
+    surfaceSelected = { 0.125, 0.100, 0.112, 1 },
     input = { 0.055, 0.055, 0.063, 1 },
     inputHover = { 0.055, 0.055, 0.063, 1 },
     inputFocus = { 0.055, 0.055, 0.063, 1 },
     action = { 0.075, 0.078, 0.088, 1 },
     actionHover = { 0.175, 0.115, 0.125, 1 },
-    border = { 0.165, 0.170, 0.188, 1 },
+    border = { 0.110, 0.110, 0.125, 1 },
     borderStrong = { 0.285, 0.290, 0.315, 1 },
     accent = { 0.835, 0.235, 0.285, 1 },
     accentMuted = { 0.440, 0.155, 0.185, 1 },
@@ -30,15 +30,29 @@ Theme.Colors = {
     success = { 0.310, 0.690, 0.455, 1 },
     warning = { 0.880, 0.645, 0.250, 1 },
     danger = { 0.895, 0.300, 0.315, 1 },
+    tooltip = { 0.065, 0.065, 0.075, 1 },
 }
+
+Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11 }
+
+-- Style our own regions once; never mutate shared GameFont/tooltip objects.
+function Theme:SetFont(region, role)
+    local size = self.FontSizes[role] or self.FontSizes.body
+    if not region or not region.SetFont or not STANDARD_TEXT_FONT then return false end
+    if region._lycheeFontSize == size then return false end
+    if region:SetFont(STANDARD_TEXT_FONT, size, "") == false then return false end
+    if region.SetShadowOffset then region:SetShadowOffset(0, 0) end
+    region._lycheeFontSize = size
+    return true
+end
 
 Theme.Metrics = {
     paletteWidth = 640,
     paletteHeight = 220,
-    headerHeight = 64,
-    footerHeight = 32,
+    headerHeight = 56,
+    footerHeight = 28,
     contentPadding = 16,
-    inputHeight = 48,
+    inputHeight = 40,
     resultColumns = 1,
     resultTiles = 8,
     resultTileWidth = 608,
