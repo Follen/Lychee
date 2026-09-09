@@ -162,8 +162,14 @@ GameTooltip = { SetOwner = function() end, SetText = function(self, value) self.
     Show = function() tooltipShows = tooltipShows + 1 end, Hide = function() end }
 palette.close.scripts.OnEnter(palette.close)
 assertEq(tooltipShows, 0, "Esc never shows a tooltip")
-assertEq(palette.closeComponent.label._lycheeTextToken, Lychee.UI.Theme.Colors.accent, "Esc hover stays red")
+assertEq(palette.closeComponent.label._lycheeTextToken, Lychee.UI.Theme.Colors.accentHover, "Esc hover brightens red text")
+assertEq(palette.closeComponent.bg._lycheeColorToken[4], 0, "Esc hover has no background")
+palette.close.scripts.OnMouseDown(palette.close)
+assertEq(palette.closeComponent.bg._lycheeColorToken[4], 0, "Esc pressed has no background")
+palette.close.scripts.OnMouseUp(palette.close)
 palette.close.scripts.OnLeave(palette.close)
+assertEq(palette.closeComponent.label._lycheeTextToken, Lychee.UI.Theme.Colors.accent, "Esc leave restores red text")
+assertEq(palette.closeComponent.bg._lycheeColorToken[4], 0, "Esc normal has no background")
 local logoSetCalls = palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0
 assert(palette.brandComponent:SetTexture("Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga") == false, "brand texture setter is guarded")
 assert((palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0) == logoSetCalls, "guarded logo setter does not repaint")

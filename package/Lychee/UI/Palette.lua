@@ -427,8 +427,8 @@ function Palette:Create()
     self.closeComponent = components:CreateButton(self.header, {
         width = 38, height = 26, point = "RIGHT", relativePoint = "RIGHT", x = -16,
         text = "Esc",
-        colors = { normal = "header", hover = "surfaceHover", pressed = "surfaceSelected" },
-        textColors = { normal = "accent", hover = "accent", pressed = "accent" },
+        colors = { normal = "transparent" },
+        textColors = { normal = "accent", hover = "accentHover", pressed = "accentHover" },
         onClick = function() self:Hide("close") end,
     })
     self.close = self.closeComponent.frame
