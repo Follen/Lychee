@@ -1,0 +1,3281 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EJ_HideNonInstancePanels",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2935: function EJ_HideNonInstancePanels()\n2936: \tEJ_HideSuggestPanel();\n2937: \tEJ_HideLootJournalPanel();\n2938: \tEJ_HideTutorialsPanel();\n2939: \tEncounterJournal.MonthlyActivitiesFrame:Hide();\n2940: end",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 2935,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "EncounterJournal_DisplayInstance",
+        "target": "EJ_HideNonInstancePanels",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 1240
+      },
+      {
+        "source": "EncounterJournal_OpenJournal",
+        "target": "EJ_HideNonInstancePanels",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2739
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJ_HideNonInstancePanels",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2831
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJ_HideNonInstancePanels",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2837
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJ_HideNonInstancePanels",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2847
+      },
+      {
+        "source": "EJ_HideNonInstancePanels",
+        "target": "EJ_HideSuggestPanel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2936
+      },
+      {
+        "source": "EJ_HideNonInstancePanels",
+        "target": "EJ_HideLootJournalPanel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2937
+      },
+      {
+        "source": "EJ_HideNonInstancePanels",
+        "target": "EJ_HideTutorialsPanel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2938
+      },
+      {
+        "source": "EJ_HideNonInstancePanels",
+        "target": "EncounterJournal.MonthlyActivitiesFrame:Hide",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2939
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_Select",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2356: function EJ_ContentTab_Select(id)\n2357: \tPanelTemplates_SetTab(EncounterJournal, id);\n2358: \tEncounterJournal.selectedTab = id;\n2359: \n2360: \tlocal instanceSelect = EncounterJournal.instanceSelect;\n2361: \n2362: \t-- Setup background\n2363: \tlocal tierData = GetEJTierData(EJ_GetCurrentTier());\n2364: \tinstanceSelect.bg:SetAtlas(tierData.backgroundAtlas, true);\n2365: \tEncounterJournal.encounter:Hide();\n2366: \tinstanceSelect:Show();\n2367: \n2368: \t-- \tif ( not EncounterJournal.dungeonsTab.isDisabled or not EncounterJournal.raidsTab.isDisabled ) then\n2369: \t-- \t\tEncounterJournal_DisableTierDropdown(true);\n2370: \t-- \telse\n2371: \t-- \t\tEncounterJournal_EnableTierDropdown();\n2372: \t-- \tend\n2373: \tlocal isDungeon = id == EncounterJournal.dungeonsTab:GetID();\n2374: \tlocal isRaid = id == EncounterJournal.raidsTab:GetID();\n2375: \tif ( isDungeon or isRaid ) then\n2376: \t\tEncounterJournal_ListInstances();\n2377: \t\t--EncounterJournal_EnableTierDropdown();\n2378: \tend\n2379: \n2380: \t-- Update title bar with the current tab name\n2381: \tEJInstanceSelect_UpdateTitle(id);\n2382: \n2383: \tNavBar_Reset(EncounterJournal.navBar);\n2384: \n2385: \tlocal showNavBar = (id == EncounterJournal.dungeonsTab:GetID() or id == EncounterJournal.raidsTab:GetID());\n2386: \tEncounterJournal.navBar:SetShown(showNavBar);\n2387: \n2388: \tlocal showSearchBox = (id == EncounterJournal.dungeonsTab:GetID() or id == EncounterJournal.raidsTab:GetID());\n2389: \tEncounterJournal.searchBox:SetShown(showSearchBox);\n2390: \n2391: \tlocal showInstanceSelect = (id == EncounterJournal.dungeonsTab:GetID() or id == EncounterJournal.raidsTab:GetID());\n2392: \tinstanceSelect.ScrollBox:SetShown(showInstanceSelect);\n2393: \tinstanceSelect.ScrollBar:SetShown(showInstanceSelect);\n2394: \n2395: \tPlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);\n2396: \n2397:     EventRegistry:TriggerEvent(\"EncounterJournal.TabSet\", EncounterJournal, id);\n2398: end",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2356,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_Select",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2795: function EJ_ContentTab_Select(id)\n2796: \tPanelTemplates_SetTab(EncounterJournal, id);\n2797: \tEncounterJournal.selectedTab = id;\n2798: \n2799: \tlocal instanceSelect = EncounterJournal.instanceSelect;\n2800: \n2801: \tEncounterJournal.encounter:Hide();\n2802: \tinstanceSelect:Show();\n2803: \n2804: \tlocal showMonthlyActivities = id == EncounterJournal.MonthlyActivitiesTab:GetID();\n2805: \tlocal showSuggestedContent = id == EncounterJournal.suggestTab:GetID();\n2806: \tlocal showRaid = id == EncounterJournal.raidsTab:GetID();\n2807: \tlocal showDungeons = id == EncounterJournal.dungeonsTab:GetID();\n2808: \tlocal showLoot = id == EncounterJournal.LootJournalTab:GetID();\n2809: \tlocal showJourneys = id == EncounterJournal.JourneysTab:GetID();\n2810: \tlocal showTutorials = id == EncounterJournal.TutorialsTab:GetID();\n2811: \n2812: \tlocal tierData;\n2813: \tif showMonthlyActivities then\n2814: \t\tEJ_HideSuggestPanel();\n2815: \t\tEJ_HideLootJournalPanel();\n2816: \t\tEJ_HideTutorialsPanel();\n2817: \t\tEncounterJournal_HideGreatVaultButton();\n2818: \telseif showSuggestedContent then\n2819: \t\tEJ_HideLootJournalPanel();\n2820: \t\tEJ_HideTutorialsPanel();\n2821: \t\tEncounterJournal.suggestFrame:Show();\n2822: \t\tEncounterJournal_DisableExpansionDropdown();\n2823: \t\tEncounterJournal_HideGreatVaultButton();\n2824: \telseif showLoot then\n2825: \t\tEJ_HideSuggestPanel();\n2826: \t\tEJ_HideTutorialsPanel();\n2827: \t\tEncounterJournal_CheckAndDisplayLootJournalViewDropdown(EncounterJournal);\n2828: \t\tEJ_ShowLootJournalPanel();\n2829: \t\tEncounterJournal_HideGreatVaultButton();\n2830: \telseif showDungeons or showRaid then\n2831: \t\tEJ_HideNonInstancePanels();\n2832: \t\tEncounterJournal_ListInstances();\n2833: \t\tEncounterJournal_EnableExpansionDropdown();\n2834: \t\tEncounterJournal_HideGreatVaultButton();\n2835: \t\ttierData = GetEJTierData(EJ_GetCurrentTier());\n2836: \telseif showJourneys then\n2837: \t\tEJ_HideNonInstancePanels();\n2838: \t\tEncounterJournal_EnableExpansionDropdown(-40, -30, EncounterJournal);\n2839: \t\tif EJ_GetCurrentTier() < EJ_JOURNEYS_MIN_TIER then\n2840: \t\t\tC_EncounterJournal.InitalizeSelectedTier();\n2841: \t\t\tEncounterJournal_ExpansionDropdown_Select(EncounterJournal, EJ_GetCurrentTier());\n2842: \t\telse\n2843: \t\t\tEncounterJournal_SetupExpansionDropdown(EncounterJournal);\n2844: \t\tend\n2845: \t\tEncounterJournal_ShowGreatVaultButton();\n2846: \telseif showTutorials then\n2847: \t\tEJ_HideNonInstancePanels();\n2848: \t\tEncounterJournal_HideGreatVaultButton();\n2849: \t\tEJ_ShowTutorialPanel();\n2850: \tend\n2851: \n2852: \t-- Update title bar with the current tab name\n2853: \tEJInstanceSelect_UpdateTitle(id);\n2854: \n2855: \tNavBar_Reset(EncounterJournal.navBar);\n2856: \n2857: \tlocal showNavBar = (id == EncounterJournal.dungeonsTab:GetID() or id == EncounterJournal.raidsTab:GetID() or id == EncounterJournal.JourneysTab:GetID());\n2858: \tEncounterJournal.navBar:SetShown(showNavBar);\n2859: \n2860: \tlocal showSearchBox = (id == EncounterJournal.dungeonsTab:GetID() or id == EncounterJournal.raidsTab:GetID() or id == EncounterJournal.LootJournalTab:GetID());\n2861: \tEncounterJournal.searchBox:SetShown(showSearchBox);\n2862: \n2863: \tinstanceSelect.ExpansionDropdown:SetShown(showDungeons or showRaid or showLoot or showJourneys);\n2864: \n2865: \t-- Setup background\n2866: \tif tierData then\n2867: \t\tinstanceSelect.bg:SetAtlas(tierData.backgroundAtlas, true);\n2868: \t\tinstanceSelect.bg:Show();\n2869: \t\tinstanceSelect.evergreenBg:Hide();\n2870: \telse\n2871: \t\tinstanceSelect.bg:Hide();\n2872: \t\tinstanceSelect.evergreenBg:Show();\n2873: \tend\n2874: ",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 2795,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "2397:     EventRegistry:TriggerEvent(\"EncounterJournal.TabSet\", EncounterJournal, id);\n2398: end\n2399: \n2400: function EJ_ContentTab_SelectAppropriateInstanceTab(instanceID)\n2401: \tlocal isRaid = select(11, EJ_GetInstanceInfo(instanceID));\n2402: \tlocal desiredTabID = isRaid and EncounterJournal.raidsTab:GetID() or EncounterJournal.dungeonsTab:GetID();\n2403: \tEJ_ContentTab_Select(desiredTabID);",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2400,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "ShowMajorFactionRenown",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Blizzard_EncounterJournal_Bootstrap.lua",
+        "line": 43
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 364
+      },
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 559
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 827
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 830
+      },
+      {
+        "source": "EncounterJournal_OpenJournal",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2305
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2353
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "PanelTemplates_SetTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2357
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "GetEJTierData",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2363
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJ_GetCurrentTier",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2363
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect.bg:SetAtlas",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2364
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.encounter:Hide",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2365
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect:Show",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2366
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2373
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2374
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal_ListInstances",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2376
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJInstanceSelect_UpdateTitle",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2381
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "NavBar_Reset",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2383
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2385
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2385
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.navBar:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2386
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2388
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2388
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.searchBox:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2389
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2391
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2391
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect.ScrollBox:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2392
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect.ScrollBar:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2393
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "PlaySound",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2395
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EventRegistry:TriggerEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2397
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2401
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_GetInstanceInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2401
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2403
+      },
+      {
+        "source": "AdventureJournal_Reward_OnMouseDown",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2514
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 445
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 447
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 489
+      },
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 760
+      },
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 763
+      },
+      {
+        "source": "EncounterJournal_OnShow",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 827
+      },
+      {
+        "source": "EncounterJournal_OnShow",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 830
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 1109
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 1112
+      },
+      {
+        "source": "EncounterJournal_OpenToPowerID",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2714
+      },
+      {
+        "source": "EncounterJournal_OpenToJourney",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2723
+      },
+      {
+        "source": "EncounterJournal_OpenToTieredEntrance",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2731
+      },
+      {
+        "source": "EncounterJournal_OpenJournal",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2743
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2792
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2400: function EJ_ContentTab_SelectAppropriateInstanceTab(instanceID)\n2401: \tlocal isRaid = select(11, EJ_GetInstanceInfo(instanceID));\n2402: \tlocal desiredTabID = isRaid and EncounterJournal.raidsTab:GetID() or EncounterJournal.dungeonsTab:GetID();\n2403: \tEJ_ContentTab_Select(desiredTabID);\n2404: end",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2400,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2893: function EJ_ContentTab_SelectAppropriateInstanceTab(instanceID)\n2894: \tlocal isRaid = select(12, EJ_GetInstanceInfo(instanceID));\n2895: \tlocal desiredTabID = isRaid and EncounterJournal.raidsTab:GetID() or EncounterJournal.dungeonsTab:GetID();\n2896: \tEJ_ContentTab_Select(desiredTabID);\n2897: end",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 2893,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 559
+      },
+      {
+        "source": "EncounterJournal_OpenJournal",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2305
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2401
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_GetInstanceInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2401
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2403
+      },
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 763
+      },
+      {
+        "source": "EncounterJournal_OpenJournal",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2743
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2894
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_GetInstanceInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2894
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2895
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2895
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2896
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EncounterJournal_OnLoad",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "235: function EncounterJournal_OnLoad(self)\n236: \tself:SetTitle(ENCOUNTER_JOURNAL);\n237: \tself:SetPortraitToAsset(\"Interface\\\\EncounterJournal\\\\UI-EJ-PortraitIcon\");\n238: \tself:RegisterEvent(\"EJ_LOOT_DATA_RECIEVED\");\n239: \tself:RegisterEvent(\"EJ_DIFFICULTY_UPDATE\");\n240: \tself:RegisterEvent(\"UNIT_PORTRAIT_UPDATE\");\n241: \tself:RegisterEvent(\"PORTRAITS_UPDATED\");\n242: \tself:RegisterEvent(\"SEARCH_DB_LOADED\");\n243: \tself:RegisterEvent(\"UI_MODEL_SCENE_INFO_UPDATED\");\n244: \n245: \tself.encounter.freeHeaders = {};\n246: \tself.encounter.usedHeaders = {};\n247: \n248: \tself.encounter.overviewFrame = self.encounter.info.overviewScroll.child;\n249: \tself.encounter.overviewFrame.isOverview = true;\n250: \tself.encounter.overviewFrame.overviews = {};\n251: \tself.encounter.info.overviewScroll.ScrollBar.scrollStep = 30;\n252: \n253: \tself.encounter.infoFrame = self.encounter.info.detailsScroll.child;\n254: \tself.encounter.info.detailsScroll.ScrollBar.scrollStep = 30;\n255: \n256: \tself.encounter.info.overviewTab:Click();\n257: \n258: \t-- Bosses\n259: \tdo\n260: \t\tlocal info = self.encounter.info;\n261: \t\tlocal scrollBox = info.BossesScrollBox;\n262: \t\tlocal scrollBar = info.BossesScrollBar;\n263: \n264: \t\tlocal view = CreateScrollBoxListLinearView();\n265: \t\tview:SetElementInitializer(\"EncounterBossButtonTemplate\", function(button, elementData)\n266: \t\t\tbutton:Init(elementData);\n267: \t\tend);\n268: \t\tview:SetPadding(10,0,0,20,15);\n269: \n270: \t\tScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view);\n271: \tend\n272: \n273: \t-- Items\n274: \tdo\n275: \t\tlocal view = CreateScrollBoxListLinearView();\n276: \t\tview:SetElementExtentCalculator(function(dataIndex, elementData)\n277: \t\t\tif elementData.header then\n278: \t\t\t\treturn BOSS_LOOT_BUTTON_HEIGHT;\n279: \t\t\telseif EncounterJournal.encounterID then\n280: \t\t\t\treturn BOSS_LOOT_BUTTON_HEIGHT;\n281: \t\t\telse\n282: \t\t\t\treturn INSTANCE_LOOT_BUTTON_HEIGHT;\n283: \t\t\tend\n284: \t\tend);\n285: \t\tview:SetElementFactory(function(factory, elementData)\n286: \t\t\tif elementData.header then\n287: \t\t\t\tfactory(\"EncounterItemDividerTemplate\", function(button, elementData)\n288: \t\t\t\t\tbutton:Init(elementData);\n289: \t\t\t\tend);\n290: \t\t\telse\n291: \t\t\t\tfactory(\"EncounterItemTemplate\", function(button, elementData)\n292: \t\t\t\t\tbutton:Init(elementData);\n293: \t\t\t\tend);\n294: \t\t\tend\n295: \t\tend);\n296: \n297: \t\tlocal lootContainer = self.encounter.info.LootContainer;\n298: \t\tlocal scrollBox = lootContainer.ScrollBox;\n299: \t\tlocal scrollBar = lootContainer.ScrollBar;\n300: \t\tScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view);\n301: \tend\n302: \n303: \t-- Search\n304: \tdo\n305: \t\tlocal view = CreateScrollBoxListLinearView();\n306: \t\tview:SetElementInitializer(\"EncounterSearchLGTemplate\", function(button, elementData)\n307: \t\t\tbutton:Init(elementData);\n308: \t\tend);\n309: \n310: \t\tlocal scrollBox = EncounterJournal.searchResults.ScrollBox;\n311: \t\tlocal scrollBar = EncounterJournal.searchResults.ScrollBar;\n312: \t\tScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view);\n313: \tend\n314: ",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 235,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EncounterJournal_OnLoad",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "305: function EncounterJournal_OnLoad(self)\n306: \tself:SetTitle(ADVENTURE_JOURNAL);\n307: \tself:SetPortraitToAsset([[Interface\\EncounterJournal\\UI-EJ-PortraitIcon]]);\n308: \tself:RegisterEvent(\"EJ_LOOT_DATA_RECIEVED\");\n309: \tself:RegisterEvent(\"EJ_DIFFICULTY_UPDATE\");\n310: \tself:RegisterEvent(\"UNIT_PORTRAIT_UPDATE\");\n311: \tself:RegisterEvent(\"PORTRAITS_UPDATED\");\n312: \tself:RegisterEvent(\"SEARCH_DB_LOADED\");\n313: \tself:RegisterEvent(\"UI_MODEL_SCENE_INFO_UPDATED\");\n314: \n315: \tself.encounter.freeHeaders = {};\n316: \tself.encounter.usedHeaders = {};\n317: \n318: \tself.encounter.overviewFrame = self.encounter.info.overviewScroll.child;\n319: \tself.encounter.overviewFrame.isOverview = true;\n320: \tself.encounter.overviewFrame.overviews = {};\n321: \tself.encounter.info.overviewScroll.ScrollBar.scrollStep = 30;\n322: \n323: \tself.encounter.infoFrame = self.encounter.info.detailsScroll.child;\n324: \tself.encounter.info.detailsScroll.ScrollBar.scrollStep = 30;\n325: \n326: \tself.encounter.info.overviewTab:Click();\n327: \n328: \t-- Bosses\n329: \tdo\n330: \t\tlocal info = self.encounter.info;\n331: \t\tlocal scrollBox = info.BossesScrollBox;\n332: \t\tlocal scrollBar = info.BossesScrollBar;\n333: \n334: \t\tlocal view = CreateScrollBoxListLinearView();\n335: \t\tview:SetElementInitializer(\"EncounterBossButtonTemplate\", function(button, elementData)\n336: \t\t\tbutton:Init(elementData);\n337: \t\tend);\n338: \t\tview:SetPadding(10,0,0,20,15);\n339: \n340: \t\tScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view);\n341: \tend\n342: \n343: \t-- Items\n344: \tdo\n345: \t\tlocal view = CreateScrollBoxListLinearView();\n346: \t\tview:SetElementExtentCalculator(function(dataIndex, elementData)\n347: \t\t\tif elementData.header then\n348: \t\t\t\treturn BOSS_LOOT_BUTTON_HEIGHT;\n349: \t\t\telseif EncounterJournal.encounterID then\n350: \t\t\t\treturn BOSS_LOOT_BUTTON_HEIGHT;\n351: \t\t\telse\n352: \t\t\t\treturn INSTANCE_LOOT_BUTTON_HEIGHT;\n353: \t\t\tend\n354: \t\tend);\n355: \t\tview:SetElementFactory(function(factory, elementData)\n356: \t\t\tif elementData.header then\n357: \t\t\t\tfactory(\"EncounterItemDividerTemplate\", function(button, elementData)\n358: \t\t\t\t\tbutton:Init(elementData);\n359: \t\t\t\tend);\n360: \t\t\telse\n361: \t\t\t\tfactory(\"EncounterItemTemplate\", function(button, elementData)\n362: \t\t\t\t\tbutton:Init(elementData);\n363: \t\t\t\tend);\n364: \t\t\tend\n365: \t\tend);\n366: \n367: \t\tlocal lootContainer = self.encounter.info.LootContainer;\n368: \t\tlocal scrollBox = lootContainer.ScrollBox;\n369: \t\tlocal scrollBar = lootContainer.ScrollBar;\n370: \t\tScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view);\n371: \tend\n372: \n373: \t-- Search\n374: \tdo\n375: \t\tlocal view = CreateScrollBoxListLinearView();\n376: \t\tview:SetElementInitializer(\"EncounterSearchLGTemplate\", function(button, elementData)\n377: \t\t\tbutton:Init(elementData);\n378: \t\tend);\n379: \n380: \t\tlocal scrollBox = EncounterJournal.searchResults.ScrollBox;\n381: \t\tlocal scrollBar = EncounterJournal.searchResults.ScrollBar;\n382: \t\tScrollUtil.InitScrollBoxListWithScrollBar(scrollBox, scrollBar, view);\n383: \tend\n384: ",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 305,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_LOOT_DATA_RECIEVED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 238
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_DIFFICULTY_UPDATE",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 239
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "UNIT_PORTRAIT_UPDATE",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 240
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "PORTRAITS_UPDATED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 241
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "SEARCH_DB_LOADED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 242
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "UI_MODEL_SCENE_INFO_UPDATED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 243
+      },
+      {
+        "target": "EncounterJournal_OnLoad",
+        "kind": "xml-function",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml",
+        "line": 1959
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_LOOT_DATA_RECIEVED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 308
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_DIFFICULTY_UPDATE",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 309
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "UNIT_PORTRAIT_UPDATE",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 310
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "PORTRAITS_UPDATED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 311
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "SEARCH_DB_LOADED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 312
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "UI_MODEL_SCENE_INFO_UPDATED",
+        "kind": "register-event",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 313
+      },
+      {
+        "target": "EncounterJournal_OnLoad",
+        "kind": "xml-function",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "line": 2355
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:SetTitle",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 236
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:SetPortraitToAsset",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 237
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:RegisterEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 238
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:RegisterEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 239
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:RegisterEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 240
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:RegisterEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 241
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:RegisterEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 242
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self:RegisterEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 243
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self.encounter.info.overviewTab:Click",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 256
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "CreateScrollBoxListLinearView",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 264
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "view:SetElementInitializer",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 265
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "button:Init",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 266
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "view:SetPadding",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 268
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "ScrollUtil.InitScrollBoxListWithScrollBar",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 270
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "CreateScrollBoxListLinearView",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 275
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "view:SetElementExtentCalculator",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 276
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "view:SetElementFactory",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 285
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "factory",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 287
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "button:Init",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 288
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "factory",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 291
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "button:Init",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 292
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "ScrollUtil.InitScrollBoxListWithScrollBar",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 300
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "CreateScrollBoxListLinearView",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 305
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "view:SetElementInitializer",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 306
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "button:Init",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 307
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "ScrollUtil.InitScrollBoxListWithScrollBar",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 312
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "CreateScrollBoxListGridView",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 319
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "view:SetElementInitializer",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 334
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "CreateDataProvider",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 336
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "ScrollUtil.InitScrollBoxWithScrollBar",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 338
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "CreateColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 345
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "loreScrollingFont:SetTextColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 345
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "loreScrollingFont:GetScrollBox",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 347
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "ScrollUtil.RegisterScrollBoxWithScrollBar",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 349
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EncounterJournal.searchBox:SetSearchResultsFrame",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 353
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EncounterJournal.searchBox:SetScript",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 354
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_OnClick",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "2348: \treturn GetEJTierDataTableID(GetExpansionForLevel(UnitLevel(\"player\")));\n2349: end\n2350: \n2351: function EJ_ContentTab_OnClick(self)\n2352: \tC_EncounterJournal.SetTab(self:GetID());\n2353: \tEJ_ContentTab_Select(self:GetID());\n2354: end",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2351,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_Select",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "2353: \tEJ_ContentTab_Select(self:GetID());\n2354: end\n2355: \n2356: function EJ_ContentTab_Select(id)\n2357: \tPanelTemplates_SetTab(EncounterJournal, id);\n2358: \tEncounterJournal.selectedTab = id;\n2359: ",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2356,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "2397:     EventRegistry:TriggerEvent(\"EncounterJournal.TabSet\", EncounterJournal, id);\n2398: end\n2399: \n2400: function EJ_ContentTab_SelectAppropriateInstanceTab(instanceID)\n2401: \tlocal isRaid = select(11, EJ_GetInstanceInfo(instanceID));\n2402: \tlocal desiredTabID = isRaid and EncounterJournal.raidsTab:GetID() or EncounterJournal.dungeonsTab:GetID();\n2403: \tEJ_ContentTab_Select(desiredTabID);",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2400,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "ShowMajorFactionRenown",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Blizzard_EncounterJournal_Bootstrap.lua",
+        "line": 43
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 364
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 387
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 391
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 396
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 397
+      },
+      {
+        "source": "ExpansionDropdown_SelectInternal",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 496
+      },
+      {
+        "source": "ExpansionDropdown_SelectInternal",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 497
+      },
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 559
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 826
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 827
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 829
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 830
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 860
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EJ_ContentTab_SetEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 862
+      },
+      {
+        "source": "EncounterJournal_OpenJournal",
+        "target": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2305
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "C_EncounterJournal.SetTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2352
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2352
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2353
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2353
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "PanelTemplates_SetTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2357
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "GetEJTierData",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2363
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJ_GetCurrentTier",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2363
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect.bg:SetAtlas",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2364
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.encounter:Hide",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2365
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect:Show",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2366
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2373
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2374
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal_ListInstances",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2376
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EJInstanceSelect_UpdateTitle",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2381
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "NavBar_Reset",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2383
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2385
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2385
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.navBar:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2386
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2388
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2388
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.searchBox:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2389
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2391
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2391
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect.ScrollBox:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2392
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "instanceSelect.ScrollBar:SetShown",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2393
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "PlaySound",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2395
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EventRegistry:TriggerEvent",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2397
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2401
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_GetInstanceInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2401
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2403
+      },
+      {
+        "source": "EJ_ContentTab_SetEnabled",
+        "target": "PanelTemplates_SetTabEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2407
+      },
+      {
+        "source": "EJ_ContentTab_SetEnabled",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2407
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2313: \t\t\t\t</Frames>\n2314: \t\t\t</Frame>\n2315: \n2316: \t\t\t<Button name=\"$parentJourneysTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"JOURNEYS_LABEL\" id=\"1\" parentKey=\"JourneysTab\">\n2317: \t\t\t\t<Anchors>\n2318: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n2319: \t\t\t\t</Anchors>",
+        "contentHash": "85d37967cd650f83bfc55f9a24c1ccb3854da724c7afffa6389b1f09cedba91b",
+        "line": 2316,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "Button",
+        "name": "$parentJourneysTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2313: \t\t\t\t</Frames>\n2314: \t\t\t</Frame>\n2315: \n2316: \t\t\t<Button name=\"$parentJourneysTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"JOURNEYS_LABEL\" id=\"1\" parentKey=\"JourneysTab\">\n2317: \t\t\t\t<Anchors>\n2318: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n2319: \t\t\t\t</Anchors>",
+        "contentHash": "85d37967cd650f83bfc55f9a24c1ccb3854da724c7afffa6389b1f09cedba91b",
+        "line": 2316,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "$parentJourneysTab",
+        "target": "BottomEncounterTierTabTemplate",
+        "kind": "xml-inherits",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "line": 2316
+      },
+      {
+        "source": "ShowMajorFactionRenown",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Blizzard_EncounterJournal_Bootstrap.lua",
+        "line": 43
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 447
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 489
+      },
+      {
+        "source": "ExpansionDropdown_SelectInternal",
+        "target": "EncounterJournal_IsJourneysTabSelected",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 647
+      },
+      {
+        "source": "EncounterJournal_SetupExpansionDropdown",
+        "target": "EncounterJournal_IsJourneysTabSelected",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 686
+      },
+      {
+        "source": "EncounterJournal_ResetDisplay",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 760
+      },
+      {
+        "source": "EncounterJournal_IsJourneysTabSelected",
+        "target": "self.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 924
+      },
+      {
+        "source": "EncounterJournal_OpenToJourney",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2723
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2809
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2857
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3665
+      },
+      {
+        "source": "ReputationDetailViewRenownButtonMixin:OnClick",
+        "target": "EncounterJournal.JourneysTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ReputationFrame.lua",
+        "line": 782
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "mixin",
+        "name": "MonthlyActivitiesTabButtonMixin",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "283: \tEncounterJournalBossButton_UpdateDifficultyOverlay(self);\n284: end\n285: \n286: MonthlyActivitiesTabButtonMixin = CreateFromMixins(PanelTabButtonMixin);\n287: \n288: function MonthlyActivitiesTabButtonMixin:OnEnter()\n289: \tif not C_PlayerInfo.IsTravelersLogAvailable() then",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 286,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "285: \n286: MonthlyActivitiesTabButtonMixin = CreateFromMixins(PanelTabButtonMixin);\n287: \n288: function MonthlyActivitiesTabButtonMixin:OnEnter()\n289: \tif not C_PlayerInfo.IsTravelersLogAvailable() then\n290: \t\tGameTooltip:SetOwner(self, \"ANCHOR_RIGHT\");\n291: ",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 288,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2318: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n2319: \t\t\t\t</Anchors>\n2320: \t\t\t</Button>\n2321: \t\t\t<Button name=\"$parentMonthlyActivitiesTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"MONTHLY_ACTIVITIES_TAB\" id=\"2\" parentKey=\"MonthlyActivitiesTab\" mixin=\"MonthlyActivitiesTabButtonMixin\">\n2322: \t\t\t\t<Anchors>\n2323: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.JourneysTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2324: \t\t\t\t</Anchors>",
+        "contentHash": "85d37967cd650f83bfc55f9a24c1ccb3854da724c7afffa6389b1f09cedba91b",
+        "line": 2321,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "MonthlyActivitiesTabButtonMixin",
+        "target": "PanelTabButtonMixin",
+        "kind": "inherits",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 286
+      },
+      {
+        "source": "$parentMonthlyActivitiesTab",
+        "target": "BottomEncounterTierTabTemplate",
+        "kind": "xml-inherits",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "line": 2321
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "C_PlayerInfo.IsTravelersLogAvailable",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 289
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "GameTooltip:SetOwner",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 290
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "UnitFactionGroup",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 292
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "GameTooltip_AddErrorLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 294
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "MONTHLY_ACTIVITIES_UNAVAILABLE_TOOLTIP:format",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 294
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "AreMonthlyActivitiesRestricted",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 296
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "GameTooltip_AddBlankLineToTooltip",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 297
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "GameTooltip_AddErrorLine",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 298
+      },
+      {
+        "source": "MonthlyActivitiesTabButtonMixin:OnEnter",
+        "target": "GameTooltip:Show",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 301
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "self.MonthlyActivitiesTab:SetText",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 496
+      },
+      {
+        "source": "EncounterJournal_OnShow",
+        "target": "self.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 862
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplayTradingPostTab",
+        "target": "EncounterJournal.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 889
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplayTradingPostTab",
+        "target": "EncounterJournal.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 892
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2804
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3661
+      },
+      {
+        "source": "MonthlyActivitiesFrame_OpenFrame",
+        "target": "EncounterJournal.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_MonthlyActivities.lua",
+        "line": 1578
+      },
+      {
+        "source": "Class_PerksProgramActivitiesOpenWatcher:OnEncounterJournalTabOpened",
+        "target": "EncounterJournal.MonthlyActivitiesTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Tutorials/Blizzard_Tutorials_PerksProgram.lua",
+        "line": 360
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_OnClick",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2351: function EJ_ContentTab_OnClick(self)\n2352: \tC_EncounterJournal.SetTab(self:GetID());\n2353: \tEJ_ContentTab_Select(self:GetID());\n2354: end",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2351,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EJ_ContentTab_OnClick",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2790: function EJ_ContentTab_OnClick(self)\n2791: \tC_EncounterJournal.SetTab(self:GetID());\n2792: \tEJ_ContentTab_Select(self:GetID());\n2793: end",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 2790,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "C_EncounterJournal.SetTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2352
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2352
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2353
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2353
+      },
+      {
+        "source": "<top-level@Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml:2>",
+        "target": "EJ_ContentTab_OnClick",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml",
+        "line": 1185
+      },
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EJ_ContentTab_OnClick",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 457
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "C_EncounterJournal.SetTab",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2791
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2791
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "EJ_ContentTab_Select",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2792
+      },
+      {
+        "source": "EJ_ContentTab_OnClick",
+        "target": "self:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2792
+      },
+      {
+        "source": "<top-level@Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml:2>",
+        "target": "EJ_ContentTab_OnClick",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "line": 1328
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": null,
+    "suggestions": [
+      "use explore with a shorter symbol or path prefix",
+      "check source list for the selected product and ref"
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2343: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.raidsTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2344: \t\t\t\t</Anchors>\n2345: \t\t\t</Button>\n2346: \t\t\t<Button inherits=\"BottomEncounterTierTabTemplate\" text=\"EJ_TUTORIALS\" id=\"7\" parentKey=\"TutorialsTab\">\n2347: \t\t\t\t<Anchors>\n2348: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.LootJournalTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2349: \t\t\t\t</Anchors>",
+        "contentHash": "85d37967cd650f83bfc55f9a24c1ccb3854da724c7afffa6389b1f09cedba91b",
+        "line": 2346,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "Button",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2343: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.raidsTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2344: \t\t\t\t</Anchors>\n2345: \t\t\t</Button>\n2346: \t\t\t<Button inherits=\"BottomEncounterTierTabTemplate\" text=\"EJ_TUTORIALS\" id=\"7\" parentKey=\"TutorialsTab\">\n2347: \t\t\t\t<Anchors>\n2348: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.LootJournalTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2349: \t\t\t\t</Anchors>",
+        "contentHash": "85d37967cd650f83bfc55f9a24c1ccb3854da724c7afffa6389b1f09cedba91b",
+        "line": 2346,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_PlayerInfo",
+        "target": "C_PlayerInfo.IsTutorialsTabAvailable",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+        "line": 349
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.TutorialsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2810
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.TutorialsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3668
+      },
+      {
+        "source": "EJTutorialsFrame_OpenFrame",
+        "target": "EncounterJournal.TutorialsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3721
+      },
+      {
+        "source": "GameRulesUtil.EJShouldShowTutorials",
+        "target": "C_PlayerInfo.IsTutorialsTabAvailable",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_SharedXML/GameRulesUtil.lua",
+        "line": 131
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_AddOnProfiler.IsEnabled",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnProfilerDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "121: \t\t\tName = \"IsEnabled\",\n122: \t\t\tType = \"Function\",\n123: \t\t\tDocumentation = { \"AddOn profiler will be enabled for all users, but this will return false if it ever isn't\" },\n124: \n125: \t\t\tReturns =\n126: \t\t\t{\n127: \t\t\t\t{ Name = \"enabled\", Type = \"bool\", Nilable = false },\n128: \t\t\t},\n129: \t\t},",
+        "contentHash": "78532c1d1162a327e288522bc9bd130d4789157d463b83ad50b73273bb0ee112",
+        "line": 121,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "C_Club.IsEnabled",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClubDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "843: \t\t\tName = \"IsEnabled\",\n844: \t\t\tType = \"Function\",\n845: \t\t\tRequiresClubsInitialized = true,\n846: \n847: \t\t\tReturns =\n848: \t\t\t{\n849: \t\t\t\t{ Name = \"clubsEnabled\", Type = \"bool\", Nilable = false },\n850: \t\t\t},\n851: \t\t},",
+        "contentHash": "cf9f597689520d12fb87d7fb5db82dc2cf126aaa64856feb36916f99e67568a7",
+        "line": 843,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_ActionBar",
+        "target": "C_ActionBar.IsEnabledAutoCastPetAction",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ActionBarFrameDocumentation.lua",
+        "line": 716
+      },
+      {
+        "source": "C_AddOnProfiler",
+        "target": "C_AddOnProfiler.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnProfilerDocumentation.lua",
+        "line": 121
+      },
+      {
+        "source": "C_Club",
+        "target": "C_Club.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClubDocumentation.lua",
+        "line": 843
+      },
+      {
+        "source": "C_ClubFinder",
+        "target": "C_ClubFinder.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClubFinderDocumentation.lua",
+        "line": 283
+      },
+      {
+        "source": "C_CombatAudioAlert",
+        "target": "C_CombatAudioAlert.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/CombatAudioAlertDocumentation.lua",
+        "line": 112
+      },
+      {
+        "source": "C_ContentTracking",
+        "target": "C_ContentTracking.ContentTrackingIsEnabledUpdate",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContentTrackingDocumentation.lua",
+        "line": 298
+      },
+      {
+        "source": "C_Discord",
+        "target": "C_Discord.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/DiscordDocumentation.lua",
+        "line": 152
+      },
+      {
+        "source": "C_GamePad",
+        "target": "C_GamePad.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/GamePadDocumentation.lua",
+        "line": 213
+      },
+      {
+        "source": "C_PhotoSharing",
+        "target": "C_PhotoSharing.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PhotoSharingUIDocumentation.lua",
+        "line": 65
+      },
+      {
+        "source": "C_StorePublic",
+        "target": "C_StorePublic.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/StorePublicUIDocumentation.lua",
+        "line": 37
+      },
+      {
+        "source": "C_VoiceChat",
+        "target": "C_VoiceChat.IsEnabled",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/VoiceChatDocumentation.lua",
+        "line": 434
+      },
+      {
+        "source": "QuestTextContrast.IsEnabled",
+        "target": "GetQuestTextContrastValue",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AccessibilityTemplates/QuestTextContrast.lua",
+        "line": 8
+      },
+      {
+        "source": "AccountSaveFrameMixin:OnSaveButtonClicked",
+        "target": "self.SaveButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AccountSaveUI/Blizzard_AccountSaveUI.lua",
+        "line": 106
+      },
+      {
+        "source": "AccountStoreBaseCardMixin:OnLoad",
+        "target": "self.BuyButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AccountStore/Blizzard_AccountStoreCardTemplates.lua",
+        "line": 22
+      },
+      {
+        "source": "AchievementFrameAchievements_UpdateTrackedAchievements",
+        "target": "Kiosk.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 959
+      },
+      {
+        "source": "AchievementFrameAchievements_OnEvent",
+        "target": "Kiosk.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 967
+      },
+      {
+        "source": "ActionBarActionButtonMixin:UpdateFlash",
+        "target": "C_ActionBar.IsEnabledAutoCastPetAction",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+        "line": 1290
+      },
+      {
+        "source": "AddonListMixin:UpdatePerformance",
+        "target": "C_AddOnProfiler.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 747
+      },
+      {
+        "source": "AddonTooltip_Update",
+        "target": "C_AddOnProfiler.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.lua",
+        "line": 856
+      },
+      {
+        "source": "ArchaeologyFrame_OnMouseWheel",
+        "target": "self.currentFrame.prevPageButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ArchaeologyUI/Blizzard_ArchaeologyUI.lua",
+        "line": 248
+      },
+      {
+        "source": "ArchaeologyFrame_OnMouseWheel",
+        "target": "self.currentFrame.nextPageButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ArchaeologyUI/Blizzard_ArchaeologyUI.lua",
+        "line": 252
+      },
+      {
+        "source": "ArchaeologyFrame_OnMouseWheel",
+        "target": "self.currentFrame.prevPageButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ArchaeologyUI/Blizzard_ArchaeologyUI.lua",
+        "line": 258
+      },
+      {
+        "source": "ArchaeologyFrame_OnMouseWheel",
+        "target": "self.currentFrame.nextPageButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ArchaeologyUI/Blizzard_ArchaeologyUI.lua",
+        "line": 262
+      },
+      {
+        "source": "AuctionHouseStoreButtonMixin:OnMouseDown",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseWoWTokenFrame.lua",
+        "line": 414
+      },
+      {
+        "source": "AuctionHouseStoreButtonMixin:OnMouseUp",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseWoWTokenFrame.lua",
+        "line": 421
+      },
+      {
+        "source": "AuraContainerPrivateMixin:ShouldRegisterForDynamicEvents",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainer.lua",
+        "line": 158
+      },
+      {
+        "source": "ManagedAuraContainerSharedMixin:UpdateAllAuras",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_ManagedAuraContainer.lua",
+        "line": 48
+      },
+      {
+        "source": "ManagedAuraContainerPrivateMixin:ParseAllAuras",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_ManagedAuraContainer.lua",
+        "line": 507
+      },
+      {
+        "source": "AzeriteRespecButtonMixin:OnMouseEnter",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AzeriteRespecUI/Blizzard_AzeriteRespecUI.lua",
+        "line": 188
+      },
+      {
+        "source": "BNToastMixin:OnClick",
+        "target": "SocialUIControl.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BNet/Mainline/BNet.lua",
+        "line": 102
+      },
+      {
+        "source": "BuffFrameMixin:IsExpanded",
+        "target": "self.CollapseAndExpandButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 597
+      },
+      {
+        "source": "BuffFrameMixin:IsExpanded",
+        "target": "self.ConsolidatedBuffs:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 599
+      },
+      {
+        "source": "BuffFrameMixin:RefreshConsolidationFrameVisibility",
+        "target": "self.CollapseAndExpandButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 615
+      },
+      {
+        "source": "BuffFrameMixin:RefreshConsolidationFrameVisibility",
+        "target": "self.CollapseAndExpandButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 617
+      },
+      {
+        "source": "BuffFrameMixin:UpdateAuraButtons",
+        "target": "self.CollapseAndExpandButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 627
+      },
+      {
+        "source": "BuffFrameMixin:SyncToConsolidatedBuffs",
+        "target": "self.ConsolidatedBuffs:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 719
+      },
+      {
+        "source": "CollapseAndExpandButtonMixin:IsEnabled",
+        "target": "CVarCallbackRegistry:GetCVarValueBool",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 1150
+      },
+      {
+        "source": "CollapseAndExpandButtonMixin:IsEnabled",
+        "target": "CVarCallbackRegistry:GetCVarValueBool",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 1150
+      },
+      {
+        "source": "ConsolidatedBuffsMixin:IsEnabled",
+        "target": "CVarCallbackRegistry:GetCVarValueBool",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 1297
+      },
+      {
+        "source": "ConsolidatedBuffsMixin:ShouldShow",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+        "line": 1301
+      },
+      {
+        "source": "CalendarFrame_OnMouseWheel",
+        "target": "CalendarPrevMonthButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.lua",
+        "line": 1172
+      },
+      {
+        "source": "CalendarFrame_OnMouseWheel",
+        "target": "CalendarNextMonthButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.lua",
+        "line": 1176
+      },
+      {
+        "source": "CalendarFrame_OpenToGuildEventIndex",
+        "target": "Kiosk.IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.lua",
+        "line": 1811
+      },
+      {
+        "source": "RefundHeaderSortButtonMixin:OnEnter",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CatalogShopRefundFlow/Blizzard_CatalogShopRefundFlow_Elements.lua",
+        "line": 103
+      },
+      {
+        "source": "IsSelectableChannelButton",
+        "target": "channelButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Channels/ChannelList.lua",
+        "line": 299
+      },
+      {
+        "source": "CharacterCreateNavButtonMixin:UpdateText",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CharacterCreate/Blizzard_CharacterCreate.lua",
+        "line": 887
+      },
+      {
+        "source": "CharacterCreateSpecButtonMixin:SetSpec",
+        "target": "self:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CharacterCreate/Blizzard_CharacterCreate.lua",
+        "line": 1229
+      },
+      {
+        "source": "CharacterSelectNavBarMixin:TrySetUpStoreButton",
+        "target": "buttonSelf:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CharacterSelectNavBar/CharacterSelectNavBar.lua",
+        "line": 214
+      },
+      {
+        "source": "CharacterSelectNavBarMixin:UpdateButtonDividerState",
+        "target": "button:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CharacterSelectNavBar/CharacterSelectNavBar.lua",
+        "line": 335
+      },
+      {
+        "source": "CharacterSelectNavBarMixin:UpdateButtonDividerState",
+        "target": "self.MenuButton:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CharacterSelectNavBar/CharacterSelectNavBar.lua",
+        "line": 338
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": null,
+    "suggestions": [
+      "use explore with a shorter symbol or path prefix",
+      "check source list for the selected product and ref"
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "833: \tlocal tabInfo = {\n834: \t\t{ self.JourneysTab, GameRulesUtil.EJShouldShowJourneys },\n835: \t\t{ self.MonthlyActivitiesTab, GameRulesUtil.EJShouldShowTravelersLog },\n836: \t\t{ self.suggestTab, GameRulesUtil.EJShouldShowSuggestedContent },\n837: \t\t{ self.dungeonsTab, GameRulesUtil.EJShouldShowDungeons },\n838: \t\t{ self.raidsTab, GameRulesUtil.EJShouldShowRaids },\n839: \t\t{ self.LootJournalTab, GameRulesUtil.EJShouldShowItemSets },",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 836,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2323: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.JourneysTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2324: \t\t\t\t</Anchors>\n2325: \t\t\t</Button>\n2326: \t\t\t<Button name=\"$parentSuggestTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"AJ_SUGGESTED_CONTENT_TAB\" id=\"3\" parentKey=\"suggestTab\">\n2327: \t\t\t\t<Anchors>\n2328: \t\t\t\t\t<Anchor point=\"LEFT\" relativeKey=\"$parent.MonthlyActivitiesTab\" relativePoint=\"RIGHT\" x=\"-15\" y=\"0\"/>\n2329: \t\t\t\t</Anchors>",
+        "contentHash": "85d37967cd650f83bfc55f9a24c1ccb3854da724c7afffa6389b1f09cedba91b",
+        "line": 2326,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "$parentSuggestTab",
+        "target": "BottomEncounterTierTabTemplate",
+        "kind": "xml-inherits",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+        "line": 2326
+      },
+      {
+        "source": "EncounterJournal_OnShow",
+        "target": "EJSuggestTab_GetPlayerTierIndex",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 610
+      },
+      {
+        "source": "EJSuggestTab_GetPlayerTierIndex",
+        "target": "GetExpansionForLevel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2348
+      },
+      {
+        "source": "EJSuggestTab_GetPlayerTierIndex",
+        "target": "UnitLevel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2348
+      },
+      {
+        "source": "EJSuggestTab_GetPlayerTierIndex",
+        "target": "GetEJTierDataTableID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2348
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplaySuggestedContentTab",
+        "target": "EncounterJournal.suggestTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 878
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplaySuggestedContentTab",
+        "target": "EncounterJournal.suggestTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 881
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplayTradingPostTab",
+        "target": "EncounterJournal.suggestTab:ClearAllPoints",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 887
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplayTradingPostTab",
+        "target": "EncounterJournal.suggestTab:SetPoint",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 890
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplayTradingPostTab",
+        "target": "EncounterJournal.suggestTab:SetPoint",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 893
+      },
+      {
+        "source": "EncounterJournal_IsSuggestTabSelected",
+        "target": "self.suggestTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 908
+      },
+      {
+        "source": "EJSuggestTab_GetPlayerTierIndex",
+        "target": "GetExpansionForLevel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2787
+      },
+      {
+        "source": "EJSuggestTab_GetPlayerTierIndex",
+        "target": "UnitLevel",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2787
+      },
+      {
+        "source": "EJSuggestTab_GetPlayerTierIndex",
+        "target": "GetEJTierDataTableID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2787
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.suggestTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2805
+      },
+      {
+        "source": "EJ_HideSuggestPanel",
+        "target": "suggestTab:IsEnabled",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2906
+      },
+      {
+        "source": "EJ_HideSuggestPanel",
+        "target": "suggestTab:Enable",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2907
+      },
+      {
+        "source": "EJSuggestFrame_OnEvent",
+        "target": "EncounterJournal_IsSuggestTabSelected",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3061
+      },
+      {
+        "source": "EJSuggestFrame_OpenFrame",
+        "target": "EncounterJournal.suggestTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3112
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.suggestTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3655
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1937: \t\t\t\t</Frames>\n1938: \t\t\t</Frame>\n1939: \n1940: \t\t\t<Button name=\"$parentDungeonTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"DUNGEONS\"  id=\"1\" parentKey=\"dungeonsTab\">\n1941: \t\t\t\t<Anchors>\n1942: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n1943: \t\t\t\t</Anchors>",
+        "contentHash": "dc8f039cae06d347fcc7de48e15a05dee8d5b9b9e9162406c409c51c0655ddd9",
+        "line": 1940,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "Button",
+        "name": "$parentDungeonTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1937: \t\t\t\t</Frames>\n1938: \t\t\t</Frame>\n1939: \n1940: \t\t\t<Button name=\"$parentDungeonTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"DUNGEONS\"  id=\"1\" parentKey=\"dungeonsTab\">\n1941: \t\t\t\t<Anchors>\n1942: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n1943: \t\t\t\t</Anchors>",
+        "contentHash": "dc8f039cae06d347fcc7de48e15a05dee8d5b9b9e9162406c409c51c0655ddd9",
+        "line": 1940,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "EncounterJournal_OnLoad",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 399
+      },
+      {
+        "source": "EncounterJournal_IsDungeonTabSelected",
+        "target": "self.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 638
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 827
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2373
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2385
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2388
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2391
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "AdventureJournal_Reward_OnMouseDown",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2514
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2569
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplaySuggestedContentTab",
+        "target": "EncounterJournal.dungeonsTab:ClearAllPoints",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 876
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplaySuggestedContentTab",
+        "target": "EncounterJournal.dungeonsTab:SetPoint",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 879
+      },
+      {
+        "source": "EncounterJournal_CheckAndDisplaySuggestedContentTab",
+        "target": "EncounterJournal.dungeonsTab:SetPoint",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 882
+      },
+      {
+        "source": "EncounterJournal_IsDungeonTabSelected",
+        "target": "self.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 912
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 1109
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2807
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2857
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2860
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2877
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2895
+      },
+      {
+        "source": "AdventureJournal_Reward_OnMouseDown",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3570
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.dungeonsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3659
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1942: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n1943: \t\t\t\t</Anchors>\n1944: \t\t\t</Button>\n1945: \t\t\t<Button name=\"$parentRaidTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"RAIDS\" id=\"2\" parentKey=\"raidsTab\">\n1946: \t\t\t\t<Anchors>\n1947: \t\t\t\t\t<Anchor point=\"LEFT\" relativeTo=\"$parentDungeonTab\" relativePoint=\"RIGHT\">\n1948: \t\t\t\t\t\t<Offset>",
+        "contentHash": "dc8f039cae06d347fcc7de48e15a05dee8d5b9b9e9162406c409c51c0655ddd9",
+        "line": 1945,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "Button",
+        "name": "$parentRaidTab",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1942: \t\t\t\t\t<Anchor point=\"TOPLEFT\" relativePoint=\"BOTTOMLEFT\" x=\"11\" y=\"2\"/>\n1943: \t\t\t\t</Anchors>\n1944: \t\t\t</Button>\n1945: \t\t\t<Button name=\"$parentRaidTab\" inherits=\"BottomEncounterTierTabTemplate\" text=\"RAIDS\" id=\"2\" parentKey=\"raidsTab\">\n1946: \t\t\t\t<Anchors>\n1947: \t\t\t\t\t<Anchor point=\"LEFT\" relativeTo=\"$parentDungeonTab\" relativePoint=\"RIGHT\">\n1948: \t\t\t\t\t\t<Offset>",
+        "contentHash": "dc8f039cae06d347fcc7de48e15a05dee8d5b9b9e9162406c409c51c0655ddd9",
+        "line": 1945,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "EncounterJournal_IsRaidTabSelected",
+        "target": "self.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 642
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 830
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2374
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2385
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2388
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2391
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2402
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "line": 2567
+      },
+      {
+        "source": "EncounterJournal_IsRaidTabSelected",
+        "target": "self.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 916
+      },
+      {
+        "source": "EncounterJournal_ListInstances",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 1112
+      },
+      {
+        "source": "EncounterJournal_OpenToTieredEntrance",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2731
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2806
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2857
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2860
+      },
+      {
+        "source": "EJ_ContentTab_Select",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2877
+      },
+      {
+        "source": "EJ_ContentTab_SelectAppropriateInstanceTab",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2895
+      },
+      {
+        "source": "EJInstanceSelect_UpdateTitle",
+        "target": "EncounterJournal.raidsTab:GetID",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 3657
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "file",
+        "name": "SimpleButtonAPIDocumentation.lua",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleButtonAPIDocumentation.lua",
+        "matchedBy": "path",
+        "role": "official-generated-api",
+        "excerpt": "1: local SimpleButtonAPI =\n2: {\n3: \tName = \"SimpleButtonAPI\",\n4: \tType = \"ScriptObject\",\n5: \tEnvironment = \"All\",\n6: \n7: \tFunctions =",
+        "contentHash": "71bfd49d2a2425d2b36ee8d629c8b69ea664348b28b6aada575db5a5bd444449",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100
+        }
+      }
+    ]
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "IsEnabled",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleButtonAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "257: \t\t\tName = \"IsEnabled\",\n258: \t\t\tType = \"Function\",\n259: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.ButtonState },\n260: \n261: \t\t\tArguments =\n262: \t\t\t{\n263: \t\t\t},\n264: \n265: \t\t\tReturns =\n266: \t\t\t{\n267: \t\t\t\t{ Name = \"isEnabled\", Type = \"bool\", Nilable = false },\n268: \t\t\t},\n269: \t\t},",
+        "contentHash": "71bfd49d2a2425d2b36ee8d629c8b69ea664348b28b6aada575db5a5bd444449",
+        "line": 257,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "product": "retail"
+  }
+]

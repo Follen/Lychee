@@ -25,6 +25,9 @@ end
 local function groupFinder(side, selection)
     return function() return openGroupFinder(side, selection) end
 end
+local function journalTab(key)
+    return function() return A:OpenJournalTab(key) end
+end
 
 local menus = {
     {"character", "角色", {"人物", "装备", "属性", "character"}, character("PaperDollFrame")},
@@ -51,6 +54,12 @@ local menus = {
     {"premade-groups", "预创建队伍", {"集合石", "寻找队伍", "premade groups"}, groupFinder("GroupFinderFrame", "LFGListPVEStub")},
     {"pvp", "PvP", {"玩家对战", "战场", "竞技场", "荣誉"}, groupFinder("PVPUIFrame")},
     {"journal", "冒险指南", {"冒险手册", "地下城手册", "地下城指南", "团队手册", "journal"}, function() return A:OpenJournal() end},
+    {"journeys", "旅程", {"冒险旅程", "赛季旅程", "journeys"}, journalTab("JourneysTab")},
+    {"travelers-log", "旅行者日志", {"旅行者", "旅行日志", "商栈日志", "商栈任务", "travelers log"}, journalTab("MonthlyActivitiesTab")},
+    {"suggested-content", "推荐玩法", {"推荐内容", "推荐活动", "suggested content"}, journalTab("suggestTab")},
+    {"journal-dungeons", "地下城", {"地下城目录", "地下城指南目录", "dungeons"}, journalTab("dungeonsTab")},
+    {"journal-raids", "团队副本", {"团本", "团队副本目录", "团本指南", "raids"}, journalTab("raidsTab")},
+    {"tutorials", "教程", {"游戏教程", "新手教程", "tutorials"}, journalTab("TutorialsTab")},
     {"calendar", "日历", {"活动日历", "calendar"}, toggle("ToggleCalendar", "CalendarFrame")},
     {"macros", "宏命令", {"宏", "宏设置", "macros"}, function() return A:Call(ShowMacroFrame) and A:IsShown("MacroFrame") end},
     {"settings", "设置", {"选项", "系统设置", "声音", "画面", "快捷键", "settings", "options"}, function()
@@ -64,7 +73,8 @@ function M:Init()
     local records, opens = {}, {}
     for index = 1, #menus do
         local menu = menus[index]
-        records[index] = {id=menu[1], title=menu[2], kindTitle="游戏菜单", subtitle="打开" .. menu[2], aliases=menu[3], payload={menuID=menu[1]}, actions={"open"}}
+        records[index] = {id=menu[1], title=menu[2], kindTitle="游戏菜单", subtitle="打开" .. menu[2], aliases=menu[3],
+            icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\" .. menu[1] .. ".tga", payload={menuID=menu[1]}, actions={"open"}}
         opens[menu[1]] = menu[4]
     end
     local handle, err = _G.Lychee:RegisterProvider({

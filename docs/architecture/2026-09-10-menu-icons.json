@@ -1,0 +1,219 @@
+{
+  "generator": "tests/build_menu_icons.py",
+  "size": 64,
+  "safeInsetPx": 5,
+  "hostCropUV": [
+    0.07,
+    0.93,
+    0.07,
+    0.93
+  ],
+  "format": "RGBA TGA",
+  "style": "semantic vector glyphs, ivory and Lychee red, transparent",
+  "icons": [
+    {
+      "id": "character",
+      "label": "角色",
+      "path": "package/Lychee/Media/MenuIcons/character.tga",
+      "sha256": "a125873b078a32eeec6dfdf268e5e2708c1d78e403e6666c45ae35455be9fc2a"
+    },
+    {
+      "id": "reputation",
+      "label": "声望",
+      "path": "package/Lychee/Media/MenuIcons/reputation.tga",
+      "sha256": "9b499fc9cf3d5833cbbc5c47f6c3f427d2cbfd2f6da660ab0d63f3126135bb6b"
+    },
+    {
+      "id": "currency",
+      "label": "货币",
+      "path": "package/Lychee/Media/MenuIcons/currency.tga",
+      "sha256": "8673a4a379aac7cd9b6b7b0a46babaf018cf05d6d90cb0ecd0b3536d6c3b3f29"
+    },
+    {
+      "id": "talents",
+      "label": "天赋",
+      "path": "package/Lychee/Media/MenuIcons/talents.tga",
+      "sha256": "93420a9f546b1650cf2e679930c3ae5fc47bd2533716e6d2e23af7eacc888a74"
+    },
+    {
+      "id": "specialization",
+      "label": "专精",
+      "path": "package/Lychee/Media/MenuIcons/specialization.tga",
+      "sha256": "d3f6fd55b5d5a1ba35a6a0c25603da26c501e0b20590ef3230c0cb32063c1b3e"
+    },
+    {
+      "id": "spellbook",
+      "label": "法术书",
+      "path": "package/Lychee/Media/MenuIcons/spellbook.tga",
+      "sha256": "ef2a7119151e2fd5e52b92cec78133bb8f772668358fa626a9b2c6fe2013357f"
+    },
+    {
+      "id": "professions",
+      "label": "专业技能",
+      "path": "package/Lychee/Media/MenuIcons/professions.tga",
+      "sha256": "2a1bcd7af79bd8db9dfa8bfb951e802155f75208a9059ff0b04f6c3911c4c5fd"
+    },
+    {
+      "id": "mounts",
+      "label": "坐骑",
+      "path": "package/Lychee/Media/MenuIcons/mounts.tga",
+      "sha256": "457b56f1b71051b17bf2d42382b2363f4ba201c4d515cdb7f031498fff742671"
+    },
+    {
+      "id": "pets",
+      "label": "宠物手册",
+      "path": "package/Lychee/Media/MenuIcons/pets.tga",
+      "sha256": "7a9375f72627959874ddcd6a10c76288b655f76bebac6e26d54168f87a470e0f"
+    },
+    {
+      "id": "toys",
+      "label": "玩具箱",
+      "path": "package/Lychee/Media/MenuIcons/toys.tga",
+      "sha256": "fdff8a08d1358daeffb8205fa04405aaf2fabaa93fc1294d5af3d81347b3d63c"
+    },
+    {
+      "id": "heirlooms",
+      "label": "传家宝",
+      "path": "package/Lychee/Media/MenuIcons/heirlooms.tga",
+      "sha256": "6c064585f2a1662c176342b09757fc52913f0bf5e144a720132fa3d0b6497a5a"
+    },
+    {
+      "id": "appearances",
+      "label": "外观",
+      "path": "package/Lychee/Media/MenuIcons/appearances.tga",
+      "sha256": "7474d4d6d79607b200aa990d4589ba877ddbda9c8c396fe34112354c2085e1e9"
+    },
+    {
+      "id": "warband-scenes",
+      "label": "战团营地",
+      "path": "package/Lychee/Media/MenuIcons/warband-scenes.tga",
+      "sha256": "3b02fe253248f305f77b7eabb0e368351503c6e926621b5f4bf16273d339fcad"
+    },
+    {
+      "id": "achievements",
+      "label": "成就",
+      "path": "package/Lychee/Media/MenuIcons/achievements.tga",
+      "sha256": "16ac403d0f41f0887b4fa3ec7227e08caaf4a8b87f091db9815d6384590910ba"
+    },
+    {
+      "id": "quests",
+      "label": "任务日志",
+      "path": "package/Lychee/Media/MenuIcons/quests.tga",
+      "sha256": "4e7faa14002d89b1e27f14e9e802c8c912cc66f5ff6abd1b8cd2982181c5673b"
+    },
+    {
+      "id": "map",
+      "label": "世界地图",
+      "path": "package/Lychee/Media/MenuIcons/map.tga",
+      "sha256": "8d79e769af4b1dacbb04f8575401ba8c130646988631100d8b13155f0bdc5de8"
+    },
+    {
+      "id": "friends",
+      "label": "好友",
+      "path": "package/Lychee/Media/MenuIcons/friends.tga",
+      "sha256": "3ffe521782c05cefceea80d534b818f0f145dd8b582e0944603ac086d3499136"
+    },
+    {
+      "id": "guild",
+      "label": "公会与社区",
+      "path": "package/Lychee/Media/MenuIcons/guild.tga",
+      "sha256": "3da7e6511f32f6aa6341edaee96d551ed7c827dffd24e136cf8b8b9ff2fcae35"
+    },
+    {
+      "id": "group-finder",
+      "label": "地下城和团队",
+      "path": "package/Lychee/Media/MenuIcons/group-finder.tga",
+      "sha256": "c874d0d7c440a1263d7f3ef394b0822562f048215b093bd7d0648a1b28f254f4"
+    },
+    {
+      "id": "dungeon-finder",
+      "label": "地下城查找器",
+      "path": "package/Lychee/Media/MenuIcons/dungeon-finder.tga",
+      "sha256": "f213982fb199eca6c28dc140a3640ebcc75bb8f399bf325f530b82dd478f36b7"
+    },
+    {
+      "id": "raid-finder",
+      "label": "团队查找器",
+      "path": "package/Lychee/Media/MenuIcons/raid-finder.tga",
+      "sha256": "9138b6c0d2f1901885cb480e2f100c819033552aa2616942ae022d1d1a5ef39b"
+    },
+    {
+      "id": "premade-groups",
+      "label": "预创建队伍",
+      "path": "package/Lychee/Media/MenuIcons/premade-groups.tga",
+      "sha256": "e7128a04eb092dc56d888d5009600c862a24713eb8ee27754a646cb11dc7f891"
+    },
+    {
+      "id": "pvp",
+      "label": "PvP",
+      "path": "package/Lychee/Media/MenuIcons/pvp.tga",
+      "sha256": "7241308264625119ec79e17924d664c4baae45f5207bd4473c3d357a3a1607d9"
+    },
+    {
+      "id": "journal",
+      "label": "冒险指南",
+      "path": "package/Lychee/Media/MenuIcons/journal.tga",
+      "sha256": "33d6a09a4519e5c728d22303cc38176ccf71fb4a961da4e0f07882ec2063c02e"
+    },
+    {
+      "id": "calendar",
+      "label": "日历",
+      "path": "package/Lychee/Media/MenuIcons/calendar.tga",
+      "sha256": "8020dc1095b31476cab7bed0c2dec5245423b823eccb72580831f53de6fd7821"
+    },
+    {
+      "id": "macros",
+      "label": "宏命令",
+      "path": "package/Lychee/Media/MenuIcons/macros.tga",
+      "sha256": "48b73391709562ea4b38499e7aa0b157a0d6cad3a6623a55b4018e79a40aaee4"
+    },
+    {
+      "id": "settings",
+      "label": "设置",
+      "path": "package/Lychee/Media/MenuIcons/settings.tga",
+      "sha256": "9fd5b876e485eaa20f032b6574c9f5a6f8b30de86fe4137fcda2707baac18b57"
+    },
+    {
+      "id": "game-menu",
+      "label": "游戏菜单",
+      "path": "package/Lychee/Media/MenuIcons/game-menu.tga",
+      "sha256": "757d164aa915b6d9b84f02e8ed37ffa91db34e83e57020833cf97d28c3f8b0bb"
+    },
+    {
+      "id": "journeys",
+      "label": "旅程",
+      "path": "package/Lychee/Media/MenuIcons/journeys.tga",
+      "sha256": "a493764be45362aedf16e172d94b08b4f40db13f3e638bb295dcf528a1761804"
+    },
+    {
+      "id": "travelers-log",
+      "label": "旅行者日志",
+      "path": "package/Lychee/Media/MenuIcons/travelers-log.tga",
+      "sha256": "fc74d2c53f805ab0cee221daa9d746292bd5af1a1129ea4435dda661bf936680"
+    },
+    {
+      "id": "suggested-content",
+      "label": "推荐玩法",
+      "path": "package/Lychee/Media/MenuIcons/suggested-content.tga",
+      "sha256": "ba9dd7ca15de66dcd2279a0be3f7ce59e08b7d1819a158553361ed2c562b82ff"
+    },
+    {
+      "id": "journal-dungeons",
+      "label": "地下城",
+      "path": "package/Lychee/Media/MenuIcons/journal-dungeons.tga",
+      "sha256": "579404264c2fc081266dfaa70423f4de7e5c59f26212123297e20e68ce55419a"
+    },
+    {
+      "id": "journal-raids",
+      "label": "团队副本",
+      "path": "package/Lychee/Media/MenuIcons/journal-raids.tga",
+      "sha256": "8480c5fe76aa701a25f1c18bba6ba94694545eb0056617da9133ee5d6acc7293"
+    },
+    {
+      "id": "tutorials",
+      "label": "教程",
+      "path": "package/Lychee/Media/MenuIcons/tutorials.tga",
+      "sha256": "77037f04eb884595e50639ae7eb69cc24ae491e94ee6466894bcc9d62219aa14"
+    }
+  ]
+}

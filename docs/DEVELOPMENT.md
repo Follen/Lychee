@@ -38,6 +38,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 索引基准可用 `lua tests/index_benchmark.lua` 或 `lua tests/index_benchmark.lua package/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](validation/2026-09-10-provider-framework.md)。
 
+菜单图标通过 `python tests/build_menu_icons.py` 重生成，需要 Pillow；中文预览使用 Windows 的 Microsoft YaHei 字体。脚本输出 34 个透明 64×64 TGA、SVG 矢量参考、模拟 Host 裁切的 PNG 预览，以及 SHA-256 清单。只有 TGA 进入插件运行时；构建脚本、字体、预览和清单不进入正式服副本。
+
 ## 安装与第三方示例
 
 正式服安装结构为 `Interface/AddOns/Lychee/Lychee.toc`。只安装 `package/Lychee` 的运行时文件，不复制 SDK、测试、文档或工具状态。仓库开发流程要求检查通过并创建 Git 提交后，才覆盖复制到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，随后核对文件清单和 SHA-256；不自动删除目标旧文件。

@@ -13,6 +13,8 @@ function Frame:UnregisterAllEvents() self.events={} end
 function Frame:Show() local old=self.shown; self.shown=true; if not old and self.scripts.OnShow then self.scripts.OnShow(self) end end
 function Frame:Hide() local old=self.shown; self.shown=false; if old and self.scripts.OnHide then self.scripts.OnHide(self) end end
 function Frame:IsShown() return self.shown end
+function Frame:IsEnabled() return not self.disabled end
+function Frame:GetID() return self.tabID end
 function Frame:SetText(text) self.text=text; self.sets=(self.sets or 0)+1 end
 function Frame:SetTexture(texture) self.texture=texture end
 function Frame:SetParent(parent) self.parent=parent end
@@ -139,6 +141,54 @@ assert(execute(calendar).code=="UI_UNAVAILABLE", "silent failure is not reported
 combat=true
 assert(execute(map).code=="COMBAT_LOCKED")
 combat=false
+
+-- Journal subpages use the actual enabled button and its ID, including the
+-- native click route which also updates the journal's remembered tab.
+ShowUIPanel=function(frame) frame:Show() end
+local tabLoads, selectedTab = 0, nil
+local tabTargets={
+    {"旅程","journeys","JourneysTab",11},
+    {"旅行者日志","travelers-log","MonthlyActivitiesTab",22},
+    {"推荐玩法","suggested-content","suggestTab",33},
+    {"地下城","journal-dungeons","dungeonsTab",44},
+    {"团队副本","journal-raids","raidsTab",55},
+    {"教程","tutorials","TutorialsTab",77},
+}
+EncounterJournal_LoadUI=function()
+    tabLoads=tabLoads+1
+    local journal=CreateFrame("Frame","EncounterJournal")
+    for _, target in ipairs(tabTargets) do
+        local tab=CreateFrame("Button",nil,journal)
+        tab.tabID=target[4]; tab:Show(); journal[target[3]]=tab
+    end
+    EJ_ContentTab_OnClick=function(tab)
+        selectedTab=tab:GetID()
+        EncounterJournal.selectedTab=selectedTab
+    end
+    return true
+end
+for _, target in ipairs(tabTargets) do
+    local item=find(target[1],"builtin.game-menus",target[2])
+    assert(execute(item).ok and selectedTab==target[4], "journal subpage opens exact runtime tab")
+end
+assert(tabLoads==1, "journal subpages load the UI only once")
+local travelers=find("旅行者日志","builtin.game-menus","travelers-log")
+EncounterJournal.MonthlyActivitiesTab.disabled=true
+assert(execute(travelers).code=="UI_UNAVAILABLE" and selectedTab==77, "disabled page is not forced open")
+EncounterJournal.MonthlyActivitiesTab.disabled=false
+EncounterJournal.MonthlyActivitiesTab:Hide()
+assert(execute(travelers).code=="UI_UNAVAILABLE", "hidden tab is unavailable")
+EncounterJournal.MonthlyActivitiesTab:Show()
+assert(execute(travelers).ok and execute(travelers).ok and EncounterJournal:IsShown())
+EncounterJournal.MonthlyActivitiesTab.IsEnabled=function() error("restricted state") end
+assert(execute(travelers).code=="UI_UNAVAILABLE", "restricted button state stays inside native boundary")
+EncounterJournal.MonthlyActivitiesTab.IsEnabled=nil
+EJ_ContentTab_OnClick=function() end
+assert(execute(find("旅程","builtin.game-menus","journeys")).code=="UI_UNAVAILABLE", "silent tab selection failure is not success")
+EncounterJournal=nil
+EJ_ContentTab_OnClick=nil
+EncounterJournal_LoadUI=function() return false end
+assert(execute(travelers).code=="UI_UNAVAILABLE", "journal subpage load failure is recoverable")
 
 local boss=find("格拉布托克","builtin.bosses","boss-89")
 assert(boss.payload.encounterID==89 and boss.payload.instanceID==63)

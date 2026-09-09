@@ -34,6 +34,24 @@ function A:OpenJournal(instanceID, encounterID)
     return true
 end
 
+function A:OpenJournalTab(tabKey)
+    if not EncounterJournal or type(EJ_ContentTab_OnClick) ~= "function" then
+        if not self:Call(EncounterJournal_LoadUI) then return false end
+    end
+    if not EncounterJournal or not self:Call(ShowUIPanel, EncounterJournal) or not self:IsShown("EncounterJournal") then return false end
+    local tab = EncounterJournal[tabKey]
+    if not tab or type(tab.GetID) ~= "function" then return false end
+    -- The journal decides which tabs this character can use on Show. Keep the
+    -- enabled-state check inside a bounded call in case the client restricts it.
+    local ok, tabID = pcall(function()
+        if not tab:IsShown() or not tab:IsEnabled() then return nil end
+        return tab:GetID()
+    end)
+    if not ok or type(tabID) ~= "number" then return false end
+    if not self:Call(EJ_ContentTab_OnClick, tab) then return false end
+    return self:IsShown("EncounterJournal") and EncounterJournal.selectedTab == tabID
+end
+
 function A:Run(open)
     if InCombatLockdown and InCombatLockdown() then
         return { ok=false, code="COMBAT_LOCKED", message="请在脱离战斗后打开此界面。" }
