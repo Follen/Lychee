@@ -1,0 +1,564 @@
+[
+  {
+    "query": "C_MountJournal.GetMountIDs",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_MountJournal.GetMountIDs",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "264: \t\t\tName = \"GetMountIDs\",\n265: \t\t\tType = \"Function\",\n266: \n267: \t\t\tReturns =\n268: \t\t\t{\n269: \t\t\t\t{ Name = \"mountIDs\", Type = \"table\", InnerType = \"number\", Nilable = false },\n270: \t\t\t},\n271: \t\t},",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 264,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "C_Spell.PickupSpell",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.PickupSpell",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "928: \t\t\tName = \"PickupSpell\",\n929: \t\t\tType = \"Function\",\n930: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n931: \n932: \t\t\tArguments =\n933: \t\t\t{\n934: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n935: \t\t\t},\n936: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 928,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "NEW_MOUNT_ADDED",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "Class_MountReceived:NEW_MOUNT_ADDED",
+        "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2811: function Class_MountReceived:NEW_MOUNT_ADDED(data)\n2812: \tEventRegistry:UnregisterCallback(\"ContainerFrame.OpenBag\", self);\n2813: \tDispatcher:UnregisterEvent(\"NEW_MOUNT_ADDED\", self);\n2814: \n2815: \tif TutorialHelper:GetActionButtonBySpellID(self.mountData.mountID) then\n2816: \t\tself.proceed = false;\n2817: \t\tTutorialManager:Finished(self:Name());\n2818: \t\tTutorialManager:Queue(Class_UseMount.name);\n2819: \t\treturn;\n2820: \tend\n2821: \n2822: \tTutorialHelper:CloseAllBags();\n2823: \tActionButtonSpellAlertManager:ShowAlert(CollectionsMicroButton)\n2824: \tself:HidePointerTutorials();\n2825: \n2826: \tself:ShowPointerTutorial(NPEV2_MOUNT_TUTORIAL_P2_NEW_MOUNT_ADDED, \"DOWN\", CollectionsMicroButton, 0, 10, nil, \"DOWN\");\n2827: \tif not self.collectionCallbackID then\n2828: \t\tself.collectionCallbackID = Dispatcher:RegisterFunction(\"ToggleCollectionsJournal\", function()\n2829: \t\t\tSetCollectionsJournalShown(true, COLLECTIONS_JOURNAL_TAB_INDEX_MOUNTS);\n2830: \t\t\tMountJournal_SelectByMountID(self.mountID);\n2831: \t\t\tself.proceed = true;\n2832: \t\t\tTutorialManager:Finished(self:Name());\n2833: \t\tend, true);\n2834: \tend\n2835: end",
+        "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+        "line": 2811,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "MOUNT_JOURNAL_USABILITY_CHANGED",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "629: \t\t{\n630: \t\t\tName = \"MountJournalUsabilityChanged\",\n631: \t\t\tType = \"Event\",\n632: \t\t\tLiteralName = \"MOUNT_JOURNAL_USABILITY_CHANGED\",\n633: \t\t\tSynchronousEvent = true,\n634: \t\t},\n635: \t\t{",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 632,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "138: \tself:RegisterEvent(\"COMPANION_LEARNED\");\n139: \tself:RegisterEvent(\"COMPANION_UNLEARNED\");\n140: \tself:RegisterEvent(\"COMPANION_UPDATE\");\n141: \tself:RegisterEvent(\"MOUNT_JOURNAL_USABILITY_CHANGED\");\n142: \tself:RegisterEvent(\"MOUNT_JOURNAL_SEARCH_UPDATED\");\n143: \tself:RegisterEvent(\"UI_MODEL_SCENE_INFO_UPDATED\");\n144: \tself:RegisterEvent(\"PLAYER_LEVEL_CHANGED\");",
+        "contentHash": "1384d4cffb626d27fc7d9a103c61d0e696bb41018859467c0c36422de0231233",
+        "line": 141,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "MountListDragButton_OnClick",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MountListDragButton_OnClick",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "914: function MountListDragButton_OnClick(self, button)\n915: \tlocal parent = self:GetParent();\n916: \tif ( button ~= \"LeftButton\" ) then\n917: \t\tlocal isCollected = select(11, C_MountJournal.GetDisplayedMountInfo(parent.index));\n918: \t\tif isCollected then\n919: \t\t\tMenuUtil.CreateContextMenu(self, CreateContextMenu, parent.index);\n920: \t\tend\n921: \telseif ( IsModifiedClick(\"CHATLINK\") ) then\n922: \t\tlocal id = parent.spellID;\n923: \t\tif ( MacroFrame and MacroFrame:IsShown() ) then\n924: \t\t\tlocal spellName = C_Spell.GetSpellName(id);\n925: \t\t\tChatFrameUtil.InsertLink(spellName);\n926: \t\telse\n927: \t\t\tlocal mountLink = C_MountJournal.GetMountLink(id);\n928: \t\t\tChatFrameUtil.InsertLink(mountLink);\n929: \t\tend\n930: \telse\n931: \t\tC_MountJournal.Pickup(parent.index);\n932: \tend\n933: end",
+        "contentHash": "1384d4cffb626d27fc7d9a103c61d0e696bb41018859467c0c36422de0231233",
+        "line": 914,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "MountJournalMountButton_UseMount",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MountJournalMountButton_UseMount",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "868: function MountJournalMountButton_UseMount(mountID)\n869: \tlocal creatureName, spellID, icon, active = C_MountJournal.GetMountInfoByID(mountID);\n870: \tif ( active ) then\n871: \t\tC_MountJournal.Dismiss();\n872: \telseif ( C_MountJournal.NeedsFanfare(mountID) ) then\n873: \t\tlocal function OnFinishedCallback()\n874: \t\t\tC_MountJournal.ClearFanfare(mountID);\n875: \t\t\tMountJournal_UpdateMountList();\n876: \t\t\tlocal forceSceneChange = true;\n877: \t\t\tMountJournal_UpdateMountDisplay(forceSceneChange);\n878: \t\tend\n879: \n880: \t\tMountJournal.MountDisplay.ModelScene:StartUnwrapAnimation(OnFinishedCallback);\n881: \telse\n882: \t\tC_MountJournal.SummonByID(mountID);\n883: \tend\n884: end",
+        "contentHash": "1384d4cffb626d27fc7d9a103c61d0e696bb41018859467c0c36422de0231233",
+        "line": 868,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "SecureActionButtonTemplate",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "Button",
+        "name": "SecureActionButtonTemplate",
+        "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "1: <Ui xmlns=\"http://www.blizzard.com/wow/ui/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.blizzard.com/wow/ui/\n2: ..\\Blizzard_SharedXML\\UI.xsd\">\n3: \t<!-- A button template for click-cast style action buttons -->\n4: \t<Button name=\"SecureActionButtonTemplate\" inherits=\"SecureFrameTemplate\" mixin=\"SecureActionButtonMixin\" virtual=\"true\">\n5: \t\t<Scripts>\n6: \t\t\t<!-- SecureActionButton_OnClick takes two extra custom arguments. Our usage of this template will always override this\n7: \t\t\t\tand supply the extra arguments, and for now AddOns won't be able to have isKeyPress or isSecureAction set. -->",
+        "contentHash": "32e3bd4db8498bb0d9bd9ff93f1e1d21141cf21ef0b192d333188b326202851b",
+        "line": 4,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/ActionButtonTemplate.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "169: \t\t</CheckedTexture>\n170: \t</CheckButton>\n171: \n172: \t<CheckButton name=\"ActionBarButtonCodeTemplate\" inherits=\"SecureActionButtonTemplate, QuickKeybindButtonTemplate, ActionButtonSpellFXTemplate\" virtual=\"true\" mixin=\"ActionBarActionButtonDerivedMixin\">\n173: \t\t<Scripts>\n174: \t\t\t<OnLoad method=\"ActionBarActionButtonDerivedMixin_OnLoad\"/>\n175: \t\t\t<OnAttributeChanged method=\"ActionBarActionButtonDerivedMixin_OnAttributeChanged\"/>",
+        "contentHash": "6c2b6b19c746876e48b16068eb4b33d5c68738525f8c54d142c4d563c6500a1d",
+        "line": 172,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "WeeklyRewards_ShowUI",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "WeeklyRewards_ShowUI",
+        "path": "Interface/AddOns/Blizzard_WeeklyRewards/Blizzard_WeeklyRewards_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function WeeklyRewards_ShowUI()\n8: \tif WeeklyRewards_LoadUI() then\n9: \t\tlocal force = true;\n10: \t\tShowUIPanel(WeeklyRewardsFrame, force);\n11: \tend\n12: end",
+        "contentHash": "40d5491fbd9f0de1ccb00281c10a5e2d944870512de814f8135ece2e1fe3f0ec",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "C_MountJournal.GetMountInfoByID",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_MountJournal.GetMountInfoByID",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "273: \t\t\tName = \"GetMountInfoByID\",\n274: \t\t\tType = \"Function\",\n275: \t\t\tMayReturnNothing = true,\n276: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n277: \n278: \t\t\tArguments =\n279: \t\t\t{\n280: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = false },\n281: \t\t\t},\n282: \n283: \t\t\tReturns =\n284: \t\t\t{\n285: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n286: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = false },\n287: \t\t\t\t{ Name = \"icon\", Type = \"fileID\", Nilable = false },\n288: \t\t\t\t{ Name = \"isActive\", Type = \"bool\", Nilable = false },\n289: \t\t\t\t{ Name = \"isUsable\", Type = \"bool\", Nilable = false },\n290: \t\t\t\t{ Name = \"sourceType\", Type = \"number\", Nilable = false },\n291: \t\t\t\t{ Name = \"isFavorite\", Type = \"bool\", Nilable = false },\n292: \t\t\t\t{ Name = \"isFactionSpecific\", Type = \"bool\", Nilable = false },\n293: \t\t\t\t{ Name = \"faction\", Type = \"PvPFaction\", Nilable = true },\n294: \t\t\t\t{ Name = \"shouldHideOnChar\", Type = \"bool\", Nilable = false },\n295: \t\t\t\t{ Name = \"isCollected\", Type = \"bool\", Nilable = false },\n296: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = false },\n297: \t\t\t\t{ Name = \"isSteadyFlight\", Type = \"bool\", Nilable = false },\n298: \t\t\t},\n299: \t\t},",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 273,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "COMPANION_LEARNED",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PetJournalInfoDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "339: \t\t{\n340: \t\t\tName = \"CompanionLearned\",\n341: \t\t\tType = \"Event\",\n342: \t\t\tLiteralName = \"COMPANION_LEARNED\",\n343: \t\t\tSynchronousEvent = true,\n344: \t\t},\n345: \t\t{",
+        "contentHash": "7e48c230baa18bc668bf6a523ea40f31ce63e9ff8c4d56e2fa99ad1699a5f85f",
+        "line": 342,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "135: end\n136: \n137: function MountJournal_OnLoad(self)\n138: \tself:RegisterEvent(\"COMPANION_LEARNED\");\n139: \tself:RegisterEvent(\"COMPANION_UNLEARNED\");\n140: \tself:RegisterEvent(\"COMPANION_UPDATE\");\n141: \tself:RegisterEvent(\"MOUNT_JOURNAL_USABILITY_CHANGED\");",
+        "contentHash": "1384d4cffb626d27fc7d9a103c61d0e696bb41018859467c0c36422de0231233",
+        "line": 138,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "PLAYER_REGEN_ENABLED",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1502: function Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED(...)\n1503: \tself:UnsuppressChildren();\n1504: end",
+        "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+        "line": 1502,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "Class_AbilityUse_Watcher:PLAYER_REGEN_ENABLED",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2149: function Class_AbilityUse_Watcher:PLAYER_REGEN_ENABLED()\n2150: \tDispatcher:UnregisterEvent(\"OnUpdate\", self);\n2151: end",
+        "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+        "line": 2149,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "C_MountJournal.GetMountFromSpell",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_MountJournal.GetMountFromSpell",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "249: \t\t\tName = \"GetMountFromSpell\",\n250: \t\t\tType = \"Function\",\n251: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n252: \n253: \t\t\tArguments =\n254: \t\t\t{\n255: \t\t\t\t{ Name = \"spellID\", Type = \"SpellIdentifier\", Nilable = false },\n256: \t\t\t},\n257: \n258: \t\t\tReturns =\n259: \t\t\t{\n260: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = true },\n261: \t\t\t},\n262: \t\t},",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 249,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "IsPlayerSpell",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "IsPlayerSpell",
+        "path": "Interface/AddOns/Blizzard_DeprecatedSpellBook/Deprecated_SpellBook.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "11: \tfunction IsPlayerSpell(spellID)\n12: \t\tlocal spellBank = Enum.SpellBookSpellBank.Player;\n13: \t\treturn C_SpellBook.IsSpellKnown(spellID, spellBank);\n14: \tend",
+        "contentHash": "66e4c7fba47517cb2a20ba27545bb56abafed9445680ed451abd4543cc5216fd",
+        "line": 11,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "NewMountAdded",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-event",
+        "name": "C_MountJournal.NewMountAdded",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "636: \t\t\tName = \"NewMountAdded\",\n637: \t\t\tType = \"Event\",\n638: \t\t\tLiteralName = \"NEW_MOUNT_ADDED\",\n639: \t\t\tSynchronousEvent = true,\n640: \t\t\tPayload =\n641: \t\t\t{\n642: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = false },\n643: \t\t\t},\n644: \t\t},",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 636,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "CompanionUnlearned",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-event",
+        "name": "C_PetJournal.CompanionUnlearned",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PetJournalInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "346: \t\t\tName = \"CompanionUnlearned\",\n347: \t\t\tType = \"Event\",\n348: \t\t\tLiteralName = \"COMPANION_UNLEARNED\",\n349: \t\t\tSynchronousEvent = true,\n350: \t\t},",
+        "contentHash": "7e48c230baa18bc668bf6a523ea40f31ce63e9ff8c4d56e2fa99ad1699a5f85f",
+        "line": 346,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "PlayerLevelChanged",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-event",
+        "name": "Unit.PlayerLevelChanged",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "3693: \t\t\tName = \"PlayerLevelChanged\",\n3694: \t\t\tType = \"Event\",\n3695: \t\t\tLiteralName = \"PLAYER_LEVEL_CHANGED\",\n3696: \t\t\tSynchronousEvent = true,\n3697: \t\t\tPayload =\n3698: \t\t\t{\n3699: \t\t\t\t{ Name = \"oldLevel\", Type = \"number\", Nilable = false },\n3700: \t\t\t\t{ Name = \"newLevel\", Type = \"number\", Nilable = false },\n3701: \t\t\t\t{ Name = \"real\", Type = \"bool\", Nilable = false },\n3702: \t\t\t},\n3703: \t\t},",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 3693,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "C_Timer.After",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Timer.After",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "11: \t\t\tName = \"After\",\n12: \t\t\tType = \"Function\",\n13: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n14: \n15: \t\t\tArguments =\n16: \t\t\t{\n17: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n18: \t\t\t\t{ Name = \"callback\", Type = \"TimerCallback\", Nilable = false },\n19: \t\t\t},\n20: \t\t},",
+        "contentHash": "72b5d79e91b3d8185cff68e5a6cd91498cb3aecd8ea6809a84e4d0edc805bc4c",
+        "line": 11,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "IsPassiveSpell",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Deprecated/11_0_0_SpellBookAPITransitionGuide.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "30: GetSpellTradeSkillLink(spellID/name) = C_Spell.GetSpellTradeSkillLink(spellIdentifier)\n31: GetSpellTradeSkillLink(index, bookType) = C_SpellBook.GetSpellBookItemTradeSkillLink(index, spellBank)\n32: \n33: IsPassiveSpell(spellID/name) = C_Spell.IsSpellPassive(spellIdentifier)\n34: IsPassiveSpell(index, bookType) = C_SpellBook.IsSpellBookItemPassive(index, spellBank)\n35: \n36: IsHelpfulSpell(spellID/name) = C_Spell.IsSpellHelpful(spellIdentifier)",
+        "contentHash": "8811c108a353e09a219598ab54b117ab887c9766e9c70322bff993234cce89e4",
+        "line": 33,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_TalentUI/Mists/Blizzard_TalentUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "669: \t\t\tlocal talentGroup = PlayerTalentFrame and PlayerTalentFrame.talentGroup or 1;\n670: \t\t\tlocal _, talentName = GetTalentInfoByID(self:GetID(), talentGroup);\n671: \t\t\tlocal spellName, subSpellName = GetSpellInfo(talentName);\n672: \t\t\tif ( spellName and not IsPassiveSpell(spellName) ) then\n673: \t\t\t\tif ( subSpellName and (strlen(subSpellName) > 0) ) then\n674: \t\t\t\t\tChatFrameUtil.InsertLink(spellName..\"(\"..subSpellName..\")\");\n675: \t\t\t\telse",
+        "contentHash": "5de06b8ae2c3abadabe726774f8f71a89253260f3040ef3009c6c68eb9231fa2",
+        "line": 672,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "C_MountJournal.SummonByID",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_MountJournal.SummonByID",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "596: \t\t\tName = \"SummonByID\",\n597: \t\t\tType = \"Function\",\n598: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n599: \n600: \t\t\tArguments =\n601: \t\t\t{\n602: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = false },\n603: \t\t\t},\n604: \t\t},",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 596,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

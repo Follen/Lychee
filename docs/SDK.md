@@ -1,6 +1,6 @@
 # Lychee SDK：Provider API 2
 
-SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、纹章、游戏菜单、首领和第三方示例使用同一接口。字段与限制见 [协议参考](PROTOCOLS.md)，编辑器类型见 [ApiStubs.lua](../lychee-sdk/ApiStubs.lua)。
+SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、坐骑、纹章、游戏菜单、首领、宏伟宝库和第三方示例使用同一接口。字段与限制见 [协议参考](PROTOCOLS.md)，编辑器类型见 [ApiStubs.lua](../lychee-sdk/ApiStubs.lua)。
 
 ## 最小接入
 

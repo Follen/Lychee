@@ -47,6 +47,7 @@ local function object(kind, parent)
     function o:SetScript(name, fn) self.scripts[name] = fn end
     function o:RegisterEvent(name) self.events = self.events or {}; self.events[name] = true end
     function o:UnregisterEvent(name) if self.events then self.events[name] = nil end end
+    function o:UnregisterAllEvents() self.events = {} end
     function o:CreateTexture() return object("Texture", self) end
     function o:CreateFontString() return object("FontString", self) end
     function o:SetTexture(v) self.texture = v end
@@ -963,4 +964,48 @@ assertEq(#secureBroker.active,0,"released secure buttons leave no active referen
 palette:Hide("menu-done")
 assert(secureMenuProvider:Unregister())
 MenuUtil=nil
+-- Collection Provider reaches the real secure row and recent-item drag paths.
+local mountCollected=true
+local mountPicked
+C_MountJournal={
+    GetMountIDs=function() return {77} end,
+    GetMountInfoByID=function(id)
+        assert(id==77)
+        return "测试星光龙",90077,123456,false,true,1,false,false,nil,false,mountCollected,77
+    end,
+    GetMountFromSpell=function(spellID) if spellID==90077 then return 77 end end,
+}
+C_Spell=C_Spell or {}
+local oldPickup=C_Spell.PickupSpell
+C_Spell.PickupSpell=function(id) mountPicked=id end
+I.Builtin=I.Builtin or {}
+dofile(root.."Builtin/Mounts.lua")
+assert(I.Builtin.Mounts:Init())
+assert(palette:Show())
+typeQuery("测试星光龙")
+local mountRow=findEntry(palette.list.rows,"mount:77")
+local mountButton=assert(boundButton(mountRow), "mount outside player spellbook receives secure button")
+assertEq(mountButton:GetAttribute("type"),"spell")
+assertEq(mountButton:GetAttribute("spell"),90077)
+assertEq(mountButton.dragButtons[1],"LeftButton")
+mountButton.scripts.OnDragStart(mountButton)
+assertEq(mountPicked,90077,"mount row drags the summoning spell")
+mountButton.scripts.PreClick(mountButton)
+assert(secureBroker:FinishCast("UNIT_SPELLCAST_FAILED",90077) and palette.visible, "failed summon keeps search open")
+mountButton.scripts.PreClick(mountButton)
+assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",90077))
+assert(not palette.visible and LycheeDB.palette.recent[1].entryID=="mount:77")
+assert(palette:Show())
+local mountTile=findEntry(palette.homeView.tiles,"mount:77")
+mountPicked=nil
+assert(boundButton(mountTile)).scripts.OnDragStart(boundButton(mountTile))
+assertEq(mountPicked,90077,"recent mount supports the same action-bar drag")
+mountCollected=false
+mountPicked=nil
+local mountDragOK,mountDragErr=palette:BeginRowDrag(mountTile)
+assert(not mountDragOK and mountDragErr=="ACTION_UNAVAILABLE" and mountPicked==nil, "live collection check blocks a removed mount")
+palette:Hide("mount-done")
+assert(I.Builtin.Mounts.handle:Unregister())
+C_Spell.PickupSpell=oldPickup
+C_MountJournal=nil
 print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)")

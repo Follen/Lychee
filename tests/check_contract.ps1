@@ -67,6 +67,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Built-in/SDK integration smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/builtin_providers_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Built-in providers smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/mounts_vault_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Mounts/vault smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/default_binding_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Default binding smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/interaction_smoke.lua'

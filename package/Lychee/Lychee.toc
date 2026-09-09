@@ -40,4 +40,6 @@ Builtin/Data/JournalCatalog.lua
 Builtin/Crests.lua
 Builtin/GameMenus.lua
 Builtin/Bosses.lua
+Builtin/Mounts.lua
+Builtin/GreatVault.lua
 Builtin/Init.lua

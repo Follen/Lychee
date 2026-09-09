@@ -56,14 +56,18 @@ ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state
 
 ## 内置 Provider
 
-`Builtin/Init.lua` 在登录后注册玩家技能、纹章、游戏菜单与首领。新增业务只调用公开 `RegisterProvider`，不向 Host 增加动作类型或业务分支。API 保持 2 / revision 1。
+`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 保持 2 / revision 1。
 
 - `Crests.lua`：一个可搜索条目和一个托管视图；五档当前迷雾纹章首次打开时创建固定行，之后复用。只在显示时注册 `CURRENCY_DISPLAY_UPDATE`，带货币 ID 的事件仅刷新对应行；关闭、禁用、注销均停止事件，读取失败显示“—”并允许重试。
 - `GameMenus.lua`：34 条静态菜单记录，每条引用固定开窗函数和本地透明 TGA 图标；支持分页的界面传明确页签，切换式入口先检查已打开状态。冒险指南的六个入口从实际页签控件读取 ID，复用原生 OnClick 路径同步显示与游戏保存的页签；隐藏、禁用或受限页签返回失败。
 - `Bosses.lua` 与 `Data/JournalCatalog.lua`：由版本化 DB2 快照生成首领/副本关系，副本名作为每个首领的别名。搜索时不加载手册或扫描游戏 API；点击时延迟加载并检查精确 instanceID / encounterID。
+- `Mounts.lua`：缓存已收藏且当前角色可见的坐骑名称与召唤法术 ID，声明已有 `secure-spell` 点击和 `spell` 拖拽。新坐骑事件按 ID 增量更新；不带 ID 的收藏事件合并刷新，未变记录不提交；战斗期间只标记 dirty，脱战恢复。禁用注销事件，重新启用复用同一事件 frame；失败保留旧索引。共享安全策略对技能书之外的法术补充原生坐骑收藏校验，点击和拖拽时重新确认，不信任 Provider 自称可用。
+- `GreatVault.lua`：一个静态条目，名称及“低保”等别名命中；调用原生 `WeeklyRewards_ShowUI`，确认 `WeeklyRewardsFrame` 已显示才返回成功。已打开时保持打开，战斗或原生加载失败不关闭搜索窗口。
 - `InterfaceActions.lua`：内置模块共用的窄封装，处理原生调用失败、已打开窗口和战斗限制；失败不关闭搜索或写入成功历史。
 
 数据版本、更新命令、离线成本与实机验收范围见 [内置 Provider 验证记录](validation/2026-09-10-builtin-providers.md)。
+
+坐骑与宏伟宝库的来源、生命周期及离线压力测试见 [专项验证记录](validation/2026-09-10-mounts-vault.md)。
 
 菜单图标由 `tests/build_menu_icons.py` 的矢量路径离线生成，运行时只加载 `Media/MenuIcons/*.tga`。资产自带 5 px 透明安全边距，兼容 Host 现有 7% 裁切；不增加特殊图标协议、运行时绘图或回调。
 
