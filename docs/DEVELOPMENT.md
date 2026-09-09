@@ -19,7 +19,7 @@
 pwsh -NoProfile -File tests/check_contract.ps1
 ```
 
-该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行 10 个 Lua 契约/交互测试。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
+该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行 11 个 Lua 契约/交互测试。内置 Provider 测试使用真实 SDK、索引和 ViewHost，替换 WoW 外部 API，覆盖纹章事件生命周期、菜单分页与失败、首领精确跳转。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
 
 ```powershell
 $ErrorActionPreference = 'Stop'

@@ -54,6 +54,17 @@ ProviderRuntime 是统一边界，不建立第二套索引或第二套启用状�
 
 ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state)、Unmount、Dispose。Provider 负责释放自己建立的事件、计时器等活动；可复用 frame，不能让隐藏视图持续工作。
 
+## 内置 Provider
+
+`Builtin/Init.lua` 在登录后注册玩家技能、纹章、游戏菜单与首领。新增业务只调用公开 `RegisterProvider`，不向 Host 增加动作类型或业务分支。API 保持 2 / revision 1。
+
+- `Crests.lua`：一个可搜索条目和一个托管视图；五档当前迷雾纹章首次打开时创建固定行，之后复用。只在显示时注册 `CURRENCY_DISPLAY_UPDATE`，带货币 ID 的事件仅刷新对应行；关闭、禁用、注销均停止事件，读取失败显示“—”并允许重试。
+- `GameMenus.lua`：28 条静态菜单记录，每条引用固定开窗函数；支持分页的界面传明确页签，切换式入口先检查已打开状态。
+- `Bosses.lua` 与 `Data/JournalCatalog.lua`：由版本化 DB2 快照生成首领/副本关系，副本名作为每个首领的别名。搜索时不加载手册或扫描游戏 API；点击时延迟加载并检查精确 instanceID / encounterID。
+- `InterfaceActions.lua`：内置模块共用的窄封装，处理原生调用失败、已打开窗口和战斗限制；失败不关闭搜索或写入成功历史。
+
+数据版本、更新命令、离线成本与实机验收范围见 [内置 Provider 验证记录](validation/2026-09-10-builtin-providers.md)。
+
 ## 启停、性能和存储
 
 onEnable(handle) 可返回清理函数；禁用/注销调用一次。SDK 还提供可取消的 RegisterReady。Provider 必须在其清理函数中释放自身事件与计时器。Host 单独清理查询任务、时限计时器和视图。

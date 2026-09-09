@@ -1,0 +1,81 @@
+local I = _G.LycheeInternal
+local A = I.Builtin.InterfaceActions
+local M = {}
+I.Builtin.GameMenus = M
+
+local function character(tab)
+    return function() return A:Call(ToggleCharacter, tab, true) and A:IsShown("CharacterFrame") and A:IsShown(tab) end
+end
+local function spells(method)
+    return function() return A:Call(PlayerSpellsUtil and PlayerSpellsUtil[method]) and A:IsShown("PlayerSpellsFrame") end
+end
+local function collection(tab, frame)
+    return function() return A:Call(SetCollectionsJournalShown, true, tab) and A:IsShown("CollectionsJournal") and A:IsShown(frame) end
+end
+local function toggle(fn, frame, alternate)
+    return function() return A:ToggleOpen(_G[fn], frame, alternate) end
+end
+local function openGroupFinder(side, selection)
+    if not C_LFGInfo or not C_LFGInfo.CanPlayerUseGroupFinder then return false end
+    local ok, allowed = pcall(C_LFGInfo.CanPlayerUseGroupFinder)
+    if not ok or not allowed or (Kiosk and Kiosk.IsEnabled()) then return false end
+    return A:Call(PVEFrame_ShowFrame, side, selection) and A:IsShown("PVEFrame")
+        and (not side or A:IsShown(side)) and (not selection or A:IsShown(selection))
+end
+local function groupFinder(side, selection)
+    return function() return openGroupFinder(side, selection) end
+end
+
+local menus = {
+    {"character", "角色", {"人物", "装备", "属性", "character"}, character("PaperDollFrame")},
+    {"reputation", "声望", {"阵营声望", "reputation"}, character("ReputationFrame")},
+    {"currency", "货币", {"代币", "currency"}, character("TokenFrame")},
+    {"talents", "天赋", {"天赋树", "talents"}, spells("OpenToClassTalentsTab")},
+    {"specialization", "专精", {"切换专精", "specialization"}, spells("OpenToClassSpecializationsTab")},
+    {"spellbook", "法术书", {"技能书", "spellbook"}, spells("OpenToSpellBookTab")},
+    {"professions", "专业技能", {"专业", "制造", "professions"}, toggle("ToggleProfessionsBook", "ProfessionsBookFrame")},
+    {"mounts", "坐骑", {"坐骑收藏", "mounts"}, collection(1, "MountJournal")},
+    {"pets", "宠物手册", {"宠物", "战斗宠物", "pets"}, collection(2, "PetJournal")},
+    {"toys", "玩具箱", {"玩具", "toys"}, collection(3, "ToyBox")},
+    {"heirlooms", "传家宝", {"heirlooms"}, collection(4, "HeirloomsJournal")},
+    {"appearances", "外观", {"幻化", "衣柜", "收藏", "外观收藏", "wardrobe", "collections"}, collection(5, "WardrobeCollectionFrame")},
+    {"warband-scenes", "战团营地", {"战团场景", "营地", "warband"}, collection(6, "WarbandSceneJournal")},
+    {"achievements", "成就", {"成就界面", "achievements"}, toggle("ToggleAchievementFrame", "AchievementFrame")},
+    {"quests", "任务日志", {"任务", "任务列表", "quests"}, function() return A:Call(OpenQuestLog) and A:IsShown("WorldMapFrame") end},
+    {"map", "世界地图", {"地图", "map"}, toggle("ToggleWorldMap", "WorldMapFrame")},
+    {"friends", "好友", {"社交", "好友列表", "friends", "social"}, toggle("ToggleFriendsFrame", "FriendsFrame", "SocialUIFrame")},
+    {"guild", "公会与社区", {"公会", "社区", "guild", "communities"}, toggle("ToggleGuildFrame", "CommunitiesFrame", "GuildFinderFrame")},
+    {"group-finder", "地下城和团队", {"组队", "队伍查找器", "pve"}, groupFinder()},
+    {"dungeon-finder", "地下城查找器", {"随机地下城", "排本", "dungeon finder"}, groupFinder("GroupFinderFrame", "LFDParentFrame")},
+    {"raid-finder", "团队查找器", {"随机团本", "随机团队", "raid finder"}, groupFinder("GroupFinderFrame", "RaidFinderFrame")},
+    {"premade-groups", "预创建队伍", {"集合石", "寻找队伍", "premade groups"}, groupFinder("GroupFinderFrame", "LFGListPVEStub")},
+    {"pvp", "PvP", {"玩家对战", "战场", "竞技场", "荣誉"}, groupFinder("PVPUIFrame")},
+    {"journal", "冒险指南", {"冒险手册", "地下城手册", "地下城指南", "团队手册", "journal"}, function() return A:OpenJournal() end},
+    {"calendar", "日历", {"活动日历", "calendar"}, toggle("ToggleCalendar", "CalendarFrame")},
+    {"macros", "宏命令", {"宏", "宏设置", "macros"}, function() return A:Call(ShowMacroFrame) and A:IsShown("MacroFrame") end},
+    {"settings", "设置", {"选项", "系统设置", "声音", "画面", "快捷键", "settings", "options"}, function()
+        return A:Call(C_SettingsUtil and C_SettingsUtil.OpenSettingsPanel) and A:IsShown("SettingsPanel")
+    end},
+    {"game-menu", "游戏菜单", {"主菜单", "esc", "menu"}, function() return A:Call(GameMenuFrame_Show) and A:IsShown("GameMenuFrame") end},
+}
+
+function M:Init()
+    if self.handle then return true end
+    local records, opens = {}, {}
+    for index = 1, #menus do
+        local menu = menus[index]
+        records[index] = {id=menu[1], title=menu[2], kindTitle="游戏菜单", subtitle="打开" .. menu[2], aliases=menu[3], payload={menuID=menu[1]}, actions={"open"}}
+        opens[menu[1]] = menu[4]
+    end
+    local handle, err = _G.Lychee:RegisterProvider({
+        id="builtin.game-menus", apiVersion=2, version="1.0.0", title="游戏菜单", scope={product="retail"}, entries=records,
+        actions={open={title="打开界面",run=function(entry)
+            local open = opens[entry.payload.menuID]
+            if not open then return {ok=false, code="UI_UNAVAILABLE"} end
+            return A:Run(open)
+        end}},
+        onEnable=function() return function(reason) if reason == "unregister" then M.handle=nil end end end,
+    })
+    self.handle = handle
+    return handle ~= nil, err
+end

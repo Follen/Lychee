@@ -35,4 +35,9 @@ Core/ResultActionExecutor.lua
 UI/Palette.lua
 Builtin/PlayerSpells/Provider.lua
 Builtin/PlayerSpells/Init.lua
+Builtin/InterfaceActions.lua
+Builtin/Data/JournalCatalog.lua
+Builtin/Crests.lua
+Builtin/GameMenus.lua
+Builtin/Bosses.lua
 Builtin/Init.lua

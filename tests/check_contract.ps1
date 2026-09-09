@@ -65,6 +65,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Registry boundary smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Built-in/SDK integration smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/builtin_providers_smoke.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Built-in providers smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/default_binding_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Default binding smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/interaction_smoke.lua'

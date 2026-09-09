@@ -1,0 +1,2061 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleCharacter",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleCharacter",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/CharacterFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "24: function ToggleCharacter (tab, onlyShow)\n25: \tif C_GameRules.IsGameRuleActive(Enum.GameRule.CharacterPanelDisabled) then\n26: \t\treturn;\n27: \tend\n28: \n29: \tlocal subFrame = _G[tab];\n30: \tif ( subFrame ) then\n31: \t\tif (not subFrame.hidden) then\n32: \t\t\tPanelTemplates_SetTab(CharacterFrame, subFrame:GetID());\n33: \t\t\tif ( CharacterFrame:IsShown() ) then\n34: \t\t\t\tif ( subFrame:IsShown() ) then\n35: \t\t\t\t\tif ( not onlyShow ) then\n36: \t\t\t\t\t\tHideUIPanel(CharacterFrame);\n37: \t\t\t\t\tend\n38: \t\t\t\telse\n39: \t\t\t\t\tPlaySound(SOUNDKIT.IG_CHARACTER_INFO_TAB);\n40: \t\t\t\t\tCharacterFrame:ShowSubFrame(tab);\n41: \t\t\t\tend\n42: \t\t\telse\n43: \t\t\t\tCharacterFrame:ShowSubFrame(tab);\n44: \t\t\t\tShowUIPanel(CharacterFrame);\n45: \t\t\tend\n46: \t\t\tCharacterFrame:RefreshDisplay();\n47: \t\tend\n48: \tend\n49: end",
+        "contentHash": "6f747e421a44207dc731c4bd0e2f1e0cf9085dd7d96b6c6291c4a84ee0014984",
+        "line": 24,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "TogglePlayerSpellsFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.TogglePlayerSpellsFrame",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "106: function PlayerSpellsUtil.TogglePlayerSpellsFrame(suggestedTab, inspectUnit)\n107: \tif DISALLOW_FRAME_TOGGLING then\n108: \t\treturn false;\n109: \tend\n110: \n111: \tCheckLoadPlayerSpellsFrame();\n112: \n113: \t-- During Class_ChangeSpec tutorial, force to open to the Specializations tab when no other specific tab is specified.\n114: \tif not suggestedTab and PlayerSpellsFrame:ShouldOpenToSpecTab() then\n115: \t\tsuggestedTab = PlayerSpellsUtil.FrameTabs.ClassSpecializations;\n116: \tend\n117: \n118: \tlocal alreadyShowing = PlayerSpellsFrame:IsShown()\n119: \t\t\t\t\t\t\tand (not suggestedTab or PlayerSpellsFrame:IsFrameTabActive(suggestedTab));\n120: \n121: \tif alreadyShowing then\n122: \t\tHideUIPanel(PlayerSpellsFrame);\n123: \telse\n124: \t\tSetOrClearInspectUnit(inspectUnit);\n125: \n126: \t\tif suggestedTab and not PlayerSpellsFrame:TrySetTab(suggestedTab) then\n127: \t\t\treturn false;\n128: \t\tend\n129: \n130: \t\tShowUIPanel(PlayerSpellsFrame);\n131: \tend\n132: \n133: \treturn true;\n134: end",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 106,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "TogglePlayerSpellsFrame",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "156: function TogglePlayerSpellsFrame(suggestedTab, inspectUnit)\n157: \tPlayerSpellsUtil.TogglePlayerSpellsFrame(suggestedTab, inspectUnit);\n158: end",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 156,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleCollectionsJournal",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleCollectionsJournal",
+        "path": "Interface/AddOns/Blizzard_Collections/Blizzard_Collections_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "14: function ToggleCollectionsJournal(tabIndex)\n15: \tif CollectionsJournal or CollectionsJournal_LoadUI() then\n16: \t\tlocal tabMatches = not tabIndex or tabIndex == PanelTemplates_GetSelectedTab(CollectionsJournal);\n17: \t\tlocal isShown = CollectionsJournal:IsShown() and tabMatches;\n18: \t\tSetCollectionsJournalShown(not isShown, tabIndex);\n19: \tend\n20: end",
+        "contentHash": "00c9331aeebcc1b98668b697fd11408b02bc5932d2a274561451a44cb6670788",
+        "line": 14,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleAchievementFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleAchievementFrame",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "13: function ToggleAchievementFrame(stats)\n14: \tif AchievementFrame_LoadUI() then\n15: \t\tAchievementFrame_ToggleAchievementFrame(stats);\n16: \tend\n17: end",
+        "contentHash": "d8628e436d6732445533945caf57bef4264eaad48a3be68cc935570bd2c5a427",
+        "line": 13,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleQuestLog",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleQuestLog",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestMapFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2070: function ToggleQuestLog()\n2071: \tif ( C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) ) then\n2072: \t\treturn;\n2073: \tend\n2074: \n2075: \tif ( QuestMapFrame:IsShown() and QuestMapFrame:IsVisible() ) then\n2076: \t\tHideUIPanel(QuestMapFrame:GetParent());\n2077: \telse\n2078: \t\tOpenQuestLog();\n2079: \tend\n2080: end",
+        "contentHash": "2f8f59e7790a3c90840cda05521897f98aee68a26cee6251db753401cf96492b",
+        "line": 2070,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "ToggleQuestLog",
+        "path": "Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "568: function ToggleQuestLog()\n569: \tif C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) then\n570: \t\treturn;\n571: \tend\n572: \n573: \tWorldMapFrame:HandleUserActionToggleQuestLog();\n574: end",
+        "contentHash": "e10bc3edd4fbb6d34edf3658796dc73990257db3c1b9b3113686a72e365e30fa",
+        "line": 568,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleFriendsFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleFriendsFrame",
+        "path": "Interface/AddOns/Blizzard_FriendsFrame/Mainline/FriendsFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1464: function ToggleFriendsFrame(requestedTab)\n1465: \tif (Kiosk.IsEnabled()) then\n1466: \t\treturn;\n1467: \tend\n1468: \n1469: \tlocal inGameFriendsListDisabled = C_GameRules.IsGameRuleActive(Enum.GameRule.IngameFriendsListDisabled);\n1470: \tif not C_Glue.IsOnGlueScreen() and inGameFriendsListDisabled then\n1471: \t\treturn;\n1472: \tend\n1473: \n1474: \tif IsSocialUIReplacingFriendsFrame() then\n1475: \t\tlocal specificTabRequestedByUser = requestedTab ~= nil;\n1476: \t\tlocal preferRAFTabOverDefault = not specificTabRequestedByUser and C_RecruitAFriend.IsSystemEnabled() and HelpTip:IsShowing(QuickJoinToastButton, RAF_REWARD_TUTORIAL_TEXT);\n1477: \t\tif preferRAFTabOverDefault then\n1478: \t\t\tSocialUIControl.ToggleToTab(SocialUITabType.RecruitAFriend);\n1479: \t\t\treturn;\n1480: \t\tend\n1481: \n1482: \t\tlocal socialTab = requestedTab and FRIEND_TAB_TO_SOCIAL_TAB[requestedTab];\n1483: \t\tif socialTab then\n1484: \t\t\tSocialUIControl.ToggleToTab(socialTab);\n1485: \t\telseif not requestedTab then\n1486: \t\t\tSocialUIControl.Toggle();\n1487: \t\tend\n1488: \t\tif requestedTab == FRIEND_TAB_WHO then\n1489: \t\t\t-- Special case we want to drop down to the old Frame handling\n1490: \t\telse\n1491: \t\t\treturn;\n1492: \t\tend\n1493: \tend\n1494: \n1495: \tif ( not requestedTab ) then\n1496: \t\tif ( FriendsFrame:IsShown() ) then\n1497: \t\t\tHideUIPanel(FriendsFrame);\n1498: \t\telse\n1499: \t\t\tShowUIPanel(FriendsFrame);\n1500: \t\tend\n1501: \telse\n1502: \t\tif ( requestedTab == PanelTemplates_GetSelectedTab(FriendsFrame) and FriendsFrame:IsShown() ) then\n1503: \t\t\tHideUIPanel(FriendsFrame);\n1504: \t\t\treturn;\n1505: \t\tend\n1506: \t\tPanelTemplates_SetTab(FriendsFrame, requestedTab);\n1507: \t\tif ( FriendsFrame:IsShown() ) then\n1508: \t\t\tFriendsFrame_OnShow(FriendsFrame);\n1509: \t\telse\n1510: \t\t\tShowUIPanel(FriendsFrame);\n1511: \t\tend\n1512: \tend\n1513: end",
+        "contentHash": "2fc7e4b00f4b972002ff422b506f5f273bfc137a854e4788e6bd4b18d9dad639",
+        "line": 1464,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleGuildFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleGuildFrame",
+        "path": "Interface/AddOns/Blizzard_Game/Mainline/Game.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1: function ToggleGuildFrame()\n2: \tif DISALLOW_FRAME_TOGGLING then\n3: \t\treturn;\n4: \tend\n5: \n6: \tlocal factionGroup = UnitFactionGroup(\"player\");\n7: \tif factionGroup == \"Neutral\" then\n8: \t\treturn;\n9: \tend\n10: \n11: \tif IsCommunitiesUIDisabledByTrialAccount() then\n12: \t\tUIErrorsFrame:AddMessage(ERR_RESTRICTED_ACCOUNT_TRIAL, 1.0, 0.1, 0.1, 1.0);\n13: \t\treturn;\n14: \telseif C_Club.IsEnabled() then\n15: \t\tif not BNConnected() then\n16: \t\t\tUIErrorsFrame:AddMessage(ERR_GUILD_AND_COMMUNITIES_UNAVAILABLE, 1.0, 0.1, 0.1, 1.0);\n17: \t\t\treturn;\n18: \t\telseif C_Club.IsRestricted() ~= Enum.ClubRestrictionReason.None then\n19: \t\t\treturn;\n20: \t\tend\n21: \n22: \t\tToggleCommunitiesFrame();\n23: \telse\n24: \t\tToggleGuildFinder();\n25: \tend\n26: end",
+        "contentHash": "688ba7af2dd43e25b5f61aa52f40aa35d5dcdd6297b0e2fd7a3cb915a31d4c4b",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "PVEFrame_ToggleFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PVEFrame_ToggleFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "31: function PVEFrame_ToggleFrame(sidePanelName, selection)\n32: \tlocal canUse, failureReason = C_LFGInfo.CanPlayerUseGroupFinder();\n33: \tif ( not canUse or Kiosk.IsEnabled() ) then\n34: \t\treturn;\n35: \tend\n36: \tlocal self = PVEFrame;\n37: \tif ( self:IsShown() ) then\n38: \t\tif ( sidePanelName ) then\n39: \t\t\tlocal sidePanel = _G[sidePanelName];\n40: \t\t\tif ( sidePanel ) then\n41: \t\t\t\t--We know the panel is loaded, so try to dereference the selection\n42: \t\t\t\tif ( type(selection) == \"string\" ) then\n43: \t\t\t\t\tselection = _G[selection];\n44: \t\t\t\tend\n45: \t\t\t\tif ( sidePanel:IsShown() and (not selection or not sidePanel.getSelection or sidePanel:getSelection() == selection) ) then\n46: \t\t\t\t\tHideUIPanel(self);\n47: \t\t\t\t\treturn;\n48: \t\t\t\tend\n49: \t\t\tend\n50: \t\telse\n51: \t\t\tHideUIPanel(self);\n52: \t\t\treturn;\n53: \t\tend\n54: \tend\n55: \tPVEFrame_ShowFrame(sidePanelName, selection);\n56: end",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 31,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "PlayerSpellsUtil.OpenTo",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.OpenToClassTalentsTab",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "28: \tPet = 3,\n29: }\n30: \n31: function PlayerSpellsUtil.OpenToClassTalentsTab(inspectUnit)\n32: \tCheckLoadPlayerSpellsFrame();\n33: \tSetOrClearInspectUnit(inspectUnit);\n34: ",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 31,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.OpenToClassSpecializationsTab",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "37: \tend\n38: end\n39: \n40: function PlayerSpellsUtil.OpenToClassSpecializationsTab()\n41: \tCheckLoadPlayerSpellsFrame();\n42: \tPlayerSpellsFrame:ClearInspectUnit();\n43: ",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 40,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "PlayerSpellsUtil.FrameTabs",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "16: \n17: PlayerSpellsUtil = {};\n18: \n19: PlayerSpellsUtil.FrameTabs = {\n20: \tClassSpecializations = 1,\n21: \tClassTalents = 2,\n22: \tSpellBook = 3,",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 19,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_PlayerSpells/Blizzard_PlayerSpellsFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "16: \tself.spellBookTabID = self:AddNamedTab(TALENT_FRAME_TAB_LABEL_SPELLBOOK, self.SpellBookFrame);\n17: \n18: \tself.frameTabsToTabID = {\n19: \t\t[PlayerSpellsUtil.FrameTabs.ClassSpecializations] = self.specTabID,\n20: \t\t[PlayerSpellsUtil.FrameTabs.ClassTalents] = self.talentTabID,\n21: \t\t[PlayerSpellsUtil.FrameTabs.SpellBook] = self.spellBookTabID,\n22: \t};",
+        "contentHash": "67e8df4a178d2c9720b84ca10aa79810972fe951e4b5ba0da8e5011b74e4453f",
+        "line": 19,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetCollectionsJournalShown",
+    "results": [
+      {
+        "kind": "function",
+        "name": "SetCollectionsJournalShown",
+        "path": "Interface/AddOns/Blizzard_Collections/Blizzard_Collections_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "22: function SetCollectionsJournalShown(shown, tabIndex)\n23: \tif CollectionsJournal_LoadUI() then\n24: \t\tif shown then\n25: \t\t\tShowUIPanel(CollectionsJournal);\n26: \t\t\tif tabIndex then\n27: \t\t\t\tCollectionsJournal_SetTab(CollectionsJournal, tabIndex);\n28: \t\t\tend\n29: \t\telse\n30: \t\t\tHideUIPanel(CollectionsJournal);\n31: \t\tend\n32: \tend\n33: end",
+        "contentHash": "00c9331aeebcc1b98668b697fd11408b02bc5932d2a274561451a44cb6670788",
+        "line": 22,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Collections/Blizzard_Collections_Bootstrap.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "15: \tif CollectionsJournal or CollectionsJournal_LoadUI() then\n16: \t\tlocal tabMatches = not tabIndex or tabIndex == PanelTemplates_GetSelectedTab(CollectionsJournal);\n17: \t\tlocal isShown = CollectionsJournal:IsShown() and tabMatches;\n18: \t\tSetCollectionsJournalShown(not isShown, tabIndex);\n19: \tend\n20: end\n21: ",
+        "contentHash": "00c9331aeebcc1b98668b697fd11408b02bc5932d2a274561451a44cb6670788",
+        "line": 18,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "PVEFrame_ShowFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PVEFrame_ShowFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "74: function PVEFrame_ShowFrame(sidePanelName, selection)\n75: \tlocal self = PVEFrame;\n76: \t-- find side panel\n77: \tlocal tabIndex;\n78: \tif ( sidePanelName ) then\n79: \t\tfor index, data in pairs(panels) do\n80: \t\t\tif ( data.name == sidePanelName ) then\n81: \t\t\t\ttabIndex = index;\n82: \t\t\t\tbreak;\n83: \t\t\tend\n84: \t\tend\n85: \telse\n86: \t\t-- no side panel specified, check current panel\n87: \t\tif ( self.activeTabIndex ) then\n88: \t\t\ttabIndex = self.activeTabIndex;\n89: \t\telse\n90: \t\t\t-- no current panel, go to the first panel\n91: \t\t\ttabIndex = 1;\n92: \t\tend\n93: \tend\n94: \tif ( not tabIndex ) then\n95: \t\treturn;\n96: \tend\n97: \tif ( panels[tabIndex].check and not panels[tabIndex].check() ) then\n98: \t\ttabIndex = self.activeTabIndex or 1;\n99: \tend\n100: \n101: \t-- load addon if needed\n102: \tif ( panels[tabIndex].loadFunc ) then\n103: \t\tif not panels[tabIndex].loadFunc() then\n104: \t\t\treturn;\n105: \t\tend\n106: \t\tpanels[tabIndex].loadFunc = nil;\n107: \tend\n108: \n109: \t-- we've loaded the AddOn, so try to dereference the selection if needed\n110: \tif ( type(selection) == \"string\" ) then\n111: \t\tselection = _G[selection];\n112: \tend\n113: \n114: \t-- Hide the left panel if the panel doesn't need it\n115: \tif ( panels[tabIndex].hideLeftInset ) then\n116: \t\tPVEFrame_HideLeftInset();\n117: \telse\n118: \t\tPVEFrame_ShowLeftInset();\n119: \tend\n120: \n121: \t-- show it\n122: \tShowUIPanel(self);\n123: \tself.activeTabIndex = tabIndex;\n124: \tPanelTemplates_SetTab(self, tabIndex);\n125: \tif ( panels[tabIndex].width ) then\n126: \t\tself:SetWidth(panels[tabIndex].width);\n127: \telse\n128: \t\tself:SetWidth(PVE_FRAME_BASE_WIDTH);\n129: \tend\n130: \tUpdateUIPanelPositions(PVEFrame);\n131: \tfor index, data in pairs(panels) do\n132: \t\tlocal panel = _G[data.name];\n133: \t\tif ( index == tabIndex ) then\n134: \t\t\tpanel:Show();\n135: \t\t\tif( panel.update ) then\n136: \t\t\t\tpanel:update(selection);\n137: \t\t\tend\n138: \t\telseif ( panel ) then\n139: \t\t\tpanel:Hide();\n140: \t\tend\n141: \tend\n142: end",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 74,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "97: \telseif ( event == \"LFG_OPEN_FROM_GOSSIP\" ) then\n98: \t\tlocal dungeonID = ...;\n99: \t\tLFDFrame_DisplayDungeonByID(dungeonID);\n100: \t\tPVEFrame_ShowFrame(\"GroupFinderFrame\", LFDParentFrame);\n101: \n102: \t\t-- Force close gossip frame\n103: \t\tC_GossipInfo.CloseGossip();",
+        "contentHash": "c03b26beec8b070c5f5324997b2f6eed09be9f73f94d452aa408a7e7fa8def10",
+        "line": 100,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleWorldMap",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleWorldMap",
+        "path": "Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "576: function ToggleWorldMap()\n577: \tif C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) then\n578: \t\treturn;\n579: \tend\n580: \n581: \tWorldMapFrame:HandleUserActionToggleSelf();\n582: end",
+        "contentHash": "e10bc3edd4fbb6d34edf3658796dc73990257db3c1b9b3113686a72e365e30fa",
+        "line": 576,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "211: \n212: -- ------------------------------------------------------------------------------------------------------------\n213: function TutorialHelper:GetMapBinding()\n214: \treturn GetBindingKey(\"TOGGLEWORLDMAP\") or NPE_UNBOUND_KEYBIND;\n215: end\n216: \n217: -- ------------------------------------------------------------------------------------------------------------",
+        "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+        "line": 214,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "OpenQuestLog",
+    "results": [
+      {
+        "kind": "function",
+        "name": "OpenQuestLog",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestMapFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2082: function OpenQuestLog(mapID)\n2083: \tQuestMapFrame:GetParent():OnQuestLogOpen();\n2084: \tShowUIPanel(QuestMapFrame:GetParent());\n2085: \tQuestMapFrame_Open();\n2086: \n2087: \tif mapID then\n2088: \t\tQuestMapFrame:GetParent():SetMapID(mapID);\n2089: \tend\n2090: end",
+        "contentHash": "2f8f59e7790a3c90840cda05521897f98aee68a26cee6251db753401cf96492b",
+        "line": 2082,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "OpenQuestLog",
+        "path": "Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "592: function OpenQuestLog(mapID)\n593: \tif C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) then\n594: \t\treturn;\n595: \tend\n596: \n597: \tWorldMapFrame:HandleUserActionOpenQuestLog(mapID);\n598: end",
+        "contentHash": "e10bc3edd4fbb6d34edf3658796dc73990257db3c1b9b3113686a72e365e30fa",
+        "line": 592,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleCalendar",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleCalendar",
+        "path": "Interface/AddOns/Blizzard_Calendar/Blizzard_Calendar_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function ToggleCalendar()\n8: \tif Calendar_LoadUI() then\n9: \t\tCalendar_Toggle();\n10: \tend\n11: end",
+        "contentHash": "de3e9f4d57b891ff1d69952cf6d09a22bef26394ef45484fcf83eae7d3418874",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Calendar/Blizzard_Calendar_Bootstrap.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "4: \treturn LoadAddOnWithErrorHandling(AddonName);\n5: end\n6: \n7: function ToggleCalendar()\n8: \tif Calendar_LoadUI() then\n9: \t\tCalendar_Toggle();\n10: \tend",
+        "contentHash": "de3e9f4d57b891ff1d69952cf6d09a22bef26394ef45484fcf83eae7d3418874",
+        "line": 7,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleEncounterJournal",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleEncounterJournal",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Blizzard_EncounterJournal_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "11: function ToggleEncounterJournal()\n12: \tif EncounterJournal_LoadUI() then\n13: \t\tToggleFrame(EncounterJournal);\n14: \t\treturn true;\n15: \tend\n16: \treturn false;\n17: end",
+        "contentHash": "7f1b335a819dde6d2c62142f4e4e23a63128f96a5942c0bf9f483942ba176cda",
+        "line": 11,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Blizzard_EncounterJournal_Bootstrap.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "8: \treturn AdventureGuideUtil.IsAvailable();\n9: end\n10: \n11: function ToggleEncounterJournal()\n12: \tif EncounterJournal_LoadUI() then\n13: \t\tToggleFrame(EncounterJournal);\n14: \t\treturn true;",
+        "contentHash": "7f1b335a819dde6d2c62142f4e4e23a63128f96a5942c0bf9f483942ba176cda",
+        "line": 11,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleProfessionsBook",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleProfessionsBook",
+        "path": "Interface/AddOns/Blizzard_ProfessionsBook/Blizzard_ProfessionsBook_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function ToggleProfessionsBook()\n8: \tif ProfessionsBook_LoadUI() then\n9: \t\tToggleFrame(ProfessionsBookFrame);\n10: \tend\n11: end",
+        "contentHash": "9d89743f0d711deb65988b95e7df2e3d81e9040fcb64315d61aaa781e1de3f39",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_FrameXML/Bindings_Standard.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1236: \t\tPlayerSpellsUtil.ToggleSpellBookFrame();\n1237: \t</Binding>\n1238: \t<Binding name=\"TOGGLEPROFESSIONBOOK\" ignoreInKioskMode=\"true\" category=\"BINDING_HEADER_INTERFACE\">\n1239: \t\tToggleProfessionsBook();\n1240: \t</Binding>\n1241: \t<Binding name=\"TOGGLEPETBOOK\" ignoreInKioskMode=\"true\" category=\"BINDING_HEADER_INTERFACE\">\n1242: \t\tPlayerSpellsUtil.ToggleSpellBookFrame(PlayerSpellsUtil.SpellBookCategories.Pet);",
+        "contentHash": "475f4491242960227ce9c6e4275685ea497dfa89c49cc5504936202055ea49e5",
+        "line": 1239,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ToggleGameMenu",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleGameMenu",
+        "path": "Interface/AddOns/Blizzard_GameMenuEsc/Blizzard_GameMenuEsc.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "109: function ToggleGameMenu()\n110: \tif not TryHandleGameMenuEsc() and GameMenuFrame_Show then\n111: \t\tGameMenuFrame_Show();\n112: \tend\n113: end",
+        "contentHash": "79af4c01bb0025401e581d61fdc049be79369711f0aa4942a8d41f496218a49c",
+        "line": 109,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ColorPickerFrame/Mainline/ColorPickerFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "72: end\n73: \n74: function ColorPickerFrameMixin:OnKeyDown(key)\n75: \tif GetBindingFromClick(key) == \"TOGGLEGAMEMENU\" then\n76: \t\tif self.cancelFunc then\n77: \t\t\tself.cancelFunc(self.previousValues);\n78: \t\tend",
+        "contentHash": "99a80d7e1b9b21bec9bac79451e1bdbf03ef3e4585690caa2e932507e7d6b1e7",
+        "line": 75,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "ShowMacroFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ShowMacroFrame",
+        "path": "Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroUI_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function ShowMacroFrame()\n8: \tif MacroFrame_LoadUI() then\n9: \t\tMacroFrame_Show();\n10: \tend\n11: end",
+        "contentHash": "210e953a78a1b02d996e0b39ea48d117d3ade2446a4ab868c0c0d05af6473e10",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ChatFrameBase/Mainline/ChatFrameMenuButton.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "112: \t\t\t\t\t\treturn;\n113: \t\t\t\t\tend\n114: \n115: \t\t\t\t\tShowMacroFrame();\n116: \t\t\t\tend);\n117: \t\t\t\tAddSlashInitializer(macroButton, SLASH_MACRO1);\n118: \t\t\tend",
+        "contentHash": "dc7b992ac763662c0014cca6ff35d081f128c532da63aa508ed158799e501da2",
+        "line": 115,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "Settings.OpenToCategory",
+    "results": [
+      {
+        "kind": "function",
+        "name": "Settings.OpenToCategory",
+        "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "143: function Settings.OpenToCategory(categoryID, scrollToElementName)\n144: \tC_SettingsUtil.OpenSettingsPanel(categoryID, scrollToElementName);\n145: end",
+        "contentHash": "3ce23f05b171c12a1a3a71596892def5bc0ee7153bedabc00d153f306d1d85a6",
+        "line": 143,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Channels/ChannelFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "412: end\n413: \n414: function ChannelFrameMixin:ToggleVoiceSettings()\n415: \tSettings.OpenToCategory(Settings.AUDIO_CATEGORY_ID);\n416: end\n417: \n418: -- Channel remains, but appears disabled",
+        "contentHash": "34f056ce1aebac1133a04ed473a3bfdf169e84d4e347ce57bf2ba6cd79beb78d",
+        "line": 415,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-structure",
+        "name": "C_CurrencyInfo.CurrencyInfo",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/CurrencyInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "681: \t\t\tName = \"CurrencyInfo\",\n682: \t\t\tType = \"Structure\",\n683: \t\t\tFields =\n684: \t\t\t{\n685: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n686: \t\t\t\t{ Name = \"description\", Type = \"cstring\", Nilable = false },\n687: \t\t\t\t{ Name = \"currencyID\", Type = \"number\", Nilable = false },\n688: \t\t\t\t{ Name = \"isHeader\", Type = \"bool\", Nilable = false },\n689: \t\t\t\t{ Name = \"isHeaderExpanded\", Type = \"bool\", Nilable = false },\n690: \t\t\t\t{ Name = \"currencyListDepth\", Type = \"number\", Nilable = false },\n691: \t\t\t\t{ Name = \"isTypeUnused\", Type = \"bool\", Nilable = false },\n692: \t\t\t\t{ Name = \"isShowInBackpack\", Type = \"bool\", Nilable = false },\n693: \t\t\t\t{ Name = \"quantity\", Type = \"number\", Nilable = false },\n694: \t\t\t\t{ Name = \"trackedQuantity\", Type = \"number\", Nilable = false },\n695: \t\t\t\t{ Name = \"iconFileID\", Type = \"fileID\", Nilable = false },\n696: \t\t\t\t{ Name = \"maxQuantity\", Type = \"number\", Nilable = false },\n697: \t\t\t\t{ Name = \"canEarnPerWeek\", Type = \"bool\", Nilable = false },\n698: \t\t\t\t{ Name = \"quantityEarnedThisWeek\", Type = \"number\", Nilable = false },\n699: \t\t\t\t{ Name = \"isTradeable\", Type = \"bool\", Nilable = false },\n700: \t\t\t\t{ Name = \"quality\", Type = \"ItemQuality\", Nilable = false },\n701: \t\t\t\t{ Name = \"maxWeeklyQuantity\", Type = \"number\", Nilable = false },\n702: \t\t\t\t{ Name = \"totalEarned\", Type = \"number\", Nilable = false },\n703: \t\t\t\t{ Name = \"discovered\", Type = \"bool\", Nilable = false },\n704: \t\t\t\t{ Name = \"useTotalEarnedForMaxQty\", Type = \"bool\", Nilable = false },\n705: \t\t\t\t{ Name = \"isAccountWide\", Type = \"bool\", Nilable = false },\n706: \t\t\t\t{ Name = \"isAccountTransferable\", Type = \"bool\", Nilable = false },\n707: \t\t\t\t{ Name = \"transferPercentage\", Type = \"number\", Nilable = true },\n708: \t\t\t\t{ Name = \"rechargingCycleDurationMS\", Type = \"number\", Nilable = false },\n709: \t\t\t\t{ Name = \"rechargingAmountPerCycle\", Type = \"number\", Nilable = false },\n710: \t\t\t},\n711: \t\t},",
+        "contentHash": "f7feddcd3f76014e0f888773e94ace12234f1b58fab0adcae74227691c24e665",
+        "line": 681,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "currencyInfo",
+        "path": "Interface/AddOns/Blizzard_WowTokenUI/Blizzard_WowTokenUI.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "67: \t}\n68: };\n69: \n70: local function currencyInfo()\n71: \tlocal currencyInfo = C_StoreSecure.GetCurrencyInfo();\n72: \tFormatCurrencyStringShort = currencyInfo.sharedData.formatShort;\n73: \tFormatCurrencyStringLong = currencyInfo.sharedData.formatLong;",
+        "contentHash": "8b0db80e3437e8f052f69d01b411d1d87f2bc34d3c7167fca3e5f439550c4a9e",
+        "line": 70,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "CurrencyInfo",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-event",
+        "name": "C_CurrencyInfo.CurrencyDisplayUpdate",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/CurrencyInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "593: \t\t\tName = \"CurrencyDisplayUpdate\",\n594: \t\t\tType = \"Event\",\n595: \t\t\tLiteralName = \"CURRENCY_DISPLAY_UPDATE\",\n596: \t\t\tSynchronousEvent = true,\n597: \t\t\tPayload =\n598: \t\t\t{\n599: \t\t\t\t{ Name = \"currencyType\", Type = \"number\", Nilable = true },\n600: \t\t\t\t{ Name = \"quantity\", Type = \"number\", Nilable = true },\n601: \t\t\t\t{ Name = \"quantityChange\", Type = \"number\", Nilable = true },\n602: \t\t\t\t{ Name = \"quantityGainSource\", Type = \"number\", Nilable = true },\n603: \t\t\t\t{ Name = \"destroyReason\", Type = \"number\", Nilable = true },\n604: \t\t\t},\n605: \t\t},",
+        "contentHash": "f7feddcd3f76014e0f888773e94ace12234f1b58fab0adcae74227691c24e665",
+        "line": 593,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/CurrencyInfoDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "590: \t\t\tSynchronousEvent = true,\n591: \t\t},\n592: \t\t{\n593: \t\t\tName = \"CurrencyDisplayUpdate\",\n594: \t\t\tType = \"Event\",\n595: \t\t\tLiteralName = \"CURRENCY_DISPLAY_UPDATE\",\n596: \t\t\tSynchronousEvent = true,",
+        "contentHash": "f7feddcd3f76014e0f888773e94ace12234f1b58fab0adcae74227691c24e665",
+        "line": 593,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "CurrencyDisplayUpdate",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.OpenToSpellBookTab",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "49: function PlayerSpellsUtil.OpenToSpellBookTab()\n50: \tCheckLoadPlayerSpellsFrame();\n51: \tPlayerSpellsFrame:ClearInspectUnit();\n52: \n53: \tif PlayerSpellsFrame:TrySetTab(PlayerSpellsUtil.FrameTabs.SpellBook) then\n54: \t\tShowUIPanel(PlayerSpellsFrame);\n55: \tend\n56: end",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 49,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.OpenToSpellBookTabAtSpell",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "55: \tend\n56: end\n57: \n58: function PlayerSpellsUtil.OpenToSpellBookTabAtSpell(spellID, knownSpellsOnly, toggleFlyout, flyoutReason)\n59: \tCheckLoadPlayerSpellsFrame();\n60: \tPlayerSpellsFrame:ClearInspectUnit();\n61: ",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 58,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "PlayerSpellsUtil.OpenToSpellBookTab",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.OpenToClassTalentsTab",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "31: function PlayerSpellsUtil.OpenToClassTalentsTab(inspectUnit)\n32: \tCheckLoadPlayerSpellsFrame();\n33: \tSetOrClearInspectUnit(inspectUnit);\n34: \n35: \tif PlayerSpellsFrame:TrySetTab(PlayerSpellsUtil.FrameTabs.ClassTalents) then\n36: \t\tShowUIPanel(PlayerSpellsFrame);\n37: \tend\n38: end",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 31,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "PlayerSpellsUtil.OpenToClassTalentsTab",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PlayerSpellsUtil.OpenToClassSpecializationsTab",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "40: function PlayerSpellsUtil.OpenToClassSpecializationsTab()\n41: \tCheckLoadPlayerSpellsFrame();\n42: \tPlayerSpellsFrame:ClearInspectUnit();\n43: \n44: \tif PlayerSpellsFrame:TrySetTab(PlayerSpellsUtil.FrameTabs.ClassSpecializations) then\n45: \t\tShowUIPanel(PlayerSpellsFrame);\n46: \tend\n47: end",
+        "contentHash": "2d31e4d32b71acd5cd12cc00e1d0eb8f36acdf25f504c2446ef6e619f3d01a4b",
+        "line": 40,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "PlayerSpellsUtil.OpenToClassSpecializationsTab",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "SetCollectionsJournalShown",
+        "path": "Interface/AddOns/Blizzard_Collections/Blizzard_Collections_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "22: function SetCollectionsJournalShown(shown, tabIndex)\n23: \tif CollectionsJournal_LoadUI() then\n24: \t\tif shown then\n25: \t\t\tShowUIPanel(CollectionsJournal);\n26: \t\t\tif tabIndex then\n27: \t\t\t\tCollectionsJournal_SetTab(CollectionsJournal, tabIndex);\n28: \t\t\tend\n29: \t\telse\n30: \t\t\tHideUIPanel(CollectionsJournal);\n31: \t\tend\n32: \tend\n33: end",
+        "contentHash": "00c9331aeebcc1b98668b697fd11408b02bc5932d2a274561451a44cb6670788",
+        "line": 22,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "SetCollectionsJournalShown",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "GameMenuFrame_Show",
+        "path": "Interface/AddOns/Blizzard_GameMenu/Shared/GameMenuFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "38: function GameMenuFrame_Show()\n39: \tPlaySound(SOUNDKIT.IG_MAINMENU_OPEN);\n40: \tShowUIPanel(GameMenuFrame);\n41: end",
+        "contentHash": "4f2ab779291a09cd5b825047e83674b57bf8d143a87f6a1d8f7076b69408bd65",
+        "line": 38,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "GameMenuFrame_Show",
+    "product": "retail"
+  },
+  {
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EncounterJournal_LoadUI",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Blizzard_EncounterJournal_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "3: function EncounterJournal_LoadUI()\n4: \treturn LoadAddOnWithErrorHandling(AddonName);\n5: end",
+        "contentHash": "7f1b335a819dde6d2c62142f4e4e23a63128f96a5942c0bf9f483942ba176cda",
+        "line": 3,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "requestedRef": "latest",
+    "term": "EncounterJournal_LoadUI",
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "CollectionsJournal_SetTab",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "CollectionsJournal_SetTab",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_Collections.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "3: function CollectionsJournal_SetTab(self, tab)\n4: \tPanelTemplates_SetTab(self, tab);\n5: \tSetCVar(\"petJournalTab\", tab);\n6: \tCollectionsJournal_UpdateSelectedTab(self);\n7: end",
+        "contentHash": "ceedd15e09aefe1af9e113e5faba659a401eff946a5c3a7461efea6a714aac4a",
+        "line": 3,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "PaperDollFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "PaperDollFrame",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/PaperDollFrame.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "454: \t\t</Scripts>\n455: \t</Button>\n456: \n457:     <Frame name=\"PaperDollFrame\" setAllPoints=\"true\" enableMouse=\"true\" parent=\"CharacterFrame\" useParentLevel=\"true\" id=\"1\">\n458: \t\t\t<Layers>\n459: \t\t\t\t<Layer level=\"ARTWORK\">\n460: \t\t\t\t\t<FontString name=\"CharacterLevelText\" inherits=\"GameFontNormalSmall2\" justifyV=\"MIDDLE\" justifyH=\"CENTER\" text=\"Level level race class\">",
+        "contentHash": "cc066169c65f001741a65588a7c23d4bd0105cabaf54fcc358706aa176382d2f",
+        "line": 457,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PaperDollFrame_OnLoad",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/PaperDollFrame.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "305: \n306: DUAL_WIELD_HIT_PENALTY = 19.0;\n307: \n308: function PaperDollFrame_OnLoad(self)\n309: \tself:RegisterEvent(\"PLAYER_ENTERING_WORLD\");\n310: \tself:RegisterEvent(\"CHARACTER_POINTS_CHANGED\");\n311: \tself:RegisterEvent(\"UNIT_LEVEL\");",
+        "contentHash": "da1aee2c1c18dc6f7cbdd594545f6ec75f2fa5fd0ebcdae28c56fea0ee2b3905",
+        "line": 308,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "TokenFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "TokenFrame",
+        "path": "Interface/AddOns/Blizzard_TokenUI/Blizzard_TokenUI.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "131: \t\t</Scripts>\n132: \t</Button>\n133: \n134: \t<Frame name=\"TokenFrame\" parentKey=\"TokenFrame\" setAllPoints=\"true\" parent=\"CharacterFrame\" useParentLevel=\"true\" enableMouse=\"true\" mixin=\"TokenFrameMixin\" hidden=\"true\" id=\"3\">\n135: \t\t<Frames>\n136: \t\t\t<Frame parentKey=\"ScrollBox\" inherits=\"WowScrollBoxList\" frameStrata=\"HIGH\">\n137: \t\t\t\t<Anchors>",
+        "contentHash": "0d1c7dcb73dc5609dc8a3c0c26744b0d20b3562bce6fa2732bdd921123218db7",
+        "line": 134,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "TokenFrameMixin:OnLoad",
+        "path": "Interface/AddOns/Blizzard_TokenUI/Blizzard_TokenUI.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "232: \n233: TokenFrameMixin = {};\n234: \n235: function TokenFrameMixin:OnLoad()\n236: \tlocal view = CreateScrollBoxListLinearView();\n237: \n238: \tlocal function Initializer(button, elementData)",
+        "contentHash": "738157dd2bd341031c76a7d9a307c7ca6e3dd77b6c0c28d8bc1c9b6029929782",
+        "line": 235,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "ReputationFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "ReputationFrame",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ReputationFrame.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "245: \t\t</Scripts>\n246: \t</Button>\n247: \n248: \t<Frame name=\"ReputationFrame\" setAllPoints=\"true\" enableMouse=\"true\" parent=\"CharacterFrame\" useParentLevel=\"true\" mixin=\"ReputationFrameMixin\" hidden=\"true\" id=\"2\">\n249: \t\t<Frames>\n250: \t\t\t<DropdownButton parentKey=\"filterDropdown\" inherits=\"WowStyle1DropdownTemplate\">\n251: \t\t\t\t<Anchors>",
+        "contentHash": "7228754d4ec05cbf7827c896c219325bd207b8caa9f088fa7c71ce5c9897213c",
+        "line": 248,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "ReputationFrameMixin:OnLoad",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ReputationFrame.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "24: \n25: ReputationFrameMixin = {};\n26: \n27: function ReputationFrameMixin:OnLoad()\n28: \tlocal view = CreateScrollBoxListLinearView();\n29: \n30: \tlocal function Initializer(button, elementData)",
+        "contentHash": "ee3b69c33d0aea814098de8665e8d5e89c23e56e609a89b5d4fbdd7368be275b",
+        "line": 27,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "Settings.OpenToCategory",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "Settings.OpenToCategory",
+        "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "143: function Settings.OpenToCategory(categoryID, scrollToElementName)\n144: \tC_SettingsUtil.OpenSettingsPanel(categoryID, scrollToElementName);\n145: end",
+        "contentHash": "3ce23f05b171c12a1a3a71596892def5bc0ee7153bedabc00d153f306d1d85a6",
+        "line": 143,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "SettingsPanel:Open",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GameMenu/WoWLabs/GameMenuFrame.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "23: \t\t\t\t\t</OnShow>\n24: \t\t\t\t\t<OnClick>\n25: \t\t\t\t\t\tPlaySound(SOUNDKIT.IG_MAINMENU_OPTION);\n26: \t\t\t\t\t\tSettingsPanel:Open();\n27: \t\t\t\t\t</OnClick>\n28: \t\t\t\t</Scripts>\n29: \t\t\t</Button>",
+        "contentHash": "155aae86793e00675d51fefc9e623b631de443e92667eba8175dac30bf8ecb1c",
+        "line": 26,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_QuickKeybind/QuickKeybind.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "161: \n162: \tif not EditModeManagerFrame:ShowIfActive() then\n163: \t\tif not GameMenuFrame:IsShown() then\n164: \t\t\tSettingsPanel:Open();\n165: \t\tend\n166: \tend\n167: ",
+        "contentHash": "eb946b2beb0192b6ae2bbb7be17903b8a877383925571a173e4ca4f4432f8c77",
+        "line": 164,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "PVEFrame_ShowFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PVEFrame_ShowFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "74: function PVEFrame_ShowFrame(sidePanelName, selection)\n75: \tlocal self = PVEFrame;\n76: \t-- find side panel\n77: \tlocal tabIndex;\n78: \tif ( sidePanelName ) then\n79: \t\tfor index, data in pairs(panels) do\n80: \t\t\tif ( data.name == sidePanelName ) then\n81: \t\t\t\ttabIndex = index;\n82: \t\t\t\tbreak;\n83: \t\t\tend\n84: \t\tend\n85: \telse\n86: \t\t-- no side panel specified, check current panel\n87: \t\tif ( self.activeTabIndex ) then\n88: \t\t\ttabIndex = self.activeTabIndex;\n89: \t\telse\n90: \t\t\t-- no current panel, go to the first panel\n91: \t\t\ttabIndex = 1;\n92: \t\tend\n93: \tend\n94: \tif ( not tabIndex ) then\n95: \t\treturn;\n96: \tend\n97: \tif ( panels[tabIndex].check and not panels[tabIndex].check() ) then\n98: \t\ttabIndex = self.activeTabIndex or 1;\n99: \tend\n100: \n101: \t-- load addon if needed\n102: \tif ( panels[tabIndex].loadFunc ) then\n103: \t\tif not panels[tabIndex].loadFunc() then\n104: \t\t\treturn;\n105: \t\tend\n106: \t\tpanels[tabIndex].loadFunc = nil;\n107: \tend\n108: \n109: \t-- we've loaded the AddOn, so try to dereference the selection if needed\n110: \tif ( type(selection) == \"string\" ) then\n111: \t\tselection = _G[selection];\n112: \tend\n113: \n114: \t-- Hide the left panel if the panel doesn't need it\n115: \tif ( panels[tabIndex].hideLeftInset ) then\n116: \t\tPVEFrame_HideLeftInset();\n117: \telse\n118: \t\tPVEFrame_ShowLeftInset();\n119: \tend\n120: \n121: \t-- show it\n122: \tShowUIPanel(self);\n123: \tself.activeTabIndex = tabIndex;\n124: \tPanelTemplates_SetTab(self, tabIndex);\n125: \tif ( panels[tabIndex].width ) then\n126: \t\tself:SetWidth(panels[tabIndex].width);\n127: \telse\n128: \t\tself:SetWidth(PVE_FRAME_BASE_WIDTH);\n129: \tend\n130: \tUpdateUIPanelPositions(PVEFrame);\n131: \tfor index, data in pairs(panels) do\n132: \t\tlocal panel = _G[data.name];\n133: \t\tif ( index == tabIndex ) then\n134: \t\t\tpanel:Show();\n135: \t\t\tif( panel.update ) then\n136: \t\t\t\tpanel:update(selection);\n137: \t\t\tend\n138: \t\telseif ( panel ) then\n139: \t\t\tpanel:Hide();\n140: \t\tend\n141: \tend\n142: end",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 74,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "PVEFrame_ToggleFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PVEFrame_ToggleFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "31: function PVEFrame_ToggleFrame(sidePanelName, selection)\n32: \tlocal canUse, failureReason = C_LFGInfo.CanPlayerUseGroupFinder();\n33: \tif ( not canUse or Kiosk.IsEnabled() ) then\n34: \t\treturn;\n35: \tend\n36: \tlocal self = PVEFrame;\n37: \tif ( self:IsShown() ) then\n38: \t\tif ( sidePanelName ) then\n39: \t\t\tlocal sidePanel = _G[sidePanelName];\n40: \t\t\tif ( sidePanel ) then\n41: \t\t\t\t--We know the panel is loaded, so try to dereference the selection\n42: \t\t\t\tif ( type(selection) == \"string\" ) then\n43: \t\t\t\t\tselection = _G[selection];\n44: \t\t\t\tend\n45: \t\t\t\tif ( sidePanel:IsShown() and (not selection or not sidePanel.getSelection or sidePanel:getSelection() == selection) ) then\n46: \t\t\t\t\tHideUIPanel(self);\n47: \t\t\t\t\treturn;\n48: \t\t\t\tend\n49: \t\t\tend\n50: \t\telse\n51: \t\t\tHideUIPanel(self);\n52: \t\t\treturn;\n53: \t\tend\n54: \tend\n55: \tPVEFrame_ShowFrame(sidePanelName, selection);\n56: end",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 31,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "ToggleFriendsFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleFriendsFrame",
+        "path": "Interface/AddOns/Blizzard_FriendsFrame/Mainline/FriendsFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1464: function ToggleFriendsFrame(requestedTab)\n1465: \tif (Kiosk.IsEnabled()) then\n1466: \t\treturn;\n1467: \tend\n1468: \n1469: \tlocal inGameFriendsListDisabled = C_GameRules.IsGameRuleActive(Enum.GameRule.IngameFriendsListDisabled);\n1470: \tif not C_Glue.IsOnGlueScreen() and inGameFriendsListDisabled then\n1471: \t\treturn;\n1472: \tend\n1473: \n1474: \tif IsSocialUIReplacingFriendsFrame() then\n1475: \t\tlocal specificTabRequestedByUser = requestedTab ~= nil;\n1476: \t\tlocal preferRAFTabOverDefault = not specificTabRequestedByUser and C_RecruitAFriend.IsSystemEnabled() and HelpTip:IsShowing(QuickJoinToastButton, RAF_REWARD_TUTORIAL_TEXT);\n1477: \t\tif preferRAFTabOverDefault then\n1478: \t\t\tSocialUIControl.ToggleToTab(SocialUITabType.RecruitAFriend);\n1479: \t\t\treturn;\n1480: \t\tend\n1481: \n1482: \t\tlocal socialTab = requestedTab and FRIEND_TAB_TO_SOCIAL_TAB[requestedTab];\n1483: \t\tif socialTab then\n1484: \t\t\tSocialUIControl.ToggleToTab(socialTab);\n1485: \t\telseif not requestedTab then\n1486: \t\t\tSocialUIControl.Toggle();\n1487: \t\tend\n1488: \t\tif requestedTab == FRIEND_TAB_WHO then\n1489: \t\t\t-- Special case we want to drop down to the old Frame handling\n1490: \t\telse\n1491: \t\t\treturn;\n1492: \t\tend\n1493: \tend\n1494: \n1495: \tif ( not requestedTab ) then\n1496: \t\tif ( FriendsFrame:IsShown() ) then\n1497: \t\t\tHideUIPanel(FriendsFrame);\n1498: \t\telse\n1499: \t\t\tShowUIPanel(FriendsFrame);\n1500: \t\tend\n1501: \telse\n1502: \t\tif ( requestedTab == PanelTemplates_GetSelectedTab(FriendsFrame) and FriendsFrame:IsShown() ) then\n1503: \t\t\tHideUIPanel(FriendsFrame);\n1504: \t\t\treturn;\n1505: \t\tend\n1506: \t\tPanelTemplates_SetTab(FriendsFrame, requestedTab);\n1507: \t\tif ( FriendsFrame:IsShown() ) then\n1508: \t\t\tFriendsFrame_OnShow(FriendsFrame);\n1509: \t\telse\n1510: \t\t\tShowUIPanel(FriendsFrame);\n1511: \t\tend\n1512: \tend\n1513: end",
+        "contentHash": "2fc7e4b00f4b972002ff422b506f5f273bfc137a854e4788e6bd4b18d9dad639",
+        "line": 1464,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "requestedRef": "latest",
+    "sourceId": "wow-ui-source",
+    "term": "ToggleGuildFrame",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleGuildFrame",
+        "path": "Interface/AddOns/Blizzard_Game/Classic/Game.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1: function ToggleGuildFrame()\n2: \tif Kiosk.IsEnabled() then\n3: \t\treturn;\n4: \tend\n5: \n6: \tif C_CVar.GetCVarBool(\"useClassicGuildUI\") then\n7: \t\tToggleFriendsFrame(FRIEND_TAB_GUILD);\n8: \t\treturn;\n9: \tend\n10: \n11: \tif UnitFactionGroup(\"player\") == \"Neutral\" then\n12: \t\treturn;\n13: \tend\n14: \n15: \tif IsCommunitiesUIDisabledByTrialAccount() then\n16: \t\tUIErrorsFrame:AddMessage(ERR_RESTRICTED_ACCOUNT_TRIAL, 1.0, 0.1, 0.1, 1.0);\n17: \telseif C_Club.IsEnabled() then\n18: \t\tif not BNConnected() then\n19: \t\t\tUIErrorsFrame:AddMessage(ERR_GUILD_AND_COMMUNITIES_UNAVAILABLE, 1.0, 0.1, 0.1, 1.0);\n20: \t\telseif C_Club.IsRestricted() == Enum.ClubRestrictionReason.None then\n21: \t\t\tToggleCommunitiesFrame();\n22: \t\tend\n23: \tend\n24: end",
+        "contentHash": "cb1248320369059a352cc70767f10667417a0bbdd36492f301386139fb0a2ccd",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "ToggleGuildFrame",
+        "path": "Interface/AddOns/Blizzard_Game/Mainline/Game.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1: function ToggleGuildFrame()\n2: \tif DISALLOW_FRAME_TOGGLING then\n3: \t\treturn;\n4: \tend\n5: \n6: \tlocal factionGroup = UnitFactionGroup(\"player\");\n7: \tif factionGroup == \"Neutral\" then\n8: \t\treturn;\n9: \tend\n10: \n11: \tif IsCommunitiesUIDisabledByTrialAccount() then\n12: \t\tUIErrorsFrame:AddMessage(ERR_RESTRICTED_ACCOUNT_TRIAL, 1.0, 0.1, 0.1, 1.0);\n13: \t\treturn;\n14: \telseif C_Club.IsEnabled() then\n15: \t\tif not BNConnected() then\n16: \t\t\tUIErrorsFrame:AddMessage(ERR_GUILD_AND_COMMUNITIES_UNAVAILABLE, 1.0, 0.1, 0.1, 1.0);\n17: \t\t\treturn;\n18: \t\telseif C_Club.IsRestricted() ~= Enum.ClubRestrictionReason.None then\n19: \t\t\treturn;\n20: \t\tend\n21: \n22: \t\tToggleCommunitiesFrame();\n23: \telse\n24: \t\tToggleGuildFinder();\n25: \tend\n26: end",
+        "contentHash": "688ba7af2dd43e25b5f61aa52f40aa35d5dcdd6297b0e2fd7a3cb915a31d4c4b",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "product": "retail",
+    "term": "CollectionsJournal_UpdateSelectedTab",
+    "results": [
+      {
+        "kind": "function",
+        "name": "CollectionsJournal_UpdateSelectedTab",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_Collections.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "35: function CollectionsJournal_UpdateSelectedTab(self)\n36: \tlocal selected = CollectionsJournal_GetTab(self);\n37: \n38: \tif (not CollectionsJournal_ValidateTab(selected)) then\n39: \t\tPanelTemplates_SetTab(self, 1);\n40: \t\tselected = 1;\n41: \tend\n42: \n43: \tMountJournal:SetShown(selected == 1);\n44: \tPetJournal:SetShown(selected == 2);\n45: \tToyBox:SetShown(selected == 3);\n46: \tHeirloomsJournal:SetShown(selected == 4);\n47: \tWardrobeCollectionFrame:SetShown(selected == 5);\n48: \tWarbandSceneJournal:SetShown(selected == 6);\n49: \n50: \tself:SetTitle(GetTitleText(selected));\n51: \n52:     EventRegistry:TriggerEvent(\"CollectionsJournal.TabSet\", CollectionsJournal, selected);\n53: end",
+        "contentHash": "ceedd15e09aefe1af9e113e5faba659a401eff946a5c3a7461efea6a714aac4a",
+        "line": 35,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "SocialUIControl.IsShown",
+    "results": null,
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "C_SettingsUtil.OpenSettingsPanel",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_SettingsUtil.OpenSettingsPanel",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SettingsUtilDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "15: \t\t\tName = \"OpenSettingsPanel\",\n16: \t\t\tType = \"Function\",\n17: \t\t\tHasRestrictions = true,\n18: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n19: \n20: \t\t\tArguments =\n21: \t\t\t{\n22: \t\t\t\t{ Name = \"openToCategoryID\", Type = \"number\", Nilable = true },\n23: \t\t\t\t{ Name = \"scrollToElementName\", Type = \"stringView\", Nilable = true },\n24: \t\t\t},\n25: \t\t},",
+        "contentHash": "8d44c8633cb0eb0010ba0154003fe102815426f100df138a75d01ec6ec20992a",
+        "line": 15,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "EncounterJournal_OpenJournal",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EncounterJournal_OpenJournal",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2301: function EncounterJournal_OpenJournal(difficultyID, instanceID, encounterID, sectionID, creatureID, itemID, tierIndex)\n2302: \tShowUIPanel(EncounterJournal);\n2303: \tif instanceID then\n2304: \t\tNavBar_Reset(EncounterJournal.navBar);\n2305: \t\tEJ_ContentTab_SelectAppropriateInstanceTab(instanceID);\n2306: \n2307: \t\tEncounterJournal_DisplayInstance(instanceID);\n2308: \n2309: \t\tif difficultyID then\n2310: \t\t\tEJ_SetDifficulty(difficultyID);\n2311: \t\tend\n2312: \n2313: \t\tif encounterID then\n2314: \t\t\tif sectionID then\n2315: \t\t\t\tif (EncounterJournal_CheckForOverview(sectionID)) then\n2316: \t\t\t\t\tEncounterJournal.encounter.overviewFrame.linkSection = sectionID;\n2317: \t\t\t\telse\n2318: \t\t\t\t\tlocal sectionPath = {EJ_GetSectionPath(sectionID)};\n2319: \t\t\t\t\tfor _, id in pairs(sectionPath) do\n2320: \t\t\t\t\t\tEJ_section_openTable[id] = true;\n2321: \t\t\t\t\tend\n2322: \t\t\t\tend\n2323: \t\t\tend\n2324: \t\t\tEncounterJournal_DisplayEncounter(encounterID);\n2325: \t\tend\n2326: \t\tif sectionID then\n2327: \t\t\tif (EncounterJournal_CheckForOverview(sectionID) or not EncounterJournal_SearchForOverview(instanceID)) then\n2328: \t\t\t\tEncounterJournal.encounter.info.overviewTab:Click();\n2329: \t\t\telse\n2330: \t\t\t\tEncounterJournal.encounter.info.bossTab:Click();\n2331: \t\t\tend\n2332: \t\t\tEncounterJournal_FocusSection(sectionID);\n2333: \t\telseif itemID then\n2334: \t\t\tEncounterJournal.encounter.info.lootTab:Click();\n2335: \t\tend\n2336: \telseif tierIndex then\n2337: \t\tEncounterJournal_TierDropdown_Select(EncounterJournal, tierIndex+1);\n2338: \telse\n2339: \t\tEncounterJournal_ListInstances();\n2340: \tend\n2341: end",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2301,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EncounterJournal_OpenJournal",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2738: function EncounterJournal_OpenJournal(difficultyID, instanceID, encounterID, sectionID, creatureID, itemID, tierIndex)\n2739: \tEJ_HideNonInstancePanels();\n2740: \tShowUIPanel(EncounterJournal);\n2741: \tif instanceID then\n2742: \t\tNavBar_Reset(EncounterJournal.navBar);\n2743: \t\tEJ_ContentTab_SelectAppropriateInstanceTab(instanceID);\n2744: \n2745: \t\tEncounterJournal_DisplayInstance(instanceID);\n2746: \n2747: \t\tif difficultyID then\n2748: \t\t\tEJ_SetDifficulty(difficultyID);\n2749: \t\tend\n2750: \n2751: \t\tif encounterID then\n2752: \t\t\tif sectionID then\n2753: \t\t\t\tif (EncounterJournal_CheckForOverview(sectionID)) then\n2754: \t\t\t\t\tEncounterJournal.encounter.overviewFrame.linkSection = sectionID;\n2755: \t\t\t\telse\n2756: \t\t\t\t\tlocal sectionPath = {EJ_GetSectionPath(sectionID)};\n2757: \t\t\t\t\tfor _, id in pairs(sectionPath) do\n2758: \t\t\t\t\t\tEJ_section_openTable[id] = true;\n2759: \t\t\t\t\tend\n2760: \t\t\t\tend\n2761: \t\t\tend\n2762: \t\t\tEncounterJournal_DisplayEncounter(encounterID);\n2763: \t\tend\n2764: \t\tif sectionID then\n2765: \t\t\tif (EncounterJournal_CheckForOverview(sectionID) or not EncounterJournal_SearchForOverview(instanceID)) then\n2766: \t\t\t\tEncounterJournal.encounter.info.overviewTab:Click();\n2767: \t\t\telse\n2768: \t\t\t\tEncounterJournal.encounter.info.bossTab:Click();\n2769: \t\t\tend\n2770: \t\t\tEncounterJournal_FocusSection(sectionID);\n2771: \t\telseif itemID then\n2772: \t\t\tEncounterJournal.encounter.info.lootTab:Click();\n2773: \t\tend\n2774: \telseif tierIndex then\n2775: \t\tEncounterJournal_ExpansionDropdown_Select(EncounterJournal, tierIndex+1);\n2776: \telse\n2777: \t\tEncounterJournal_ListInstances();\n2778: \tend\n2779: end",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 2738,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EncounterJournal_OpenJournalLink",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "2290: \tEncounterJournal.searchBox:SetSearchPreviewSelectionToAllResults();\n2291: end\n2292: \n2293: function EncounterJournal_OpenJournalLink(tag, jtype, id, difficultyID)\n2294: \tjtype = tonumber(jtype);\n2295: \tid = tonumber(id);\n2296: \tdifficultyID = tonumber(difficultyID);",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 2293,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "ToggleAchievementFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleAchievementFrame",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "13: function ToggleAchievementFrame(stats)\n14: \tif AchievementFrame_LoadUI() then\n15: \t\tAchievementFrame_ToggleAchievementFrame(stats);\n16: \tend\n17: end",
+        "contentHash": "d8628e436d6732445533945caf57bef4264eaad48a3be68cc935570bd2c5a427",
+        "line": 13,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "ToggleProfessionsBook",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleProfessionsBook",
+        "path": "Interface/AddOns/Blizzard_ProfessionsBook/Blizzard_ProfessionsBook_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function ToggleProfessionsBook()\n8: \tif ProfessionsBook_LoadUI() then\n9: \t\tToggleFrame(ProfessionsBookFrame);\n10: \tend\n11: end",
+        "contentHash": "9d89743f0d711deb65988b95e7df2e3d81e9040fcb64315d61aaa781e1de3f39",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "ToggleCalendar",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleCalendar",
+        "path": "Interface/AddOns/Blizzard_Calendar/Blizzard_Calendar_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function ToggleCalendar()\n8: \tif Calendar_LoadUI() then\n9: \t\tCalendar_Toggle();\n10: \tend\n11: end",
+        "contentHash": "de3e9f4d57b891ff1d69952cf6d09a22bef26394ef45484fcf83eae7d3418874",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "ShowMacroFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ShowMacroFrame",
+        "path": "Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroUI_Bootstrap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "7: function ShowMacroFrame()\n8: \tif MacroFrame_LoadUI() then\n9: \t\tMacroFrame_Show();\n10: \tend\n11: end",
+        "contentHash": "210e953a78a1b02d996e0b39ea48d117d3ade2446a4ab868c0c0d05af6473e10",
+        "line": 7,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "ToggleWorldMap",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ToggleWorldMap",
+        "path": "Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "576: function ToggleWorldMap()\n577: \tif C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) then\n578: \t\treturn;\n579: \tend\n580: \n581: \tWorldMapFrame:HandleUserActionToggleSelf();\n582: end",
+        "contentHash": "e10bc3edd4fbb6d34edf3658796dc73990257db3c1b9b3113686a72e365e30fa",
+        "line": 576,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "product": "retail",
+    "term": "OpenQuestLog",
+    "results": [
+      {
+        "kind": "function",
+        "name": "OpenQuestLog",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestMapFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2082: function OpenQuestLog(mapID)\n2083: \tQuestMapFrame:GetParent():OnQuestLogOpen();\n2084: \tShowUIPanel(QuestMapFrame:GetParent());\n2085: \tQuestMapFrame_Open();\n2086: \n2087: \tif mapID then\n2088: \t\tQuestMapFrame:GetParent():SetMapID(mapID);\n2089: \tend\n2090: end",
+        "contentHash": "2f8f59e7790a3c90840cda05521897f98aee68a26cee6251db753401cf96492b",
+        "line": 2082,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "OpenQuestLog",
+        "path": "Interface/AddOns/Blizzard_WorldMap/Blizzard_WorldMap.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "592: function OpenQuestLog(mapID)\n593: \tif C_GameRules.IsGameRuleActive(Enum.GameRule.WorldMapDisabled) then\n594: \t\treturn;\n595: \tend\n596: \n597: \tWorldMapFrame:HandleUserActionOpenQuestLog(mapID);\n598: end",
+        "contentHash": "e10bc3edd4fbb6d34edf3658796dc73990257db3c1b9b3113686a72e365e30fa",
+        "line": 592,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "results": [
+      {
+        "kind": "function",
+        "name": "SocialUIControl.Toggle",
+        "path": "Interface/AddOns/Blizzard_SocialUIShared/SocialUIControl.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "13: function SocialUIControl.Toggle()\n14: \tif C_Glue.IsOnGlueScreen() then\n15: \t\tSocialUIFrame:SetShown(not SocialUIFrame:IsShown());\n16: \telse\n17: \t\tToggleUIPanel(SocialUIFrame);\n18: \tend\n19: end",
+        "contentHash": "1cc00704d97e6b71e8ca3b0ae37fa4a133996a9aec991d66314a74e56879faca",
+        "line": 13,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "SocialUIControl.ToggleToTab",
+        "path": "Interface/AddOns/Blizzard_SocialUIShared/SocialUIControl.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "18: \tend\n19: end\n20: \n21: function SocialUIControl.ToggleToTab(tabType)\n22: \tlocal isAlreadyShowingRequestedTab = SocialUIFrame:IsShown() and SocialUIFrame:GetSelectedTab() == tabType;\n23: \tif isAlreadyShowingRequestedTab then\n24: \t\tSocialUIControl.Toggle();",
+        "contentHash": "1cc00704d97e6b71e8ca3b0ae37fa4a133996a9aec991d66314a74e56879faca",
+        "line": 21,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "term": "SocialUIControl.Toggle"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "results": null,
+    "term": "SocialUIControl.Show"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "PVEFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "64: \t\t</Scripts>\n65: \t</Button>\n66: \n67: \t<Frame name=\"PVEFrame\" mixin=\"PVEFrameMixin\" inherits=\"PortraitFrameTemplate\" enableMouse=\"true\" parent=\"UIParent\" hidden=\"true\" toplevel=\"true\">\n68: \t\t<Size x=\"563\" y=\"428\"/>\n69: \t\t<Anchors>\n70: \t\t\t<Anchor point=\"TOPLEFT\" x=\"100\" y=\"-84\"/>",
+        "contentHash": "6ff434e9cc30025ff2859afa9fbea49ed9a092ded8388f88747fe54c5fe3bf9e",
+        "line": 67,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PVEFrame_ToggleFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "28: \tLFGListFrame_SetBaseFilters(LFGListFrame, filters);\n29: end\n30: \n31: function PVEFrame_ToggleFrame(sidePanelName, selection)\n32: \tlocal canUse, failureReason = C_LFGInfo.CanPlayerUseGroupFinder();\n33: \tif ( not canUse or Kiosk.IsEnabled() ) then\n34: \t\treturn;",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 31,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "term": "PVEFrame"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EncounterJournal_DisplayEncounter",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Cata/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1029: function EncounterJournal_DisplayEncounter(encounterID, noButton)\n1030: \tlocal self = EncounterJournal.encounter;\n1031: \n1032: \tlocal ename, description, _, rootSectionID = EJ_GetEncounterInfo(encounterID);\n1033: \tif (EncounterJournal.encounterID == encounterID) then\n1034: \t\t--navbar is already set to the right button, don't add another\n1035: \t\tnoButton = true;\n1036: \telseif (EncounterJournal.encounterID) then\n1037: \t\t--make sure the previous navbar button is the instance button\n1038: \t\tNavBar_OpenTo(EncounterJournal.navBar, EncounterJournal.instanceID);\n1039: \tend\n1040: \tEncounterJournal.encounterID = encounterID;\n1041: \tEJ_SelectEncounter(encounterID);\n1042: \tEncounterJournal_LootUpdate();\n1043: \tEncounterJournal_ClearDetails();\n1044: \n1045: \tself.info.encounterTitle:SetText(ename);\n1046: \n1047: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.overviewTab, (rootSectionID > 0));\n1048: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.lootTab, C_EncounterJournal.InstanceHasLoot());\n1049: \n1050: \tlocal sectionInfo = C_EncounterJournal.GetSectionInfo(rootSectionID);\n1051: \n1052: \tlocal overviewFound;\n1053: \tif (sectionInfo and EncounterJournal_IsHeaderTypeOverview(sectionInfo.headerType)) then\n1054: \t\tself.overviewFrame.spellID = sectionInfo.spellID;\n1055: \t\tself.overviewFrame.loreDescription:SetHeight(0);\n1056: \t\tself.overviewFrame.loreDescription:SetWidth(self.overviewFrame:GetWidth() - 5);\n1057: \t\tself.overviewFrame.loreDescription:SetText(description);\n1058: \t\tself.overviewFrame.overviewDescription:SetWidth(self.overviewFrame:GetWidth() - 5);\n1059: \t\tself.overviewFrame.overviewDescription.Text:SetWidth(self.overviewFrame:GetWidth() - 5);\n1060: \t\tEncounterJournal_SetBullets(self.overviewFrame.overviewDescription, sectionInfo.description, false);\n1061: \t\tlocal bulletHeight = 0;\n1062: \t\tif (self.overviewFrame.Bullets and #self.overviewFrame.Bullets > 0) then\n1063: \t\t\tfor i = 1, #self.overviewFrame.Bullets do\n1064: \t\t\t\tbulletHeight = bulletHeight + self.overviewFrame.Bullets[i]:GetHeight();\n1065: \t\t\tend\n1066: \t\t\tlocal bullet = self.overviewFrame.Bullets[1];\n1067: \t\t\tbullet:ClearAllPoints();\n1068: \t\t\tbullet:SetPoint(\"TOPLEFT\", self.overviewFrame.overviewDescription, \"BOTTOMLEFT\", 0, -9);\n1069: \t\tend\n1070: \t\tself.overviewFrame.descriptionHeight = self.overviewFrame.loreDescription:GetHeight() + self.overviewFrame.overviewDescription:GetHeight() + bulletHeight + 42;\n1071: \t\tself.overviewFrame.rootOverviewSectionID = rootSectionID;\n1072: \t\trootSectionID = EncounterJournal_GetRootAfterOverviews(rootSectionID);\n1073: \t\toverviewFound = true;\n1074: \tend\n1075: \n1076: \tself.infoFrame.description:SetWidth(self.infoFrame:GetWidth() -5);\n1077: \tself.infoFrame.description:SetText(description);\n1078: \tself.infoFrame.descriptionHeight = self.infoFrame.description:GetHeight();\n1079: \n1080: \tself.infoFrame.encounterID = encounterID;\n1081: \tself.infoFrame.rootSectionID = rootSectionID;\n1082: \tself.infoFrame.expanded = false;\n1083: \n1084: \tdo\n1085: \t\tlocal dataProvider = PopulateBossDataProvider();\n1086: \t\tself.info.BossesScrollBox:SetDataProvider(dataProvider, ScrollBoxConstants.RetainScrollPosition);\n1087: \tend\n1088: \n1089: \t-- Setup Creatures\n1090: \tlocal id, name, displayInfo, iconImage, uiModelSceneID;\n1091: \tfor i=1,MAX_CREATURES_PER_ENCOUNTER do\n1092: \t\tid, name, description, displayInfo, iconImage, uiModelSceneID = EJ_GetCreatureInfo(i);\n1093: \n1094: \t\tif id then\n1095: \t\t\tlocal button = EncounterJournal_GetCreatureButton(i);\n1096: \t\t\tSetPortraitTextureFromCreatureDisplayID(button.creature, displayInfo);\n1097: \t\t\tbutton.name = name;\n1098: \t\t\tbutton.id = id;\n1099: \t\t\tbutton.description = description;\n1100: \t\t\tbutton.displayInfo = displayInfo;\n1101: \t\t\tbutton.uiModelSceneID = uiModelSceneID;\n1102: \t\tend\n1103: \tend\n1104: \n1105: \t--enable model and abilities tab\n1106: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.modelTab, true);\n1107: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.bossTab, true);\n1108: ",
+        "contentHash": "65c6dbaf66b7276740b691ddd5031e5c079ed4077213e57dd019cb8a2d46e854",
+        "line": 1029,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "EncounterJournal_DisplayEncounter",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1348: function EncounterJournal_DisplayEncounter(encounterID, noButton)\n1349: \tlocal self = EncounterJournal.encounter;\n1350: \n1351: \tlocal ename, description, _, rootSectionID = EJ_GetEncounterInfo(encounterID);\n1352: \tif (EncounterJournal.encounterID == encounterID) then\n1353: \t\t--navbar is already set to the right button, don't add another\n1354: \t\tnoButton = true;\n1355: \telseif (EncounterJournal.encounterID) then\n1356: \t\t--make sure the previous navbar button is the instance button\n1357: \t\tNavBar_OpenTo(EncounterJournal.navBar, EncounterJournal.instanceID);\n1358: \tend\n1359: \tEncounterJournal.encounterID = encounterID;\n1360: \tEJ_SelectEncounter(encounterID);\n1361: \tEncounterJournal_LootUpdate();\n1362: \tEncounterJournal_ClearDetails();\n1363: \n1364: \tself.info.encounterTitle:SetText(ename);\n1365: \n1366: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.overviewTab, (rootSectionID > 0));\n1367: \n1368: \t--disable loot tab if there's no loot\n1369: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.lootTab, C_EncounterJournal.InstanceHasLoot());\n1370: \n1371: \tlocal sectionInfo = C_EncounterJournal.GetSectionInfo(rootSectionID);\n1372: \n1373: \tlocal overviewFound;\n1374: \tif (sectionInfo and EncounterJournal_IsHeaderTypeOverview(sectionInfo.headerType)) then\n1375: \t\tself.overviewFrame.spellID = sectionInfo.spellID;\n1376: \t\tself.overviewFrame.loreDescription:SetHeight(0);\n1377: \t\tself.overviewFrame.loreDescription:SetWidth(self.overviewFrame:GetWidth() - 5);\n1378: \t\tself.overviewFrame.loreDescription:SetText(description);\n1379: \t\tself.overviewFrame.overviewDescription:SetWidth(self.overviewFrame:GetWidth() - 5);\n1380: \t\tself.overviewFrame.overviewDescription.Text:SetWidth(self.overviewFrame:GetWidth() - 5);\n1381: \t\tEncounterJournal_SetBullets(self.overviewFrame.overviewDescription, sectionInfo.description, false);\n1382: \t\tlocal bulletHeight = 0;\n1383: \t\tif (self.overviewFrame.Bullets and #self.overviewFrame.Bullets > 0) then\n1384: \t\t\tfor i = 1, #self.overviewFrame.Bullets do\n1385: \t\t\t\tbulletHeight = bulletHeight + self.overviewFrame.Bullets[i]:GetHeight();\n1386: \t\t\tend\n1387: \t\t\tlocal bullet = self.overviewFrame.Bullets[1];\n1388: \t\t\tbullet:ClearAllPoints();\n1389: \t\t\tbullet:SetPoint(\"TOPLEFT\", self.overviewFrame.overviewDescription, \"BOTTOMLEFT\", 0, -9);\n1390: \t\tend\n1391: \t\tself.overviewFrame.descriptionHeight = self.overviewFrame.loreDescription:GetHeight() + self.overviewFrame.overviewDescription:GetHeight() + bulletHeight + 42;\n1392: \t\tself.overviewFrame.rootOverviewSectionID = rootSectionID;\n1393: \t\trootSectionID = EncounterJournal_GetRootAfterOverviews(rootSectionID);\n1394: \t\toverviewFound = true;\n1395: \tend\n1396: \n1397: \tself.infoFrame.description:SetWidth(self.infoFrame:GetWidth() -5);\n1398: \tself.infoFrame.description:SetText(description);\n1399: \tself.infoFrame.descriptionHeight = self.infoFrame.description:GetHeight();\n1400: \n1401: \tself.infoFrame.encounterID = encounterID;\n1402: \tself.infoFrame.rootSectionID = rootSectionID;\n1403: \tself.infoFrame.expanded = false;\n1404: \n1405: \tdo\n1406: \t\tlocal dataProvider = PopulateBossDataProvider();\n1407: \t\tself.info.BossesScrollBox:SetDataProvider(dataProvider, ScrollBoxConstants.RetainScrollPosition);\n1408: \tend\n1409: \n1410: \t-- Setup Creatures\n1411: \tlocal id, name, displayInfo, iconImage, uiModelSceneID;\n1412: \tfor i=1,MAX_CREATURES_PER_ENCOUNTER do\n1413: \t\tid, name, description, displayInfo, iconImage, uiModelSceneID = EJ_GetCreatureInfo(i);\n1414: \n1415: \t\tif id then\n1416: \t\t\tlocal button = EncounterJournal_GetCreatureButton(i);\n1417: \t\t\tSetPortraitTextureFromCreatureDisplayID(button.creature, displayInfo);\n1418: \t\t\tbutton.name = name;\n1419: \t\t\tbutton.id = id;\n1420: \t\t\tbutton.description = description;\n1421: \t\t\tbutton.displayInfo = displayInfo;\n1422: \t\t\tbutton.uiModelSceneID = uiModelSceneID;\n1423: \t\tend\n1424: \tend\n1425: \n1426: \t--enable model and abilities tab\n1427: \tEncounterJournal_SetTabEnabled(EncounterJournal.encounter.info.modelTab, true);",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 1348,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "term": "EncounterJournal_DisplayEncounter"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_PingSecure.CreateFrame",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PingManagerSecureDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "16: \t\t\tName = \"CreateFrame\",\n17: \t\t\tType = \"Function\",\n18: \t\t\tHasRestrictions = true,\n19: \t\t},",
+        "contentHash": "18d8d0bff4b8c839a34bcb1245587cbae7441b21263261b5cdf89f76f144620e",
+        "line": 16,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+        "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "75: function AuraContainerCustomFrameProviderMixin:CreateFrame()\n76: \tlocal auraFrame = CreateFrameOutbound(\"AuraButton\", nil, self:GetParent(), self:GetTemplateString());\n77: \n78: \tif self.initializeFrame ~= nil then\n79: \t\tsecurecallfunction(self.initializeFrame, auraFrame:GetObjectTable());\n80: \tend\n81: \n82: \t-- Access restrictions should be applied after (potentially tainted)\n83: \t-- post-creation callbacks.\n84: \tif self.accessRestrictions then\n85: \t\tAuraContainerUtil.ApplyAccessRestrictions(auraFrame, self.accessRestrictions);\n86: \tend\n87: \n88: \t-- Force an immediate display update to apply initial secrets and suitable\n89: \t-- default values.\n90: \tauraFrame:UpdateAuraDisplay();\n91: \n92: \ttable.insert(self.ownedFrames, auraFrame);\n93: \ttable.insert(self.availableFrames, auraFrame);\n94: end",
+        "contentHash": "2d1e3f6486636b7a285978aa6ee240205aacb38a5c255c23cfb294987192925e",
+        "line": 75,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "term": "CreateFrame"
+  },
+  {
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "LFDParentFrame",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "LFDParentFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "131: \t\t\t<OnEvent function=\"LFDRoleCheckPopup_OnEvent\"/>\n132: \t\t</Scripts>\n133: \t</Frame>\n134: \t<Frame name=\"LFDParentFrame\" hidden=\"true\" parent=\"GroupFinderFrame\" useParentLevel=\"true\">\n135: \t\t<Size x=\"338\" y=\"428\"/>\n136: \t\t<Anchors>\n137: \t\t\t<Anchor point=\"TOPLEFT\" x=\"224\" y=\"0\"/>",
+        "contentHash": "4ba197494e50c1a597e365fda7909333da592ad01e2d74e6033bdcd0b7d2594c",
+        "line": 134,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "97: \telseif ( event == \"LFG_OPEN_FROM_GOSSIP\" ) then\n98: \t\tlocal dungeonID = ...;\n99: \t\tLFDFrame_DisplayDungeonByID(dungeonID);\n100: \t\tPVEFrame_ShowFrame(\"GroupFinderFrame\", LFDParentFrame);\n101: \n102: \t\t-- Force close gossip frame\n103: \t\tC_GossipInfo.CloseGossip();",
+        "contentHash": "c03b26beec8b070c5f5324997b2f6eed09be9f73f94d452aa408a7e7fa8def10",
+        "line": 100,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "131: \t\t\t<OnEvent function=\"LFDRoleCheckPopup_OnEvent\"/>\n132: \t\t</Scripts>\n133: \t</Frame>\n134: \t<Frame name=\"LFDParentFrame\" hidden=\"true\" parent=\"GroupFinderFrame\" useParentLevel=\"true\">\n135: \t\t<Size x=\"338\" y=\"428\"/>\n136: \t\t<Anchors>\n137: \t\t\t<Anchor point=\"TOPLEFT\" x=\"224\" y=\"0\"/>",
+        "contentHash": "4ba197494e50c1a597e365fda7909333da592ad01e2d74e6033bdcd0b7d2594c",
+        "line": 134,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "55: \tPVEFrame_ShowFrame(sidePanelName, selection);\n56: end\n57: \n58: function ToggleLFDParentFrame()\n59: \tif ( Kiosk.IsEnabled() or DISALLOW_FRAME_TOGGLING ) then\n60: \t\treturn;\n61: \tend",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 58,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "RaidFinderFrame",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "RaidFinderFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/RaidFinder.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "12: \t\t</Scripts>\n13: \t</Button>\n14: \n15: \t<Frame name=\"RaidFinderFrame\" useParentLevel=\"true\" parent=\"GroupFinderFrame\" hidden=\"true\">\n16: \t\t<Size x=\"338\" y=\"428\"/>\n17: \t\t<Anchors>\n18: \t\t\t<Anchor point=\"TOPLEFT\" x=\"224\" y=\"0\"/>",
+        "contentHash": "92e6908e7e4593dec6c83819348b0b30e464e333a9bcef4b7ab8c65046d7ba93",
+        "line": 15,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "RaidFinderFrame_OnLoad",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/RaidFinder.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "1: MAX_RAID_FINDER_COOLDOWN_NAMES = 8;\n2: \n3: function RaidFinderFrame_OnLoad(self)\n4: \tself:RegisterEvent(\"LFG_LOCK_INFO_RECEIVED\");\n5: \tself:RegisterEvent(\"AJ_RAID_ACTION\");\n6: \tself:RegisterEvent(\"GROUP_ROSTER_UPDATE\");",
+        "contentHash": "d01544efed6f181f9c10ddcbd6fe62aa0ea5746f77b3075c3af6697e381d8b59",
+        "line": 3,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "RaidFinderFrame_OnEvent",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/RaidFinder.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "9: \tEventRegistry:RegisterCallback(\"LobbyMatchmaker.UpdateQueueState\", RaidFinderFrameFindRaidButton_Update);\n10: end\n11: \n12: function RaidFinderFrame_OnEvent(self, event, ...)\n13: \tif ( event == \"LFG_LOCK_INFO_RECEIVED\" ) then\n14: \t\tif ( not RaidFinderQueueFrame.raid or not IsLFGDungeonJoinable(RaidFinderQueueFrame.raid) ) then\n15: \t\t\tRaidFinderQueueFrame_SetRaid(GetBestRFChoice());",
+        "contentHash": "d01544efed6f181f9c10ddcbd6fe62aa0ea5746f77b3075c3af6697e381d8b59",
+        "line": 12,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "RaidFinderFrame_OnShow",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/RaidFinder.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "30: \tend\n31: end\n32: \n33: function RaidFinderFrame_OnShow(self)\n34: \tQueueUpdater:RequestInfo();\n35: \tQueueUpdater:AddRef();\n36: \tRaidFinderFrameFindRaidButton_Update();",
+        "contentHash": "d01544efed6f181f9c10ddcbd6fe62aa0ea5746f77b3075c3af6697e381d8b59",
+        "line": 33,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "RaidFinderFrame_OnHide",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/RaidFinder.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "39: \tPlaySound(SOUNDKIT.IG_CHARACTER_INFO_OPEN);\n40: end\n41: \n42: function RaidFinderFrame_OnHide(self)\n43: \tQueueUpdater:RemoveRef();\n44: end\n45: ",
+        "contentHash": "d01544efed6f181f9c10ddcbd6fe62aa0ea5746f77b3075c3af6697e381d8b59",
+        "line": 42,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "LFGListFrame",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "LFGListFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "918: \t\t</Scripts>\n919: \t</Button>\n920: \t<Frame name=\"LFGListPanelTemplate\" useParentLevel=\"true\" hidden=\"true\" setAllPoints=\"true\" virtual=\"true\"/>\n921: \t<Frame name=\"LFGListFrame\" useParentLevel=\"true\" parent=\"LFGListPVEStub\">\n922: \t\t<Size x=\"338\" y=\"428\"/>\n923: \t\t<Anchors>\n924: \t\t\t<Anchor point=\"TOPLEFT\" x=\"224\" y=\"0\"/>",
+        "contentHash": "686002ec1beb62064027d8203d335c5417cbd164a0080c09cc914cc53417afb4",
+        "line": 921,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "LFGListFrame_OnLoad",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "201: ----------Base Frame\n202: -------------------------------------------------------\n203: LFG_LIST_EDIT_BOX_TAB_CATEGORIES = {};\n204: function LFGListFrame_OnLoad(self)\n205: \tself:RegisterEvent(\"PARTY_LEADER_CHANGED\");\n206: \tself:RegisterEvent(\"GROUP_ROSTER_UPDATE\");\n207: \tself:RegisterEvent(\"PLAYER_SPECIALIZATION_CHANGED\");",
+        "contentHash": "e23031d5aab00e4ea2b9f91be94cfcf4db4c8bf07625c9305902f8236e911f15",
+        "line": 204,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "LFGListFrame_UpdateFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "243: \treturn appStatus == \"declined\" or appStatus == \"declined_delisted\" or appStatus ==\"declined_full\";\n244: end\n245: \n246: local function LFGListFrame_UpdateFrame(self, createdNew)\n247: \tif createdNew == nil then\n248: \t\t-- The listing was removed\n249: \t\tHideCensorDialogs();",
+        "contentHash": "e23031d5aab00e4ea2b9f91be94cfcf4db4c8bf07625c9305902f8236e911f15",
+        "line": 246,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "LFGListFrame_OnEvent",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "263: \tend\n264: end\n265: \n266: function LFGListFrame_OnEvent(self, event, ...)\n267: \tif ( event == \"LFG_LIST_AVAILABILITY_UPDATE\" or event == \"TRIAL_STATUS_UPDATE\") then\n268: \t\tLFGListFrame_FixPanelValid(self);\n269: \telseif ( event == \"LFG_LIST_ACTIVE_ENTRY_UPDATE\" ) then",
+        "contentHash": "e23031d5aab00e4ea2b9f91be94cfcf4db4c8bf07625c9305902f8236e911f15",
+        "line": 266,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "LFGListFrame_OnShow",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "365: \tend\n366: end\n367: \n368: function LFGListFrame_OnShow(self)\n369: \tLFGListFrame_FixPanelValid(self);\n370: \tC_LFGList.RequestAvailableActivities();\n371: \tself.stopAssistPings = false;",
+        "contentHash": "e23031d5aab00e4ea2b9f91be94cfcf4db4c8bf07625c9305902f8236e911f15",
+        "line": 368,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "PVPUIFrame",
+    "results": [
+      {
+        "kind": "Frame",
+        "name": "PVPUIFrame",
+        "path": "Interface/AddOns/Blizzard_PVPUI/Mainline/Blizzard_PVPUI.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "898: \t\t</Frames>\n899: \t</Frame>\n900: \n901: \t<Frame name=\"PVPUIFrame\" setAllPoints=\"true\" parent=\"PVEFrame\" hidden=\"true\">\n902: \t\t<Size x=\"563\" y=\"428\"/>\n903: \t\t<Anchors>\n904: \t\t\t<Anchor point=\"TOPLEFT\" x=\"0\" y=\"0\"/>",
+        "contentHash": "c7722129e2e887110276d4415ddd9ed37bd4d1495464f98278e84043e159e863",
+        "line": 901,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PVPUIFrame_OnLoad",
+        "path": "Interface/AddOns/Blizzard_PVPUI/Mainline/Blizzard_PVPUI.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "107: \tself:SetShown(not GetCVarBitfield(\"closedInfoFrames\", LE_FRAME_TUTORIAL_PVP_SPECIAL_EVENT));\n108: end\n109: \n110: function PVPUIFrame_OnLoad(self)\n111: \tif (UnitFactionGroup(\"player\") == HORDE_PLAYER_FACTION_GROUP_NAME) then\n112: \t\tHonorFrame.BonusFrame.WorldBattlesTexture:SetAtlas(\"pvpqueue-background-casual-horde\", true)\n113: \telse",
+        "contentHash": "3dee4403bbc106b80a2362309a5f9321bd87f3c5b9c8eb65e7bca23af035ad6b",
+        "line": 110,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PVPUIFrame_OnShow",
+        "path": "Interface/AddOns/Blizzard_PVPUI/Mainline/Blizzard_PVPUI.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "132: \tPVPQueueFrame_ShowFrame(HonorFrame);\n133: end\n134: \n135: function PVPUIFrame_OnShow(self)\n136: \tif Kiosk.IsEnabled() then\n137: \t\tself:Hide();\n138: \t\treturn;",
+        "contentHash": "3dee4403bbc106b80a2362309a5f9321bd87f3c5b9c8eb65e7bca23af035ad6b",
+        "line": 135,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PVPUIFrame_OnHide",
+        "path": "Interface/AddOns/Blizzard_PVPUI/Mainline/Blizzard_PVPUI.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "148: \tEventRegistry:TriggerEvent(\"PlunderstormQueueTutorial.Update\");\n149: end\n150: \n151: function PVPUIFrame_OnHide(self)\n152: \tUpdateMicroButtons();\n153: \tPlaySound(SOUNDKIT.IG_CHARACTER_INFO_CLOSE);\n154: \tClearBattlemaster();",
+        "contentHash": "3dee4403bbc106b80a2362309a5f9321bd87f3c5b9c8eb65e7bca23af035ad6b",
+        "line": 151,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "PVPUIFrame_OnEvent",
+        "path": "Interface/AddOns/Blizzard_PVPUI/Mainline/Blizzard_PVPUI.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "project",
+        "excerpt": "156: \tEventRegistry:TriggerEvent(\"PlunderstormQueueTutorial.Update\");\n157: end\n158: \n159: function PVPUIFrame_OnEvent(self, event, ...)\n160: \tif (event == \"BATTLEFIELDS_CLOSED\") then\n161: \t\tif (self:IsShown()) then\n162: \t\t\tself:GetParent():Hide();",
+        "contentHash": "3dee4403bbc106b80a2362309a5f9321bd87f3c5b9c8eb65e7bca23af035ad6b",
+        "line": 159,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "PVEFrame_ShowFrame",
+    "results": [
+      {
+        "kind": "function",
+        "name": "PVEFrame_ShowFrame",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "74: function PVEFrame_ShowFrame(sidePanelName, selection)\n75: \tlocal self = PVEFrame;\n76: \t-- find side panel\n77: \tlocal tabIndex;\n78: \tif ( sidePanelName ) then\n79: \t\tfor index, data in pairs(panels) do\n80: \t\t\tif ( data.name == sidePanelName ) then\n81: \t\t\t\ttabIndex = index;\n82: \t\t\t\tbreak;\n83: \t\t\tend\n84: \t\tend\n85: \telse\n86: \t\t-- no side panel specified, check current panel\n87: \t\tif ( self.activeTabIndex ) then\n88: \t\t\ttabIndex = self.activeTabIndex;\n89: \t\telse\n90: \t\t\t-- no current panel, go to the first panel\n91: \t\t\ttabIndex = 1;\n92: \t\tend\n93: \tend\n94: \tif ( not tabIndex ) then\n95: \t\treturn;\n96: \tend\n97: \tif ( panels[tabIndex].check and not panels[tabIndex].check() ) then\n98: \t\ttabIndex = self.activeTabIndex or 1;\n99: \tend\n100: \n101: \t-- load addon if needed\n102: \tif ( panels[tabIndex].loadFunc ) then\n103: \t\tif not panels[tabIndex].loadFunc() then\n104: \t\t\treturn;\n105: \t\tend\n106: \t\tpanels[tabIndex].loadFunc = nil;\n107: \tend\n108: \n109: \t-- we've loaded the AddOn, so try to dereference the selection if needed\n110: \tif ( type(selection) == \"string\" ) then\n111: \t\tselection = _G[selection];\n112: \tend\n113: \n114: \t-- Hide the left panel if the panel doesn't need it\n115: \tif ( panels[tabIndex].hideLeftInset ) then\n116: \t\tPVEFrame_HideLeftInset();\n117: \telse\n118: \t\tPVEFrame_ShowLeftInset();\n119: \tend\n120: \n121: \t-- show it\n122: \tShowUIPanel(self);\n123: \tself.activeTabIndex = tabIndex;\n124: \tPanelTemplates_SetTab(self, tabIndex);\n125: \tif ( panels[tabIndex].width ) then\n126: \t\tself:SetWidth(panels[tabIndex].width);\n127: \telse\n128: \t\tself:SetWidth(PVE_FRAME_BASE_WIDTH);\n129: \tend\n130: \tUpdateUIPanelPositions(PVEFrame);\n131: \tfor index, data in pairs(panels) do\n132: \t\tlocal panel = _G[data.name];\n133: \t\tif ( index == tabIndex ) then\n134: \t\t\tpanel:Show();\n135: \t\t\tif( panel.update ) then\n136: \t\t\t\tpanel:update(selection);\n137: \t\t\tend\n138: \t\telseif ( panel ) then\n139: \t\t\tpanel:Hide();\n140: \t\tend\n141: \tend\n142: end",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 74,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "97: \telseif ( event == \"LFG_OPEN_FROM_GOSSIP\" ) then\n98: \t\tlocal dungeonID = ...;\n99: \t\tLFDFrame_DisplayDungeonByID(dungeonID);\n100: \t\tPVEFrame_ShowFrame(\"GroupFinderFrame\", LFDParentFrame);\n101: \n102: \t\t-- Force close gossip frame\n103: \t\tC_GossipInfo.CloseGossip();",
+        "contentHash": "c03b26beec8b070c5f5324997b2f6eed09be9f73f94d452aa408a7e7fa8def10",
+        "line": 100,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "540: \n541: \tself.SearchPanel.shouldAlwaysShowCreateGroupButton = shouldShowCreateGroupButton;\n542: \n543: \tPVEFrame_ShowFrame(\"GroupFinderFrame\", LFGListPVEStub);\n544: \n545: \tlocal panel = self.CategorySelection;\n546: \tLFGListCategorySelection_SelectCategory(panel, categoryID, filters);",
+        "contentHash": "e23031d5aab00e4ea2b9f91be94cfcf4db4c8bf07625c9305902f8236e911f15",
+        "line": 543,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVEFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "52: \t\t\treturn;\n53: \t\tend\n54: \tend\n55: \tPVEFrame_ShowFrame(sidePanelName, selection);\n56: end\n57: \n58: function ToggleLFDParentFrame()",
+        "contentHash": "6203cdc048933dcc8d6d385c3088e125df1d33198342728ed8320a9c03f2fc37",
+        "line": 55,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/PVPHelper.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "21: \t\tPVPFramePopup_SetupPopUp(event, challengerName, bgName, timeout, tournamentRules);\n22: \telseif ( event == \"BATTLEFIELDS_SHOW\" ) then\n23: \t\tif ( not PVPUIFrame ) then\n24: \t\t\tPVEFrame_ShowFrame(\"PVPUIFrame\");\n25: \t\t\tPVPQueueFrame_OnEvent(PVPQueueFrame, event, ...);\n26: \t\tend\n27: \tend",
+        "contentHash": "beb379f18e33e6e9b510925613b290f74db870aeb8aa3b54f5ccb475fcf20f0d",
+        "line": 24,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail"
+  }
+]
