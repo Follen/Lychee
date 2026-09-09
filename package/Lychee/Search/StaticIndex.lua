@@ -47,15 +47,23 @@ end
 local function addSet(map, key, entryKey)
     if not key or key == "" then return end
     local set = map[key]
-    if not set then set = {}; map[key] = set end
-    set[entryKey] = true
+    if not set then map[key] = entryKey
+    elseif type(set) == "string" then
+        if set ~= entryKey then map[key] = { [set] = true, [entryKey] = true } end
+    else set[entryKey] = true end
 end
 
 local function removeSet(map, key, entryKey)
     local set = key and map[key]
     if not set then return end
+    if type(set) == "string" then
+        if set == entryKey then map[key] = nil end
+        return
+    end
     set[entryKey] = nil
-    if not next(set) then map[key] = nil end
+    local remaining = next(set)
+    if not remaining then map[key] = nil
+    elseif not next(set, remaining) then map[key] = remaining end
 end
 
 local function codepoints(text)
@@ -137,8 +145,6 @@ local function buildEntry(source, record)
         record = record,
         stableID = (source.extensionID or source.id) .. ":" .. record.id,
         fields = {},
-        memberships = {},
-        membershipSeen = {},
         categoryID = categoryID(record),
         categoryOrder = categoryOrder(record),
     }
@@ -151,40 +157,36 @@ local function buildEntry(source, record)
     return entry
 end
 
-local function remember(self, entry, mapName, value)
-    local membershipKey = mapName .. "\0" .. value
-    if entry.membershipSeen[membershipKey] then return end
-    entry.membershipSeen[membershipKey] = true
-    addSet(self[mapName], value, entry.key)
-    entry.memberships[#entry.memberships + 1] = { mapName, value }
-end
-
-local function installEntry(self, entry)
-    self.entries[entry.key] = entry
+local function updateMemberships(self, entry, updateSet)
+    -- The posting sets already deduplicate keys. Do not retain a second hash
+    -- and a tiny table for every prefix/gram of every record. Reconstruct only
+    -- this entry's memberships when it is changed or removed (not on query).
     local seen = {}
     for index = 1, #entry.fields do
         local field = entry.fields[index]
         local identity = field.field .. "\0" .. field.normalized
         if not seen[identity] then
             seen[identity] = true
-            remember(self, entry, "exact", field.normalized)
+            updateSet(self.exact, field.normalized, entry.key)
             local prefixValues = prefixes(field.normalized)
-            for prefixIndex = 1, #prefixValues do remember(self, entry, "prefix", prefixValues[prefixIndex]) end
+            for prefixIndex = 1, #prefixValues do updateSet(self.prefix, prefixValues[prefixIndex], entry.key) end
             local terms = I.Search.Normalizer:Terms(field.normalized)
-            for termIndex = 1, #terms do remember(self, entry, "tokens", terms[termIndex]) end
+            for termIndex = 1, #terms do updateSet(self.tokens, terms[termIndex], entry.key) end
             local gramValues = grams(field.normalized)
-            for gramIndex = 1, #gramValues do remember(self, entry, "grams", gramValues[gramIndex]) end
+            for gramIndex = 1, #gramValues do updateSet(self.grams, gramValues[gramIndex], entry.key) end
         end
     end
-    if entry.categoryID then remember(self, entry, "categories", I.Search.Normalizer:Normalize(entry.categoryID)) end
+    if entry.categoryID then updateSet(self.categories, I.Search.Normalizer:Normalize(entry.categoryID), entry.key) end
+end
+
+local function installEntry(self, entry)
+    self.entries[entry.key] = entry
+    updateMemberships(self, entry, addSet)
 end
 
 local function removeEntry(self, entry)
     if not entry then return end
-    for index = 1, #entry.memberships do
-        local membership = entry.memberships[index]
-        removeSet(self[membership[1]], membership[2], entry.key)
-    end
+    updateMemberships(self, entry, removeSet)
     self.entries[entry.key] = nil
 end
 
@@ -458,6 +460,10 @@ end
 
 local function addCandidates(out, seen, set, maximum)
     if not set then return false end
+    if type(set) == "string" then
+        if not seen[set] then seen[set]=true; out[#out+1]=set end
+        return #out >= maximum
+    end
     for key in pairs(set) do
         if not seen[key] then
             seen[key] = true

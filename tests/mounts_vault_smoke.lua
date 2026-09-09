@@ -176,3 +176,4 @@ assert(reads==beforeReads and listReads==beforeLists and #timers==0, "peak query
 assert(M.handle:Unregister()); flush()
 assert(next(M.eventFrame.events)==nil and #timers==0)
 print(string.format("Mounts/vault PASS: 1500 mounts; init %.2f ms / retained %.1f KiB; alternating query mean %.3f ms (offline Lua only)",initMS,retainedKB,queryMS))
+assert(retainedKB < 8192, "1500-mount retained index exceeds 8 MiB memory budget")

@@ -182,4 +182,26 @@ assert(handle:Unregister())
 local _, removed = I.Search.Query:Query("红玉小怪", {})
 assert(#removed == 0)
 
+-- Shared postings survive one owner changing/removing a repeated alias; then
+-- the last owner removal clears every index, including singleton categories.
+local compact=I.Search.StaticIndex:New()
+assert(compact:RegisterSource({id="compact",revision=1}))
+local first={id="one",title="专属白马",aliases={"共享坐骑", "共享坐骑"},category="坐骑类"}
+local second={id="two",title="专属黑马",aliases={"共享坐骑"},category="坐骑类"}
+assert(compact:CommitSnapshot("compact",{first}))
+assert(#compact:Search("",10,{categoryID="坐骑类"})==1)
+assert(compact:ApplyDelta("compact",{second},{}))
+assert(#compact:Search("共享坐骑",10)==2)
+assert(compact:ApplyDelta("compact",{}, {"one"}))
+local shared=compact:Search("共享坐骑",10)
+assert(#shared==1 and shared[1].record.id=="two", "removing duplicate memberships keeps the other owner")
+assert(compact:ApplyDelta("compact",{first},{}))
+compact:Rebuild()
+assert(#compact:Search("共享坐骑",10)==2 and #compact:Search("",10,{categoryID="坐骑类"})==2)
+assert(compact:ApplyDelta("compact",{{id="two",title="独立飞龙",category="飞龙类"}},{}))
+assert(#compact:Search("共享坐骑",10)==1)
+assert(compact:UnregisterSource("compact"))
+for _,name in ipairs({"entries","exact","prefix","tokens","grams","categories"}) do
+    assert(next(compact[name])==nil,"source removal must clear "..name)
+end
 print("Lychee search platform PASS")

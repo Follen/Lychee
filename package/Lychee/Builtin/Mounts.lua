@@ -28,7 +28,7 @@ end
 
 local function sameMount(left, right)
     return left and right and left.title == right.title and left.icon == right.icon
-        and left.payload.spellID == right.payload.spellID
+        and left.spellID == right.payload.spellID
 end
 
 function M:Refresh()
@@ -58,12 +58,12 @@ function M:Refresh()
         nextItems[mountID] = record
         local old = self.items[mountID]
         if record then
-            if sameMount(old, record) then nextItems[mountID]=old else upsert[#upsert+1]=record end
-        elseif old then remove[#remove+1]=old.id end
+            if not sameMount(old, record) then upsert[#upsert+1]=record end
+        elseif old then remove[#remove+1]="mount:" .. tostring(mountID) end
     end
     if self.fullDirty then
-        for mountID, old in pairs(self.items) do
-            if nextItems[mountID] == nil then remove[#remove+1]=old.id end
+        for mountID in pairs(self.items) do
+            if nextItems[mountID] == nil then remove[#remove+1]="mount:" .. tostring(mountID) end
         end
     end
     if #upsert > 0 or #remove > 0 then
@@ -72,8 +72,17 @@ function M:Refresh()
     end
     -- Publish the local cache and clear dirty flags only after a successful
     -- source commit. Transient API failures retain the last complete index.
-    if self.fullDirty then self.items={} end
-    for mountID, record in pairs(nextItems) do self.items[mountID]=record or nil end
+    if self.fullDirty then
+        for mountID in pairs(self.items) do if nextItems[mountID] == nil then self.items[mountID]=nil end end
+    end
+    for mountID, record in pairs(nextItems) do
+        if not record then self.items[mountID]=nil
+        elseif not sameMount(self.items[mountID], record) then
+            -- Only change detection lives here; the Provider owns action/drag
+            -- descriptors. Do not retain another full record per mount.
+            self.items[mountID]={title=record.title, icon=record.icon, spellID=record.payload.spellID}
+        end
+    end
     self.fullDirty, self.lastError = nil, nil
     for mountID in pairs(self.dirtyIDs) do self.dirtyIDs[mountID]=nil end
     return true

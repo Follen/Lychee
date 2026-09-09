@@ -222,3 +222,4 @@ local queryStarted=os.clock()
 for index=1,100 do query(index%2==0 and "死亡矿井" or "纹章") end
 print(string.format("Built-in providers PASS: %d bosses; init %.2f ms / retained %.1f KiB; alternating query mean %.3f ms (offline Lua only)",
     #I.Builtin.JournalCatalog.encounters,initMS,indexKB,(os.clock()-queryStarted)*10))
+assert(indexKB < 8192, "built-in retained indexes exceed 8 MiB memory budget")

@@ -1,0 +1,80 @@
+[
+  {
+    "query": "UpdateAddOnMemoryUsage",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "PerformanceScript.UpdateAddOnMemoryUsage",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PerformanceDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "94: \t\t\tName = \"UpdateAddOnMemoryUsage\",\n95: \t\t\tType = \"Function\",\n96: \t\t},",
+        "contentHash": "9db5d2820f409ef96a1e98fe7b5e3433abc6b1468f3c732e4cc08db2ffd9aff8",
+        "line": 94,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "GetAddOnMemoryUsage",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "PerformanceScript.GetAddOnMemoryUsage",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PerformanceDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "25: \t\t\tName = \"GetAddOnMemoryUsage\",\n26: \t\t\tType = \"Function\",\n27: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n28: \n29: \t\t\tArguments =\n30: \t\t\t{\n31: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n32: \t\t\t},\n33: \n34: \t\t\tReturns =\n35: \t\t\t{\n36: \t\t\t\t{ Name = \"result\", Type = \"number\", Nilable = false },\n37: \t\t\t},\n38: \t\t},",
+        "contentHash": "9db5d2820f409ef96a1e98fe7b5e3433abc6b1468f3c732e4cc08db2ffd9aff8",
+        "line": 25,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "query": "C_MountJournal.GetMountInfoByID",
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_MountJournal.GetMountInfoByID",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MountJournalDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "273: \t\t\tName = \"GetMountInfoByID\",\n274: \t\t\tType = \"Function\",\n275: \t\t\tMayReturnNothing = true,\n276: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n277: \n278: \t\t\tArguments =\n279: \t\t\t{\n280: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = false },\n281: \t\t\t},\n282: \n283: \t\t\tReturns =\n284: \t\t\t{\n285: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n286: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = false },\n287: \t\t\t\t{ Name = \"icon\", Type = \"fileID\", Nilable = false },\n288: \t\t\t\t{ Name = \"isActive\", Type = \"bool\", Nilable = false },\n289: \t\t\t\t{ Name = \"isUsable\", Type = \"bool\", Nilable = false },\n290: \t\t\t\t{ Name = \"sourceType\", Type = \"number\", Nilable = false },\n291: \t\t\t\t{ Name = \"isFavorite\", Type = \"bool\", Nilable = false },\n292: \t\t\t\t{ Name = \"isFactionSpecific\", Type = \"bool\", Nilable = false },\n293: \t\t\t\t{ Name = \"faction\", Type = \"PvPFaction\", Nilable = true },\n294: \t\t\t\t{ Name = \"shouldHideOnChar\", Type = \"bool\", Nilable = false },\n295: \t\t\t\t{ Name = \"isCollected\", Type = \"bool\", Nilable = false },\n296: \t\t\t\t{ Name = \"mountID\", Type = \"number\", Nilable = false },\n297: \t\t\t\t{ Name = \"isSteadyFlight\", Type = \"bool\", Nilable = false },\n298: \t\t\t},\n299: \t\t},",
+        "contentHash": "9cd336e962215fa0f7dcd4e4d894f3515fbe3909cd05e106d47e1a7f90423ea3",
+        "line": 273,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]
