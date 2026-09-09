@@ -1,5 +1,11 @@
 {
   "generator": "tests/build_menu_icons.py",
+  "upstream": {
+    "package": "@icon-park/svg",
+    "version": "1.4.2",
+    "repository": "https://github.com/bytedance/IconPark",
+    "license": "Apache-2.0"
+  },
   "size": 64,
   "safeInsetPx": 5,
   "hostCropUV": [
@@ -9,211 +15,428 @@
     0.93
   ],
   "format": "RGBA TGA",
-  "style": "semantic vector glyphs, ivory and Lychee red, transparent",
+  "style": "IconPark outline, 3/48 stroke, ivory with selected Lychee red strokes",
   "icons": [
     {
       "id": "character",
       "label": "角色",
+      "source": "ClothesCrewNeck",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/ClothesCrewNeck.svg",
+      "sourceSha256": "3e92c88be2fe77e6645ddf4158cd10f887970c77b44bb305d960374f915e412c",
       "path": "package/Lychee/Media/MenuIcons/character.tga",
-      "sha256": "a125873b078a32eeec6dfdf268e5e2708c1d78e403e6666c45ae35455be9fc2a"
+      "sha256": "21917460d5ad1239196fa49f273e325e89359b46e3d66c3193c047d23e4b1232"
     },
     {
       "id": "reputation",
       "label": "声望",
+      "source": "MedalOne",
+      "accent": [
+        5
+      ],
+      "sourcePath": "assets/menu-icons/upstream/MedalOne.svg",
+      "sourceSha256": "72a253720fccefebd7972c00e4b1b0d91659838366986b81ba5730f879d988ba",
       "path": "package/Lychee/Media/MenuIcons/reputation.tga",
-      "sha256": "9b499fc9cf3d5833cbbc5c47f6c3f427d2cbfd2f6da660ab0d63f3126135bb6b"
+      "sha256": "74b87de32819f84446fed510770a438cf749adb9aba4201846adc3f8afc530f7"
     },
     {
       "id": "currency",
       "label": "货币",
+      "source": "Financing",
+      "accent": [
+        1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Financing.svg",
+      "sourceSha256": "e3743522202286a117b7ea4a75d815141d8c942d3be0e6eb433a3bbed3f53dd7",
       "path": "package/Lychee/Media/MenuIcons/currency.tga",
-      "sha256": "8673a4a379aac7cd9b6b7b0a46babaf018cf05d6d90cb0ecd0b3536d6c3b3f29"
+      "sha256": "45dc8f3dd8497854e7bdb158b671e68099f83e0e908af4707786f83ae169dc29"
     },
     {
       "id": "talents",
       "label": "天赋",
+      "source": "MindMapping",
+      "accent": [
+        1,
+        2,
+        3
+      ],
+      "sourcePath": "assets/menu-icons/upstream/MindMapping.svg",
+      "sourceSha256": "6d57bba1a311ca152fe1d8fcc9e8ae787a3d2445df2391263d8aaba99b321497",
       "path": "package/Lychee/Media/MenuIcons/talents.tga",
-      "sha256": "93420a9f546b1650cf2e679930c3ae5fc47bd2533716e6d2e23af7eacc888a74"
+      "sha256": "abf008ef38edb0f267b30d770a9e859f15427e592f5958cee9859b603f97ad2f"
     },
     {
       "id": "specialization",
       "label": "专精",
+      "source": "Branch",
+      "accent": [
+        0
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Branch.svg",
+      "sourceSha256": "5ff6837255a41972e104e223812ecfe67e4f10f244c8755ad42e6e4c149a7609",
       "path": "package/Lychee/Media/MenuIcons/specialization.tga",
-      "sha256": "d3f6fd55b5d5a1ba35a6a0c25603da26c501e0b20590ef3230c0cb32063c1b3e"
+      "sha256": "616f45b51298b39dc6af0d00cfc69b34ddf136ad95f9ce4fae1c4233fea0d751"
     },
     {
       "id": "spellbook",
       "label": "法术书",
+      "source": "BookOne",
+      "accent": [
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/BookOne.svg",
+      "sourceSha256": "acb9c60ab7b669150fa98dd01a935fa28e0192dceee1c126675ea4c31128df22",
       "path": "package/Lychee/Media/MenuIcons/spellbook.tga",
-      "sha256": "ef2a7119151e2fd5e52b92cec78133bb8f772668358fa626a9b2c6fe2013357f"
+      "sha256": "7f70b0ca79645598c67e166ad3607e6f303e15a730addd7f02c101a8a53629f5"
     },
     {
       "id": "professions",
       "label": "专业技能",
+      "source": "HammerAndAnvil",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/HammerAndAnvil.svg",
+      "sourceSha256": "7ed8b21407a95e13843a16cb026bce7af6630a9cfbe8a2771e99a26a614e0e02",
       "path": "package/Lychee/Media/MenuIcons/professions.tga",
-      "sha256": "2a1bcd7af79bd8db9dfa8bfb951e802155f75208a9059ff0b04f6c3911c4c5fd"
+      "sha256": "f12eeefaeafe481e9e7064378536274a0f5e7f559a2ecf3957a6b8d7e3c95d58"
     },
     {
       "id": "mounts",
       "label": "坐骑",
+      "source": "HorseZodiac",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/HorseZodiac.svg",
+      "sourceSha256": "55deac9af6e67a04d755065de375541d066f9a6527295e051574fcd4ee22bdd5",
       "path": "package/Lychee/Media/MenuIcons/mounts.tga",
-      "sha256": "457b56f1b71051b17bf2d42382b2363f4ba201c4d515cdb7f031498fff742671"
+      "sha256": "6d17b2d55f4c4e6f49aa7025ea7502c8a0d3c763fa77e7cc408c950248179aee"
     },
     {
       "id": "pets",
       "label": "宠物手册",
+      "source": "Dog",
+      "accent": [
+        7
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Dog.svg",
+      "sourceSha256": "97b85feccd46a3ae83889f449bc1ec7258518fff612b96304f9d5943c126cefd",
       "path": "package/Lychee/Media/MenuIcons/pets.tga",
-      "sha256": "7a9375f72627959874ddcd6a10c76288b655f76bebac6e26d54168f87a470e0f"
+      "sha256": "d5125580b0522b151f51a0ca1eb6376bb9e03c590be08876f560bee5707c9d66"
     },
     {
       "id": "toys",
       "label": "玩具箱",
+      "source": "GameHandle",
+      "accent": [
+        4
+      ],
+      "sourcePath": "assets/menu-icons/upstream/GameHandle.svg",
+      "sourceSha256": "bac8159a5235c559a7b697c88909065c0d1a04c7cbd693afa06db14869c7ae69",
       "path": "package/Lychee/Media/MenuIcons/toys.tga",
-      "sha256": "fdff8a08d1358daeffb8205fa04405aaf2fabaa93fc1294d5af3d81347b3d63c"
+      "sha256": "a05573f095ef45fd977c400ecfe39a258f41ef4bdcb135a5a1dde35fad10f69d"
     },
     {
       "id": "heirlooms",
       "label": "传家宝",
+      "source": "DiamondNecklace",
+      "accent": [
+        0
+      ],
+      "sourcePath": "assets/menu-icons/upstream/DiamondNecklace.svg",
+      "sourceSha256": "7df7afacebac71c9bcd35751365d87a7ea833f18fd08a9bb1678175d04d79471",
       "path": "package/Lychee/Media/MenuIcons/heirlooms.tga",
-      "sha256": "6c064585f2a1662c176342b09757fc52913f0bf5e144a720132fa3d0b6497a5a"
+      "sha256": "ecf0a41912334b95ad925667129345bf8eb3f29b4fe0a64e2fce9cdf6ddc27b6"
     },
     {
       "id": "appearances",
       "label": "外观",
+      "source": "Hanger",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Hanger.svg",
+      "sourceSha256": "72905e31f7bf6f406954fc6b112c2143b23113f788bbd3905e431489fda142db",
       "path": "package/Lychee/Media/MenuIcons/appearances.tga",
-      "sha256": "7474d4d6d79607b200aa990d4589ba877ddbda9c8c396fe34112354c2085e1e9"
+      "sha256": "1cd5d7a2fcf4d9b6681d4a6b62926791e2bf07470f33c101e71f0695f6d0eb87"
     },
     {
       "id": "warband-scenes",
       "label": "战团营地",
+      "source": "Camp",
+      "accent": [
+        1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Camp.svg",
+      "sourceSha256": "db82f70be168f60b9b4d6b4153d3430267bbdf343527c778952a7017a478a138",
       "path": "package/Lychee/Media/MenuIcons/warband-scenes.tga",
-      "sha256": "3b02fe253248f305f77b7eabb0e368351503c6e926621b5f4bf16273d339fcad"
+      "sha256": "1e972e5a4c883ca9a9121b8ed38981e8015ab45b3a9ec3bda06556ad3a804c08"
     },
     {
       "id": "achievements",
       "label": "成就",
+      "source": "Trophy",
+      "accent": [
+        1,
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Trophy.svg",
+      "sourceSha256": "d1a5bec3143b95c51ea9ccfa73a89cbb968673a133552a367ab2cb5de50991b0",
       "path": "package/Lychee/Media/MenuIcons/achievements.tga",
-      "sha256": "16ac403d0f41f0887b4fa3ec7227e08caaf4a8b87f091db9815d6384590910ba"
+      "sha256": "564ff15ba26deae7936ec6367f195cd8beb570e4d4b11ad4ff0b085413dabe28"
     },
     {
       "id": "quests",
       "label": "任务日志",
+      "source": "Checklist",
+      "accent": [
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Checklist.svg",
+      "sourceSha256": "cabb4bf965b34929b5aa84c1c26091c40db91254481aadecd02e193f72d96c7c",
       "path": "package/Lychee/Media/MenuIcons/quests.tga",
-      "sha256": "4e7faa14002d89b1e27f14e9e802c8c912cc66f5ff6abd1b8cd2982181c5673b"
+      "sha256": "71f450626eef8e367477bc0d1cf2649a8848bdce99f8dbfae6a4a4828ff27c52"
     },
     {
       "id": "map",
       "label": "世界地图",
+      "source": "MapDraw",
+      "accent": [
+        1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/MapDraw.svg",
+      "sourceSha256": "215b8ca2310a337401e9b47802e089294f4e38c7e1de53e024532f07ac08a939",
       "path": "package/Lychee/Media/MenuIcons/map.tga",
-      "sha256": "8d79e769af4b1dacbb04f8575401ba8c130646988631100d8b13155f0bdc5de8"
+      "sha256": "e0120fc725477299239487cc37f72b7f93ded29b2e14b0104ed60f30b814a0f5"
     },
     {
       "id": "friends",
       "label": "好友",
+      "source": "Peoples",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Peoples.svg",
+      "sourceSha256": "91e1148528da573933b4509ec69c4462aaac5883fd541675186ffdf6527e0657",
       "path": "package/Lychee/Media/MenuIcons/friends.tga",
-      "sha256": "3ffe521782c05cefceea80d534b818f0f145dd8b582e0944603ac086d3499136"
+      "sha256": "b8e5b936d80d4781102686345b5db2671468b9db9535a42bcc7354da2edd9e1e"
     },
     {
       "id": "guild",
       "label": "公会与社区",
+      "source": "PeoplesTwo",
+      "accent": [
+        0
+      ],
+      "sourcePath": "assets/menu-icons/upstream/PeoplesTwo.svg",
+      "sourceSha256": "5cc4c60e0c92b8c90b540b44c25b1a90af2cbc50da19c23be512a3684dca2bd9",
       "path": "package/Lychee/Media/MenuIcons/guild.tga",
-      "sha256": "3da7e6511f32f6aa6341edaee96d551ed7c827dffd24e136cf8b8b9ff2fcae35"
+      "sha256": "1b7d08c9ee6e5d55d7bec1196dd672743719a38f5f5b7e663dbf92e230dbccfc"
     },
     {
       "id": "group-finder",
       "label": "地下城和团队",
+      "source": "PeopleSearch",
+      "accent": [
+        2,
+        3
+      ],
+      "sourcePath": "assets/menu-icons/upstream/PeopleSearch.svg",
+      "sourceSha256": "16b5dd15bd516c7c93a6ab84fa9ef2c69cdeb0ba96a13256148c70e1de1a9995",
       "path": "package/Lychee/Media/MenuIcons/group-finder.tga",
-      "sha256": "c874d0d7c440a1263d7f3ef394b0822562f048215b093bd7d0648a1b28f254f4"
+      "sha256": "8d48f113609b9f4928097ee8bd27b583c929a998e8f2070be24e7bcb855db6fa"
     },
     {
       "id": "dungeon-finder",
       "label": "地下城查找器",
+      "source": "Castle",
+      "accent": [
+        0,
+        1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Castle.svg",
+      "sourceSha256": "17a081acf32c8cd51d2b3bf274e0d9c1ff592b4a028575ab19af0e96880ad049",
       "path": "package/Lychee/Media/MenuIcons/dungeon-finder.tga",
-      "sha256": "f213982fb199eca6c28dc140a3640ebcc75bb8f399bf325f530b82dd478f36b7"
+      "sha256": "fb4286146b75053a409c69cfe978ae7105650cb0e3a63f63b03dbb679de10006"
     },
     {
       "id": "raid-finder",
       "label": "团队查找器",
+      "source": "Skull",
+      "accent": [
+        3,
+        4
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Skull.svg",
+      "sourceSha256": "3b623034d7cd5ed8e9e0a8c381e5ea4e7371737db85761d204c159dc6d0f488c",
       "path": "package/Lychee/Media/MenuIcons/raid-finder.tga",
-      "sha256": "9138b6c0d2f1901885cb480e2f100c819033552aa2616942ae022d1d1a5ef39b"
+      "sha256": "829fbad28b75cc284334cc00556e4249e085e9ab3162da2290b77098a91865e1"
     },
     {
       "id": "premade-groups",
       "label": "预创建队伍",
+      "source": "PeoplePlus",
+      "accent": [
+        1,
+        2,
+        3
+      ],
+      "sourcePath": "assets/menu-icons/upstream/PeoplePlus.svg",
+      "sourceSha256": "598c5aacbc8a9583c60503e888ff2efa05b578d714eba740f2292c85e7366a8d",
       "path": "package/Lychee/Media/MenuIcons/premade-groups.tga",
-      "sha256": "e7128a04eb092dc56d888d5009600c862a24713eb8ee27754a646cb11dc7f891"
+      "sha256": "c85f1f2c217023e1b0afa1d987da2859b0491d3136053b7bd98e0f0608e75e4a"
     },
     {
       "id": "pvp",
       "label": "PvP",
+      "source": "HolySword",
+      "accent": [
+        1,
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/HolySword.svg",
+      "sourceSha256": "5d775960bc6553c8d76f0fe58aba6d01836c2fc516b70db28cdebe147e7091df",
       "path": "package/Lychee/Media/MenuIcons/pvp.tga",
-      "sha256": "7241308264625119ec79e17924d664c4baae45f5207bd4473c3d357a3a1607d9"
+      "sha256": "63de61d041391f8c742173d64e9d3555c38ea08ac808bdaac69eae7b7ee7ba6f"
     },
     {
       "id": "journal",
       "label": "冒险指南",
+      "source": "CompassOne",
+      "accent": [
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/CompassOne.svg",
+      "sourceSha256": "a1ce00d069112656331832ba6d4971f249c1d2d504c2b6dfcca2c23ea38d0d05",
       "path": "package/Lychee/Media/MenuIcons/journal.tga",
-      "sha256": "33d6a09a4519e5c728d22303cc38176ccf71fb4a961da4e0f07882ec2063c02e"
+      "sha256": "0a658bf1a95f39b238a9105694fb1f7ccdb90a9456ce4bb034a357027f4b58c4"
     },
     {
       "id": "calendar",
       "label": "日历",
+      "source": "Calendar",
+      "accent": [
+        4
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Calendar.svg",
+      "sourceSha256": "0309c27488e0464a03d919660c3a9eb4291c5c0d1fb04bd1bf2f3abbd8831408",
       "path": "package/Lychee/Media/MenuIcons/calendar.tga",
-      "sha256": "8020dc1095b31476cab7bed0c2dec5245423b823eccb72580831f53de6fd7821"
+      "sha256": "a747d82258cf6679986208957109e143afe0367770499857f777c9a8e591bc61"
     },
     {
       "id": "macros",
       "label": "宏命令",
+      "source": "Code",
+      "accent": [
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Code.svg",
+      "sourceSha256": "ca1da1354c339cd65f436785dad5b7bf6cd9746d047f6516363640f3973cf5b0",
       "path": "package/Lychee/Media/MenuIcons/macros.tga",
-      "sha256": "48b73391709562ea4b38499e7aa0b157a0d6cad3a6623a55b4018e79a40aaee4"
+      "sha256": "1543d1d6771d308181769ff8b59f92f04522c0a5ad9fb8010c6103b168d40e7e"
     },
     {
       "id": "settings",
       "label": "设置",
+      "source": "SettingTwo",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/SettingTwo.svg",
+      "sourceSha256": "89de5701fc8046be0069180c2cfe8937c176d216259f15eec2421b35d7693228",
       "path": "package/Lychee/Media/MenuIcons/settings.tga",
-      "sha256": "9fd5b876e485eaa20f032b6574c9f5a6f8b30de86fe4137fcda2707baac18b57"
+      "sha256": "f840f2412acff17636cfe997d89b3da3f7ef5280eb90805489d199e6be7dbd3e"
     },
     {
       "id": "game-menu",
       "label": "游戏菜单",
+      "source": "HamburgerButton",
+      "accent": [
+        1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/HamburgerButton.svg",
+      "sourceSha256": "0308fef5bb05b794dac7944f44fb6a45c40c7e5367608bd4f664cdcff995fa52",
       "path": "package/Lychee/Media/MenuIcons/game-menu.tga",
-      "sha256": "757d164aa915b6d9b84f02e8ed37ffa91db34e83e57020833cf97d28c3f8b0bb"
+      "sha256": "c07415381117cb771494769ee439f51bc45666a79a4a1e8c5385cca190e1a53e"
     },
     {
       "id": "journeys",
       "label": "旅程",
+      "source": "Journey",
+      "accent": [
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Journey.svg",
+      "sourceSha256": "78b00fd5fce47d83397fc3e3f8eac09fe56db4812e6a01fcbae5539f2c660262",
       "path": "package/Lychee/Media/MenuIcons/journeys.tga",
-      "sha256": "a493764be45362aedf16e172d94b08b4f40db13f3e638bb295dcf528a1761804"
+      "sha256": "65535ed7838c4a20b3333480d78330b452a77373b479cc08f53ddc870159c5d7"
     },
     {
       "id": "travelers-log",
       "label": "旅行者日志",
+      "source": "NotebookAndPen",
+      "accent": [
+        2,
+        3,
+        6,
+        7
+      ],
+      "sourcePath": "assets/menu-icons/upstream/NotebookAndPen.svg",
+      "sourceSha256": "f3eac1aeaf91def76fd2fde4ce90d85cda93e17c222cebbb7e503cb44f83e806",
       "path": "package/Lychee/Media/MenuIcons/travelers-log.tga",
-      "sha256": "fc74d2c53f805ab0cee221daa9d746292bd5af1a1129ea4435dda661bf936680"
+      "sha256": "04ffbcfa0371a81e05ac068366a64fe714e5c2ea01954d4e4e5d97a4492b3f35"
     },
     {
       "id": "suggested-content",
       "label": "推荐玩法",
+      "source": "MagicWand",
+      "accent": [
+        2
+      ],
+      "sourcePath": "assets/menu-icons/upstream/MagicWand.svg",
+      "sourceSha256": "2427af87d1515dc92629edcbb73d2433565c3b431caddb878dcbd27748c6deaf",
       "path": "package/Lychee/Media/MenuIcons/suggested-content.tga",
-      "sha256": "ba9dd7ca15de66dcd2279a0be3f7ce59e08b7d1819a158553361ed2c562b82ff"
+      "sha256": "01c1f381748bdce49c38f6b929ae4749f36418012be69b26abf6ca886a6039cf"
     },
     {
       "id": "journal-dungeons",
       "label": "地下城",
+      "source": "OpenDoor",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/OpenDoor.svg",
+      "sourceSha256": "9b49651dda72299f2a863f08d31961691d0874cbc0e617e124fb7e4eed1dff0e",
       "path": "package/Lychee/Media/MenuIcons/journal-dungeons.tga",
-      "sha256": "579404264c2fc081266dfaa70423f4de7e5c59f26212123297e20e68ce55419a"
+      "sha256": "5edc599829a40812283cbbf797d9b807ea74c1e44c67000a5f132c7b3e1d8e91"
     },
     {
       "id": "journal-raids",
       "label": "团队副本",
+      "source": "Flag",
+      "accent": [
+        -1
+      ],
+      "sourcePath": "assets/menu-icons/upstream/Flag.svg",
+      "sourceSha256": "934d04fe725818494362263f1c90d28fde36eb40e59bf01b62d37b76cca9d260",
       "path": "package/Lychee/Media/MenuIcons/journal-raids.tga",
-      "sha256": "8480c5fe76aa701a25f1c18bba6ba94694545eb0056617da9133ee5d6acc7293"
+      "sha256": "eb1de66893597b094fc236b7d134956cf0ce786b07cf412960dd9639897461f0"
     },
     {
       "id": "tutorials",
       "label": "教程",
+      "source": "BachelorCap",
+      "accent": [
+        2,
+        3
+      ],
+      "sourcePath": "assets/menu-icons/upstream/BachelorCap.svg",
+      "sourceSha256": "8679ac844574ed6570f5aeb9174a0b1cfa952a895d8292a26a75cda39b4f531a",
       "path": "package/Lychee/Media/MenuIcons/tutorials.tga",
-      "sha256": "77037f04eb884595e50639ae7eb69cc24ae491e94ee6466894bcc9d62219aa14"
+      "sha256": "4e50a0c987f838c43209222ace602c686ae0885867aa7605698baccd94e1c3c4"
     }
   ]
 }

@@ -1,0 +1,293 @@
+{
+  "package": "@icon-park/svg",
+  "version": "1.4.2",
+  "repository": "https://github.com/bytedance/IconPark",
+  "license": "Apache-2.0",
+  "icons": [
+    {
+      "id": "character",
+      "label": "角色",
+      "source": "ClothesCrewNeck",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "reputation",
+      "label": "声望",
+      "source": "MedalOne",
+      "accent": [
+        5
+      ]
+    },
+    {
+      "id": "currency",
+      "label": "货币",
+      "source": "Financing",
+      "accent": [
+        1
+      ]
+    },
+    {
+      "id": "talents",
+      "label": "天赋",
+      "source": "MindMapping",
+      "accent": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "specialization",
+      "label": "专精",
+      "source": "Branch",
+      "accent": [
+        0
+      ]
+    },
+    {
+      "id": "spellbook",
+      "label": "法术书",
+      "source": "BookOne",
+      "accent": [
+        2
+      ]
+    },
+    {
+      "id": "professions",
+      "label": "专业技能",
+      "source": "HammerAndAnvil",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "mounts",
+      "label": "坐骑",
+      "source": "HorseZodiac",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "pets",
+      "label": "宠物手册",
+      "source": "Dog",
+      "accent": [
+        7
+      ]
+    },
+    {
+      "id": "toys",
+      "label": "玩具箱",
+      "source": "GameHandle",
+      "accent": [
+        4
+      ]
+    },
+    {
+      "id": "heirlooms",
+      "label": "传家宝",
+      "source": "DiamondNecklace",
+      "accent": [
+        0
+      ]
+    },
+    {
+      "id": "appearances",
+      "label": "外观",
+      "source": "Hanger",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "warband-scenes",
+      "label": "战团营地",
+      "source": "Camp",
+      "accent": [
+        1
+      ]
+    },
+    {
+      "id": "achievements",
+      "label": "成就",
+      "source": "Trophy",
+      "accent": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "quests",
+      "label": "任务日志",
+      "source": "Checklist",
+      "accent": [
+        2
+      ]
+    },
+    {
+      "id": "map",
+      "label": "世界地图",
+      "source": "MapDraw",
+      "accent": [
+        1
+      ]
+    },
+    {
+      "id": "friends",
+      "label": "好友",
+      "source": "Peoples",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "guild",
+      "label": "公会与社区",
+      "source": "PeoplesTwo",
+      "accent": [
+        0
+      ]
+    },
+    {
+      "id": "group-finder",
+      "label": "地下城和团队",
+      "source": "PeopleSearch",
+      "accent": [
+        2,
+        3
+      ]
+    },
+    {
+      "id": "dungeon-finder",
+      "label": "地下城查找器",
+      "source": "Castle",
+      "accent": [
+        0,
+        1
+      ]
+    },
+    {
+      "id": "raid-finder",
+      "label": "团队查找器",
+      "source": "Skull",
+      "accent": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": "premade-groups",
+      "label": "预创建队伍",
+      "source": "PeoplePlus",
+      "accent": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "pvp",
+      "label": "PvP",
+      "source": "HolySword",
+      "accent": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "journal",
+      "label": "冒险指南",
+      "source": "CompassOne",
+      "accent": [
+        2
+      ]
+    },
+    {
+      "id": "calendar",
+      "label": "日历",
+      "source": "Calendar",
+      "accent": [
+        4
+      ]
+    },
+    {
+      "id": "macros",
+      "label": "宏命令",
+      "source": "Code",
+      "accent": [
+        2
+      ]
+    },
+    {
+      "id": "settings",
+      "label": "设置",
+      "source": "SettingTwo",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "game-menu",
+      "label": "游戏菜单",
+      "source": "HamburgerButton",
+      "accent": [
+        1
+      ]
+    },
+    {
+      "id": "journeys",
+      "label": "旅程",
+      "source": "Journey",
+      "accent": [
+        2
+      ]
+    },
+    {
+      "id": "travelers-log",
+      "label": "旅行者日志",
+      "source": "NotebookAndPen",
+      "accent": [
+        2,
+        3,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "suggested-content",
+      "label": "推荐玩法",
+      "source": "MagicWand",
+      "accent": [
+        2
+      ]
+    },
+    {
+      "id": "journal-dungeons",
+      "label": "地下城",
+      "source": "OpenDoor",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "journal-raids",
+      "label": "团队副本",
+      "source": "Flag",
+      "accent": [
+        -1
+      ]
+    },
+    {
+      "id": "tutorials",
+      "label": "教程",
+      "source": "BachelorCap",
+      "accent": [
+        2,
+        3
+      ]
+    }
+  ]
+}

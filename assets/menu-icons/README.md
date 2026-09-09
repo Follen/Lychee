@@ -1,0 +1,24 @@
+# Lychee menu icon sources
+
+34 icons from [ByteDance IconPark](https://github.com/bytedance/IconPark), npm `@icon-park/svg` **1.4.2**, Apache-2.0. The original license is in [LICENSE.txt](LICENSE.txt).
+
+`selection.json` maps stable menu IDs to upstream export names. `upstream/*.svg` contains original geometry exported with the official renderer: outline theme, 48×48, stroke width 3, round joins/caps, black strokes. `accent` identifies existing SVG shape elements in document order (negative indices count from the end). The build recolors these elements red and the remaining elements ivory; it does not redraw paths.
+
+Offline rebuild from repository root:
+
+```powershell
+python tests/build_menu_icons.py
+```
+
+Build dependencies: CairoSVG 2.8.2, Pillow 12.1.1, Microsoft YaHei for preview labels. CairoSVG also requires a working Cairo installation. These are development dependencies only; the addon loads prebuilt textures.
+
+To reproduce upstream exports, extract the pinned npm tarball `https://registry.npmjs.org/@icon-park/svg/-/svg-1.4.2.tgz` outside the repository, then run:
+
+```powershell
+node tests/export_menu_icons.cjs <extracted-package-directory>
+python tests/build_menu_icons.py
+```
+
+The exporter refuses any other package/version. The builder checks all 34 current menu IDs, accent indices, ivory/red presence, RGBA format, uncompressed TGA header, dimensions, and crop-safe padding. It writes the PNG/SVG previews and SHA-256 manifest under `docs/architecture`.
+
+Distribute only `package/Lychee/Media/MenuIcons/*.tga` and its `LICENSE.txt` with the addon. The runtime license includes source attribution, modification notice and the full Apache license. No SVG renderer, fonts, npm package, or source vectors ship to the game.
