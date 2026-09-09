@@ -243,11 +243,14 @@ function Executor:Execute(row, actionID)
     elseif action and action.kind == "drag-spell" then
         result, actionErr = pickupSpell(action.spellID)
     elseif action and action.kind == "secure-spell" then
-        local Lychee = _G.Lychee
-        if Lychee and Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(action.spellID) then
-            return false, "ACTION_UNAVAILABLE"
+        if actionID == (interaction and interaction.primaryActionID or "") then
+            local Lychee = _G.Lychee
+            if Lychee and Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(action.spellID) then
+                return false, "ACTION_UNAVAILABLE"
+            end
+            return false, "ACTION_REQUIRES_HARDWARE_CLICK"
         end
-        if actionID == (interaction and interaction.primaryActionID or "") then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
+        -- Preparing a secondary button performs the policy check in the broker.
         result, actionErr = palette.secureBroker and palette.secureBroker:ShowFor(row, action, palette.session, palette.generation, item, row.extensionID) or false
         if result then result = { ok=true, awaitingHardwareClick=true, actionTitle=action.title } end
     else

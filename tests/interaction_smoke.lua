@@ -964,7 +964,15 @@ assertEq(#menuEntries, 3, "secure overlay exposes the same action menu")
 assert(not secureMenuButton.pendingCast, "right-button menu does not initiate a protected cast")
 assert(menuEntries[2].callback() and menuRan==1)
 LycheeDB.palette.recent={}
-local preparedSecondary=menuEntries[3].callback()
+local preparedSecondary=(function()
+    local original, calls = IsPlayerSpell, 0
+    IsPlayerSpell = function(id) calls = calls + 1; return original(id) end
+    local result = menuEntries[3].callback()
+    IsPlayerSpell = original
+    print("Secondary secure action spell checks: " .. calls)
+    assert(calls == 1, "secondary preparation checks spell availability once")
+    return result
+end)()
 assert(preparedSecondary.awaitingHardwareClick and #LycheeDB.palette.recent==0, "arming a secure action is not successful execution")
 assert(secureMenuButton:GetParent()==secureMenuRow and secureMenuButton.armedSecondary, "secondary secure action covers the correct row")
 assert(palette.status:GetText():find("次要施放",1,true), "status names the prepared action")
@@ -1041,5 +1049,14 @@ assert(palette:Create() == palette)
 local registrations = 0
 for _, name in ipairs(UISpecialFrames) do if name == "LycheePalette" then registrations = registrations + 1 end end
 assert(registrations == 1, "Escape registration is not duplicated")
+local calls, originals = 0, {}
+for index, button in ipairs(secureBroker.buttons) do
+    originals[index] = button.SetAttribute
+    button.SetAttribute = function(self, ...) calls = calls + 1; return originals[index](self, ...) end
+end
+secureBroker:ReleaseAll()
+for index, button in ipairs(secureBroker.buttons) do button.SetAttribute = originals[index] end
+print("Already released button attribute writes: " .. calls)
+assert(calls == 0, "repeated release does not mutate idle pooled buttons")
 end)()
 print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)")

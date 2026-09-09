@@ -1,0 +1,71 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_SpellBook.IsSpellKnown",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "684: \t\t\tName = \"IsSpellKnown\",\n685: \t\t\tType = \"Function\",\n686: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n687: \t\t\tDocumentation = { \"Returns true if a player knows a spell. This function can also return true for spells that aren't in the spellbook, such as temporarily-granted abilities\" },\n688: \n689: \t\t\tArguments =\n690: \t\t\t{\n691: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = false },\n692: \t\t\t\t{ Name = \"spellBank\", Type = \"SpellBookSpellBank\", Nilable = false, Default = \"Player\" },\n693: \t\t\t},\n694: \n695: \t\t\tReturns =\n696: \t\t\t{\n697: \t\t\t\t{ Name = \"isKnown\", Type = \"bool\", Nilable = false },\n698: \t\t\t},\n699: \t\t},",
+        "contentHash": "526e806e3602454d3ccdaba874b9294accb7b0ed56db32adab306cc639dd24b9",
+        "line": 684,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.IsSpellPassive",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "896: \t\t\tName = \"IsSpellPassive\",\n897: \t\t\tType = \"Function\",\n898: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n899: \n900: \t\t\tArguments =\n901: \t\t\t{\n902: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n903: \t\t\t},\n904: \n905: \t\t\tReturns =\n906: \t\t\t{\n907: \t\t\t\t{ Name = \"isPassive\", Type = \"bool\", Nilable = false },\n908: \t\t\t},\n909: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 896,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "SecureActionButton_OnClick",
+        "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "805: function SecureActionButton_OnClick(self, inputButton, down, isKeyPress, isSecureAction)\n806: \t-- Why are we adding extra arguments, 'isKeyPress' and 'isSecureAction', to an _OnClick handler?\n807: \t-- We want to prevent mouse actions from triggering press-and-hold behavior for now, but we do want to allow AddOns\n808: \t-- to function as they did before. This is a problem since there's no difference between an AddOn's key press behavior\n809: \t-- and mouse click behavior. So if we don't know where this is coming from, it's from an AddOn and should be treated as\n810: \t-- a key press not a mouse press for 'useOnKeyDown' purposes.\n811: \tlocal isSecureMousePress = not isKeyPress and isSecureAction;\n812: \tlocal pressAndHoldAction = SecureButton_GetAttribute(self, \"pressAndHoldAction\");\n813: \tlocal useOnKeyDown = not isSecureMousePress and (SecureActionButton_ShouldUseOnKeyDown(self) or pressAndHoldAction);\n814: \tlocal clickAction = (down and useOnKeyDown) or (not down and not useOnKeyDown);\n815: \tlocal releasePressAndHoldAction = (not down) and (pressAndHoldAction or GetCVarBool(\"ActionButtonUseKeyHeldSpell\"));\n816: \n817: \tif clickAction then\n818: \t\t-- Only treat a key down action as a key press. Treating key up actions as a key press will result in the held\n819: \t\t-- spell being cast indefinitely since there's no release to stop it.\n820: \t\tlocal treatAsKeyPress = down and isKeyPress;\n821: \t\tOnActionButtonClick(self, inputButton, down, treatAsKeyPress);\n822: \t\treturn true;\n823: \telseif releasePressAndHoldAction then\n824: \t\tOnActionButtonPressAndHoldRelease(self, inputButton);\n825: \t\treturn true;\n826: \tend\n827: \n828: \treturn false;\n829: end",
+        "contentHash": "5fd1efcbfc20b4d426187f55dbee52542d37befd1ef52082db1f466f1049929a",
+        "line": 805,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

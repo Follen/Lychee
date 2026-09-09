@@ -73,6 +73,23 @@ local policy=Lychee.Secure.Policy
 assert(policy:IsSpellAvailable(90011) and policy:IsSpellAvailable(90012))
 assert(not policy:IsSpellAvailable(90013) and not policy:IsSpellAvailable(90014) and not policy:IsSpellAvailable(99999))
 failedID=11; assert(not policy:IsSpellAvailable(90011), "restricted collection read fails closed"); failedID=nil
+;(function()
+    local oldBook, oldSpell, oldEnum, oldKnown, oldPassive = C_SpellBook, C_Spell, Enum, IsPlayerSpell, IsPassiveSpell
+    local known, passive, calls = true, false, 0
+    Enum = {SpellBookSpellBank = {Player = 1}}
+    C_SpellBook = {IsSpellKnown=function(_, bank) assert(bank == 1); calls = calls + 1; return known end}
+    C_Spell = {IsSpellPassive=function() return passive end}
+    IsPlayerSpell = function() error("modern API must take precedence") end
+    IsPassiveSpell = IsPlayerSpell
+    assert(policy:IsSpellAvailable(99999), "modern player spell is accepted")
+    passive = true
+    assert(not policy:IsSpellAvailable(99999), "modern passive spell is rejected")
+    passive, known = false, false
+    assert(not policy:IsSpellAvailable(99999), "spell knowledge changes are not cached")
+    assert(policy:IsSpellAvailable(90011), "modern unknown spell can still be a collected mount")
+    assert(calls == 4, "one knowledge check per policy request")
+    C_SpellBook, C_Spell, Enum, IsPlayerSpell, IsPassiveSpell = oldBook, oldSpell, oldEnum, oldKnown, oldPassive
+end)()
 
 local state=I.Providers.entries["builtin.mounts"]
 local beforeReads,beforeLists,beforeRevision=reads,listReads,state.revision

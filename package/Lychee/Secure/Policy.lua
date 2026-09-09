@@ -14,7 +14,12 @@ end
 function Policy:CanConfigure() return not (InCombatLockdown and InCombatLockdown()) end
 function Policy:IsSpellAvailable(spellID)
     if type(spellID) ~= "number" then return false end
-    local known = IsPlayerSpell and IsPlayerSpell(spellID)
+    local known
+    if C_SpellBook and C_SpellBook.IsSpellKnown and Enum and Enum.SpellBookSpellBank then
+        known = C_SpellBook.IsSpellKnown(spellID, Enum.SpellBookSpellBank.Player)
+    elseif IsPlayerSpell then
+        known = IsPlayerSpell(spellID)
+    end
     if known == false then
         -- Collection spells need not be present in the player's spellbook.
         -- Validate the live collection, rather than trusting a Provider flag.
@@ -24,7 +29,8 @@ function Policy:IsSpellAvailable(spellID)
     -- Usability changes with cooldown, resources and destination state. It must
     -- not prevent preparing the secure button; the hardware click applies the
     -- game's current usability rules.
-    if IsPassiveSpell and IsPassiveSpell(spellID) then return false end
+    local isPassive = C_Spell and C_Spell.IsSpellPassive or IsPassiveSpell
+    if isPassive and isPassive(spellID) then return false end
     return true
 end
 function Policy:Check(descriptor)

@@ -121,7 +121,6 @@ function Broker:Prepare(action, token)
     if not descriptor then return nil, err end
     local ok, policyErr = Lychee.Secure.Policy:Check(descriptor)
     if not ok then self.dirty = true; return nil, policyErr end
-    if InCombatLockdown and InCombatLockdown() then self.dirty = true; return nil, "COMBAT_LOCKED" end
     for index = 1, #self.buttons do
         local existing = self.buttons[index]
         local bound = existing.token
@@ -179,7 +178,7 @@ function Broker:FinishCast(event, spellID, reason)
     return true
 end
 function Broker:Release(button)
-    if not button then return end
+    if not button or (not button.busy and not button.pendingRelease and not button.activeIndex) then return end
     if InCombatLockdown and InCombatLockdown() then
         button.pendingRelease = true
         self.dirty = true
