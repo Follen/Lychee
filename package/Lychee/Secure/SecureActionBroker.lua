@@ -52,7 +52,6 @@ function Broker:_Acquire()
     local button = CreateFrame("Button", "LycheeSecureActionButton" .. tostring(#self.buttons + 1), self.parent, "SecureActionButtonTemplate")
     button:RegisterForClicks("LeftButtonUp")
     button:SetAttribute("useOnKeyDown", false)
-    button:RegisterForDrag("LeftButton")
     button:SetScript("OnDragStart", function(current)
         local token = current.token
         if token and token.controller then token.controller:BeginRowDrag(token.row) end
@@ -130,6 +129,8 @@ function Broker:Prepare(action, token)
     button.action = action
     button.spellID = descriptor.spellID
     button.pendingCast = false
+    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+    if executor then executor:ConfigureDragTarget(button, token and (token.item or token.row and token.row.item)) end
     button:Show()
     self.active[#self.active + 1] = button
     return button

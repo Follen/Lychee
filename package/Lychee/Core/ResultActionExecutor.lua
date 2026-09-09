@@ -48,6 +48,19 @@ function Executor:BindPalette(palette)
     return true
 end
 
+function Executor:GetDragDescriptor(item)
+    local drag = item and item.interaction and item.interaction.drag
+    if type(drag) == "table" and drag.type == "spell" and type(drag.spellID) == "number" and drag.spellID > 0 then return drag end
+end
+
+function Executor:ConfigureDragTarget(target, item)
+    if not target or type(target.RegisterForDrag) ~= "function" then return end
+    local enabled = self:GetDragDescriptor(item) ~= nil
+    if target._lycheeDragEnabled == enabled then return end
+    if enabled then target:RegisterForDrag("LeftButton") else target:RegisterForDrag() end
+    target._lycheeDragEnabled = enabled
+end
+
 function Executor:IsRowCurrent(row, session, generation, item, owner)
     local palette = self.palette
     if not palette or not palette.visible or not row or not row.item then return false, "STALE_GENERATION" end
@@ -247,10 +260,8 @@ end
 function Executor:BeginDrag(row)
     local valid, err = self:Validate(row)
     if not valid then return self.palette:RejectRow(row, err) end
-    local drag = row.item and row.item.interaction and row.item.interaction.drag
-    if type(drag) ~= "table" or drag.type ~= "spell" or type(drag.spellID) ~= "number" then
-        return false, "DRAG_UNSUPPORTED"
-    end
+    local drag = self:GetDragDescriptor(row.item)
+    if not drag then return false, "DRAG_UNSUPPORTED" end
     return pickupSpell(drag.spellID)
 end
 
@@ -264,6 +275,7 @@ function Executor:PrepareVisibleRows(rows)
         if not current then
             palette:InvalidateRow(row)
         elseif row:IsShown() then
+            self:ConfigureDragTarget(row.dragger or row, row.item)
             local action = primaryActionFor(row.item)
             if action and action.kind == "secure-spell" then
                 local button = broker:Prepare(action, {

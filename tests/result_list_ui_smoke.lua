@@ -162,12 +162,15 @@ assert(rowOne.secondaryAction.id == "detail" and rowOne.secondary:IsShown(), "fi
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
 rowTwo.scripts.OnEnter(rowTwo)
-assert(list.selected == 1 and rowOne._selected and rowTwo._hovered and not rowTwo._selected, "hover does not replace keyboard selection")
+assert(list.selected == 2 and not rowOne._selected and rowTwo._selected, "hover moves the single current selection")
+assert(not rowOne.outline:IsShown() and rowTwo.outline:IsShown(), "only the hovered current row has an outline")
 rowTwo.scripts.OnLeave(rowTwo)
-list:Move(1)
-assert(list.selected == 2 and rowTwo._selected and not rowOne._selected, "keyboard movement changes selection")
+list:Move(-1)
+assert(list.selected == 1 and rowOne._selected and not rowTwo._selected, "keyboard movement uses the same selection")
 
 rowOne.scripts.OnEnter(rowOne)
+list:Move(1)
+assert(not rowOne.outline:IsShown() and rowTwo.outline:IsShown(), "keyboard navigation leaves no second hover highlight")
 local unchangedRowOne = setterFingerprint(rowOne)
 local unchangedRowTwo = setterFingerprint(rowTwo)
 list:SetItems(items, 12, 24)

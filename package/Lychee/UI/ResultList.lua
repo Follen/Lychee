@@ -152,6 +152,9 @@ local function showTooltip(owner, title, detail)
             GameTooltip:AddLine(" ")
             GameTooltip:AddLine((UI_CHINESE and "点击 · " or "Click · ") .. actionLabel(primary), 0.90, 0.35, 0.40, true)
         end
+        if interaction and interaction.drag then
+            GameTooltip:AddLine(UI_CHINESE and "拖动 · 放到动作条" or "Drag · Place on an action bar", 0.71, 0.705, 0.69, true)
+        end
     elseif detail and detail ~= "" and detail ~= title and type(GameTooltip.AddLine) == "function" then
         GameTooltip:AddLine(detail, 0.78, 0.78, 0.82, true)
     end
@@ -177,13 +180,13 @@ local function secondaryAction(interaction)
 end
 
 local function renderRowState(row)
-    local background = row._selected and "rowSelected" or ((row._pressed or row._hovered) and "rowHover" or "row")
+    local background = row._selected and "rowSelected" or "row"
     setTextureColor(row.bg, background)
     -- Red stays inside the selected row; the search field has no boxed focus ring.
     setShown(row.accent, false)
-    setShown(row.outline, row._hovered == true or row._selected == true)
-    setShown(row.secondary, row.secondaryAction and (row._hovered or row._selected) or false)
-    setShown(row.dragHighlight, row._dragHovered == true)
+    setShown(row.outline, row._selected == true)
+    setShown(row.secondary, row.secondaryAction and row._selected or false)
+    setShown(row.dragHighlight, row._selected and row._dragHovered == true or false)
 end
 
 local function clearRow(row)
@@ -207,7 +210,12 @@ end
 function ResultList:SetHover(row, hovered)
     if not row or row._hovered == (hovered == true) then return end
     row._hovered = hovered == true
+    if hovered then self:SelectRow(row) end
     renderRowState(row)
+end
+
+function ResultList:ShowItemTooltip(item, owner)
+    if item then showTooltip(owner, item.text, item) end
 end
 
 function ResultList:ShowTooltip(row, owner)
@@ -253,7 +261,7 @@ function ResultList:Create(parent, controller)
 
         row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", 12, 0)
         row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); setTextureColor(row.dragHighlight, "actionHover")
-        row.dragger = CreateFrame("Button", nil, row); row.dragger:SetSize(iconSize + 6, iconSize + 6); row.dragger:SetPoint("CENTER", row.icon, "CENTER"); row.dragger:RegisterForDrag("LeftButton")
+        row.dragger = CreateFrame("Button", nil, row); row.dragger:SetSize(iconSize + 6, iconSize + 6); row.dragger:SetPoint("CENTER", row.icon, "CENTER")
         row.dragger:SetScript("OnDragStart", function(button)
             if button:GetParent().dragDescriptor and self.controller then self.controller:BeginRowDrag(button:GetParent()) end
         end)

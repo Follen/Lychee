@@ -11,7 +11,7 @@ Palette.__index = Palette
 
 local WIDTH, HEIGHT = 640, 220
 local HEADER_HEIGHT, FOOTER_HEIGHT = 64, 32
-local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 112, 84
+local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 5, 112, 96
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 8, 10, 18
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 8
 
@@ -127,17 +127,19 @@ local function createHomeView(parent, controller)
 
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
-        paint(tile.bg, color(selected and "tileSelected" or (tile._hovered and "tileHover" or "content")))
-        setShown(tile.focus, false)
+        paint(tile.bg, color("tileSelected"))
+        setShown(tile.bg, selected == true)
     end
 
     function view:SetHover(tile, hovered)
         tile._hovered = hovered == true
+        if hovered and tile.index then self:Select(tile.index) end
         self:RenderTileState(tile)
     end
 
     function view:ShowTooltip(tile, owner)
         if not GameTooltip or not tile.section then return end
+        if tile.item then return Lychee.UI.ResultList:ShowItemTooltip(tile.item, owner or tile) end
         GameTooltip:SetOwner(owner or tile, "ANCHOR_TOP")
         GameTooltip:SetText(homeLabel(tile.section.title, "Lychee"))
         GameTooltip:Show()
@@ -205,30 +207,31 @@ local function createHomeView(parent, controller)
         tile.ownerView = self
         tile:RegisterForClicks("LeftButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
-        tile.bg:SetAllPoints()
-        paint(tile.bg, color("content"))
-        tile.focus = tile:CreateTexture(nil, "BORDER")
-        tile.focus:SetPoint("TOPLEFT", tile, "TOPLEFT", 0, 0)
-        tile.focus:SetPoint("BOTTOMLEFT", tile, "BOTTOMLEFT", 0, 0)
-        tile.focus:SetWidth(1)
-        paint(tile.focus, color("accent"))
-        tile.focus:Hide()
+        tile.bg:SetSize(48, 48)
+        paint(tile.bg, color("tileSelected"))
+        tile.bg:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
         tile.icon:SetSize(34, 34)
-        tile.icon:SetPoint("TOP", tile, "TOP", 0, -8)
-        tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 2, -50)
-        tile.title:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
+        tile.icon:SetPoint("TOP", tile, "TOP", 0, -12)
+        tile.bg:SetPoint("CENTER", tile.icon, "CENTER")
+        tile.fallback = {}
+        for index = 1, 4 do
+            local dot = tile:CreateTexture(nil, "ARTWORK")
+            dot:SetSize(8, 8)
+            dot:SetPoint("CENTER", tile.icon, "CENTER", (index - 1) % 2 * 12 - 6, 6 - math.floor((index - 1) / 2) * 12)
+            paint(dot, color("muted"))
+            dot:Hide()
+            tile.fallback[index] = dot
+        end
+        tile.title = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        tile.title:SetPoint("TOPLEFT", tile, "TOPLEFT", 4, -60)
+        tile.title:SetPoint("RIGHT", tile, "RIGHT", -4, 0)
+        tile.title:SetHeight(32)
         tile.title:SetJustifyH("CENTER")
-        if tile.title.SetWordWrap then tile.title:SetWordWrap(false) end
-        if tile.title.SetMaxLines then tile.title:SetMaxLines(1) end
+        if tile.title.SetWordWrap then tile.title:SetWordWrap(true) end
+        if tile.title.SetNonSpaceWrap then tile.title:SetNonSpaceWrap(true) end
+        if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
-        tile.meta = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        tile.meta:SetPoint("TOPLEFT", tile.title, "BOTTOMLEFT", 0, -2)
-        tile.meta:SetPoint("RIGHT", tile, "RIGHT", -6, 0)
-        tile.meta:SetJustifyH("CENTER")
-        if tile.meta.SetWordWrap then tile.meta:SetWordWrap(false) end
-        tint(tile.meta, color("muted"))
         tile:SetScript("OnClick", function(button)
             local section = button.section
             if section and section.enabled ~= false and controller and controller.onHomeSelect then
@@ -237,20 +240,14 @@ local function createHomeView(parent, controller)
             end
         end)
         tile:SetScript("OnEnter", function(button)
-            button._hovered = true
-            view:RenderTileState(button)
-            if GameTooltip and button.section and GameTooltip.SetOwner then
-                GameTooltip:SetOwner(button, "ANCHOR_TOP")
-                GameTooltip:SetText(homeLabel(button.section.title or button.section.text, "Lychee"))
-                if button.section.tooltip and GameTooltip.AddLine then GameTooltip:AddLine(button.section.tooltip, 0.78, 0.78, 0.82, true) end
-                if GameTooltip.Show then GameTooltip:Show() end
-            end
+            view:SetHover(button, true)
+            view:ShowTooltip(button)
         end)
         tile:SetScript("OnLeave", function(button)
-            button._hovered = false
-            view:RenderTileState(button)
+            view:SetHover(button, false)
             if GameTooltip and GameTooltip.Hide then GameTooltip:Hide() end
         end)
+        tile:SetScript("OnDragStart", function(button) controller:BeginRowDrag(button) end)
         self.tiles[index] = tile
         return tile
     end
@@ -306,24 +303,11 @@ local function createHomeView(parent, controller)
             tile.section = section
             tile.index = index
             tile.item = section.item
+            local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+            if executor then executor:ConfigureDragTarget(tile, tile.item) end
             tile.session, tile.generation = controller.session, controller.generation
             tile.extensionID = section.item and section.item._ext
             setText(tile.title, homeLabel(section.title or section.text, "Lychee"))
-            -- 名称下方展示类别标签（如"技能"），让最近使用的条目有上下文；
-            -- 没有类别信息的磁贴整行隐藏。
-            local metaText = ""
-            local metaColor = section.categoryColor or color("muted")
-            if tile._metaColor ~= metaColor then
-                tint(tile.meta, metaColor)
-                tile._metaColor = metaColor
-            end
-            if metaText ~= "" then
-                setText(tile.meta, metaText)
-                setShown(tile.meta, true)
-            else
-                setText(tile.meta, "")
-                setShown(tile.meta, false)
-            end
             if section.icon then
                 if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end
                 setShown(tile.icon, true)
@@ -331,6 +315,7 @@ local function createHomeView(parent, controller)
                 tile._icon = nil
                 setShown(tile.icon, false)
             end
+            for fallbackIndex = 1, #tile.fallback do setShown(tile.fallback[fallbackIndex], not section.icon) end
             setShown(tile, true)
             self:RenderTileState(tile)
         end
@@ -338,7 +323,9 @@ local function createHomeView(parent, controller)
             local tile = self.tiles[index]
             tile.section, tile.index, tile._hovered = nil, nil, nil
             tile.item, tile.session, tile.generation, tile.extensionID = nil, nil, nil, nil
-            setShown(tile.focus, false)
+            setShown(tile.bg, false)
+            local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+            if executor then executor:ConfigureDragTarget(tile, nil) end
             setShown(tile, false)
         end
         for index = headerCount + 1, #self.headers do setShown(self.headers[index], false) end
@@ -422,24 +409,11 @@ function Palette:Create()
     self.closeComponent = components:CreateButton(self.header, {
         width = 38, height = 26, point = "RIGHT", relativePoint = "RIGHT", x = -16,
         text = "Esc",
-        colors = { normal = "header", hover = "tileHover", pressed = "tileHover" },
-        textColors = { normal = "muted", hover = "text", pressed = "text" },
+        colors = { normal = "header", hover = "surfaceHover", pressed = "surfaceSelected" },
+        textColors = { normal = "accent", hover = "accent", pressed = "accent" },
         onClick = function() self:Hide("close") end,
     })
     self.close = self.closeComponent.frame
-    self.close:SetScript("OnClick", function() self:Hide("close") end)
-    self.close:SetScript("OnEnter", function(button)
-        self.closeComponent:SetState("hover")
-        if GameTooltip then
-            GameTooltip:SetOwner(button, "ANCHOR_BOTTOM")
-            GameTooltip:SetText(localized({ zhCN = "关闭", enUS = "Close" }, "Close"))
-            GameTooltip:Show()
-        end
-    end)
-    self.close:SetScript("OnLeave", function(button)
-        self.closeComponent:SetState("normal")
-        if GameTooltip then GameTooltip:Hide() end
-    end)
     self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted" })
     self.status = self.statusComponent.label
     self.footerHint = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")

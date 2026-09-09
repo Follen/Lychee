@@ -34,7 +34,9 @@ local function object(kind, parent)
     function o:SetAutoFocus() end
     function o:SetTextInsets() end
     function o:RegisterForClicks() end
-    function o:RegisterForDrag() end
+    function o:RegisterForDrag(...) mutation(self, "RegisterForDrag"); self.dragButtons = { ... } end
+    function o:SetWordWrap(value) self.wordWrap = value end
+    function o:SetMaxLines(value) self.maxLines = value end
     function o:SetJustifyH() end
     function o:SetShown(v) mutation(self, "SetShown"); self.shown = not not v end
     function o:Show() mutation(self, "Show"); self.shown = true end
@@ -47,6 +49,7 @@ local function object(kind, parent)
     function o:CreateFontString() return object("FontString", self) end
     function o:SetTexture(v) self.texture = v end
     function o:SetColorTexture() end
+    function o:SetTextColor(...) self.textColor = { ... } end
     function o:SetText(v) self.text = v end
     function o:GetText() return self.text or "" end
     function o:ClearFocus() self.focused = false end
@@ -142,6 +145,15 @@ assert(palette.header and palette.content and palette.footer and palette.emptySt
 assert(palette.headerComponent and palette.footerComponent and palette.contentComponent, "palette uses reusable surface components")
 assert(palette.brandComponent and palette.brandComponent.icon.texture == "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga", "palette logo component is wired")
 assert(palette.closeComponent and palette.statusComponent and palette.emptyStateComponent, "palette control components are wired")
+assertEq(palette.closeComponent.label._lycheeTextToken, Lychee.UI.Theme.Colors.accent, "Esc uses the red theme token")
+local tooltipShows = 0
+GameTooltip = { SetOwner = function() end, SetText = function(self, value) self.text = value; self.lines = {} end,
+    AddLine = function(self, value) self.lines[#self.lines + 1] = value end,
+    Show = function() tooltipShows = tooltipShows + 1 end, Hide = function() end }
+palette.close.scripts.OnEnter(palette.close)
+assertEq(tooltipShows, 0, "Esc never shows a tooltip")
+assertEq(palette.closeComponent.label._lycheeTextToken, Lychee.UI.Theme.Colors.accent, "Esc hover stays red")
+palette.close.scripts.OnLeave(palette.close)
 local logoSetCalls = palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0
 assert(palette.brandComponent:SetTexture("Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga") == false, "brand texture setter is guarded")
 assert((palette.brandComponent.icon.setterCalls and (palette.brandComponent.icon.setterCalls.SetTexture or 0) or 0) == logoSetCalls, "guarded logo setter does not repaint")
@@ -207,7 +219,7 @@ local keyboardSelection = palette.homeView.selected
 local hoverTile = palette.homeView.tiles[math.max(1, keyboardSelection - 1)]
 hoverTile.scripts.OnEnter(hoverTile)
 hoverTile.scripts.OnLeave(hoverTile)
-assertEq(palette.homeView.selected, keyboardSelection, "home hover does not replace keyboard selection")
+assertEq(palette.homeView.selected, hoverTile.index or keyboardSelection, "home hover shares the current selection")
 local palettePanel = {
     create = function()
         return { Mount = function() return true end, Unmount = function() end, Dispose = function() end }
@@ -450,7 +462,6 @@ end
 for tileIndex = 1, #palette.homeView.sections do
     local tile = palette.homeView.tiles[tileIndex]
     countCalls(tile.title, "SetText")
-    countCalls(tile.meta, "SetText")
     countCalls(tile.icon, "SetTexture")
     countCalls(tile.icon, "SetShown")
     countCalls(tile, "SetShown")
@@ -754,6 +765,9 @@ assert(palette:IsHomeVisible(), "reopening returns to recent homepage")
 assert(palette.frame:GetHeight() < 260, "one-row home contracts around content")
 local recentTile = palette.homeView.tiles[1]
 local recentButton = assert(boundButton(recentTile), "recent tile has a prepared direct spell click")
+assertEq(recentTile.bg:GetWidth(), recentTile.bg:GetHeight(), "recent highlight is square")
+assert(recentTile.bg:GetWidth() < recentTile:GetWidth(), "recent highlight covers only the icon area")
+assertEq(recentTile.title.maxLines, 2, "recent entry names allow two lines")
 assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
 local beforeDrag = _G.__pickup or 0
 recentButton.scripts.OnDragStart(recentButton)
@@ -791,4 +805,80 @@ C_Timer = nil
 assert(launcherHandle:SetEnabled(false))
 assertEq(#I.Search.Query:ResolveRecent({ clickedID }, 5), 0, "disabled source is absent from recent launcher")
 assert(launcherHandle:Unregister())
+
+-- A mixed source owns actions and drag independently of presentation kind.
+local mixedDraft = assert(I.Registry:Begin({ id = "interaction.mixed", apiVersion = 1, minApiRevision = 1, title = "Mixed" }))
+assert(mixedDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 100, scope = {}, records = {
+    { id = "mixed:cast", kind = "spell", title = "混合入口施放", actions = {
+        { id = "cast", title = "施放", kind = "secure-spell", spellID = 31884 },
+    } },
+    { id = "mixed:panel", kind = "spell", kindTitle = "技能", title = "混合入口面板", primaryActionID = "open", actions = {
+        { id = "cast", title = "施放", kind = "secure-spell", spellID = 31884 },
+        { id = "open", title = "打开面板", kind = "open-panel", panel = "detail", state = { itemID = 42 } },
+    }, drag = { type = "spell", spellID = 31884 } },
+    { id = "mixed:command", kind = "command", title = "混合入口命令", actions = {
+        { id = "run", title = "运行命令", kind = "intent", intent = { type = "interaction.mixed.run", version = 1, payload = {} } },
+    } },
+} }))
+local mixedMounts, mixedRuns = 0, 0
+assert(mixedDraft:RegisterPanelFactory({ id = "detail", stateSchema = { itemID = "integer" }, create = function(_, state)
+    assertEq(state.itemID, 42, "provider panel state")
+    return { Mount = function() mixedMounts = mixedMounts + 1; return true end, Unmount = function() end, Dispose = function() end }
+end }))
+assert(mixedDraft:RegisterIntentHandler({ type = "interaction.mixed.run", version = 1, schema = {}, handle = function()
+    mixedRuns = mixedRuns + 1; return { ok = true }
+end }))
+local mixedHandle = assert(mixedDraft:Commit())
+assert(palette:Show())
+typeQuery("混合入口")
+local function findEntry(rows, id)
+    for index = 1, #rows do if rows[index].item and rows[index].item.id == id then return rows[index] end end
+    error("missing mixed entry: " .. id)
+end
+local castRow = findEntry(palette.list.rows, "mixed:cast")
+local panelRow = findEntry(palette.list.rows, "mixed:panel")
+local commandRow = findEntry(palette.list.rows, "mixed:command")
+local noDragButton = assert(boundButton(castRow))
+assertEq(#noDragButton.dragButtons, 0, "pooled secure button clears drag when provider omits it")
+local mixedPickups = _G.__pickup or 0
+local dragOK, dragErr = palette:BeginRowDrag(castRow)
+assert(not dragOK and dragErr == "DRAG_UNSUPPORTED", "spell category does not imply drag")
+assertEq(_G.__pickup or 0, mixedPickups, "undeclared drag has no side effect")
+assert(not boundButton(panelRow), "spell category does not override the provider's primary panel action")
+assertEq(panelRow.dragger.dragButtons[1], "LeftButton", "ordinary result binds declared drag")
+panelRow.dragger.scripts.OnDragStart(panelRow.dragger)
+assertEq(_G.__pickup, mixedPickups + 1, "ordinary result executes declared drag")
+palette.list:ShowTooltip(panelRow)
+local panelTooltip = GameTooltip.text .. table.concat(GameTooltip.lines, "\n")
+assert(panelTooltip:find("打开面板", 1, true) and panelTooltip:find("拖动", 1, true), "tooltip describes provider primary and drag")
+local mixedItems = { castRow.item, panelRow.item, commandRow.item }
+LycheeDB.palette.recent = {}
+for index = 1, #mixedItems do palette:TouchRecent(mixedItems[index]) end
+typeQuery("")
+assertEq(#palette.homeView.sections, 3, "recent mixes spells, panels and commands")
+local panelTile = findEntry(palette.homeView.tiles, "mixed:panel")
+local castTile = findEntry(palette.homeView.tiles, "mixed:cast")
+assert(not boundButton(panelTile), "recent keeps the panel primary action")
+assertEq(panelTile.dragButtons[1], "LeftButton", "recent panel binds provider drag")
+assertEq(#castTile.dragButtons, 0, "recent does not infer drag from spell kind")
+assertEq(#assert(boundButton(castTile)).dragButtons, 0, "recent secure overlay also has no undeclared drag")
+assert(panelTile.fallback[1]:IsShown() and not panelTile.icon:IsShown(), "iconless entries have a neutral fallback")
+palette.homeView:ShowTooltip(panelTile)
+assertEq(GameTooltip.text .. table.concat(GameTooltip.lines, "\n"), panelTooltip, "home and results share action tooltip")
+panelTile.scripts.OnDragStart(panelTile)
+assertEq(_G.__pickup, mixedPickups + 2, "recent panel executes the same declared drag")
+palette.homeView.tiles[2].scripts.OnEnter(palette.homeView.tiles[2])
+local highlighted = 0
+for index = 1, #palette.homeView.tiles do if palette.homeView.tiles[index].bg:IsShown() then highlighted = highlighted + 1 end end
+assertEq(highlighted, 1, "recent has one highlighted icon")
+palette.homeView:Move(-1)
+assert(palette.homeView.tiles[1].bg:IsShown() and not palette.homeView.tiles[2].bg:IsShown(), "keyboard moves the shared recent selection")
+panelTile.scripts.OnClick(panelTile)
+assertEq(mixedMounts, 1, "recent click opens the provider panel")
+palette:CloseView("mixed-panel")
+local commandTile = findEntry(palette.homeView.tiles, "mixed:command")
+commandTile.scripts.OnClick(commandTile)
+assertEq(mixedRuns, 1, "recent click runs the provider command")
+assertEq(LycheeDB.palette.recent[1], "mixed:command", "successful ordinary action updates recency")
+assert(mixedHandle:Unregister())
 print("Lychee interaction smoke PASS (launcher, secure combat, recent and scrolling)")

@@ -1,0 +1,94 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "RegisterForDrag",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1053: \t\t\tName = \"RegisterForDrag\",\n1054: \t\t\tType = \"Function\",\n1055: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1056: \n1057: \t\t\tArguments =\n1058: \t\t\t{\n1059: \t\t\t\t{ Name = \"buttons\", Type = \"MouseButton\", Nilable = false, StrideIndex = 1 },\n1060: \t\t\t},\n1061: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1053,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetMaxLines",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "580: \t\t\tName = \"SetMaxLines\",\n581: \t\t\tType = \"Function\",\n582: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n583: \n584: \t\t\tArguments =\n585: \t\t\t{\n586: \t\t\t\t{ Name = \"maxLines\", Type = \"number\", Nilable = false },\n587: \t\t\t},\n588: \t\t},",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 580,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetWordWrap",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "720: \t\t\tName = \"SetWordWrap\",\n721: \t\t\tType = \"Function\",\n722: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n723: \n724: \t\t\tArguments =\n725: \t\t\t{\n726: \t\t\t\t{ Name = \"wrap\", Type = \"bool\", Nilable = false },\n727: \t\t\t},\n728: \t\t},",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 720,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetNonSpaceWrap",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "590: \t\t\tName = \"SetNonSpaceWrap\",\n591: \t\t\tType = \"Function\",\n592: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n593: \n594: \t\t\tArguments =\n595: \t\t\t{\n596: \t\t\t\t{ Name = \"wrap\", Type = \"bool\", Nilable = false },\n597: \t\t\t},\n598: \t\t},",
+        "contentHash": "99044b7a660587af06bca76a3b1e962b15cd7b86ca92c59ecb0632b5b95d8f6a",
+        "line": 590,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]
