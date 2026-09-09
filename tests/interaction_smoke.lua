@@ -988,7 +988,9 @@ MenuUtil=nil
 -- Collection Provider reaches the real secure row and recent-item drag paths.
 local mountCollected=true
 local mountPicked
+local mountSummoned
 C_MountJournal={
+    SummonByID=function(id) mountSummoned=id end,
     GetMountIDs=function() return {77} end,
     GetMountInfoByID=function(id)
         assert(id==77)
@@ -1006,14 +1008,27 @@ assert(palette:Show())
 typeQuery("测试星光龙")
 local mountRow=findEntry(palette.list.rows,"mount:77")
 local mountButton=assert(boundButton(mountRow), "mount outside player spellbook receives secure button")
-assertEq(mountButton:GetAttribute("type"),"spell")
+assertEq(mountButton:GetAttribute("type"),nil,"collection summon does not cast a spellbook spell")
 assertEq(mountButton:GetAttribute("spell"),90077)
 assertEq(mountButton.dragButtons[1],"LeftButton")
 mountButton.scripts.OnDragStart(mountButton)
 assertEq(mountPicked,90077,"mount row drags the summoning spell")
 mountButton.scripts.PreClick(mountButton)
+assert(mountButton.scripts.PostClick, "mount click has a collection summon handler")
+mountButton.scripts.PostClick(mountButton, "LeftButton")
+assertEq(mountSummoned,77,"mount click invokes the native collection summon API")
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_FAILED",90077) and palette.visible, "failed summon keeps search open")
+;(function()
+    local summon, recentCount = C_MountJournal.SummonByID, #LycheeDB.palette.recent
+    C_MountJournal.SummonByID = function() error("summon rejected") end
+    mountButton.scripts.PreClick(mountButton)
+    mountButton.scripts.PostClick(mountButton, "LeftButton")
+    assert(not mountButton.pendingCast and palette.visible, "summon API failure clears pending state without closing")
+    assert(#LycheeDB.palette.recent == recentCount, "rejected summon is not recorded as success")
+    C_MountJournal.SummonByID = summon
+end)()
 mountButton.scripts.PreClick(mountButton)
+mountButton.scripts.PostClick(mountButton, "LeftButton")
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",90077))
 assert(not palette.visible and LycheeDB.palette.recent[1].entryID=="mount:77")
 assert(palette:Show())

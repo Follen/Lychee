@@ -1,0 +1,23 @@
+{
+  "sourceId": "wow-ui-source",
+  "product": "retail",
+  "requestedRef": "latest",
+  "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+  "results": [
+    {
+      "kind": "function",
+      "name": "MountJournalMountButton_UseMount",
+      "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+      "matchedBy": "exact_symbol",
+      "role": "project",
+      "excerpt": "868: function MountJournalMountButton_UseMount(mountID)\n869: \tlocal creatureName, spellID, icon, active = C_MountJournal.GetMountInfoByID(mountID);\n870: \tif ( active ) then\n871: \t\tC_MountJournal.Dismiss();\n872: \telseif ( C_MountJournal.NeedsFanfare(mountID) ) then\n873: \t\tlocal function OnFinishedCallback()\n874: \t\t\tC_MountJournal.ClearFanfare(mountID);\n875: \t\t\tMountJournal_UpdateMountList();\n876: \t\t\tlocal forceSceneChange = true;\n877: \t\t\tMountJournal_UpdateMountDisplay(forceSceneChange);\n878: \t\tend\n879: \n880: \t\tMountJournal.MountDisplay.ModelScene:StartUnwrapAnimation(OnFinishedCallback);\n881: \telse\n882: \t\tC_MountJournal.SummonByID(mountID);\n883: \tend\n884: end",
+      "contentHash": "1384d4cffb626d27fc7d9a103c61d0e696bb41018859467c0c36422de0231233",
+      "line": 868,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  ]
+}

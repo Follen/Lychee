@@ -100,6 +100,18 @@ function Broker:_Acquire()
         end
         current.busy, current.token, current.action, current.pendingCast = false, nil, nil, nil
     end)
+    button:SetScript("PostClick", function(current, mouseButton)
+        if mouseButton ~= "LeftButton" or not current.mountID or not current.pendingCast then return end
+        if InCombatLockdown and InCombatLockdown() then
+            self:FinishCast("UNIT_SPELLCAST_FAILED", current.spellID, "COMBAT_LOCKED")
+            return
+        end
+        -- Collections use their mount ID, matching Blizzard's mount journal.
+        -- Keep the pending cast until the real success/failure event arrives.
+        local summon = C_MountJournal and C_MountJournal.SummonByID
+        local ok = type(summon) == "function" and pcall(summon, current.mountID)
+        if not ok then self:FinishCast("UNIT_SPELLCAST_FAILED", current.spellID, "ACTION_UNAVAILABLE") end
+    end)
     button.busy = true
     self.buttons[#self.buttons + 1] = button
     return button
@@ -119,22 +131,24 @@ function Broker:Prepare(action, token)
     end
     local descriptor, err = Lychee.Secure.Descriptor.FromAction(action)
     if not descriptor then return nil, err end
-    local ok, policyErr = Lychee.Secure.Policy:Check(descriptor)
+    local ok, policyErr, mountID = Lychee.Secure.Policy:Check(descriptor)
     if not ok then self.dirty = true; return nil, policyErr end
     for index = 1, #self.buttons do
         local existing = self.buttons[index]
         local bound = existing.token
         if existing.busy and not existing.pendingRelease and bound and token and bound.row == token.row
             and bound.item == token.item and bound.session == token.session and bound.generation == token.generation
-            and existing.spellID == descriptor.spellID then return existing end
+            and existing.spellID == descriptor.spellID and existing.mountID == mountID then return existing end
     end
     local button = self:_Acquire()
     if not button then self.dirty = true; return nil, "COMBAT_LOCKED" end
-    button:SetAttribute("type", "spell")
+    if mountID then button:SetAttribute("type", nil)
+    else button:SetAttribute("type", "spell") end
     button:SetAttribute("spell", descriptor.spellID)
     button.token = token
     button.action = action
     button.spellID = descriptor.spellID
+    button.mountID = mountID
     button.pendingCast = false
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     if executor then executor:ConfigureDragTarget(button, token and (token.item or token.row and token.row.item)) end
@@ -194,6 +208,7 @@ function Broker:Release(button)
     if self.pendingButton == button then self.pendingButton = nil end
     button.busy, button.pendingRelease, button.token, button.action, button.spellID, button.pendingCast = false, nil, nil, nil, nil, nil
     button.armedSecondary = nil
+    button.mountID = nil
 end
 function Broker:ShowFor(row, action, session, generation, item, extensionID)
     local button, err = self:Prepare(action, {

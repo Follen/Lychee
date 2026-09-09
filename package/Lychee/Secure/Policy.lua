@@ -9,7 +9,7 @@ local function collectedMount(spellID)
     local mountID = C_MountJournal.GetMountFromSpell(spellID)
     if type(mountID) ~= "number" then return false end
     local _, mountSpellID, _, _, _, _, _, _, _, hidden, collected = C_MountJournal.GetMountInfoByID(mountID)
-    return mountSpellID == spellID and collected == true and not hidden
+    return mountSpellID == spellID and collected == true and not hidden, mountID
 end
 function Policy:CanConfigure() return not (InCombatLockdown and InCombatLockdown()) end
 function Policy:IsSpellAvailable(spellID)
@@ -35,6 +35,8 @@ function Policy:IsSpellAvailable(spellID)
 end
 function Policy:Check(descriptor)
     if not self:CanConfigure() then return false, "COMBAT_LOCKED" end
+    local ok, available, mountID = pcall(collectedMount, descriptor.spellID)
+    if ok and available then return true, nil, mountID end
     if not self:IsSpellAvailable(descriptor.spellID) then return false, "ACTION_UNAVAILABLE" end
     return true
 end
