@@ -70,9 +70,11 @@ local function object(kind, parent)
     function o:SetPropagateKeyboardInput() end
     return o
 end
+UISpecialFrames = {}
 function CreateFrame(kind, name, parent, template)
     createdFrames = createdFrames + 1
     local frame = object(kind, parent or UIParent)
+    if name then _G[name] = frame end
     if template and template:find("Secure") then protect(frame) end
     return frame
 end
@@ -1019,4 +1021,25 @@ palette:Hide("mount-done")
 assert(I.Builtin.Mounts.handle:Unregister())
 C_Spell.PickupSpell=oldPickup
 C_MountJournal=nil
+-- Retail CloseSpecialWindows dispatch after the EditBox no longer owns Escape.
+;(function()
+_G.__combat = false
+assert(palette:Show())
+palette.input:ClearFocus()
+local closedByEscape = false
+for _, name in pairs(UISpecialFrames) do
+    local frame = _G[name]
+    if frame and frame:IsShown() then
+        frame:Hide()
+        if frame.scripts.OnHide then frame.scripts.OnHide(frame) end
+        closedByEscape = true
+    end
+end
+assert(closedByEscape and not palette.frame:IsShown() and not palette.visible, "Escape closes palette after EditBox loses focus")
+assert(not palette.frame.events.GLOBAL_MOUSE_DOWN, "Escape closure cleans up outside-click event")
+assert(palette:Create() == palette)
+local registrations = 0
+for _, name in ipairs(UISpecialFrames) do if name == "LycheePalette" then registrations = registrations + 1 end end
+assert(registrations == 1, "Escape registration is not duplicated")
+end)()
 print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)")

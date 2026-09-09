@@ -1,0 +1,23 @@
+{
+  "sourceId": "wow-ui-source",
+  "product": "retail",
+  "requestedRef": "latest",
+  "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+  "results": [
+    {
+      "kind": "function",
+      "name": "CloseSpecialWindows",
+      "path": "Interface/AddOns/Blizzard_UIParentPanelManager/Shared/UIParentPanelManager.lua",
+      "matchedBy": "exact_symbol",
+      "role": "project",
+      "excerpt": "1038: function CloseSpecialWindows()\n1039: \tlocal found;\n1040: \tfor index, value in pairs(UISpecialFrames) do\n1041: \t\tlocal frame = _G[value];\n1042: \t\tif ( frame and frame:IsShown() ) then\n1043: \t\t\tframe:Hide();\n1044: \t\t\tfound = 1;\n1045: \t\tend\n1046: \tend\n1047: \treturn found;\n1048: end",
+      "contentHash": "3987ca8721c3ee9fda39f75a3606efdcb7db5d5ed12d848979a882a6e4727cac",
+      "line": 1038,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  ]
+}

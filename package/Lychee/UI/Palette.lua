@@ -398,10 +398,10 @@ function Palette:Create()
     frame:SetAttribute("_onstate-combat", [[if newstate == "hide" then self:Hide() end]])
     if RegisterStateDriver then RegisterStateDriver(frame, "combat", "[combat] hide; idle") end
     frame:SetScript("OnHide", function() if self.visible then self:Hide("external") end end)
-    -- 不注册 Frame 级 OnKeyDown：显示中的 Frame 挂 OnKeyDown 会吞掉全部键盘
-    -- 输入（DestinyFrame 即此用途），且 SetPropagateKeyboardInput 在 Blizzard
-    -- 代码中零先例、行为不可依赖。Escape 关闭由输入框 OnEscapePressed 处理，
-    -- 输入框失焦后按键全部直达游戏。
+    -- Let the native Escape dispatcher close the window when the EditBox has
+    -- lost focus. OnHide above runs the same cleanup as the close button.
+    -- Create is idempotent, so this registers once without a keyboard handler.
+    if UISpecialFrames then table.insert(UISpecialFrames, "LycheePalette") end
     self.frame = frame
     self.session, self.generation, self.visible = 0, 0, false
     local components = Lychee.UI.Components
