@@ -221,4 +221,50 @@ function Components:CreateEmptyState(parent, options)
     return component
 end
 
+local actionMenuInset = { left = 5, right = 5, top = 5, bottom = 5 }
+local actionMenuPadding = { width = 0, height = 0 }
+local actionMenuStyle = {}
+function actionMenuStyle:GetInset() return actionMenuInset end
+function actionMenuStyle:GetChildExtentPadding() return actionMenuPadding end
+function actionMenuStyle:Generate()
+    local colors = getTheme().Colors
+    -- Native menu attachments are pooled and reset by its compositor. Apply
+    -- directly here: cached theme stamps must not survive pool reinitialization.
+    local border = self:AttachTexture()
+    border:SetAllPoints()
+    border:SetDrawLayer("BACKGROUND", -1)
+    border:SetColorTexture(unpack(colors.borderStrong))
+    local background = self:AttachTexture()
+    background:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1)
+    background:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1)
+    background:SetDrawLayer("BACKGROUND", 0)
+    background:SetColorTexture(unpack(colors.tooltip))
+end
+
+local function initializeActionMenuButton(button)
+    local theme = getTheme()
+    local label = button.fontString
+    label:SetFont(STANDARD_TEXT_FONT, theme.FontSizes.body, "")
+    label:SetShadowOffset(0, 0)
+    label:SetTextColor(unpack(theme.Colors.text))
+    local width = math.max(176, math.min(360, label:GetStringWidth() + 24))
+    label:ClearAllPoints()
+    label:SetPoint("LEFT", button, "LEFT", 12, 0)
+    label:SetPoint("RIGHT", button, "RIGHT", -12, 0)
+    label:SetHeight(20)
+    label:SetJustifyH("LEFT")
+    label:SetWordWrap(false)
+    button.highlight:SetBlendMode("BLEND")
+    button.highlight:SetColorTexture(unpack(theme.Colors.surfaceSelected))
+    return width, 32
+end
+
+function Components:StyleActionMenuOwner(owner)
+    if owner.menuMixin ~= actionMenuStyle then owner.menuMixin = actionMenuStyle end
+end
+
+function Components:StyleActionMenuButton(description)
+    description:AddInitializer(initializeActionMenuButton)
+end
+
 Lychee.UI.Components = Components

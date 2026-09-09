@@ -283,11 +283,13 @@ function Executor:ShowActions(row)
     local item, session, generation = row.item, row.session, row.generation
     local actions = item.interaction and item.interaction.actions or {}
     if #actions == 0 then return false, "NO_ACTION" end
+    local components = _G.Lychee and _G.Lychee.UI and _G.Lychee.UI.Components
+    if components then components:StyleActionMenuOwner(row) end
     local menu
     menu = MenuUtil.CreateContextMenu(row, function(_, root)
         for index = 1, #actions do
             local actionID, title = actions[index].id, actions[index].title
-            root:CreateButton(title or actionID, function()
+            local description = root:CreateButton(title or actionID, function()
                 if self.palette and self.palette.actionMenu == menu then self.palette.actionMenu = nil end
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
@@ -295,6 +297,7 @@ function Executor:ShowActions(row)
                 if self.palette then self.palette:ReportActionResult(result, actionError) end
                 return result
             end)
+            if components then components:StyleActionMenuButton(description) end
         end
     end)
     if self.palette then self.palette.actionMenu = menu end

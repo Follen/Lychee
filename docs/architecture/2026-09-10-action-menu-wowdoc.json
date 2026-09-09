@@ -1,0 +1,39 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuUtil.CreateContextMenu",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "151: function MenuUtil.CreateContextMenu(ownerRegion, generator, ...)\n152: \tif not ownerRegion then\n153: \t\townerRegion = GetAppropriateTopLevelParent();\n154: \tend\n155: \n156: \tlocal menuMixin = securecallfunction(SecureGetMenuMixin, ownerRegion);\n157: \tlocal elementDescription = MenuUtil.CreateRootMenuDescription(menuMixin);\n158: \n159: \tMenu.PopulateDescription(generator, ownerRegion, elementDescription, ...);\n160: \n161: \tlocal menu = Menu.GetManager():OpenContextMenu(ownerRegion, elementDescription);\n162: \tif menu then\n163: \t\tPlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);\n164: \tend\n165: \n166: \treturn menu;\n167: end",
+        "contentHash": "21904561943c3bfb0ad8a451778e2d4cddb361ec7b1a73c0e428d870ed1581f4",
+        "line": 151,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": null
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": null
+  }
+]

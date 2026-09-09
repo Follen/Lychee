@@ -312,4 +312,32 @@ end
 assert(#created==createdBeforeTypes, "type labels reuse existing rows and regions")
 list:Clear()
 
+dofile("package/Lychee/UI/Components.lua")
+local menuOwner = {}
+Lychee.UI.Components:StyleActionMenuOwner(menuOwner)
+local menuFrame = object("Frame")
+local attachments = {}
+function menuFrame:AttachTexture()
+    local texture = object("Texture", self)
+    function texture:SetDrawLayer(layer, level) self.layer, self.level = layer, level end
+    attachments[#attachments + 1] = texture
+    return texture
+end
+menuOwner.menuMixin.Generate(menuFrame)
+assert(#attachments == 2 and attachments[2].color[4] == 1, "menu has an opaque pooled background")
+assert(menuOwner.menuMixin:GetInset().left == menuOwner.menuMixin:GetInset().right, "menu padding is symmetric")
+local menuInitializer
+Lychee.UI.Components:StyleActionMenuButton({AddInitializer=function(_, fn) menuInitializer=fn end})
+local menuButton = object("Button")
+menuButton.fontString = object("FontString", menuButton)
+function menuButton.fontString:GetStringWidth() return self.measuredWidth or 100 end
+menuButton.highlight = object("Texture", menuButton)
+function menuButton.highlight:SetBlendMode(mode) self.blendMode = mode end
+local menuWidth, menuHeight = menuInitializer(menuButton)
+assert(menuWidth == 176 and menuHeight == 32, "single action retains comfortable menu dimensions")
+assert(menuButton.fontString.font[2] == 12 and menuButton.fontString.wordWrap == false, "menu uses readable single-line body text")
+assert(menuButton.highlight.blendMode == "BLEND", "menu removes additive gold highlight")
+menuButton.fontString.measuredWidth = 600
+local longMenuWidth = menuInitializer(menuButton)
+assert(longMenuWidth == 360, "long action text cannot create an unbounded menu")
 print("Lychee result list UI smoke PASS")

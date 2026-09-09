@@ -919,10 +919,15 @@ assert(palette:Show())
 local fixtureTile = findEntry(palette.homeView.tiles, "fixture-item-12345")
 local menuEntries = {}
 MenuUtil = { CreateContextMenu=function(_, generator)
-    generator(nil, { CreateButton=function(_, title, callback) menuEntries[#menuEntries+1]={title=title,callback=callback} end })
+    generator(nil, { CreateButton=function(_, title, callback)
+        local entry = {title=title,callback=callback}
+        menuEntries[#menuEntries+1] = entry
+        return {AddInitializer=function(_, initializer) entry.initializer = initializer end}
+    end })
 end }
 fixtureTile.scripts.OnClick(fixtureTile, "RightButton")
 assertEq(#menuEntries, 2, "recent Provider entry exposes all actions")
+assert(fixtureTile.menuMixin and menuEntries[1].initializer, "recent action menu receives Lychee styling")
 local originalMouseOver = palette.frame.IsMouseOver
 palette.frame.IsMouseOver = function() return false end
 palette.actionMenu = { IsShown=function() return true end, IsMouseOver=function() return true end }
