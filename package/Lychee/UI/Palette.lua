@@ -113,6 +113,7 @@ end
 
 local function createHomeView(parent, controller)
     local frame = CreateFrame("ScrollFrame", nil, parent)
+    frame:SetScript("OnHide", function() Lychee.UI.ResultList:HideTooltip() end)
     frame:SetAllPoints(parent)
     frame:Hide()
     if frame.EnableKeyboard then frame:EnableKeyboard(false) end
@@ -266,6 +267,7 @@ local function createHomeView(parent, controller)
     end
 
     function view:SetSections(sections, allowExpand)
+        Lychee.UI.ResultList:HideTooltip()
         self.sections = sections or {}
         setShown(self.empty, #self.sections == 0)
         if allowExpand then self:EnsureCapacity(HOME_HEADER_COUNT, #self.sections) end
@@ -742,6 +744,7 @@ function Palette:ValidateRowAction(row, session, generation, item, extensionID, 
     return executor:Validate(row, session, generation, item, extensionID, preparing)
 end
 function Palette:InvalidateRow(row)
+    Lychee.UI.ResultList:HideTooltip()
     if self.secureBroker and self.secureBroker.InvalidateRow then self.secureBroker:InvalidateRow(row) end
     if InCombatLockdown and InCombatLockdown() then self.homeDirty = true; return end
     if row and row.ownerView == self.homeView then
@@ -876,6 +879,7 @@ function Palette:ActivateRowAction(row, actionID)
     return result, err
 end
 function Palette:ShowRowActions(row)
+    Lychee.UI.ResultList:HideTooltip()
     local result, err = I.ResultActionExecutor:ShowActions(row)
     self:ReportActionResult(result, err)
     return result, err

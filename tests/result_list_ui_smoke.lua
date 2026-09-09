@@ -259,4 +259,31 @@ for index = 1, #created do
     assert(created[index].scripts.OnUpdate == nil, "renderer creates no OnUpdate scripts")
 end
 
+-- Mirror the home view's clipping ScrollFrame. Screen top is 900, so this
+-- fixture isolates ancestor clipping from screen-edge clamping.
+local viewport = CreateFrame("ScrollFrame", nil, UIParent)
+viewport.clipTop = 600
+local scrollContent = CreateFrame("Frame", nil, viewport)
+local recentOwner = CreateFrame("Button", nil, scrollContent)
+recentOwner.top = 556
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
+local recentTip = Lychee.UI.ResultList.tooltip
+local tooltipTop = recentOwner.top + 8 + recentTip:GetHeight()
+local clipTop = 900
+local ancestor = recentTip:GetParent()
+while ancestor do
+    if ancestor.clipTop then clipTop = math.min(clipTop, ancestor.clipTop) end
+    ancestor = ancestor:GetParent()
+end
+local visibleLines = 0
+for index = 1, 5 do
+    local label = recentTip.labels[index]
+    if label:IsShown() and tooltipTop - label._y <= clipTop then visibleLines = visibleLines + 1 end
+end
+assert(visibleLines == 5, "recent tooltip clipped by scroll ancestor: only " .. visibleLines .. "/5 lines visible")
+assert(recentTip:GetParent() == UIParent, "tooltip keeps a non-clipping root parent")
+list.frame.scripts.OnHide(list.frame)
+assert(not recentTip:IsShown() and recentTip._owner == nil, "hiding the result view clears the root-owned tooltip")
+Lychee.UI.ResultList:HideTooltip()
+
 print("Lychee result list UI smoke PASS")

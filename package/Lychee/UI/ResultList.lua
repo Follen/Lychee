@@ -131,7 +131,6 @@ local function hideTooltip()
     setShown(tip, false)
     if tip._owner then
         tip:ClearAllPoints()
-        tip:SetParent(UIParent)
         tip._owner = nil
     end
 end
@@ -184,7 +183,7 @@ local function showTooltip(owner, title, detail)
     local tip = acquireTooltip()
     if tip._owner ~= owner then
         tip:ClearAllPoints()
-        tip:SetParent(owner)
+        -- Anchor to the entry, but stay outside its clipping ScrollFrame tree.
         tip:SetPoint("BOTTOMLEFT", owner, "TOPRIGHT", 8, 8)
         tip._owner = owner
     end
@@ -305,6 +304,7 @@ function ResultList:Create(parent, controller)
     local tileWidth = metrics.resultTileWidth or TILE_WIDTH
     local iconSize = metrics.iconSize or 32
     local frame = CreateFrame("Frame", nil, parent)
+    frame:SetScript("OnHide", hideTooltip)
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, -10)
     local gridRows = math.ceil(tiles / columns)
     frame:SetHeight(gridRows * rowHeight + math.max(0, gridRows - 1) * rowGap)

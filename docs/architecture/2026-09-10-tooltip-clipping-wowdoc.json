@@ -1,0 +1,74 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetParent",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetParent",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "592: \t\t\tName = \"SetParent\",\n593: \t\t\tType = \"Function\",\n594: \t\t\tIsProtectedFunction = true,\n595: \t\t\tCheckAllowChangeParent = true,\n596: \t\t\tSecretArguments = \"NotAllowed\",\n597: \n598: \t\t\tArguments =\n599: \t\t\t{\n600: \t\t\t\t{ Name = \"parent\", Type = \"SimpleFrame\", Nilable = true },\n601: \t\t\t},\n602: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 592,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "SetPoint",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetPoint",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 135,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "term": "GameTooltip_OnHide",
+    "results": [
+      {
+        "kind": "function",
+        "name": "GameTooltip_OnHide",
+        "path": "Interface/AddOns/Blizzard_GameTooltip/Mainline/GameTooltip.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "395: function GameTooltip_OnHide(self)\n396: \tNarratableTooltipMixin.OnHide(self);\n397: \n398: \tfor i, info in ipairs(self.infoList or {}) do\n399: \t\tlocal inventoryType = info.tooltipData.worldLootObjectInventoryType;\n400: \t\tif inventoryType then\n401: \t\t\tEventRegistry:TriggerEvent(\"WorldLootObjectTooltip.Hidden\", inventoryType, self);\n402: \t\tend\n403: \tend\n404: \n405: \tself.waitingForData = false;\n406: \tlocal style = nil;\n407: \tSharedTooltip_SetBackdropStyle(self, style, self.IsEmbedded);\n408: \tGameTooltip_ClearMoney(self);\n409: \tGameTooltip_ClearStatusBars(self);\n410: \tGameTooltip_ClearProgressBars(self);\n411: \tGameTooltip_ClearWidgetSet(self);\n412: \tTooltipComparisonManager:Clear(self);\n413: \n414: \tGameTooltip_HideBattlePetTooltip();\n415: \n416: \tif self.ItemTooltip then\n417: \t\tEmbeddedItemTooltip_Hide(self.ItemTooltip);\n418: \tend\n419: \tself:ClearPadding();\n420: \n421: \tself:ClearHandlerInfo();\n422: \n423: \tGameTooltip_ClearStatusBars(self);\n424: \tGameTooltip_ClearStatusBarWatch(self);\n425: \n426: \tself.suppressAutomaticCompareItem = false;\n427: end",
+        "contentHash": "5d3bf9efbd59c7f92844d97368a6750d5356fc444ea1c205c53da003ed097525",
+        "line": 395,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]
