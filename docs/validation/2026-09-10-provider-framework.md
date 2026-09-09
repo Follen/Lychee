@@ -42,4 +42,4 @@ sourceId=wow-ui-source，product=retail，requestedRef=latest，resolvedCommit=8
 
 本轮没有取得真实客户端登录、空闲、单目标战斗、团本/姓名板峰值和窗口打开/关闭的 CPU、内存、帧时间对照，也没有宣称真实硬件施法、taint 或战斗锁定验证通过。离线 Frame 和 timer 适配器不代替这些验证。
 
-按项目约定，检查通过并提交成功后，将 package/Lychee 的运行时文件复制到 D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee，并核对清单和 SHA-256。实际提交与复制结果随交付报告提供。本次新增 TOC 模块，需要重启客户端加载并验证。
+运行时代码提交为 `51c8320`（Build unified Provider API 2 search framework）。提交成功后，已将 package/Lychee 的 35 个运行时文件复制到 D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee；35 个 SHA-256 全部匹配，文件清单差异为 0。本次新增 TOC 模块，需要重启客户端加载并验证；文件同步成功不代表实机验收完成。

@@ -4,12 +4,22 @@ Lychee 是 World of Warcraft 游戏内的通用搜索工具。Provider 提供可
 
 `package/Lychee` 是唯一运行时 AddOn。`lychee-sdk` 是开发包，不作为独立插件安装。默认快捷键为 Alt+Space，也可在游戏按键设置中修改。
 
+## 安装与升级
+
+将 `package/Lychee` 文件夹复制为正式服的 `Interface/AddOns/Lychee`，确认 `Lychee.toc` 直接位于该目录下。首次安装或 TOC/模块列表变化后重启客户端。本仓库的检查、提交和正式服同步顺序见 [开发与验证](docs/DEVELOPMENT.md)。
+
+Alt+Space 仅在没有已有 Lychee 绑定且该组合键未被占用时自动设置。空输入显示最近使用，右键打开动作菜单；Enter 执行普通动作，技能施放需要真实鼠标点击。战斗中不能呼出搜索。
+
+0.2.0 使用 Provider API 2 / revision 1。升级时，旧 schema 的整份 `LycheeDB` 会重置，包括其中的设置与最近使用；不提供旧数据迁移或旧 SDK 适配。第三方集成须使用 `RegisterProvider`。
+
 ## 开发文档
 
 - [架构](docs/ARCHITECTURE.md)：模块职责、生命周期、扩展边界。
 - [SDK 接入](docs/SDK.md)：API 2 快速开始和可运行示例。
 - [协议参考](docs/PROTOCOLS.md)：字段、限制、错误和行为约定。
 - [SDK 开发包](lychee-sdk/README.md)：LuaLS 类型、辅助函数和第三方示例。
+- [开发与验证](docs/DEVELOPMENT.md)：环境要求、检查命令、示例安装和客户端验收。
+- [产品约定](PRODUCT.md) 与 [界面设计](DESIGN.md)：产品范围、交互和视觉规范。
 - [框架决策](docs/architecture/2026-09-10-provider-framework.md)：方案比较、取舍和验收范围。
 - `docs/comet/` 保留先前工作流的规格与历史；当前 Provider API 2 以以上架构与协议文档为准。
 

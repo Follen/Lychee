@@ -4,6 +4,7 @@ Provider API 2 / revision 1 的开发包。它不是独立 AddOn，不要整包�
 
 - [接入教程](../docs/SDK.md)
 - [协议参考](../docs/PROTOCOLS.md)
+- [开发与验证](../docs/DEVELOPMENT.md)：示例安装、依赖与检查步骤。
 - `ApiStubs.lua`：LuaLS 类型声明，仅供编辑器使用，不写入运行时 TOC。
 - `LycheeAPI.lua`：可选的 facade 检测、版本判断和 RegisterProvider 转发。
 - `examples/ThirdPartyFixture/`：可独立安装的演示 AddOn，覆盖普通动作、信息条目、拖动与托管视图。

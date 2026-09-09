@@ -1,26 +1,12 @@
-# Lychee SDK
+# Lychee SDK 文档入口
 
-Lychee SDK 是 Lychee 本体暴露给第三方 WoW AddOn 的公共 API，不是独立运行的 sibling AddOn。
+当前开发包位于 [lychee-sdk](../lychee-sdk/README.md)，使用 Provider API 2 / revision 1。本目录仅保留文档导航，不是另一个 SDK 或可安装 AddOn。
 
-## 项目定位
+Lychee 是游戏内通用搜索工具。内置功能和第三方插件通过 `_G.Lychee:RegisterProvider(definition)` 提供条目及交互；Host 统一搜索、排序、展示和执行校验。不提供旧多角色注册流程的兼容层。
 
-Lychee 是 WoW 内的单入口命令平台：用户通过 Lychee 输入内容，Lychee 搜索已注册的 Command，调用对应 Provider，绘制结果，并路由点击、拖拽、Panel 或受保护动作。
+- [SDK 接入](../docs/SDK.md)：注册、更新、延迟查询、动作、拖动和托管视图。
+- [协议参考](../docs/PROTOCOLS.md)：字段、生命周期、限制与错误码。
+- [架构](../docs/ARCHITECTURE.md)：Host 与 Provider 的职责边界。
+- [开发与验证](../docs/DEVELOPMENT.md)：安装、运行测试和客户端验收。
 
-第三方插件在自己的 AddOn 中集成 SDK：
-
-```toc
-## OptionalDeps: Lychee
-```
-
-然后通过 Lychee 本体暴露的 `_G.Lychee` facade 注册 Extension、Command、CapabilityProvider、IntentHandler 和 PanelFactory。Lychee 不扫描插件目录猜测接入；只有成功 `Commit()` 的 Extension 才进入搜索和执行链路。
-
-## 文档入口
-
-- [架构设计](../docs/ARCHITECTURE.md)：Host、搜索链路、Provider、Intent、Panel、战斗策略和内置功能架构。
-- [SDK 合同](../docs/SDK.md)：第三方注册 API、数据 schema、交互结果、生命周期、错误码和接入示例。
-- [当前 Comet 规格](../docs/comet/specs/)：与上述正式合同保持同步。
-- [Comet 历史归档](../docs/comet/archive/)：历史 change 快照，仅用于追溯，不作为当前模型依据。
-
-## 当前状态
-
-仓库当前处于纯文档阶段，不包含 Lua/XML/TOC 运行时代码，也不复制到正式服目录。后续实现必须先按正式合同落地 Lychee Host 的 PublicAPI，再实现 Builtin Extension 和第三方 SDK fixture。
+当前运行时代码位于 `package/Lychee`。`docs/comet/` 为历史工作流资料，当前接口以以上文档和 `lychee-sdk` 为准。
