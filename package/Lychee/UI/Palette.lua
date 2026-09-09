@@ -1043,4 +1043,5 @@ function Lychee_Toggle()
 end
 
 Lychee.UI.Palette = Palette
-if not (_G.LycheeInternal and _G.LycheeInternal.Host and _G.LycheeInternal.Host.PaletteController) then Palette:Create() end
+-- Construct the protected hierarchy on the first out-of-combat open, then reuse
+-- it. Loading the addon does not need a hidden search window and all of its rows.

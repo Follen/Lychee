@@ -49,8 +49,8 @@ local function addSet(map, key, entryKey)
     local set = map[key]
     if not set then map[key] = entryKey
     elseif type(set) == "string" then
-        if set ~= entryKey then map[key] = { [set] = true, [entryKey] = true } end
-    else set[entryKey] = true end
+        if set ~= entryKey then map[key] = { [set] = true, [entryKey] = true, [0] = 2 } end
+    elseif not set[entryKey] then set[entryKey] = true; set[0] = set[0] + 1 end
 end
 
 local function removeSet(map, key, entryKey)
@@ -60,10 +60,11 @@ local function removeSet(map, key, entryKey)
         if set == entryKey then map[key] = nil end
         return
     end
-    set[entryKey] = nil
-    local remaining = next(set)
-    if not remaining then map[key] = nil
-    elseif not next(set, remaining) then map[key] = remaining end
+    if not set[entryKey] then return end
+    set[entryKey], set[0] = nil, set[0] - 1
+    if set[0] == 1 then
+        for remaining in pairs(set) do if remaining ~= 0 then map[key] = remaining; break end end
+    end
 end
 
 local function codepoints(text)
@@ -76,29 +77,16 @@ local function codepoints(text)
     return out
 end
 
-local function prefixes(text)
-    local starts, out = codepoints(text), {}
-    local count = #starts - 1
-    for finish = 1, math.min(count, 32) do out[#out + 1] = text:sub(starts[1], starts[finish + 1] - 1) end
-    return out
-end
-
 local function grams(text)
     local starts, out, seen = codepoints(text), {}, {}
     local count = #starts - 1
-    for size = 1, 3 do
-        if count >= size then
-            for first = 1, count - size + 1 do
-                local gram = text:sub(starts[first], starts[first + size] - 1)
-                if not seen[gram] then seen[gram] = true; out[#out + 1] = gram end
-            end
-        end
+    -- One posting per unique UTF-8 character is sufficient for a recall-safe
+    -- candidate intersection. Scoring still checks whole phrases and tokens.
+    for first = 1, count do
+        local gram = text:sub(starts[first], starts[first + 1] - 1)
+        if gram ~= " " and not seen[gram] then seen[gram] = true; out[#out + 1] = gram end
     end
     return out
-end
-
-local function hasNonASCII(text)
-    return tostring(text or ""):find("[^%z\1-\127]") ~= nil
 end
 
 local function categoryID(record)
@@ -148,6 +136,7 @@ local function buildEntry(source, record)
         categoryID = categoryID(record),
         categoryOrder = categoryOrder(record),
     }
+    if not source.enabled then entry.fields = nil; return entry end
     addText(entry, "title", record.title, record.scope or source.scope)
     addText(entry, "alias", record.aliases, record.scope or source.scope)
     addText(entry, "keyword", record.keywords, record.scope or source.scope)
@@ -167,11 +156,6 @@ local function updateMemberships(self, entry, updateSet)
         local identity = field.field .. "\0" .. field.normalized
         if not seen[identity] then
             seen[identity] = true
-            updateSet(self.exact, field.normalized, entry.key)
-            local prefixValues = prefixes(field.normalized)
-            for prefixIndex = 1, #prefixValues do updateSet(self.prefix, prefixValues[prefixIndex], entry.key) end
-            local terms = I.Search.Normalizer:Terms(field.normalized)
-            for termIndex = 1, #terms do updateSet(self.tokens, terms[termIndex], entry.key) end
             local gramValues = grams(field.normalized)
             for gramIndex = 1, #gramValues do updateSet(self.grams, gramValues[gramIndex], entry.key) end
         end
@@ -181,12 +165,12 @@ end
 
 local function installEntry(self, entry)
     self.entries[entry.key] = entry
-    updateMemberships(self, entry, addSet)
+    if entry.source.enabled then updateMemberships(self, entry, addSet); entry.indexed = true end
 end
 
 local function removeEntry(self, entry)
     if not entry then return end
-    updateMemberships(self, entry, removeSet)
+    if entry.indexed then updateMemberships(self, entry, removeSet) end
     self.entries[entry.key] = nil
 end
 
@@ -301,6 +285,15 @@ function Index:TouchSource(sourceID, enabled)
     if not source then return nil, "SOURCE_NOT_FOUND" end
     if source.enabled == not not enabled then return true, source.generation, source.revision end
     source.enabled = not not enabled
+    for key in pairs(source.entryKeys) do
+        local entry = self.entries[key]
+        if source.enabled then
+            installEntry(self, buildEntry(source, entry.record))
+        elseif entry.indexed then
+            updateMemberships(self, entry, removeSet)
+            entry.indexed, entry.fields = nil, nil
+        end
+    end
     local revision, generation = bump(self, source, nil, "enabled")
     self:Persist()
     return true, generation, revision
@@ -458,6 +451,12 @@ function Index:GetSourceState(sourceID)
     return { id = source.id, revision = source.revision, generation = source.generation, enabled = source.enabled }
 end
 
+-- Host-private canonical record lookup. Provider callbacks still receive copies.
+function Index:GetRecord(sourceID, recordID)
+    local entry = self.entries[sourceID .. ":" .. recordID]
+    return entry and entry.record
+end
+
 local function addCandidates(out, seen, set, maximum)
     if not set then return false end
     if type(set) == "string" then
@@ -465,7 +464,7 @@ local function addCandidates(out, seen, set, maximum)
         return #out >= maximum
     end
     for key in pairs(set) do
-        if not seen[key] then
+        if key ~= 0 and not seen[key] then
             seen[key] = true
             out[#out + 1] = key
             if #out >= maximum then return true end
@@ -496,36 +495,48 @@ local function candidateKeys(self, normalized, filter)
         addCandidates(out, seen, filteredSet(self, filter), self.candidateLimit)
         return out, false
     end
-    if self.previousQuery and self.previousCandidates and self.previousFilterKey == identity
-        and normalized:sub(1, #self.previousQuery) == self.previousQuery then
-        for index = 1, #self.previousCandidates do
-            local key = self.previousCandidates[index]
-            if self.entries[key] then seen[key] = true; out[#out + 1] = key end
-        end
-        self.diagnostics.reusedPrevious = true
-        return out, true
-    end
-    addCandidates(out, seen, self.exact[normalized], self.candidateLimit)
-    if #out < self.candidateLimit then addCandidates(out, seen, self.prefix[normalized], self.candidateLimit) end
+    -- Every literal/token match must contain every gram of each query term.
+    -- Start with the smallest posting set, without truncating exact matches.
+    -- The old CJK fallback appended the entire catalog to every Chinese query.
+    local smallest, smallestCount, missing = nil, math.huge, false
     local terms = I.Search.Normalizer:Terms(normalized)
+    local queryGrams = {}
     for index = 1, #terms do
-        if #out >= self.candidateLimit then break end
-        addCandidates(out, seen, self.tokens[terms[index]], self.candidateLimit)
-    end
-    local gramValues = grams(normalized)
-    for index = 1, #gramValues do
-        if #out >= self.candidateLimit then break end
-        addCandidates(out, seen, self.grams[gramValues[index]], self.candidateLimit)
-    end
-    -- 动态中文数据可能在建立 gram 前才加载；避免短中文查询直接零候选。
-    if hasNonASCII(normalized) then
-        local added = 0
-        for key, entry in pairs(self.entries) do
-            local filterOK = entry and (not filter or (not filter.sourceID or entry.sourceID == filter.sourceID) and (not filter.categoryID or entry.categoryID == filter.categoryID))
-            if entry and entry.source.enabled and filterOK and not seen[key] then
-                seen[key] = true; out[#out + 1] = key; added = added + 1
+        local values = grams(terms[index])
+        for gramIndex = 1, #values do
+            local gram = values[gramIndex]
+            queryGrams[#queryGrams + 1] = gram
+            local set = self.grams[gram]
+            if not set then missing = true
+            elseif not missing then
+                local count = type(set) == "string" and 1 or set[0]
+                if count < smallestCount then smallest, smallestCount = set, count end
             end
         end
+    end
+    if not missing then
+        if self.previousQuery and self.previousQuery ~= "" and self.previousCandidates and self.previousFilterKey == identity
+            and normalized:sub(1, #self.previousQuery) == self.previousQuery and #self.previousCandidates <= smallestCount then
+            for _, key in ipairs(self.previousCandidates) do out[#out+1]=key; seen[key]=true end
+            self.diagnostics.reusedPrevious = true
+        else addCandidates(out, seen, smallest, math.huge) end
+        local write, count = 0, #out
+        for read = 1, count do
+            local key, matches = out[read], true
+            for index = 1, #queryGrams do
+                local set = self.grams[queryGrams[index]]
+                if (type(set) == "string" and set ~= key) or (type(set) == "table" and not set[key]) then matches=false;break end
+            end
+            if matches then write=write+1;out[write]=key else seen[key]=nil end
+        end
+        for index = count, write+1, -1 do out[index]=nil end
+    end
+    -- Fuzzy candidates are bounded separately, so a large prefix never hides
+    -- exact matches and unrelated records do not consume the fuzzy budget.
+    local fuzzyMaximum = #out + self.fuzzyLimit
+    for index = #queryGrams, 1, -1 do
+        if #out >= fuzzyMaximum then break end
+        addCandidates(out, seen, self.grams[queryGrams[index]], fuzzyMaximum)
     end
     if #out >= self.candidateLimit then diagnose(self, "CANDIDATE_LIMIT") end
     return out, false
@@ -539,12 +550,6 @@ local function matchesFilter(entry, filter)
     return true
 end
 
-local function better(left, right)
-    if not right then return true end
-    if left.confidence ~= right.confidence then return left.confidence > right.confidence end
-    return tostring(left.evidence.matchedField) < tostring(right.evidence.matchedField)
-end
-
 local function resultLess(left, right)
     if left.confidence ~= right.confidence then return left.confidence > right.confidence end
     if left.sourcePriority ~= right.sourcePriority then return left.sourcePriority > right.sourcePriority end
@@ -556,6 +561,7 @@ function Index:Search(query, limit, filter)
     local normalized = I.Search.Normalizer:Normalize(query)
     if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
+    if maximum < 1 then return {} end
     local candidates = candidateKeys(self, normalized, filter)
     local queryTerms = I.Search.Normalizer:Terms(normalized)
     local out, byStableID, fuzzyCount = {}, {}, 0
@@ -564,11 +570,9 @@ function Index:Search(query, limit, filter)
     for candidateIndex = 1, #candidates do
         local entry = self.entries[candidates[candidateIndex]]
         if entry and entry.source.enabled and matchesFilter(entry, filter) then
-            local best
+            local bestScore, bestField, bestText, bestType, bestDistance
             local allTokens = #queryTerms > 1
-            if normalized == "" then
-                best = { confidence = 1, evidence = { matchedField = "filter", matchedText = "", matchType = "filter" } }
-            end
+            if normalized == "" then bestScore, bestField, bestText, bestType = 1, "filter", "", "filter" end
             if allTokens then
                 for termIndex = 1, #queryTerms do
                     local tokenFound = false
@@ -577,57 +581,65 @@ function Index:Search(query, limit, filter)
                     end
                     if not tokenFound then allTokens = false; break end
                 end
-                if allTokens then best = { confidence = 0.82, evidence = { matchedField = "tokens", matchedText = normalized, matchType = "token" } } end
+                if allTokens then bestScore, bestField, bestText, bestType = 0.82, "tokens", normalized, "token" end
             end
+            local normalizer = I.Search.Normalizer
             for fieldIndex = 1, #entry.fields do
                 local field = entry.fields[fieldIndex]
-                local exactEvidence = I.Search.Normalizer:MatchText(normalized, field.text, field.field, { allowFuzzy = false })
-                if exactEvidence then
-                    local hit = { confidence = exactEvidence.confidence, evidence = exactEvidence }
-                    if better(hit, best) then best = hit end
+                local confidence, matchType = normalizer:ScoreNormalized(normalized, field.normalized, field.field, false)
+                if confidence and (not bestScore or confidence > bestScore or confidence == bestScore and field.field < bestField) then
+                    bestScore, bestField, bestText, bestType = confidence, field.field, field.text, matchType
                 end
             end
-            if not best or best.confidence < 0.56 then
+            if not bestScore or bestScore < 0.56 then
+                local currentTime = deadline and nowMS()
                 if fuzzyCount >= self.fuzzyLimit then diagnose(self, "FUZZY_CANDIDATE_LIMIT")
-                elseif deadline and nowMS() and nowMS() >= deadline then diagnose(self, "FUZZY_TIME_BUDGET")
+                elseif currentTime and currentTime >= deadline then diagnose(self, "FUZZY_TIME_BUDGET")
                 else
                     fuzzyCount = fuzzyCount + 1
                     for fieldIndex = 1, #entry.fields do
                         local field = entry.fields[fieldIndex]
-                        local fuzzyEvidence = I.Search.Normalizer:MatchText(normalized, field.text, field.field, { allowFuzzy = true })
-                        if fuzzyEvidence and fuzzyEvidence.matchType == "fuzzy" then
-                            local hit = { confidence = fuzzyEvidence.confidence, evidence = fuzzyEvidence }
-                            if better(hit, best) then best = hit end
+                        local confidence, matchType, distance = normalizer:ScoreNormalized(normalized, field.normalized, field.field, true)
+                        if matchType == "fuzzy" and (not bestScore or confidence > bestScore or confidence == bestScore and field.field < bestField) then
+                            bestScore, bestField, bestText, bestType, bestDistance = confidence, field.field, field.text, matchType, distance
                         end
                     end
                 end
             end
-            if best then
-                local result = {
-                    record = entry.record,
-                    item = entry.record.payload or entry.record,
-                    sourceID = entry.sourceID,
-                    sourceExtensionID = entry.source.extensionID,
-                    sourceTitle = entry.source.title or entry.source.extensionTitle,
-                    sourcePriority = entry.source.priority,
-                    categoryOrder = entry.categoryOrder,
-                    stableID = entry.stableID,
-                    confidence = best.confidence,
-                    evidence = best.evidence,
-                    sourceGeneration = entry.source.generation,
-                    sourceRevision = entry.source.revision,
-                }
-                local previous = byStableID[result.stableID]
-                if not previous then out[#out + 1] = result; byStableID[result.stableID] = result
-                elseif resultLess(result, previous) then
-                    for resultIndex = 1, #out do if out[resultIndex] == previous then out[resultIndex] = result; break end end
-                    byStableID[result.stableID] = result
+            if bestScore then
+                local previous = byStableID[entry.stableID]
+                local candidate = previous or (#out >= maximum and out[#out])
+                local wins = not candidate or bestScore > candidate.confidence
+                    or bestScore == candidate.confidence and (entry.source.priority > candidate.sourcePriority
+                    or entry.source.priority == candidate.sourcePriority and (entry.categoryOrder < candidate.categoryOrder
+                    or entry.categoryOrder == candidate.categoryOrder and entry.stableID < candidate.stableID))
+                if wins then
+                    local result, position = previous, #out + 1
+                    if previous then
+                        for index = 1, #out do if out[index] == previous then position = index; break end end
+                    elseif #out >= maximum then
+                        result, position = out[#out], #out
+                        byStableID[result.stableID] = nil
+                    else result = {evidence={}} end
+                    result.record, result.item = entry.record, entry.record.payload or entry.record
+                    result.sourceID, result.sourceExtensionID = entry.sourceID, entry.source.extensionID
+                    result.sourceTitle = entry.source.title or entry.source.extensionTitle
+                    result.sourcePriority, result.categoryOrder = entry.source.priority, entry.categoryOrder
+                    result.stableID, result.confidence = entry.stableID, bestScore
+                    result.sourceGeneration, result.sourceRevision = entry.source.generation, entry.source.revision
+                    local evidence = result.evidence
+                    evidence.matchedField, evidence.matchedText, evidence.matchType = bestField, bestText, bestType
+                    evidence.confidence, evidence.distance = bestScore, bestDistance
+                    out[position], byStableID[entry.stableID] = result, result
+                    while position > 1 and resultLess(out[position], out[position-1]) do
+                        out[position], out[position-1] = out[position-1], out[position]
+                        position = position-1
+                    end
                 end
             end
         end
     end
-    table.sort(out, resultLess)
-    while #out > maximum do out[#out] = nil end
+    self.diagnostics.lastCandidates = #candidates
     self.previousQuery, self.previousCandidates, self.previousFilterKey = normalized, candidates, filterIdentity(filter)
     return out
 end

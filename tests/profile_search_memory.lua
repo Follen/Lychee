@@ -63,7 +63,7 @@ if part=="seen" then
 elseif part=="memberships" then
     for _,entry in pairs(entries) do entry.memberships=nil end
 elseif part=="cache" then
-    LycheeInternal.Search.Normalizer.cache={}
+    LycheeInternal.Search.Normalizer:ClearCache()
     index.previousQuery,index.previousCandidates,index.previousFilterKey=nil,nil,nil
 elseif part=="saved" then
     LycheeDB.searchIndex=nil

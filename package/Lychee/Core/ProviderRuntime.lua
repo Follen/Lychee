@@ -1,6 +1,8 @@
 local I = _G.LycheeInternal
 local P = { entries = {}, jobs = {}, diagnostics = {}, queryEpoch = 0, entryLimit = 4096, queryLimit = 256 }
 I.Providers = P
+local weakValues = { __mode = "v" }
+local function resolvedRecords() return setmetatable({}, weakValues) end
 
 local function copy(value)
     if type(value) ~= "table" then return value end
@@ -142,15 +144,27 @@ function P:Register(definition)
             end
         end
     end
-    definition = copy(definition)
-    local entry = { id = definition.id, definition = definition, revision = 1, dynamic = {}, resolved = {}, dynamicEpoch = 0 }
-    local initial, map = records(entry, definition.entries or {})
+    local inputEntries, ownedDefinition = definition.entries, {}
+    for key, value in pairs(definition) do if key ~= "entries" then ownedDefinition[key] = copy(value) end end
+    definition = ownedDefinition
+    local entry = { id = definition.id, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0 }
+    local initial, map = records(entry, inputEntries or {})
     if not initial then return nil, map end
     entry.records, entry.recordMap = initial, map
     entry.recordOrder = {}
     for index, record in ipairs(initial) do entry.recordOrder[record.id] = index end
     definition.entries = nil
     local handle, internal, enabledBeforeCommit
+    local sourceID = entry.id .. ":records"
+    local function canonical(record)
+        return I.Search.StaticIndex:GetRecord(sourceID, record.id) or record
+    end
+    local function adoptRecords()
+        for index, record in ipairs(entry.records) do
+            local owned = canonical(record)
+            entry.records[index], entry.recordMap[record.id] = owned, owned
+        end
+    end
     local function start()
         if not internal then enabledBeforeCommit = true; return end
         if not active(entry) then return end
@@ -165,7 +179,7 @@ function P:Register(definition)
     end
     local function stop(reason)
         P:CancelQueries(reason, entry)
-        entry.dynamic, entry.resolved = {}, {}
+        entry.dynamic, entry.resolved = {}, resolvedRecords()
         entry.dynamicEpoch = entry.dynamicEpoch + 1
         local cleanup = entry.cleanup; entry.cleanup = nil
         if cleanup and not pcall(cleanup, reason) then report(entry, "CALLBACK_ERROR", "cleanup") end
@@ -174,7 +188,7 @@ function P:Register(definition)
     local draft
     draft, err = I.Registry:Begin({ id = entry.id, title = definition.title, version = definition.version,
         apiVersion = 2, minApiRevision = definition.minApiRevision or 1,
-        onEnabled = start, onDisabled = stop }, { public = true })
+        onHostAttached = adoptRecords, onEnabled = start, onDisabled = stop }, { public = true })
     if not draft then return nil, err end
     ok, err = draft:RegisterSearchSource({ id = "records", title = definition.title, version = 2, revision = 1,
         priority = 0, scope = definition.scope or {}, snapshot = function() return entry.records end })
@@ -210,6 +224,7 @@ function P:Register(definition)
             if not changed then return true end
             entry.records, entry.recordMap, entry.recordOrder = nextList, nextMap, {}
             for index, record in ipairs(nextList) do entry.recordOrder[record.id] = index end
+            adoptRecords()
         else
             local additions, addedMap = records(entry, delta.upsert or {})
             if not additions then return nil, addedMap end
@@ -237,6 +252,7 @@ function P:Register(definition)
                 end
             end
             for _, record in ipairs(additions) do
+                record = canonical(record)
                 local index = entry.recordOrder[record.id] or #entry.records + 1
                 entry.records[index], entry.recordMap[record.id], entry.recordOrder[record.id] = record, record, index
             end
@@ -382,7 +398,7 @@ function P:Search(request, context, onChange)
         if epoch ~= self.queryEpoch then break end
         local entry = self.entries[id]
         if entry and active(entry) then
-        entry.dynamic, entry.resolved = {}, {}
+        entry.dynamic, entry.resolved = {}, resolvedRecords()
         entry.dynamicEpoch = entry.dynamicEpoch + 1
         local job = { entry = entry, epoch = epoch }
         self.jobs[job] = true

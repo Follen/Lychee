@@ -55,6 +55,8 @@ local matches=query("Shared entity")
 assert(#matches==2 and matches[1].ref.providerID ~= matches[2].ref.providerID, "same local IDs remain distinct")
 local alpha = matches[1].providerID=="test.alpha" and matches[1] or matches[2]
 assert(alpha.payload.count==1, "Host owns a validated input copy")
+assert(I.Providers.entries["test.alpha"].recordMap.same == I.Search.StaticIndex:GetRecord("test.alpha:records","same"),
+    "Provider and index share one Host-owned record")
 assert(I.Providers:Execute(alpha,"open",{}).ok and calls==1 and drags==0)
 assert(I.Providers:Execute(alpha,"move",{},true).ok and drags==1 and calls==1)
 assert(query("Shared entity")[1].payload.count~=100, "callbacks cannot mutate indexed records")
@@ -65,6 +67,7 @@ local untouched=I.Search.StaticIndex.entries["test.alpha:records:unchanged"]
 expect("UNKNOWN_ACTION",function() return first:Update({upsert={{id="invalid",title="Invalid",actions={"missing"}}},remove={"same"}}) end)
 assert(#query("Shared entity")==2, "invalid delta did not partially remove records")
 assert(first:Update({upsert={{id="new",title="New entity"}}}))
+assert(I.Providers.entries["test.alpha"].recordMap.new == I.Search.StaticIndex:GetRecord("test.alpha:records","new"), "delta adopts canonical records")
 assert(I.Search.StaticIndex.entries["test.alpha:records:unchanged"]==untouched, "incremental updates preserve unrelated compiled entries")
 local beforeNoop=first:GetState().revision
 assert(first:Update({upsert={{id="new",title="New entity"}}}))
@@ -270,3 +273,19 @@ do
     expect("REQUIRED_PROVIDER",function() return I.Registry:SetUserEnabled("lychee.settings",false) end)
     print("Lychee persistent Provider preference PASS")
 end
+
+;(function()
+    local def=definition("test.resolved-memory")
+    def.resolve=function(id) return {id=id,title="Resolved memory "..id,actions={"open"}} end
+    def.actions={open={title="Open",run=function() return {ok=true} end}}
+    local handle=assert(SDK:RegisterProvider(def))
+    local item=assert(I.Providers:Resolve({providerID=handle.id,entryID="kept"},{}))
+    collectgarbage("collect")
+    assert(I.Providers:IsCurrent(item) and I.Providers:Execute(item,"open",{}).ok, "visible resolved record survives collection")
+    item=nil
+    for index=1,500 do I.Providers:Resolve({providerID=handle.id,entryID=tostring(index)},{}) end
+    collectgarbage("collect")
+    assert(next(I.Providers.entries[handle.id].resolved)==nil, "unreferenced resolved records are collectible")
+    assert(handle:Unregister())
+    print("Resolved record lifetime PASS")
+end)()

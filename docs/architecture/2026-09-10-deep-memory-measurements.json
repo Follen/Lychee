@@ -1,0 +1,52 @@
+{
+  "allocationMethod": "GC stopped only for the measured 48-query allocation interval; not a peak or in-game memory counter",
+  "upstreamCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+  "measurements": [
+    {
+      "variant": "before",
+      "scenario": "combined",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=8666.7 combined_KiB=15265.1 48_queries_alloc_KiB=59129.2 retained_growth_KiB=0.1 query_mean_ms=5.146"
+      ]
+    },
+    {
+      "variant": "before",
+      "scenario": "stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=8666.7 combined_KiB=21503.0 48_queries_alloc_KiB=79602.8 retained_growth_KiB=0.1 query_mean_ms=7.250"
+      ]
+    },
+    {
+      "variant": "before",
+      "scenario": "disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=8666.7 combined_KiB=15265.1 48_queries_alloc_KiB=59129.2 retained_growth_KiB=0.1 query_mean_ms=5.104",
+        "DISABLE retained_KiB=15268.9 reenabled_KiB=15269.2"
+      ]
+    },
+    {
+      "variant": "after",
+      "scenario": "combined",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4396.2 combined_KiB=7827.0 48_queries_alloc_KiB=2315.5 retained_growth_KiB=0.1 query_mean_ms=0.375"
+      ]
+    },
+    {
+      "variant": "after",
+      "scenario": "stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=4396.2 combined_KiB=10584.3 48_queries_alloc_KiB=2318.8 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "variant": "after",
+      "scenario": "disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4396.2 combined_KiB=7827.0 48_queries_alloc_KiB=2315.5 retained_growth_KiB=0.1 query_mean_ms=0.354",
+        "DISABLE retained_KiB=7303.8 reenabled_KiB=7833.6"
+      ]
+    }
+  ],
+  "runtime": "Lua 5.1 Windows",
+  "baselineCommit": "85bfec6"
+}

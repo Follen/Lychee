@@ -97,7 +97,11 @@ local files = {
     "Core/UserPreferences.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
     "UI/FocusController.lua", "UI/Theme.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/SettingsView.lua", "UI/Palette.lua",
 }
-for i = 1, #files do dofile(root .. files[i]) end
+for i = 1, #files do
+    local before = createdFrames
+    dofile(root .. files[i])
+    if files[i] == "UI/Palette.lua" then assert(createdFrames == before, "loading Palette creates no hidden UI") end
+end
 
 local I = _G.LycheeInternal
 local assertEq = function(actual, expected, label)
@@ -149,7 +153,15 @@ assertEq(unmounted, true, "panel unmount cleanup")
 assertEq(disposed, true, "panel dispose cleanup")
 
 -- Palette combat/secure/drag guards.
-local palette = I.Host.PaletteController
+assert(not Lychee.UI.Palette.frame, "palette remains lazy until first open")
+_G.__combat=true;Lychee_Toggle();_G.__combat=false
+assert(not Lychee.UI.Palette.frame, "first combat hotkey creates no protected UI")
+local palette = (function()
+    local before=createdFrames
+    local result=Lychee.UI.Palette:Create()
+    print("Lazy Palette: "..(createdFrames-before).." frame creations deferred until first open")
+    return result
+end)()
 assert(palette)
 assertEq(palette.frame:GetWidth(), 640, "compact palette width")
 assertEq(palette.frame:GetHeight(), 220, "initial palette height")

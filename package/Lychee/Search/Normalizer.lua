@@ -1,6 +1,6 @@
 local I = _G.LycheeInternal
 I.Search = I.Search or {}
-local N = { locale = (GetLocale and GetLocale()) or "enUS", cache = {} }
+local N = { locale = (GetLocale and GetLocale()) or "enUS", cache = {}, cacheKeys = {}, cacheCursor = 0, cacheLimit = 1024 }
 I.Search.Normalizer = N
 
 local function lower(value) return string.lower(tostring(value or "")) end
@@ -23,8 +23,16 @@ function N:Normalize(value)
         end
     end
     local normalized = table.concat(buffer):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+    local slot = self.cacheCursor % self.cacheLimit + 1
+    local previous = self.cacheKeys[slot]
+    if previous then self.cache[previous] = nil end
+    self.cacheKeys[slot], self.cacheCursor = raw, slot
     self.cache[raw] = normalized
     return normalized
+end
+
+function N:ClearCache()
+    self.cache, self.cacheKeys, self.cacheCursor = {}, {}, 0
 end
 
 function N:Terms(value)
@@ -62,23 +70,36 @@ function N:Localized(value, scope)
     return out
 end
 
+local distanceA, distanceB = {}, {}
 local function boundedDistance(left, right, ceiling)
-    if math.abs(#left - #right) > ceiling then return ceiling + 1 end
-    local previous, current = {}, {}
-    for column = 0, #right do previous[column] = column end
-    for row = 1, #left do
-        current[0] = row
-        local minimum = current[0]
-        for column = 1, #right do
-            local cost = left:sub(row, row) == right:sub(column, column) and 0 or 1
-            local value = math.min(current[column - 1] + 1, previous[column] + 1, previous[column - 1] + cost)
+    local leftEnd, rightEnd, first = #left, #right, 1
+    if math.abs(leftEnd - rightEnd) > ceiling then return ceiling + 1 end
+    while first <= leftEnd and first <= rightEnd and left:byte(first) == right:byte(first) do first = first + 1 end
+    while leftEnd >= first and rightEnd >= first and left:byte(leftEnd) == right:byte(rightEnd) do
+        leftEnd, rightEnd = leftEnd - 1, rightEnd - 1
+    end
+    local rows, columns = leftEnd-first+1, rightEnd-first+1
+    if rows == 0 then return columns end
+    if columns == 0 then return rows end
+    local previous, current, infinity = distanceA, distanceB, ceiling+1
+    for column = 0, columns do previous[column] = column <= ceiling and column or infinity end
+    for row = 1, rows do
+        local low, high = math.max(1, row-ceiling), math.min(columns, row+ceiling)
+        current[0] = row <= ceiling and row or infinity
+        if low > 1 then current[low-1] = infinity end
+        current[high+1] = infinity
+        local minimum = infinity
+        local leftByte = left:byte(first+row-1)
+        for column = low, high do
+            local cost = leftByte == right:byte(first+column-1) and 0 or 1
+            local value = math.min(current[column-1]+1, previous[column]+1, previous[column-1]+cost)
             current[column] = value
             if value < minimum then minimum = value end
         end
-        if minimum > ceiling then return ceiling + 1 end
+        if minimum > ceiling then return infinity end
         previous, current = current, previous
     end
-    return previous[#right] or ceiling + 1
+    return previous[columns]
 end
 
 local FIELD_SCORES = {
@@ -99,26 +120,29 @@ local function score(field, matchType, distance)
     return value
 end
 
-function N:MatchText(query, text, field, options)
-    options = options or {}
-    local normalizedQuery, normalizedText = self:Normalize(query), self:Normalize(text)
+-- The index already owns normalized fields. Scoring its candidates must not
+-- allocate evidence/options tables for every failed field comparison.
+function N:ScoreNormalized(normalizedQuery, normalizedText, field, allowFuzzy, fuzzyDistance)
     if normalizedQuery == "" or normalizedText == "" then return nil end
     field = field or "title"
-    local evidence = { matchedField = field, matchedText = text }
-    if normalizedText == normalizedQuery then evidence.matchType, evidence.confidence = "exact", score(field, "exact"); return evidence end
-    if normalizedText:sub(1, #normalizedQuery) == normalizedQuery then evidence.matchType, evidence.confidence = "prefix", score(field, "prefix"); return evidence end
-    if normalizedText:find(normalizedQuery, 1, true) then evidence.matchType, evidence.confidence = "substring", score(field, "substring"); return evidence end
-    if options.allowFuzzy ~= false and #normalizedQuery <= 32 and #normalizedText <= 64 then
-        local ceiling = tonumber(options.fuzzyDistance) or 2
+    if normalizedText == normalizedQuery then return score(field, "exact"), "exact" end
+    local position = normalizedText:find(normalizedQuery, 1, true)
+    if position == 1 then return score(field, "prefix"), "prefix" end
+    if position then return score(field, "substring"), "substring" end
+    if allowFuzzy ~= false and #normalizedQuery <= 32 and #normalizedText <= 64 then
+        local ceiling = tonumber(fuzzyDistance) or 2
         local distance = boundedDistance(normalizedQuery, normalizedText, ceiling)
         if distance <= ceiling then
-            evidence.matchType = "fuzzy"
-            evidence.confidence = score(field, "fuzzy", distance)
-            evidence.distance = distance
-            return evidence
+            return score(field, "fuzzy", distance), "fuzzy", distance
         end
     end
     return nil
+end
+
+function N:MatchText(query, text, field, options)
+    local confidence, matchType, distance = self:ScoreNormalized(self:Normalize(query), self:Normalize(text),
+        field, not options or options.allowFuzzy, options and options.fuzzyDistance)
+    if confidence then return {matchedField=field or "title",matchedText=text,confidence=confidence,matchType=matchType,distance=distance} end
 end
 
 function N:MatchFields(query, title, aliases, keywords)

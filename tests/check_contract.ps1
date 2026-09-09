@@ -83,6 +83,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Command catalog smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/capability_broker_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Capability broker smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/search_memory_regression.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/performance_memory.lua' '--check'
+    if ($LASTEXITCODE -ne 0) { throw "Memory budget failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

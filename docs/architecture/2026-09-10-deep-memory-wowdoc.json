@@ -1,0 +1,701 @@
+[
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/IconDataProvider.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "21: \n22: local function IconDataProvider_ClearIconTextures()\n23: \tBaseIconFilenames = nil;\n24: \tcollectgarbage();\n25: end\n26: \n27: local function IconDataProvider_GetBaseIconTexture(iconType, index)",
+          "contentHash": "1f2c2ef6985055006dccc17122902eed234f4b52222e26330321147f57768f68",
+          "line": 24,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_GuildBankUI/TBC/Blizzard_GuildBankUI.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "160: \tCloseGuildBankFrame();\n161: \tPlaySound(SOUNDKIT.GUILD_VAULT_CLOSE);\n162: \tGB_ICON_FILENAMES = nil;\n163: \tcollectgarbage();\n164: end\n165: \n166: function GuildBankFrameMixin:Update()",
+          "contentHash": "c4ffc38750470cda73caabee67cf85ab917ca6bd00b2a2f9880fbb23c6e5786e",
+          "line": 163,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_SharedXML/BenchmarkUtil.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "23: ScriptBenchmarkGarbageCollectorControlMixin = {};\n24: \n25: function ScriptBenchmarkGarbageCollectorControlMixin:OnIterationStart(_iteration, _iterationCount)\n26: \tcollectgarbage(\"collect\");\n27: \tcollectgarbage(\"stop\");\n28: end\n29: ",
+          "contentHash": "1054a4c61e8a66811159ebffb317bc5e1e0116042671b2dfb60ce855f5f7d698",
+          "line": 26,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "IconDataProvider_ClearIconTextures",
+          "target": "collectgarbage",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/IconDataProvider.lua",
+          "line": 24
+        },
+        {
+          "source": "GuildBankFrameMixin:OnHide",
+          "target": "collectgarbage",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_GuildBankUI/TBC/Blizzard_GuildBankUI.lua",
+          "line": 163
+        },
+        {
+          "source": "ScriptBenchmarkGarbageCollectorControlMixin:OnIterationStart",
+          "target": "collectgarbage",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/BenchmarkUtil.lua",
+          "line": 26
+        },
+        {
+          "source": "ScriptBenchmarkGarbageCollectorControlMixin:OnIterationStart",
+          "target": "collectgarbage",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/BenchmarkUtil.lua",
+          "line": 27
+        },
+        {
+          "source": "ScriptBenchmarkGarbageCollectorControlMixin:OnIterationFinish",
+          "target": "collectgarbage",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/BenchmarkUtil.lua",
+          "line": 31
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_PingSecure.CreateFrame",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PingManagerSecureDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "16: \t\t\tName = \"CreateFrame\",\n17: \t\t\tType = \"Function\",\n18: \t\t\tHasRestrictions = true,\n19: \t\t},",
+          "contentHash": "18d8d0bff4b8c839a34bcb1245587cbae7441b21263261b5cdf89f76f144620e",
+          "line": 16,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "75: function AuraContainerCustomFrameProviderMixin:CreateFrame()\n76: \tlocal auraFrame = CreateFrameOutbound(\"AuraButton\", nil, self:GetParent(), self:GetTemplateString());\n77: \n78: \tif self.initializeFrame ~= nil then\n79: \t\tsecurecallfunction(self.initializeFrame, auraFrame:GetObjectTable());\n80: \tend\n81: \n82: \t-- Access restrictions should be applied after (potentially tainted)\n83: \t-- post-creation callbacks.\n84: \tif self.accessRestrictions then\n85: \t\tAuraContainerUtil.ApplyAccessRestrictions(auraFrame, self.accessRestrictions);\n86: \tend\n87: \n88: \t-- Force an immediate display update to apply initial secrets and suitable\n89: \t-- default values.\n90: \tauraFrame:UpdateAuraDisplay();\n91: \n92: \ttable.insert(self.ownedFrames, auraFrame);\n93: \ttable.insert(self.availableFrames, auraFrame);\n94: end",
+          "contentHash": "2d1e3f6486636b7a285978aa6ee240205aacb38a5c255c23cfb294987192925e",
+          "line": 75,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_PingSecure",
+          "target": "C_PingSecure.CreateFrame",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PingManagerSecureDocumentation.lua",
+          "line": 16
+        },
+        {
+          "source": "CharacterCreateFrameRacialAbilityTemplate",
+          "target": "ResizeLayoutFrame",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_CharacterCreate/Blizzard_CharacterCreate.xml",
+          "line": 22
+        },
+        {
+          "source": "RuneforgeCreateFrameMixin",
+          "target": "RuneforgeSystemMixin",
+          "kind": "inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_RuneforgeUI/Blizzard_RuneforgeCreateFrame.lua",
+          "line": 21
+        },
+        {
+          "target": "RuneforgeCreateFrameTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_RuneforgeUI/Blizzard_RuneforgeFrame.xml",
+          "line": 32
+        },
+        {
+          "source": "AccountStoreItemDisplayMixin:CreateItemRack",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AccountStore/Blizzard_AccountStoreItemDisplay.lua",
+          "line": 138
+        },
+        {
+          "source": "AccountStoreItemRackMixin:SetCategoryType",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AccountStore/Blizzard_AccountStoreItemRack.lua",
+          "line": 22
+        },
+        {
+          "source": "AchievementsObjectivesMixin:OnLoad",
+          "target": "CreateFramePoolCollection",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1155
+        },
+        {
+          "source": "AchievementButton_GetMeta",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1228
+        },
+        {
+          "source": "AchievementFrameSummary_UpdateAchievements",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1642
+        },
+        {
+          "source": "AchievementsObjectivesMixin:OnLoad",
+          "target": "CreateFramePoolCollection",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1713
+        },
+        {
+          "source": "AchievementFrameSummary_UpdateAchievements",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2391
+        },
+        {
+          "source": "AssistedCombatManager:SetAssistedHighlightFrameShown",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/AssistedCombatManager.lua",
+          "line": 223
+        },
+        {
+          "source": "AssistedCombatManager:UpdateAssistedHighlightState",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/AssistedCombatManager.lua",
+          "line": 286
+        },
+        {
+          "source": "AddBar",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/StatusTrackingManagerOverrides.lua",
+          "line": 46
+        },
+        {
+          "source": "ActionBarMixin:ActionBar_OnLoad",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionBar.lua",
+          "line": 14
+        },
+        {
+          "source": "ActionBarMixin:ActionBar_OnLoad",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionBar.lua",
+          "line": 31
+        },
+        {
+          "source": "ActionBarActionButtonMixin:CreateTextureOverlayFrame",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 710
+        },
+        {
+          "source": "ActionBarActionButtonMixin:UpdateAssistedCombatRotationFrame",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 895
+        },
+        {
+          "source": "GetAlertFrame",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonSpellAlerts.lua",
+          "line": 17
+        },
+        {
+          "source": "GetAlertFrame",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonSpellAlerts.lua",
+          "line": 27
+        },
+        {
+          "source": "MainActionBarMixin:UpdateDividers",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/MainActionBar.lua",
+          "line": 92
+        },
+        {
+          "source": "MainActionBarMixin:UpdateDividers",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/MainActionBar.lua",
+          "line": 93
+        },
+        {
+          "source": "SpellFlyoutMixin:Toggle",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 278
+        },
+        {
+          "source": "ActionBarActionButtonDerivedMixin:ActionBarActionButtonDerivedMixin_OnLoad",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/WoWLabs/ActionButtonOverrides.lua",
+          "line": 50
+        },
+        {
+          "source": "AdventureMapQuestChoiceDialogMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AdventureMap/AM_QuestDialog.lua",
+          "line": 9
+        },
+        {
+          "source": "AdventureMapQuestChoiceDialogMixin:RefreshDetails",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AdventureMap/AM_QuestDialog.lua",
+          "line": 195
+        },
+        {
+          "source": "AdventureMapMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AdventureMap/Blizzard_AdventureMap.lua",
+          "line": 18
+        },
+        {
+          "source": "AlliedRacesFrameMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AlliedRacesUI/Blizzard_AlliedRacesFrameUI.lua",
+          "line": 151
+        },
+        {
+          "source": "AnimaDiversionDataProviderMixin:RefreshAllData",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AnimaDiversionUI/AnimaDiversionDataProvider.lua",
+          "line": 116
+        },
+        {
+          "source": "AnimaDiversionFrameMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AnimaDiversionUI/Blizzard_AnimaDiversionUI.lua",
+          "line": 91
+        },
+        {
+          "source": "<top-level@Interface/AddOns/Blizzard_AnimatedShine/Shared/AnimatedShine.lua:9>",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AnimatedShine/Shared/AnimatedShine.lua",
+          "line": 9
+        },
+        {
+          "source": "ArdenwealdGardening.Create",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArdenwealdGardening/Blizzard_ArdenwealdGardening.lua",
+          "line": 15
+        },
+        {
+          "source": "ArrowCalloutMixin:OnLoad",
+          "target": "CreateFramePoolCollection",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArrowCalloutFrame/ArrowCalloutFrame.lua",
+          "line": 67
+        },
+        {
+          "source": "ArrowCalloutContainerMixin:OnLoad",
+          "target": "CreateFramePoolCollection",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArrowCalloutFrame/ArrowCalloutFrame.lua",
+          "line": 138
+        },
+        {
+          "source": "ArtifactAppearancesMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactAppearances.lua",
+          "line": 6
+        },
+        {
+          "source": "ArtifactAppearancesMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactAppearances.lua",
+          "line": 7
+        },
+        {
+          "source": "ArtifactPerksMixin:OnLoad",
+          "target": "CreateFramePool",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 62
+        },
+        {
+          "source": "ArtifactPerksMixin:GetOrCreateDependencyLine",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 325
+        },
+        {
+          "source": "ArtifactPerksMixin:GetOrCreateCurvedDependencyLine",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 337
+        },
+        {
+          "source": "ArtifactPerksMixin:AnimateTraitRefund",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 958
+        },
+        {
+          "source": "AsyncRequests:CreateAsyncRequest",
+          "target": "CreateFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AsyncRequest/Blizzard_AsyncRequest.lua",
+          "line": 98
+        },
+        {
+          "source": "AuraContainerUtil.CreateFramePoolProvider",
+          "target": "CreateFromMixins",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 19
+        },
+        {
+          "source": "AuraContainerUtil.CreateFramePoolProvider",
+          "target": "provider:Init",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 20
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "self:GetParent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 76
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "CreateFrameOutbound",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 76
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "self:GetTemplateString",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 76
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "securecallfunction",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 79
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "auraFrame:GetObjectTable",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 79
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "AuraContainerUtil.ApplyAccessRestrictions",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 85
+        },
+        {
+          "source": "AuraContainerCustomFrameProviderMixin:CreateFrame",
+          "target": "auraFrame:UpdateAuraDisplay",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_AuraContainerFrameProviders.lua",
+          "line": 90
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_RestrictedActions.InCombatLockdown",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/RestrictedActionsDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "45: \t\t\tName = \"InCombatLockdown\",\n46: \t\t\tType = \"Function\",\n47: \t\t\tNamespace = \"\",\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"inCombatLockdown\", Type = \"bool\", Nilable = false },\n52: \t\t\t},\n53: \t\t},",
+          "contentHash": "b26826c2081edf8e7ce770f75911eebb43d55432c79f363440a48aa3bc1ea27a",
+          "line": 45,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_RestrictedActions",
+          "target": "C_RestrictedActions.InCombatLockdown",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/RestrictedActionsDocumentation.lua",
+          "line": 45
+        },
+        {
+          "source": "AddOnPerformanceMixin:CheckAndDisplayPerformanceMessage",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AddOnPerformance/AddOnPerformance.lua",
+          "line": 54
+        },
+        {
+          "source": "EditModeManagerFrameMixin:ClearSelectedSystem",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EditMode/Shared/EditModeManager.lua",
+          "line": 712
+        },
+        {
+          "source": "TutorialFrame_NewTutorial",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXML/Mainline/TutorialFrame.lua",
+          "line": 705
+        },
+        {
+          "source": "<top-level@Interface/AddOns/Blizzard_FrameXML/SecureTemplates.xml:1>",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.xml",
+          "line": 16
+        },
+        {
+          "source": "GetPossiblyForbiddenHandleFrame",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+          "line": 81
+        },
+        {
+          "source": "HANDLE:GetChildren",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+          "line": 293
+        },
+        {
+          "source": "HANDLE:GetChildList",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+          "line": 297
+        },
+        {
+          "source": "HANDLE:GetParent",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+          "line": 301
+        },
+        {
+          "source": "HANDLE:GetPoint",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+          "line": 384
+        },
+        {
+          "source": "GetFrameHandleFrame",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedInfrastructure.lua",
+          "line": 97
+        },
+        {
+          "source": "IsWrapEligible",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlers.lua",
+          "line": 268
+        },
+        {
+          "source": "API_OnAttributeChanged",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlers.lua",
+          "line": 435
+        },
+        {
+          "source": "CheckProtectedFunctionsAllowed",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UIParentPanelManager/Shared/UIParentPanelManager.lua",
+          "line": 809
+        },
+        {
+          "source": "UnitPopupTargetButtonMixin:CanShow",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UnitPopupShared/UnitPopupSharedButtonMixins.lua",
+          "line": 315
+        },
+        {
+          "source": "UnitPopupBnetTargetButtonMixin:CanShow",
+          "target": "InCombatLockdown",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UnitPopupShared/UnitPopupSharedButtonMixins.lua",
+          "line": 759
+        }
+      ]
+    }
+  }
+]
