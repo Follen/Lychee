@@ -7,6 +7,7 @@ apiVersion: 2
 apiRevision: 2
 contents:
   - README.md
+  - CLIENT_VARIANTS.md
   - LycheeAPI.lua
   - ApiStubs.lua
   - examples/ThirdPartyFixture/ThirdPartyFixture.toc

@@ -25,3 +25,7 @@ API 2 不保留旧 Extension/Command 多角色接入流程，也不迁移旧数�
 显示品牌：中文 `|cffd53c49荔枝|r启动器`，英文 `|cffd53c49Lychee|r Launcher`；描述分别为“魔兽世界万用启动器”和“Universal launcher for World of Warcraft”。客户端 locale 决定语言，与正式服／经典服产品身份独立。
 
 示例 ThirdPartyFixture 提供 Mainline／Mists／Wrath／TBC 四份客户端 TOC，由仓库 `tests/build_client_tocs.py` 同步生成。新增客户端声明时须同步核对 TOC 和实际 API，不能只扩充 products 数组。
+
+## 同一 Provider 的版本差异
+
+允许不同客户端／build 使用不同业务实现。同一业务保持一个 Provider ID，由 Provider 在注册前选择唯一适配器，再向 Host 提交该实现的完整 scope、i18n 和回调。支持范围不等于实现相同；不能同时注册多个同 ID 分支。目录结构、选择规则、身份／缓存和验收要求见 [客户端与 build 差异约定](CLIENT_VARIANTS.md)。

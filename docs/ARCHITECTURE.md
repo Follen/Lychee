@@ -103,3 +103,7 @@ SavedVariables schema 2 保存来源开关、最小身份历史和固定项的�
 公开 API 测试覆盖原子性、可变输入隔离、实例重用、同 ID 跨 Provider、动态取消/恢复、无动作条目、未知适配器、容量和生命周期。UI 测试覆盖真实 Host 渲染、视图初始/更新状态、菜单与安全右键。WoW API 证据和最终静态验证记录位于 `docs/architecture/`、`docs/validation/`。
 
 离线验证不声称测得真实客户端战斗 CPU、帧时间、taint 或安全点击行为。客户端验收需要记录登录、空闲、战斗、峰值对象量和窗口打开/关闭的实际样本。
+
+## Provider 内部的版本适配层
+
+Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实例可用性，后者允许同一业务在不同 product/interface/build 下采用不同数据源、事件与交互。适配器归 Provider 所有，推荐按 TOC 加载，初始化时唯一选择；共享入口仅提交一个普通 descriptor。Host 不依赖具体适配器或新增游戏业务分支。未选中分支不创建业务资源，稳定 ID／缓存版本隔离／清理遵循 [SDK 版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。

@@ -150,3 +150,7 @@ run 返回 `{ok=true,view="detail",state={...}}` 可以打开 `views.detail`。�
 检查注册/更新返回值；业务失败返回 `{ok=false,code="MY_ERROR",message="给用户的简短原因"}`。不要把异常堆栈、secret 值或 frame 放进数据协议。Host 诊断有界，第三方仍应自行记录必要的集成错误。
 
 运行 `pwsh -File tests/check_contract.ps1` 可复现本仓库契约测试。游戏内验证搜索/最近使用交互一致、关闭后事件与 timer 停止、旧查询不回流，以及真实施法、拖动、战斗和 taint 行为。
+
+## 同一 Provider 在不同版本的业务逻辑
+
+`scope` 只过滤支持范围，不替 Provider 选择代码。Provider 可以为不同 product 或同一 product 的不同数值版本区间使用不同数据源、事件、动作和视图。保持同一业务 Provider ID，在注册前选择唯一实现，提交当前实现的范围和独立 i18n；未选中实现不得启动业务工作。推荐 TOC 分别加载适配模块，共享注册入口。完整示例和边界规则见 [客户端与 build 差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。这使用现有 API 2.2，不新增 variants 注册字段或 GetClient 公共接口。

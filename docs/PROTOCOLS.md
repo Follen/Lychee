@@ -123,3 +123,7 @@ PRIVATE Registry/Index 的具体方法、source token、内部字段、生命周
 `handle:Text(key,...)` 返回文案或 `nil, Error`；注销后为 `STALE_HANDLE`。支持至多 16 个格式参数／占位符，参数仅数字或不超过 1024 字节字符串，输出最多 32768 字节，超限在格式化前按保守上界拒绝。译文格式参数顺序和转换类型须与英文一致。无参数调用返回模板本身。
 
 语言相关错误：`INVALID_LOCALES`、`INVALID_LOCALE_KEY`、`INVALID_LOCALE_FORMAT`、`LOCALE_LIMIT`；非法引用为 `INVALID_SCHEMA`。API 2.1 仍受支持，未指定产品的旧 Provider 仅在正式服启用。
+
+## 多版本业务实现边界
+
+一个 Provider 可在不同客户端／build 采用不同业务逻辑。产品／版本匹配和实现选择由 Provider 的兼容层在注册前完成；Host 只接收选中的普通 descriptor。一个 ID 在同一 Host 中只注册一次，scope 声明当前实现真正支持的范围。零匹配不启用；重叠匹配拒绝选择，不能按顺序取第一个。各实现仍遵循相同 Entry/Action/View、独立 i18n 与生命周期协议。没有 variants／implementations 注册字段。具体身份、缓存、能力判断和分支验收约束见 [版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。
