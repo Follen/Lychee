@@ -1,0 +1,74 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "file",
+        "name": "SimpleAnimAPIDocumentation.lua",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "path",
+        "role": "official-generated-api",
+        "excerpt": "1: local SimpleAnimAPI =\n2: {\n3: \tName = \"SimpleAnimAPI\",\n4: \tType = \"ScriptObject\",\n5: \tEnvironment = \"All\",\n6: \n7: \tFunctions =",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "file",
+        "name": "SimpleAnimAlphaAPIDocumentation.lua",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "path",
+        "role": "official-generated-api",
+        "excerpt": "1: local SimpleAnimAlphaAPI =\n2: {\n3: \tName = \"SimpleAnimAlphaAPI\",\n4: \tType = \"ScriptObject\",\n5: \tEnvironment = \"All\",\n6: \n7: \tFunctions =",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "file",
+        "name": "SimpleAnimGroupAPIDocumentation.lua",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "path",
+        "role": "official-generated-api",
+        "excerpt": "1: local SimpleAnimGroupAPI =\n2: {\n3: \tName = \"SimpleAnimGroupAPI\",\n4: \tType = \"ScriptObject\",\n5: \tEnvironment = \"All\",\n6: \n7: \tFunctions =",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 1,
+        "score": 100,
+        "scoreParts": {
+          "match": 100
+        }
+      }
+    ]
+  }
+]

@@ -50,6 +50,7 @@ local firstSession, initialGeneration = session:Start()
 assert(firstSession > 0 and initialGeneration > 0)
 
 assert(session:Input("旧查询"))
+assert(palette.searchPending==true,"pending empty results retain the window geometry")
 local oldTimer = timers[#timers]
 local oldGeneration = session.generation
 assert(#accepted == 1 and #accepted[1].results == 0 and accepted[1].generation == oldGeneration,
@@ -64,6 +65,7 @@ assert(#accepted == 2 and #accepted[2].results == 0 and accepted[2].generation =
 oldTimer.callback()
 assert(#accepted == 2, "cancelled input must not publish after its immediate clear")
 newTimer.callback()
+assert(palette.searchPending==false,"completed search releases pending presentation state")
 assert(#accepted == 3 and accepted[3].generation == newGeneration)
 assert(#accepted[3].results >= 1 and accepted[3].results[1].id == "new")
 

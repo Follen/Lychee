@@ -26,6 +26,8 @@ local function object(kind, parent)
     function o:SetWidth(w) mutation(self, "SetWidth"); self.width = w end
     function o:GetWidth() return self.width end
     function o:GetHeight() return self.height end
+    function o:SetAlpha(value) mutation(self,"SetAlpha");self.alpha=value end
+    function o:GetAlpha() return self.alpha or 1 end
     function o:GetStringHeight() return 15 end
     function o:SetClampedToScreen(enabled) self.clamped = enabled end
     function o:SetFrameStrata() end
@@ -96,7 +98,7 @@ local files = {
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Core/UserPreferences.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/SettingsView.lua", "UI/Palette.lua",
+    "UI/FocusController.lua", "UI/Theme.lua", "UI/Motion.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/SettingsView.lua", "UI/Palette.lua",
 }
 for i = 1, #files do
     local before = createdFrames

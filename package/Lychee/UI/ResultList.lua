@@ -105,6 +105,7 @@ end
 local function hideTooltip()
     local tip = ResultList.tooltip
     if not tip then return end
+    if Lychee.UI.Motion then Lychee.UI.Motion:Cancel(tip,true) end
     setShown(tip, false)
     if tip._owner then
         tip:ClearAllPoints()
@@ -192,6 +193,7 @@ end
 local function showTooltip(owner, title, detail)
     if not owner or (InCombatLockdown and InCombatLockdown()) then return end
     local tip = acquireTooltip()
+    local entering=not tip:IsShown()
     if tip._owner ~= owner then
         tip:ClearAllPoints()
         -- Anchor to the entry, but stay outside its clipping ScrollFrame tree.
@@ -249,6 +251,7 @@ local function showTooltip(owner, title, detail)
     y = tooltipLine(tip, 5, dragHint, y, clickHint and 4 or 0)
     if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
     setShown(tip, true)
+    if entering and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
 end
 
 function ResultList:HideTooltip() hideTooltip() end
@@ -273,9 +276,14 @@ local function secondaryAction(interaction)
 end
 
 local function renderRowState(row)
-    local background = row._selected and "rowSelected" or "row"
-    setTextureColor(row.bg, background)
-    setShown(row.accent, row._selected == true)
+    if Lychee.UI.Motion then
+        setTextureColor(row.bg,"rowSelected")
+        Lychee.UI.Motion:Selection(row.bg,row._selected==true)
+        Lychee.UI.Motion:Selection(row.accent,row._selected==true)
+    else
+        setTextureColor(row.bg,row._selected and "rowSelected" or "row")
+        setShown(row.accent,row._selected==true)
+    end
     local showSecondary = row.secondaryAction and row._selected or false
     setShown(row.secondary, showSecondary)
     local categoryInset = showSecondary and 42 or 12
@@ -287,6 +295,12 @@ local function renderRowState(row)
 end
 
 local function clearRow(row)
+    if Lychee.UI.Motion then
+        Lychee.UI.Motion:Cancel(row.title,true);Lychee.UI.Motion:Cancel(row.subtext,true)
+        Lychee.UI.Motion:Cancel(row.bg,true);Lychee.UI.Motion:Cancel(row.accent,true)
+        if row.bg then row.bg._lycheeSelectedMotion=nil end
+        if row.accent then row.accent._lycheeSelectedMotion=nil end
+    end
     row.item, row.index, row.session, row.generation, row.extensionID, row.stableID = nil, nil, nil, nil, nil, nil
     row.primaryAction, row.secondaryAction, row.dragDescriptor = nil, nil, nil
     row._hovered, row._dragHovered, row._selected, row._pressed = false, false, false, false
@@ -453,6 +467,7 @@ function ResultList:SetItems(items, session, generation, offset)
         local item, row = self.items[index + self.offset], self.rows[index]
         if type(item) == "table" then
         row.item, row.index = item, index
+        local changedIdentity=row.stableID~=stableItemID(item)
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
         cachedText(row, "title", row.title, item.text)
         cachedText(row, "subtext", row.subtext, item.subtext ~= "" and item.subtext or item.description or item.summary or "")
@@ -474,6 +489,7 @@ function ResultList:SetItems(items, session, generation, offset)
         row.secondary.actionID, row.secondary.action, row.secondary.tooltip = row.secondaryAction and row.secondaryAction.id, row.secondaryAction, actionLabel(row.secondaryAction)
         setShown(row.dragger, row.dragDescriptor ~= nil)
         renderRowState(row); setShown(row, true)
+        if changedIdentity and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(row.title,"feedback");Lychee.UI.Motion:Reveal(row.subtext,"feedback") end
         else
             clearRow(row)
         end

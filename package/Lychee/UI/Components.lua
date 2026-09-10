@@ -143,6 +143,7 @@ function Components:CreateButton(parent, options)
         if self.enabled == false then state = "disabled" end
         if self._state == state then return false end
         self._state = state
+        if Lychee.UI.Motion then Lychee.UI.Motion:Alpha(self.label,state=="pressed" and 0.70 or 1,Lychee.UI.Motion.durations.feedback) end
         local token = options.colors and options.colors[state]
         if not token then token = options.colors and options.colors.normal end
         if token then setColorTexture(self.bg, token) end

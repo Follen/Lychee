@@ -52,6 +52,7 @@ function Session:Invalidate(reason)
     self:_SyncPalette()
     local palette = self.palette
     if self.visible and palette and palette.visible and type(palette.ApplyResults) == "function" then
+        palette.searchPending=false
         palette:ApplyResults({}, self.generation, self.session)
     end
     return self.generation
@@ -75,11 +76,12 @@ function Session:IsCurrent(session, generation)
     return true
 end
 
-function Session:_Accept(results, generation, session)
+function Session:_Accept(results, generation, session, pending)
     local current = self:IsCurrent(session, generation)
     if not current then return false end
     local palette = self.palette
     if not palette or not palette.visible or type(palette.ApplyResults) ~= "function" then return false end
+    palette.searchPending=pending==true
     return palette:ApplyResults(results, generation, session)
 end
 
@@ -96,7 +98,7 @@ function Session:Input(raw)
     self.generation = generation
     self.activeFilter = nil
     self:_SyncPalette()
-    self:_Accept({}, generation, session)
+    self:_Accept({}, generation, session, true)
     local context = contextSnapshot(session, generation)
 
     if C_Timer and (type(C_Timer.NewTimer) == "function" or type(C_Timer.After) == "function") then
@@ -126,7 +128,7 @@ function Session:Filter(filter)
     self.activeFilter = { categoryID = filter.categoryID, sourceID = filter.sourceID }
     self:_SyncPalette()
     if type(query.Cancel) == "function" then query:Cancel("filter-change", generation) end
-    self:_Accept({}, generation, session)
+    self:_Accept({}, generation, session, true)
     local context = contextSnapshot(session, generation, self.activeFilter)
     local completedGeneration, results = query:Query("", context, generation)
     self:_Accept(results, completedGeneration, session)

@@ -131,8 +131,12 @@ local function createHomeView(parent, controller)
     function view:RenderTileState(tile)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
         paint(tile.bg, color("accent"))
-        setShown(tile.bg, selected == true)
-        if tile.selectionFill then setShown(tile.selectionFill,selected == true and tile._recentLayout == true) end
+        if Lychee.UI.Motion then Lychee.UI.Motion:Selection(tile.bg,selected==true)
+        else setShown(tile.bg, selected == true) end
+        if tile.selectionFill then
+            if Lychee.UI.Motion then Lychee.UI.Motion:Selection(tile.selectionFill,selected == true and tile._recentLayout == true)
+            else setShown(tile.selectionFill,selected == true and tile._recentLayout == true) end
+        end
     end
 
     function view:SetHover(tile, hovered)
@@ -407,6 +411,10 @@ local function createHomeView(parent, controller)
             tile.section, tile.index, tile._hovered = nil, nil, nil
             tile.item, tile.session, tile.generation, tile.extensionID = nil, nil, nil, nil
             setShown(tile.bg, false)
+            if Lychee.UI.Motion then
+                Lychee.UI.Motion:Cancel(tile.bg,true);tile.bg._lycheeSelectedMotion=nil
+                if tile.selectionFill then Lychee.UI.Motion:Cancel(tile.selectionFill,true);tile.selectionFill._lycheeSelectedMotion=nil end
+            end
             local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
             if executor then executor:ConfigureDragTarget(tile, nil) end
             setShown(tile, false)
@@ -463,7 +471,11 @@ function Palette:Create()
     -- non-combat state deliberately does nothing, so leaving combat never opens it.
     frame:SetAttribute("_onstate-combat", [[if newstate == "hide" then self:Hide() end]])
     if RegisterStateDriver then RegisterStateDriver(frame, "combat", "[combat] hide; idle") end
-    frame:SetScript("OnHide", function() if self.visible then self:Hide("external") end end)
+    frame:SetScript("OnHide", function()
+        if Lychee.UI.Motion then Lychee.UI.Motion:StopAll() end
+        if self.visible then self:Hide("external")
+        elseif InCombatLockdown and InCombatLockdown() then self.combatCleanupPending=true end
+    end)
     -- Let the native Escape dispatcher close the window when the EditBox has
     -- lost focus. OnHide above runs the same cleanup as the close button.
     -- Create is idempotent, so this registers once without a keyboard handler.
@@ -479,6 +491,7 @@ function Palette:Create()
     self.footerComponent.bg:Hide()
     self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
     self.content = self.contentComponent.frame
+    if self.content.SetClipsChildren then self.content:SetClipsChildren(true) end
     self.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -HEADER_HEIGHT)
     self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
     self.content.bg = self.contentComponent.bg
@@ -641,6 +654,9 @@ function Palette:SetStatusText(value)
 end
 
 function Palette:OpenSettings(tab)
+    if self._motionClosing then return false end
+    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
+    self._motionMode="settings"
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if not self.visible then self:Show() end
     self.settingsOpen = true
@@ -652,12 +668,14 @@ function Palette:OpenSettings(tab)
     setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
     if not self.settingsView then self.settingsView = Lychee.UI.SettingsView:Create(self.content, self) end
     self.settingsView.frame:Show(); self.settingsView:SetTab(tab or "providers")
+    if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.settingsView.frame,"page") end
     self.settingsTitle:Show(); self.settingsBack.frame:Show()
     self:ResizeForMode("settings"); self:SetStatusText("更改即时生效")
     return true
 end
 
 function Palette:CloseSettings(clearQuery)
+    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     self.settingsOpen = false
     if self.settingsView then self.settingsView.frame:Hide() end
@@ -791,6 +809,7 @@ function Palette:SetStatus(mode, count)
 end
 
 function Palette:ResizeForMode(mode, count)
+    if mode=="search" and self.searchPending then return true end
     if not self.frame or not self.frame.SetHeight then return false end
     if InCombatLockdown and InCombatLockdown() then return false end
     local theme = Lychee.UI and Lychee.UI.Theme
@@ -812,7 +831,9 @@ function Palette:ResizeForMode(mode, count)
     if mode == "settings" then listHeight = 430 end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
-    if self.frame:GetHeight() ~= desired then self.frame:SetHeight(desired) end
+    if self.frame:GetHeight() ~= desired then
+        if Lychee.UI.Motion then Lychee.UI.Motion:Height(self.frame,desired) else self.frame:SetHeight(desired) end
+    end
     self:ApplyBoundedScale()
     return true
 end
@@ -859,6 +880,10 @@ function Palette:SetQueryMode(text)
     if self.settingsOpen then return false end
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
     local empty = (text or "") == ""
+    local nextMode=empty and not self.activeFilter and "home" or "search"
+    local changedMode=self._motionMode~=nextMode
+    if changedMode and Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
+    self._motionMode=nextMode
     if not self.homeView or not self.list then return end
     if self.viewHost and self.viewHost:IsActive() then self.viewHost:Unmount("query-change") end
     setShown(self.viewHost and self.viewHost.frame, false)
@@ -871,8 +896,10 @@ function Palette:SetQueryMode(text)
         setShown(self.homeView.frame, false)
         local hasItems = self.list.items and #self.list.items > 0
         setShown(self.list.frame, hasItems)
-        setShown(self.emptyState, not hasItems); self:SetStatus("search", hasItems and #self.list.items or 0)
+        setShown(self.emptyState, not hasItems and not self.searchPending)
+        if self.searchPending then self:SetStatusText("搜索中…") else self:SetStatus("search", hasItems and #self.list.items or 0) end
     end
+    if changedMode and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(nextMode=="home" and self.homeView.frame or self.list.frame,"page") end
 end
 
 function Palette:IsRowCurrent(row, session, generation, item, extensionID)
@@ -928,8 +955,8 @@ function Palette:ApplyResults(items, generation, session, offset)
         setShown(self.viewHost.frame, true); self:SetStatus("panel")
     elseif self.input:GetText() ~= "" or self.activeFilter then
         self:ResizeForMode("search", #items)
-        setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0)
-        self:SetStatus("search", #items)
+        setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0 and not self.searchPending)
+        if self.searchPending then self:SetStatusText("搜索中…") else self:SetStatus("search", #items) end
     elseif self:IsHomeVisible() then
         self:PrepareHome()
     end
@@ -945,6 +972,10 @@ function Palette:Show()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if self.visible then return true end
     self:Create()
+    self.input:SetEnabled(true)
+    if self._motionClosing then self:FinishHide("reopen") end
+    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll();self.frame:SetAlpha(1) end
+    self._motionClosing=nil
     if self.combatCleanupPending then self:FinishHide("combat") end
     self.input:SetText("")
     self:ApplyBoundedScale()
@@ -955,6 +986,7 @@ function Palette:Show()
     if searchSession then searchSession:Start() end
     if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
+    if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.frame,"enter") end
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
     -- the same input dispatch; focusing synchronously would swallow it as query text.
@@ -970,9 +1002,11 @@ function Palette:Show()
 end
 function Palette:Hide(reason)
     Lychee.UI.ResultList:HideTooltip()
+    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
+    self.searchPending=false
     self.actionMenu = nil
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Stop(reason or "hide") end
@@ -981,8 +1015,17 @@ function Palette:Hide(reason)
     self.activeFilter = nil
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
     self.input:ClearFocus()
+    self.input:SetEnabled(false)
     if InCombatLockdown and InCombatLockdown() then
         self.combatCleanupPending = true
+        return true
+    end
+    local motion=Lychee.UI.Motion
+    if motion and self.frame:IsShown() and not motion:IsReduced() and self.frame.CreateAnimationGroup then
+        self._motionClosing=true
+        motion:Alpha(self.frame,0,motion.durations.exit,function()
+            if self._motionClosing and not self.visible then self._motionClosing=nil;self:FinishHide(reason) end
+        end)
         return true
     end
     return self:FinishHide(reason)
@@ -991,6 +1034,8 @@ end
 function Palette:FinishHide(reason)
     if InCombatLockdown and InCombatLockdown() then return false end
     self.combatCleanupPending = false
+    self._motionClosing=nil
+    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll() end
     self.settingsOpen = false
     if self.settingsView then self.settingsView.frame:Hide() end
     self.settingsTitle:Hide(); self.settingsBack.frame:Hide()
@@ -1054,9 +1099,14 @@ function Palette:BeginRowDrag(row)
 end
 function Palette:OpenView(factory, context, state)
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
     setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)
     local mounted, err = self.viewHost:Mount(factory, context or {}, state)
-    if mounted then self:ResizeForMode("panel"); self:SetStatus("panel") end
+    if mounted then
+        self._motionMode="panel"
+        self:ResizeForMode("panel"); self:SetStatus("panel")
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.viewHost.frame,"page") end
+    end
     return mounted, err
 end
 function Palette:CloseView(reason)

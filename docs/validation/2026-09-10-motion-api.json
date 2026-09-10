@@ -1,0 +1,1555 @@
+[
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/ActionButtonTemplate.xml",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "72: \t\t</Layers>\n73: \n74: \t\t<Animations>\n75: \t\t\t<AnimationGroup parentKey=\"SpellHighlightAnim\" looping=\"REPEAT\">\n76: \t\t\t\t<Alpha childKey=\"SpellHighlightTexture\" smoothing=\"OUT\" duration=\".35\" order=\"1\" fromAlpha=\"0\" toAlpha=\"1\"/>\n77: \t\t\t\t<Alpha childKey=\"SpellHighlightTexture\" smoothing=\"IN\" duration=\".35\" order=\"2\" fromAlpha=\"1\" toAlpha=\"0\"/>\n78: \t\t\t</AnimationGroup>",
+          "contentHash": "6c2b6b19c746876e48b16068eb4b33d5c68738525f8c54d142c4d563c6500a1d",
+          "line": 75,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/PetActionBar.xml",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "12: \t\t\t</Layer>\n13: \t\t</Layers>\n14: \t\t<Animations>\n15: \t\t\t<AnimationGroup parentKey=\"SpellHighlightAnim\" looping=\"REPEAT\">\n16: \t\t\t\t<Alpha childKey=\"SpellHighlightTexture\" smoothing=\"OUT\" duration=\".35\" order=\"1\" fromAlpha=\"0\" toAlpha=\"1\"/>\n17: \t\t\t\t<Alpha childKey=\"SpellHighlightTexture\" smoothing=\"IN\" duration=\".35\" order=\"2\" fromAlpha=\"1\" toAlpha=\"0\"/>\n18: \t\t\t</AnimationGroup>",
+          "contentHash": "70c0935b3764b29c93dd4bae469ef2b72973d72bdf15965778dec1236e8159f3",
+          "line": 15,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/StatusTrackingBar.xml",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "8: \t\t\t</Layer>\n9: \t\t</Layers>\n10: \t\t<Animations>\n11: \t\t\t<AnimationGroup parentKey=\"FadeInAnimation\" looping=\"NONE\" setToFinalAlpha=\"true\" mixin=\"StatusTrackingBarContainerAnimationMixin\">\n12: \t\t\t\t<Alpha startDelay=\"0\" smoothing=\"IN_OUT\" target=\"$parent\" duration=\"0.5\" order=\"1\" fromAlpha=\"0\" toAlpha=\"1\"/>\n13: \t\t\t\t<Scripts>\n14: \t\t\t\t\t<OnFinished method=\"OnFinished\"/>",
+          "contentHash": "6a49192fc09292018f0e3788eaa2b94361357f9616e406779c70c42f19cfaa12",
+          "line": 11,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "target": "EncounterWarningsSwingAnimationGroupTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.xml",
+          "line": 30
+        },
+        {
+          "source": "EncounterWarningsSwingAnimationGroupMixin",
+          "target": "EncounterWarningsViewElementMixin",
+          "kind": "inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsViewElements.lua",
+          "line": 26
+        },
+        {
+          "source": "AnimaDiversionConnectionMixin:Setup",
+          "target": "animationGroup:Play",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AnimaDiversionUI/AnimaDiversionDataProvider.lua",
+          "line": 410
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayHideAnimation",
+          "target": "animationGroup:Stop",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 176
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayHideAnimation",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 177
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayHideAnimation",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 178
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayHideAnimation",
+          "target": "animationGroup:Play",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 179
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayShowAnimation",
+          "target": "animationGroup:Stop",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 184
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayShowAnimation",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 185
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayShowAnimation",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 186
+        },
+        {
+          "source": "EncounterWarningsViewMixin:PlayShowAnimation",
+          "target": "animationGroup:Play",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 187
+        },
+        {
+          "source": "EncounterWarningsViewMixin:StopAnimating",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 192
+        },
+        {
+          "source": "EncounterWarningsViewMixin:StopAnimating",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 193
+        },
+        {
+          "source": "EncounterWarningsViewMixin:StopAnimating",
+          "target": "animationGroup:Stop",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_EncounterWarnings/EncounterWarningsView.lua",
+          "line": 194
+        },
+        {
+          "source": "AnimatedStatusBarMixin:ProcessChanges",
+          "target": "self:SetupAnimationGroupForValueChange",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 222
+        },
+        {
+          "source": "SetupAnimationGroupForValueChangeHelper",
+          "target": "select",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 228
+        },
+        {
+          "source": "SetupAnimationGroupForValueChangeHelper",
+          "target": "select",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 229
+        },
+        {
+          "source": "SetupAnimationGroupForValueChangeHelper",
+          "target": "self:SetupAnimationForValueChange",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 229
+        },
+        {
+          "source": "AnimatedStatusBarMixin:SetupAnimationGroupForValueChange",
+          "target": "SetupAnimationGroupForValueChangeHelper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 234
+        },
+        {
+          "source": "AnimatedStatusBarMixin:SetupAnimationGroupForValueChange",
+          "target": "animationGroup:GetAnimations",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 234
+        },
+        {
+          "source": "AnimatedStatusBarMixin:SetupAnimationGroupForValueChange",
+          "target": "animationGroup:SetScript",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 236
+        },
+        {
+          "source": "AnimatedStatusBarMixin:SetupAnimationGroupForValueChange",
+          "target": "animationGroup:Play",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 238
+        },
+        {
+          "source": "HelpPlateButtonMixin:OnLoad",
+          "target": "self:CreateAnimationGroup",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HelpPlate/Blizzard_HelpPlate.lua",
+          "line": 48
+        },
+        {
+          "source": "PlayerChoiceCypherOptionTemplateMixin:CypherChoiceOnLoad",
+          "target": "self:CreateAnimationGroup",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_PlayerChoice/Blizzard_PlayerChoiceCypherOptionTemplate.lua",
+          "line": 58
+        },
+        {
+          "source": "IterateAllAnimationGroups",
+          "target": "frame:GetAnimationGroups",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 74
+        },
+        {
+          "source": "IterateAllAnimationGroups",
+          "target": "ipairs",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 75
+        },
+        {
+          "source": "IterateAllAnimationGroups",
+          "target": "func",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 76
+        },
+        {
+          "source": "IterateAllAnimationGroups",
+          "target": "frame:GetChildren",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 79
+        },
+        {
+          "source": "IterateAllAnimationGroups",
+          "target": "ipairs",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 80
+        },
+        {
+          "source": "IterateAllAnimationGroups",
+          "target": "IterateAllAnimationGroups",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 81
+        },
+        {
+          "source": "AnimateWhileShownMixin:PlayAnims",
+          "target": "IterateAllAnimationGroups",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 86
+        },
+        {
+          "source": "AnimateWhileShownMixin:StopAnims",
+          "target": "IterateAllAnimationGroups",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/AnimationTemplates.lua",
+          "line": 96
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "function",
+          "name": "CharacterCreateMixin:AlphaCharacterToTarget",
+          "path": "Interface/AddOns/Blizzard_CharacterCreate/Blizzard_CharacterCreate.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "463: \tend\n464: end\n465: \n466: function CharacterCreateMixin:AlphaCharacterToTarget(targetAlpha, duration)\n467: \tduration = duration or 0;\n468: \n469: \tif duration == 0 then",
+          "contentHash": "eccbed10147385e0316dce0d1ac59bfe2f9f0d4646086f623ac77ca30c6bb784",
+          "line": 466,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "AlphaHighlightButtonMixin:UpdateHighlightForState",
+          "path": "Interface/AddOns/Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "1637: \n1638: AlphaHighlightButtonMixin = {};\n1639: \n1640: function AlphaHighlightButtonMixin:UpdateHighlightForState()\n1641: \tself:SetHighlightAtlas(self:GetHighlightForState());\n1642: end\n1643: ",
+          "contentHash": "c8dc54e0e9dd78f37380bb7a984b36ee77f8e8b521ce3844d99a552d9abadc34",
+          "line": 1640,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "AlphaHighlightButtonMixin:GetHighlightForState",
+          "path": "Interface/AddOns/Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "1641: \tself:SetHighlightAtlas(self:GetHighlightForState());\n1642: end\n1643: \n1644: function AlphaHighlightButtonMixin:GetHighlightForState()\n1645: \tif self.isPressed then\n1646: \t\treturn self.PushedTexture:GetAtlas();\n1647: \tend",
+          "contentHash": "c8dc54e0e9dd78f37380bb7a984b36ee77f8e8b521ce3844d99a552d9abadc34",
+          "line": 1644,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "CustomizationAudioInterfacePlayButtonTemplate",
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_CustomizationUI/Blizzard_CustomizationAudioInterface.xml",
+          "line": 3
+        },
+        {
+          "source": "CustomizationAudioInterfaceMuteButtonTemplate",
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_CustomizationUI/Blizzard_CustomizationAudioInterface.xml",
+          "line": 14
+        },
+        {
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.xml",
+          "line": 1435
+        },
+        {
+          "source": "RenownCardButtonTemplate",
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_Journeys.xml",
+          "line": 5
+        },
+        {
+          "source": "JourneyCardButtonTemplate",
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_Journeys.xml",
+          "line": 113
+        },
+        {
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_Journeys.xml",
+          "line": 476
+        },
+        {
+          "source": "TieredEntranceTraitsContainer",
+          "target": "AlphaHighlightButtonTemplate",
+          "kind": "xml-inherits",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_TieredEntranceTraits/Blizzard_TieredEntranceTraits.xml",
+          "line": 62
+        },
+        {
+          "source": "AchievementFrameAchievements_ToggleView",
+          "target": "button.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 668
+        },
+        {
+          "source": "AchievementFrameAchievements_ToggleView",
+          "target": "bottomTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 677
+        },
+        {
+          "source": "AchievementFrameAchievements_ToggleView",
+          "target": "topTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 681
+        },
+        {
+          "source": "AchievementFrameAchievements_ToggleView",
+          "target": "button.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 693
+        },
+        {
+          "source": "AchievementFrameAchievements_ToggleView",
+          "target": "bottomTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 702
+        },
+        {
+          "source": "AchievementFrameAchievements_ToggleView",
+          "target": "topTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 706
+        },
+        {
+          "source": "AchievementFrameSummary_ToggleView",
+          "target": "button.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1601
+        },
+        {
+          "source": "AchievementFrameSummaryAchievement_SetGuildTextures",
+          "target": "button.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1783
+        },
+        {
+          "source": "AchievementComparisonPlayerButton_Saturate",
+          "target": "self.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 2186
+        },
+        {
+          "source": "AchievementComparisonPlayerButton_Saturate",
+          "target": "self.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 2188
+        },
+        {
+          "source": "AchievementComparisonPlayerButton_Desaturate",
+          "target": "self.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 2218
+        },
+        {
+          "source": "AchievementComparisonPlayerButton_Desaturate",
+          "target": "self.titleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 2220
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "self.TitleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1204
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "bottomTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1211
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "topTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1215
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "self.TitleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1218
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "bottomTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1225
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "topTsunami:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1229
+        },
+        {
+          "source": "AchievementStatTemplateMixin:Init",
+          "target": "self.Background:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2222
+        },
+        {
+          "source": "AchievementStatTemplateMixin:Init",
+          "target": "self.Background:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2227
+        },
+        {
+          "source": "AchievementFrameSummary_Refresh",
+          "target": "button.TitleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2364
+        },
+        {
+          "source": "AchievementFrameSummaryAchievement_SetGuildTextures",
+          "target": "button.TitleBar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2528
+        },
+        {
+          "source": "AchivementComparisonStatMixin:Init",
+          "target": "self.Background:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2976
+        },
+        {
+          "source": "AchivementComparisonStatMixin:Init",
+          "target": "self.Background:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2981
+        },
+        {
+          "source": "ArtifactBarMixin:Update",
+          "target": "self.StatusBar.Overlay:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/ArtifactBar.lua",
+          "line": 30
+        },
+        {
+          "source": "AddBar",
+          "target": "bar.StatusBar:SetLevelUpMaxAlphaAnimation",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/StatusTrackingManagerOverrides.lua",
+          "line": 54
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnPlay",
+          "target": "frame.spark:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1438
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnPlay",
+          "target": "frame.innerGlow:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1440
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnPlay",
+          "target": "frame.innerGlowOver:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1441
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnPlay",
+          "target": "frame.outerGlow:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1443
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnPlay",
+          "target": "frame.outerGlowOver:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1444
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnPlay",
+          "target": "frame.ants:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1446
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnFinished",
+          "target": "frame.spark:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1453
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnFinished",
+          "target": "frame.innerGlow:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1454
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnFinished",
+          "target": "frame.innerGlowOver:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1456
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnFinished",
+          "target": "frame.outerGlowOver:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1458
+        },
+        {
+          "source": "ActionBarOverlayGlowAnimInMixin:OnFinished",
+          "target": "frame.ants:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1460
+        },
+        {
+          "source": "ExtraActionBar_OnLoad",
+          "target": "self:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ExtraActionBar.lua",
+          "line": 7
+        },
+        {
+          "source": "ExtraActionBar_ForceEmpty",
+          "target": "bar.button.icon:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ExtraActionBar.lua",
+          "line": 35
+        },
+        {
+          "source": "ExtraActionBar_CancelForceShow",
+          "target": "bar.button.icon:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ExtraActionBar.lua",
+          "line": 55
+        },
+        {
+          "source": "ExtraActionBar_CancelForceShow",
+          "target": "bar:SetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ExtraActionBar.lua",
+          "line": 57
+        },
+        {
+          "source": "StatusTrackingBarContainerMixin:SetShownBar",
+          "target": "self:GetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/StatusTrackingManager.lua",
+          "line": 194
+        },
+        {
+          "source": "StatusTrackingBarContainerMixin:FadeIn",
+          "target": "self:GetAlpha",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/StatusTrackingManager.lua",
+          "line": 249
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "SetSmoothing",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "377: \t\t\tName = \"SetSmoothing\",\n378: \t\t\tType = \"Function\",\n379: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n380: \n381: \t\t\tArguments =\n382: \t\t\t{\n383: \t\t\t\t{ Name = \"weights\", Type = \"SmoothingType\", Nilable = false },\n384: \t\t\t},\n385: \t\t},",
+          "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+          "line": 377,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "HelpPlateButtonMixin:OnLoad",
+          "target": "translationAnimation:SetSmoothing",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HelpPlate/Blizzard_HelpPlate.lua",
+          "line": 53
+        },
+        {
+          "source": "HelpPlateButtonMixin:OnLoad",
+          "target": "alphaAnimation:SetSmoothing",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HelpPlate/Blizzard_HelpPlate.lua",
+          "line": 59
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "GetProgress",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "62: \t\t\tName = \"GetProgress\",\n63: \t\t\tType = \"Function\",\n64: \n65: \t\t\tArguments =\n66: \t\t\t{\n67: \t\t\t},\n68: \n69: \t\t\tReturns =\n70: \t\t\t{\n71: \t\t\t\t{ Name = \"progress\", Type = \"number\", Nilable = false },\n72: \t\t\t},\n73: \t\t},",
+          "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+          "line": 62,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "api-function",
+          "name": "GetProgress",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "113: \t\t\tName = \"GetProgress\",\n114: \t\t\tType = \"Function\",\n115: \n116: \t\t\tArguments =\n117: \t\t\t{\n118: \t\t\t},\n119: \n120: \t\t\tReturns =\n121: \t\t\t{\n122: \t\t\t\t{ Name = \"progress\", Type = \"number\", Nilable = false },\n123: \t\t\t},\n124: \t\t},",
+          "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+          "line": 113,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "GetProgress",
+          "path": "Interface/AddOns/Blizzard_SharedXML/ScriptedAnimations/ScriptedAnimationEffects.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "18: local function GetProgress(elapsed, duration)\n19: \t-- A duration of 0 is used for effects that last until canceled.\n20: \treturn (duration ~= 0) and (elapsed / duration) or 0;\n21: end",
+          "contentHash": "a601f7b6578beca9955ed3a2dffae24a6c23ee2b0185520981cb9844629e4a9c",
+          "line": 18,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "AchievementButton_DisplayAchievement",
+          "target": "AchievementButton_GetProgressivePoints",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 986
+        },
+        {
+          "source": "AchievementsObjectivesMixin:GetProgressBar",
+          "target": "self:GetElementAtIndex",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1199
+        },
+        {
+          "source": "AchievementObjectives_DisplayCriteria",
+          "target": "AchievementButton_GetProgressBar",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 1418
+        },
+        {
+          "source": "AchievementFrameComparison_DisplayAchievement",
+          "target": "AchievementButton_GetProgressivePoints",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+          "line": 2085
+        },
+        {
+          "source": "AchievementTemplateMixin:Init",
+          "target": "AchievementButton_GetProgressivePoints",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1259
+        },
+        {
+          "source": "AchievementsObjectivesMixin:GetProgressBar",
+          "target": "self:GetElementAtIndex",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1757
+        },
+        {
+          "source": "AchievementButton_GetProgressivePoints",
+          "target": "GetAchievementInfo",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1780
+        },
+        {
+          "source": "AchievementButton_GetProgressivePoints",
+          "target": "GetPreviousAchievement",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1782
+        },
+        {
+          "source": "AchievementButton_GetProgressivePoints",
+          "target": "GetPreviousAchievement",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1783
+        },
+        {
+          "source": "AchievementButton_GetProgressivePoints",
+          "target": "GetAchievementInfo",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 1784
+        },
+        {
+          "source": "AchievementObjectives_DisplayCriteria",
+          "target": "objectivesFrame:GetProgressBar",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2012
+        },
+        {
+          "source": "AchievementObjectives_DisplayCriteria",
+          "target": "objectivesFrame:GetProgressBar",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2017
+        },
+        {
+          "source": "AchievementObjectives_DisplayCriteria",
+          "target": "objectivesFrame:GetProgressBar",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2087
+        },
+        {
+          "source": "AchievementObjectives_DisplayCriteria",
+          "target": "objectivesFrame:GetProgressBar",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2089
+        },
+        {
+          "source": "AchievementComparisonTemplateMixin:Init",
+          "target": "AchievementButton_GetProgressivePoints",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2734
+        },
+        {
+          "source": "ContributionStatusMixin:PlayFlashAnimation",
+          "target": "self.FlashAnim:GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Contribution/Blizzard_Contribution.lua",
+          "line": 119
+        },
+        {
+          "source": "AnimatedStatusBarMixin:OnSetStatusBarAnimUpdate",
+          "target": "anim:GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXMLBase/AnimatedStatusBar.lua",
+          "line": 275
+        },
+        {
+          "source": "ObjectiveTrackerBlockMixin:AddProgressBar",
+          "target": "self.parentModule:GetProgressBar",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerBlock.lua",
+          "line": 264
+        },
+        {
+          "source": "ObjectiveTrackerModuleMixin:GetProgressBar",
+          "target": "self:AcquireFrame",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerModule.lua",
+          "line": 547
+        },
+        {
+          "source": "ObjectiveTrackerModuleMixin:GetProgressBar",
+          "target": "progressBar:GetHeight",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerModule.lua",
+          "line": 552
+        },
+        {
+          "source": "ObjectiveTrackerModuleMixin:GetProgressBar",
+          "target": "progressBar:Show",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerModule.lua",
+          "line": 555
+        },
+        {
+          "source": "ObjectiveTrackerModuleMixin:GetProgressBar",
+          "target": "progressBar:OnGet",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ObjectiveTrackerModule.lua",
+          "line": 560
+        },
+        {
+          "source": "TalentButtonCapstoneWithTrackMixin:GetProgressBarAtlas",
+          "target": "self:IsMaxed",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedTalentUI/Blizzard_TalentButtonTierTrackTemplates.lua",
+          "line": 337
+        },
+        {
+          "source": "TalentButtonCapstoneWithTrackMixin:GetProgressBarAtlas",
+          "target": "self:HasProgressPastFirstPip",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedTalentUI/Blizzard_TalentButtonTierTrackTemplates.lua",
+          "line": 339
+        },
+        {
+          "source": "TalentButtonCapstoneWithTrackMixin:UpdateProgressBar",
+          "target": "self:GetProgressBarAtlas",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedTalentUI/Blizzard_TalentButtonTierTrackTemplates.lua",
+          "line": 349
+        },
+        {
+          "source": "LinearTrajectory",
+          "target": "GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/ScriptedAnimations/ScriptedAnimationEffects.lua",
+          "line": 26
+        },
+        {
+          "source": "CurveTrajectory",
+          "target": "GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/ScriptedAnimations/ScriptedAnimationEffects.lua",
+          "line": 34
+        },
+        {
+          "source": "QuestFrameProgressPanel_OnShow",
+          "target": "GetProgressText",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestFrame.lua",
+          "line": 205
+        },
+        {
+          "source": "EssencePowerBar:UpdatePower",
+          "target": "fillingPoint.EssenceFilling.FillingAnim:GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/EssenceFramePlayer.lua",
+          "line": 29
+        },
+        {
+          "source": "RuneButtonMixin.CompareRuneButtons",
+          "target": "runeAButton.CooldownEndingAnim:GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/RuneFrame.lua",
+          "line": 351
+        },
+        {
+          "source": "RuneButtonMixin.CompareRuneButtons",
+          "target": "runeBButton.CooldownEndingAnim:GetProgress",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/RuneFrame.lua",
+          "line": 352
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "function",
+          "name": "AccountStoreBaseCardMixin:OnUpdate",
+          "path": "Interface/AddOns/Blizzard_AccountStore/Blizzard_AccountStoreCardTemplates.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "96: function AccountStoreBaseCardMixin:OnUpdate(dt)\n97: \tself.timeSinceUpdate = (self.timeSinceUpdate or 0) + dt;\n98: \n99: \tif self.timeSinceUpdate > AccountStoreCardUpdateCadenceSeconds then\n100: \t\tself.timeSinceUpdate = 0;\n101: \t\tself:CheckForItemStateUpdate();\n102: \tend\n103: end",
+          "contentHash": "0f27d9aa15f8567bfc061d37109ce32f2374d31134f279e2c33f02633bd4bdef",
+          "line": 96,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "AssistedCombatManager:OnUpdate",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/AssistedCombatManager.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "323: function AssistedCombatManager:OnUpdate(elapsed)\n324: \tself.updateTimeLeft = self.updateTimeLeft - elapsed;\n325: \tif self.updateTimeLeft <= 0 then\n326: \t\tself.updateTimeLeft = self:GetUpdateRate();\n327: \n328: \t\tlocal checkForVisibleButton = true;\n329: \t\tlocal spellID = C_AssistedCombat.GetNextCastSpell(checkForVisibleButton);\n330: \n331: \t\tif spellID ~= self.lastNextCastSpellID then\n332: \t\t\tself.lastNextCastSpellID = spellID;\n333: \t\t\tself:UpdateAllAssistedHighlightFramesForSpell(spellID);\n334: \t\t\tEventRegistry:TriggerEvent(\"AssistedCombatManager.OnAssistedHighlightSpellChange\");\n335: \t\tend\n336: \tend\n337: end",
+          "contentHash": "d78fda6ccbe0dbe60277f68fada7745b22a55d34dd2144d60a9bb87b81e41664",
+          "line": 323,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "ActionBarButtonUpdateFrameMixin:OnUpdate",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "352: function ActionBarButtonUpdateFrameMixin:OnUpdate(elapsed)\n353: \tfor k, frame in pairs(self.frames) do\n354: \t\tframe:OnUpdate(elapsed);\n355: \tend\n356: end",
+          "contentHash": "54fb5625a5e8aa343cbbc0be805b23e2b3b329011e792448e6b732a4bebd8cba",
+          "line": 352,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_AzeriteEmpoweredItem",
+          "target": "C_AzeriteEmpoweredItem.AzeriteEmpoweredItemSelectionUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AzeriteEmpoweredItemDocumentation.lua",
+          "line": 284
+        },
+        {
+          "source": "C_ClubFinder",
+          "target": "C_ClubFinder.ClubFinderApplicationUpdateType",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClubFinderDocumentation.lua",
+          "line": 786
+        },
+        {
+          "source": "C_DamageMeter",
+          "target": "C_DamageMeter.DamageMeterCombatSessionUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/DamageMeterDocumentation.lua",
+          "line": 133
+        },
+        {
+          "source": "C_DamageMeter",
+          "target": "C_DamageMeter.DamageMeterCurrentSessionUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/DamageMeterDocumentation.lua",
+          "line": 144
+        },
+        {
+          "source": "C_Garrison",
+          "target": "C_Garrison.GarrisonUpdate",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/GarrisonInfoDocumentation.lua",
+          "line": 1096
+        },
+        {
+          "source": "C_Housing",
+          "target": "C_Housing.MoveOutReservationUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/HousingUIDocumentation.lua",
+          "line": 752
+        },
+        {
+          "source": "C_ItemInteraction",
+          "target": "C_ItemInteraction.ItemInteractionItemSelectionUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemInteractionUIDocumentation.lua",
+          "line": 99
+        },
+        {
+          "source": "C_ItemSocketInfo",
+          "target": "C_ItemSocketInfo.SocketInfoUiEventRegistrationUpdate",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemSocketInfoDocumentation.lua",
+          "line": 223
+        },
+        {
+          "source": "C_MapExplorationInfo",
+          "target": "C_MapExplorationInfo.MapExplorationUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MapExplorationDocumentation.lua",
+          "line": 47
+        },
+        {
+          "source": "C_PetJournal",
+          "target": "C_PetJournal.CompanionUpdate",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PetJournalInfoDocumentation.lua",
+          "line": 352
+        },
+        {
+          "source": "C_PhotoSharing",
+          "target": "C_PhotoSharing.PhotoSharingAuthorizationUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PhotoSharingUIDocumentation.lua",
+          "line": 109
+        },
+        {
+          "source": "C_Soulbinds",
+          "target": "C_Soulbinds.SoulbindConduitCollectionUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SoulbindsDocumentation.lua",
+          "line": 566
+        },
+        {
+          "source": "C_Trainer",
+          "target": "C_Trainer.TrainerDescriptionUpdate",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/TrainerDocumentation.lua",
+          "line": 21
+        },
+        {
+          "source": "C_Transmog",
+          "target": "C_Transmog.TransmogCollectionUpdated",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/TransmogDocumentation.lua",
+          "line": 159
+        },
+        {
+          "source": "Unit",
+          "target": "Unit.UnitThreatSituationUpdate",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+          "line": 4754
+        },
+        {
+          "target": "PetActionButtonMixin_OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/PetActionBar.xml",
+          "line": 29
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/PetActionBar.xml",
+          "line": 58
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonComponentTemplate.xml",
+          "line": 63
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonComponentTemplate.xml",
+          "line": 106
+        },
+        {
+          "target": "ActionStatus_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionStatus/Classic/ActionStatus.xml",
+          "line": 20
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionStatus/Mainline/ActionStatus.xml",
+          "line": 16
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AddOnList/AddonList.xml",
+          "line": 233
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AdventureMap/AM_QuestChoiceDataProvider.xml",
+          "line": 47
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.xml",
+          "line": 707
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Classic/Blizzard_AuctionHouseItemList.xml",
+          "line": 114
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Mainline/Blizzard_AuctionHouseItemList.xml",
+          "line": 111
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseBuyDialog.xml",
+          "line": 129
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_CustomAuraButton.xml",
+          "line": 11
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Blizzard_CustomAuraContainer.xml",
+          "line": 12
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Classic/Blizzard_AuraButtonTooltip.xml",
+          "line": 14
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AuraContainer/Mainline/Blizzard_AuraButtonTooltip.xml",
+          "line": 14
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/AzeriteEmpoweredItemChannelMixin.xml",
+          "line": 105
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/Blizzard_AzeriteEmpoweredItemUITemplates.xml",
+          "line": 263
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BNet/BNet.xml",
+          "line": 100
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BattlefieldMap/Classic/Blizzard_BattlefieldMap.xml",
+          "line": 149
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BattlefieldMap/Mainline/Blizzard_BattlefieldMap.xml",
+          "line": 137
+        },
+        {
+          "source": "Class_SelectMobWatcher:OnBegin",
+          "target": "OnUpdate",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 855
+        },
+        {
+          "source": "Class_AbilityUse_Watcher:PLAYER_REGEN_DISABLED",
+          "target": "OnUpdate",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2145
+        },
+        {
+          "source": "Class_ChatFrame:OnBegin",
+          "target": "OnUpdate",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2582
+        },
+        {
+          "source": "NPE_TutorialMainFrame:_HookUpdate",
+          "target": "OnUpdate",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialMainFrame.lua",
+          "line": 83
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.xml",
+          "line": 70
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrameTemplates.xml",
+          "line": 60
+        },
+        {
+          "target": "CalendarTodayFrame_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.xml",
+          "line": 256
+        },
+        {
+          "target": "CalendarEventRetrievingFrame_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.xml",
+          "line": 624
+        },
+        {
+          "target": "CalendarCreateEventInviteButton_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.xml",
+          "line": 839
+        },
+        {
+          "target": "CalendarCreateEventMassInviteButton_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.xml",
+          "line": 902
+        },
+        {
+          "target": "CalendarCreateEventCreateButton_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.xml",
+          "line": 953
+        },
+        {
+          "target": "CalendarEventRetrievingFrame_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_Calendar.xml",
+          "line": 987
+        },
+        {
+          "target": "CalendarViewEventRSVPButton_OnUpdate",
+          "kind": "xml-function",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Calendar/Mainline/Blizzard_CalendarTemplates.xml",
+          "line": 386
+        },
+        {
+          "target": "OnUpdate",
+          "kind": "xml-method",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_CatalogShop/Blizzard_CatalogShop.xml",
+          "line": 147
+        }
+      ]
+    }
+  }
+]

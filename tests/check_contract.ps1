@@ -101,6 +101,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Secure event lifecycle failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/provider_expansion.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/ui_motion.lua'
+    if ($LASTEXITCODE -ne 0) { throw "UI motion lifecycle failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

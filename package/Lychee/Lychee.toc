@@ -28,6 +28,7 @@ Secure/Policy.lua
 Secure/SecureActionBroker.lua
 UI/FocusController.lua
 UI/Theme.lua
+UI/Motion.lua
 UI/Components.lua
 UI/Input.lua
 UI/ResultList.lua

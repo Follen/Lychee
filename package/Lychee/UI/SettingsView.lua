@@ -88,6 +88,14 @@ function Settings:Create(parent, controller)
     local pinsTab=button(frame,"已固定",86,function() view:SetTab("pins") end)
     pinsTab.frame:SetPoint("LEFT",sourceTab.frame,"RIGHT",12,0)
     view.tabs={providers=sourceTab,pins=pinsTab}
+    if Lychee.UI.Motion then
+        view.motion=button(frame,"",136,function()
+            Lychee.UI.Motion:SetReduced(not Lychee.UI.Motion:IsReduced())
+            text(view.motion.label,Lychee.UI.Motion:IsReduced() and "动态效果：减少" or "动态效果：标准")
+        end)
+        view.motion.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2)
+        text(view.motion.label,Lychee.UI.Motion:IsReduced() and "动态效果：减少" or "动态效果：标准")
+    end
     view.underline=frame:CreateTexture(nil,"ARTWORK");view.underline:SetSize(60,2)
     Lychee.UI.Theme:SetColorTexture(view.underline,"accent")
     view.undo=button(frame,"撤销",48,function()
@@ -95,7 +103,7 @@ function Settings:Create(parent, controller)
             view.removed=nil;controller:MarkHomeDirty();view:Refresh();controller:SetStatusText("已恢复固定")
         end
     end)
-    view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2);view.undo.frame:Hide()
+    view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",view.motion and -158 or -10,-2);view.undo.frame:Hide()
     local scroll=CreateFrame("ScrollFrame",nil,frame);scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-42);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-8,0)
     local content=CreateFrame("Frame",nil,scroll);content:SetSize(580,1);scroll:SetScrollChild(content)
     view.scrollFrame,view.content=scroll,content
@@ -180,6 +188,7 @@ function Settings:Create(parent, controller)
     end
     function view:SetTab(tab)
         self.tab=tab;self.scroll=0;scroll:SetVerticalScroll(0);self:Refresh()
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(content,"page") end
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
