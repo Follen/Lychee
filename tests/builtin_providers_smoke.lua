@@ -20,7 +20,7 @@ function Frame:SetTexture(texture) self.texture=texture end
 function Frame:SetParent(parent) self.parent=parent end
 function Frame:GetWidth() return 600 end
 function Frame:GetHeight() return 360 end
-for _, name in ipairs({"SetPoint","SetAllPoints","ClearAllPoints","SetSize","SetWidth","SetHeight","SetJustifyH","SetFont","SetTextColor","SetShadowOffset"}) do Frame[name]=function() end end
+for _, name in ipairs({"SetPoint","SetAllPoints","ClearAllPoints","SetSize","SetWidth","SetHeight","SetJustifyH","SetFont","SetTextColor","SetShadowOffset","SetTexCoord"}) do Frame[name]=function() end end
 function CreateFrame(_, name, parent)
     local frame=setmetatable({scripts={},events={},parent=parent,shown=false},Frame)
     frames[#frames+1]=frame
