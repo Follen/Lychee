@@ -221,6 +221,7 @@ L:Add({
 
 L:Add({
     ["设一个词，直达此功能结果"]="Choose a word for this feature's results",
+    ["用 EUI：搜索设置页面或解锁界面"]="Use EUI: to find settings pages or unlock the layout",
     ["输入 %s，查看此功能结果"]="Type %s for this feature's results",
     ["加上前缀，只搜此功能"]="Add a prefix to search only this feature",
 })

@@ -123,6 +123,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Addon inspector failed' }
     & $lua.Source 'tests/achievements_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw "Achievements Provider failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/ellesmere_provider.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Ellesmere Provider failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

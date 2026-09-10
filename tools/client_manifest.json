@@ -431,6 +431,9 @@
       "provider": "builtin.addon-inspector"
     },
     {
+      "provider": "builtin.ellesmere"
+    },
+    {
       "path": "Builtin/Init.lua",
       "products": [
         "retail",
@@ -441,6 +444,14 @@
     }
   ],
   "providers": [
+    {
+      "id": "builtin.ellesmere",
+      "module": "Ellesmere",
+      "products": ["retail"],
+      "files": ["Builtin/Ellesmere/Provider.lua"],
+      "requires": [],
+      "locales": "Builtin/Ellesmere/Locales.lua"
+    },
     {
       "id": "builtin.player-spells",
       "module": "PlayerSpells",

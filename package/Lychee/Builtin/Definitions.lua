@@ -2,6 +2,7 @@
 local I = _G.LycheeInternal
 I.Builtin = I.Builtin or {}
 I.Builtin.Definitions = {
+    {id="builtin.ellesmere",module="Ellesmere",scope={products={"retail"}},requires={}},
     {id="builtin.player-spells",module="PlayerSpells",scope={products={"retail","classic","titan","anniversary"}},requires={}},
     {id="builtin.mounts",module="Mounts",scope={products={"retail","classic","titan"}},requires={"C_MountJournal.GetMountIDs","C_MountJournal.GetMountInfoByID"}},
     {id="builtin.crests",module="Crests",scope={products={"retail"}},requires={}},

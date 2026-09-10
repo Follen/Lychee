@@ -15,6 +15,7 @@ Builtin/Definitions.lua
 Builtin/Shared/Support.lua
 Core/ProviderLocales.lua
 Locales/UI.enUS.lua
+Builtin/Ellesmere/Locales.lua
 Builtin/PlayerSpells/Locales.lua
 Builtin/Mounts/Locales.lua
 Builtin/Crests/Locales.lua
@@ -80,4 +81,5 @@ Builtin/BlizzardSettings/Provider.lua
 Builtin/Keystones/Provider.lua
 Builtin/Achievements/Provider.lua
 Builtin/AddonInspector/Provider.lua
+Builtin/Ellesmere/Provider.lua
 Builtin/Init.lua
