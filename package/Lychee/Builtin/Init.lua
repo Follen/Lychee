@@ -9,4 +9,9 @@ function I.Builtin:Init()
     if self.GameMenus then self.GameMenus:Init() end
     if self.Bosses then self.Bosses:Init() end
     if self.GreatVault then self.GreatVault:Init() end
+    if self.Bags then self.Bags:Init() end
+    if self.TalentLoadouts then self.TalentLoadouts:Init() end
+    if self.EquipmentSets then self.EquipmentSets:Init() end
+    if self.BlizzardSettings then self.BlizzardSettings:Init() end
+    if self.Keystones then self.Keystones:Init() end
 end

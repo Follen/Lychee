@@ -1,6 +1,7 @@
 local I = _G.LycheeInternal
 local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, ambientEnabled = {}, limit = 20, catalogLimit = 8, ambientLimit = 12, debounceSeconds = 0.04 }
 I.Search.Query = Q
+local EMPTY = {} -- private read-only empty catalogue/command views
 
 local function resultLess(left, right)
     local lc, rc = left.confidence or 0, right.confidence or 0
@@ -46,6 +47,13 @@ end
 
 local function displayActions(actions)
     if type(actions) ~= "table" then return actions end
+    local localized=false
+    for index=1,#actions do
+        if type(actions[index])~="table" or type(actions[index].title)=="table" then localized=true;break end
+    end
+    -- Host result consumers treat descriptors as immutable. SDK execution
+    -- still obtains its own record copy at the Provider boundary.
+    if not localized then return actions end
     local displayed = {}
     for index = 1, #actions do
         local action = actions[index]
@@ -60,8 +68,11 @@ local function displayActions(actions)
 end
 
 local function searchRecordItem(hit)
-    local record = hit and hit.record
-    if not record or not hit.sourceID or hit.sourceID == "legacy" then return nil end
+    local indexed=hit and hit.entry
+    local record = indexed and indexed.record or (hit and hit.record)
+    local source=indexed and indexed.source
+    local sourceID=source and source.id or (hit and hit.sourceID)
+    if not record or not sourceID or sourceID == "legacy" then return nil end
     local item = {
         id = record.id,
         text = displayText(record.title),
@@ -72,18 +83,18 @@ local function searchRecordItem(hit)
         icon = record.icon,
         category = displayText(record.category and record.category.title or record.category),
         categoryColor = record.category and record.category.color,
-        source = hit.sourceID,
-        sourceID = hit.sourceID,
-        sourceTitle = displayText(hit.sourceTitle),
-        sourceGeneration = hit.sourceGeneration,
-        sourceRevision = hit.sourceRevision,
-        _ext = record._extensionID or hit.sourceExtensionID,
+        source = sourceID,
+        sourceID = sourceID,
+        sourceTitle = displayText(source and (source.title or source.extensionTitle) or hit.sourceTitle),
+        sourceGeneration = source and source.generation or hit.sourceGeneration,
+        sourceRevision = source and source.revision or hit.sourceRevision,
+        _ext = record._extensionID or (source and source.extensionID) or hit.sourceExtensionID,
         searchRecord = record,
         confidence = hit.confidence,
         evidence = hit.evidence,
-        sourcePriority = hit.sourcePriority,
-        categoryOrder = hit.categoryOrder,
-        stableID = hit.stableID,
+        sourcePriority = indexed and indexed.source.priority or hit.sourcePriority,
+        categoryOrder = indexed and indexed.categoryOrder or hit.categoryOrder,
+        stableID = indexed and indexed.stableID or hit.stableID,
     }
     if type(record.actions) == "table" then
         item.interaction = {
@@ -122,12 +133,36 @@ function Q:ResolveRecent(refs, limit)
 end
 
 function Q:_BuildRequest(raw, context, generation)
-    local normalized = I.Search.Normalizer:Normalize(raw)
-    return { generation = generation, raw = raw or "", normalized = normalized,
+    local text, filter = tostring(raw or ""), context and context.searchFilter
+    -- Fixed aliases select an existing source; ordinary text takes no parser
+    -- allocation and unknown prefixes retain their original search meaning.
+    local first,last=text:find(":",1,true)
+    local wide,wideLast=text:find("：",1,true)
+    if wide and (not first or wide<first) then first,last=wide,wideLast end
+    if first then
+        local prefix=I.Search.Normalizer:Normalize(text:sub(1,first-1))
+        local source=self.categoryPrefixes and self.categoryPrefixes[prefix]
+        if source then text=text:sub(last+1); filter={sourceID=source..":records"} end
+    end
+    local normalized = I.Search.Normalizer:Normalize(text)
+    return { generation = generation, raw = text, normalized = normalized,
         tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit,
         contextToken = context and context.token, session = context and context.session,
-        visible = context and context.visible, filter = context and context.searchFilter }
+        visible = context and context.visible, filter = filter }
 end
+
+Q.categoryPrefixes={
+    ["技能"]="builtin.player-spells",spell="builtin.player-spells",spells="builtin.player-spells",
+    ["坐骑"]="builtin.mounts",mounts="builtin.mounts",
+    ["背包"]="builtin.bags",["物品"]="builtin.bags",bags="builtin.bags",
+    ["天赋"]="builtin.talent-loadouts",["天赋方案"]="builtin.talent-loadouts",talents="builtin.talent-loadouts",
+    ["装备"]="builtin.equipment-sets",["装备方案"]="builtin.equipment-sets",gear="builtin.equipment-sets",
+    ["设置"]="builtin.blizzard-settings",["暴雪设置"]="builtin.blizzard-settings",settings="builtin.blizzard-settings",
+    ["钥匙"]="builtin.keystones",key="builtin.keystones",keys="builtin.keystones",
+    ["首领"]="builtin.bosses",bosses="builtin.bosses",["菜单"]="builtin.game-menus",
+    ["玩家技能"]="builtin.player-spells",["背包物品"]="builtin.bags",["队伍钥匙"]="builtin.keystones",
+    ["游戏菜单"]="builtin.game-menus",["纹章"]="builtin.crests",["宏伟宝库"]="builtin.great-vault",["宝库"]="builtin.great-vault",
+}
 
 function Q:_IsCurrent(generation, context)
     if context and context.visible == false then return false, "HIDDEN" end
@@ -144,13 +179,13 @@ function Q:_AmbientCommands(normalized)
     return I.Catalog:GetAmbientView(normalized, self.ambientEnabled)
 end
 
-function Q:_Execute(raw, context, generation)
-    local request = self:_BuildRequest(raw, context, generation)
+function Q:_Execute(raw, context, generation, request)
+    request = request or self:_BuildRequest(raw, context, generation)
     local filtered = type(request.filter) == "table"
     local catalogBudget = filtered and 0 or math.min(self.catalogLimit, self.limit)
     local ambientBudget = self.limit
-    local catalogResults = not filtered and I.Catalog and I.Catalog:Query(request, catalogBudget) or {}
-    local out, seen, catalogDynamic = {}, {}, {}
+    local catalogResults = not filtered and I.Catalog and I.Catalog:Query(request, catalogBudget) or EMPTY
+    local out, seen, catalogDynamic = {}, filtered and EMPTY or {}, filtered and EMPTY or {}
     for index = 1, #catalogResults do
         local result = catalogResults[index]
         if result.command and result.command.presentation == "dynamic-list" then
@@ -161,10 +196,13 @@ function Q:_Execute(raw, context, generation)
     end
     ambientBudget = math.max(0, self.limit - #out)
     if I.Search and I.Search.StaticIndex then
-        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter)
+        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter, true)
         for index = 1, #indexed do
             local item = searchRecordItem(indexed[index])
-            if item then appendUnique(out, seen, item) end
+            if item then
+                if filtered then out[#out+1]=item -- index already guarantees unique static records
+                else appendUnique(out, seen, item) end
+            end
         end
     end
     local resolvedAdded = 0
@@ -182,7 +220,7 @@ function Q:_Execute(raw, context, generation)
             end
         end
     end
-    local ambientCommands, ambientAdded = filtered and {} or self:_AmbientCommands(request.normalized), 0
+    local ambientCommands, ambientAdded = filtered and EMPTY or self:_AmbientCommands(request.normalized), 0
     for commandIndex = 1, #ambientCommands do
         if resolvedAdded + ambientAdded >= ambientBudget or #out >= self.limit then break end
         request.limit = math.min(ambientBudget - resolvedAdded - ambientAdded, self.limit - #out)
@@ -221,10 +259,12 @@ function Q:Query(raw, context, externalGeneration, callback)
     local current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
-    local results = self:_Execute(raw, context, generation)
-    if I.Providers and raw ~= "" then
+    local request=self:_BuildRequest(raw,context,generation)
+    local results = self:_Execute(raw, context, generation, request)
+    if I.Providers and raw ~= "" and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
         local base = results
         local function merge(dynamic)
+            if #dynamic==0 then return base end
             local combined, seen = {}, {}
             for _, item in ipairs(base) do appendUnique(combined, seen, item) end
             for _, item in ipairs(dynamic) do appendUnique(combined, seen, item) end
@@ -232,7 +272,7 @@ function Q:Query(raw, context, externalGeneration, callback)
             while #combined > self.limit do combined[#combined] = nil end
             return combined
         end
-        local dynamic = I.Providers:Search(self:_BuildRequest(raw, context, generation), context, function(items)
+        local dynamic = I.Providers:Search(request, context, function(items)
             if not self:_IsCurrent(generation, context) then return end
             local combined = merge(items)
             self:_Commit(generation, combined)

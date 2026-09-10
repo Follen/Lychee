@@ -44,4 +44,9 @@ Builtin/GameMenus.lua
 Builtin/Bosses.lua
 Builtin/Mounts.lua
 Builtin/GreatVault.lua
+Builtin/CatalogProvider.lua
+Builtin/Bags.lua
+Builtin/Loadouts.lua
+Builtin/BlizzardSettings.lua
+Builtin/Keystones.lua
 Builtin/Init.lua

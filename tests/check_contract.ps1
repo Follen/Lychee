@@ -99,6 +99,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Built-in lifecycle budget failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/perf_builtin_secure_events.lua'
     if ($LASTEXITCODE -ne 0) { throw "Secure event lifecycle failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/provider_expansion.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

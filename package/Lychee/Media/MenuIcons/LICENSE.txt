@@ -1,3 +1,5 @@
 Lychee flat menu icons: generated artwork, 2026-09-10.
 Light silver, ivory and red sprite atlas exported to transparent 64x64 RGBA TGA.
 Legacy IconPark source references remain in the development repository only.
+reload, cooldown-manager and keystone: original Lychee vector artwork, 2026-09-10.
+Sources: assets/provider-icons; exported at build time to 64x64 transparent TGA.

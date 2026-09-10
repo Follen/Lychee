@@ -384,6 +384,13 @@ function P:Execute(item, actionID, context, dragging)
 end
 
 -- One completion per Provider per query, whether synchronous or delayed.
+function P:HasQuery(filter)
+    if type(filter)~="table" or not filter.sourceID then return true end
+    if type(filter.sourceID)~="string" then return false end
+    local id=filter.sourceID:match("^(.*):records$")
+    local entry=id and self.entries[id]
+    return entry~=nil and active(entry) and type(entry.definition.query)=="function"
+end
 function P:Search(request, context, onChange)
     -- Search is also callable without QueryOrchestrator. Supersede old work at
     -- this boundary; a cancel callback may reenter and start an even newer query.

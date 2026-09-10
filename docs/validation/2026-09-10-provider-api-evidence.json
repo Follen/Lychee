@@ -1,0 +1,1062 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "BAG_UPDATE_DELAYED",
+    "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+    "line": 1310,
+    "excerpt": "1310: function Class_EquipItem:BAG_UPDATE_DELAYED()\n1311: \tif (self.IsActive) then\n1312: \t\tlocal container, slot = TutorialHelper:FindItemInContainer(self.ItemData.ItemID);\n1313: \t\tif (container and slot) then\n1314: \t\t\tself.ItemData.Container, self.ItemData.ContainerSlot = container, slot;\n1315: \t\t\tself:UpdatePointer();\n1316: \t\telse\n1317: \t\t\tself:Interrupt();\n1318: \t\t\tTutorials.ShowBags:Interrupt();\n1319: \t\tend\n1320: \tend\n1321: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Blizzard_SettingsLayouts.lua",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsLayouts.lua",
+    "line": 1,
+    "excerpt": "1: SettingsLayoutMixin = {};\n2: \n3: SettingsLayoutMixin.LayoutType = EnumUtil.MakeEnum(\"Vertical\", \"Canvas\");\n4: \n5: function SettingsLayoutMixin:Init(layoutType)\n6: \tself.layoutType = layoutType;\n7: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Blizzard_SettingsList.lua",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsList.lua",
+    "line": 1,
+    "excerpt": "1: local securecallfunction = securecallfunction;\n2: local pairs = pairs;\n3: \n4: -- Matches a similar function reused in multiple places\n5: local function EnumerateTaintedKeysTable(tableToIterate)\n6: \tlocal pairsIterator, enumerateTable, initialIteratorKey = securecallfunction(pairs, tableToIterate);\n7: \tlocal function IteratorFunction(tbl, key)"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_AddOns_LoadAddOn",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+    "line": 347,
+    "excerpt": "347: \t\t\tName = \"LoadAddOn\",\n348: \t\t\tType = \"Function\",\n349: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n350: \n351: \t\t\tArguments =\n352: \t\t\t{\n353: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n354: \t\t\t},\n355: \n356: \t\t\tReturns =\n357: \t\t\t{\n358: \t\t\t\t{ Name = \"loaded\", Type = \"bool\", Nilable = true },\n359: \t\t\t\t{ Name = \"value\", Type = \"string\", Nilable = true },\n360: \t\t\t},\n361: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ChallengeMode_GetMapTable",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+    "line": 154,
+    "excerpt": "154: \t\t\tName = \"GetMapTable\",\n155: \t\t\tType = \"Function\",\n156: \n157: \t\t\tReturns =\n158: \t\t\t{\n159: \t\t\t\t{ Name = \"mapChallengeModeIDs\", Type = \"table\", InnerType = \"number\", Nilable = false },\n160: \t\t\t},\n161: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ChallengeMode_GetMapUIInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+    "line": 163,
+    "excerpt": "163: \t\t\tName = \"GetMapUIInfo\",\n164: \t\t\tType = \"Function\",\n165: \t\t\tMayReturnNothing = true,\n166: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n167: \n168: \t\t\tArguments =\n169: \t\t\t{\n170: \t\t\t\t{ Name = \"mapChallengeModeID\", Type = \"number\", Nilable = false },\n171: \t\t\t},\n172: \n173: \t\t\tReturns =\n174: \t\t\t{\n175: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n176: \t\t\t\t{ Name = \"id\", Type = \"number\", Nilable = false },\n177: \t\t\t\t{ Name = \"timeLimit\", Type = \"number\", Nilable = false },\n178: \t\t\t\t{ Name = \"texture\", Type = \"number\", Nilable = true },\n179: \t\t\t\t{ Name = \"backgroundTexture\", Type = \"number\", Nilable = false },\n180: \t\t\t\t{ Name = \"mapID\", Type = \"number\", Nilable = false },\n181: \t\t\t},\n182: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ChatInfo_RegisterAddonMessagePrefix",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChatInfoDocumentation.lua",
+    "line": 469,
+    "excerpt": "469: \t\t\tName = \"RegisterAddonMessagePrefix\",\n470: \t\t\tType = \"Function\",\n471: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n472: \t\t\tDocumentation = { \"Registers interest in addon messages with this prefix, cannot be an empty string.\" },\n473: \n474: \t\t\tArguments =\n475: \t\t\t{\n476: \t\t\t\t{ Name = \"prefix\", Type = \"cstring\", Nilable = false },\n477: \t\t\t},\n478: \n479: \t\t\tReturns =\n480: \t\t\t{\n481: \t\t\t\t{ Name = \"result\", Type = \"RegisterAddonMessagePrefixResult\", Nilable = false },\n482: \t\t\t},\n483: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ChatInfo_SendAddonMessage",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChatInfoDocumentation.lua",
+    "line": 516,
+    "excerpt": "516: \t\t\tName = \"SendAddonMessage\",\n517: \t\t\tType = \"Function\",\n518: \t\t\tSecretArguments = \"NotAllowed\",\n519: \t\t\tDocumentation = { \"Sends a text payload to other clients specified by chatChannel and target which are registered to listen for prefix.\" },\n520: \n521: \t\t\tArguments =\n522: \t\t\t{\n523: \t\t\t\t{ Name = \"prefix\", Type = \"cstring\", Nilable = false },\n524: \t\t\t\t{ Name = \"message\", Type = \"cstring\", Nilable = false },\n525: \t\t\t\t{ Name = \"chatType\", Type = \"cstring\", Nilable = true, Documentation = { \"ChatType, defaults to SLASH_CMD_PARTY.\" } },\n526: \t\t\t\t{ Name = \"target\", Type = \"cstring\", Nilable = true, Documentation = { \"Only applies for targeted channels\" } },\n527: \t\t\t},\n528: \n529: \t\t\tReturns =\n530: \t\t\t{\n531: \t\t\t\t{ Name = \"result\", Type = \"SendAddonMessageResult\", Nilable = false },\n532: \t\t\t},\n533: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ClassTalents_GetConfigIDsBySpecID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassTalentsDocumentation.lua",
+    "line": 92,
+    "excerpt": "92: \t\t\tName = \"GetConfigIDsBySpecID\",\n93: \t\t\tType = \"Function\",\n94: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n95: \n96: \t\t\tArguments =\n97: \t\t\t{\n98: \t\t\t\t{ Name = \"specID\", Type = \"number\", Nilable = true },\n99: \t\t\t},\n100: \n101: \t\t\tReturns =\n102: \t\t\t{\n103: \t\t\t\t{ Name = \"configIDs\", Type = \"table\", InnerType = \"number\", Nilable = false },\n104: \t\t\t},\n105: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ClassTalents_GetLastSelectedSavedConfigID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassTalentsDocumentation.lua",
+    "line": 135,
+    "excerpt": "135: \t\t\tName = \"GetLastSelectedSavedConfigID\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n138: \n139: \t\t\tArguments =\n140: \t\t\t{\n141: \t\t\t\t{ Name = \"specID\", Type = \"number\", Nilable = false },\n142: \t\t\t},\n143: \n144: \t\t\tReturns =\n145: \t\t\t{\n146: \t\t\t\t{ Name = \"configID\", Type = \"number\", Nilable = true },\n147: \t\t\t},\n148: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ClassTalents_LoadConfig",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassTalentsDocumentation.lua",
+    "line": 253,
+    "excerpt": "253: \t\t\tName = \"LoadConfig\",\n254: \t\t\tType = \"Function\",\n255: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n256: \n257: \t\t\tArguments =\n258: \t\t\t{\n259: \t\t\t\t{ Name = \"configID\", Type = \"number\", Nilable = false },\n260: \t\t\t\t{ Name = \"autoApply\", Type = \"bool\", Nilable = false },\n261: \t\t\t},\n262: \n263: \t\t\tReturns =\n264: \t\t\t{\n265: \t\t\t\t{ Name = \"result\", Type = \"LoadConfigResult\", Nilable = false },\n266: \t\t\t\t{ Name = \"changeError\", Type = \"string\", Nilable = true },\n267: \t\t\t\t{ Name = \"newLearnedNodeIDs\", Type = \"table\", InnerType = \"number\", Nilable = false },\n268: \t\t\t},\n269: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_ClassTalents_UpdateLastSelectedSavedConfigID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassTalentsDocumentation.lua",
+    "line": 391,
+    "excerpt": "391: \t\t\tName = \"UpdateLastSelectedSavedConfigID\",\n392: \t\t\tType = \"Function\",\n393: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n394: \n395: \t\t\tArguments =\n396: \t\t\t{\n397: \t\t\t\t{ Name = \"specID\", Type = \"number\", Nilable = false },\n398: \t\t\t\t{ Name = \"configID\", Type = \"number\", Nilable = true },\n399: \t\t\t},\n400: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Container_ContainerIDToInventoryID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 20,
+    "excerpt": "20: \t\t\tName = \"ContainerIDToInventoryID\",\n21: \t\t\tType = \"Function\",\n22: \t\t\tMayReturnNothing = true,\n23: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n24: \n25: \t\t\tArguments =\n26: \t\t\t{\n27: \t\t\t\t{ Name = \"containerID\", Type = \"BagIndex\", Nilable = false },\n28: \t\t\t},\n29: \n30: \t\t\tReturns =\n31: \t\t\t{\n32: \t\t\t\t{ Name = \"inventoryID\", Type = \"luaIndex\", Nilable = false },\n33: \t\t\t},\n34: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Container_GetContainerItemID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 175,
+    "excerpt": "175: \t\t\tName = \"GetContainerItemID\",\n176: \t\t\tType = \"Function\",\n177: \t\t\tMayReturnNothing = true,\n178: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n179: \n180: \t\t\tArguments =\n181: \t\t\t{\n182: \t\t\t\t{ Name = \"containerIndex\", Type = \"BagIndex\", Nilable = false },\n183: \t\t\t\t{ Name = \"slotIndex\", Type = \"luaIndex\", Nilable = false },\n184: \t\t\t},\n185: \n186: \t\t\tReturns =\n187: \t\t\t{\n188: \t\t\t\t{ Name = \"containerID\", Type = \"number\", Nilable = false },\n189: \t\t\t},\n190: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Container_GetContainerItemInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 192,
+    "excerpt": "192: \t\t\tName = \"GetContainerItemInfo\",\n193: \t\t\tType = \"Function\",\n194: \t\t\tMayReturnNothing = true,\n195: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n196: \n197: \t\t\tArguments =\n198: \t\t\t{\n199: \t\t\t\t{ Name = \"containerIndex\", Type = \"BagIndex\", Nilable = false },\n200: \t\t\t\t{ Name = \"slotIndex\", Type = \"luaIndex\", Nilable = false },\n201: \t\t\t},\n202: \n203: \t\t\tReturns =\n204: \t\t\t{\n205: \t\t\t\t{ Name = \"containerInfo\", Type = \"ContainerItemInfo\", Nilable = false },\n206: \t\t\t},\n207: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Container_GetContainerNumSlots",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 313,
+    "excerpt": "313: \t\t\tName = \"GetContainerNumSlots\",\n314: \t\t\tType = \"Function\",\n315: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n316: \n317: \t\t\tArguments =\n318: \t\t\t{\n319: \t\t\t\t{ Name = \"containerIndex\", Type = \"BagIndex\", Nilable = false },\n320: \t\t\t},\n321: \n322: \t\t\tReturns =\n323: \t\t\t{\n324: \t\t\t\t{ Name = \"numSlots\", Type = \"number\", Nilable = false },\n325: \t\t\t},\n326: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Container_SetItemSearch",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 503,
+    "excerpt": "503: \t\t\tName = \"SetItemSearch\",\n504: \t\t\tType = \"Function\",\n505: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n506: \n507: \t\t\tArguments =\n508: \t\t\t{\n509: \t\t\t\t{ Name = \"searchString\", Type = \"cstring\", Nilable = false },\n510: \t\t\t},\n511: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_EquipmentSet_GetEquipmentSetIDs",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/EquipmentManagerDocumentation.lua",
+    "line": 119,
+    "excerpt": "119: \t\t\tName = \"GetEquipmentSetIDs\",\n120: \t\t\tType = \"Function\",\n121: \n122: \t\t\tReturns =\n123: \t\t\t{\n124: \t\t\t\t{ Name = \"equipmentSetIDs\", Type = \"table\", InnerType = \"number\", Nilable = false },\n125: \t\t\t},\n126: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_EquipmentSet_GetEquipmentSetInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/EquipmentManagerDocumentation.lua",
+    "line": 128,
+    "excerpt": "128: \t\t\tName = \"GetEquipmentSetInfo\",\n129: \t\t\tType = \"Function\",\n130: \t\t\tMayReturnNothing = true,\n131: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n132: \n133: \t\t\tArguments =\n134: \t\t\t{\n135: \t\t\t\t{ Name = \"equipmentSetID\", Type = \"number\", Nilable = false },\n136: \t\t\t},\n137: \n138: \t\t\tReturns =\n139: \t\t\t{\n140: \t\t\t\t{ Name = \"name\", Type = \"string\", Nilable = false },\n141: \t\t\t\t{ Name = \"iconFileID\", Type = \"number\", Nilable = false },\n142: \t\t\t\t{ Name = \"setID\", Type = \"number\", Nilable = false },\n143: \t\t\t\t{ Name = \"isEquipped\", Type = \"bool\", Nilable = false },\n144: \t\t\t\t{ Name = \"numItems\", Type = \"number\", Nilable = false },\n145: \t\t\t\t{ Name = \"numEquipped\", Type = \"number\", Nilable = false },\n146: \t\t\t\t{ Name = \"numInInventory\", Type = \"number\", Nilable = false },\n147: \t\t\t\t{ Name = \"numLost\", Type = \"number\", Nilable = false },\n148: \t\t\t\t{ Name = \"numIgnored\", Type = \"number\", Nilable = false },\n149: \t\t\t},\n150: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_EquipmentSet_UseEquipmentSet",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/EquipmentManagerDocumentation.lua",
+    "line": 287,
+    "excerpt": "287: \t\t\tName = \"UseEquipmentSet\",\n288: \t\t\tType = \"Function\",\n289: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n290: \n291: \t\t\tArguments =\n292: \t\t\t{\n293: \t\t\t\t{ Name = \"equipmentSetID\", Type = \"number\", Nilable = false },\n294: \t\t\t},\n295: \n296: \t\t\tReturns =\n297: \t\t\t{\n298: \t\t\t\t{ Name = \"setWasEquipped\", Type = \"bool\", Nilable = false },\n299: \t\t\t},\n300: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_MythicPlus",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 11,
+    "excerpt": "8: \tFunctions =\n9: \t{\n10: \t\t{\n11: \t\t\tName = \"GetCurrentAffixes\",\n12: \t\t\tType = \"Function\",\n13: \t\t\tMayReturnNothing = true,\n14: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_MythicPlus_GetOwnedKeystoneChallengeMapID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 76,
+    "excerpt": "76: \t\t\tName = \"GetOwnedKeystoneChallengeMapID\",\n77: \t\t\tType = \"Function\",\n78: \t\t\tMayReturnNothing = true,\n79: \n80: \t\t\tReturns =\n81: \t\t\t{\n82: \t\t\t\t{ Name = \"challengeMapID\", Type = \"number\", Nilable = false },\n83: \t\t\t},\n84: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_MythicPlus_GetOwnedKeystoneLevel",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 86,
+    "excerpt": "86: \t\t\tName = \"GetOwnedKeystoneLevel\",\n87: \t\t\tType = \"Function\",\n88: \t\t\tMayReturnNothing = true,\n89: \n90: \t\t\tReturns =\n91: \t\t\t{\n92: \t\t\t\t{ Name = \"keyStoneLevel\", Type = \"number\", Nilable = false },\n93: \t\t\t},\n94: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_MythicPlus_GetSeasonBestAffixScoreInfoForMap",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 154,
+    "excerpt": "154: \t\t\tName = \"GetSeasonBestAffixScoreInfoForMap\",\n155: \t\t\tType = \"Function\",\n156: \t\t\tMayReturnNothing = true,\n157: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n158: \t\t\tDocumentation = { \"Gets the active players best runs by the seasonal tracked affixes as well as their overall score for the current season.\" },\n159: \n160: \t\t\tArguments =\n161: \t\t\t{\n162: \t\t\t\t{ Name = \"mapChallengeModeID\", Type = \"number\", Nilable = false },\n163: \t\t\t},\n164: \n165: \t\t\tReturns =\n166: \t\t\t{\n167: \t\t\t\t{ Name = \"affixScores\", Type = \"table\", InnerType = \"MythicPlusAffixScoreInfo\", Nilable = false },\n168: \t\t\t\t{ Name = \"bestOverAllScore\", Type = \"number\", Nilable = false },\n169: \t\t\t},\n170: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_MythicPlus_RequestMapInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 245,
+    "excerpt": "245: \t\t\tName = \"RequestMapInfo\",\n246: \t\t\tType = \"Function\",\n247: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_PlayerInfo_GetPlayerMythicPlusRatingSummary",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+    "line": 165,
+    "excerpt": "165: \t\t\tName = \"GetPlayerMythicPlusRatingSummary\",\n166: \t\t\tType = \"Function\",\n167: \t\t\tMayReturnNothing = true,\n168: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n169: \t\t\tDocumentation = { \"Returns the players mythic+ rating summary which includes the runs they've completed as well as their current season m+ rating\" },\n170: \n171: \t\t\tArguments =\n172: \t\t\t{\n173: \t\t\t\t{ Name = \"playerToken\", Type = \"UnitToken\", Nilable = false },\n174: \t\t\t},\n175: \n176: \t\t\tReturns =\n177: \t\t\t{\n178: \t\t\t\t{ Name = \"ratingSummary\", Type = \"MythicPlusRatingSummary\", Nilable = false },\n179: \t\t\t},\n180: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_SettingsUtil_NotifySettingsLoaded",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SettingsUtilDocumentation.lua",
+    "line": 11,
+    "excerpt": "11: \t\t\tName = \"NotifySettingsLoaded\",\n12: \t\t\tType = \"Function\",\n13: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_SettingsUtil_OpenSettingsPanel",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SettingsUtilDocumentation.lua",
+    "line": 15,
+    "excerpt": "15: \t\t\tName = \"OpenSettingsPanel\",\n16: \t\t\tType = \"Function\",\n17: \t\t\tHasRestrictions = true,\n18: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n19: \n20: \t\t\tArguments =\n21: \t\t\t{\n22: \t\t\t\t{ Name = \"openToCategoryID\", Type = \"number\", Nilable = true },\n23: \t\t\t\t{ Name = \"scrollToElementName\", Type = \"stringView\", Nilable = true },\n24: \t\t\t},\n25: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_SpecializationInfo_GetSpecialization",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpecializationInfoDocumentation.lua",
+    "line": 213,
+    "excerpt": "213: \t\t\tName = \"GetSpecialization\",\n214: \t\t\tType = \"Function\",\n215: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n216: \n217: \t\t\tArguments =\n218: \t\t\t{\n219: \t\t\t\t{ Name = \"isInspect\", Type = \"bool\", Nilable = true },\n220: \t\t\t\t{ Name = \"isPet\", Type = \"bool\", Nilable = true },\n221: \t\t\t\t{ Name = \"specGroupIndex\", Type = \"luaIndex\", Nilable = true },\n222: \t\t\t},\n223: \n224: \t\t\tReturns =\n225: \t\t\t{\n226: \t\t\t\t{ Name = \"specializationIndex\", Type = \"luaIndex\", Nilable = false },\n227: \t\t\t},\n228: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_SpecializationInfo_GetSpecializationInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpecializationInfoDocumentation.lua",
+    "line": 230,
+    "excerpt": "230: \t\t\tName = \"GetSpecializationInfo\",\n231: \t\t\tType = \"Function\",\n232: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n233: \n234: \t\t\tArguments =\n235: \t\t\t{\n236: \t\t\t\t{ Name = \"specializationIndex\", Type = \"luaIndex\", Nilable = false },\n237: \t\t\t\t{ Name = \"isInspect\", Type = \"bool\", Nilable = false, Default = false },\n238: \t\t\t\t{ Name = \"isPet\", Type = \"bool\", Nilable = false, Default = false },\n239: \t\t\t\t{ Name = \"inspectTarget\", Type = \"string\", Nilable = true },\n240: \t\t\t\t{ Name = \"sex\", Type = \"number\", Nilable = true },\n241: \t\t\t\t{ Name = \"groupIndex\", Type = \"luaIndex\", Nilable = true },\n242: \t\t\t\t{ Name = \"classID\", Type = \"number\", Nilable = true },\n243: \t\t\t},\n244: \n245: \t\t\tReturns =\n246: \t\t\t{\n247: \t\t\t\t{ Name = \"specId\", Type = \"number\", Nilable = false, Default = 0 },\n248: \t\t\t\t{ Name = \"name\", Type = \"string\", Nilable = true },\n249: \t\t\t\t{ Name = \"description\", Type = \"string\", Nilable = true },\n250: \t\t\t\t{ Name = \"icon\", Type = \"fileID\", Nilable = true },\n251: \t\t\t\t{ Name = \"role\", Type = \"string\", Nilable = true },\n252: \t\t\t\t{ Name = \"primaryStat\", Type = \"luaIndex\", Nilable = true },\n253: \t\t\t\t{ Name = \"pointsSpent\", Type = \"number\", Nilable = false, Default = 0 },\n254: \t\t\t\t{ Name = \"b"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Spell_GetSpellInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 375,
+    "excerpt": "375: \t\t\tName = \"GetSpellInfo\",\n376: \t\t\tType = \"Function\",\n377: \t\t\tMayReturnNothing = true,\n378: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n379: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n380: \n381: \t\t\tArguments =\n382: \t\t\t{\n383: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false, Documentation = { \"Spell ID, name, name(subtext), or link; Using name will always check for an override on that spell\" } },\n384: \t\t\t},\n385: \n386: \t\t\tReturns =\n387: \t\t\t{\n388: \t\t\t\t{ Name = \"spellInfo\", Type = \"SpellInfo\", Nilable = false },\n389: \t\t\t},\n390: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_SpellBook_IsSpellKnown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 684,
+    "excerpt": "684: \t\t\tName = \"IsSpellKnown\",\n685: \t\t\tType = \"Function\",\n686: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n687: \t\t\tDocumentation = { \"Returns true if a player knows a spell. This function can also return true for spells that aren't in the spellbook, such as temporarily-granted abilities\" },\n688: \n689: \t\t\tArguments =\n690: \t\t\t{\n691: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = false },\n692: \t\t\t\t{ Name = \"spellBank\", Type = \"SpellBookSpellBank\", Nilable = false, Default = \"Player\" },\n693: \t\t\t},\n694: \n695: \t\t\tReturns =\n696: \t\t\t{\n697: \t\t\t\t{ Name = \"isKnown\", Type = \"bool\", Nilable = false },\n698: \t\t\t},\n699: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Timer_NewTimer",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+    "line": 39,
+    "excerpt": "39: \t\t\tName = \"NewTimer\",\n40: \t\t\tType = \"Function\",\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n46: \t\t\t\t{ Name = \"callback\", Type = \"TickerCallback\", Nilable = false },\n47: \t\t\t},\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"cbObject\", Type = \"TickerCallback\", Nilable = false },\n52: \t\t\t},\n53: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "C_Traits_GetConfigInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SharedTraitsDocumentation.lua",
+    "line": 201,
+    "excerpt": "201: \t\t\tName = \"GetConfigInfo\",\n202: \t\t\tType = \"Function\",\n203: \t\t\tMayReturnNothing = true,\n204: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n205: \n206: \t\t\tArguments =\n207: \t\t\t{\n208: \t\t\t\t{ Name = \"configID\", Type = \"number\", Nilable = false },\n209: \t\t\t},\n210: \n211: \t\t\tReturns =\n212: \t\t\t{\n213: \t\t\t\t{ Name = \"configInfo\", Type = \"TraitConfigInfo\", Nilable = false },\n214: \t\t\t},\n215: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "CHALLENGE_MODE_COMPLETED",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+    "line": 333,
+    "excerpt": "330: \t\t{\n331: \t\t\tName = \"ChallengeModeCompleted\",\n332: \t\t\tType = \"Event\",\n333: \t\t\tLiteralName = \"CHALLENGE_MODE_COMPLETED\",\n334: \t\t\tSynchronousEvent = true,\n335: \t\t},\n336: \t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "CHALLENGE_MODE_MAPS_UPDATE",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+    "line": 406,
+    "excerpt": "403: \t\t{\n404: \t\t\tName = \"ChallengeModeMapsUpdate\",\n405: \t\t\tType = \"Event\",\n406: \t\t\tLiteralName = \"CHALLENGE_MODE_MAPS_UPDATE\",\n407: \t\t\tSynchronousEvent = true,\n408: \t\t},\n409: \t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ChallengesDungeonIconMixin",
+    "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+    "line": 478,
+    "excerpt": "475: \n476: ChallengesDungeonIconMixin = {};\n477: \n478: function ChallengesDungeonIconMixin:SetUp(mapInfo, isFirst)\n479: \tself.mapID = mapInfo.id;\n480: \n481: \tlocal _, _, _, texture = C_ChallengeMode.GetMapUIInfo(mapInfo.id);"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ChallengesDungeonIconMixin_SetUp",
+    "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+    "line": 478,
+    "excerpt": "478: function ChallengesDungeonIconMixin:SetUp(mapInfo, isFirst)\n479: \tself.mapID = mapInfo.id;\n480: \n481: \tlocal _, _, _, texture = C_ChallengeMode.GetMapUIInfo(mapInfo.id);\n482: \n483: \tif (texture == 0) then\n484: \t\ttexture = \"Interface\\\\Icons\\\\achievement_bg_wineos_underxminutes\";\n485: \tend\n486: \n487: \tself.Icon:SetTexture(texture);\n488: \tself.Icon:SetDesaturated(mapInfo.level == 0);\n489: \n490: \tlocal _, overAllScore = C_MythicPlus.GetSeasonBestAffixScoreInfoForMap(mapInfo.id);\n491: \tlocal color;\n492: \tif(overAllScore) then\n493: \t\tcolor = C_ChallengeMode.GetSpecificDungeonOverallScoreRarityColor(overAllScore);\n494: \tend\n495: \tif(not color) then\n496: \t\tcolor = HIGHLIGHT_FONT_COLOR;\n497: \tend\n498: \n499: \tif (mapInfo.level > 0) then\n500: \t\tself.HighestLevel:SetText(mapInfo.level);\n501: \t\tself.HighestLevel:SetTextColor(color.r, color.g, color.b);\n502: \t\tself.HighestLevel:Show();\n503: \telse\n504: \t\tself.HighestLevel:Hide();\n505: \tend\n506: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "CHAT_MSG_ADDON",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChatInfoDocumentation.lua",
+    "line": 612,
+    "excerpt": "609: \t\t{\n610: \t\t\tName = \"BnChatMsgAddon\",\n611: \t\t\tType = \"Event\",\n612: \t\t\tLiteralName = \"BN_CHAT_MSG_ADDON\",\n613: \t\t\tSynchronousEvent = true,\n614: \t\t\tPayload =\n615: \t\t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ClassTalentsFrameMixin_LoadConfig",
+    "path": "Interface/AddOns/Blizzard_PlayerSpells/ClassTalents/Blizzard_ClassTalentsFrame.lua",
+    "line": 1084,
+    "excerpt": "1081: \n1082: end\n1083: \n1084: function ClassTalentsFrameMixin:LoadConfigInternal(configID, autoApply, skipAnimation)\n1085: \tlocal loadResult = nil;\n1086: \tlocal changeError = nil;\n1087: \tlocal newlyLearnedNodes = nil;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ClassTalentsFrameMixin_LoadConfigInternal",
+    "path": "Interface/AddOns/Blizzard_PlayerSpells/ClassTalents/Blizzard_ClassTalentsFrame.lua",
+    "line": 1084,
+    "excerpt": "1084: function ClassTalentsFrameMixin:LoadConfigInternal(configID, autoApply, skipAnimation)\n1085: \tlocal loadResult = nil;\n1086: \tlocal changeError = nil;\n1087: \tlocal newlyLearnedNodes = nil;\n1088: \n1089: \tself.stagedPurchaseNodesForNextCommit = nil;\n1090: \n1091: \tif self:IsStarterBuildConfig(configID) then\n1092: \t\tif not self:GetHasStarterBuild() then\n1093: \t\t\terror(\"Error loading Talents: Attempted to load Starter Build when Starter Build is not available\");\n1094: \t\tend\n1095: \n1096: \t\tloadResult = self:SetStarterBuildActive(true);\n1097: \telse\n1098: \t\tif self:GetIsStarterBuildActive() then\n1099: \t\t\t-- Player is switching from Starter Build to a saved Loadout, unflag them as using Starter Build\n1100: \t\t\t-- Unflagging resets any pending changes, so we have to wait until loading is complete to unflag safely\n1101: \t\t\tself.unflagStarterBuildAfterNextCommit = true;\n1102: \t\tend\n1103: \n1104: \t\tloadResult, changeError, newlyLearnedNodes = C_ClassTalents.LoadConfig(configID, autoApply);\n1105: \tend\n1106: \n1107: \tlocal isConfigReadyToApply = (loadResult == Enum.LoadConfigResult.Ready);\n1108: \tself.isConfigReadyToApply = isConfigReadyToApply;\n1109: \n1110: \tif loadResult == Enum.LoadConfigRes"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ContainerFrameItemButtonMixin_OnEnter",
+    "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua",
+    "line": 1511,
+    "excerpt": "1511: function ContainerFrameItemButtonMixin:OnEnter()\n1512: \tself:OnUpdate();\n1513: \n1514: \tif ArtifactFrame and self:HasItem() then\n1515: \t\tArtifactFrame:OnInventoryItemMouseEnter(self:GetBagID(), self:GetID());\n1516: \tend\n1517: \n1518: \tlocal itemLocation = ItemLocation:CreateFromBagAndSlot(self:GetBagID(), self:GetID());\n1519: \tif itemLocation and itemLocation:IsValid() then\n1520: \t\tlocal itemLocationValid = itemLocation:IsValid();\n1521: \t\tSetCursorHoveredItem(itemLocation);\n1522: \tend\n1523: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ContainerFrameUtil_GetItemButtonAndContainer",
+    "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua",
+    "line": 2037,
+    "excerpt": "2037: function ContainerFrameUtil_GetItemButtonAndContainer(bagID, slot)\n2038: \tlocal container = ContainerFrameUtil_GetShownFrameForID(bagID);\n2039: \tif container then\n2040: \t\tfor itemIndex, itemButton in container:EnumerateValidItems() do\n2041: \t\t\tif itemButton:GetBagID() == bagID and itemButton:GetID() == slot then\n2042: \t\t\t\treturn itemButton, container;\n2043: \t\t\tend\n2044: \t\tend\n2045: \tend\n2046: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ContainerItemInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 766,
+    "excerpt": "766: \t\t\tName = \"ContainerItemInfo\",\n767: \t\t\tType = \"Structure\",\n768: \t\t\tFields =\n769: \t\t\t{\n770: \t\t\t\t{ Name = \"iconFileID\", Type = \"fileID\", Nilable = false },\n771: \t\t\t\t{ Name = \"stackCount\", Type = \"number\", Nilable = false },\n772: \t\t\t\t{ Name = \"isLocked\", Type = \"bool\", Nilable = false },\n773: \t\t\t\t{ Name = \"quality\", Type = \"ItemQuality\", Nilable = true },\n774: \t\t\t\t{ Name = \"isReadable\", Type = \"bool\", Nilable = false },\n775: \t\t\t\t{ Name = \"hasLoot\", Type = \"bool\", Nilable = false },\n776: \t\t\t\t{ Name = \"hyperlink\", Type = \"string\", Nilable = false },\n777: \t\t\t\t{ Name = \"isFiltered\", Type = \"bool\", Nilable = false },\n778: \t\t\t\t{ Name = \"hasNoValue\", Type = \"bool\", Nilable = false },\n779: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n780: \t\t\t\t{ Name = \"isBound\", Type = \"bool\", Nilable = false },\n781: \t\t\t\t{ Name = \"itemName\", Type = \"string\", Nilable = false },\n782: \t\t\t},\n783: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "CooldownViewerSettings",
+    "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettings.xml",
+    "line": 153,
+    "excerpt": "150: \t\t</Layers>\n151: \t</Frame>\n152: \n153: \t<Frame name=\"CooldownViewerSettings\" inherits=\"ButtonFrameTemplate, CallbackRegistrantTemplate\" parent=\"UIParent\" toplevel=\"true\" mixin=\"CooldownViewerSettingsMixin\" hidden=\"true\">\n154: \t\t<Size x=\"399\" y=\"609\"/>\n155: \t\t<Anchors>\n156: \t\t\t<Anchor point=\"TOPLEFT\" x=\"16\" y=\"-116\"/> <!-- Temp, make this into a managed panel of some kind -->"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "CooldownViewerSettingsMixin_ShowUIPanel",
+    "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettings.lua",
+    "line": 1688,
+    "excerpt": "1688: function CooldownViewerSettingsMixin:ShowUIPanel(fromEditMode)\n1689: \tif fromEditMode then\n1690: \t\tEditModeManagerFrame:CheckHideAndLockEditMode();\n1691: \tend\n1692: \n1693: \tShowUIPanel(self);\n1694: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "ellesmere-keys-path",
+    "path": "EllesmereUIQoL/EllesmereUIQoL_Keys.lua",
+    "line": 1,
+    "excerpt": "1: if EUI_CLIENT_BLOCKED then return end -- pre-12.1 client failsafe (EllesmereUI_ClientGate.lua)\n2: -------------------------------------------------------------------------------\n3: --  EllesmereUIQoL_Keys.lua\n4: --  /keys slash command: displays party keystone levels in a styled popup.\n5: --  Uses LibKeystone (BigWigs/DBM) for keystone data exchange.\n6: -------------------------------------------------------------------------------\n7: local LibKeystone = LibStub and LibStub(\"LibKeystone\", true)"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "EQUIPMENT_SETS_CHANGED",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/EquipmentManagerDocumentation.lua",
+    "line": 308,
+    "excerpt": "305: \t\t{\n306: \t\t\tName = \"EquipmentSetsChanged\",\n307: \t\t\tType = \"Event\",\n308: \t\t\tLiteralName = \"EQUIPMENT_SETS_CHANGED\",\n309: \t\t\tSynchronousEvent = true,\n310: \t\t},\n311: \t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "GET_ITEM_INFO_RECEIVED",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+    "line": 1777,
+    "excerpt": "1774: \t\t{\n1775: \t\t\tName = \"GetItemInfoReceived\",\n1776: \t\t\tType = \"Event\",\n1777: \t\t\tLiteralName = \"GET_ITEM_INFO_RECEIVED\",\n1778: \t\t\tSynchronousEvent = true,\n1779: \t\t\tPayload =\n1780: \t\t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "GetLFGDungeonInfo",
+    "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.lua",
+    "line": 451,
+    "excerpt": "448: \telseif ( value == \"follower\" ) then\n449: \t\tLFDQueueFrame_SetTypeFollowerDungeon();\n450: \telse\n451: \t\tlocal name, typeID, subtypeID, minLevel, maxLevel, recLevel, minRecLevel, maxRecLevel, expansionLevel, groupID, textureFilename, difficulty, maxPlayers, description, isHoliday, _, _, isTimeWalker = GetLFGDungeonInfo(value);\n452: \t\tLFDQueueFrame_SetTypeRandomDungeon(isHoliday and not isTimeWalker);\n453: \t\tLFDQueueFrameRandom_UpdateFrame();\n454: \tend"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "GetNormalizedRealmName",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerScriptDocumentation.lua",
+    "line": 540,
+    "excerpt": "540: \t\t\tName = \"GetNormalizedRealmName\",\n541: \t\t\tType = \"Function\",\n542: \n543: \t\t\tReturns =\n544: \t\t\t{\n545: \t\t\t\t{ Name = \"result\", Type = \"cstring\", Nilable = false },\n546: \t\t\t},\n547: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "GetTime",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/LuaDurationClockAPIDocumentation.lua",
+    "line": 11,
+    "excerpt": "11: \t\t\tName = \"GetTime\",\n12: \t\t\tType = \"Function\",\n13: \t\t\tDocumentation = { \"Returns the current time value represented by this clock.\" },\n14: \n15: \t\t\tArguments =\n16: \t\t\t{\n17: \t\t\t},\n18: \n19: \t\t\tReturns =\n20: \t\t\t{\n21: \t\t\t\t{ Name = \"time\", Type = \"FrameTime\", Nilable = false },\n22: \t\t\t},\n23: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "GROUP_ROSTER_UPDATE",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 404,
+    "excerpt": "404: function CooldownSyncRelayMixin:GROUP_ROSTER_UPDATE()\n405: \tlocal currentGroupGUIDs = self:GetOnlineGroupMemberGUIDs();\n406: \tlocal hasNewMember = false;\n407: \tfor guid in pairs(currentGroupGUIDs) do\n408: \t\tif not self.lastGroupGUIDs[guid] then\n409: \t\t\thasNewMember = true;\n410: \t\t\tbreak;\n411: \t\tend\n412: \tend\n413: \tself.lastGroupGUIDs = currentGroupGUIDs;\n414: \n415: \tself:UpdateSyncState();\n416: \tif self.syncEnabled and hasNewMember and not self.pendingGroupUpdate then\n417: \t\tself.pendingGroupUpdate = true;\n418: \t\tC_Timer.After(0.5, function()\n419: \t\t\tself.pendingGroupUpdate = nil;\n420: \t\t\tif not self.syncEnabled then\n421: \t\t\t\treturn;\n422: \t\t\tend\n423: \t\t\tself:SendSpellInfoMessage();\n424: \t\t\tself:SendSpellCooldownMessage(nil, true);\n425: \t\tend);\n426: \tend\n427: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "GVBuildPartyRows",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6171,
+    "excerpt": "6171: local function GVBuildPartyRows()\n6172:     _gvPartyCount = 0\n6173:     if not IsInGroup() then return 0 end\n6174: \n6175:     wipe(_gvShortIdx)\n6176:     local any = false\n6177:     for name, info in pairs(_gvKeys) do\n6178:         if info and (info.level or 0) > 0 then\n6179:             local short = GVShortName(name)\n6180:             if short then\n6181:                 if _gvShortIdx[short] == nil then _gvShortIdx[short] = info\n6182:                 else _gvShortIdx[short] = false end\n6183:                 any = true\n6184:             end\n6185:         end\n6186:     end\n6187:     if not any then return 0 end\n6188: \n6189:     local prefix, count = GVGroupRange()\n6190:     for i = 1, count do\n6191:         local unit = prefix .. i\n6192:         if UnitExists(unit) and not UnitIsUnit(unit, \"player\") then\n6193:             local unitName = GetUnitName(unit, true)\n6194:             local info = _gvKeys[unitName]\n6195:             if not (info and (info.level or 0) > 0) then\n6196:                 info = _gvShortIdx[GVShortName(unitName)] or nil\n6197:             end\n6198:             local dungeon = info and GVDungeonName(info.mapID)\n6199:             if dungeon then\n6200:      "
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "GVEnsureKeystoneFeed",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6077,
+    "excerpt": "6077: local function GVEnsureKeystoneFeed()\n6078:     if _gvRegistered then return end\n6079:     local lib = GVLib()\n6080:     if not lib then return end\n6081:     _gvRegistered = true\n6082:     -- Filtered on group membership, NOT the delivery channel: a group member who is\n6083:     -- also a guildmate can have their reply arrive tagged GUILD, and dropping it\n6084:     -- blanks their row. Membership is still required so a guild-wide reply burst cannot flood the cache with unshowable players.\n6085:     lib.Register(_gvLibToken, function(keyLevel, keyMapID, _, playerName)\n6086:         if not playerName or not GVInGroup(playerName) then return end\n6087:         local e = _gvKeys[playerName]\n6088:         if e then e.mapID, e.level = keyMapID, keyLevel\n6089:         else _gvKeys[playerName] = { mapID = keyMapID, level = keyLevel } end\n6090:         GVRepaintOpenTooltip()\n6091:     end)\n6092: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "GVInGroup",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6119,
+    "excerpt": "6119: function GVInGroup(playerName)\n6120:     if not IsInGroup() then return false end\n6121:     local short = GVShortName(playerName)\n6122:     if not short then return false end\n6123:     local prefix, count = GVGroupRange()\n6124:     for i = 1, count do\n6125:         if GVShortName(GetUnitName(prefix .. i, true)) == short then return true end\n6126:     end\n6127:     return false\n6128: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "GVLib",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6057,
+    "excerpt": "6057: local function GVLib()\n6058:     return LibStub and LibStub(\"LibKeystone\", true)\n6059: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "GVOwnedKeystone",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6036,
+    "excerpt": "6036: local function GVOwnedKeystone()\n6037:     if not C_MythicPlus then return nil end\n6038:     local mapID = C_MythicPlus.GetOwnedKeystoneChallengeMapID and C_MythicPlus.GetOwnedKeystoneChallengeMapID()\n6039:     local level = C_MythicPlus.GetOwnedKeystoneLevel and C_MythicPlus.GetOwnedKeystoneLevel()\n6040:     if not mapID or not level or level <= 0 then return nil end\n6041:     local name = GVDungeonName(mapID)\n6042:     if not name then return nil end\n6043:     return name, level\n6044: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "INSPECT_READY",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PaperDollInfoDocumentation.lua",
+    "line": 343,
+    "excerpt": "340: \t\t{\n341: \t\t\tName = \"InspectReady\",\n342: \t\t\tType = \"Event\",\n343: \t\t\tLiteralName = \"INSPECT_READY\",\n344: \t\t\tSynchronousEvent = true,\n345: \t\t\tPayload =\n346: \t\t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "keystone-api",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+    "line": 11,
+    "excerpt": "8: \tFunctions =\n9: \t{\n10: \t\t{\n11: \t\t\tName = \"CanUseKeystoneInCurrentMap\",\n12: \t\t\tType = \"Function\",\n13: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n14: "
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "lib_Register",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6085,
+    "excerpt": "6082:     -- Filtered on group membership, NOT the delivery channel: a group member who is\n6083:     -- also a guildmate can have their reply arrive tagged GUILD, and dropping it\n6084:     -- blanks their row. Membership is still required so a guild-wide reply burst cannot flood the cache with unshowable players.\n6085:     lib.Register(_gvLibToken, function(keyLevel, keyMapID, _, playerName)\n6086:         if not playerName or not GVInGroup(playerName) then return end\n6087:         local e = _gvKeys[playerName]\n6088:         if e then e.mapID, e.level = keyMapID, keyLevel"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "LibKeystone",
+    "path": "EllesmereUI.toc",
+    "line": 20,
+    "excerpt": "17: Libs\\LibDataBroker-1.1\\LibDataBroker-1.1.lua\n18: Libs\\LibSharedMedia-3.0\\LibSharedMedia-3.0.lua\n19: Libs\\LibDeflate\\LibDeflate.lua\n20: Libs\\LibKeystone\\LibKeystone.lua\n21: Libs\\LibSpecialization\\LibSpecialization.lua\n22: \n23: # Lightweight addon framework (replaces Ace3)"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "LoadConfigResult",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassTalentsDocumentation.lua",
+    "line": 494,
+    "excerpt": "494: \t\t\tName = \"LoadConfigResult\",\n495: \t\t\tType = \"Enumeration\",\n496: \t\t\tNumValues = 4,\n497: \t\t\tMinValue = 0,\n498: \t\t\tMaxValue = 3,\n499: \t\t\tFields =\n500: \t\t\t{\n501: \t\t\t\t{ Name = \"Error\", Type = \"LoadConfigResult\", EnumValue = 0 },\n502: \t\t\t\t{ Name = \"NoChangesNecessary\", Type = \"LoadConfigResult\", EnumValue = 1 },\n503: \t\t\t\t{ Name = \"LoadInProgress\", Type = \"LoadConfigResult\", EnumValue = 2 },\n504: \t\t\t\t{ Name = \"Ready\", Type = \"LoadConfigResult\", EnumValue = 3 },\n505: \t\t\t},\n506: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "MYTHIC_PLUS_CURRENT_AFFIX_UPDATE",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 259,
+    "excerpt": "256: \t\t{\n257: \t\t\tName = \"MythicPlusCurrentAffixUpdate\",\n258: \t\t\tType = \"Event\",\n259: \t\t\tLiteralName = \"MYTHIC_PLUS_CURRENT_AFFIX_UPDATE\",\n260: \t\t\tSynchronousEvent = true,\n261: \t\t},\n262: \t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "MYTHIC_PLUS_NEW_WEEKLY_RECORD",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 265,
+    "excerpt": "262: \t\t{\n263: \t\t\tName = \"MythicPlusNewWeeklyRecord\",\n264: \t\t\tType = \"Event\",\n265: \t\t\tLiteralName = \"MYTHIC_PLUS_NEW_WEEKLY_RECORD\",\n266: \t\t\tSynchronousEvent = true,\n267: \t\t\tPayload =\n268: \t\t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "MythicPlusInfoDocumentation.lua",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+    "line": 1,
+    "excerpt": "1: local MythicPlusInfo =\n2: {\n3: \tName = \"MythicPlusInfo\",\n4: \tType = \"System\",\n5: \tNamespace = \"C_MythicPlus\",\n6: \tEnvironment = \"All\",\n7: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "MythicPlusRatingMapSummary",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+    "line": 366,
+    "excerpt": "366: \t\t\tName = \"MythicPlusRatingMapSummary\",\n367: \t\t\tType = \"Structure\",\n368: \t\t\tDocumentation = { \"Specific information about a completed mythic plus run.\" },\n369: \t\t\tFields =\n370: \t\t\t{\n371: \t\t\t\t{ Name = \"challengeModeID\", Type = \"number\", Nilable = false },\n372: \t\t\t\t{ Name = \"mapScore\", Type = \"number\", Nilable = false },\n373: \t\t\t\t{ Name = \"bestRunLevel\", Type = \"number\", Nilable = false },\n374: \t\t\t\t{ Name = \"bestRunDurationMS\", Type = \"number\", Nilable = false },\n375: \t\t\t\t{ Name = \"finishedSuccess\", Type = \"bool\", Nilable = false },\n376: \t\t\t},\n377: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "MythicPlusRatingSummary",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+    "line": 379,
+    "excerpt": "379: \t\t\tName = \"MythicPlusRatingSummary\",\n380: \t\t\tType = \"Structure\",\n381: \t\t\tDocumentation = { \"The current season rating and well as a list of completed mythic plus runs.\" },\n382: \t\t\tFields =\n383: \t\t\t{\n384: \t\t\t\t{ Name = \"currentSeasonScore\", Type = \"number\", Nilable = false },\n385: \t\t\t\t{ Name = \"runs\", Type = \"table\", InnerType = \"MythicPlusRatingMapSummary\", Nilable = false },\n386: \t\t\t},\n387: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "NUM_TOTAL_EQUIPPED_BAG_SLOTS",
+    "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/AzeriteBar.lua",
+    "line": 74,
+    "excerpt": "71: \t\t\tend\n72: \t\telseif ( event == \"BAG_UPDATE\" ) then\n73: \t\t\tlocal bagID = ...;\n74: \t\t\tif bagID > NUM_TOTAL_EQUIPPED_BAG_SLOTS then\n75: \t\t\t\tself:Update();\n76: \t\t\tend\n77: \t\tend"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "OpenAllBags",
+    "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+    "line": 1114,
+    "excerpt": "1114: function Class_ChangeEquipment:OpenAllBags()\n1115: \tself.allBagsOpened = true;\n1116: \tTutorialHelper:OpenAllBags();\n1117: \n1118: \tC_Timer.NewTimer(0.1, function()\n1119: \t\tself:ShowCharacterSheetPrompt();\n1120: \tend);\n1121: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "PLAYER_EQUIPMENT_CHANGED",
+    "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+    "line": 1304,
+    "excerpt": "1304: function Class_EquipItem:PLAYER_EQUIPMENT_CHANGED()\n1305: \tif (GetInventoryItemID(\"player\", self.ItemData.CharacterSlot) == self.ItemData.ItemID) then\n1306: \t\tself:Complete()\n1307: \tend\n1308: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "PLAYER_REGEN_DISABLED",
+    "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+    "line": 1497,
+    "excerpt": "1497: function Class_LootCorpseWatcher:PLAYER_REGEN_DISABLED(...)\n1498: \tself:SuppressChildren();\n1499: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "PLAYER_REGEN_ENABLED",
+    "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+    "line": 1502,
+    "excerpt": "1502: function Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED(...)\n1503: \tself:UnsuppressChildren();\n1504: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "PLAYER_SPECIALIZATION_CHANGED",
+    "path": "Interface/AddOns/Blizzard_Tutorials/Blizzard_Tutorials_Classes.lua",
+    "line": 109,
+    "excerpt": "109: function Class_ChangeSpec:PLAYER_SPECIALIZATION_CHANGED()\n110: \tif IsPlayerInitialSpec() then\n111: \t\treturn;\n112: \tend\n113: \tSetCVarBitfield(\"closedInfoFrames\", LE_FRAME_TUTORIAL_SPEC_CHANGES, true);\n114: \tDispatcher:UnregisterEvent(\"PLAYER_SPECIALIZATION_CHANGED\", self);\n115: \tEventRegistry:UnregisterCallback(\"PlayerSpellsFrame.OpenFrame\", self);\n116: \tEventRegistry:UnregisterCallback(\"PlayerSpellsFrame.CloseFrame\", self);\n117: \tEventRegistry:UnregisterCallback(\"PlayerSpellsFrame.SpecFrame.ActivateSpec\", self);\n118: \tTutorialManager:Finished(self:Name());\n119: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "PlayerSpellsUtil_OpenToClassTalentsTab",
+    "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/PlayerSpellsUtil.lua",
+    "line": 31,
+    "excerpt": "31: function PlayerSpellsUtil.OpenToClassTalentsTab(inspectUnit)\n32: \tCheckLoadPlayerSpellsFrame();\n33: \tSetOrClearInspectUnit(inspectUnit);\n34: \n35: \tif PlayerSpellsFrame:TrySetTab(PlayerSpellsUtil.FrameTabs.ClassTalents) then\n36: \t\tShowUIPanel(PlayerSpellsFrame);\n37: \tend\n38: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "query-GetInitializers",
+    "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+    "line": 439,
+    "excerpt": "439: function BaseMenuDescriptionMixin:GetInitializers()\n440: \treturn self.initializers;\n441: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "query-IsAddOn",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+    "line": 274,
+    "excerpt": "271: \t\t\t},\n272: \t\t},\n273: \t\t{\n274: \t\t\tName = \"IsAddOnDefaultEnabled\",\n275: \t\t\tType = \"Function\",\n276: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n277: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "query-OpenAllBags",
+    "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+    "line": 1114,
+    "excerpt": "1114: function Class_ChangeEquipment:OpenAllBags()\n1115: \tself.allBagsOpened = true;\n1116: \tTutorialHelper:OpenAllBags();\n1117: \n1118: \tC_Timer.NewTimer(0.1, function()\n1119: \t\tself:ShowCharacterSheetPrompt();\n1120: \tend);\n1121: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "query-teleport",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/HousingUIDocumentation.lua",
+    "line": 515,
+    "excerpt": "512: \t\t\tType = \"Function\",\n513: \t\t},\n514: \t\t{\n515: \t\t\tName = \"TeleportHome\",\n516: \t\t\tType = \"Function\",\n517: \t\t\tHasRestrictions = true,\n518: \t\t\tSecretArguments = \"AllowedWhenUntainted\","
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "ReloadUI",
+    "path": "Interface/AddOns/Blizzard_SharedXML/InterfaceUtil.lua",
+    "line": 1,
+    "excerpt": "1: function ReloadUI()\n2: \tC_UI.Reload();\n3: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "season-portals",
+    "path": "EllesmereUI.lua",
+    "line": 288,
+    "excerpt": "285: --    names       - lowercase dungeon names + localized aliases (name -> spell)\n286: --    altSpellIDs - optional variant teleport spell ids\n287: -------------------------------------------------------------------------------\n288: EllesmereUI.SEASON_PORTALS = {\n289:     { spellID = 1286801, short = \"BV\",  dungeonID = 3102, names = { \"the blinding vale\", \"blinding vale\", \"слепящая долина\" } },\n290:     { spellID = 1286804, short = \"VA\",  dungeonID = 3106, names = { \"voidscar arena\", \"арена шрама бездны\" } },\n291:     { spellID = 1286807, short = \"DoN\", dungeonID = 3051, names = { \"den of nalorakk\", \"den of nalorak\", \"берлога налоракка\" } },"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Settings_CategorySet",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_CategoryList.lua",
+    "line": 181,
+    "excerpt": "178: \n179: \tself.allCategories = {};\n180: \tself.groups = {};\n181: \tself.categorySet = Settings.CategorySet.Game;\n182: \n183: \tlocal function Factory(factory, elementData)\n184: \t\tlocal function Initializer(button, elementData)"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Settings_CreateControlInitializer",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+    "line": 358,
+    "excerpt": "358: function Settings.CreateControlInitializer(frameTemplate, setting, options, tooltip)\n359: \tlocal data = Settings.CreateSettingInitializerData(setting, options, tooltip);\n360: \treturn Settings.CreateSettingInitializer(frameTemplate, data);\n361: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Settings_CreateElementInitializer",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+    "line": 341,
+    "excerpt": "341: function Settings.CreateElementInitializer(frameTemplate, data)\n342: \treturn SettingsInbound.CreateElementInitializer(frameTemplate, data);\n343: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Settings_CreateSettingInitializer",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+    "line": 345,
+    "excerpt": "345: function Settings.CreateSettingInitializer(frameTemplate, data)\n346: \tlocal initializer = SettingsInbound.CreateSettingInitializer(frameTemplate, data);\n347: \n348: \t-- Marks this as a countable setting for narration index calculation.\n349: \tinitializer.isSettingElement = true;\n350: \n351: \treturn initializer;\n352: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Settings_CreateSettingInitializerData",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+    "line": 330,
+    "excerpt": "330: function Settings.CreateSettingInitializerData(setting, options, tooltip)\n331: \tlocal data =\n332: \t{\n333: \t\tsetting = setting,\n334: \t\tname = setting:GetName(),\n335: \t\toptions = options or {},\n336: \t\ttooltip = tooltip,\n337: \t};\n338: \treturn data;\n339: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "Settings_OpenToCategory",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+    "line": 143,
+    "excerpt": "143: function Settings.OpenToCategory(categoryID, scrollToElementName)\n144: \tC_SettingsUtil.OpenSettingsPanel(categoryID, scrollToElementName);\n145: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsCategoryListMixin_GetAllCategories",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_CategoryList.lua",
+    "line": 247,
+    "excerpt": "247: function SettingsCategoryListMixin:GetAllCategories()\n248: \treturn self.allCategories;\n249: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsCategoryMixin",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Category.lua",
+    "line": 6,
+    "excerpt": "3: local idCounter = CreateCounter();\n4: \n5: local securecallfunction = securecallfunction;\n6: function SettingsCategoryMixin:Init(name)\n7: \tself.subcategories = {};\n8: \tself.ID = idCounter();\n9: \tself.order = self.ID;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsCategoryMixin_GetCategorySet",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Category.lua",
+    "line": 76,
+    "excerpt": "76: function SettingsCategoryMixin:GetCategorySet()\n77: \treturn securecallfunction(SecureGetCategorySet, self);\n78: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsCategoryMixin_GetID",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Category.lua",
+    "line": 13,
+    "excerpt": "13: function SettingsCategoryMixin:GetID()\n14: \treturn self.ID;\n15: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsCategoryMixin_GetName",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Category.lua",
+    "line": 17,
+    "excerpt": "17: function SettingsCategoryMixin:GetName()\n18: \treturn self.name;\n19: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsInbound_CreateSettingInitializer",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsInbound.lua",
+    "line": 142,
+    "excerpt": "142: function SettingsInbound.CreateSettingInitializer(frameTemplate, data)\n143: \tAttributeDelegate:SetAttribute(SettingsInbound.CreateSettingInitializerAttribute, { frameTemplate, data, });\n144: \treturn AttributeDelegate:GetSecureAttributeResults();\n145: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsListMixin_ScrollToElementByName",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsList.lua",
+    "line": 143,
+    "excerpt": "143: function SettingsListMixin:ScrollToElementByName(name)\n144: \tself.ScrollBox:ScrollToElementDataByPredicate(function(elementData)\n145: \t\tlocal data = securecallfunction(rawget, elementData, \"data\");\n146: \t\tlocal elementName = securecallfunction(rawget, data, \"name\");\n147: \t\treturn elementName == name;\n148: \tend, ScrollBoxConstants.AlignBegin);\n149: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsPanelMixin_GetAllCategories",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsPanel.lua",
+    "line": 776,
+    "excerpt": "776: function SettingsPanelMixin:GetAllCategories()\n777: \treturn self:GetCategoryList():GetAllCategories();\n778: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsPanelMixin_GetCurrentCategory",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsPanel.lua",
+    "line": 928,
+    "excerpt": "928: function SettingsPanelMixin:GetCurrentCategory()\n929: \treturn self:GetCategoryList():GetCurrentCategory();\n930: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsPanelMixin_GetLayout",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsPanel.lua",
+    "line": 737,
+    "excerpt": "737: function SettingsPanelMixin:GetLayout(category)\n738: \treturn self.categoryLayouts[category];\n739: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsPanelMixin_OpenToCategory",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsPanel.lua",
+    "line": 288,
+    "excerpt": "288: function SettingsPanelMixin:OpenToCategory(categoryID, scrollToElementName)\n289: \tself:Open();\n290: \n291: \tlocal categoryTbl = self:GetCategoryList():GetCategory(categoryID);\n292: \tif categoryTbl then\n293: \t\tcategoryTbl:SetExpanded(true);\n294: \n295: \t\tself:SelectCategory(categoryTbl);\n296: \n297: \t\tif scrollToElementName then\n298: \t\t\tself:GetSettingsList():ScrollToElementByName(scrollToElementName);\n299: \t\tend\n300: \tend\n301: \treturn categoryTbl ~= nil;\n302: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsPanelMixin_SelectCategory",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsPanel.lua",
+    "line": 799,
+    "excerpt": "799: function SettingsPanelMixin:SelectCategory(category, force)\n800: \tif force or (self:GetCurrentCategory() ~= category) then\n801: \t\tself:ClearActiveCategoryTutorial();\n802: \t\tself:ClearSearchBox();\n803: \t\tself:ClearOutputText();\n804: \t\tself:ClearCurrentCategoryCanvas();\n805: \t\tself:SetCurrentCategory(category);\n806: \t\tself:DisplayCategory(category);\n807: \n808: \t\tEventRegistry:TriggerEvent(\"Settings.CategoryChanged\", category);\n809: \tend\n810: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsSearchableElementMixin",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Settings.lua",
+    "line": 52,
+    "excerpt": "49: \n50: SettingsSearchableElementMixin = {};\n51: \n52: function SettingsSearchableElementMixin:AddSearchTags(...)\n53: \tif not self.searchTags then\n54: \t\tself.searchTags = {};\n55: \tend"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "SettingsVerticalLayoutMixin_GetInitializers",
+    "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsLayouts.lua",
+    "line": 25,
+    "excerpt": "25: function SettingsVerticalLayoutMixin:GetInitializers()\n26: \treturn self.initializers;\n27: end"
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "8da5dfe182c7809e3f61b5a9ca856d16b891726f",
+    "query": "ShowVaultTooltip",
+    "path": "EllesmereUIDataBars/EllesmereUIDataBars_Blocks.lua",
+    "line": 6301,
+    "excerpt": "6301:     local function ShowVaultTooltip()\n6302:         local ar, ag, ab = ns.GetAccent()\n6303:         ns.Tip_Begin(button)\n6304:         ns.Tip_AddLine(\"|cFFFFFFFF[|r\" .. EllesmereUI.L(\"Great Vault\") .. \"|cFFFFFFFF]|r\", ar, ag, ab)\n6305:         ns.Tip_AddLine(\" \")\n6306:         ns.Tip_AddColumns(EllesmereUI.L(\"Raids\"),   GVRowTokens(GV_RAID,  true),  0.8, 0.8, 0.8)\n6307:         ns.Tip_AddColumns(EllesmereUI.L(\"Mythic+\"), GVRowTokens(GV_MPLUS, false), 0.8, 0.8, 0.8)\n6308:         ns.Tip_AddColumns(EllesmereUI.L(\"World\"),   GVRowTokens(GV_WORLD, false), 0.8, 0.8, 0.8)\n6309: \n6310:         local myDungeon, myLevel = GVOwnedKeystone()\n6311:         if myDungeon then\n6312:             ns.Tip_AddLine(\" \")\n6313:             ns.Tip_AddLine(EllesmereUI.L(\"Your Keystone\"), ar, ag, ab)\n6314:             ns.Tip_AddDouble(myDungeon, \"+\" .. myLevel, 0.8, 0.8, 0.8, 1, 1, 1)\n6315:         end\n6316: \n6317:         local partyCount = GVBuildPartyRows()\n6318:         if partyCount > 0 then\n6319:             ns.Tip_AddLine(\" \")\n6320:             ns.Tip_AddLine(EllesmereUI.L(\"Party Keystones\"), ar, ag, ab)\n6321:             for i = 1, partyCount do\n6322:                 local e = _gvPartyBuf[i]\n6"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "TRAIT_CONFIG_LIST_UPDATED",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SharedTraitsDocumentation.lua",
+    "line": 804,
+    "excerpt": "801: \t\t{\n802: \t\t\tName = \"TraitConfigListUpdated\",\n803: \t\t\tType = \"Event\",\n804: \t\t\tLiteralName = \"TRAIT_CONFIG_LIST_UPDATED\",\n805: \t\t\tSynchronousEvent = true,\n806: \t\t},\n807: \t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "TRAIT_CONFIG_UPDATED",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SharedTraitsDocumentation.lua",
+    "line": 810,
+    "excerpt": "807: \t\t{\n808: \t\t\tName = \"TraitConfigUpdated\",\n809: \t\t\tType = \"Event\",\n810: \t\t\tLiteralName = \"TRAIT_CONFIG_UPDATED\",\n811: \t\t\tSynchronousEvent = true,\n812: \t\t\tPayload =\n813: \t\t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "UnitFullName",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+    "line": 1196,
+    "excerpt": "1196: \t\t\tName = \"UnitFullName\",\n1197: \t\t\tType = \"Function\",\n1198: \t\t\tSecretWhenUnitIdentityRestricted = true,\n1199: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1200: \n1201: \t\t\tArguments =\n1202: \t\t\t{\n1203: \t\t\t\t{ Name = \"unit\", Type = \"UnitToken\", Nilable = false },\n1204: \t\t\t},\n1205: \n1206: \t\t\tReturns =\n1207: \t\t\t{\n1208: \t\t\t\t{ Name = \"unitName\", Type = \"cstring\", Nilable = false },\n1209: \t\t\t\t{ Name = \"unitServer\", Type = \"cstring\", Nilable = false },\n1210: \t\t\t},\n1211: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "UnitGUID",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+    "line": 1213,
+    "excerpt": "1213: \t\t\tName = \"UnitGUID\",\n1214: \t\t\tType = \"Function\",\n1215: \t\t\tSecretWhenUnitIdentityRestricted = true,\n1216: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1217: \n1218: \t\t\tArguments =\n1219: \t\t\t{\n1220: \t\t\t\t{ Name = \"unit\", Type = \"UnitTokenPvPRestrictedForAddOns\", Nilable = false },\n1221: \t\t\t},\n1222: \n1223: \t\t\tReturns =\n1224: \t\t\t{\n1225: \t\t\t\t{ Name = \"result\", Type = \"WOWGUID\", Nilable = true },\n1226: \t\t\t},\n1227: \t\t},"
+  }
+]

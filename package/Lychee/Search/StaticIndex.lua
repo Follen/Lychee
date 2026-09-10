@@ -560,12 +560,15 @@ end
 
 local function resultLess(left, right)
     if left.confidence ~= right.confidence then return left.confidence > right.confidence end
-    if left.sourcePriority ~= right.sourcePriority then return left.sourcePriority > right.sourcePriority end
-    if left.categoryOrder ~= right.categoryOrder then return left.categoryOrder < right.categoryOrder end
-    return left.stableID < right.stableID
+    local le,re=left.entry,right.entry
+    local lp,rp=le and le.source.priority or left.sourcePriority,re and re.source.priority or right.sourcePriority
+    if lp ~= rp then return lp > rp end
+    local lc,rc=le and le.categoryOrder or left.categoryOrder,re and re.categoryOrder or right.categoryOrder
+    if lc ~= rc then return lc < rc end
+    return (le and le.stableID or left.stableID) < (re and re.stableID or right.stableID)
 end
 
-function Index:Search(query, limit, filter)
+function Index:Search(query, limit, filter, compact)
     local normalized = I.Search.Normalizer:Normalize(query)
     if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
@@ -617,24 +620,36 @@ function Index:Search(query, limit, filter)
             if bestScore then
                 local previous = byStableID[entry.stableID]
                 local candidate = previous or (#out >= maximum and out[#out])
+                local ce=candidate and candidate.entry
+                local cp=ce and ce.source.priority or (candidate and candidate.sourcePriority)
+                local co=ce and ce.categoryOrder or (candidate and candidate.categoryOrder)
+                local cs=ce and ce.stableID or (candidate and candidate.stableID)
                 local wins = not candidate or bestScore > candidate.confidence
-                    or bestScore == candidate.confidence and (entry.source.priority > candidate.sourcePriority
-                    or entry.source.priority == candidate.sourcePriority and (entry.categoryOrder < candidate.categoryOrder
-                    or entry.categoryOrder == candidate.categoryOrder and entry.stableID < candidate.stableID))
+                    or bestScore == candidate.confidence and (entry.source.priority > cp
+                    or entry.source.priority == cp and (entry.categoryOrder < co
+                    or entry.categoryOrder == co and entry.stableID < cs))
                 if wins then
                     local result, position = previous, #out + 1
                     if previous then
                         for index = 1, #out do if out[index] == previous then position = index; break end end
                     elseif #out >= maximum then
                         result, position = out[#out], #out
-                        byStableID[result.stableID] = nil
+                        byStableID[result.entry and result.entry.stableID or result.stableID] = nil
                     else result = {evidence={}} end
-                    result.record, result.item = entry.record, entry.record.payload or entry.record
-                    result.sourceID, result.sourceExtensionID = entry.sourceID, entry.source.extensionID
-                    result.sourceTitle = entry.source.title or entry.source.extensionTitle
-                    result.sourcePriority, result.categoryOrder = entry.source.priority, entry.categoryOrder
-                    result.stableID, result.confidence = entry.stableID, bestScore
-                    result.sourceGeneration, result.sourceRevision = entry.source.generation, entry.source.revision
+                    if compact then
+                        -- Query materializes these before any asynchronous boundary.
+                        -- Keep the source once instead of duplicating its metadata.
+                        result.entry = entry
+                    else
+                        result.record = entry.record
+                        result.item = entry.record.payload or entry.record
+                        result.sourceID, result.sourceExtensionID = entry.sourceID, entry.source.extensionID
+                        result.sourceTitle = entry.source.title or entry.source.extensionTitle
+                        result.sourceGeneration, result.sourceRevision = entry.source.generation, entry.source.revision
+                        result.sourcePriority, result.categoryOrder = entry.source.priority, entry.categoryOrder
+                        result.stableID = entry.stableID
+                    end
+                    result.confidence = bestScore
                     local evidence = result.evidence
                     evidence.matchedField, evidence.matchedText, evidence.matchType = bestField, bestText, bestType
                     evidence.confidence, evidence.distance = bestScore, bestDistance

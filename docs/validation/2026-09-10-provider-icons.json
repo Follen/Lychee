@@ -1,0 +1,17 @@
+[
+  {
+    "id": "reload",
+    "size": 64,
+    "sha256": "8f61649e32db0a04bdebdaa93c7d367078dc1e3312778c16d83b5f8f67d61596"
+  },
+  {
+    "id": "cooldown-manager",
+    "size": 64,
+    "sha256": "7037eedf9c2f585529cb3cd6960b13c03e62bd5ac9486906fbb936f1c450e207"
+  },
+  {
+    "id": "keystone",
+    "size": 64,
+    "sha256": "5a165438ea21ede0660bd3f2aae3ee903ef69a9051c5e1c6bcc51a2bd3342898"
+  }
+]
