@@ -1,0 +1,1379 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_ChallengeMode.GetMapUIInfo",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "163: \t\t\tName = \"GetMapUIInfo\",\n164: \t\t\tType = \"Function\",\n165: \t\t\tMayReturnNothing = true,\n166: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n167: \n168: \t\t\tArguments =\n169: \t\t\t{\n170: \t\t\t\t{ Name = \"mapChallengeModeID\", Type = \"number\", Nilable = false },\n171: \t\t\t},\n172: \n173: \t\t\tReturns =\n174: \t\t\t{\n175: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n176: \t\t\t\t{ Name = \"id\", Type = \"number\", Nilable = false },\n177: \t\t\t\t{ Name = \"timeLimit\", Type = \"number\", Nilable = false },\n178: \t\t\t\t{ Name = \"texture\", Type = \"number\", Nilable = true },\n179: \t\t\t\t{ Name = \"backgroundTexture\", Type = \"number\", Nilable = false },\n180: \t\t\t\t{ Name = \"mapID\", Type = \"number\", Nilable = false },\n181: \t\t\t},\n182: \t\t},",
+        "contentHash": "5c889dbc765e5c67c33d5de5fcb03dbe24cbb309bd8480ea14507a55091b30e6",
+        "line": 163,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "167: \t\t\tlevel = inTimeInfo and inTimeInfo.level or overtimeInfo.level;\n168: \t\t\tdungeonScore = inTimeInfo and inTimeInfo.dungeonScore or overtimeInfo.dungeonScore;\n169: \t\tend\n170: \t\tlocal name = C_ChallengeMode.GetMapUIInfo(self.maps[i]);\n171: \t\ttinsert(sortedMaps, { id = self.maps[i], level = level, dungeonScore = dungeonScore, name = name});\n172: \tend\n173: ",
+        "contentHash": "d1970a00fe2511abfcc1a78f3df9b016fc40521e695ae214161739554d04e83f",
+        "line": 170,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ScenarioObjectiveTracker.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "706: \t\tif type == Enum.WorldElapsedTimerTypes.ChallengeMode then\n707: \t\t\tlocal mapID = C_ChallengeMode.GetActiveChallengeMapID();\n708: \t\t\tif mapID then\n709: \t\t\t\tlocal _, _, timeLimit = C_ChallengeMode.GetMapUIInfo(mapID);\n710: \t\t\t\tScenarioObjectiveTracker.ChallengeModeBlock:Activate(timerID, elapsedTime, timeLimit);\n711: \t\t\t\treturn;\n712: \t\t\tend",
+        "contentHash": "640ea75b10e36936767e36ed9e2146b6bae2526c5802dae0a0c92ae01848def1",
+        "line": 709,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "278: \t\tlocal completedInTime = splits[i + 1] == \"1\";\n279: \t\tlocal level = tonumber(splits[i + 2]);\n280: \n281: \t\tlocal mapName = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID);\n282: \n283: \t\t--If any of the maps don't exist.. this is a bad link\n284: \t\tif(not mapName) then ",
+        "contentHash": "09d07806ea2d35d5a6ff1712c3db30ca05ad4be143f00267d2aaf9cabf656fed",
+        "line": 281,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_WeeklyRewards/Blizzard_WeeklyRewards.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "817: \t\tfor i = 1, self.info.threshold do\n818: \t\t\tif runHistory[i] then\n819: \t\t\t\tlocal runInfo = runHistory[i];\n820: \t\t\t\tlocal name = C_ChallengeMode.GetMapUIInfo(runInfo.mapChallengeModeID);\n821: \t\t\t\tGameTooltip_AddHighlightLine(GameTooltip, string.format(WEEKLY_REWARDS_MYTHIC_RUN_INFO, runInfo.level, name));\n822: \t\t\tend\n823: \t\tend",
+        "contentHash": "f7bed87e20ab7f09d46565e8955bec0fb27215a5f21702b849143e9433bd7f58",
+        "line": 820,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_ChallengeMode",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+        "line": 163
+      },
+      {
+        "source": "ChallengesFrameMixin:Update",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 170
+      },
+      {
+        "source": "ChallengesFrameMixin:Update",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 215
+      },
+      {
+        "source": "ChallengeModeLegacyWeeklyChestMixin:Update",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 382
+      },
+      {
+        "source": "ChallengesDungeonIconMixin:SetUp",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 481
+      },
+      {
+        "source": "ChallengesDungeonIconMixin:OnEnter",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 525
+      },
+      {
+        "source": "ChallengesKeystoneFrameMixin:OnKeystoneSlotted",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 687
+      },
+      {
+        "source": "ChallengeModeCompleteBannerMixin:PlayBanner",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 871
+      },
+      {
+        "source": "ScenarioTimerMixin:CheckTimers",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ObjectiveTracker/Blizzard_ScenarioObjectiveTracker.lua",
+        "line": 709
+      },
+      {
+        "source": "DisplayDungeonScoreLink",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "line": 281
+      },
+      {
+        "source": "WeeklyRewardsActivityMixin:AddTopRunsToTooltip",
+        "target": "C_ChallengeMode.GetMapUIInfo",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_WeeklyRewards/Blizzard_WeeklyRewards.lua",
+        "line": 820
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "92: \t\t\tName = \"GetDungeonScoreRarityColor\",\n93: \t\t\tType = \"Function\",\n94: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n95: \t\t\tDocumentation = { \"Returns a color value from the passed in overall season M+ rating.\" },\n96: \n97: \t\t\tArguments =\n98: \t\t\t{\n99: \t\t\t\t{ Name = \"dungeonScore\", Type = \"number\", Nilable = false },\n100: \t\t\t},\n101: \n102: \t\t\tReturns =\n103: \t\t\t{\n104: \t\t\t\t{ Name = \"scoreColor\", Type = \"colorRGB\", Mixin = \"ColorMixin\", Nilable = false },\n105: \t\t\t},\n106: \t\t},",
+        "contentHash": "5c889dbc765e5c67c33d5de5fcb03dbe24cbb309bd8480ea14507a55091b30e6",
+        "line": 92,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "224: \tlocal dungeonScore = C_ChallengeMode.GetOverallDungeonScore();\n225: \tlocal chestState = chestFrame:Update(bestMapID, dungeonScore);\n226: \tchestFrame:SetShown(chestState ~= CHEST_STATE_WALL_OF_TEXT);\n227: \tlocal color = C_ChallengeMode.GetDungeonScoreRarityColor(dungeonScore);\n228: \tif(color) then\n229: \t\tself.WeeklyInfo.Child.DungeonScoreInfo.Score:SetVertexColor(color.r, color.g, color.b);\n230: \tend",
+        "contentHash": "d1970a00fe2511abfcc1a78f3df9b016fc40521e695ae214161739554d04e83f",
+        "line": 227,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Communities/CommunitiesMemberList.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1323: \t\tself.GuildInfo:SetText(GUILD_VIEW_RECIPES_LINK);\n1324: \telseif self.guildColumnIndex == EXTRA_GUILD_COLUMN_DUNGEON_SCORE then\n1325: \t\tif(memberInfo.overallDungeonScore) then \n1326: \t\t\tlocal color = C_ChallengeMode.GetDungeonScoreRarityColor(memberInfo.overallDungeonScore);\n1327: \t\t\tif(not color) then \n1328: \t\t\t\tcolor = HIGHLIGHT_FONT_COLOR; \n1329: \t\t\tend ",
+        "contentHash": "4d805fbc2648df81e15be6df871c8a2b5b1268c9258615b7e23df55af0f6107d",
+        "line": 1326,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2091: \t\tmember.Rating:Show();\n2092: \t\tmember:SetWidth(256);\n2093: \telseif not grayedOut and LFGApplicationViewerRatingColumnHeader:IsShown() and dungeonScore then\n2094: \t\tlocal color = C_ChallengeMode.GetDungeonScoreRarityColor(dungeonScore) or HIGHLIGHT_FONT_COLOR;\n2095: \t\tmember.Rating:SetText(color:WrapTextInColorCode(dungeonScore));\n2096: \t\tmember.Rating:Show();\n2097: \t\tmember:SetWidth(256);",
+        "contentHash": "e23031d5aab00e4ea2b9f91be94cfcf4db4c8bf07625c9305902f8236e911f15",
+        "line": 2094,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "262: \tGameTooltip_AddColoredLine(ItemRefTooltip, DUNGEON_SCORE_LINK_LEVEL_CLASS_FORMAT_STRING:format(playerLevel, className), HIGHLIGHT_FONT_COLOR);\n263: \tGameTooltip_AddNormalLine(ItemRefTooltip, DUNGEON_SCORE_LINK_ITEM_LEVEL:format(playerItemLevel));\n264: \n265: \tlocal color = C_ChallengeMode.GetDungeonScoreRarityColor(dungeonScore) or HIGHLIGHT_FONT_COLOR;\n266: \tGameTooltip_AddNormalLine(ItemRefTooltip, DUNGEON_SCORE_LINK_RATING:format(color:WrapTextInColorCode(dungeonScore)));\n267: \tGameTooltip_AddNormalLine(ItemRefTooltip, DUNGEON_SCORE_LINK_RUNS_SEASON:format(runsThisSeason));\n268: ",
+        "contentHash": "09d07806ea2d35d5a6ff1712c3db30ca05ad4be143f00267d2aaf9cabf656fed",
+        "line": 265,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_ChallengeMode",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+        "line": 92
+      },
+      {
+        "source": "ChallengesFrameMixin:Update",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 227
+      },
+      {
+        "source": "ChallengeModeCompleteBannerMixin:PlayBanner",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 939
+      },
+      {
+        "source": "CommunitiesMemberListEntryMixin:RefreshExpandedColumns",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Communities/CommunitiesMemberList.lua",
+        "line": 1326
+      },
+      {
+        "source": "LFGListApplicationViewer_UpdateApplicantMember",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "line": 2094
+      },
+      {
+        "source": "LFGListApplicantMember_OnEnter",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "line": 2289
+      },
+      {
+        "source": "LFGListUtil_SetSearchEntryTooltip",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "line": 4470
+      },
+      {
+        "source": "DisplayDungeonScoreLink",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "line": 265
+      },
+      {
+        "source": "DisplayDungeonScoreLink",
+        "target": "C_ChallengeMode.GetDungeonScoreRarityColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "line": 270
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_ChallengeMode.GetSpecificDungeonScoreRarityColor",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "239: \t\t\tName = \"GetSpecificDungeonScoreRarityColor\",\n240: \t\t\tType = \"Function\",\n241: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n242: \t\t\tDocumentation = { \"Returns a color value from the passed in mythic+ rating for a specific dungeon.\" },\n243: \n244: \t\t\tArguments =\n245: \t\t\t{\n246: \t\t\t\t{ Name = \"specificDungeonScore\", Type = \"number\", Nilable = false },\n247: \t\t\t},\n248: \n249: \t\t\tReturns =\n250: \t\t\t{\n251: \t\t\t\t{ Name = \"specificDungeonScoreColor\", Type = \"colorRGB\", Mixin = \"ColorMixin\", Nilable = false },\n252: \t\t\t},\n253: \t\t},",
+        "contentHash": "5c889dbc765e5c67c33d5de5fcb03dbe24cbb309bd8480ea14507a55091b30e6",
+        "line": 239,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_ChallengeMode",
+        "target": "C_ChallengeMode.GetSpecificDungeonScoreRarityColor",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ChallengeModeInfoDocumentation.lua",
+        "line": 239
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_MythicPlus.GetSeasonBestForMap",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "172: \t\t\tName = \"GetSeasonBestForMap\",\n173: \t\t\tType = \"Function\",\n174: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n175: \n176: \t\t\tArguments =\n177: \t\t\t{\n178: \t\t\t\t{ Name = \"mapChallengeModeID\", Type = \"number\", Nilable = false },\n179: \t\t\t},\n180: \n181: \t\t\tReturns =\n182: \t\t\t{\n183: \t\t\t\t{ Name = \"intimeInfo\", Type = \"MapSeasonBestInfo\", Nilable = true },\n184: \t\t\t\t{ Name = \"overtimeInfo\", Type = \"MapSeasonBestInfo\", Nilable = true },\n185: \t\t\t},\n186: \t\t},",
+        "contentHash": "82b4d8e1223bfc320bc0e9eedad1088aa62a17fe3d55d5a54d2274d3ea98ea84",
+        "line": 172,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "156: \tlocal sortedMaps = {};\n157: \n158: \tfor i = 1, #self.maps do\n159: \t\tlocal inTimeInfo, overtimeInfo = C_MythicPlus.GetSeasonBestForMap(self.maps[i]);\n160: \t\tlocal level = 0;\n161: \t\tlocal dungeonScore = 0;\n162: \t\tif(inTimeInfo and overtimeInfo) then",
+        "contentHash": "d1970a00fe2511abfcc1a78f3df9b016fc40521e695ae214161739554d04e83f",
+        "line": 159,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_MythicPlus",
+        "target": "C_MythicPlus.GetSeasonBestForMap",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/MythicPlusInfoDocumentation.lua",
+        "line": 172
+      },
+      {
+        "source": "ChallengesFrameMixin:Update",
+        "target": "C_MythicPlus.GetSeasonBestForMap",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 159
+      },
+      {
+        "source": "ChallengesDungeonIconMixin:OnEnter",
+        "target": "C_MythicPlus.GetSeasonBestForMap",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 529
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-structure",
+        "name": "C_PlayerInfo.MythicPlusRatingMapSummary",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "366: \t\t\tName = \"MythicPlusRatingMapSummary\",\n367: \t\t\tType = \"Structure\",\n368: \t\t\tDocumentation = { \"Specific information about a completed mythic plus run.\" },\n369: \t\t\tFields =\n370: \t\t\t{\n371: \t\t\t\t{ Name = \"challengeModeID\", Type = \"number\", Nilable = false },\n372: \t\t\t\t{ Name = \"mapScore\", Type = \"number\", Nilable = false },\n373: \t\t\t\t{ Name = \"bestRunLevel\", Type = \"number\", Nilable = false },\n374: \t\t\t\t{ Name = \"bestRunDurationMS\", Type = \"number\", Nilable = false },\n375: \t\t\t\t{ Name = \"finishedSuccess\", Type = \"bool\", Nilable = false },\n376: \t\t\t},\n377: \t\t},",
+        "contentHash": "6081fb8ff2c998bde75698ff275e7923d18130f392f254d62fcc1af856d017dc",
+        "line": 366,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "363: \tTables =\n364: \t{\n365: \t\t{\n366: \t\t\tName = \"MythicPlusRatingMapSummary\",\n367: \t\t\tType = \"Structure\",\n368: \t\t\tDocumentation = { \"Specific information about a completed mythic plus run.\" },\n369: \t\t\tFields =",
+        "contentHash": "6081fb8ff2c998bde75698ff275e7923d18130f392f254d62fcc1af856d017dc",
+        "line": 366,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_PlayerInfo",
+        "target": "C_PlayerInfo.MythicPlusRatingMapSummary",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerInfoDocumentation.lua",
+        "line": 366
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": null,
+    "suggestions": [
+      "use explore with a shorter symbol or path prefix",
+      "check source list for the selected product and ref"
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_ClassColor.GetClassColor",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassColorDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "11: \t\t\tName = \"GetClassColor\",\n12: \t\t\tType = \"Function\",\n13: \t\t\tMayReturnNothing = true,\n14: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n15: \n16: \t\t\tArguments =\n17: \t\t\t{\n18: \t\t\t\t{ Name = \"className\", Type = \"string\", Nilable = false },\n19: \t\t\t},\n20: \n21: \t\t\tReturns =\n22: \t\t\t{\n23: \t\t\t\t{ Name = \"classColor\", Type = \"colorRGB\", Mixin = \"ColorMixin\", Nilable = false },\n24: \t\t\t},\n25: \t\t},",
+        "contentHash": "46e58427bf6fc8a4bcc793811874e941476098c57ed92ab7a8f9d783d224f295",
+        "line": 11,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_SharedXML/ClassColors.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "21: \t};\n22: \n23: \tfor i, className in ipairs(classes) do\n24: \t\tRAID_CLASS_COLORS[className] = C_ClassColor.GetClassColor(className);\n25: \tend\n26: end\n27: ",
+        "contentHash": "4bcad4f425533758334296b3a9b7705ab126e73f7d11e53e8a0f1cf5f578ad58",
+        "line": 24,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_SharedXML/UnitUtil.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "98: end\n99: \n100: function PlayerUtil.GetClassColor()\n101: \treturn C_ClassColor.GetClassColor(PlayerUtil.GetClassFile());\n102: end\n103: \n104: function PlayerUtil.CanUseClassTalents()",
+        "contentHash": "41cab111f5b5d01286d494aed1eb28f1d4e772f1ebf7c7f95f4b8e15987f3a1d",
+        "line": 101,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "178: \tlocal playerItemLevel = tonumber(splits[5]);\n179: \tlocal playerLevel = tonumber(splits[6]);\n180: \tlocal className, classFileName = GetClassInfo(playerClass);\n181: \tlocal classColor = C_ClassColor.GetClassColor(classFileName);\n182: \tif(not playerName or not playerClass or not playerItemLevel or not playerLevel) then \n183: \t\treturn; \n184: \tend ",
+        "contentHash": "09d07806ea2d35d5a6ff1712c3db30ca05ad4be143f00267d2aaf9cabf656fed",
+        "line": 181,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "C_ClassColor",
+        "target": "C_ClassColor.GetClassColor",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassColorDocumentation.lua",
+        "line": 11
+      },
+      {
+        "source": "<top-level@Interface/AddOns/Blizzard_SharedXML/ClassColors.lua:24>",
+        "target": "C_ClassColor.GetClassColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_SharedXML/ClassColors.lua",
+        "line": 24
+      },
+      {
+        "source": "PlayerUtil.GetClassColor",
+        "target": "C_ClassColor.GetClassColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_SharedXML/UnitUtil.lua",
+        "line": 101
+      },
+      {
+        "source": "DisplayPvpRatingLink",
+        "target": "C_ClassColor.GetClassColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "line": 181
+      },
+      {
+        "source": "DisplayDungeonScoreLink",
+        "target": "C_ClassColor.GetClassColor",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ItemRef.lua",
+        "line": 246
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Unit.UnitClass",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "900: \t\t\tName = \"UnitClass\",\n901: \t\t\tType = \"Function\",\n902: \t\t\tMayReturnNothing = true,\n903: \t\t\tSecretWhenUnitIdentityRestricted = true,\n904: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n905: \n906: \t\t\tArguments =\n907: \t\t\t{\n908: \t\t\t\t{ Name = \"unit\", Type = \"UnitToken\", Nilable = false },\n909: \t\t\t},\n910: \n911: \t\t\tReturns =\n912: \t\t\t{\n913: \t\t\t\t{ Name = \"className\", Type = \"cstring\", Nilable = false, ConditionalSecret = true },\n914: \t\t\t\t{ Name = \"classFilename\", Type = \"cstring\", Nilable = false },\n915: \t\t\t\t{ Name = \"classID\", Type = \"number\", Nilable = false },\n916: \t\t\t},\n917: \t\t},",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 900,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Unit.UnitClassBase",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "official-generated-api",
+        "excerpt": "916: \t\t\t},\n917: \t\t},\n918: \t\t{\n919: \t\t\tName = \"UnitClassBase\",\n920: \t\t\tType = \"Function\",\n921: \t\t\tMayReturnNothing = true,\n922: \t\t\tSecretWhenUnitIdentityRestricted = true,",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 919,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Unit.UnitClassFromGUID",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "official-generated-api",
+        "excerpt": "934: \t\t\t},\n935: \t\t},\n936: \t\t{\n937: \t\t\tName = \"UnitClassFromGUID\",\n938: \t\t\tType = \"Function\",\n939: \t\t\tMayReturnNothing = true,\n940: \t\t\tSecretArguments = \"AllowedWhenTainted\",",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 937,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Unit.UnitClassification",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "official-generated-api",
+        "excerpt": "952: \t\t\t},\n953: \t\t},\n954: \t\t{\n955: \t\t\tName = \"UnitClassification\",\n956: \t\t\tType = \"Function\",\n957: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n958: ",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 955,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-event",
+        "name": "Unit.UnitClassificationChanged",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "official-generated-api",
+        "excerpt": "4030: \t\t\tSynchronousEvent = true,\n4031: \t\t},\n4032: \t\t{\n4033: \t\t\tName = \"UnitClassificationChanged\",\n4034: \t\t\tType = \"Event\",\n4035: \t\t\tLiteralName = \"UNIT_CLASSIFICATION_CHANGED\",\n4036: \t\t\tSynchronousEvent = true,",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 4033,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "897: \t\t\t},\n898: \t\t},\n899: \t\t{\n900: \t\t\tName = \"UnitClass\",\n901: \t\t\tType = \"Function\",\n902: \t\t\tMayReturnNothing = true,\n903: \t\t\tSecretWhenUnitIdentityRestricted = true,",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 900,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_AzeriteUI/Blizzard_AzeriteEmpoweredItemUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "38: \t\trankFrame.RingLights.transformNode = rankFrame.RingBg.transformNode:CreateNodeFromTexture(rankFrame.RingLights);\n39: \tend\n40: \n41: \tlocal _, classFilename = UnitClass(\"player\");\n42: \tif ( classFilename == \"DRUID\" ) then\n43: \t\tself.ClipFrame.BackgroundFrame.RankFrames[1].RingBg:SetAtlas(\"Azerite-TitanBG-Rank5-1Gear\");\n44: \tend",
+        "contentHash": "736f6c9d29954308924326ca9ce034c59582905b780ab9aa6dcd9a8042c77e37",
+        "line": 41,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "23: \n24: -- ------------------------------------------------------------------------------------------------------------\n25: function TutorialHelper:GetClass()\n26: \tlocal _, class = UnitClass(\"player\");\n27: \treturn class;\n28: end\n29: ",
+        "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+        "line": 26,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "915: \t\tlocal formatString = nil;\n916: \t\tfor i, member in ipairs(challengeCompletionInfo.members) do\n917: \t\t\tif(member.name) then\n918: \t\t\t\tlocal _, classFilename = UnitClass(member.memberGUID);\n919: \t\t\t\tlocal classColor = classFilename and RAID_CLASS_COLORS[classFilename] or NORMAL_FONT_COLOR;\n920: \t\t\t\tlocal playerString = classColor:WrapTextInColorCode(member.name);\n921: \t\t\t\tif(not formatString) then",
+        "contentHash": "d1970a00fe2511abfcc1a78f3df9b016fc40521e695ae214161739554d04e83f",
+        "line": 918,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ClassMenu/Blizzard_ClassMenu.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "4: ClassMenu = {};\n5: \n6: local function GetPlayerClassData(filterClassID)\n7: \tlocal name, tag, classID = UnitClass(\"player\");\n8: \tlocal classInfo = C_CreatureInfo.GetClassInfo(classID);\n9: \tlocal color = GetClassColorObj(classInfo.classFile);\n10: \treturn name, classID, color.colorStr; ",
+        "contentHash": "220c79919e2fc048aa16a779364bc1ba80f1fa73fbe0cbe12e8990a6ed292f92",
+        "line": 7,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_ClassTrial/Blizzard_ClassTrial.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "88: ClassTrialDialogMixin = {}\n89: \n90: function ClassTrialDialogMixin:ShowThanks(soundKit)\n91: \tlocal className, classFilename = UnitClass(\"player\");\n92: \tself.ClassNameText:SetText(className);\n93: \tself.ClassIcon:SetAtlas(classFilenameToAtlas[classFilename])\n94: \tself.soundKit = soundKit;",
+        "contentHash": "976aed169253d9c2c30f2ce0c044e054b29d5249c196418ba0a4257102da66db",
+        "line": 91,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_HeirloomCollection.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "24: \t\t\tC_Heirloom.SetClassAndSpecFilters(UNSPECIFIED_CLASS_FILTER, UNSPECIFIED_SPEC_FILTER);\n25: \t\telse\n26: \t\t\t-- Default to current class/spec view otherwise\n27: \t\t\tlocal classDisplayName, classTag, classID = UnitClass(\"player\");\n28: \t\t\tlocal specID = nil;\n29: \t\t\tlocal specIndex = C_SpecializationInfo.GetSpecialization();\n30: \t\t\tif specIndex then",
+        "contentHash": "99ec83c582a53d9bed79963ef7a4815020b4019c20d0618b1b1b911668430a39",
+        "line": 27,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Commentator/Blizzard_CommentatorNamePlate.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "134: function CommentatorNamePlateMixin:OnUpdateHealthBorderOverride()\n135: \tself:SetBorderColors();\n136: \n137: \tlocal class = select(2, UnitClass(self.unit))\n138: \tself.ClassIcon:SetAtlas(GetClassAtlas(class));\n139: \n140: \t-- CUF cannot continue.",
+        "contentHash": "9056f06a0e1aeee48418cf208242701c105aba9e98bb756c809da6bead87edd6",
+        "line": 137,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Commentator/Classic/Blizzard_CommentatorUnitFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "94: \t\t-- Spec omitted from BC commentator.\n95: \t\tself.Role:Hide();\n96: \n97: \t\tself:SetClass(select(2, UnitClass(self.unitToken)))\n98: \n99: \t\tself:InitSpells();\n100: \telse",
+        "contentHash": "90a30ded8b1472f8199fcf6fecfc462a7a80e8f45669ab5806720007990b0139",
+        "line": 97,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Commentator/Mainline/Blizzard_CommentatorUnitFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "107: \t\telse\n108: \t\t\tself.Role:Hide();\n109: \t\tend\n110: \t\tself:SetClass(select(2, UnitClass(self.unitToken)))\n111: \n112: \t\tself:InitSpells();\n113: \telse",
+        "contentHash": "362a6ac87d72819ce1a9b8d1a51c4ebf1c6c0377ab8173d2b0fcf6747d3af6da",
+        "line": 110,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Communities/ClubFinder.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "441: \t\tself.ClubDescription2:SetPoint(\"BOTTOM\", self.lastSpecButton, \"BOTTOM\", 0, -30);\n442: \tend\n443: \n444: \tlocal classDisplayName = UnitClass(\"player\");\n445: \n446: \tif(isRecruitingAllSpecs) then\n447: \t\tif(self.info.isGuild) then",
+        "contentHash": "fa85073097cdcd2ea6592b446a8487681291d04084cccd82d4b4d0b9ac991889",
+        "line": 444,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "50: \t\tif racialEntry then\n51: \t\t\tlocal racialSpellID = racialEntry;\n52: \t\t\tif type(racialSpellID) == \"table\" then\n53: \t\t\t\tlocal _, className = UnitClass(\"player\");\n54: \t\t\t\tracialSpellID = racialEntry[className] or racialEntry.default;\n55: \t\t\tend\n56: \t\t\tif type(racialSpellID) == \"number\" then",
+        "contentHash": "d28ccbe2c4aee312fc5328dd9cc53c8e3c560172f2acf3b5be249f5536e9391c",
+        "line": 53,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerUtil.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "25: end\n26: \n27: local function GetCurrentClassAndSpec()\n28: \tlocal classID = select(3, UnitClass(\"player\"));\n29: \tlocal specialization = C_SpecializationInfo.GetSpecialization();\n30: \n31: \treturn classID, specialization;",
+        "contentHash": "3e9ccb0a02e37d12ad1f7f59f723fd16e4be5a7ee55d028fa13da08a36dca0c3",
+        "line": 28,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Deprecated_ArenaUI/Deprecated_ArenaUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "193: \tend\n194: \tSecureUnitButton_OnLoad(self, \"arena\"..self:GetID(), setfocus);\n195: \n196: \tif ( UnitClass(\"arena\"..id) and (not UnitExists(\"arena\"..id))) then\t--It is possible for the unit itself to no longer exist on the client, but some of the information to remain (after reloading the UI)\n197: \t\tself:Show();\n198: \t\tLockUnitFrame(self);\n199: \telseif ( UnitExists(\"arenapet\"..id) and ( not UnitClass(\"arena\"..id) ) ) then\t--We use UnitClass because even if the unit doesn't exist on the client, we may still have enough info to populate the frame.",
+        "contentHash": "73dd4a42f007b79792ab26803e5936abf6d241040f330c7f20e8d2781378a9aa",
+        "line": 196,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2361: \t\tclassID, specID = EJ_GetLootFilter();\n2362: \t\tif specID == 0 then\n2363: \t\t\tlocal spec = C_SpecializationInfo.GetSpecialization();\n2364: \t\t\tif spec and classID == select(3, UnitClass(\"player\")) then\n2365: \t\t\t\tspecID = C_SpecializationInfo.GetSpecializationInfo(spec, nil, nil, nil, UnitSex(\"player\"));\n2366: \t\t\telse\n2367: \t\t\t\tspecID = -1;",
+        "contentHash": "b4e31fc68be7db95cdbcf0395b106d4d97ab0a0cb853d03de6f674c287f4145e",
+        "line": 2364,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_LootJournalItems.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "7: end\n8: \n9: function LootJournalItemsMixin:SetClassAndSpecFiltersFromSpecialization()\n10: \tlocal _, _, classID = UnitClass(\"player\");\n11: \tlocal specID = C_SpecializationInfo.GetSpecializationInfo(C_SpecializationInfo.GetSpecialization());\n12: \tself:SetClassAndSpecFilters(classID, specID);\n13: end",
+        "contentHash": "35025612e63e003321f9760e997ae3d8ae4d2bbbdeb084ef052f92b112e7c64b",
+        "line": 10,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_FrameXML/Mainline/TutorialFrame.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "230: \telseif ( event == \"DISPLAY_SIZE_CHANGED\" ) then\n231: \t\tTutorialFrame_Update(TutorialFrame.id);\n232: \telseif ( event == \"PLAYER_ENTERING_WORLD\" ) then\n233: \t\tlocal _, className = UnitClass(\"player\");\n234: \t\tlocal _, raceName  = UnitRace(\"player\");\n235: \t\tclassName = strupper(className);\n236: \t\traceName = strupper(raceName);",
+        "contentHash": "895c6e3973b2eeaa552e20039afa9ce35fb61138446ba34d89da4d2fd8516510",
+        "line": 233,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_FrameXML/QuestSession.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "13: end\n14: \n15: local function GetMemberClass(guid)\n16: \treturn UnitClass(GetMemberUnit(guid));\n17: end\n18: \n19: QuestSessionDialogTitleMixin = {};",
+        "contentHash": "85ab47d70af498787c91a30de19729a41c3732d9853fb80c9f10f5399e0fdc0a",
+        "line": 16,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/AzeriteUtil.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "56: \tend\n57: \n58: \tlocal playerSex = UnitSex(\"player\");\n59: \tlocal _, _, playerClassID = UnitClass(\"player\");\n60: \tlocal playerSpecID = C_SpecializationInfo.GetSpecializationInfo(C_SpecializationInfo.GetSpecialization());\n61: \n62: \tlocal validSpecs;",
+        "contentHash": "40637f005015549d6acb17a684e6b57596dace2fb3c964e467879428e0960599",
+        "line": 59,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/CommunitiesUtil.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "342: \t\tGameTooltip_AddColoredLine(GameTooltip, CLUB_FINDER_RECRUITING_ALL_SPECS, HIGHLIGHT_FONT_COLOR);\n343: \telse\n344: \t\tlocal isRecruitingPlayerSpec = false;\n345: \t\tlocal classDisplayName, classTag, classID = UnitClass(\"player\");\n346: \t\tfor _, playerSpecID in ipairs(playerSpecs) do \n347: \t\t\tif (recruitingSpecIdMap[playerSpecID]) then\n348: \t\t\t\tGameTooltip_AddNormalLine(GameTooltip, CommunitiesUtil.GetRoleSpecClassLine(classID, playerSpecID));",
+        "contentHash": "7a8183f395a22521fa0021ea28b4a167d1630d9681ee66ea0f1e37e8320712cd",
+        "line": 345,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ],
+    "relations": [
+      {
+        "source": "Unit",
+        "target": "Unit.UnitClass",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "line": 900
+      },
+      {
+        "source": "Unit",
+        "target": "Unit.UnitClassBase",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "line": 919
+      },
+      {
+        "source": "Unit",
+        "target": "Unit.UnitClassFromGUID",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "line": 937
+      },
+      {
+        "source": "Unit",
+        "target": "Unit.UnitClassification",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "line": 955
+      },
+      {
+        "source": "Unit",
+        "target": "Unit.UnitClassificationChanged",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "line": 4033
+      },
+      {
+        "source": "Unit",
+        "target": "Unit.PvPUnitClassification",
+        "kind": "contains",
+        "confidence": "exact",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "line": 4813
+      },
+      {
+        "source": "AzeriteEmpoweredItemUIMixin:OnLoad",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_AzeriteUI/Blizzard_AzeriteEmpoweredItemUI.lua",
+        "line": 41
+      },
+      {
+        "source": "TutorialHelper:GetClass",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "line": 26
+      },
+      {
+        "source": "Class_EquipFirstItemWatcher:GetPotentialItemUpgrades",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "line": 1143
+      },
+      {
+        "source": "ChallengeModeCompleteBannerMixin:PlayBanner",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 918
+      },
+      {
+        "source": "ChallengeModeBannerPartyMemberMixin:SetUp",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 1065
+      },
+      {
+        "source": "GetPlayerClassData",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ClassMenu/Blizzard_ClassMenu.lua",
+        "line": 7
+      },
+      {
+        "source": "ClassTrialDialogMixin:ShowThanks",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_ClassTrial/Blizzard_ClassTrial.lua",
+        "line": 91
+      },
+      {
+        "source": "HeirloomsJournal_OnShow",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_HeirloomCollection.lua",
+        "line": 27
+      },
+      {
+        "source": "CommentatorNamePlateMixin:OnUpdateHealthBorderOverride",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Commentator/Blizzard_CommentatorNamePlate.lua",
+        "line": 137
+      },
+      {
+        "source": "CommentatorUnitFrameMixin:Init",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Commentator/Classic/Blizzard_CommentatorUnitFrame.lua",
+        "line": 97
+      },
+      {
+        "source": "CommentatorUnitFrameMixin:Init",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Commentator/Mainline/Blizzard_CommentatorUnitFrame.lua",
+        "line": 110
+      },
+      {
+        "source": "ClubFinderRequestToJoinMixin:Initialize",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Communities/ClubFinder.lua",
+        "line": 444
+      },
+      {
+        "source": "ClubFinderOptionsMixin:SetEnabledRoles",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Communities/ClubFinder.lua",
+        "line": 882
+      },
+      {
+        "source": "ClubFinderGetPlayerSpecIds",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Communities/ClubFinder.lua",
+        "line": 1504
+      },
+      {
+        "source": "CooldownSyncRelayMixin:GetSupportedTrackedSpells",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+        "line": 53
+      },
+      {
+        "source": "GetCurrentClassAndSpec",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerUtil.lua",
+        "line": 28
+      },
+      {
+        "source": "ArenaEnemyMatchFrameMixin:OnLoad",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Deprecated_ArenaUI/Deprecated_ArenaUI.lua",
+        "line": 196
+      },
+      {
+        "source": "ArenaEnemyMatchFrameMixin:OnLoad",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Deprecated_ArenaUI/Deprecated_ArenaUI.lua",
+        "line": 199
+      },
+      {
+        "source": "ArenaEnemyMatchFrameMixin:UpdatePlayer",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_Deprecated_ArenaUI/Deprecated_ArenaUI.lua",
+        "line": 212
+      },
+      {
+        "source": "EncounterJournal_SetTooltipWithCompare",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+        "line": 2364
+      },
+      {
+        "source": "LootJournalItemsMixin:SetClassAndSpecFiltersFromSpecialization",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_LootJournalItems.lua",
+        "line": 10
+      },
+      {
+        "source": "LootJournalItemSetsMixin:GetPreviewClassAndSpec",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_LootJournalItems.lua",
+        "line": 103
+      },
+      {
+        "source": "LootJournalItemSetsMixin:SetClassAndSpecFilters",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_LootJournalItems.lua",
+        "line": 146
+      },
+      {
+        "source": "TutorialFrame_OnEvent",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXML/Mainline/TutorialFrame.lua",
+        "line": 233
+      },
+      {
+        "source": "TutorialFrame_OnEvent",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXML/Mainline/TutorialFrame.lua",
+        "line": 248
+      },
+      {
+        "source": "TutorialFrame_Update",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXML/Mainline/TutorialFrame.lua",
+        "line": 379
+      },
+      {
+        "source": "GetMemberClass",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXML/QuestSession.lua",
+        "line": 16
+      },
+      {
+        "source": "AzeriteUtil.GenerateRequiredSpecTooltipLine",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/AzeriteUtil.lua",
+        "line": 59
+      },
+      {
+        "source": "CommunitiesUtil.AddLookingForLines",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/CommunitiesUtil.lua",
+        "line": 345
+      },
+      {
+        "source": "<top-level@Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/AuraUtil.lua:2>",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/AuraUtil.lua",
+        "line": 2
+      },
+      {
+        "source": "RuneforgeUtil.GetPreviewClassAndSpec",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_FrameXMLUtil/RuneforgeUtil.lua",
+        "line": 303
+      },
+      {
+        "source": "GarrisonLandingPageMixin:UpdateUIToGarrisonType",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GarrisonUI/Mainline/Blizzard_GarrisonLandingPage.lua",
+        "line": 77
+      },
+      {
+        "source": "GarrisonLandingPageReport_GetShipments",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GarrisonUI/Mainline/Blizzard_GarrisonLandingPage.lua",
+        "line": 406
+      },
+      {
+        "source": "OrderHallMission:UpdateTextures",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GarrisonUI/Mainline/Blizzard_OrderHallMissionUI.lua",
+        "line": 116
+      },
+      {
+        "source": "OrderHallMission:SetupCompleteDialog",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GarrisonUI/Mainline/Blizzard_OrderHallMissionUI.lua",
+        "line": 371
+      },
+      {
+        "source": "TextBossSpec",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GarrisonUI/Mainline/Blizzard_OrderHallMissionUI.lua",
+        "line": 897
+      },
+      {
+        "source": "LFDQueueFrameRandomCooldownFrame_Update",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFDFrame.lua",
+        "line": 533
+      },
+      {
+        "source": "EntryStillSatisfiesFilters",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Mainline/LFGList.lua",
+        "line": 3215
+      },
+      {
+        "source": "LFGCooldownCover_Update",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/LFGFrame.lua",
+        "line": 2077
+      },
+      {
+        "source": "RaidFinderQueueFrameCooldownFrame_Update",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/RaidFinder.lua",
+        "line": 514
+      },
+      {
+        "source": "InspectPaperDollFrame_SetLevel",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_InspectUI/Cata/InspectPaperDollFrame.lua",
+        "line": 11
+      },
+      {
+        "source": "InspectPvPTalentFrameTalent_OnEnter",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_InspectUI/Mainline/InspectPVPFrame.lua",
+        "line": 120
+      },
+      {
+        "source": "InspectPaperDollFrame_SetLevel",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_InspectUI/Mainline/InspectPaperDollFrame.lua",
+        "line": 33
+      },
+      {
+        "source": "InspectPaperDollItemSlotButton_OnClick",
+        "target": "UnitClass",
+        "kind": "call",
+        "confidence": "inferred",
+        "path": "Interface/AddOns/Blizzard_InspectUI/Mainline/InspectPaperDollFrame.lua",
+        "line": 138
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": null,
+    "suggestions": [
+      "use explore with a shorter symbol or path prefix",
+      "check source list for the selected product and ref"
+    ]
+  }
+]

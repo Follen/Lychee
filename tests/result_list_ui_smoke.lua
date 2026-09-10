@@ -385,4 +385,21 @@ assert(bar.frame.scripts.OnUpdate==nil, "combat stops active drag")
 combat=false;bar.frame.scripts.OnMouseDown(bar.frame,"LeftButton")
 bar.frame.scripts.OnHide()
 assert(bar.frame.scripts.OnUpdate==nil, "hidden viewport stops drag")
+local scores={}
+for index=1,8 do scores[index]={"副本"..index,"限时 +12","|cffaa00ff329.0|r"} end
+local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="builtin.keystones",payload={scoreRows=scores}}
+local beforeScores=#created
+Lychee.UI.ResultList:ShowItemTooltip(keyItem,parent)
+assert(tip:GetWidth()==416 and #tip.scoreLabels==9,"eight dungeon rows and column header")
+assert(#created-beforeScores==27,"only bounded FontStrings are created on first score hover")
+assert(tip.scoreLabels[3][2]:GetText()=="限时 +12" and tip.scoreLabels[3][3]:GetText()=="|cffaa00ff329.0|r")
+local afterScores=#created
+Lychee.UI.ResultList:ShowItemTooltip(keyItem,parent)
+assert(#created==afterScores,"score hover reuses labels")
+Lychee.UI.ResultList:ShowItemTooltip(items[1],parent)
+assert(tip:GetWidth()==280,"ordinary tooltip width restored")
+for _,labels in ipairs(tip.scoreLabels) do
+    for _,label in ipairs(labels) do assert(not label:IsShown() and label:GetText()=="","old scores released") end
+end
+assert(rowOne.accent:GetWidth()==2 and rowOne.accent:GetHeight()==22,"selection matches recent list")
 print("Lychee result list UI smoke PASS")

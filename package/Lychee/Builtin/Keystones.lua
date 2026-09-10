@@ -9,6 +9,10 @@ local function time() return GetTime and GetTime() or 0 end
 local function number(value,maximum)
     return type(value)=="number" and value==value and value>=0 and value<=maximum
 end
+local function colored(text,color)
+    if not color then return text end
+    return string.format("|cff%02x%02x%02x%s|r",math.floor(color.r*255+0.5),math.floor(color.g*255+0.5),math.floor(color.b*255+0.5),text)
+end
 local function fullName(unit)
     local name,realm=UnitFullName(unit)
     if not name then return nil end
@@ -92,30 +96,47 @@ local function build(self,put,checkpoint)
         local fresh=entry.received and time()-entry.received<=90
         local total=summary and summary.currentSeasonScore or (fresh and entry.rating)
         if not number(total,100000) then total=nil end
-        local lines={"当季副本分数"}
+        local lines,scoreRows={"当季副本成绩"},{}
         local runs=summary and summary.runs
         if runs and #runs>32 then error("RATING_RUN_LIMIT") end
         for _,id in ipairs(maps) do
             local dungeon=C_ChallengeMode.GetMapUIInfo(id) or ("副本 "..id)
-            local score
+            local score,best
             if runs then
-                for _,run in ipairs(runs) do if run.challengeModeID==id and number(run.mapScore,10000) then score=run.mapScore;break end end
+                for _,run in ipairs(runs) do if run.challengeModeID==id and number(run.mapScore,10000) then score,best=run.mapScore,run;break end end
             end
-            lines[#lines+1]=dungeon.."  "..(score and string.format("%.1f",score) or (runs and "未完成" or "未获取"))
+            local result=runs and "未完成" or "未获取"
+            if best and number(best.bestRunLevel,1000) and best.bestRunLevel>0 then
+                result=(best.finishedSuccess and "限时 +" or "超时 +")..best.bestRunLevel
+            end
+            if isMe and C_MythicPlus.GetSeasonBestForMap then
+                local timed,overtime=C_MythicPlus.GetSeasonBestForMap(id)
+                local seasonBest=timed or overtime
+                if seasonBest and number(seasonBest.level,1000) then
+                    result=(timed and "限时 +" or "超时 +")..seasonBest.level
+                end
+            end
+            local scoreText=score and string.format("%.1f",score) or "—"
+            scoreText=colored(scoreText,score and C_ChallengeMode.GetSpecificDungeonScoreRarityColor and C_ChallengeMode.GetSpecificDungeonScoreRarityColor(score))
+            scoreRows[#scoreRows+1]={dungeon,result,scoreText}
+            lines[#lines+1]=dungeon.."  "..scoreText.." · "..result
         end
         if #maps==0 then lines[#lines+1]="赛季副本列表尚未获取" end
-        local dungeon=map and map>0 and C_ChallengeMode.GetMapUIInfo(map)
-        local title=(isMe and "我" or name).." · "..(dungeon and (dungeon.." +"..level) or (map==0 and "暂无钥匙" or "钥匙未知"))
+        local dungeon,_,_,dungeonIcon
+        if map and map>0 then dungeon,_,_,dungeonIcon=C_ChallengeMode.GetMapUIInfo(map) end
+        local _,class=UnitClass(entry.unit)
+        local classColor=class and C_ClassColor and C_ClassColor.GetClassColor(class)
+        local title=colored(name,classColor)..(isMe and "（我）" or "").." · "..(dungeon and (dungeon.." +"..level) or (map==0 and "暂无钥匙" or "钥匙未知"))
         local spell=dungeon and teleport(map)
         local subtitle=spell and "点击传送至该副本" or (dungeon and "尚未解锁对应传送" or "等待队友的兼容插件回复")
         local description=table.concat(lines,"\n")
-        local badge=total and string.format("分数 %.0f",total) or "分数未知"
+        local badge=total and ("分数 "..colored(string.format("%.0f",total),C_ChallengeMode.GetDungeonScoreRarityColor and C_ChallengeMode.GetDungeonScoreRarityColor(total))) or "分数未知"
         local id="key:"..entry.guid
         put({id=id,title=title,kind="keystone",kindTitle=badge,subtitle=subtitle,description=description,
-            icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\keystone.tga",aliases={"钥匙","key","keys","大秘境","分数"},
-            payload={guid=entry.guid,mapID=map,level=level},
+            icon=dungeonIcon or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\keystone.tga",aliases={"钥匙","key","keys","大秘境","分数"},
+            payload={guid=entry.guid,mapID=map,level=level,scoreRows=scoreRows},
             actions=spell and {{id="teleport",title="传送",kind="secure-spell",spellID=spell}} or {}},
-            title.."\0"..badge.."\0"..description.."\0"..tostring(spell))
+            title.."\0"..badge.."\0"..description.."\0"..tostring(spell).."\0"..tostring(dungeonIcon))
         checkpoint()
     end
 end

@@ -155,6 +155,40 @@ local function tooltipLine(tip, index, text, y, gap)
     return y + math.max(label:GetStringHeight(), index == 1 and 18 or 15)
 end
 
+local function scoreTable(tip, rows, y)
+    tip.scoreLabels=tip.scoreLabels or {}
+    local count=rows and math.min(#rows,16) or 0
+    for index=1,count+1 do
+        if count==0 then break end
+        local labels=tip.scoreLabels[index]
+        if not labels then
+            labels={};tip.scoreLabels[index]=labels
+            for column=1,3 do
+                local label=tip:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+                label:SetWidth(column==1 and 210 or column==2 and 98 or 64)
+                label:SetJustifyH(column==1 and "LEFT" or "RIGHT")
+                label:SetWordWrap(false)
+                Lychee.UI.Theme:SetFont(label,"body")
+                Lychee.UI.Theme:SetTextColor(label,index==1 and "textMuted" or "text")
+                labels[column]=label
+            end
+        end
+        local row=index>1 and rows[index-1]
+        for column,label in ipairs(labels) do
+            local value=row and row[column] or (column==1 and "当季副本" or column==2 and "成绩" or "分数")
+            setText(label,value);setShown(label,true)
+            local top=y+(index-1)*25
+            if label._y~=top then
+                label:ClearAllPoints();label:SetPoint("TOPLEFT",tip,"TOPLEFT",column==1 and 14 or column==2 and 232 or 338,-top);label._y=top
+            end
+        end
+    end
+    for index=count>0 and count+2 or 1,#tip.scoreLabels do
+        for _,label in ipairs(tip.scoreLabels[index]) do setShown(label,false);setText(label,"") end
+    end
+    return count>0 and y+(count+1)*25 or y
+end
+
 local function showTooltip(owner, title, detail)
     if not owner or (InCombatLockdown and InCombatLockdown()) then return end
     local tip = acquireTooltip()
@@ -187,9 +221,19 @@ local function showTooltip(owner, title, detail)
     elseif detail and detail ~= "" and detail ~= title then
         description = detail
     end
+    local scoreRows=type(detail)=="table" and detail.providerID=="builtin.keystones" and detail.payload and detail.payload.scoreRows
+    local wide=type(scoreRows)=="table" and #scoreRows>0
+    local width=wide and 416 or 280
+    if tip._width~=width then
+        tip:SetWidth(width)
+        for _,label in ipairs(tip.labels) do label:SetWidth(width-28) end
+        tip.divider:SetWidth(width-28);tip._width=width
+    end
     local y = tooltipLine(tip, 1, title, 14)
     y = tooltipLine(tip, 2, kind, y, 3)
-    y = tooltipLine(tip, 3, description, y, 10)
+    y = tooltipLine(tip, 3, wide and "" or description, y, 10)
+    if wide then y=scoreTable(tip,scoreRows,y+14)
+    elseif tip.scoreLabels then scoreTable(tip,nil,y) end
     local hasActions = clickHint ~= nil or dragHint ~= nil
     setShown(tip.divider, hasActions)
     if hasActions then
@@ -308,7 +352,7 @@ function ResultList:Create(parent, controller)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
         row.bg = row:CreateTexture(nil, "BACKGROUND"); row.bg:SetAllPoints()
-        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(1, 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
+        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(2, 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
 
         row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", 12, 0)
         row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); setTextureColor(row.dragHighlight, "actionHover")
