@@ -19,7 +19,7 @@ Host 版本：API_VERSION=2，API_REVISION=1。SDK helper 和 LuaLS 类型均使
 | apiVersion | 必填 2。 |
 | minApiRevision | 可选正整数，缺省 1。 |
 | version | 必填非空 string，集成自身版本。 |
-| title | 必填非空 string、本地化映射，或已注册 i18n 中的 `{key="NAME"}`。 |
+| title | 必填非空 string、带非空 default 的本地化映射，或已注册 i18n 中的 `{key="NAME"}`。 |
 | entries | 可选 Entry[]，最多 4096 条；entries 与 query 至少声明一个，空目录有效。 |
 | query | 可选 function(request, reply, context)，返回 nil 或 cancel(reason)。 |
 | resolve | 可选 function(entryID, context)，同步返回当前 Entry 或 nil。 |
@@ -65,7 +65,7 @@ replace 与增量字段互斥；数组必须稠密且无重复条目 ID。Update
 | primaryActionID | 可选已声明 action ID；缺省第一项。 |
 | drag | 可选 Drag；缺省完全禁用拖动。 |
 
-Text 可以是字符串、字符串数组、本地化映射或 `{text,locale?,scope?}` 数组。Host 按当前 locale 和 scope 取值。普通回调收到公共形状的 Entry 副本，命名动作仍是字符串 ID，可修改副本并通过 Update 提交。
+Text 可以是字符串、本地化映射、语言引用 `{key="KEY"}`，或由字符串、语言引用和 `{text,locale?,scope?}` 组成的数组。Host 按当前 locale 和 scope 取值。普通回调收到公共形状的 Entry 副本，命名动作仍是字符串 ID，可修改副本并通过 Update 提交。
 
 ## 动作与拖动
 

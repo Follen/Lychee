@@ -10,6 +10,10 @@ contents:
   - LycheeAPI.lua
   - ApiStubs.lua
   - examples/ThirdPartyFixture/ThirdPartyFixture.toc
+  - examples/ThirdPartyFixture/ThirdPartyFixture_Mainline.toc
+  - examples/ThirdPartyFixture/ThirdPartyFixture_Mists.toc
+  - examples/ThirdPartyFixture/ThirdPartyFixture_Wrath.toc
+  - examples/ThirdPartyFixture/ThirdPartyFixture_TBC.toc
   - examples/ThirdPartyFixture/ThirdPartyFixture.lua
 
   - examples/DeferredProvider.lua

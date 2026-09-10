@@ -33,7 +33,7 @@
 ---@field locale? string
 ---@field scope? LycheeScope
 
----@alias LycheeText string|string[]|table<string,string>|LycheeLocalizedText[]|LycheeLocaleKey|LycheeLocaleKey[]
+---@alias LycheeText string|table<string,string>|LycheeLocaleKey|(string|LycheeLocaleKey|LycheeLocalizedText)[]
 ---@alias LycheeContext table<string,any> Plain-data snapshot; never a Host frame.
 
 ---@class LycheeSpellAction
