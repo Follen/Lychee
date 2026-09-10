@@ -23,7 +23,8 @@ end
 function Motion:Slide(region,parent,target,instant)
     if combat() then return end
     local state=region._lycheeSlide
-    if state and state.playing and state.to==target and not instant then return end
+    if state and state.playing and state.group.IsPlaying and not state.group:IsPlaying() then state.playing=false end
+    if state and state.playing and state.to==target and not instant and not self:IsReduced() then return end
     if state and state.playing then self:Cancel(region,false) end
     local current=region._slideX or target
     if instant or self:IsReduced() or not region.CreateAnimationGroup or math.abs(current-target)<0.001 then
@@ -108,15 +109,18 @@ local function heightTick(driver,elapsed)
     if combat() or not job.region:IsShown() then Motion:StopHeight(false);return end
     job.elapsed=math.min(job.duration,job.elapsed+elapsed)
     local t=job.elapsed/job.duration
+    local revision=Motion.heightRevision
     local value=job.from+(job.to-job.from)*(1-(1-t)^3)
     if math.abs(job.region:GetHeight()-value)>0.1 or t==1 then job.region:SetHeight(value) end
-    if t==1 then Motion:StopHeight(false) end
+    if t==1 and Motion.heightRevision==revision then Motion:StopHeight(false) end
 end
 function Motion:StopHeight(settle)
     local job=self.height;self.height=nil
-    if self.driver then self.driver:SetScript("OnUpdate",nil);self.driver:Hide() end
-    if settle and job and not combat() then job.region:SetHeight(job.to) end
+    self.heightRevision=(self.heightRevision or 0)+1
+    local region,target=job and job.region,job and job.to
     if job then job.region=nil end
+    if self.driver then self.driver:SetScript("OnUpdate",nil);self.driver:Hide() end
+    if settle and region and not combat() then region:SetHeight(target) end
 end
 function Motion:Height(region,target)
     if combat() then return end
@@ -128,6 +132,7 @@ function Motion:Height(region,target)
     if not self.driver then self.driver=CreateFrame("Frame");self.driver:Hide() end
     self.heightState=self.heightState or {}
     local job=self.heightState;self.height=job
+    self.heightRevision=(self.heightRevision or 0)+1
     job.region,job.from,job.to,job.elapsed,job.duration=region,region:GetHeight(),target,0,self.durations.resize
     self.driver:SetScript("OnUpdate",heightTick);self.driver:Show()
 end

@@ -6,7 +6,7 @@ local methods={}
 local function region() return setmetatable({alphaValue=1,height=200,shown=true,scripts={}},{__index=methods}) end
 function methods:SetAlpha(v) assert(not combat);self.alphaValue=v end
 function methods:GetAlpha() return self.alphaValue end
-function methods:SetHeight(v) assert(not combat);self.height=v end
+function methods:SetHeight(v) assert(not combat);self.height=v;if self.onHeight then self.onHeight(v) end end
 function methods:GetHeight() return self.height end
 function methods:IsShown() return self.shown end
 function methods:Show() self.shown=true end
@@ -54,6 +54,11 @@ assert(knob.x==2 and not slide.playing,"rebind cancels old movement")
 M:Slide(knob,parent,16);M:SetReduced(true)
 assert(knob.x==16 and not slide.playing,"reduced motion settles thumb")
 M:SetReduced(false)
+M:Slide(knob,parent,2)
+slide.group:Stop()
+M:Slide(knob,parent,2)
+assert(slide.group:IsPlaying(),"interrupted slide must restart for the same target")
+M:Cancel(knob,true)
 local groupBaseline=groups
 local r=region()
 M:Selection(r,false);assert(groups==groupBaseline and not r:IsShown())
@@ -81,6 +86,16 @@ local mid=r:GetHeight();assert(mid>200 and mid<400)
 M:Height(r,250);assert(r:GetHeight()==mid,"retarget preserves actual height")
 M.driver.scripts.OnUpdate(M.driver,0.3)
 assert(r:GetHeight()==250 and not M.height and not M.driver.scripts.OnUpdate and not M.driver:IsShown())
+r.onHeight=function(v) if v==400 then M:Height(r,450) end end
+M:Height(r,400);M.driver.scripts.OnUpdate(M.driver,0.3)
+assert(M.height and M.height.to==450,"completion must preserve a resize started by its size callback")
+r.onHeight=nil;M.driver.scripts.OnUpdate(M.driver,0.3)
+assert(r:GetHeight()==450 and not M.height)
+r.onHeight=function(v) if v==400 then M:Height(r,475) end end
+M:Height(r,400);M:StopHeight(true)
+assert(M.height and M.height.region==r and M.height.to==475,"settling must not clear a reentrant task's region")
+r.onHeight=nil;M.driver.scripts.OnUpdate(M.driver,0.3)
+assert(r:GetHeight()==475 and not M.height)
 M:Height(r,500);combat=true;M.driver.scripts.OnUpdate(M.driver,0.1)
 assert(not M.height and not M.driver.scripts.OnUpdate,"combat cancels without setters")
 combat=false;M:Height(r,500);M:SetReduced(true)
