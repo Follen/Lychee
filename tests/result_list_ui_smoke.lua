@@ -359,6 +359,8 @@ end)
 bar.frame.height=200
 function bar.frame:GetTop() return 400 end
 function bar.frame:GetEffectiveScale() return 2 end
+bar:SetRange(210,200,10)
+assert(bar._height==48 and bar._offset==152, "slight overflow keeps a short thumb and reaches the track end")
 bar:SetRange(1000,200,0)
 assert(bar.frame:IsShown() and bar._height==40 and bar.travel==160, "proportional thumb with bounded hit area")
 assert(bar.frame.scripts.OnUpdate==nil, "scrollbar has no idle update")

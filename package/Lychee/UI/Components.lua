@@ -230,7 +230,7 @@ function Components:CreateScrollbar(parent, onChanged)
         self.maximum = math.max(0, total - viewport)
         self.value = math.max(0, math.min(self.maximum, value or 0))
         local height = math.max(0, frame:GetHeight())
-        local thumbHeight = math.min(height, math.max(24, height * viewport / math.max(1, total)))
+        local thumbHeight = math.min(height, 48, math.max(24, height * viewport / math.max(1, total)))
         self.travel = math.max(0, height - thumbHeight)
         local offset = self.maximum > 0 and self.travel * self.value / self.maximum or 0
         if self._height ~= thumbHeight then thumb:SetHeight(thumbHeight); self._height = thumbHeight end
