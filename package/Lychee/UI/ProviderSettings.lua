@@ -29,11 +29,11 @@ function P:Create(parent,controller,onBack)
         text:SetPoint("TOPLEFT",frame,"TOPLEFT",x,y);text:SetSize(w or width,22);text:SetJustifyH("LEFT");text:SetText(value)
         return text
     end
-    local function button(value,x,y,w,fn,container,height)
+    local function button(value,x,y,w,fn,container,height,navigation)
         local b
         container=container or frame
-        b=UI.Components:CreateButton(container,{text=value,width=w,height=height or 28,radius=4,
-            colors={normal="transparent",hover="surfaceHover",pressed="surfaceSelected"},
+        b=UI.Components:CreateButton(container,{text=value,width=w,height=height or 28,radius=not navigation and 4 or nil,
+            colors=navigation and {normal="transparent"} or {normal="transparent",hover="surfaceHover",pressed="surfaceSelected"},
             textColors={normal="textMuted",hover="text",pressed="text",disabled="disabled"},onClick=function()
             local pressed=b.press;b.press=nil
             if current() and (pressed==nil or pressed==view.generation) then fn() end
@@ -46,8 +46,9 @@ function P:Create(parent,controller,onBack)
         b.frame:SetPoint("TOPLEFT",container,"TOPLEFT",x,y);return b
     end
     local function back() outer:Hide();onBack() end
-    view.back=button(L["返回功能来源"],0,0,150,back,outer)
-    view.back.label:SetJustifyH("LEFT")
+    view.back=button(L["返回功能来源"],0,0,132,back,outer,28,true)
+    view.back.label:ClearAllPoints();view.back.label:SetPoint("TOPLEFT",view.back.frame,"TOPLEFT",8,0)
+    view.back.label:SetPoint("BOTTOMRIGHT",view.back.frame,"BOTTOMRIGHT",-8,0);view.back.label:SetJustifyH("LEFT")
     view.icon=frame:CreateTexture(nil,"ARTWORK");view.icon:SetSize(metrics.iconSize,metrics.iconSize);view.icon:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listIconInset,-10)
     view.title=label("",metrics.listTitleInset,-4,width-160);UI.Theme:SetTextColor(view.title,"text")
     view.detail=label("",metrics.listTitleInset,-24,width-160,"meta")
