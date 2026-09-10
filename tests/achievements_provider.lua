@@ -129,7 +129,7 @@ assert(not M.ids and not M.texts and not M.job and not M.timer and not M.cancelQ
 assert(I.Registry:SetUserEnabled(M.id,true));combat=true;M:MarkDirty();assert(not M.timer)
 combat=false;M:MarkDirty();drain();assert(#M.ids==6002 and frames==baseFrames+1)
 assert(I.Registry:SetUserEnabled(M.id,false));drain()
-local saved=LycheeDB.achievementCatalog
+local saved=LycheeDB.achievementCatalog.entries[1]
 assert(saved and #saved.ids==6002,"cache persists while disabled")
 local beforeWarm=apiReads
 assert(I.Registry:SetUserEnabled(M.id,true));drain()
@@ -144,7 +144,7 @@ assert(apiReads==beforeGain and M.pendingCount==1 and not M.timer,"combat queues
 combat=false;M.frame.onEvent(M.frame,"PLAYER_REGEN_ENABLED");drain()
 assert(apiReads==beforeGain+1 and M.pendingCount==0 and reads==beforeIdle,"combat recovery is incremental")
 I.Registry:SetUserEnabled(M.id,false)
-LycheeDB.achievementCatalog.ids[2]=LycheeDB.achievementCatalog.ids[1]
+LycheeDB.achievementCatalog.entries[1].ids[2]=LycheeDB.achievementCatalog.entries[1].ids[1]
 local beforeCorrupt=apiReads
 I.Registry:SetUserEnabled(M.id,true);drain()
 assert(apiReads>beforeCorrupt and #M.ids==6002,"duplicate historical IDs trigger rebuild")
@@ -158,7 +158,7 @@ local beforeCharacter=apiReads
 I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeCharacter,"character visibility is isolated")
 I.Registry:SetUserEnabled(M.id,false);drain()
 local beforeCounts=apiReads
-LycheeDB.achievementCatalog.counts[1]=5999
+LycheeDB.achievementCatalog.entries[1].counts[1]=5999
 I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeCounts,"offline category drift rebuilds")
 I.Registry:SetUserEnabled(M.id,false)
 I.Search.RuntimeIdentity.build="next-build"
@@ -179,5 +179,49 @@ local warmMs=(os.clock()-started)*1000
 collectgarbage("restart");collectgarbage("collect");local warmGrowth=collectgarbage("count")-warmBase
 assert(apiReads==infoBefore and warmAlloc<4096 and warmGrowth<64,"warm cycles do not enumerate or retain growth")
 print(string.format("Achievement warm10 cpu_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f achievement_reads=0",warmMs,warmAlloc,warmGrowth))
+-- Independent two-category fixture: removing/readding one item must not read the unchanged category.
+local sourceInfo=GetAchievementInfo
+local categoryTwo=100
+local categoryReads={[1]=0,[2]=0}
+function GetCategoryList() reads=reads+1;return {1,2} end
+function GetCategoryNumAchievements(category) return category==1 and 5900 or categoryTwo end
+function GetAchievementCategory(id) return id>5900 and id<=6000 and 2 or 1 end
+function GetAchievementInfo(id,index)
+    if index then
+        categoryReads[id]=categoryReads[id]+1
+        id=id==1 and index or 5900+index
+    end
+    return sourceInfo(id)
+end
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(#M.ids==6002)
+I.Registry:SetUserEnabled(M.id,false)
+categoryTwo=99;categoryReads={[1]=0,[2]=0}
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(categoryReads[1]==0 and categoryReads[2]==99 and not M.positions[6000] and #M.ids==6001,"only changed category is read; deleted ID removed")
+I.Registry:SetUserEnabled(M.id,false)
+categoryTwo=100;categoryReads={[1]=0,[2]=0}
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(categoryReads[1]==0 and categoryReads[2]==100 and M.positions[6000],"new item appears without unchanged category reads")
+for id=1,6002 do assert(M.positions[id],"independent expected ID set") end
+I.Registry:SetUserEnabled(M.id,false)
+for n=1,4 do
+    character="Player-LRU"..n
+    I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEnabled(M.id,false)
+end
+character="Player-LRU1"
+local switchReads=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads==switchReads,"switching back to cached character avoids directory APIs")
+I.Registry:SetUserEnabled(M.id,false)
+character="Player-LRU5"
+I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEnabled(M.id,false)
+local totalEntries,totalBytes=0,0
+assert(#LycheeDB.achievementCatalog.entries==4)
+for _,cache in ipairs(LycheeDB.achievementCatalog.entries) do
+    assert(not cache.key:find("Player%-LRU2$"),"oldest unused character evicted")
+    totalEntries=totalEntries+#cache.ids;totalBytes=totalBytes+cache.bytes
+end
+assert(totalEntries<=32768 and totalBytes<=4194304)
+print(string.format("Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=4 aggregate_entries=%d aggregate_text_bytes=%d",totalEntries,totalBytes))
 print("Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild")
 print(string.format("Achievements PASS records=6002 retained_KiB=%.1f peak_batch_ms=%.2f frames=%d disabled_work=0",retained,peak,frames))
