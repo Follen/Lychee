@@ -184,3 +184,21 @@ L:Add({
     ["输入前缀后才搜索此功能"]="Search this provider only when a prefix is entered",
     ["开关即时生效，搜索设置需保存"]="Toggles apply immediately. Save search settings to apply.",
 })
+
+L:Add({
+    ["直接搜索名称"]="Search by name",
+    ["设置入口"]="Set up",
+    ["限定搜索范围"]="Search within this feature",
+    ["一词打开列表"]="Open the list with a keyword",
+    ["在名称前加上前缀，只查找此功能"]="Add a prefix before the name to search only this feature",
+    ["完整输入关键词，直接显示此功能的列表"]="Enter the exact keyword to show this feature's list",
+    ["多个词用逗号分隔；清空可移除此入口"]="Separate words with commas. Clear to remove this shortcut.",
+    ["Enter 保存 · Esc 取消编辑"]="Enter to save · Esc to cancel editing",
+    ["输入 %s → 搜索匹配内容"]="Type %s → find matching content",
+    ["已关闭，请使用下方的搜索入口"]="Off. Use one of the shortcuts below.",
+    ["%s → 仅搜索%s"]="%s → search only %s",
+    ["%s → 打开%s列表"]="%s → open the %s list",
+    ["版本与兼容性"]="Version and compatibility",
+    ["收起版本信息"]="Hide version information",
+    ["已恢复默认搜索设置"]="Default search settings restored",
+})
