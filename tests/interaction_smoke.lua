@@ -1,3 +1,4 @@
+function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Offline interaction contract smoke. This harness exercises host-owned UI guards
 -- without pretending to validate the real WoW secure-click implementation.
 _G = _G or {}
@@ -95,7 +96,7 @@ end
 
 local root = "package/Lychee/"
 local files = {
-    "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
+    "Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua", "Builtin/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Core/UserPreferences.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
@@ -963,9 +964,9 @@ assertEq(fixtureRow.primaryAction.kind, "provider", "ordinary Provider action re
 assertEq(fixtureRow.dragger.dragButtons[1], "LeftButton", "custom Provider drag is registered")
 fixtureRow.primaryTarget.scripts.OnClick(fixtureRow.primaryTarget, "LeftButton")
 local fixturePanel = assert(ThirdPartyFixture.GetPanel())
-assertEq(fixturePanel.text:GetText(), "Item 12345", "view Mount receives and renders initial state")
+assertEq(fixturePanel.text:GetText(), "物品 12345", "view Mount receives and renders initial state")
 assert(palette.viewHost:Update({ itemID=9 }))
-assertEq(fixturePanel.text:GetText(), "Item 9", "view Update receives state directly")
+assertEq(fixturePanel.text:GetText(), "物品 9", "view Update receives state directly")
 palette:Hide("fixture-close")
 assert(not fixturePanel.frame:IsShown() and not palette.viewHost:IsActive(), "view teardown stops display")
 assert(palette:Show())
@@ -995,7 +996,7 @@ assert(not palette.input.frame.focused, "outside click still releases keyboard f
 palette.frame.IsMouseOver = originalMouseOver
 palette.input:Focus()
 assert(menuEntries[1].callback())
-assertEq(fixturePanel.text:GetText(), "Item 12345", "recent restores current state before opening the view")
+assertEq(fixturePanel.text:GetText(), "物品 12345", "recent restores current state before opening the view")
 palette:Hide("fixture-done")
 assert(ThirdPartyFixture.Unregister())
 

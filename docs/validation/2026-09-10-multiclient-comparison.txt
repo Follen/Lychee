@@ -1,0 +1,17 @@
+baseline-fe4732a run=1 exit=0
+MEMORY entries=2689 builtins_KiB=3885.0 combined_KiB=7151.8 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.333
+
+current run=1 exit=0
+MEMORY entries=2689 builtins_KiB=3965.2 combined_KiB=7233.3 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.354
+
+baseline-fe4732a run=2 exit=0
+MEMORY entries=2689 builtins_KiB=3885.0 combined_KiB=7151.8 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.375
+
+current run=2 exit=0
+MEMORY entries=2689 builtins_KiB=3965.2 combined_KiB=7233.3 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.354
+
+baseline-fe4732a run=3 exit=0
+MEMORY entries=2689 builtins_KiB=3885.0 combined_KiB=7151.8 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.354
+
+current run=3 exit=0
+MEMORY entries=2689 builtins_KiB=3965.2 combined_KiB=7233.3 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.354

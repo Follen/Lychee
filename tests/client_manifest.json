@@ -1,0 +1,464 @@
+{
+  "version": "0.2.0",
+  "clients": {
+    "retail": {
+      "suffix": "Mainline",
+      "interface": 120100
+    },
+    "classic": {
+      "suffix": "Mists",
+      "interface": 50504
+    },
+    "titan": {
+      "suffix": "Wrath",
+      "interface": 38002
+    },
+    "anniversary": {
+      "suffix": "TBC",
+      "interface": 20506
+    }
+  },
+  "files": [
+    {
+      "path": "Bootstrap.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ProviderLocales.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Locales/UI.enUS.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Locales/Builtin.enUS.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ContextStore.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Search/RuntimeIdentity.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Search/Normalizer.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Search/StaticIndex.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/CommandCatalog.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/CapabilityBroker.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/Boundary.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/IntentRouter.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/Scheduler.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ExtensionRegistry.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Search/QueryOrchestrator.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Search/SearchSession.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ProviderRuntime.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/UserPreferences.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "PublicAPI/SDK.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Data/PlayerSpellAliases.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Secure/Descriptor.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Secure/Policy.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Secure/SecureActionBroker.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/FocusController.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/Theme.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/Motion.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/Components.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/Input.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/ResultList.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/ViewHost.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ResultActionExecutor.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/SettingsView.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/AddonInspector.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/Palette.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/PlayerSpells/Provider.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/PlayerSpells/Init.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/InterfaceActions.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Data/JournalCatalog.lua",
+      "products": [
+        "retail"
+      ]
+    },
+    {
+      "path": "Builtin/CatalogProvider.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Crests.lua",
+      "products": [
+        "retail"
+      ]
+    },
+    {
+      "path": "Builtin/GameMenus.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Bosses.lua",
+      "products": [
+        "retail"
+      ]
+    },
+    {
+      "path": "Builtin/Mounts.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan"
+      ]
+    },
+    {
+      "path": "Builtin/GreatVault.lua",
+      "products": [
+        "retail"
+      ]
+    },
+    {
+      "path": "Builtin/Bags.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Loadouts.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan"
+      ]
+    },
+    {
+      "path": "Builtin/BlizzardSettings.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Keystones.lua",
+      "products": [
+        "retail"
+      ]
+    },
+    {
+      "path": "Builtin/Achievements.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan"
+      ]
+    },
+    {
+      "path": "Builtin/AddonInspector.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Init.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    }
+  ]
+}

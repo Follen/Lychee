@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.player-spells")
 local M=I.Builtin.PlayerSpells
 
 local function registerEvent(frame, event)
@@ -47,8 +48,8 @@ function M:Init()
     if self._initialized then return true end
     local module = self
     local handle, err = _G.Lychee:RegisterProvider({
-        id = self.Provider.extensionID, apiVersion = 2, version = "2.0.0", title = "玩家技能",
-        scope = { product = "retail" }, entries = {},
+        id = self.Provider.extensionID, apiVersion = 2, minApiRevision=2, i18n=L.resources, version = "2.0.0", title = L["玩家技能"],
+        scope={products={"retail","classic","titan","anniversary"}}, entries = {},
         onEnable = function(providerHandle)
             module.Provider.providerHandle = providerHandle
             module.Provider._active = true

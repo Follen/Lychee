@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.mounts")
 local M = { items={}, dirtyIDs={}, epoch=0 }
 I.Builtin.Mounts = M
 
@@ -19,9 +20,9 @@ local function readMount(mountID)
     -- Temporary usability (indoors, movement, zone) is checked by the game on
     -- the hardware click, not baked into the index or action-bar drag support.
     return {
-        id="mount:" .. tostring(mountID), title=name, kind="mount", kindTitle="坐骑", icon=icon,
-        subtitle="点击召唤 · 可拖到动作条", payload={mountID=mountID, spellID=spellID},
-        primaryActionID="summon", actions={{id="summon", title="召唤", kind="secure-spell", spellID=spellID}},
+        id="mount:" .. tostring(mountID), title=name, kind="mount", kindTitle=L["坐骑"], icon=icon,
+        subtitle=L["点击召唤 · 可拖到动作条"], payload={mountID=mountID, spellID=spellID},
+        primaryActionID="summon", actions={{id="summon", title=L["召唤"], kind="secure-spell", spellID=spellID}},
         drag={type="spell", spellID=spellID},
     }
 end
@@ -125,7 +126,7 @@ function M:Init()
     if self.handle then return true end
     if not hasAPI() then return false, "MOUNT_API_UNAVAILABLE" end
     local handle, err = _G.Lychee:RegisterProvider({
-        id="builtin.mounts", apiVersion=2, version="1.0.0", title="坐骑", scope={product="retail"}, entries={},
+        id="builtin.mounts", apiVersion=2,minApiRevision=2,i18n=L.resources, version="1.0.0", title=L["坐骑"], scope={products={"retail","classic","titan"}}, entries={},
         onEnable=function(providerHandle)
             M.handle, M.active = providerHandle, true
             if not M.eventFrame then M.eventFrame=CreateFrame("Frame") end

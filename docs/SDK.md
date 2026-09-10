@@ -1,4 +1,4 @@
-# Lychee SDK：Provider API 2
+# Lychee SDK：Provider API 2.2
 
 SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、坐骑、纹章、游戏菜单、首领、宏伟宝库和第三方示例使用同一接口。字段与限制见 [协议参考](PROTOCOLS.md)，编辑器类型见 [ApiStubs.lua](../lychee-sdk/ApiStubs.lua)。
 
@@ -8,19 +8,25 @@ SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、坐骑�
 
 ```lua
 local SDK = _G.Lychee
-if not SDK or not SDK:Supports(2, 1) then return end
+if not SDK or not SDK:Supports(2, 2) then return end
 
 local provider, err = SDK:RegisterProvider({
     id = "my-addon.search",
     apiVersion = 2,
+    minApiRevision = 2,
+    scope = { products = { "retail", "classic", "titan", "anniversary" } },
+    i18n = {
+        enUS = { NAME="My AddOn", SETTINGS="My AddOn settings", OPEN="Open settings", STATUS="Status", READY="Connected" },
+        zhCN = { NAME="我的插件", SETTINGS="我的插件设置", OPEN="打开设置", STATUS="当前状态", READY="已连接" },
+    },
     version = "1.0.0",
-    title = "My AddOn",
+    title = { key = "NAME" },
     entries = {
-        { id = "settings", title = "My AddOn 设置", keywords = { "选项", "options" },
+        { id = "settings", title = { key = "SETTINGS" }, keywords = { "选项", "options" },
           actions = { "open" } },
     },
     actions = {
-        open = { title = "打开设置", run = function(entry, context)
+        open = { title = { key = "OPEN" }, run = function(entry, context)
             MyAddon.OpenSettings() -- 由你的插件实现
             return { ok = true, close = true }
         end },
@@ -31,11 +37,33 @@ if not provider then MyAddon.ReportIntegrationError(err.code) end
 
 不需要另外注册 Command、SearchSource、IntentHandler 或 CapabilityProvider。条目不声明 actions 时就是可搜索信息，不会被 Host 自动当成可施放或可拖动对象。
 
+## 产品范围与独立 i18n
+
+API 2.2 使用 `apiVersion=2,minApiRevision=2`。`scope.products` 和 `i18n` 均必填；前者包含 1–4 个不重复产品：`retail`（正式服）、`classic`（经典怀旧服产品分支）、`titan`（经典 Titan 产品分支）、`anniversary`（周年服产品分支）。这些是稳定协议标识，不是界面显示名。最小示例假定设置入口已验证全部四种产品；实际接入仅声明验证通过的产品。现有 `minInterface/maxInterface/minBuild/maxBuild` 继续约束版本范围。
+
+API 2.1 注册仍可接入；未声明 `scope.products` 或旧 `scope.product` 时默认仅正式服，不会因接口相似静默扩大到经典服。产品和语言相互独立：中文正式服、英文经典服都由各自的产品和 locale 决定。
+
+`i18n` 资源属于单个 Provider，结构为 `enUS={KEY="English"},zhCN={KEY="中文"}`，可增加 `enGB`、`zhTW`。enUS 必须包含完整键集，其他语言缺键按“精确 locale → 同族 zhCN／enUS → enUS”回退；不能声明 enUS 中不存在的键。zhTW 未翻译时使用简中回退。
+
+资源只接受普通表和字符串，最多四个 locale、每个 locale 256 键；键最长 96 字节、值最长 1024 字节，全部资源累计不超过 128 KiB。格式参数的数量、顺序和类型必须一致，`%%` 表示字面百分号。Host 在注册时校验并复制选定语言，调用方随后改原表不会改变已注册文案；两个 Provider 的同名键不会冲突。
+
+Provider 标题、条目文本、分类标题和动作标题可引用 `{key="KEY"}`；引用对象只能有 key，不可附带 locale／scope 等字段。aliases／keywords 可使用 `{{key="KEY"},"固定别名"}`。字符串始终是字面值，不被隐式当作资源键；游戏返回的物品名、玩家命名方案等动态数据应直接作为字符串传入。拖动条目的 `drag.title` 同样支持字符串或 `{key="KEY"}`；也可通过句柄取得翻译。
+
+```lua
+local message, err = provider:Text("STATUS")
+-- 格式化资源示例：enUS={COUNT="%d items"}, zhCN={COUNT="%d 个物品"}
+-- local countText, err = provider:Text("COUNT", 3)
+```
+
+`handle:Text` 最多接受 16 个格式参数，单个字符串参数不超过 1024 字节，输出不超过 32768 字节。未知键返回 `INVALID_LOCALE_KEY`，格式错误返回 `INVALID_LOCALE_FORMAT`，资源容量超限返回 `LOCALE_LIMIT`，结构错误返回 `INVALID_LOCALES`。调用方应处理 `nil,err`，不要把错误提示当成功译文。
+
+中文品牌 `|cffd53c49荔枝|r启动器`，英文 `|cffd53c49Lychee|r Launcher`，只给品牌词着荔枝红；描述为“魔兽世界万用启动器”／“Universal launcher for World of Warcraft”。
+
 ## 事件驱动更新
 
 ```lua
 provider:Update({ upsert = {
-    { id = "status", title = "当前状态", subtitle = "已连接" },
+    { id = "status", title = {key="STATUS"}, subtitle = {key="READY"} },
 }, remove = { "obsolete-entry" } })
 
 provider:Update({ replace = currentEntries })

@@ -1,3 +1,4 @@
+local L = _G.LycheeInternal.Locale
 local I, Lychee = _G.LycheeInternal, _G.Lychee
 local Settings = {}
 local metrics=Lychee.UI.Theme.Metrics
@@ -29,13 +30,13 @@ local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["buil
     ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
     ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
 local providerDescriptions = {
-    ["builtin.bags"]="搜索物品并定位背包",
-    ["builtin.talent-loadouts"]="搜索并切换天赋方案",
-    ["builtin.equipment-sets"]="搜索并切换装备方案",
-    ["builtin.blizzard-settings"]="定位设置、重载界面与冷却管理器",
-    ["builtin.keystones"]="队伍钥匙、分数与副本传送",
-    ["builtin.achievements"]="搜索成就、查看进度与分享链接",
-    ["builtin.addon-inspector"]="指向界面，识别来源插件",
+    ["builtin.bags"]=L["搜索物品并定位背包"],
+    ["builtin.talent-loadouts"]=L["搜索并切换天赋方案"],
+    ["builtin.equipment-sets"]=L["搜索并切换装备方案"],
+    ["builtin.blizzard-settings"]=L["定位设置、重载界面与冷却管理器"],
+    ["builtin.keystones"]=L["队伍钥匙、分数与副本传送"],
+    ["builtin.achievements"]=L["搜索成就、查看进度与分享链接"],
+    ["builtin.addon-inspector"]=L["指向界面，识别来源插件"],
 }
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local providerIcons = {
@@ -59,11 +60,7 @@ local function rowIcon(record)
     if type(icon) == "string" and icon ~= "" or type(icon) == "number" and icon > 0 then return icon end
     return providerIcons[record.id or pin and pin.providerID] or iconRoot .. "settings.tga"
 end
-local function displayTitle(value, fallback)
-    if type(value)=="string" then return value end
-    if type(value)=="table" then return value[GetLocale and GetLocale() or "enUS"] or value.default or value.enUS or fallback end
-    return fallback
-end
+local function displayTitle(value, fallback) return L:Resolve(value, fallback) end
 local function releaseIdentity(row)
     if row.toggle then row.toggle:FinishMotion() end
     row._bindingGeneration=(row._bindingGeneration or 0)+1
@@ -92,18 +89,18 @@ end
 function Settings:Create(parent, controller)
     local view = {controller=controller, rows={}, groups={}, tab="providers",scroll=0}
     local frame=CreateFrame("Frame",nil,parent);frame:SetAllPoints(parent);frame:Hide();view.frame=frame
-    local sourceTab=button(frame,"功能来源",86,function() view:SetTab("providers") end)
+    local sourceTab=button(frame,L["功能来源"],86,function() view:SetTab("providers") end)
     sourceTab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2)
-    local pinsTab=button(frame,"已固定",86,function() view:SetTab("pins") end)
+    local pinsTab=button(frame,L["已固定"],86,function() view:SetTab("pins") end)
     pinsTab.frame:SetPoint("LEFT",sourceTab.frame,"RIGHT",12,0)
-    local generalTab=button(frame,"综合设置",86,function() view:SetTab("general") end)
+    local generalTab=button(frame,L["综合设置"],86,function() view:SetTab("general") end)
     generalTab.frame:SetPoint("LEFT",pinsTab.frame,"RIGHT",12,0)
     view.tabs={providers=sourceTab,pins= pinsTab,general=generalTab}
     view.underline=frame:CreateTexture(nil,"ARTWORK");view.underline:SetSize(60,2)
     Lychee.UI.Theme:SetColorTexture(view.underline,"accent")
-    view.undo=button(frame,"撤销",48,function()
+    view.undo=button(frame,L["撤销"],48,function()
         if view.removed and I.UserPreferences:Restore(view.removed,view.removedIndex) then
-            view.removed=nil;controller:MarkHomeDirty();view:Refresh();controller:SetStatusText("已恢复固定")
+            view.removed=nil;controller:MarkHomeDirty();view:Refresh();controller:SetStatusText(L["已恢复固定"])
         end
     end)
     view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2);view.undo.frame:Hide()
@@ -154,15 +151,15 @@ function Settings:Create(parent, controller)
             if not source then return end
             local ok,err=I.Registry:SetUserEnabled(row.providerID,not source.userEnabled)
             if not ok then controller:ReportActionResult(false,err);return end
-            controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("更改已保存，固定记录保留")
+            controller:MarkHomeDirty();self:Refresh();controller:SetStatusText(L["更改已保存，固定记录保留"])
         end)
-        row.up=button(row,"上移",40,function() if currentClick(row.up.frame,row) then self:Move(row.pinIndex,-1) end end);row.up.frame:SetPoint("RIGHT",row,"RIGHT",-132,0)
-        row.down=button(row,"下移",40,function() if currentClick(row.down.frame,row) then self:Move(row.pinIndex,1) end end);row.down.frame:SetPoint("RIGHT",row,"RIGHT",-88,0)
-        row.remove=button(row,"取消固定",76,function()
+        row.up=button(row,L["上移"],40,function() if currentClick(row.up.frame,row) then self:Move(row.pinIndex,-1) end end);row.up.frame:SetPoint("RIGHT",row,"RIGHT",-132,0)
+        row.down=button(row,L["下移"],40,function() if currentClick(row.down.frame,row) then self:Move(row.pinIndex,1) end end);row.down.frame:SetPoint("RIGHT",row,"RIGHT",-88,0)
+        row.remove=button(row,L["取消固定"],76,function()
             if not currentClick(row.remove.frame,row) then return end
             if not row.pinIndex then return end
             self.removedIndex=row.pinIndex;self.removed=I.UserPreferences:Remove(row.pinIndex)
-            controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("已取消固定，可以撤销")
+            controller:MarkHomeDirty();self:Refresh();controller:SetStatusText(L["已取消固定，可以撤销"])
         end);row.remove.frame:SetPoint("RIGHT",row,"RIGHT",-8,0)
         bindPress(row.toggle,row)
         bindPress(row.up.frame,row,row.up);bindPress(row.down.frame,row,row.down);bindPress(row.remove.frame,row,row.remove)
@@ -173,7 +170,7 @@ function Settings:Create(parent, controller)
             if not from then return end
             for _,target in ipairs(self.rows) do
                 if target:IsShown() and target.pinIndex and target.IsMouseOver and target:IsMouseOver() then
-                    if I.UserPreferences:Move(from,target.pinIndex) then controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("固定顺序已保存") end
+                    if I.UserPreferences:Move(from,target.pinIndex) then controller:MarkHomeDirty();self:Refresh();controller:SetStatusText(L["固定顺序已保存"]) end
                     break
                 end
             end
@@ -181,7 +178,7 @@ function Settings:Create(parent, controller)
         self.rows[index]=row;return row
     end
     function view:Move(index,delta)
-        if index and I.UserPreferences:Move(index,index+delta) then controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("固定顺序已保存") end
+        if index and I.UserPreferences:Move(index,index+delta) then controller:MarkHomeDirty();self:Refresh();controller:SetStatusText(L["固定顺序已保存"]) end
     end
     function view:Header(index,title,y)
         local header=self.groups[index]
@@ -212,8 +209,8 @@ function Settings:Create(parent, controller)
                 general:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight)
                 local icon=general:CreateTexture(nil,"ARTWORK");icon:SetSize(metrics.iconSize,metrics.iconSize)
                 icon:SetPoint("LEFT",general,"LEFT",metrics.listIconInset,0);icon:SetTexture(iconRoot.."settings.tga")
-                local title=label(general,"body");title:SetPoint("TOPLEFT",general,"TOPLEFT",metrics.listTitleInset,-7);title:SetText("动态效果")
-                local detail=label(general,"meta","textMuted");detail:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-3);detail:SetText("窗口、页面与控件的过渡动画")
+                local title=label(general,"body");title:SetPoint("TOPLEFT",general,"TOPLEFT",metrics.listTitleInset,-7);title:SetText(L["动态效果"])
+                local detail=label(general,"meta","textMuted");detail:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-3);detail:SetText(L["窗口、页面与控件的过渡动画"])
                 local toggle=Lychee.UI.Components:CreateToggle(general)
                 self.motion={frame=toggle,label=label(general,"meta","textMuted")}
                 self.motion.label:SetPoint("RIGHT",toggle,"LEFT",-12,0)
@@ -222,13 +219,13 @@ function Settings:Create(parent, controller)
                     if not motion or not frame:IsShown() or view.tab~="general" or (InCombatLockdown and InCombatLockdown()) then return end
                     motion:SetReduced(not motion:IsReduced())
                     toggle:SetChecked(not motion:IsReduced())
-                    text(view.motion.label,motion:IsReduced() and "关闭" or "开启")
+                    text(view.motion.label,motion:IsReduced() and L["关闭"] or L["开启"])
                 end)
                 self.motion.frame:SetPoint("RIGHT",general,"RIGHT",-metrics.listIconInset,0)
             end
             local enabled=not (Lychee.UI.Motion and Lychee.UI.Motion:IsReduced())
             self.motion.frame:SetChecked(enabled,true)
-            text(self.motion.label,enabled and "开启" or "关闭")
+            text(self.motion.label,enabled and L["开启"] or L["关闭"])
             shown(self.general,true)
             return
         end
@@ -262,7 +259,7 @@ function Settings:Create(parent, controller)
         local y,groupCount,lastGroup=0,0,nil
         for index,record in ipairs(data) do
             if self.tab=="providers" then
-                local group=record.builtin and "内置" or "第三方"
+                local group=record.builtin and L["内置"] or L["第三方"]
                 if group~=lastGroup then
                     if lastGroup then y=y+12 end
                     groupCount=groupCount+1;self:Header(groupCount,group,y);y=y+23;lastGroup=group
@@ -270,7 +267,7 @@ function Settings:Create(parent, controller)
             end
             record.y=y;y=y+rowStride
         end
-        if #data==0 then groupCount=1;self:Header(1,self.tab=="pins" and "还没有固定项。搜索条目后，右键固定到首页。" or "没有已接入的功能来源",12) end
+        if #data==0 then groupCount=1;self:Header(1,self.tab=="pins" and L["还没有固定项。搜索条目后，右键固定到首页。"] or L["没有已接入的功能来源"],12) end
         for index=groupCount+1,#self.groups do shown(self.groups[index],false) end
         self.data=data
         local height=math.max(40,y+12);if content:GetHeight()~=height then content:SetHeight(height) end
@@ -317,11 +314,11 @@ function Settings:Create(parent, controller)
             text(row.name,record.title)
             if self.tab=="providers" then
                 local state=record.state
-                text(row.detail,providerDescriptions[record.id] or (record.builtin and "内置功能" or record.id).."  ·  "..tostring(record.version or ""))
-                text(row.state,state.incompatible and "版本不兼容" or state.state=="pending" and "尚未加载" or state.userEnabled==false and "已关闭" or state.ownerEnabled==false and "扩展自行停用" or "已启用")
+                text(row.detail,providerDescriptions[record.id] or (record.builtin and L["内置功能"] or record.id).."  ·  "..tostring(record.version or ""))
+                text(row.state,state.incompatible and L["版本不兼容"] or state.state=="pending" and L["尚未加载"] or state.userEnabled==false and L["已关闭"] or state.ownerEnabled==false and L["扩展自行停用"] or L["已启用"])
                 row.toggle:SetChecked(state.userEnabled,rebound)
             else
-                text(row.detail,record.item and displayTitle(record.item.sourceTitle, "") or "来源已关闭或条目暂不可用")
+                text(row.detail,record.item and displayTitle(record.item.sourceTitle, "") or L["来源已关闭或条目暂不可用"])
                 text(row.state,"")
                 row.up:SetEnabled(index>1);row.down:SetEnabled(index<#data)
             end

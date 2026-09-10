@@ -42,7 +42,7 @@ local journal={
 }
 C_MountJournal=journal
 local root="package/Lychee/"
-for _, path in ipairs({"Bootstrap.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _, path in ipairs({"Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua", "Builtin/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "Secure/Descriptor.lua","Secure/Policy.lua","Builtin/InterfaceActions.lua","Builtin/Mounts.lua","Builtin/GreatVault.lua","Builtin/Init.lua"}) do dofile(root..path) end

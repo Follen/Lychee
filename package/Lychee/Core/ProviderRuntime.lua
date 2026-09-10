@@ -52,9 +52,42 @@ local function records(entry, input, limit)
         if record.icon ~= nil and not (type(record.icon) == "string" and record.icon ~= "")
             and not (type(record.icon) == "number" and record.icon > 0 and record.icon == math.floor(record.icon)) then return failure("INVALID_SCHEMA", "entry.icon") end
         if record.scope ~= nil then
-            ok, err = I.Boundary:ValidateSchema(record.scope, { product="string?", locale="string?", minInterface="integer?", maxInterface="integer?", minBuild="integer?", maxBuild="integer?" }, "entry.scope")
+            ok, err = I.Boundary:ValidateScope(record.scope,"entry.scope")
             if not ok then return nil, err end
         end
+        if record.actions ~= nil then
+            ok, err = array(record.actions, 16, "entry.actions"); if not ok then return nil, err end
+        end
+        if entry.localizer then
+            for _,field in ipairs({"title","kindTitle","subtitle","subtext","description","aliases","keywords"}) do
+                local value=record[field]
+                if type(value)=="table" and value.key then
+                    record[field],err=entry.localizer:Resolve(value)
+                    if not record[field] then return nil,err end
+                elseif (field=="aliases" or field=="keywords") and type(value)=="table" then
+                    for index,alias in ipairs(value) do
+                        value[index],err=entry.localizer:Resolve(alias)
+                        if not value[index] then return nil,err end
+                    end
+                end
+            end
+            if type(record.category)=="table" then
+                local title=record.category.title
+                record.category.title,err=entry.localizer:Resolve(title)
+                if title and not record.category.title then return nil,err end
+            end
+            if type(record.drag)=="table" and record.drag.title then
+                record.drag.title,err=entry.localizer:Resolve(record.drag.title)
+                if not record.drag.title then return nil,err end
+            end
+            for _,action in ipairs(record.actions or {}) do
+                if type(action)=="table" and action.title then
+                    action.title,err=entry.localizer:Resolve(action.title)
+                    if not action.title then return nil,err end
+                end
+            end
+        end
+        if record.title == nil or record.title == "" then return failure("INVALID_SCHEMA", "entry.title") end
         if record.drag ~= nil and type(record.drag) ~= "table" then return failure("INVALID_SCHEMA", "entry.drag") end
         if record.kind == nil then record.kind = "entry" end
         if record.actions == nil then record.actions = {} end
@@ -119,15 +152,47 @@ function P:Register(definition)
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
     ok, err = keys(definition, { id=true, apiVersion=true, minApiRevision=true, version=true, title=true,
-        entries=true, query=true, resolve=true, actions=true, drags=true, views=true, scope=true, onEnable=true, onDisable=true }, "provider")
+        entries=true, query=true, resolve=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
     if not _G.Lychee:Supports(definition.apiVersion, definition.minApiRevision) then return failure("UNSUPPORTED_API", "apiVersion") end
     if definition.scope ~= nil and type(definition.scope) ~= "table" then return failure("INVALID_SCHEMA", "scope") end
-    ok, err = I.Boundary:ValidateSchema(definition.scope or {}, {
-        product="string?", locale="string?", minInterface="integer?", maxInterface="integer?", minBuild="integer?", maxBuild="integer?",
-    }, "scope")
+    ok, err = I.Boundary:ValidateScope(definition.scope or {},"scope")
     if not ok then return nil, err end
+    if (definition.minApiRevision or 1)>=2 and (not definition.scope or not definition.scope.products or definition.i18n==nil) then
+        return failure("INVALID_SCHEMA","scope.products/i18n")
+    end
+    local localizer
+    if definition.i18n~=nil then
+        if not I.ProviderLocales then return failure("UNSUPPORTED_API","i18n") end
+        localizer,err=I.ProviderLocales:Compile(definition.i18n)
+        if not localizer then return nil,err end
+    end
+    local inputEntries,ownedDefinition=definition.entries,{}
+    for key,value in pairs(definition) do if key~="entries" and key~="i18n" then ownedDefinition[key]=copy(value) end end
+    definition=ownedDefinition
+    -- Unscoped API 2.1 providers predate other clients; do not silently opt them in.
+    if not definition.scope or (not definition.scope.product and not definition.scope.products) then
+        definition.scope=definition.scope or {};definition.scope.product="retail"
+    end
+    definition.entries=inputEntries
+    if localizer then
+        definition.title,err=localizer:Resolve(definition.title)
+        if not definition.title then
+            if err then return nil,err end
+            return failure("INVALID_SCHEMA","provider.title")
+        end
+        for _,field in ipairs({"actions","drags"}) do
+            if type(definition[field])=="table" then
+                for _,action in pairs(definition[field]) do
+                    if type(action)=="table" and action.title then
+                        action.title,err=localizer:Resolve(action.title)
+                        if not action.title then return nil,err end
+                    end
+                end
+            end
+        end
+    end
     if definition.entries == nil and type(definition.query) ~= "function" then return failure("INVALID_SCHEMA", "entries/query") end
     if definition.entries ~= nil and type(definition.entries) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
     for _, field in ipairs({ "query", "resolve", "onEnable", "onDisable" }) do
@@ -148,10 +213,7 @@ function P:Register(definition)
             end
         end
     end
-    local inputEntries, ownedDefinition = definition.entries, {}
-    for key, value in pairs(definition) do if key ~= "entries" then ownedDefinition[key] = copy(value) end end
-    definition = ownedDefinition
-    local entry = { id = definition.id, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0 }
+    local entry = { id = definition.id, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
     local initial, map = records(entry, inputEntries or {})
     if not initial then return nil, map end
     entry.records, entry.recordMap = initial, map
@@ -171,7 +233,8 @@ function P:Register(definition)
     end
     local function start()
         if not internal then enabledBeforeCommit = true; return end
-        if not active(entry) then return end
+        if not active(entry) or entry.started then return end
+        entry.started = true
         if definition.onEnable then
             local called, cleanup = pcall(definition.onEnable, handle)
             if not called then report(entry, "CALLBACK_ERROR", "onEnable")
@@ -182,12 +245,14 @@ function P:Register(definition)
         end
     end
     local function stop(reason)
+        local wasStarted = entry.started
+        entry.started = nil
         P:CancelQueries(reason, entry)
         entry.dynamic, entry.resolved = {}, resolvedRecords()
         entry.dynamicEpoch = entry.dynamicEpoch + 1
         local cleanup = entry.cleanup; entry.cleanup = nil
         if cleanup and not pcall(cleanup, reason) then report(entry, "CALLBACK_ERROR", "cleanup") end
-        if definition.onDisable and not pcall(definition.onDisable, reason) then report(entry, "CALLBACK_ERROR", "onDisable") end
+        if wasStarted and definition.onDisable and not pcall(definition.onDisable, reason) then report(entry, "CALLBACK_ERROR", "onDisable") end
     end
     local draft
     draft, err = I.Registry:Begin({ id = entry.id, title = definition.title, version = definition.version,
@@ -265,6 +330,11 @@ function P:Register(definition)
         if not (C_Timer and C_Timer.NewTimer) and I.Search.Session then I.Search.Session:RefreshSource() end
         return true
     end
+    function handle:Text(key,...)
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        if not entry.localizer then return failure("INVALID_LOCALE_KEY","i18n",entry.id) end
+        return entry.localizer:Text(key,...)
+    end
     function handle:GetState()
         if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end
         local state = internal:GetState()
@@ -283,6 +353,7 @@ function P:Register(definition)
         local removed, removeError = internal:Unregister()
         if removed then
             P.entries[entry.id] = nil
+            entry.localizer=nil
             entry.records, entry.recordMap, entry.recordOrder, entry.dynamic, entry.resolved = {}, {}, {}, {}, {}
             definition.actions, definition.drags, definition.views, definition.query, definition.resolve = nil, nil, nil, nil, nil
             definition.onEnable, definition.onDisable = nil, nil

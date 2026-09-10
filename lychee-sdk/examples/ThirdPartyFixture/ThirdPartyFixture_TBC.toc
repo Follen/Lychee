@@ -1,0 +1,8 @@
+## Interface: 20506
+## Title: Lychee Third-Party Fixture
+## Notes: Development fixture for the Lychee public facade
+## Version: 2.2.0
+## Author: Lychee
+## OptionalDeps: Lychee
+
+ThirdPartyFixture.lua

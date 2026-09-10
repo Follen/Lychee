@@ -4,7 +4,7 @@ runtimeAddon: false
 hostAddon: Lychee
 facade: _G.Lychee
 apiVersion: 2
-apiRevision: 1
+apiRevision: 2
 contents:
   - README.md
   - LycheeAPI.lua

@@ -17,13 +17,7 @@ local function copyValue(value, seen)
     return copy
 end
 
-local function display(value)
-    if type(value) == "string" then return value end
-    if type(value) ~= "table" then return "" end
-    if value.text then return value.text end
-    local locale = I.Search.Normalizer.locale
-    return value[locale] or value.default or value.enUS or ""
-end
+local function display(value) return I.Search.Normalizer:Display(value) end
 
 local function isCatalogCommand(command)
     local match = command.match

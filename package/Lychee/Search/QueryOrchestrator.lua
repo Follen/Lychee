@@ -27,22 +27,7 @@ local function appendUnique(out, seen, item, command)
 end
 
 local function displayText(value)
-    if type(value) == "string" then return value end
-    if type(value) ~= "table" then return "" end
-    local normalizer = I.Search.Normalizer
-    local locale = normalizer.locale
-    local entries = normalizer:Localized(value)
-    local defaultText, englishText
-    for index = 1, #entries do
-        local entry = entries[index]
-        local identity = I.Search.RuntimeIdentity
-        if not identity or identity:MatchesScope(nil, entry) then
-            if entry.locale == locale then return entry.text end
-            if entry.locale == "default" and defaultText == nil then defaultText = entry.text end
-            if entry.locale == "enUS" and englishText == nil then englishText = entry.text end
-        end
-    end
-    return defaultText or englishText or ""
+    return I.Search.Normalizer:Display(value)
 end
 
 local function displayActions(actions)

@@ -1,6 +1,6 @@
 # Lychee 通用搜索框架
 
-当前契约：Provider API 2 / revision 1。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
+当前契约：Provider API 2.2 / revision 2。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
 
 ## 产品模型
 
@@ -12,7 +12,8 @@ Host 持有搜索会话、索引、排序、结果行、最近使用和受保护
 
 ```text
 Lychee:RegisterProvider(definition)
-  -> ProviderRuntime: validation, copying, instances, query tasks, resolution
+  -> ProviderLocales: per-Provider resources, bounded validation, selected locale
+  -> ProviderRuntime: product scopes, validation, copying, instances, query tasks, resolution
   -> ExtensionRegistry: registration and enabled/removed lifecycle
   -> StaticIndex: compiled entries, matching, incremental replacement
   -> QueryOrchestrator + SearchSession: merging, ranking, cancellation
@@ -26,7 +27,17 @@ Lychee:RegisterProvider(definition)
 
 `CommandCatalog`、`CapabilityBroker`、`IntentRouter` 保留为 Host 内部模块与独立测试对象，不是 API 2 的第三方接入模型。SDK 不公开旧的 Extension draft 或多角色注册流程，也不维护一套旧协议适配层。
 
-ProviderRuntime 是统一边界，不建立第二套索引或第二套启用状态。公共句柄只提供 Update、SetEnabled、GetState、Unregister；内部 generation 和 source token 不交给调用方。
+ProviderRuntime 是统一边界，不建立第二套索引或第二套启用状态。公共句柄提供 Text、Update、SetEnabled、GetState、Unregister；内部 generation 和 source token 不交给调用方。
+
+## 产品与语言边界
+
+API 2.2 的 Provider 必须明确 `scope.products`（1–4 个唯一的 retail／classic／titan／anniversary）并注册自己的 `i18n`，不能使用 Host 私有字典代替业务翻译。产品范围与 build／interface 上下界共同决定可用性；不支持的来源不启动功能事件和后台工作。旧 revision 1 无产品声明默认仅正式服。
+
+ProviderLocales 只编译普通资源表：enUS 是完整基线，zhCN／zhTW／enGB 可部分覆盖，禁止额外键。四个 locale 各最多 256 键，键 96 字节、值 1024 字节，总计 128 KiB；格式参数保持类型和顺序。编译后按当前 locale、同族 zhCN／enUS、enUS 的顺序构建 Provider 自有的选定字典，无全局第三方命名空间。语言资源外部修改与已注册字典隔离，关闭不产生任何语言驱动或事件。
+
+严格 `{key="KEY"}` 在注册、更新和动态回复边界解析为显示文本；普通字符串和搜索别名仍按字面处理。引用不能添加 scope／locale 字段。公共 `handle:Text` 支持最多 16 个参数、每个字符串 1024 字节、结果 32768 字节的受限格式化；未知键和非法格式以结构化错误返回。显示文本进入原有索引，不另建翻译索引。客户端语言参与搜索／目录缓存身份，产品支持与语言选择分别判断。
+
+Host 自身界面语言由独立基础字典负责，zhTW 暂以简中回退，enGB 使用英语。品牌显示为 `|cffd53c49荔枝|r启动器`／`|cffd53c49Lychee|r Launcher`，描述为“魔兽世界万用启动器”／“Universal launcher for World of Warcraft”；目录名与稳定 AddOn ID 始终是 Lychee。
 
 ## 数据与身份
 
@@ -60,7 +71,7 @@ ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state
 
 ## 内置 Provider
 
-`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 保持 2 / revision 1。
+`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 为 2 / revision 2。
 
 - `Crests.lua`：一个可搜索条目和一个托管视图；五档当前迷雾纹章首次打开时创建固定行，之后复用。只在显示时注册 `CURRENCY_DISPLAY_UPDATE`，带货币 ID 的事件仅刷新对应行；关闭、禁用、注销均停止事件，读取失败显示“—”并允许重试。
 - `GameMenus.lua`：34 条静态菜单记录，每条引用固定开窗函数和本地透明 TGA 图标；支持分页的界面传明确页签，切换式入口先检查已打开状态。冒险指南的六个入口从实际页签控件读取 ID，复用原生 OnClick 路径同步显示与游戏保存的页签；隐藏、禁用或受限页签返回失败。

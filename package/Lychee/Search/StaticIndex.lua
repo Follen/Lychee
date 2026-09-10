@@ -105,7 +105,7 @@ local function localizedEntries(value, scope)
     local out = {}
     for index = 1, #entries do
         local entry = entries[index]
-        if (entry.locale == "default" or entry.locale == I.Search.Normalizer.locale)
+        if I.Search.Normalizer:LocaleRank(entry.locale)
             and (not identity or identity:MatchesScope(scope, entry)) then
             out[#out + 1] = entry
         end

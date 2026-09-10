@@ -1,3 +1,4 @@
+local L = _G.LycheeInternal.Locale
 local UI=_G.Lychee.UI
 function UI.CreateAddonInspector(owner)
     local T,C=UI.Theme,UI.Components
@@ -12,14 +13,14 @@ function UI.CreateAddonInspector(owner)
         T:SetFont(value,role);T:SetTextColor(value,color);return value
     end
     view.kicker=label("meta","textDim",16,-12,220,16)
-    view.kicker:SetText("插件识别")
+    view.kicker:SetText(L["插件识别"])
     view.heading=label("title","text",16,-34,288,22)
     view.confidence=label("meta","textMuted",16,-60,288,18)
     view.name=label("body","textMuted",16,-84,288,18)
     view.detailMeta=label("meta","textMuted",16,-124,288,18)
-    view.sourceLabel=label("meta","textDim",16,-150,288,16);view.sourceLabel:SetText("创建位置")
+    view.sourceLabel=label("meta","textDim",16,-150,288,16);view.sourceLabel:SetText(L["创建位置"])
     view.details=label("body","textMuted",16,-170,288,48)
-    view.parentLabel=label("meta","textDim",16,-226,288,16);view.parentLabel:SetText("父级关联")
+    view.parentLabel=label("meta","textDim",16,-226,288,16);view.parentLabel:SetText(L["父级关联"])
     view.parents=label("body","textMuted",16,-246,288,42)
     view.divider=frame:CreateTexture(nil,"BACKGROUND")
     view.divider:SetHeight(1);view.divider:SetPoint("TOPLEFT",16,-112);view.divider:SetPoint("TOPRIGHT",-16,-112)
@@ -37,16 +38,16 @@ function UI.CreateAddonInspector(owner)
         T:SetFont(b.label,"body");return b
     end
     view.close=button("Esc",266,-6,40,function() owner:Stop() end)
-    view.copy=button("复制信息",16,-302,140,function()
+    view.copy=button(L["复制信息"],16,-302,140,function()
         if not owner.data then return end
         view.copying=not view.copying;view:Layout()
         if view.copying then
             view.report=owner:Report();view.edit:SetText(view.report);view.edit:Show();view.edit:SetFocus();view.edit:HighlightText()
         else view.edit:ClearFocus();view.edit:Hide() end
     end,true)
-    view.parent=button("上一级",164,-302,140,function() owner:Parent() end,true)
-    view.setup=button("启用来源记录并重载",16,-338,288,function()
-        if owner:EnableSource()==false then view.footer:SetText("无法启用来源记录，请稍后重试") end
+    view.parent=button(L["上一级"],164,-302,140,function() owner:Parent() end,true)
+    view.setup=button(L["启用来源记录并重载"],16,-338,288,function()
+        if owner:EnableSource()==false then view.footer:SetText(L["无法启用来源记录，请稍后重试"]) end
     end)
     local edit=CreateFrame("EditBox",nil,frame);view.edit=edit
     edit:SetPoint("TOPLEFT",16,-60);edit:SetSize(288,230);edit:SetMultiLine(true);edit:SetAutoFocus(false)
@@ -74,23 +75,23 @@ function UI.CreateAddonInspector(owner)
         end
         self.name:SetShown(not self.copying)
         self.confidence:SetShown(not self.copying)
-        self.copy:SetText(self.copying and "返回信息" or "复制信息")
+        self.copy:SetText(self.copying and L["返回信息"] or L["复制信息"])
         self.copy.frame:SetShown(expanded);self.parent.frame:SetShown(expanded and not self.copying)
         self.setup.frame:SetShown(setup)
         self.footer:ClearAllPoints();self.footer:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",16,12)
-        self.footer:SetText(self.copying and "Ctrl+C 复制 · Esc 退出" or (expanded and "松开 Shift 继续识别 · Esc 退出" or "按住 Shift 查看详情 · Esc 退出"))
+        self.footer:SetText(self.copying and L["Ctrl+C 复制 · Esc 退出"] or (expanded and L["松开 Shift 继续识别 · Esc 退出"] or L["按住 Shift 查看详情 · Esc 退出"]))
         if not self.copying then self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("") end
         self:Place(owner.target,true)
     end
     function view:Update(target,data)
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
-        self.heading:SetText(data and data.title or "插件识别")
-        self.confidence:SetText(data and data.confidence or "指向界面，查看来自哪个插件")
-        self.name:SetText(data and data.name or "无需点击 · Esc 退出")
+        self.heading:SetText(data and data.title or L["插件识别"])
+        self.confidence:SetText(data and data.confidence or L["指向界面，查看来自哪个插件"])
+        self.name:SetText(data and data.name or L["无需点击 · Esc 退出"])
         local location=data and data.location or ""
         self.details:SetText(location)
         self.detailMeta:SetText(data and (data.kind.."  ·  "..data.size.."  ·  "..data.strata) or "")
-        self.parents:SetText(data and (#data.parents>0 and table.concat(data.parents,"\n",1,math.min(2,#data.parents)) or "未发现可确认的父级来源") or "")
+        self.parents:SetText(data and (#data.parents>0 and table.concat(data.parents,"\n",1,math.min(2,#data.parents)) or L["未发现可确认的父级来源"]) or "")
         self.copy:SetEnabled(data~=nil)
         local parent=target and owner:Read(target,"GetParent")
         self.parent:SetEnabled(parent~=nil and parent~=UIParent and parent~=WorldFrame)

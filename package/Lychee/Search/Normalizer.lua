@@ -45,6 +45,24 @@ function N:AliasText(alias)
     return alias
 end
 
+function N:LocaleRank(locale)
+    if locale==self.locale then return 1 end
+    if (self.locale=="zhTW" and locale=="zhCN") or (self.locale=="enGB" and locale=="enUS") then return 2 end
+    if locale==nil or locale=="default" then return 3 end
+    if locale=="enUS" then return 4 end
+end
+function N:Display(value,fallback)
+    if type(value)=="string" then return value end
+    if type(value)~="table" then return fallback or "" end
+    local best,rank
+    for _,entry in ipairs(self:Localized(value)) do
+        local candidate=self:LocaleRank(entry.locale)
+        local identity=I.Search.RuntimeIdentity
+        if candidate and (not rank or candidate<rank) and (not identity or identity:MatchesScope(nil,entry)) then best,rank=entry.text,candidate end
+    end
+    return best or fallback or ""
+end
+
 function N:Localized(value, scope)
     local out = {}
     if type(value) == "string" then
@@ -52,7 +70,7 @@ function N:Localized(value, scope)
     elseif type(value) == "table" then
         if value.text or value.title then
             out[1] = { text = self:AliasText(value), locale = value.locale or "default", scope = value.scope or scope }
-        elseif value.default or value.zhCN or value.enUS then
+        elseif value.default or value.zhCN or value.zhTW or value.enUS or value.enGB then
             for locale, text in pairs(value) do
                 if type(text) == "string" then out[#out + 1] = { text = text, locale = locale, scope = scope } end
             end
@@ -152,7 +170,7 @@ function N:MatchFields(query, title, aliases, keywords)
         for entryIndex = 1, #entries do
             local entry = entries[entryIndex]
             local identity = I.Search.RuntimeIdentity
-            if (not identity or identity:MatchesScope(nil, entry)) and (entry.locale == "default" or entry.locale == self.locale) then
+            if (not identity or identity:MatchesScope(nil, entry)) and self:LocaleRank(entry.locale) then
                 if self:MatchText(query, entry.text, field.name) then return true end
             end
         end

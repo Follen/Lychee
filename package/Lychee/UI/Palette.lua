@@ -1,11 +1,11 @@
+local L = _G.LycheeInternal.Locale
 local I = _G.LycheeInternal
 local Lychee = _G.Lychee or {}
 _G.Lychee = Lychee
 Lychee.UI = Lychee.UI or {}
 
-local locale = GetLocale and GetLocale() or "enUS"
-_G.BINDING_HEADER_LYCHEE = "Lychee"
-_G.BINDING_NAME_TOGGLELYCHEE = locale == "zhCN" and "打开/关闭 Lychee" or "Open/Close Lychee"
+_G.BINDING_HEADER_LYCHEE = L.name
+_G.BINDING_NAME_TOGGLELYCHEE = L["打开/关闭启动器"]
 
 local Palette = {}
 Palette.__index = Palette
@@ -66,28 +66,7 @@ local function paletteDB()
     return db
 end
 
-local function localized(value, fallback)
-    if type(value) == "string" then return value end
-    if type(value) ~= "table" then return fallback or "" end
-    local current = GetLocale and GetLocale() or "enUS"
-    local internal = _G.LycheeInternal
-    local normalizer = internal and internal.Search and internal.Search.Normalizer
-    if normalizer and normalizer.Localized then
-        local entries = normalizer:Localized(value)
-        local defaultText, englishText
-        for index = 1, #entries do
-            local entry = entries[index]
-            local identity = internal.Search.RuntimeIdentity
-            if not identity or identity:MatchesScope(nil, entry) then
-                if entry.locale == current then return entry.text end
-                if entry.locale == "default" and defaultText == nil then defaultText = entry.text end
-                if entry.locale == "enUS" and englishText == nil then englishText = entry.text end
-            end
-        end
-        return defaultText or englishText or fallback or ""
-    end
-    return value[current] or value.default or value.enUS or fallback or ""
-end
+local function localized(value, fallback) return L:Resolve(value, fallback) end
 
 local function homeLabel(value, fallback)
     if type(value) == "table" then return localized(value, fallback) end
@@ -120,10 +99,10 @@ local function createHomeView(parent, controller)
     local view = { frame = frame, content = content, controller = controller, tiles = {}, headers = {}, sections = {}, scroll = 0, selected = 1 }
     view.empty = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     view.empty:SetPoint("CENTER", frame, "CENTER", 0, 0)
-    view.empty:SetText(localized({ zhCN = "搜索并使用后，常用入口会出现在这里", enUS = "Your recently used actions will appear here" }))
+    view.empty:SetText(L["搜索并使用后，常用入口会出现在这里"])
     tint(view.empty, color("muted"))
     Lychee.UI.Theme:SetFont(view.empty, "body")
-    view.manage = Lychee.UI.Components:CreateNavigationButton(view.content, {width=48,height=20,text="管理",
+    view.manage = Lychee.UI.Components:CreateNavigationButton(view.content, {width=48,height=20,text=L["管理"],
         onClick=function() controller:OpenSettings("pins") end})
     Lychee.UI.Theme:SetFont(view.manage.label, "meta")
     view.manage.frame:Hide()
@@ -526,10 +505,10 @@ function Palette:Create()
     self.settingsTitle:SetPoint("LEFT", self.header, "LEFT", 82, 0)
     Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
     Lychee.UI.Theme:SetTextColor(self.settingsTitle, "text")
-    self.settingsTitle:SetText("荔枝设置"); self.settingsTitle:Hide()
+    self.settingsTitle:SetText(L["荔枝设置"]); self.settingsTitle:Hide()
     self.settingsBack = components:CreateNavigationButton(self.header, {
         width = 90, height = 28, point = "RIGHT", relativePoint = "RIGHT", x = -66,
-        text = "返回搜索",
+        text = L["返回搜索"],
         onClick = function() self:CloseSettings() end,
     })
     local backLabel = self.settingsBack.label
@@ -575,7 +554,7 @@ function Palette:Create()
     paint(divider, color("border"))
 
     self.emptyStateComponent = components:CreateEmptyState(self.content, {
-        title = localized({ zhCN = "没有找到结果", enUS = "No results found" }, "No results found"),
+        title = L["没有找到结果"],
         detail = "",
         titleColor = "text", detailColor = "textMuted", shown = false,
     })
@@ -654,10 +633,10 @@ function Palette:Create()
         if internal.WirePalette then internal.WirePalette(self) end
     end
     if Lychee.RegisterProvider then
-        self.settingsProvider = Lychee:RegisterProvider({id="lychee.settings",apiVersion=2,version="1.0.0",title="荔枝设置",
-            entries={{id="settings",title="荔枝设置",kindTitle="设置",aliases={"设置","荔枝设置","lychee settings"},
+        self.settingsProvider = Lychee:RegisterProvider({id="lychee.settings",apiVersion=2,version="1.0.0",title=L["荔枝设置"],
+            entries={{id="settings",title=L["荔枝设置"],kindTitle=L["设置"],aliases={"设置","荔枝设置","lychee settings"},
                 icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga",actions={"open"}}},
-            actions={open={title="打开荔枝设置",run=function() local ok,err=self:OpenSettings();if not ok then return nil,err end;return {ok=true,close=false} end}}})
+            actions={open={title=L["打开荔枝设置"],run=function() local ok,err=self:OpenSettings();if not ok then return nil,err end;return {ok=true,close=false} end}}})
     end
     return self
 end
@@ -683,7 +662,7 @@ function Palette:OpenSettings(tab)
     self.settingsView.frame:Show(); self.settingsView:SetTab(tab or "providers")
     if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.settingsView.frame,"page") end
     self.settingsTitle:Show(); self.settingsBack.frame:Show()
-    self:ResizeForMode("settings"); self:SetStatusText("更改即时生效")
+    self:ResizeForMode("settings"); self:SetStatusText(L["更改即时生效"])
     return true
 end
 
@@ -768,7 +747,7 @@ function Palette:RefreshHomeSections(allowExpand)
         for index, pin in ipairs(preferences:GetPins()) do
             local item = preferences:Resolve(pin)
             local title = type(pin) == "table" and (pin.title or pin.entryID) or tostring(pin)
-            sections[#sections + 1] = {id="pin:" .. index, groupID="pinned", groupTitle=localized({zhCN="已固定",enUS="Pinned"}),
+            sections[#sections + 1] = {id="pin:" .. index, groupID="pinned", groupTitle=L["已固定"],
                 title=item and item.text or title, icon=item and item.icon or type(pin)=="table" and pin.icon,
                 item=item, pinnedRef=pin, enabled=item~=nil, meta=item and item.kindTitle or ""}
         end
@@ -777,7 +756,7 @@ function Palette:RefreshHomeSections(allowExpand)
     for index = 1, #items do
         local item = items[index]
         sections[#sections + 1] = { id = "saved:" .. item.ref.providerID .. ":" .. item.id, groupID = "recent",
-            groupTitle = localized({ zhCN = "最近使用", enUS = "Recent" }, "Recent"),
+            groupTitle = L["最近使用"],
             title = item.text, icon = item.icon, item = item, meta = item.kindTitle or "", categoryColor = item.categoryColor }
     end
     if self.secureBroker then
@@ -819,12 +798,12 @@ end
 
 function Palette:SetStatus(mode, count)
     local text
-    if mode == "home" then text = localized({ zhCN = "输入即搜索", enUS = "Type to search" })
-    elseif mode == "panel" then text = localized({ zhCN = "详情", enUS = "Detail" }, "Detail")
-    elseif count and count > 0 then text = localized({ zhCN = "搜索结果：", enUS = "Results: " }, "Results: ") .. tostring(count)
-    else text = localized({ zhCN = "没有结果", enUS = "No results" }, "No results") end
+    if mode == "home" then text = L["输入即搜索"]
+    elseif mode == "panel" then text = L["详情"]
+    elseif count and count > 0 then text = L["搜索结果："] .. tostring(count)
+    else text = L["没有结果"] end
     setText(self.status, text)
-    setText(self.footerHint, mode == "home" and "" or localized({ zhCN = "↑ ↓ 选择   ·   点击使用", enUS = "↑ ↓ Select   ·   Click to use" }))
+    setText(self.footerHint, mode == "home" and "" or L["↑ ↓ 选择   ·   点击使用"])
 end
 
 function Palette:ResizeForMode(mode, count)
@@ -862,7 +841,7 @@ function Palette:ReportActionResult(result, err)
     if ok then
         if type(result) == "table" and result.awaitingHardwareClick then
             local title = type(result.actionTitle) == "string" and (" · " .. result.actionTitle) or ""
-            setText(self.status, localized({zhCN="点击施放",enUS="Click to cast"}) .. title)
+            setText(self.status, L["点击施放"] .. title)
             return true
         end
         setText(self.status, "")
@@ -872,14 +851,14 @@ function Palette:ReportActionResult(result, err)
     if code == "NO_ACTION" then setText(self.status, ""); return false end
     if type(err) == "table" and type(err.message) == "string" and err.message ~= "" then setText(self.status, err.message); return false end
     local labels = {
-        COMBAT_LOCKED = { zhCN = "战斗中不可用", enUS = "Unavailable in combat" },
-        ACTION_UNAVAILABLE = { zhCN = "当前不可用", enUS = "Currently unavailable" },
-        ACTION_REQUIRES_HARDWARE_CLICK = { zhCN = "请点击施放", enUS = "Click to cast" },
-        HANDLER_UNAVAILABLE = { zhCN = "功能暂不可用", enUS = "Feature unavailable" },
-        DRAG_UNSUPPORTED = { zhCN = "不支持拖动", enUS = "Drag unsupported" },
+        COMBAT_LOCKED = L["战斗中不可用"],
+        ACTION_UNAVAILABLE = L["当前不可用"],
+        ACTION_REQUIRES_HARDWARE_CLICK = L["请点击施放"],
+        HANDLER_UNAVAILABLE = L["功能暂不可用"],
+        DRAG_UNSUPPORTED = L["不支持拖动"],
     }
     local text = labels[code]
-    setText(self.status, localized(text or { zhCN = "执行失败", enUS = "Action failed" }, "Action failed"))
+    setText(self.status, localized(text or L["执行失败"], "Action failed"))
     return false
 end
 
@@ -916,7 +895,7 @@ function Palette:SetQueryMode(text)
         local hasItems = self.list.items and #self.list.items > 0
         setShown(self.list.frame, hasItems)
         setShown(self.emptyState, not hasItems and not self.searchPending)
-        if self.searchPending then self:SetStatusText("搜索中…") else self:SetStatus("search", hasItems and #self.list.items or 0) end
+        if self.searchPending then self:SetStatusText(L["搜索中…"]) else self:SetStatus("search", hasItems and #self.list.items or 0) end
     end
     if changedMode and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(nextMode=="home" and self.homeView.frame or self.list.frame,"page") end
 end
@@ -975,7 +954,7 @@ function Palette:ApplyResults(items, generation, session, offset)
     elseif not I.Search.Normalizer:IsBlank(self.input:GetText()) or self.activeFilter then
         self:ResizeForMode("search", #items)
         setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0 and not self.searchPending)
-        if self.searchPending then self:SetStatusText("搜索中…") else self:SetStatus("search", #items) end
+        if self.searchPending then self:SetStatusText(L["搜索中…"]) else self:SetStatus("search", #items) end
     elseif self:IsHomeVisible() then
         self:PrepareHome()
     end
@@ -1100,7 +1079,7 @@ function Palette:ShowRowActions(row)
         local pin = row.section.pinnedRef
         Lychee.UI.Components:StyleActionMenuOwner(row)
         self.actionMenu = MenuUtil.CreateContextMenu(row, function(_, root)
-            local description = root:CreateButton("取消固定", function()
+            local description = root:CreateButton(L["取消固定"], function()
                 if not self.visible or self.settingsOpen or InCombatLockdown() then return false end
                 for index, current in ipairs(I.UserPreferences:GetPins()) do
                     if current == pin then I.UserPreferences:Remove(index); self:MarkHomeDirty(); return true end

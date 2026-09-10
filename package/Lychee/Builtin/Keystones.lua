@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.keystones")
 local C = I.Builtin.CatalogProvider
 local M
 -- Factual retail 12.1 season spell/LFG IDs; see versioned validation evidence.
@@ -96,24 +97,24 @@ local function build(self,put,checkpoint)
         local fresh=entry.received and time()-entry.received<=90
         local total=summary and summary.currentSeasonScore or (fresh and entry.rating)
         if not number(total,100000) then total=nil end
-        local lines,scoreRows={"当季副本成绩"},{}
+        local lines,scoreRows={L["当季副本成绩"]},{}
         local runs=summary and summary.runs
         if runs and #runs>32 then error("RATING_RUN_LIMIT") end
         for _,id in ipairs(maps) do
-            local dungeon=C_ChallengeMode.GetMapUIInfo(id) or ("副本 "..id)
+            local dungeon=C_ChallengeMode.GetMapUIInfo(id) or L:Format("副本 %d",id)
             local score,best
             if runs then
                 for _,run in ipairs(runs) do if run.challengeModeID==id and number(run.mapScore,10000) then score,best=run.mapScore,run;break end end
             end
-            local result=runs and "未完成" or "未获取"
+            local result=runs and L["未完成"] or L["未获取"]
             if best and number(best.bestRunLevel,1000) and best.bestRunLevel>0 then
-                result=(best.finishedSuccess and "限时 +" or "超时 +")..best.bestRunLevel
+                result=L:Format(best.finishedSuccess and "限时 +%d" or "超时 +%d",best.bestRunLevel)
             end
             if isMe and C_MythicPlus.GetSeasonBestForMap then
                 local timed,overtime=C_MythicPlus.GetSeasonBestForMap(id)
                 local seasonBest=timed or overtime
                 if seasonBest and number(seasonBest.level,1000) then
-                    result=(timed and "限时 +" or "超时 +")..seasonBest.level
+                    result=L:Format(timed and "限时 +%d" or "超时 +%d",seasonBest.level)
                 end
             end
             local scoreText=score and string.format("%.1f",score) or "—"
@@ -121,26 +122,26 @@ local function build(self,put,checkpoint)
             scoreRows[#scoreRows+1]={dungeon,result,scoreText}
             lines[#lines+1]=dungeon.."  "..scoreText.." · "..result
         end
-        if #maps==0 then lines[#lines+1]="赛季副本列表尚未获取" end
+        if #maps==0 then lines[#lines+1]=L["赛季副本列表尚未获取"] end
         local dungeon,_,_,dungeonIcon
         if map and map>0 then dungeon,_,_,dungeonIcon=C_ChallengeMode.GetMapUIInfo(map) end
         local _,class=UnitClass(entry.unit)
         local classColor=class and C_ClassColor and C_ClassColor.GetClassColor(class)
-        local title=colored(name,classColor).." · "..(dungeon and (dungeon.." +"..level) or (map==0 and "暂无钥匙" or "钥匙未知"))
+        local title=colored(name,classColor).." · "..(dungeon and (dungeon.." +"..level) or (map==0 and L["暂无钥匙"] or L["钥匙未知"]))
         local spell=dungeon and teleport(map)
-        local subtitle=spell and "点击传送至该副本" or (dungeon and "尚未解锁对应传送" or "等待队友的兼容插件回复")
+        local subtitle=spell and L["点击传送至该副本"] or (dungeon and L["尚未解锁对应传送"] or L["等待队友的兼容插件回复"])
         local description=table.concat(lines,"\n")
-        local badge=total and ("分数 "..colored(string.format("%.0f",total),C_ChallengeMode.GetDungeonScoreRarityColor and C_ChallengeMode.GetDungeonScoreRarityColor(total))) or "分数未知"
+        local badge=total and (L:Format("分数 %s",colored(string.format("%.0f",total),C_ChallengeMode.GetDungeonScoreRarityColor and C_ChallengeMode.GetDungeonScoreRarityColor(total)))) or L["分数未知"]
         local id="key:"..entry.guid
         put({id=id,title=title,kind="keystone",kindTitle=badge,subtitle=subtitle,description=description,
             icon=dungeonIcon or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\keystone.tga",aliases={"钥匙","key","keys","大秘境","分数"},
             payload={guid=entry.guid,mapID=map,level=level,scoreRows=scoreRows},
-            actions=spell and {{id="teleport",title="传送",kind="secure-spell",spellID=spell}} or {}},
+            actions=spell and {{id="teleport",title=L["传送"],kind="secure-spell",spellID=spell}} or {}},
             title.."\0"..badge.."\0"..description.."\0"..tostring(spell).."\0"..tostring(dungeonIcon))
         checkpoint()
     end
 end
-M=C:New("builtin.keystones","队伍钥匙",{"GROUP_ROSTER_UPDATE","BAG_UPDATE_DELAYED","CHALLENGE_MODE_MAPS_UPDATE",
+M=C:New("builtin.keystones",L["队伍钥匙"],{"GROUP_ROSTER_UPDATE","BAG_UPDATE_DELAYED","CHALLENGE_MODE_MAPS_UPDATE",
     "MYTHIC_PLUS_NEW_WEEKLY_RECORD","INSPECT_READY","SPELLS_CHANGED","CHAT_MSG_ADDON"},build)
 M.members={}
 function M:onStart()

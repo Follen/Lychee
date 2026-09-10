@@ -128,6 +128,10 @@ LycheeInternal={Search={}}
 Lychee.UI.Theme={Metrics={rowHeight=46}}
 Lychee.UI.ResultList={HideTooltip=function() end}
 dofile("package/Lychee/Search/Normalizer.lua")
+local createFrameForMotion=CreateFrame
+CreateFrame=nil
+dofile("package/Lychee/Bootstrap.lua")
+CreateFrame=createFrameForMotion
 dofile("package/Lychee/UI/Palette.lua")
 function methods:RegisterEvent() end
 function methods:UnregisterEvent() end

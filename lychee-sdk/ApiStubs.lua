@@ -1,5 +1,5 @@
 ---@meta
--- Editor-only API 2 declarations. Do not list this file in an AddOn TOC.
+-- Editor-only API 2.2 declarations. Do not list this file in an AddOn TOC.
 
 ---@class LycheeError
 ---@field code string
@@ -8,8 +8,20 @@
 ---@field retryable? boolean
 ---@field message? string
 
+---@alias LycheeProduct 'retail'|'classic'|'titan'|'anniversary'
+
+---@class LycheeLocaleKey
+---@field key string Provider-owned i18n key; no additional fields.
+
+---@class LycheeLocaleResources
+---@field enUS table<string,string> Required complete baseline, at most 256 keys.
+---@field zhCN? table<string,string> Chinese translations; missing keys fall back to enUS.
+---@field zhTW? table<string,string> Missing keys fall back to zhCN then enUS.
+---@field enGB? table<string,string> Missing keys fall back to enUS.
+
 ---@class LycheeScope
----@field product? string
+---@field product? string Legacy single-product scope.
+---@field products? LycheeProduct[] Required for revision 2; 1..4 unique products.
 ---@field locale? string
 ---@field minInterface? integer
 ---@field maxInterface? integer
@@ -21,7 +33,7 @@
 ---@field locale? string
 ---@field scope? LycheeScope
 
----@alias LycheeText string|string[]|table<string,string>|LycheeLocalizedText[]
+---@alias LycheeText string|string[]|table<string,string>|LycheeLocalizedText[]|LycheeLocaleKey|LycheeLocaleKey[]
 ---@alias LycheeContext table<string,any> Plain-data snapshot; never a Host frame.
 
 ---@class LycheeSpellAction
@@ -48,12 +60,12 @@
 ---@class LycheeSpellDrag
 ---@field type 'spell'
 ---@field spellID integer
----@field title? string
+---@field title? string|LycheeLocaleKey
 
 ---@class LycheeProviderDrag
 ---@field type 'provider'
 ---@field handler string
----@field title? string
+---@field title? string|LycheeLocaleKey
 
 ---@class LycheeCategory
 ---@field id? string Provider-local category ID.
@@ -89,11 +101,11 @@
 ---@field message? string User-readable business failure.
 
 ---@class LycheeProviderAction
----@field title string
+---@field title string|LycheeLocaleKey
 ---@field run fun(entry:LycheeEntry,context:LycheeContext):LycheeActionResult
 
 ---@class LycheeDragHandler
----@field title string
+---@field title string|LycheeLocaleKey
 ---@field begin fun(entry:LycheeEntry,context:LycheeContext):LycheeActionResult
 
 ---@class LycheeQueryRequest
@@ -133,9 +145,10 @@
 ---@class LycheeProviderDefinition
 ---@field id string Globally unique; lower-case ASCII letters/numbers/dots/hyphens.
 ---@field apiVersion 2
----@field minApiRevision? integer Default 1.
+---@field minApiRevision? integer Use 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
 ---@field version string Integration version.
----@field title string|table<string,string> Localized maps require default.
+---@field title string|table<string,string>|LycheeLocaleKey Legacy localized maps require default.
+---@field i18n? LycheeLocaleResources Required for revision 2. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.
 ---@field entries? LycheeEntry[] Maximum 4096; entries or query is required.
 ---@field query? fun(request:LycheeQueryRequest,reply:LycheeReply,context:LycheeContext):LycheeCancel?
 ---@field resolve? fun(entryID:string,context:LycheeContext):LycheeEntry?
@@ -159,6 +172,7 @@
 
 ---@class LycheeProviderHandle
 ---@field id string
+---@field Text fun(self:LycheeProviderHandle,key:string,...:string|number):string?,LycheeError? Up to 16 arguments; strings <=1024 bytes, output <=32768 bytes.
 ---@field Update fun(self:LycheeProviderHandle,delta:LycheeProviderUpdate):boolean?,LycheeError?
 ---@field GetState fun(self:LycheeProviderHandle):LycheeProviderState?,LycheeError?
 ---@field SetEnabled fun(self:LycheeProviderHandle,enabled:boolean):boolean?,LycheeError?
@@ -169,7 +183,7 @@
 
 ---@class LycheeFacade
 ---@field API_VERSION 2
----@field API_REVISION 1
+---@field API_REVISION 2
 ---@field Supports fun(self:LycheeFacade,apiVersion:integer,minRevision?:integer):boolean
 ---@field IsReady fun(self:LycheeFacade):boolean
 ---@field RegisterReady fun(self:LycheeFacade,callback:fun(info:{apiVersion:integer,apiRevision:integer})):LycheeReadySubscription?,LycheeError?

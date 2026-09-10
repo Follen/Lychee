@@ -1,4 +1,5 @@
 local I=_G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.addon-inspector")
 I.Builtin=I.Builtin or {}
 local M={id="builtin.addon-inspector",epoch=0}
 I.Builtin.AddonInspector=M
@@ -26,21 +27,21 @@ function M:Source(location)
     local path=location:gsub("\\","/")
     local folder=path:match("[Ii]nterface/[Aa]dd[Oo]ns/([^/]+)/")
     if folder then
-        if folder:lower():match("^blizzard_") then return "暴雪创建代码",folder,true end
+        if folder:lower():match("^blizzard_") then return L["暴雪创建代码"],folder,true end
         return text(addonTitle(folder),folder),folder
     end
-    if path:find("FrameXML/",1,true) then return "暴雪创建代码","Blizzard UI",true end
+    if path:find("FrameXML/",1,true) then return L["暴雪创建代码"],"Blizzard UI",true end
 end
 function M:Analyze(frame)
     local location=self:Read(frame,"GetSourceLocation")
     local title,folder,native=self:Source(location)
-    local name=text(self:Read(frame,"GetName"),text(self:Read(frame,"GetDebugName"),"未命名框体"))
-    local data={name=name,title=native and "归属未确定" or title or "暂未识别",confidence=native and "创建位置来自暴雪代码" or title and "创建来源" or "来源未确定",
-        location=text(location,"未提供创建位置"),parents={},kind=text(self:Read(frame,"GetObjectType"))}
+    local name=text(self:Read(frame,"GetName"),text(self:Read(frame,"GetDebugName"),L["未命名框体"]))
+    local data={name=name,title=native and L["归属未确定"] or title or L["暂未识别"],confidence=native and L["创建位置来自暴雪代码"] or title and L["创建来源"] or L["来源未确定"],
+        location=text(location,L["未提供创建位置"]),parents={},kind=text(self:Read(frame,"GetObjectType"))}
     if not title or native then
         local prefix=name:match("^([%a][%w]+)[_%-]")
         local guessed=prefix and addonTitle(prefix)
-        if guessed then data.title=text(guessed);data.confidence="可能来自 · 根据框体名称" end
+        if guessed then data.title=text(guessed);data.confidence=L["可能来自 · 根据框体名称"] end
     end
     local parent=self:Read(frame,"GetParent")
     local visited={[frame]=true}
@@ -49,9 +50,9 @@ function M:Analyze(frame)
         if not parent or parent==UIParent or parent==WorldFrame or visited[parent] then break end
         visited[parent]=true
         local parentTitle,_,parentNative=self:Source(self:Read(parent,"GetSourceLocation"))
-        data.parents[#data.parents+1]=text(self:Read(parent,"GetName"),"未命名父级")..(parentTitle and " · "..parentTitle or "")
-        if (not title or native) and parentTitle and not parentNative and data.confidence~="可能来自 · 根据父级来源" then
-            data.title=parentTitle;data.confidence="可能来自 · 根据父级来源"
+        data.parents[#data.parents+1]=text(self:Read(parent,"GetName"),L["未命名父级"])..(parentTitle and " · "..parentTitle or "")
+        if (not title or native) and parentTitle and not parentNative and data.confidence~=L["可能来自 · 根据父级来源"] then
+            data.title=parentTitle;data.confidence=L["可能来自 · 根据父级来源"]
         end
         parent=self:Read(parent,"GetParent")
         if debugprofilestop and debugprofilestop()-started>=1 then data.truncated=true;break end
@@ -110,8 +111,8 @@ function M:Stop()
     if self.view then self.view:Hide() end
 end
 function M:Start()
-    if not self.enabled then return {ok=false,message="请先启用插件识别来源"} end
-    if InCombatLockdown and InCombatLockdown() then return {ok=false,message="请在脱离战斗后识别插件"} end
+    if not self.enabled then return {ok=false,message=L["请先启用插件识别来源"]} end
+    if InCombatLockdown and InCombatLockdown() then return {ok=false,message=L["请在脱离战斗后识别插件"]} end
     self:Stop()
     self.view=self.view or _G.Lychee.UI.CreateAddonInspector(self)
     self.running=true
@@ -127,11 +128,11 @@ function M:Parent()
 end
 function M:Report()
     local data=self.data
-    if not data then return "尚未选择框体" end
-    local lines={"插件识别",data.confidence.."："..data.title,"框体："..data.name,"类型："..data.kind,
-        "尺寸："..data.size,"层级："..data.strata.." / "..tostring(data.level or "—"),"创建位置："..data.location,"父级关联（不代表修改来源）："}
+    if not data then return L["尚未选择框体"] end
+    local lines={L["插件识别"],data.confidence.."："..data.title,L["框体："]..data.name,L["类型："]..data.kind,
+        L["尺寸："]..data.size,L["层级："]..data.strata.." / "..tostring(data.level or "—"),L["创建位置："]..data.location,L["父级关联（不代表修改来源）："]}
     for _,parent in ipairs(data.parents) do lines[#lines+1]=parent end
-    if data.truncated then lines[#lines+1]="父级信息已截断" end
+    if data.truncated then lines[#lines+1]=L["父级信息已截断"] end
     return table.concat(lines,"\n"):sub(1,8192)
 end
 function M:SourceSetting()
@@ -151,11 +152,11 @@ function M:Init()
     if not LycheeDB.optionalProviderDefaults[self.id] then
         LycheeDB.optionalProviderDefaults[self.id]=true;LycheeDB.disabledProviders[self.id]=true
     end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,version="1.0.0",title="插件识别",scope={product="retail"},
-        entries={{id="inspect",title="插件识别",kindTitle="工具",subtitle="指向界面，查看来自哪个插件",
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=2,i18n=L.resources,version="1.0.0",title=L["插件识别"],scope={products={"retail","classic","titan","anniversary"}},
+        entries={{id="inspect",title=L["插件识别"],kindTitle=L["工具"],subtitle=L["指向界面，查看来自哪个插件"],
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\addon-inspector.tga",
             aliases={"这是什么插件","识别插件","框体","界面来源","wtf","inspect","frame"},actions={"inspect"}}},
-        actions={inspect={title="开始识别",run=function() return M:Start() end}},
+        actions={inspect={title=L["开始识别"],run=function() return M:Start() end}},
         onEnable=function() M.enabled=true;return function(reason)
             M.enabled=false;M:Stop();if reason=="unregister" then M.handle=nil end
         end end})

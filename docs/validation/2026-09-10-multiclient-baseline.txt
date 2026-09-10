@@ -1,0 +1,20 @@
+performance_memory.lua exit=0
+MEMORY entries=2689 builtins_KiB=3885.0 combined_KiB=7151.8 48_queries_alloc_KiB=1812.2 retained_growth_KiB=0.1 query_mean_ms=0.313
+
+performance_search.lua exit=0
+SEARCH normalization_2048_KiB=626.1 normalization_ms=37.0 long_cache_retained_KiB=-21.8 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0
+Search allocation, byte-normalization and cancellation checks PASS
+
+performance_ui.lua exit=0
+providers=1000 rows=8 objects=324 cold_ms=2.000 retained_kib=427.9 refresh20_ms=21.000 refresh20_alloc_kib=37.4 pool_growth=0
+pins30_initial_resolves=8
+performance_ui: PASS (budgets enforced)
+
+perf_core_provider.lua exit=0
+provider run=1 directory=500 single_updates=100 ms=4.000 allocated_kib=586.439
+provider run=2 directory=500 single_updates=100 ms=4.000 allocated_kib=562.532
+provider run=3 directory=500 single_updates=100 ms=4.000 allocated_kib=561.032
+provider run=4 directory=500 single_updates=100 ms=4.000 allocated_kib=561.032
+provider run=5 directory=500 single_updates=100 ms=3.000 allocated_kib=561.032
+provider pending jobs after 200 searches=1
+perf_core_provider regression passed

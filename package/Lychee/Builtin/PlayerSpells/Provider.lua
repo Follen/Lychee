@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.player-spells")
 I.Builtin = I.Builtin or {}
 I.Builtin.PlayerSpells = I.Builtin.PlayerSpells or {}
 local P = {
@@ -131,9 +132,47 @@ local function refreshFailed(self, code)
     return false, code
 end
 
+-- Classic clients retain slot/rank based spell books. Keep the secure spell ID,
+-- not the slot, as record identity; only learned active player spells enter it.
+function P:RefreshFromLegacySpellBook()
+    if type(GetNumSpellTabs)~="function" or type(GetSpellTabInfo)~="function"
+        or type(GetSpellBookItemInfo)~="function" then return refreshFailed(self,"SPELLBOOK_API_UNAVAILABLE") end
+    local ok,count=pcall(GetNumSpellTabs)
+    if not ok or type(count)~="number" or count<0 or count>128 then return refreshFailed(self,"SPELLBOOK_LINES_UNAVAILABLE") end
+    local items,readable={},0
+    for tab=1,count do
+        local good,_,_,offset,total=pcall(GetSpellTabInfo,tab)
+        if not good or type(offset)~="number" or type(total)~="number" or total<0 or offset+total>8192 then
+            return refreshFailed(self,"SPELLBOOK_LINES_UNAVAILABLE")
+        end
+        for slot=offset+1,offset+total do
+            local found,kind,id=pcall(GetSpellBookItemInfo,slot,BOOKTYPE_SPELL or "spell")
+            if found then readable=readable+1 end
+            if found and kind=="FLYOUT" and type(id)=="number" then addFlyoutSpells(self,items,id)
+            elseif found and kind=="SPELL" and type(id)=="number" and id>0 then
+                local passive=IsPassiveSpell and IsPassiveSpell(slot,BOOKTYPE_SPELL or "spell")
+                if not passive then
+                    local name,rank
+                    if GetSpellBookItemName then name,rank=GetSpellBookItemName(slot,BOOKTYPE_SPELL or "spell") end
+                    name=name or spellName(id)
+                    if name then
+                        local icon=GetSpellBookItemTexture and GetSpellBookItemTexture(slot,BOOKTYPE_SPELL or "spell")
+                        addSpell(items,self.aliasDefinitions,{id=id,name=name,icon=spellIcon(id,icon),subtext=rank,
+                            description=spellDescription(self,id)})
+                    end
+                end
+            end
+        end
+    end
+    addKnownAliasSpells(self,items,self.aliasDefinitions)
+    if readable==0 and next(items)==nil then return refreshFailed(self,"SPELLBOOK_ITEMS_UNAVAILABLE") end
+    commitSnapshot(self,items,"legacy-spellbook")
+    return true
+end
+
 function P:RefreshFromSpellBook()
     if not C_SpellBook or type(C_SpellBook.GetNumSpellBookSkillLines) ~= "function" then
-        return refreshFailed(self, "SPELLBOOK_API_UNAVAILABLE")
+        return self:RefreshFromLegacySpellBook()
     end
     local bank = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player
     if bank == nil then return refreshFailed(self, "SPELLBOOK_BANK_UNAVAILABLE") end
@@ -203,8 +242,8 @@ function P:BuildSearchRecords(items)
             records[#records + 1] = {
                 id = "spell:" .. tostring(spellID),
                 kind = "spell",
-                kindTitle = { default = "Spell", zhCN = "技能" },
-                category = { id = "spells", title = { default = "Spells", zhCN = "技能" }, order = 10, color = { 0.455, 0.670, 0.925, 1 } },
+                kindTitle = { default = "Spell", zhCN = L["技能"] },
+                category = { id = "spells", title = { default = "Spells", zhCN = L["技能"] }, order = 10, color = { 0.455, 0.670, 0.925, 1 } },
                 title = spell.name,
                 aliases = spell.aliases or self.aliasDefinitions[spellID],
                 keywords = spell.subtext,
@@ -215,7 +254,7 @@ function P:BuildSearchRecords(items)
                 -- renderer never has to infer spell behavior from `kind`.
                 primaryActionID = "cast",
                 actions = {
-                    { id = "cast", title = "施放", kind = "secure-spell", spellID = spellID },
+                    { id = "cast", title = L["施放"], kind = "secure-spell", spellID = spellID },
                 },
                 drag = { type = "spell", spellID = spellID },
             }

@@ -7,7 +7,7 @@ local function now() return debugprofilestop and debugprofilestop() or 0 end
 
 -- Only finite, flat scalar signatures survive a successful catalogue commit.
 function C:New(id, title, events, build, actions)
-    local m = {id=id, title=title, events=events, build=build, actions=actions, epoch=0, signatures={}}
+    local m = {id=id, locale=I.ProviderLocales:Builtin(id), products={"retail"}, title=title, events=events, build=build, actions=actions, epoch=0, signatures={}}
     setmetatable(m, {__index=self})
     return m
 end
@@ -109,13 +109,13 @@ function C:Init()
     end
     LycheeDB.optionalProviderDefaults=type(LycheeDB.optionalProviderDefaults)=="table" and LycheeDB.optionalProviderDefaults or {}
     LycheeDB.disabledProviders=type(LycheeDB.disabledProviders)=="table" and LycheeDB.disabledProviders or {}
-    if not LycheeDB.optionalProviderDefaults[self.id] then
+    if not self.defaultEnabled and not LycheeDB.optionalProviderDefaults[self.id] then
         LycheeDB.optionalProviderDefaults[self.id]=true
         LycheeDB.disabledProviders[self.id]=true
     end
     local m=self
     self.handle=self.handle or _G.Lychee:RegisterProvider({
-        id=self.id,apiVersion=2,version="1.0.0",title=self.title,scope={product="retail"},entries={},actions=self.actions,query=self.query,resolve=self.resolve,
+        id=self.id,apiVersion=2,version="1.0.0",title=self.title,minApiRevision=2,i18n=self.locale.resources,scope={products=self.products},entries={},actions=self.actions,query=self.query,resolve=self.resolve,
         onEnable=function(handle)
             m.handle, m.active=handle,true
             local entry=I.Providers.entries[m.id]

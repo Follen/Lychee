@@ -96,6 +96,10 @@ function tooltip:Show() self.shown = true end
 function tooltip:Hide() self.shown = false; self.owner = nil end
 GameTooltip = tooltip
 
+local frameFactory=CreateFrame
+CreateFrame=nil
+dofile("package/Lychee/Bootstrap.lua")
+CreateFrame=frameFactory
 dofile("package/Lychee/UI/Theme.lua")
 dofile("package/Lychee/UI/Components.lua")
 dofile("package/Lychee/UI/ResultList.lua")

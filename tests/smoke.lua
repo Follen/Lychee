@@ -1,3 +1,4 @@
+function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Offline contract smoke test. WoW UI behavior still requires an in-client pass.
 _G = _G or {}
 function GetLocale() return "zhCN" end
@@ -27,7 +28,7 @@ C_SpellBook = {
 }
 local root = "package/Lychee/"
 local files = {
-    "Bootstrap.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
+    "Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua", "Builtin/CatalogProvider.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Core/ResultActionExecutor.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Builtin/Data/PlayerSpellAliases.lua", "Builtin/PlayerSpells/Provider.lua",
@@ -78,7 +79,7 @@ assert(openedPanel and openedPanel.owner.extensionID == "third-party-fixture")
 assert(openedPanel.owner.panelID == "detail" and openedPanel.state.itemID == 12345)
 assert(openedPanel.factory == _G.LycheeInternal.Router:ResolvePanel("third-party-fixture", "detail"))
 local _, isolatedFixtureResults = q:Query("wings", {})
-assert(#isolatedFixtureResults == 0)
+assert(#isolatedFixtureResults == 1 and isolatedFixtureResults[1].providerID == "builtin.player-spells", "English spell alias fallback must not leak into the third-party fixture")
 assert(_G.ThirdPartyFixture.SetEnabled(false))
 assert(fixture:GetState().lifecycle == "disabled")
 local _, disabledFixtureResults = q:Query("第三方示例条目", {})

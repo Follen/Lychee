@@ -86,7 +86,7 @@ C_Timer={NewTimer=function(delay,fn)
     local t={fn=fn};function t:Cancel() self.cancelled=true end
     timers[#timers+1]=t;return t
 end}
-for _,file in ipairs({"Bootstrap.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua", "Builtin/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "UI/Theme.lua","UI/Components.lua","UI/AddonInspector.lua","Builtin/AddonInspector.lua"}) do dofile("package/Lychee/"..file) end

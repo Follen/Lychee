@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.game-menus")
 I.Builtin = I.Builtin or {}
 local A = {}
 I.Builtin.InterfaceActions = A
@@ -52,12 +53,13 @@ function A:OpenJournalTab(tabKey)
     return self:IsShown("EncounterJournal") and EncounterJournal.selectedTab == tabID
 end
 
-function A:Run(open)
+function A:Run(open,locale)
+    local messages=locale or L
     if InCombatLockdown and InCombatLockdown() then
-        return { ok=false, code="COMBAT_LOCKED", message="请在脱离战斗后打开此界面。" }
+        return { ok=false, code="COMBAT_LOCKED", message=messages["请在脱离战斗后打开此界面。"] }
     end
     if DISALLOW_FRAME_TOGGLING or not open() then
-        return { ok=false, code="UI_UNAVAILABLE", message="当前无法打开此界面，请检查角色条件或稍后重试。" }
+        return { ok=false, code="UI_UNAVAILABLE", message=messages["当前无法打开此界面，请检查角色条件或稍后重试。"] }
     end
     return { ok=true, close=true }
 end

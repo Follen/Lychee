@@ -112,6 +112,29 @@ function Boundary:ValidateSchema(value, schema, field)
     return schemaValue(self, value, schema, field)
 end
 
+local SCOPE_SCHEMA={product="string?",products="table?",locale="string?",minInterface="integer?",maxInterface="integer?",minBuild="integer?",maxBuild="integer?"}
+local PRODUCTS={retail=true,classic=true,titan=true,anniversary=true}
+function Boundary:ValidateScope(scope,field)
+    local ok,err=self:ValidateSchema(scope,SCOPE_SCHEMA,field)
+    if not ok then return nil,err end
+    if scope.product and scope.products then return failure("INVALID_SCHEMA",field) end
+    if scope.products then
+        local count=0
+        if #scope.products==0 or #scope.products>4 then return failure("INVALID_SCHEMA",field..".products") end
+        local seen={}
+        for key,value in pairs(scope.products) do
+            if type(key)~="number" or key~=math.floor(key) or key<1 or key>#scope.products or not PRODUCTS[value] or seen[value] then return failure("INVALID_SCHEMA",field..".products") end
+            seen[value]=true;count=count+1
+        end
+        if count~=#scope.products then return failure("INVALID_SCHEMA",field..".products") end
+    end
+    for _,suffix in ipairs({"Interface","Build"}) do
+        local minimum,maximum=scope["min"..suffix],scope["max"..suffix]
+        if (minimum and minimum<1) or (maximum and maximum<1) or (minimum and maximum and minimum>maximum) then return failure("INVALID_SCHEMA",field) end
+    end
+    return true
+end
+
 local function schemaFailure(field)
     return nil, { code = "INVALID_SCHEMA", field = field, retryable = false }
 end
@@ -193,6 +216,10 @@ local function validateTextField(value, field)
             local ok, why = Boundary:Validate(item, field .. "[" .. key .. "]")
             if not ok then return nil, why end
             if type(item.text) ~= "string" or item.text == "" then return schemaFailure(field .. "[" .. key .. "].text") end
+            if item.scope ~= nil then
+                local scopeOK,scopeError=Boundary:ValidateScope(item.scope,field..".scope")
+                if not scopeOK then return nil,scopeError end
+            end
         end
     end
     return true

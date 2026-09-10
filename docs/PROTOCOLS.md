@@ -19,14 +19,15 @@ Host 版本：API_VERSION=2，API_REVISION=1。SDK helper 和 LuaLS 类型均使
 | apiVersion | 必填 2。 |
 | minApiRevision | 可选正整数，缺省 1。 |
 | version | 必填非空 string，集成自身版本。 |
-| title | 必填非空 string，或带非空 default 的本地化映射。 |
+| title | 必填非空 string、本地化映射，或已注册 i18n 中的 `{key="NAME"}`。 |
 | entries | 可选 Entry[]，最多 4096 条；entries 与 query 至少声明一个，空目录有效。 |
 | query | 可选 function(request, reply, context)，返回 nil 或 cancel(reason)。 |
 | resolve | 可选 function(entryID, context)，同步返回当前 Entry 或 nil。 |
-| actions | 可选 map<actionID, {title:string, run:function(entry,context):ActionResult}>。 |
-| drags | 可选 map<handlerID, {title:string, begin:function(entry,context):ActionResult}>。 |
+| actions | 可选 map<actionID, {title:string|LocaleRef, run:function(entry,context):ActionResult}>。 |
+| drags | 可选 map<handlerID, {title:string|LocaleRef, begin:function(entry,context):ActionResult}>。 |
 | views | 可选 map<viewID, {stateSchema:Schema, create:function(context,initialState):View}>。 |
-| scope | 可选 Scope。 |
+| scope | API 2.2 必须声明 `products`；旧版未声明产品范围默认正式服。 |
+| i18n | API 2.2 必填 Provider 独立语言资源；enUS 必需，可选 zhCN/zhTW/enGB。 |
 | onEnable | 可选 function(handle)，返回 nil 或 cleanup(reason)。pending 注册在 Host 就绪后调用。 |
 | onDisable | 可选 function(reason)。清理函数执行后调用。 |
 
@@ -110,3 +111,15 @@ Schema 支持基础类型字符串（string/number/boolean/table/integer/any）�
 常见 code：UNSUPPORTED_API、INVALID_SCHEMA、DUPLICATE_ID、RESULT_LIMIT、UNKNOWN_ACTION、UNKNOWN_VIEW、UNKNOWN_DRAG、STALE_HANDLE、PROVIDER_DISABLED、STALE_REQUEST、STALE_RESULT、UPDATE_IN_PROGRESS、CALLBACK_ERROR、INVALID_CALLBACK、INVALID_RESULT、QUERY_TIMEOUT、ACTION_FAILED、ACTION_UNAVAILABLE、COMBAT_LOCKED、ACTION_REQUIRES_HARDWARE_CLICK、MENU_UNAVAILABLE、NO_ACTION。可选 SDK helper 在 Host 缺失时另返回 SDK_UNAVAILABLE。
 
 PRIVATE Registry/Index 的具体方法、source token、内部字段、生命周期实现细节和 `_G.LycheeInternal` 不属于 SDK 合同。
+
+## API 2.2：客户端声明与独立语言资源
+
+`scope.products` 是 1–4 项无重复数组，值为 `retail`、`classic`、`titan`、`anniversary`，与旧 `product` 字段互斥。`minInterface/maxInterface/minBuild/maxBuild` 是正整数范围。显式 `scope.locale` 是严格限制，不参与翻译回退。不支持的客户端不启动 Provider，也不执行其停用回调。
+
+每个 Provider 在注册时提交 `i18n={enUS={NAME="Name"},zhCN={NAME="名称"}}`。资源最多四种语言，每种最多 256 键，键不超过 96 字节、单条文字不超过 1024 字节，全部键与值不超过 128 KiB。enUS 是完整基线；其他语言不能新增未定义键，可缺译并回退。Host 按精确语言、语言家族、enUS 编译所选字典；资源之间隔离，注册后外部修改不影响结果。
+
+`LocaleRef` 只能是 `{key="NAME"}`，不接受附加字段。适用于 Provider title、条目文字字段、category.title、动作 title、drag.title；aliases/keywords 数组可包含引用。解析后的文本仍经过原条目校验，增量更新与动态查询共用此边界。
+
+`handle:Text(key,...)` 返回文案或 `nil, Error`；注销后为 `STALE_HANDLE`。支持至多 16 个格式参数／占位符，参数仅数字或不超过 1024 字节字符串，输出最多 32768 字节，超限在格式化前按保守上界拒绝。译文格式参数顺序和转换类型须与英文一致。无参数调用返回模板本身。
+
+语言相关错误：`INVALID_LOCALES`、`INVALID_LOCALE_KEY`、`INVALID_LOCALE_FORMAT`、`LOCALE_LIMIT`；非法引用为 `INVALID_SCHEMA`。API 2.1 仍受支持，未指定产品的旧 Provider 仅在正式服启用。

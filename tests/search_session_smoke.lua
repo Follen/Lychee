@@ -15,7 +15,7 @@ C_Timer = {
 
 local root = "package/Lychee/"
 for _, file in ipairs({
-    "Bootstrap.lua",
+    "Bootstrap.lua", "Core/ProviderLocales.lua",
     "Core/ContextStore.lua",
     "Search/Normalizer.lua",
     "Search/StaticIndex.lua",

@@ -1,3 +1,4 @@
+local L = _G.LycheeInternal.Locale
 local Lychee = _G.Lychee or {}
 _G.Lychee = Lychee
 Lychee.UI = Lychee.UI or {}
@@ -10,11 +11,7 @@ local function setShown(region, shown)
     if region and region:IsShown() ~= shown then region:SetShown(shown) end
 end
 
-local function localizedPlaceholder()
-    local locale = GetLocale and GetLocale() or "enUS"
-    if locale == "zhCN" or locale == "zhTW" then return "搜索技能、插件、命令…" end
-    return "Search spells, addons, commands…"
-end
+local function localizedPlaceholder() return L["搜索技能、插件、命令…"] end
 
 function Input:_ApplyVisualState()
     local theme = Lychee.UI.Theme

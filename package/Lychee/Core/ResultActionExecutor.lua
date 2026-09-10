@@ -1,3 +1,4 @@
+local L = _G.LycheeInternal.Locale
 local I = _G.LycheeInternal
 
 local Executor = {}
@@ -305,11 +306,11 @@ function Executor:ShowActions(row)
         end
         if canPin then
             local pinned = I.UserPreferences:PinIndex(item.ref) ~= nil
-            local description = root:CreateButton(pinned and "取消固定" or "固定到首页", function()
+            local description = root:CreateButton(pinned and L["取消固定"] or L["固定到首页"], function()
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
                 local ok, pinError = self.palette:SetPinned(item, not pinned)
-                if ok then self.palette:SetStatusText(pinned and "已取消固定" or "已固定到首页")
+                if ok then self.palette:SetStatusText(pinned and L["已取消固定"] or L["已固定到首页"])
                 else self.palette:ReportActionResult(false, pinError) end
                 return ok
             end)

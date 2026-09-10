@@ -1,0 +1,58 @@
+## Interface: 50504
+## Title: |cffd53c49Lychee|r Launcher
+## Title-zhCN: |cffd53c49荔枝|r启动器
+## Title-zhTW: |cffd53c49荔枝|r启动器
+## Notes: Universal launcher for World of Warcraft
+## Notes-zhCN: 魔兽世界万用启动器
+## Notes-zhTW: 魔兽世界万用启动器
+## Author: Lychee
+## Version: 0.2.0
+## SavedVariables: LycheeDB
+## Bindings: Bindings.xml
+
+Bootstrap.lua
+Core/ProviderLocales.lua
+Locales/UI.enUS.lua
+Locales/Builtin.enUS.lua
+Core/ContextStore.lua
+Search/RuntimeIdentity.lua
+Search/Normalizer.lua
+Search/StaticIndex.lua
+Core/CommandCatalog.lua
+Core/CapabilityBroker.lua
+Core/Boundary.lua
+Core/IntentRouter.lua
+Core/Scheduler.lua
+Core/ExtensionRegistry.lua
+Search/QueryOrchestrator.lua
+Search/SearchSession.lua
+Core/ProviderRuntime.lua
+Core/UserPreferences.lua
+PublicAPI/SDK.lua
+Builtin/Data/PlayerSpellAliases.lua
+Secure/Descriptor.lua
+Secure/Policy.lua
+Secure/SecureActionBroker.lua
+UI/FocusController.lua
+UI/Theme.lua
+UI/Motion.lua
+UI/Components.lua
+UI/Input.lua
+UI/ResultList.lua
+UI/ViewHost.lua
+Core/ResultActionExecutor.lua
+UI/SettingsView.lua
+UI/AddonInspector.lua
+UI/Palette.lua
+Builtin/PlayerSpells/Provider.lua
+Builtin/PlayerSpells/Init.lua
+Builtin/InterfaceActions.lua
+Builtin/CatalogProvider.lua
+Builtin/GameMenus.lua
+Builtin/Mounts.lua
+Builtin/Bags.lua
+Builtin/Loadouts.lua
+Builtin/BlizzardSettings.lua
+Builtin/Achievements.lua
+Builtin/AddonInspector.lua
+Builtin/Init.lua

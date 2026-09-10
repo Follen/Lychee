@@ -59,6 +59,12 @@ $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
+    & python 'tests/build_client_tocs.py' '--check'
+    if ($LASTEXITCODE -ne 0) { throw 'Client TOC generation drift' }
+    foreach ($test in @('provider_locales','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
     & $lua.Source 'tests/provider_sdk_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider SDK smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/framework_sdk_smoke.lua'

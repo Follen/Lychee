@@ -109,7 +109,7 @@ function GetLFGDungeonInfo(id) return id==3102 and "地城1" or "其他" end
 C_SpellBook={IsSpellKnown=function(id) return id==1286801 end}
 C_ChatInfo={RegisterAddonMessagePrefix=function() return 0 end,SendAddonMessage=function(prefix,msg,channel)
     calls.messages=(calls.messages or 0)+1;assert(prefix=="LibKS" and channel=="PARTY");return 0 end}
-for _,file in ipairs({"Bootstrap.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "Core/ResultActionExecutor.lua","Builtin/CatalogProvider.lua","Builtin/Bags.lua","Builtin/Loadouts.lua",

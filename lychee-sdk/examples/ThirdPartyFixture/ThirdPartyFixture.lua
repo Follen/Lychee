@@ -1,4 +1,4 @@
--- Public API 2 integration. Lychee is optional; no Host internals are accessed.
+-- Public API 2.2 integration. Lychee is optional; no Host internals are accessed.
 local state = { committed=nil, enabled=false, diagnostics={}, opens=0, drags=0 }
 local waitingFrame, cachedPanel
 local function stopWaiting()
@@ -8,25 +8,30 @@ local function attach()
     if state.committed then return state.committed end
     local SDK = _G.Lychee
     if not SDK or not SDK.Supports then return nil end
-    if not SDK:Supports(2, 1) then state.diagnostics.UNSUPPORTED_API=true; stopWaiting(); return nil end
+    if not SDK:Supports(2, 2) then state.diagnostics.UNSUPPORTED_API=true; stopWaiting(); return nil end
     local handle, err = SDK:RegisterProvider({
-        id="third-party-fixture", apiVersion=2, version="2.0.0",
-        title={default="Third-party fixture",zhCN="第三方示例"},
+        id="third-party-fixture", apiVersion=2, minApiRevision=2, version="2.2.0",
+        scope={products={"retail","classic","titan","anniversary"}},
+        i18n={
+            enUS={PROVIDER="Third-party fixture",ENTRY="Fixture entry",KIND="Example",DESCRIPTION="An ordinary addon entry with independent interactions.",ALIASES="fixture demo",STATUS="Fixture status",READY="Ready",INFO="Information entries need no action.",INSPECT="View details",KEEP="Keep search open",MOVE="Move",ITEM="Item %d"},
+            zhCN={PROVIDER="第三方示例",ENTRY="第三方示例条目",KIND="示例",DESCRIPTION="具有独立交互的插件条目。",ALIASES="示例",STATUS="示例只读状态",READY="已就绪",INFO="信息条目不需要动作。",INSPECT="查看详情",KEEP="保持搜索打开",MOVE="移动",ITEM="物品 %d"},
+        },
+        title={key="PROVIDER"},
         entries={
-            {id="fixture-item-12345",title={default="Fixture entry",zhCN="第三方示例条目"},
-                kindTitle={default="Example",zhCN="示例"},description="An ordinary addon entry with independent interactions.",
-                aliases={default="fixture demo",zhCN="示例"},payload={itemID=12345},actions={"inspect","keep-open"},
-                drag={type="provider",handler="move",title="Move inside the fixture addon"}},
-            {id="status",title={default="Fixture status",zhCN="示例只读状态"},subtitle="Ready",description="Information entries need no action."},
+            {id="fixture-item-12345",title={key="ENTRY"},
+                kindTitle={key="KIND"},description={key="DESCRIPTION"},
+                aliases={{key="ALIASES"},"fixture demo"},payload={itemID=12345},actions={"inspect","keep-open"},
+                drag={type="provider",handler="move"}},
+            {id="status",title={key="STATUS"},subtitle={key="READY"},description={key="INFO"}},
         },
         actions={
-            inspect={title="查看详情",run=function(entry)
+            inspect={title={key="INSPECT"},run=function(entry)
                 state.opens=state.opens+1
                 return {ok=true,view="detail",state={itemID=entry.payload.itemID}}
             end},
-            ["keep-open"]={title="保持搜索打开",run=function() return {ok=true,close=false} end},
+            ["keep-open"]={title={key="KEEP"},run=function() return {ok=true,close=false} end},
         },
-        drags={move={title="Move",begin=function() state.drags=state.drags+1; return {ok=true} end}},
+        drags={move={title={key="MOVE"},begin=function() state.drags=state.drags+1; return {ok=true} end}},
         views={detail={stateSchema={itemID="integer"},create=function()
             if cachedPanel then return cachedPanel end
             local panel={}
@@ -41,7 +46,7 @@ local function attach()
                 self:Update(initialState)
                 self.frame:Show()
             end
-            function panel:Update(viewState) self.text:SetText("Item " .. tostring(viewState.itemID)) end
+            function panel:Update(viewState) self.text:SetText(state.committed:Text("ITEM",viewState.itemID)) end
             function panel:Unmount() if self.frame then self.frame:Hide() end; self.context=nil end
             function panel:Dispose() self:Unmount() end
             cachedPanel=panel

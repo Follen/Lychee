@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.game-menus")
 local A = I.Builtin.InterfaceActions
 local M = {}
 I.Builtin.GameMenus = M
@@ -68,21 +69,36 @@ local menus = {
     {"game-menu", "游戏菜单", {"主菜单", "esc", "menu"}, function() return A:Call(GameMenuFrame_Show) and A:IsShown("GameMenuFrame") end},
 }
 
+-- Conservative cross-client menu set. Unsupported retail panels are never indexed.
+local sharedMenus={character=true,reputation=true,spellbook=true,talents=true,map=true,friends=true,
+    macros=true,settings=true,["game-menu"]=true}
+local progressionMenus={currency=true,mounts=true,pets=true,achievements=true,calendar=true}
+local function classicAction(id)
+    if id=="spellbook" then return function()
+        if A:IsShown("SpellBookFrame") and SpellBookFrame.bookType==(BOOKTYPE_SPELL or "spell") then return true end
+        return A:Call(ToggleSpellBook,BOOKTYPE_SPELL or "spell") and A:IsShown("SpellBookFrame")
+    end end
+    if id=="talents" then return toggle("ToggleTalentFrame","PlayerTalentFrame") end
+end
+
 function M:Init()
     if self.handle then return true end
     local records, opens = {}, {}
+    local product=I.Search.RuntimeIdentity:Current().product
     for index = 1, #menus do
         local menu = menus[index]
-        records[index] = {id=menu[1], title=menu[2], kindTitle="游戏菜单", subtitle="打开" .. menu[2], aliases=menu[3],
+        if product=="retail" or sharedMenus[menu[1]] or ((product=="classic" or product=="titan") and progressionMenus[menu[1]]) then
+        records[#records+1] = {id=menu[1], title=L[menu[2]], kindTitle=L["游戏菜单"], subtitle=L:Format("打开%s",L[menu[2]]), aliases=menu[3],
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\" .. menu[1] .. ".tga", payload={menuID=menu[1]}, actions={"open"}}
-        opens[menu[1]] = menu[4]
+        opens[menu[1]] = product~="retail" and classicAction(menu[1]) or menu[4]
+        end
     end
     local handle, err = _G.Lychee:RegisterProvider({
-        id="builtin.game-menus", apiVersion=2, version="1.0.0", title="游戏菜单", scope={product="retail"}, entries=records,
-        actions={open={title="打开界面",run=function(entry)
+        id="builtin.game-menus", apiVersion=2,minApiRevision=2,i18n=L.resources, version="1.0.0", title=L["游戏菜单"], scope={products={"retail","classic","titan","anniversary"}}, entries=records,
+        actions={open={title=L["打开界面"],run=function(entry)
             local open = opens[entry.payload.menuID]
             if not open then return {ok=false, code="UI_UNAVAILABLE"} end
-            return A:Run(open)
+            return A:Run(open,L)
         end}},
         onEnable=function() return function(reason) if reason == "unregister" then M.handle=nil end end end,
     })

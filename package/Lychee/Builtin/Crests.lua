@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.crests")
 local M = {}
 I.Builtin.Crests = M
 
@@ -25,10 +26,10 @@ local function createPanel()
                 if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyInfo then
                     ok, info = pcall(C_CurrencyInfo.GetCurrencyInfo, currency.id)
                 end
-                local name = ok and info and info.name or currency.name
+                local name = ok and info and info.name or (I.Locale:IsChinese() and currency.name or L:Format("货币 %d",currency.id))
                 local quantity = ok and info and info.quantity or nil
                 local icon = ok and info and info.iconFileID or currency.icon
-                if name == "" then name = currency.name end
+                if name == "" then name = I.Locale:IsChinese() and currency.name or L:Format("货币 %d",currency.id) end
                 if not icon or icon == 0 then icon = currency.icon end
                 local text = quantity ~= nil and tostring(quantity) or "—"
                 if row.appliedName ~= name then row.name:SetText(name); row.appliedName=name end
@@ -46,11 +47,11 @@ local function createPanel()
             local heading = self.frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
             heading:SetPoint("TOPLEFT", 20, -14)
             Theme:SetFont(heading, "title"); Theme:SetTextColor(heading, "text")
-            heading:SetText("纹章")
+            heading:SetText(L["纹章"])
             local subtitle = self.frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
             subtitle:SetPoint("TOPRIGHT", -20, -16)
             Theme:SetFont(subtitle, "meta"); Theme:SetTextColor(subtitle, "textDim")
-            subtitle:SetText("当前角色 · 迷雾纹章")
+            subtitle:SetText(L["当前角色 · 迷雾纹章"])
             for index = 1, #currencies do
                 local row = CreateFrame("Frame", nil, self.frame)
                 row:SetPoint("TOPLEFT", 20, -44 - (index - 1) * 52)
@@ -101,11 +102,11 @@ end
 function M:Init()
     if self.handle then return true end
     local handle, err = _G.Lychee:RegisterProvider({
-        id="builtin.crests", apiVersion=2, version="1.0.0", title="纹章", scope={product="retail"},
-        entries={{ id="crests", title="纹章", kindTitle="角色货币", icon=7734060,
-            subtitle="查看当前角色的迷雾纹章数量", aliases={"神话", "英雄", "勇士", "老兵", "冒险者", "迷雾", "crest", "crests", "纹章数量",
+        id="builtin.crests", apiVersion=2,minApiRevision=2,i18n=L.resources, version="1.0.0", title=L["纹章"], scope={products={"retail"}},
+        entries={{ id="crests", title=L["纹章"], kindTitle=L["角色货币"], icon=7734060,
+            subtitle=L["查看当前角色的迷雾纹章数量"], aliases={"神话", "英雄", "勇士", "老兵", "冒险者", "迷雾", "crest", "crests", "纹章数量",
                 "神话迷雾纹章", "迷雾神话纹章", "英雄迷雾纹章", "勇士迷雾纹章", "老兵迷雾纹章", "冒险者迷雾纹章"}, actions={"open"} }},
-        actions={open={title="查看纹章",run=function() return {ok=true, view="balances", state={}} end}},
+        actions={open={title=L["查看纹章"],run=function() return {ok=true, view="balances", state={}} end}},
         views={balances={stateSchema={}, create=createPanel}},
         onEnable=function() return function(reason)
             if cachedPanel then cachedPanel:Unmount() end

@@ -41,6 +41,16 @@ function ContainerFrameUtil_GetItemButtonAndContainer(_,s) locatedSlot=s;return 
 LycheeInternal={Builtin={CatalogProvider={New=function(_,id,title,events,build,actions)
     return {build=build,actions=actions}
 end}}}
+function GetLocale() return "zhCN" end
+function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
+-- Exclude the shared bootstrap frame from this isolated feature cost fixture.
+local featureCreateFrame=CreateFrame
+CreateFrame=nil
+dofile("package/Lychee/".."Bootstrap.lua")
+CreateFrame=featureCreateFrame
+dofile("package/Lychee/".."Core/ProviderLocales.lua")
+dofile("package/Lychee/".."Locales/Builtin.enUS.lua")
+dofile("package/Lychee/".."Search/RuntimeIdentity.lua")
 dofile('package/Lychee/Builtin/Bags.lua')
 local bags=LycheeInternal.Builtin.Bags
 assert(#frames==0 and #timers==0)

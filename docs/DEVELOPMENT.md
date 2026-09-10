@@ -1,12 +1,12 @@
 # 开发与验证
 
-当前版本为 Lychee 0.2.0，Provider API 2 / revision 1。运行时唯一来源是 `package/Lychee`；第三方接入见 [SDK](SDK.md)，精确字段见 [协议](PROTOCOLS.md)。
+当前版本为 Lychee 0.2.0，Provider API 2 / revision 2。运行时唯一来源是 `package/Lychee`；第三方接入见 [SDK](SDK.md)，精确字段见 [协议](PROTOCOLS.md)。
 
 ## 环境与目录
 
-- 正式服原生 AddOn，当前 TOC 的 Interface 为 `120100`；支持目标需按对应客户端资料核对。
+- 多客户端原生 AddOn：Mainline `120100`、Mists `50504`、Wrath（泰坦重铸）`38002`、TBC（周年纪念版）`20506`；升级时按对应客户端资料重新核对。
 - 本地契约检查使用 PowerShell 7（`pwsh`）、ripgrep（`rg`）和 Lua 5.1（`lua`）；语法检查另需 `luac`。
-- `package/Lychee`：安装到正式服的运行时、Bindings 和媒体。
+- `package/Lychee`：安装到对应客户端的运行时、Bindings 和媒体；本仓库自动同步目标仍仅为下文指定的正式服目录。
 - `lychee-sdk`：编辑器类型、可选 helper、集成示例，不作为独立插件安装。
 - `tests`：离线契约、交互模拟和索引性能脚本。
 - `docs/architecture`、`docs/validation`：设计决策、版本化 API 来源和验证记录。

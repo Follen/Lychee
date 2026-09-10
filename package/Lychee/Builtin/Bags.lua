@@ -1,4 +1,5 @@
 local I = _G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.bags")
 local C = I.Builtin.CatalogProvider
 local highlight, highlightTimer
 local function clearHighlight()
@@ -35,7 +36,7 @@ local function showHighlight(button)
     highlight:Show()
     highlightTimer=C_Timer.NewTimer(3,clearHighlight)
 end
-local function bagLast() return NUM_TOTAL_EQUIPPED_BAG_SLOTS or 5 end
+local function bagLast() return NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4 end
 local function build(self,put,checkpoint)
     if not C_Container then error("BAG_API_UNAVAILABLE") end
     local items, slots={},0
@@ -62,10 +63,10 @@ local function build(self,put,checkpoint)
     end
     for itemID,row in pairs(items) do
         local positions=table.concat(row.positions,"、")
-        local subtitle="共 "..row.count.." 个 · 左键使用 · 右键定位"
-        put({id="item:"..itemID,title=row.name,kind="item",kindTitle="背包",icon=row.icon,
-            subtitle=subtitle,description="背包/格位："..positions,keywords="背包 物品 bags "..itemID,
-            payload={itemID=itemID},actions={{id="use",title="使用物品",kind="secure-item",itemID=itemID},"locate"}},row.name.."\0"..tostring(row.icon).."\0"..row.count.."\0"..positions)
+        local subtitle=L:Format("共 %d 个 · 左键使用 · 右键定位",row.count)
+        put({id="item:"..itemID,title=row.name,kind="item",kindTitle=L["背包"],icon=row.icon,
+            subtitle=subtitle,description=L["背包/格位："]..positions,keywords="背包 物品 bags "..itemID,
+            payload={itemID=itemID},actions={{id="use",title=L["使用物品"],kind="secure-item",itemID=itemID},"locate"}},row.name.."\0"..tostring(row.icon).."\0"..row.count.."\0"..positions)
         checkpoint()
     end
     self.pendingItem=nil
@@ -140,20 +141,22 @@ local function locate(entry)
                 OpenAllBags()
                 local button=findButton(bag,slot,itemID)
                 if not button or not button:IsVisible() then
-                    return {ok=false,message="已打开背包；目标格位当前不可见，请展开对应分类"}
+                    return {ok=false,message=L["已打开背包；目标格位当前不可见，请展开对应分类"]}
                 end
                 showHighlight(button)
                 return {ok=true,close=true}
             end
         end
     end
-    return {ok=false,code="ITEM_NOT_FOUND",message="物品已不在背包中"}
+    return {ok=false,code="ITEM_NOT_FOUND",message=L["物品已不在背包中"]}
 end
-local M=C:New("builtin.bags","背包物品",{"BAG_UPDATE_DELAYED","GET_ITEM_INFO_RECEIVED"},build,
-    {locate={title="定位背包",run=locate}})
+local M=C:New("builtin.bags",L["背包物品"],{"BAG_UPDATE_DELAYED","GET_ITEM_INFO_RECEIVED"},build,
+    {locate={title=L["定位背包"],run=locate}})
 function M:onEvent(event,itemID)
     if event=="GET_ITEM_INFO_RECEIVED" and itemID~=self.pendingItem then return end
     self:MarkDirty()
 end
 function M:onStop() clearHighlight();self.pendingItem=nil end
 I.Builtin.Bags=M
+
+M.products={"retail","classic","titan","anniversary"}

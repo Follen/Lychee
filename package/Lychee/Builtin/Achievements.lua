@@ -1,4 +1,5 @@
 local I=_G.LycheeInternal
+local L = I.ProviderLocales:Builtin("builtin.achievements")
 local N=I.Search.Normalizer
 local M
 local LIMIT=32768
@@ -317,17 +318,17 @@ local function record(id)
         if complete then done=done+1 end
         if total==1 then quantity,required=q,r end
     end
-    local progress=completed and "已完成" or (total>0 and ("条件 "..done.."/"..total) or "未完成")
-    if not completed and quantity and required and required>0 then progress="进度 "..quantity.."/"..required end
-    return {id="achievement:"..id,title=name,kind="achievement",kindTitle="成就",icon=icon,
-        subtitle=progress.." · "..(points or 0).." 点 · Shift 点击贴到聊天框",
+    local progress=completed and L["已完成"] or (total>0 and (L:Format("条件 %d/%d",done,total)) or L["未完成"])
+    if not completed and quantity and required and required>0 then progress=L:Format("进度 %s/%s",quantity,required) end
+    return {id="achievement:"..id,title=name,kind="achievement",kindTitle=L["成就"],icon=icon,
+        subtitle=L:Format("%s · %d 点 · Shift 点击贴到聊天框",progress,points or 0),
         description=description,payload={achievementID=id},actions={"open","share"}}
 end
 local function share(entry)
     if combat() then return {ok=false,code="COMBAT_LOCKED"} end
     local link=GetAchievementLink(entry.payload.achievementID)
-    if not link or not ChatFrameUtil then return {ok=false,message="当前无法生成成就链接"} end
-    if not ChatFrameUtil.InsertLink(link) and not ChatFrameUtil.OpenChat(link) then return {ok=false,message="当前无法打开聊天输入框"} end
+    if not link or not ChatFrameUtil then return {ok=false,message=L["当前无法生成成就链接"]} end
+    if not ChatFrameUtil.InsertLink(link) and not ChatFrameUtil.OpenChat(link) then return {ok=false,message=L["当前无法打开聊天输入框"]} end
     return {ok=true,close=true}
 end
 local function open(entry)
@@ -339,10 +340,10 @@ local function open(entry)
         if not AchievementFrame or not AchievementFrame:IsShown() or not AchievementFrame_SelectAchievement then return false end
         AchievementFrame_SelectAchievement(id,true)
         return true
-    end)
+    end,L)
 end
-M=I.Builtin.CatalogProvider:New("builtin.achievements","成就",{"ACHIEVEMENT_EARNED"},build,
-    {open={title="查看成就",run=open},share={title="贴到聊天框",run=share}})
+M=I.Builtin.CatalogProvider:New("builtin.achievements",L["成就"],{"ACHIEVEMENT_EARNED"},build,
+    {open={title=L["查看成就"],run=open},share={title=L["贴到聊天框"],run=share}})
 M.resolve=function(key)
     local id=type(key)=="string" and tonumber(key:match("^achievement:(%d+)$"))
     return id and record(id) or nil
@@ -453,3 +454,5 @@ M.query=function(request,reply)
     return cancel
 end
 I.Builtin.Achievements=M
+
+M.products={"retail","classic","titan"}

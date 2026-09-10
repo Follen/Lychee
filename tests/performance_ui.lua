@@ -61,6 +61,10 @@ end
 function I.UserPreferences:Remove(index) mutations=mutations+1;return table.remove(pins,index) end
 function I.Registry:SetUserEnabled(id,value) mutations=mutations+1;self.entries[id].userEnabled=value;return true end
 local controller={MarkHomeDirty=function() end,SetStatusText=function() end}
+local frameFactory=CreateFrame
+CreateFrame=nil
+dofile(root.."Bootstrap.lua")
+CreateFrame=frameFactory
 for _, name in ipairs({"Theme","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
 for i=1,1000 do
     local id=string.format("external.%04d",i)

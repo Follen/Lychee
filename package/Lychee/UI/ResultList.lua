@@ -1,3 +1,4 @@
+local L = _G.LycheeInternal.Locale
 local Lychee = _G.Lychee or {}
 _G.Lychee = Lychee
 Lychee.UI = Lychee.UI or {}
@@ -89,7 +90,7 @@ local function cachedText(row, key, fontString, value)
 end
 
 local function labelText(value)
-    if type(value) == "table" then value = value[UI_LOCALE] or value.default or value.enUS end
+    if type(value) == "table" then value = L:Resolve(value) end
     if type(value) == "string" and value ~= "" then return value end
 end
 
@@ -99,7 +100,7 @@ local function kindText(item)
     if title then return title end
     local category = item and (item.category or item.categoryLabel) or record and record.category
     if type(category) == "table" then category = category.title or category.id end
-    return labelText(category) or labelText(item and item.sourceTitle) or (UI_CHINESE and "内容" or "Content")
+    return labelText(category) or labelText(item and item.sourceTitle) or (UI_CHINESE and L["内容"] or "Content")
 end
 
 local function hideTooltip()
@@ -176,7 +177,7 @@ local function scoreTable(tip, rows, y)
         end
         local row=index>1 and rows[index-1]
         for column,label in ipairs(labels) do
-            local value=row and row[column] or (column==1 and "当季副本" or column==2 and "成绩" or "分数")
+            local value=row and row[column] or (column==1 and L["当季副本"] or column==2 and L["成绩"] or L["分数"])
             setText(label,value);setShown(label,true)
             local top=y+(index-1)*25
             if label._y~=top then
@@ -213,12 +214,12 @@ local function showTooltip(owner, title, detail)
             end
         end
         if actionEnabled(primary) then
-            clickHint = (UI_CHINESE and "点击  " or "Click  ") .. actionLabel(primary)
+            clickHint = (UI_CHINESE and L["点击  "] or "Click  ") .. actionLabel(primary)
         end
         if interaction and interaction.drag then
             local drag = interaction.drag
-            local title = drag.title or (drag.type == "spell" and (UI_CHINESE and "放到动作条" or "Place on an action bar")) or (UI_CHINESE and "拖动" or "Drag")
-            dragHint = (UI_CHINESE and "拖动  " or "Drag  ") .. title
+            local title = drag.title or (drag.type == "spell" and (UI_CHINESE and L["放到动作条"] or "Place on an action bar")) or (UI_CHINESE and L["拖动"] or "Drag")
+            dragHint = (UI_CHINESE and L["拖动  "] or "Drag  ") .. title
         end
     elseif detail and detail ~= "" and detail ~= title then
         description = detail
@@ -330,7 +331,7 @@ function ResultList:ShowItemTooltip(item, owner)
 end
 
 function ResultList:ShowActionTooltip(action, owner)
-    showTooltip(owner, actionLabel(action), UI_CHINESE and "点击施放" or "Click to cast")
+    showTooltip(owner, actionLabel(action), UI_CHINESE and L["点击施放"] or "Click to cast")
 end
 
 function ResultList:ShowTooltip(row, owner)

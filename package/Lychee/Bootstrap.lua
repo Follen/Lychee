@@ -1,7 +1,44 @@
 local addonName = ...
 local I = _G.LycheeInternal or {}
 _G.LycheeInternal = I
-I.VERSION = { api = 2, revision = 1 }
+-- Client locale is immutable during a session; zhTW uses Simplified Chinese fallback.
+local locale = type(GetLocale) == "function" and GetLocale() or "enUS"
+local L = setmetatable({ code = locale }, { __index = function(_, key) return key end })
+I.Locale = L
+function L:IsChinese() return self.code == "zhCN" or self.code == "zhTW" end
+function L:Add(entries)
+    if self:IsChinese() then return end
+    for key, value in pairs(entries) do self[key] = value end
+end
+function L:Format(key, ...) return string.format(self[key], ...) end
+function L:Resolve(value, fallback)
+    if I.Search and I.Search.Normalizer and I.Search.Normalizer.Display then
+        return I.Search.Normalizer:Display(value, fallback)
+    end
+    if type(value) == "string" then return value end
+    if type(value) ~= "table" then return fallback or "" end
+    local family = self:IsChinese() and "zhCN" or "enUS"
+    if value.text then return value.text end
+    if value[self.code] or value[family] or value.default or value.enUS then
+        return value[self.code] or value[family] or value.default or value.enUS
+    end
+    local exact, related, default, english
+    for index = 1, #value do
+        local entry = value[index]
+        if type(entry) == "string" then default = default or entry
+        elseif type(entry) == "table" then
+            local text = entry.text or entry.title
+            if entry.locale == self.code then exact = exact or text
+            elseif entry.locale == family then related = related or text
+            elseif entry.locale == nil or entry.locale == "default" then default = default or text
+            elseif entry.locale == "enUS" then english = english or text end
+        end
+    end
+    return exact or related or default or english or fallback or ""
+end
+L.name = L:IsChinese() and "|cffd53c49荔枝|r启动器" or "|cffd53c49Lychee|r Launcher"
+
+I.VERSION = { api = 2, revision = 2 }
 I.Modules = I.Modules or {}
 LycheeDB = LycheeDB or {}
 if LycheeDB.schemaVersion ~= 2 then LycheeDB = { schemaVersion = 2 } end
