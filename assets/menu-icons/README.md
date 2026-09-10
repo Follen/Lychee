@@ -2,7 +2,7 @@
 
 ## Current flat assets
 
-`flat-atlas.png` contains generated light silver / warm ivory / lychee red artwork for a dark UI. Export the magenta matte to transparency and build 36 runtime icons with `node tests/build_flat_menu_icons.cjs` (requires `sharp`). The exporter writes 64×64 uncompressed RGBA TGA files and a dark-background preview at 28/34/48 pixels. Source and output hashes are in `docs/architecture/2026-09-10-flat-menu-icons.json`. Original skill, mount and currency game textures are unaffected.
+`flat-atlas.png` contains generated light silver / warm ivory / lychee red artwork for a dark UI. Export the magenta matte to transparency and build 36 runtime icons with `node tools/build_flat_menu_icons.cjs` (requires `sharp`). The exporter writes 64×64 uncompressed RGBA TGA files and a dark-background preview at 28/34/48 pixels. Source and output hashes are in `docs/architecture/2026-09-10-flat-menu-icons.json`. Original skill, mount and currency game textures are unaffected.
 
 ## Previous outline assets (reference only)
 
@@ -13,7 +13,7 @@
 Offline rebuild from repository root:
 
 ```powershell
-python tests/build_menu_icons.py
+python tools/build_menu_icons.py
 ```
 
 Build dependencies: CairoSVG 2.8.2, Pillow 12.1.1, Microsoft YaHei for preview labels. CairoSVG also requires a working Cairo installation. These are development dependencies only; the addon loads prebuilt textures.
@@ -21,8 +21,8 @@ Build dependencies: CairoSVG 2.8.2, Pillow 12.1.1, Microsoft YaHei for preview l
 To reproduce upstream exports, extract the pinned npm tarball `https://registry.npmjs.org/@icon-park/svg/-/svg-1.4.2.tgz` outside the repository, then run:
 
 ```powershell
-node tests/export_menu_icons.cjs <extracted-package-directory>
-python tests/build_menu_icons.py
+node tools/export_menu_icons.cjs <extracted-package-directory>
+python tools/build_menu_icons.py
 ```
 
 The exporter refuses any other package/version. The builder checks all 34 current menu IDs, accent indices, ivory/red presence, RGBA format, uncompressed TGA header, dimensions, and crop-safe padding. It writes the PNG/SVG previews and SHA-256 manifest under `docs/architecture`.

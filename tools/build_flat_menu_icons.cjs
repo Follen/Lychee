@@ -47,7 +47,7 @@ async function main() {
     const sheet=`<svg xmlns="http://www.w3.org/2000/svg" width="1032" height="672"><rect width="100%" height="100%" fill="#101012"/>${parts.join('')}</svg>`;
     const docs=path.join(root,'docs/architecture');
     await sharp(Buffer.from(sheet)).png().toFile(path.join(docs,'2026-09-10-flat-menu-icons.png'));
-    fs.writeFileSync(path.join(docs,'2026-09-10-flat-menu-icons.json'),JSON.stringify({generator:'tests/build_flat_menu_icons.cjs',source:'assets/menu-icons/flat-atlas.png',sourceSha256:hash(fs.readFileSync(source)),style:'Light silver, warm ivory, lychee red. Flat shapes for dark UI.',previewSizes:[28,34,48],icons:manifest},null,2)+'\n');
+    fs.writeFileSync(path.join(docs,'2026-09-10-flat-menu-icons.json'),JSON.stringify({generator:'tools/build_flat_menu_icons.cjs',source:'assets/menu-icons/flat-atlas.png',sourceSha256:hash(fs.readFileSync(source)),style:'Light silver, warm ivory, lychee red. Flat shapes for dark UI.',previewSizes:[28,34,48],icons:manifest},null,2)+'\n');
     fs.writeFileSync(path.join(out,'LICENSE.txt'),'Lychee flat menu icons: generated artwork, 2026-09-10.\nLight silver, ivory and red sprite atlas exported to transparent 64x64 RGBA TGA.\nLegacy IconPark source references remain in the development repository only.\n');
     console.log('Exported '+manifest.length+' transparent flat icons and dark-background preview.');
 }

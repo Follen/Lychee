@@ -36,7 +36,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    manifest = json.loads((ROOT / 'tests/client_manifest.json').read_text())
+    manifest = json.loads((ROOT / 'tools/client_manifest.json').read_text())
     for product, client in manifest['clients'].items():
         text = render(manifest, product)
         names = [f'Lychee_{client["suffix"]}.toc']

@@ -87,7 +87,7 @@ def main():
     sheet.save(DOCS / "2026-09-10-menu-icons.png")
     (DOCS / "2026-09-10-menu-icons.svg").write_text("\n".join(svg_sheet + ["</svg>"]) + "\n", encoding="utf-8")
     (DOCS / "2026-09-10-menu-icons.json").write_text(json.dumps({
-        "generator": "tests/build_menu_icons.py", "upstream": {k:v for k,v in selection.items() if k != "icons"},
+        "generator": "tools/build_menu_icons.py", "upstream": {k:v for k,v in selection.items() if k != "icons"},
         "size": SIZE, "safeInsetPx": SAFE_INSET, "hostCropUV": [.07, .93, .07, .93],
         "format": "RGBA TGA", "style": "IconPark outline, 3/48 stroke, ivory with selected Lychee red strokes",
         "icons": manifest}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

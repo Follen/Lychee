@@ -4,6 +4,20 @@ Lychee 是 World of Warcraft 游戏内的通用搜索工具。Provider 提供可
 
 `package/Lychee` 是唯一运行时 AddOn。`lychee-sdk` 是开发包，不作为独立插件安装。默认快捷键为 Alt+Space，也可在游戏按键设置中修改。
 
+## 项目目录
+
+| 目录 | 职责 |
+|---|---|
+| `package/Lychee/` | 唯一游戏运行时，安装时复制这个目录 |
+| `package/Lychee/PublicAPI/` | Host 提供给其他插件调用的公共接口实现 |
+| `lychee-sdk/` | 开发者使用的类型声明、接入文档和示例；不是另一个运行时 |
+| `tools/` | TOC、游戏目录和图标的生成工具，见 [工具说明](tools/README.md) |
+| `tests/` | 契约、交互和性能验证 |
+| `assets/` | 图标等可编辑源素材 |
+| `docs/` | 架构、协议、开发说明与历史验证记录 |
+
+根目录不再保留重复的 SDK 导航或空的源码目录。隐藏工具目录和本地 `analyze/` 不属于插件发布内容。
+
 ## 安装与升级
 
 将 `package/Lychee` 文件夹复制到对应客户端的 `Interface/AddOns/Lychee`，确认 `Lychee.toc` 直接位于该目录下。首次安装或 TOC/模块列表变化后重启客户端。本仓库的检查、提交和正式服同步顺序见 [开发与验证](docs/DEVELOPMENT.md)。
@@ -57,4 +71,4 @@ Host 与每个 Provider 各自管理英文、中文文案；zhTW 回退 zhCN，e
 
 四客户端通用：技能、背包、游戏菜单、暴雪设置、插件识别。坐骑、装备方案、成就支持正式服／熊猫人之谜／泰坦重铸，并检查对应 API。纹章、团队钥匙、宝库、天赋方案、首领目录仅正式服。各客户端缺少的菜单入口不显示。
 
-`tests/client_manifest.json` 是 TOC 加载清单，运行 `python tests/build_client_tocs.py` 生成，`--check` 检查漂移。客户端升级时须重新核对接口与 API。离线矩阵检查不替代各客户端的实机加载、战斗和安全动作验证。
+`tools/client_manifest.json` 是 TOC 加载清单，运行 `python tools/build_client_tocs.py` 生成，`--check` 检查漂移。客户端升级时须重新核对接口与 API。离线矩阵检查不替代各客户端的实机加载、战斗和安全动作验证。

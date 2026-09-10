@@ -1,5 +1,5 @@
 // Build-time only. Export original IconPark geometry from a pinned npm package.
-// Usage: node tests/export_menu_icons.cjs <extracted @icon-park/svg package>
+// Usage: node tools/export_menu_icons.cjs <extracted @icon-park/svg package>
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');

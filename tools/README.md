@@ -1,0 +1,25 @@
+# 构建工具
+
+这里存放构建期生成工具，不进入游戏 AddOns。运行时唯一来源是 `package/Lychee`，离线验证仍在 `tests`；SDK 文档与类型在 `lychee-sdk`。
+
+所有命令从仓库根目录运行。
+
+| 工具 | 用途 | 依赖／输入 |
+|---|---|---|
+| `build_client_tocs.py` | 生成主插件和 SDK 示例的四客户端 TOC；`--check` 只校验 | Python 标准库、`client_manifest.json` |
+| `client_manifest.json` | 客户端 Interface 与有序加载清单 | 由 TOC 工具读取 |
+| `build_journal_catalog.py` | 从已保存的数据快照生成首领目录 | Python 标准库、`docs/architecture` 下对应 JSON |
+| `build_flat_menu_icons.cjs` | 当前扁平菜单图集导出 TGA 与预览 | Node.js、sharp、`assets/menu-icons/flat-atlas.png` |
+| `build_provider_icons.py` | reload、冷却管理器、钥匙通用图标导出 | Python、CairoSVG、Pillow、`assets/provider-icons` |
+| `build_addon_inspector_icon.py` | 插件识别图标导出与预览 | Python、CairoSVG、Pillow |
+| `build_menu_icons.py` | 旧版 IconPark 轮廓图标重建 | Python、CairoSVG、Pillow、预览字体 |
+| `export_menu_icons.cjs` | 旧版 IconPark 原始矢量素材导入 | Node.js、指定版本的已解压 IconPark 包 |
+
+```powershell
+python tools/build_client_tocs.py --check
+pwsh -NoProfile -File tests/check_contract.ps1
+```
+
+需要更新客户端加载清单时编辑 `tools/client_manifest.json`，再执行 `python tools/build_client_tocs.py`。图标／数据生成命令会更新输出文件，不作为常规测试全部执行；旧版轮廓工具与当前扁平工具有相同输出目录，分别用于对应素材的重建。
+
+这些文件原来位于 `tests/`。历史验证报告、已有产物的 generator 元数据及生成注释保留当时路径作为来源记录；重跑时使用此目录下同名工具。新的产物记录会使用 tools 路径。不要为清理目录而重生成游戏数据或图标。

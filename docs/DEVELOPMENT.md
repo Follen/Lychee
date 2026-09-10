@@ -8,7 +8,8 @@
 - 本地契约检查使用 PowerShell 7（`pwsh`）、ripgrep（`rg`）和 Lua 5.1（`lua`）；语法检查另需 `luac`。
 - `package/Lychee`：安装到对应客户端的运行时、Bindings 和媒体；本仓库自动同步目标仍仅为下文指定的正式服目录。
 - `lychee-sdk`：编辑器类型、可选 helper、集成示例，不作为独立插件安装。
-- `tests`：离线契约、交互模拟和索引性能脚本。
+- `tests`：离线契约、交互模拟和性能验证。
+- `tools`：TOC／目录／图标生成工具与客户端加载清单，详见 [工具说明](../tools/README.md)。
 - `docs/architecture`、`docs/validation`：设计决策、版本化 API 来源和验证记录。
 
 ## 本地检查
@@ -19,7 +20,7 @@
 pwsh -NoProfile -File tests/check_contract.ps1
 ```
 
-该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行 11 个 Lua 契约/交互测试。内置 Provider 测试使用真实 SDK、索引和 ViewHost，替换 WoW 外部 API，覆盖纹章事件生命周期、菜单分页与失败、首领精确跳转。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
+该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行当前完整的 Lua 契约、交互和性能测试。内置 Provider 测试使用真实 SDK、索引和 ViewHost，替换 WoW 外部 API，覆盖纹章事件生命周期、菜单分页与失败、首领精确跳转。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -38,7 +39,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 索引基准可用 `lua tests/index_benchmark.lua` 或 `lua tests/index_benchmark.lua package/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](validation/2026-09-10-provider-framework.md)。
 
-菜单图标通过 `python tests/build_menu_icons.py` 重生成，需要 Pillow；中文预览使用 Windows 的 Microsoft YaHei 字体。脚本输出 34 个透明 64×64 TGA、SVG 矢量参考、模拟 Host 裁切的 PNG 预览，以及 SHA-256 清单。只有 TGA 进入插件运行时；构建脚本、字体、预览和清单不进入正式服副本。
+当前菜单图标通过 `node tools/build_flat_menu_icons.cjs` 从扁平图集生成，需要 sharp。原有 `tools/build_menu_icons.py` 是旧版轮廓图标的重建工具；其他 Provider 图标和目录工具见 [工具说明](../tools/README.md)。生成工具会写入对应运行时资源，按需要单独执行。构建脚本、预览和验证清单不进入游戏副本。
 
 ## 安装与第三方示例
 

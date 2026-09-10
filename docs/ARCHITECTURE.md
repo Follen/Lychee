@@ -84,7 +84,7 @@ ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state
 
 坐骑与宏伟宝库的来源、生命周期及离线压力测试见 [专项验证记录](validation/2026-09-10-mounts-vault.md)。
 
-菜单图标由 `tests/build_menu_icons.py` 的矢量路径离线生成，运行时只加载 `Media/MenuIcons/*.tga`。资产自带 5 px 透明安全边距，兼容 Host 现有 7% 裁切；不增加特殊图标协议、运行时绘图或回调。
+当前菜单图标由 `tools/build_flat_menu_icons.cjs` 从扁平图集离线导出，原矢量重建工具保留在 tools 作为历史素材工具，运行时只加载 `Media/MenuIcons/*.tga`。资产自带 5 px 透明安全边距，兼容 Host 现有 7% 裁切；不增加特殊图标协议、运行时绘图或回调。
 
 ## 启停、性能和存储
 
