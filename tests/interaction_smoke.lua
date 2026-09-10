@@ -806,6 +806,7 @@ assertEq(resultRow:GetHeight(),recentTile:GetHeight(),"search uses recent row he
 assertEq(resultRow.icon:GetWidth(),recentTile.icon:GetWidth(),"search uses recent icon size")
 assertEq(resultRow.accent:GetWidth(),recentTile.bg:GetWidth(),"selection marker widths match")
 assertEq(resultRow.accent:GetHeight(),recentTile.bg:GetHeight(),"selection marker heights match")
+assertEq(recentTile.selectionFill._lycheeColorToken,Lychee.UI.Theme.Colors.surfaceSelected,"recent uses same selected fill as search")
 assertEq(recentTile.title.wordWrap, false, "recent entry names use one line")
 assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
 local beforeDrag = _G.__pickup or 0

@@ -177,7 +177,7 @@ assert(rowOne._categoryInset == 42, "visible secondary button keeps label clear"
 assert(rowTwo._categoryInset == 12, "label without visible secondary button matches icon inset")
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
-assert(rowOne.bg._lycheeColorToken==Lychee.UI.Theme.Colors.surface,"selected row has no background highlight")
+assert(rowOne.bg._lycheeColorToken==Lychee.UI.Theme.Colors.surfaceSelected,"selected row uses the shared subtle fill")
 rowTwo.scripts.OnEnter(rowTwo)
 assert(list.selected == 2 and not rowOne._selected and rowTwo._selected, "hover moves the single current selection")
 assert(not rowOne.accent:IsShown() and rowTwo.accent:IsShown(), "only the hovered current row has an accent")

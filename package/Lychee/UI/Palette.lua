@@ -22,7 +22,7 @@ local FALLBACK = {
     window = { 0.045, 0.048, 0.055, 0.985 }, header = { 0.065, 0.068, 0.078, 1 },
     content = { 0.035, 0.038, 0.044, 1 }, footer = { 0.050, 0.053, 0.061, 1 },
     tile = { 0.075, 0.078, 0.088, 1 }, tileHover = { 0.105, 0.108, 0.120, 1 },
-    tileSelected = { 0.135, 0.090, 0.098, 1 },
+    tileSelected = { 0.085, 0.085, 0.085, 1 },
     border = { 0.18, 0.18, 0.20, 1 }, accent = { 0.90, 0.22, 0.29, 1 },
     text = { 0.94, 0.92, 0.89, 1 }, muted = { 0.62, 0.61, 0.59, 1 },
 }
@@ -132,6 +132,7 @@ local function createHomeView(parent, controller)
         local selected = tile.section and tile.index == self.selected and tile.section.enabled ~= false
         paint(tile.bg, color("accent"))
         setShown(tile.bg, selected == true)
+        if tile.selectionFill then setShown(tile.selectionFill,selected == true and tile._recentLayout == true) end
     end
 
     function view:SetHover(tile, hovered)
@@ -281,6 +282,12 @@ local function createHomeView(parent, controller)
         tile.title:ClearAllPoints()
         tile.bg:ClearAllPoints()
         if recent then
+            if not tile.selectionFill then
+                tile.selectionFill=tile:CreateTexture(nil,"BACKGROUND",nil,-1)
+                tile.selectionFill:SetPoint("TOPLEFT",tile,"TOPLEFT",0,-LIST_METRICS.selectionInsetY)
+                tile.selectionFill:SetPoint("BOTTOMRIGHT",tile,"BOTTOMRIGHT",0,LIST_METRICS.selectionInsetY)
+                paint(tile.selectionFill,color("tileSelected"))
+            end
             tile.icon:SetPoint("LEFT", tile, "LEFT", LIST_METRICS.listIconInset, 0)
             tile.title:SetPoint("LEFT", tile, "LEFT", LIST_METRICS.listTitleInset, 0)
             tile.title:SetPoint("RIGHT", tile, "RIGHT", -112, 0)

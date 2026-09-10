@@ -13,7 +13,7 @@ local UI_LOCALE = GetLocale and GetLocale() or "enUS"
 local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
 local FALLBACK = {
     row = { 0.075, 0.078, 0.09, 0.96 }, rowHover = { 0.090, 0.090, 0.090, 1 },
-    rowSelected = { 0.120, 0.120, 0.120, 1 }, outline = { 0.30, 0.19, 0.21, 0.85 },
+    rowSelected = { 0.085, 0.085, 0.085, 1 }, outline = { 0.30, 0.19, 0.21, 0.85 },
     accent = { 0.91, 0.20, 0.30, 1 }, action = { 0.13, 0.135, 0.15, 1 },
     actionHover = { 0.20, 0.205, 0.23, 1 }, text = { 0.96, 0.945, 0.91, 1 },
     muted = { 0.62, 0.63, 0.67, 1 }, dim = { 0.45, 0.46, 0.50, 1 },
@@ -273,7 +273,7 @@ local function secondaryAction(interaction)
 end
 
 local function renderRowState(row)
-    local background = "row"
+    local background = row._selected and "rowSelected" or "row"
     setTextureColor(row.bg, background)
     setShown(row.accent, row._selected == true)
     local showSecondary = row.secondaryAction and row._selected or false
@@ -352,7 +352,9 @@ function ResultList:Create(parent, controller)
         local gridRow = math.floor((index - 1) / columns)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
-        row.bg = row:CreateTexture(nil, "BACKGROUND"); row.bg:SetAllPoints()
+        row.bg = row:CreateTexture(nil, "BACKGROUND")
+        row.bg:SetPoint("TOPLEFT",row,"TOPLEFT",0,-(metrics.selectionInsetY or 2))
+        row.bg:SetPoint("BOTTOMRIGHT",row,"BOTTOMRIGHT",0,metrics.selectionInsetY or 2)
         row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(metrics.selectionWidth or 2, metrics.selectionHeight or 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
 
         row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", metrics.listIconInset or 12, 0)
