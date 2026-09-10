@@ -1,0 +1,298 @@
+[
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_SharedXML/LinkUtil.lua",
+        "line": 130,
+        "excerpt": "127: \tend\n128: end\n129: \n130: function GetAchievementInfoFromHyperlink(link)\n131: \tlocal linkType, linkData = LinkUtil.SplitLinkData(link);\n132: \tif linkType and linkType:match(\"|Hachievement\") then\n133: \t\tlocal achievementID, _, complete = strsplit(\":\", linkData);"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 1019,
+        "excerpt": "1016: \tfor index = 1, numAchievements do\n1017: \t\tif index <= numAchievements then\n1018: \t\t\tlocal filteredIndex = index + completedOffset;\n1019: \t\t\tlocal id = GetAchievementInfo(category, filteredIndex);\n1020: \t\t\tnewDataProvider:Insert({category = category, index = filteredIndex, id = id});\n1021: \t\tend\n1022: \tend"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_Communities/GuildNews.lua",
+        "line": 164,
+        "excerpt": "161: \t\tself.UpdateTooltip = CommunitiesGuildNewsButton_OnEnter;\n162: \telseif ( newsType == NEWS_PLAYER_ACHIEVEMENT or newsType == NEWS_GUILD_ACHIEVEMENT ) then\n163: \t\tlocal achievementId = self.id;\n164: \t\tlocal _, name, _, _, _, _, _, description = GetAchievementInfo(achievementId);\n165: \t\tCommunitiesGuildNewsButton_AnchorTooltip(self);\n166: \t\tGameTooltip:SetText(ACHIEVEMENT_COLOR_CODE..name..FONT_COLOR_CODE_CLOSE);\n167: \t\tGameTooltip:AddLine(description, 1, 1, 1, true);"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-achievement-info.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 862,
+        "excerpt": "859: end\n860: \n861: function AchievementFrameComparison_UpdateStatusBars (id)\n862: \tlocal numAchievements, numCompleted = GetCategoryNumAchievements(id);\n863: \tlocal name = GetCategoryInfo(id);\n864: \n865: \tif ( id == ACHIEVEMENT_COMPARISON_SUMMARY_ID ) then"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-achievement-count.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 2659,
+        "excerpt": "2659: function AchievementFrame_SelectAchievement(id, forceSelect)\n2660: \tif ( (not AchievementFrame:IsShown() and not forceSelect) or (not C_AchievementInfo.IsValidAchievement(id)) ) then\n2661: \t\treturn;\n2662: \tend\n2663: \n2664: \tlocal achCompleted = select(4, GetAchievementInfo(id));\n2665: \tif ( achCompleted and (ACHIEVEMENTUI_SELECTEDFILTER == AchievementFrameFilters[ACHIEVEMENT_FILTER_INCOMPLETE].func) ) then\n2666: \t\tAchievementFrame_SetFilter(ACHIEVEMENT_FILTER_ALL);\n2667: \telseif ( (not achCompleted) and (ACHIEVEMENTUI_SELECTEDFILTER == AchievementFrameFilters[ACHIEVEMENT_FILTER_COMPLETE].func) ) then\n2668: \t\tAchievementFrame_SetFilter(ACHIEVEMENT_FILTER_ALL);\n2669: \tend\n2670: \n2671: \t-- Figure out if this is part of a progressive achievement; if it is and it's incomplete, make sure the previous level was completed.\n2672: \t-- If not, find the first incomplete achievement in the chain and display that instead.\n2673: \tlocal displayedId = AchievementFrame_FindDisplayedAchievement(id);\n2674: \tlocal category = GetAchievementCategory(displayedId);\n2675: \tAchievementFrame_UpdateAndSelectCategory(category);\n2676: \n2677: \t-- Scroll to the achievement and select it.\n2678: \tlocal scrollBox = nil;\n2679: \tif AchievementFrameComparison:IsShown() then\n2680: \t\tAchievementFrame_SelectAndScrollToAchievementId(AchievementFrameComparison.AchievementContainer.ScrollBox, displayedId);\n2681: \telse\n2682: \t\tAchievementFrame_SelectAndScrollToAchievementId(AchievementFrameAchievements.ScrollBox, displayedId);\n2683: \tend\n2684: \n2685: \tAchievementFrame_RefreshBackButton();\n2686: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI_Bootstrap.lua",
+        "line": 25,
+        "excerpt": "22: \t\t\tAchievementFrame_ToggleAchievementFrame(false, C_AchievementInfo.IsGuildAchievement(achievementID));\n23: \t\tend\n24: \n25: \t\tAchievementFrame_SelectAchievement(achievementID);\n26: \tend\n27: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 292,
+        "excerpt": "289: \n290: \tself.HeaderDetails.Back:SetScript(\"OnClick\", function()\n291: \t\tlocal achievementId = GetNextAchievementSelectionHistoryID();\n292: \t\tAchievementFrame_SelectAchievement(achievementId);\n293: \tend);\n294: end\n295: "
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-achievement-open.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsPanel.lua",
+        "line": 819,
+        "excerpt": "819: function SettingsPanelMixin:GetCategoryList()\n820: \treturn self.CategoryList;\n821: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 146,
+        "excerpt": "143: \n144: ACHIEVEMENT_FUNCTIONS = {\n145: \tcategoryIndex = AchievementCategoryIndex,\n146: \tcategories = AchievementFrameCategories_MakeCategoryList(GetCategoryList(), \"summary\"),\n147: }\n148: \n149: GUILD_ACHIEVEMENT_FUNCTIONS = {"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-GetCategoryList.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 1153,
+        "excerpt": "1150: \tend\n1151: \n1152: \tlocal display = false;\n1153: \tif ( GetAchievementNumCriteria(id) ~= 0 ) then\n1154: \t\tdisplay = true;\n1155: \telseif ( self.completed and GetPreviousAchievement(id) ) then\n1156: \t\tdisplay = true;"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_Communities/GuildNews.lua",
+        "line": 170,
+        "excerpt": "167: \t\tGameTooltip:AddLine(description, 1, 1, 1, true);\n168: \t\tlocal firstCriteria = true;\n169: \t\tlocal leftCriteria;\n170: \t\tfor i = 1, GetAchievementNumCriteria(achievementId) do\n171: \t\t\tlocal criteriaString, _, _, _, _, _, flags = GetAchievementCriteriaInfo(achievementId, i);\n172: \t\t\t-- skip progress bars\n173: \t\t\tif ( bit.band(flags, EVALUATION_TREE_FLAG_PROGRESS_BAR) ~= EVALUATION_TREE_FLAG_PROGRESS_BAR ) then"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_FrameXML/AchievementDisplayFrame.lua",
+        "line": 43,
+        "excerpt": "40: \tself.lastBullet = nil;\n41: \n42: \tfor _, achievementID in ipairs(achievementIds) do \n43: \t\tif(GetAchievementNumCriteria(achievementID) == 0) then \n44: \t\t\tself:SetupBulletAnchoring(achievementID)\n45: \t\telse\n46: \t\t\tfor criteriaIndex = 1, GetAchievementNumCriteria(achievementID) do"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-GetAchievementNumCriteria.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 1499,
+        "excerpt": "1496: \n1497: \t\tlocal numCriteria = GetAchievementNumCriteria(id);\n1498: \t\tfor i = 1, numCriteria do\n1499: \t\t\tlocal criteriaString, criteriaType, criteriaCompleted, quantity, reqQuantity, charName, criteriaFlags, assetID, quantityString = GetAchievementCriteriaInfo(id, i);\n1500: \n1501: \t\t\tif criteriaType == CRITERIA_TYPE_ACHIEVEMENT and assetID then\n1502: \t\t\t\tmetas = metas + 1;"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_Communities/GuildNews.lua",
+        "line": 171,
+        "excerpt": "168: \t\tlocal firstCriteria = true;\n169: \t\tlocal leftCriteria;\n170: \t\tfor i = 1, GetAchievementNumCriteria(achievementId) do\n171: \t\t\tlocal criteriaString, _, _, _, _, _, flags = GetAchievementCriteriaInfo(achievementId, i);\n172: \t\t\t-- skip progress bars\n173: \t\t\tif ( bit.band(flags, EVALUATION_TREE_FLAG_PROGRESS_BAR) ~= EVALUATION_TREE_FLAG_PROGRESS_BAR ) then\n174: \t\t\t\tif ( leftCriteria ) then"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_FrameXML/AchievementDisplayFrame.lua",
+        "line": 74,
+        "excerpt": "71: end \n72: \n73: function AchievementDisplayOverviewBulletMixin:SetUpCriteria(achievementID, criteriaIndex)\n74: \tlocal criteriaString, criteriaType, completed, quantity, reqQuantity, charName, flags, assetID, quantityString = GetAchievementCriteriaInfo(achievementID, criteriaIndex);\n75: \tlocal _, name, _, achievementCompleted, _, _, _, _, _, _, _, _, wasEarnedByMe = GetAchievementInfo(achievementID);\n76: \tcompleted = completed or (achievementCompleted and wasEarnedByMe);\n77: \tlocal bulletString = criteriaString or name; "
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-GetAchievementCriteriaInfo.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 1106,
+        "excerpt": "1103: \tif IsModifiedClick() then\n1104: \t\tlocal elementData = self:GetElementData();\n1105: \t\tif IsModifiedClick(\"CHATLINK\") then\n1106: \t\t\tlocal achievementLink = GetAchievementLink(elementData.id);\n1107: \t\t\tif achievementLink then\n1108: \t\t\t\thandled = ChatFrameUtil.InsertLink(achievementLink);\n1109: \t\t\t\tif handled then"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_Collections/Shared/Blizzard_PetCollection.lua",
+        "line": 567,
+        "excerpt": "564: \t\t\t-- helpFrame & requirement are active when the slot is locked\n565: \t\t\tloadoutPlate.requirement:SetShown(UNLOCK_REQUIREMENTS[i].id);\n566: \t\t\tif (UNLOCK_REQUIREMENTS[i].requirement == \"ACHIEVEMENT\" and UNLOCK_REQUIREMENTS[i].id) then\n567: \t\t\t\tloadoutPlate.requirement.str:SetText(GetAchievementLink(UNLOCK_REQUIREMENTS[i].id));\n568: \t\t\t\tloadoutPlate.requirement.achievementID = UNLOCK_REQUIREMENTS[i].id;\n569: \t\t\telseif (UNLOCK_REQUIREMENTS[i].requirement == \"SPELL\" and UNLOCK_REQUIREMENTS[i].id) then\n570: \t\t\t\tlocal spellLink = C_Spell.GetSpellLink(UNLOCK_REQUIREMENTS[i].id);"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_NewPlayerExperienceGuide/GuideFrame.lua",
+        "line": 58,
+        "excerpt": "55: \t};\n56: \n57: \tlocal function MakeAchievementLink(id)\n58: \t\tlocal link = GetAchievementLink(id);\n59: \t\tlocal _, complete = GetAchievementInfoFromHyperlink(link);\n60: \t\tif complete then\n61: \t\t\treturn link:gsub(\"ffffff00\", \"ff20ff20\"), complete;"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-GetAchievementLink.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/InputDocumentation.lua",
+        "line": 217,
+        "excerpt": "217: \t\t\tName = \"IsShiftKeyDown\",\n218: \t\t\tType = \"Function\",\n219: \n220: \t\t\tReturns =\n221: \t\t\t{\n222: \t\t\t\t{ Name = \"down\", Type = \"bool\", Nilable = false },\n223: \t\t\t},\n224: \t\t},"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_EditMode/Shared/EditModeSystemTemplates.lua",
+        "line": 103,
+        "excerpt": "103: function EditModeSystemMixin:IsShiftKeyDown()\n104: \treturn self.downKeys[\"LSHIFT\"] or self.downKeys[\"RSHIFT\"];\n105: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/InputDocumentation.lua",
+        "line": 217,
+        "excerpt": "214: \t\t\t},\n215: \t\t},\n216: \t\t{\n217: \t\t\tName = \"IsShiftKeyDown\",\n218: \t\t\tType = \"Function\",\n219: \n220: \t\t\tReturns ="
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-IsShiftKeyDown.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+        "line": 366,
+        "excerpt": "366: function ChatFrameUtil.OpenChat(text, chatFrame, desiredCursorPosition)\n367: \tif chatFrame == nil and CHAT_FOCUS_OVERRIDE ~= nil then\n368: \t\tif CHAT_FOCUS_OVERRIDE.supportsSlashCommands or not text or strsub(text, 0, 1) ~= \"/\" then\n369: \t\t\tCHAT_FOCUS_OVERRIDE:SetFocus();\n370: \t\t\tif text then\n371: \t\t\t\tCHAT_FOCUS_OVERRIDE:SetText(text);\n372: \t\t\tend\n373: \t\t\treturn;\n374: \t\tend\n375: \tend\n376: \n377: \tlocal editBox = ChatFrameUtil.ChooseBoxForSend(chatFrame);\n378: \n379: \t-- GAME RULES TODO:: This should be an explicit game rule.\n380: \tif C_GameRules.GetActiveGameMode() == Enum.GameMode.Plunderstorm then\n381: \t\tif not hasInitializedDefaultChatChannel then\n382: \t\t\thasInitializedDefaultChatChannel = true;\n383: \n384: \t\t\t-- Don't default chat type if we already have a specific type (i.e. BN_WHISPER)\n385: \t\t\tif editBox:GetChatType() == \"SAY\" then\n386: \t\t\t\tlocal isInGroup;\n387: \t\t\t\tif IsInGroup(LE_PARTY_CATEGORY_HOME) then\n388: \t\t\t\t\tlocal groupCount = GetNumGroupMembers();\n389: \t\t\t\t\tif groupCount > 1 then\n390: \t\t\t\t\t\tisInGroup = true;\n391: \t\t\t\t\tend\n392: \t\t\t\tend\n393: \n394: \t\t\t\tlocal chatType = \"SAY\";\n395: \t\t\t\tif C_Glue.IsOnGlueScreen() then\n396: \t\t\t\t\tchatType = \"PARTY\";\n397: \t\t\t\telseif isInGroup then\n398: \t\t\t\t\tchatType = \"INSTANCE_CHAT\";\n399: \t\t\t\tend\n400: \n401: \t\t\t\teditBox:SetChatType(chatType);\n402: \t\t\t\teditBox:SetStickyType(chatType);\n403: \t\t\tend\n404: \t\tend\n405: \tend\n406: \n407: \tChatFrameUtil.ActivateChat(editBox);\n408: \teditBox.desiredCursorPosition = desiredCursorPosition;\n409: \n410: \tif text then\n411: \t\teditBox.text = text;\n412: \t\teditBox.setText = 1;\n413: \tend\n414: \n415: \tlocal stickyType = editBox:GetStickyType();\n416: \tif editBox:GetChatType() == stickyType then\n417: \t\tif ((stickyType == \"PARTY\") and (not IsInGroup(LE_PARTY_CATEGORY_HOME)) or\n418: \t\t\t(stickyType == \"RAID\") and (not IsInRaid(LE_PARTY_CATEGORY_HOME)) or\n419: \t\t\t(stickyType == \"INSTANCE_CHAT\") and (not IsInGroup(LE_PARTY_CATEGORY_INSTANCE))) then\n420: \n421: \t\t\teditBox:SetChatType(\"SAY\");\n422: \t\tend\n423: \tend\n424: \n425: \teditBox:UpdateHeader();\n426: \treturn editBox;\n427: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentation/Blizzard_APIDocumentation.lua",
+        "line": 81,
+        "excerpt": "78: \t\tend\n79: \n80: \t\tlocal desiredCursorPosition = #dumpString - 1;\n81: \t\tChatFrameUtil.OpenChat(dumpString, nil, desiredCursorPosition);\n82: \telse\n83: \t\tself:WriteLine(\"Can only /dump functions\");\n84: \tend"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_ChallengesUI/Mainline/Blizzard_ChallengesUI.lua",
+        "line": 1107,
+        "excerpt": "1104: \t\tlocal dungeonScore = C_ChallengeMode.GetOverallDungeonScore();\n1105: \t\tlocal link = GetDungeonScoreLink(dungeonScore, UnitName(\"player\"));\n1106: \t\tif not ChatFrameUtil.InsertLink(link) then\n1107: \t\t\tChatFrameUtil.OpenChat(link);\n1108: \t\tend\n1109: \tend\n1110: end"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-openchat.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_ChatFrameBase/Mainline/ChatFrameUtilOverrides.lua",
+        "line": 14,
+        "excerpt": "14: function ChatFrameUtil.InsertLink(text)\n15: \tif ( not text ) then\n16: \t\treturn false;\n17: \tend\n18: \n19: \tif ( MacroFrameText and MacroFrameText:HasFocus() ) then\n20: \t\tlocal item;\n21: \t\tif ( strfind(text, \"item:\", 1, true) ) then\n22: \t\t\titem = C_Item.GetItemInfo(text);\n23: \t\tend\n24: \t\tlocal cursorPosition = MacroFrameText:GetCursorPosition();\n25: \t\tif (cursorPosition == 0 or strsub(MacroFrameText:GetText(), cursorPosition, cursorPosition) == \"\\n\" ) then\n26: \t\t\tif ( item ) then\n27: \t\t\t\tif ( C_Item.GetItemSpell(text) ) then\n28: \t\t\t\t\tMacroFrameText:Insert(SLASH_USE1..\" \"..item..\"\\n\");\n29: \t\t\t\telse\n30: \t\t\t\t\tMacroFrameText:Insert(SLASH_EQUIP1..\" \"..item..\"\\n\");\n31: \t\t\t\tend\n32: \t\t\telse\n33: \t\t\t\tMacroFrameText:Insert(SLASH_CAST1..\" \"..text..\"\\n\");\n34: \t\t\tend\n35: \t\telse\n36: \t\t\tMacroFrameText:Insert(item or text);\n37: \t\tend\n38: \t\treturn true;\n39: \tend\n40: \n41: \tif ( ProfessionsFrame and ProfessionsFrame.CraftingPage.RecipeList.SearchBox:HasFocus() )  then\n42: \t\tlocal item;\n43: \t\tif ( strfind(text, \"item:\", 1, true) ) then\n44: \t\t\titem = C_Item.GetItemInfo(text);\n45: \t\tend\n46: \t\tif ( item ) then\n47: \t\t\tProfessionsFrame.CraftingPage.RecipeList.SearchBox:SetText(item);\n48: \t\t\treturn true;\n49: \t\tend\n50: \tend\n51: \tif ( CommunitiesFrame and CommunitiesFrame.ChatEditBox:HasFocus() ) then\n52: \t\tCommunitiesFrame.ChatEditBox:Insert(text);\n53: \t\treturn true;\n54: \tend\n55: \n56: \tlocal activeWindow = ChatFrameUtil.GetActiveWindow();\n57: \tif ( activeWindow ) then\n58: \t\tactiveWindow:Insert(text);\n59: \t\tactiveWindow:SetFocus();\n60: \t\treturn true;\n61: \tend\n62: \tif ( AuctionHouseFrame and AuctionHouseFrame:IsVisible() ) then\n63: \t\tlocal item;\n64: \t\tif ( strfind(text, \"battlepet:\") ) then\n65: \t\t\tlocal petName = strmatch(text, \"%[(.+)%]\");\n66: \t\t\titem = petName;\n67: \t\telseif ( strfind(text, \"item:\", 1, true) ) then\n68: \t\t\titem = C_Item.GetItemInfo(text);\n69: \t\tend\n70: \t\tif ( item ) then\n71: \t\t\tif ( AuctionHouseFrame:SetSearchText(item) ) then\n72: \t\t\t\treturn true;\n73: \t\t\tend\n74: \t\tend\n75: \tend\n76: \n77: \treturn false;\n78: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 1108,
+        "excerpt": "1105: \t\tif IsModifiedClick(\"CHATLINK\") then\n1106: \t\t\tlocal achievementLink = GetAchievementLink(elementData.id);\n1107: \t\t\tif achievementLink then\n1108: \t\t\t\thandled = ChatFrameUtil.InsertLink(achievementLink);\n1109: \t\t\t\tif handled then\n1110: \t\t\t\t\tAchievementFrame_OnAchievementLinkedInChat(elementData.id);\n1111: \t\t\t\tend"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+        "line": 33,
+        "excerpt": "30: \tif ( IsModifiedClick(\"CHATLINK\") ) then\n31: \t\tif ( MacroFrameText and MacroFrameText:HasFocus() ) then\n32: \t\t\tif ( self.spellName ) then\n33: \t\t\t\tChatFrameUtil.InsertLink(self.spellName);\n34: \t\t\tend\n35: \t\telse\n36: \t\t\tlocal tradeSkillLink = C_Spell.GetSpellTradeSkillLink(self.spellID);"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-insert.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 1155,
+        "excerpt": "1152: \tlocal display = false;\n1153: \tif ( GetAchievementNumCriteria(id) ~= 0 ) then\n1154: \t\tdisplay = true;\n1155: \telseif ( self.completed and GetPreviousAchievement(id) ) then\n1156: \t\tdisplay = true;\n1157: \telseif ( not self.completed and GetAchievementGuildRep(id) ) then\n1158: \t\tdisplay = true;"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-prev.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 207,
+        "excerpt": "204: \ttable.insert(g_achievementSelectionHistory, achievementID);\n205: end\n206: \n207: local function GetNextAchievementSelectionHistoryID()\n208: \tlocal achievementID = g_achievementSelectionHistory[#g_achievementSelectionHistory];\n209: \tg_achievementSelectionHistory[#g_achievementSelectionHistory] = nil;\n210: \treturn achievementID;"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 207,
+        "excerpt": "204: \ttable.insert(g_achievementSelectionHistory, achievementID);\n205: end\n206: \n207: local function GetNextAchievementSelectionHistoryID()\n208: \tlocal achievementID = g_achievementSelectionHistory[#g_achievementSelectionHistory];\n209: \tg_achievementSelectionHistory[#g_achievementSelectionHistory] = nil;\n210: \treturn achievementID;"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-next.json"
+  },
+  {
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI_Bootstrap.lua",
+        "line": 13,
+        "excerpt": "13: function ToggleAchievementFrame(stats)\n14: \tif AchievementFrame_LoadUI() then\n15: \t\tAchievementFrame_ToggleAchievementFrame(stats);\n16: \tend\n17: end"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI_Bootstrap.lua",
+        "line": 13,
+        "excerpt": "10: \tend\n11: end\n12: \n13: function ToggleAchievementFrame(stats)\n14: \tif AchievementFrame_LoadUI() then\n15: \t\tAchievementFrame_ToggleAchievementFrame(stats);\n16: \tend"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommands.lua",
+        "line": 1319,
+        "excerpt": "1316: \t\treturn;\n1317: \tend\n1318: \n1319: \tToggleAchievementFrame();\n1320: end);\n1321: \n1322: -- easier method to turn on/off errors for macros"
+      }
+    ],
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "requestedRef": "latest",
+    "query": "lychee-ach-toggle.json"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "query": "GetCategoryList exact call",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "line": 146,
+        "excerpt": "categories = AchievementFrameCategories_MakeCategoryList(GetCategoryList(), \"summary\"),"
+      }
+    ]
+  }
+]

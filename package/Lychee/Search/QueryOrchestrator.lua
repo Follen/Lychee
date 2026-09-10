@@ -159,6 +159,7 @@ Q.categoryPrefixes={
     ["装备"]="builtin.equipment-sets",["装备方案"]="builtin.equipment-sets",gear="builtin.equipment-sets",
     ["设置"]="builtin.blizzard-settings",["暴雪设置"]="builtin.blizzard-settings",settings="builtin.blizzard-settings",
     ["钥匙"]="builtin.keystones",key="builtin.keystones",keys="builtin.keystones",
+    ["成就"]="builtin.achievements",achievement="builtin.achievements",achievements="builtin.achievements",
     ["首领"]="builtin.bosses",bosses="builtin.bosses",["菜单"]="builtin.game-menus",
     ["玩家技能"]="builtin.player-spells",["背包物品"]="builtin.bags",["队伍钥匙"]="builtin.keystones",
     ["游戏菜单"]="builtin.game-menus",["纹章"]="builtin.crests",["宏伟宝库"]="builtin.great-vault",["宝库"]="builtin.great-vault",

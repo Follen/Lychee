@@ -14,4 +14,5 @@ function I.Builtin:Init()
     if self.EquipmentSets then self.EquipmentSets:Init() end
     if self.BlizzardSettings then self.BlizzardSettings:Init() end
     if self.Keystones then self.Keystones:Init() end
+    if self.Achievements then self.Achievements:Init() end
 end

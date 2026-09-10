@@ -103,6 +103,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/ui_motion.lua'
     if ($LASTEXITCODE -ne 0) { throw "UI motion lifecycle failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/achievements_provider.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Achievements Provider failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

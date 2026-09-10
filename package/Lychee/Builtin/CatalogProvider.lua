@@ -114,7 +114,7 @@ function C:Init()
     end
     local m=self
     self.handle=self.handle or _G.Lychee:RegisterProvider({
-        id=self.id,apiVersion=2,version="1.0.0",title=self.title,scope={product="retail"},entries={},actions=self.actions,query=self.query,
+        id=self.id,apiVersion=2,version="1.0.0",title=self.title,scope={product="retail"},entries={},actions=self.actions,query=self.query,resolve=self.resolve,
         onEnable=function(handle)
             m.handle, m.active=handle,true
             local entry=I.Providers.entries[m.id]

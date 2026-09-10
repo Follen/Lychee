@@ -50,4 +50,5 @@ Builtin/Bags.lua
 Builtin/Loadouts.lua
 Builtin/BlizzardSettings.lua
 Builtin/Keystones.lua
+Builtin/Achievements.lua
 Builtin/Init.lua
