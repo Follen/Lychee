@@ -939,7 +939,7 @@ MenuUtil = { CreateContextMenu=function(_, generator)
     generator(nil, { CreateButton=function(_, title, callback)
         local entry = {title=title,callback=callback}
         menuEntries[#menuEntries+1] = entry
-        return {AddInitializer=function(_, initializer) entry.initializer = initializer end}
+        return {AddInitializer=function(_, initializer) entry.initializer = initializer end, SetOnEnter=function(_, fn) entry.onEnter=fn end, SetOnLeave=function(_, fn) entry.onLeave=fn end}
     end })
 end }
 fixtureTile.scripts.OnClick(fixtureTile, "RightButton")

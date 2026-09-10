@@ -31,6 +31,7 @@ function methods:SetFont() setters=setters+1;return true end
 function methods:SetShadowOffset() end
 function methods:SetJustifyH() end
 function methods:EnableMouseWheel() end
+function methods:EnableMouse() end
 function methods:RegisterForDrag() end
 function methods:SetScrollChild(v) self.child=v end
 function methods:SetVerticalScroll(v) setters=setters+1;self.verticalScroll=v end

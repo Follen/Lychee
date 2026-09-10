@@ -97,6 +97,7 @@ function tooltip:Hide() self.shown = false; self.owner = nil end
 GameTooltip = tooltip
 
 dofile("package/Lychee/UI/Theme.lua")
+dofile("package/Lychee/UI/Components.lua")
 dofile("package/Lychee/UI/ResultList.lua")
 
 local activatedRow, activatedAction, draggedRow
@@ -326,18 +327,60 @@ end
 menuOwner.menuMixin.Generate(menuFrame)
 assert(#attachments == 2 and attachments[2].color[4] == 1, "menu has an opaque pooled background")
 assert(menuOwner.menuMixin:GetInset().left == menuOwner.menuMixin:GetInset().right, "menu padding is symmetric")
-local menuInitializer
-Lychee.UI.Components:StyleActionMenuButton({AddInitializer=function(_, fn) menuInitializer=fn end})
+local menuInitializer, menuEnter, menuLeave
+Lychee.UI.Components:StyleActionMenuButton({AddInitializer=function(_, fn) menuInitializer=fn end, SetOnEnter=function(_, fn) menuEnter=fn end, SetOnLeave=function(_, fn) menuLeave=fn end})
 local menuButton = object("Button")
 menuButton.fontString = object("FontString", menuButton)
 function menuButton.fontString:GetStringWidth() return self.measuredWidth or 100 end
 menuButton.highlight = object("Texture", menuButton)
 function menuButton.highlight:SetBlendMode(mode) self.blendMode = mode end
 local menuWidth, menuHeight = menuInitializer(menuButton)
-assert(menuWidth == 132 and menuHeight == 28, "single action retains comfortable menu dimensions")
+assert(menuWidth == 156 and menuHeight == 32, "single action retains comfortable menu dimensions")
 assert(menuButton.fontString.font[2] == 12 and menuButton.fontString.wordWrap == false, "menu uses readable single-line body text")
 assert(menuButton.highlight.blendMode == "BLEND", "menu removes additive gold highlight")
 menuButton.fontString.measuredWidth = 600
 local longMenuWidth = menuInitializer(menuButton)
 assert(longMenuWidth == 280, "long action text cannot create an unbounded menu")
+menuEnter(menuButton)
+assert(menuButton.fontString.textColor[1] == Lychee.UI.Theme.Colors.accentHover[1], "menu hover changes text")
+menuLeave(menuButton)
+assert(menuButton.fontString.textColor[1] == Lychee.UI.Theme.Colors.text[1], "menu leave restores text")
+assert(menuButton.highlight.color[4] == 0, "menu never adds a hover background")
+
+-- Real pointer-to-range behavior, including scale and release outside the track.
+local cursorY, mouseDown, combat = 0, true, false
+function GetCursorPosition() return 0, cursorY end
+function IsMouseButtonDown() return mouseDown end
+function InCombatLockdown() return combat end
+local value, changes, bar = 0, 0
+bar = Lychee.UI.Components:CreateScrollbar(parent, function(nextValue)
+    value=nextValue; changes=changes+1; bar:SetRange(1000,200,value)
+end)
+bar.frame.height=200
+function bar.frame:GetTop() return 400 end
+function bar.frame:GetEffectiveScale() return 2 end
+bar:SetRange(1000,200,0)
+assert(bar.frame:IsShown() and bar._height==40 and bar.travel==160, "proportional thumb with bounded hit area")
+assert(bar.frame.scripts.OnUpdate==nil, "scrollbar has no idle update")
+cursorY=780 -- ten units below track top
+bar.frame.scripts.OnMouseDown(bar.frame,"LeftButton")
+cursorY=620 -- move down eighty units
+bar.frame.scripts.OnUpdate()
+assert(value==400 and changes==1, "drag converts scaled cursor distance to scroll range")
+bar.frame.scripts.OnUpdate()
+assert(changes==1, "stationary drag has no redundant refresh")
+mouseDown=false;bar.frame.scripts.OnUpdate()
+assert(bar.frame.scripts.OnUpdate==nil, "release outside stops drag")
+mouseDown=true;cursorY=410
+bar.frame.scripts.OnMouseDown(bar.frame,"LeftButton")
+assert(value==800, "track click clamps at the end")
+bar:SetRange(100,200,value)
+assert(not bar.frame:IsShown() and bar.value==0 and bar.frame.scripts.OnUpdate==nil, "shortened content hides and cancels drag")
+bar:SetRange(1000,200,0);cursorY=780
+bar.frame.scripts.OnMouseDown(bar.frame,"LeftButton")
+combat=true;bar.frame.scripts.OnUpdate()
+assert(bar.frame.scripts.OnUpdate==nil, "combat stops active drag")
+combat=false;bar.frame.scripts.OnMouseDown(bar.frame,"LeftButton")
+bar.frame.scripts.OnHide()
+assert(bar.frame.scripts.OnUpdate==nil, "hidden viewport stops drag")
 print("Lychee result list UI smoke PASS")

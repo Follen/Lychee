@@ -122,8 +122,7 @@ local function createHomeView(parent, controller)
     view.empty:SetText(localized({ zhCN = "搜索并使用后，常用入口会出现在这里", enUS = "Your recently used actions will appear here" }))
     tint(view.empty, color("muted"))
     Lychee.UI.Theme:SetFont(view.empty, "body")
-    view.manage = Lychee.UI.Components:CreateButton(view.content, {width=48,height=20,text="管理",
-        colors={normal="transparent",hover="surfaceHover"},textColors={normal="textMuted",hover="text"},
+    view.manage = Lychee.UI.Components:CreateNavigationButton(view.content, {width=48,height=20,text="管理",
         onClick=function() controller:OpenSettings("pins") end})
     Lychee.UI.Theme:SetFont(view.manage.label, "meta")
     view.manage.frame:Hide()
@@ -179,14 +178,20 @@ local function createHomeView(parent, controller)
         end
     end
 
+    view.scrollbar = Lychee.UI.Components:CreateScrollbar(frame, function(value) view:SetScroll(value) end)
+    function view:SetScroll(value)
+        if InCombatLockdown and InCombatLockdown() then return end
+        local viewport = math.max(0, frame:GetHeight() - 20)
+        self.scroll = math.max(0, math.min(math.max(0, content:GetHeight() - viewport), value))
+        if self._appliedScroll ~= self.scroll then
+            frame:SetVerticalScroll(self.scroll); self._appliedScroll = self.scroll
+        end
+        self.scrollbar:SetRange(content:GetHeight(), viewport, self.scroll)
+    end
+    frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll) end)
     if frame.SetVerticalScroll then
         frame:SetScript("OnMouseWheel", function(_, delta)
-            local maxScroll = math.max(0, (content:GetHeight() or 0) - (frame:GetHeight() or 0) + 20)
-            view.scroll = math.max(0, math.min(maxScroll, (view.scroll or 0) - delta * 42))
-            if view._appliedScroll ~= view.scroll then
-                frame:SetVerticalScroll(view.scroll)
-                view._appliedScroll = view.scroll
-            end
+            view:SetScroll(view.scroll - delta * 42)
         end)
     end
 
@@ -407,6 +412,7 @@ local function createHomeView(parent, controller)
             self.frame:SetVerticalScroll(self.scroll)
             self._appliedScroll = self.scroll
         end
+        self.scrollbar:SetRange(height, math.max(0, self.frame:GetHeight() - 20), self.scroll)
         if not self.sections[self.selected] or self.sections[self.selected].enabled == false then
             local firstEnabled
             for index = 1, #self.sections do if self.sections[index].enabled ~= false then firstEnabled = index; break end end
@@ -484,11 +490,9 @@ function Palette:Create()
     Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
     Lychee.UI.Theme:SetTextColor(self.settingsTitle, "text")
     self.settingsTitle:SetText("荔枝设置"); self.settingsTitle:Hide()
-    self.settingsBack = components:CreateButton(self.header, {
+    self.settingsBack = components:CreateNavigationButton(self.header, {
         width = 90, height = 28, point = "RIGHT", relativePoint = "RIGHT", x = -66,
         text = "返回搜索",
-        colors = { normal = "transparent", hover = "surfaceHover", pressed = "surfaceSelected" },
-        textColors = { normal = "textMuted", hover = "text", pressed = "text" },
         onClick = function() self:CloseSettings() end,
     })
     local backLabel = self.settingsBack.label
@@ -497,12 +501,14 @@ function Palette:Create()
     backLabel:SetPoint("LEFT", self.settingsBack.frame, "LEFT", 26, 0)
     backLabel:SetPoint("RIGHT", self.settingsBack.frame, "RIGHT", -10, 0)
     backLabel:SetJustifyH("LEFT")
+    self.settingsBack.strokes = {}
     for direction = -1, 1, 2 do
         local stroke = self.settingsBack.frame:CreateTexture(nil, "ARTWORK")
         stroke:SetSize(6, 1.25)
         stroke:SetPoint("CENTER", self.settingsBack.frame, "LEFT", 13, direction * 1.9)
         Lychee.UI.Theme:SetColorTexture(stroke, "textMuted")
         stroke:SetRotation(direction * math.pi / 4)
+        self.settingsBack.strokes[#self.settingsBack.strokes + 1] = stroke
     end
     self.settingsBack.frame:Hide()
     self.closeComponent = components:CreateButton(self.header, {

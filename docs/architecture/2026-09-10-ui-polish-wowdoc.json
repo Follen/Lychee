@@ -1,0 +1,238 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Input.GetCursorPosition",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/InputDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "20: \t\t\tName = \"GetCursorPosition\",\n21: \t\t\tType = \"Function\",\n22: \n23: \t\t\tReturns =\n24: \t\t\t{\n25: \t\t\t\t{ Name = \"posX\", Type = \"number\", Nilable = false },\n26: \t\t\t\t{ Name = \"posY\", Type = \"number\", Nilable = false },\n27: \t\t\t},\n28: \t\t},",
+        "contentHash": "1eb7a8c921e1a52a7fb8a2928b5ba01a15306f093dc549ba543ca1ac4d1e628a",
+        "line": 20,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "GetCursorPosition",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "87: \t\t\tName = \"GetCursorPosition\",\n88: \t\t\tType = \"Function\",\n89: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Cursor, Enum.SecretAspect.Text },\n90: \n91: \t\t\tArguments =\n92: \t\t\t{\n93: \t\t\t},\n94: \n95: \t\t\tReturns =\n96: \t\t\t{\n97: \t\t\t\t{ Name = \"cursorPosition\", Type = \"number\", Nilable = false },\n98: \t\t\t},\n99: \t\t},",
+        "contentHash": "197d0d7321b78b8e57542dc80f35e2409bb338fe42f1d3899bcf59be74baba4c",
+        "line": 87,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "GetTop",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "271: \t\t\tName = \"GetTop\",\n272: \t\t\tType = \"Function\",\n273: \t\t\tMayReturnNothing = true,\n274: \t\t\tSecretWhenAnchoringSecret = true,\n275: \n276: \t\t\tArguments =\n277: \t\t\t{\n278: \t\t\t},\n279: \n280: \t\t\tReturns =\n281: \t\t\t{\n282: \t\t\t\t{ Name = \"top\", Type = \"uiUnit\", Nilable = false },\n283: \t\t\t},\n284: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 271,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "ScrollBoxBasePaddingMixin:GetTop",
+        "path": "Interface/AddOns/Blizzard_SharedXML/Shared/Scroll/ScrollBoxPadding.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "10: function ScrollBoxBasePaddingMixin:GetTop()\n11: \treturn self.top;\n12: end",
+        "contentHash": "b7240a062929f264d424daca01ecc2511236934574b10ff536e6cbf94161d80f",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "GetEffectiveScale",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "381: \t\t\tName = \"GetEffectiveScale\",\n382: \t\t\tType = \"Function\",\n383: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Scale },\n384: \n385: \t\t\tArguments =\n386: \t\t\t{\n387: \t\t\t},\n388: \n389: \t\t\tReturns =\n390: \t\t\t{\n391: \t\t\t\t{ Name = \"effectiveScale\", Type = \"number\", Nilable = false },\n392: \t\t\t},\n393: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 381,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "GetEffectiveScale",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "38: \t\t\tName = \"GetEffectiveScale\",\n39: \t\t\tType = \"Function\",\n40: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Scale },\n41: \n42: \t\t\tArguments =\n43: \t\t\t{\n44: \t\t\t},\n45: \n46: \t\t\tReturns =\n47: \t\t\t{\n48: \t\t\t\t{ Name = \"effectiveScale\", Type = \"number\", Nilable = false },\n49: \t\t\t},\n50: \t\t},",
+        "contentHash": "b0b360d5baf22c88f46e04113fd5abcadee697ed40a8c4a22fe3ca8da3f91ae8",
+        "line": 38,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Input.IsMouseButtonDown",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/InputDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "166: \t\t\tName = \"IsMouseButtonDown\",\n167: \t\t\tType = \"Function\",\n168: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n169: \n170: \t\t\tArguments =\n171: \t\t\t{\n172: \t\t\t\t{ Name = \"button\", Type = \"mouseButton\", Nilable = true },\n173: \t\t\t},\n174: \n175: \t\t\tReturns =\n176: \t\t\t{\n177: \t\t\t\t{ Name = \"down\", Type = \"bool\", Nilable = false },\n178: \t\t\t},\n179: \t\t},",
+        "contentHash": "1eb7a8c921e1a52a7fb8a2928b5ba01a15306f093dc549ba543ca1ac4d1e628a",
+        "line": 166,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetJustifyV",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "749: \t\t\tName = \"SetJustifyV\",\n750: \t\t\tType = \"Function\",\n751: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n752: \n753: \t\t\tArguments =\n754: \t\t\t{\n755: \t\t\t\t{ Name = \"justifyV\", Type = \"JustifyVertical\", Nilable = false },\n756: \t\t\t},\n757: \t\t},",
+        "contentHash": "197d0d7321b78b8e57542dc80f35e2409bb338fe42f1d3899bcf59be74baba4c",
+        "line": 749,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetJustifyV",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "254: \t\t\tName = \"SetJustifyV\",\n255: \t\t\tType = \"Function\",\n256: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n257: \n258: \t\t\tArguments =\n259: \t\t\t{\n260: \t\t\t\t{ Name = \"justifyV\", Type = \"JustifyVertical\", Nilable = false },\n261: \t\t\t},\n262: \t\t},",
+        "contentHash": "d915a6b769ed40a17f30dcbf5500ab20572cd82701cbf33a8b6caeec3e5c53ed",
+        "line": 254,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuUtil.CreateContextMenu",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuUtil.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "151: function MenuUtil.CreateContextMenu(ownerRegion, generator, ...)\n152: \tif not ownerRegion then\n153: \t\townerRegion = GetAppropriateTopLevelParent();\n154: \tend\n155: \n156: \tlocal menuMixin = securecallfunction(SecureGetMenuMixin, ownerRegion);\n157: \tlocal elementDescription = MenuUtil.CreateRootMenuDescription(menuMixin);\n158: \n159: \tMenu.PopulateDescription(generator, ownerRegion, elementDescription, ...);\n160: \n161: \tlocal menu = Menu.GetManager():OpenContextMenu(ownerRegion, elementDescription);\n162: \tif menu then\n163: \t\tPlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);\n164: \tend\n165: \n166: \treturn menu;\n167: end",
+        "contentHash": "21904561943c3bfb0ad8a451778e2d4cddb361ec7b1a73c0e428d870ed1581f4",
+        "line": 151,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "BaseMenuDescriptionMixin:AddInitializer",
+        "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "443: function BaseMenuDescriptionMixin:AddInitializer(initializer, index)\n444: \tself.initializers:UniqueInsert(initializer, index);\n445: end",
+        "contentHash": "25d5bf5e7e53c2963ffa9ecebc323a27dfd07f4b3901379668a438ccfa14738d",
+        "line": 443,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "function",
+        "name": "SettingsVerticalLayoutMixin:AddInitializer",
+        "path": "Interface/AddOns/Blizzard_Settings_Shared/Blizzard_SettingsLayouts.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "33: function SettingsVerticalLayoutMixin:AddInitializer(initializer)\n34: \ttable.insert(self.initializers, initializer);\n35: \treturn initializer;\n36: end",
+        "contentHash": "bbf2d363789b2515031c6d0ce6d18d3119f9a5e6766a289c6e1302f3852d2353",
+        "line": 33,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

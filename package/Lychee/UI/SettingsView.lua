@@ -16,9 +16,8 @@ local function label(parent, role, color)
     return result
 end
 local function button(parent, title, width, callback)
-    local control = Lychee.UI.Components:CreateButton(parent, {width=width, height=28, text=title,
-        colors={normal="transparent",hover="surfaceHover",pressed="surfaceSelected",disabled="transparent"},
-        textColors={normal="textMuted",hover="text",pressed="text",disabled="disabled"},onClick=callback})
+    local control = Lychee.UI.Components:CreateNavigationButton(parent, {width=width, height=28, text=title,
+        onClick=callback})
     Lychee.UI.Theme:SetFont(control.label,"body")
     return control
 end
@@ -28,7 +27,7 @@ local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local providerIcons = {
     ["builtin.player-spells"] = iconRoot .. "spellbook.tga",
     ["builtin.mounts"] = iconRoot .. "mounts.tga",
-    ["builtin.bosses"] = iconRoot .. "journal-dungeons.tga",
+    ["builtin.bosses"] = iconRoot .. "skull.tga",
     ["builtin.game-menus"] = iconRoot .. "game-menu.tga",
     ["builtin.crests"] = iconRoot .. "currency.tga",
     ["builtin.great-vault"] = iconRoot .. "great-vault.tga",
@@ -77,23 +76,26 @@ function Settings:Create(parent, controller)
     view.tabs={providers=sourceTab,pins=pinsTab}
     view.underline=frame:CreateTexture(nil,"ARTWORK");view.underline:SetSize(60,2)
     Lychee.UI.Theme:SetColorTexture(view.underline,"accent")
-    view.add=button(frame,"＋ 添加固定",94,function() controller:CloseSettings(true);controller:SetStatusText("搜索条目后，右键选择固定到首页") end)
-    view.add.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2)
     view.undo=button(frame,"撤销",48,function()
         if view.removed and I.UserPreferences:Restore(view.removed,view.removedIndex) then
             view.removed=nil;controller:MarkHomeDirty();view:Refresh();controller:SetStatusText("已恢复固定")
         end
     end)
-    view.undo.frame:SetPoint("RIGHT",view.add.frame,"LEFT",-6,0);view.undo.frame:Hide()
+    view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2);view.undo.frame:Hide()
     local scroll=CreateFrame("ScrollFrame",nil,frame);scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-42);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-8,0)
-    local content=CreateFrame("Frame",nil,scroll);content:SetSize(592,1);scroll:SetScrollChild(content)
+    local content=CreateFrame("Frame",nil,scroll);content:SetSize(580,1);scroll:SetScrollChild(content)
     view.scrollFrame,view.content=scroll,content
+    view.scrollbar=Lychee.UI.Components:CreateScrollbar(scroll,function(value) view:SetScroll(value) end)
+    function view:SetScroll(value)
+        if InCombatLockdown and InCombatLockdown() then return end
+        local maximum=math.max(0,content:GetHeight()-scroll:GetHeight())
+        value=math.max(0,math.min(maximum,value))
+        if value~=self.scroll then self.scroll=value;scroll:SetVerticalScroll(value);self:RenderVisible() end
+    end
     if scroll.EnableMouseWheel then scroll:EnableMouseWheel(true) end
     scroll:SetScript("OnMouseWheel",function(_,delta)
         if InCombatLockdown and InCombatLockdown() then return end
-        local maximum=math.max(0,content:GetHeight()-scroll:GetHeight())
-        local value=math.max(0,math.min(maximum,view.scroll-delta*46))
-        if value~=view.scroll then view.scroll=value;scroll:SetVerticalScroll(value);view:RenderVisible() end
+        view:SetScroll(view.scroll-delta*46)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
@@ -111,7 +113,7 @@ function Settings:Create(parent, controller)
 
     function view:Acquire(index)
         if self.rows[index] then return self.rows[index] end
-        local row=CreateFrame("Button",nil,content);row:SetSize(592,46)
+        local row=CreateFrame("Button",nil,content);row:SetSize(580,46)
         row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(28,28);row.icon:SetPoint("LEFT",row,"LEFT",10,0)
         row.name=label(row,"body");row.name:SetPoint("TOPLEFT",row,"TOPLEFT",50,-7);row.name:SetPoint("RIGHT",row,"RIGHT",-188,0);row.name:SetHeight(17)
         row.detail=label(row,"meta","textMuted");row.detail:SetPoint("TOPLEFT",row.name,"BOTTOMLEFT",0,-3);row.detail:SetPoint("RIGHT",row,"RIGHT",-180,0);row.detail:SetHeight(14)
@@ -167,9 +169,9 @@ function Settings:Create(parent, controller)
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
-        for id,tab in pairs(self.tabs) do Lychee.UI.Theme:SetTextColor(tab.label,id==self.tab and "text" or "textMuted") end
+        for id,tab in pairs(self.tabs) do tab:SetSelected(id==self.tab) end
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
-        shown(self.add.frame,self.tab=="pins");shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
+        shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
         local data,count=self.data or {},0
         if self.tab=="providers" then
             for id,provider in pairs(I.Providers.entries) do
@@ -219,6 +221,7 @@ function Settings:Create(parent, controller)
         local viewport=scroll:GetHeight()
         local maximum=math.max(0,content:GetHeight()-viewport)
         if self.scroll>maximum then self.scroll=maximum;scroll:SetVerticalScroll(maximum) end
+        self.scrollbar:SetRange(content:GetHeight(),viewport,self.scroll)
         -- Geometry is sorted once per data refresh; wheel work is O(log N + K).
         local low,high=1,#data
         while low<=high do

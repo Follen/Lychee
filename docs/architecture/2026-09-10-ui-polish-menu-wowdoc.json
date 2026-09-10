@@ -1,0 +1,164 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuTemplates.CreateHighlightButton",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuTemplates.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "377: function MenuTemplates.CreateHighlightButton(text, onSelect, data, onEnter)\n378: \tlocal optionDescription = CreateMenuElementDescription(\"WowMenuDropdownHighlightButtonTemplate\");\n379: \n380: \tlocal truncated = false;\n381: \n382: \tlocal function OnEnter(button)\n383: \t\tbutton.HighlightBGTex:SetAlpha(0.15);\n384: \n385: \t\tif truncated then\n386: \t\t\tlocal description = button:GetElementDescription();\n387: \t\t\tMenuUtil.ShowTooltipEx(button, description:GetTooltipFrame(), function(tooltip)\n388: \t\t\t\tGameTooltip_SetTitle(tooltip, text);\n389: \t\t\tend);\n390: \t\tend\n391: \n392: \t\tif onEnter then\n393: \t\t\tonEnter(data);\n394: \t\tend\n395: \tend\n396: \n397: \tlocal function OnLeave(button)\n398: \t\tbutton.HighlightBGTex:SetAlpha(0);\n399: \n400: \t\tlocal description = button:GetElementDescription();\n401: \t\tMenuUtil.HideTooltipEx(button, description:GetTooltipFrame());\n402: \tend\n403: \n404: \toptionDescription:AddInitializer(function(button, description, _menu)\n405: \t\tbutton:SetScript(\"OnClick\", function(_button, buttonName)\n406: \t\t\tdescription:Pick(MenuInputContext.MouseButton, buttonName);\n407: \t\tend);\n408: \n409: \t\tif optionDescription:CanOpenSubmenu() then\n410: \t\t\tMenuVariants.CreateSubmenuArrow(button);\n411: \t\tend\n412: \n413: \t\tCreateHighlightButtonText(button);\n414: \n415: \t\t-- This button template is modified in Languages.lua to hide the text and display\n416: \t\t-- a texture for each locale, so we need to redisplay the text. We don't have to worry\n417: \t\t-- about that texture here because it is managed by the compositor.\n418: \t\tbutton.Text:Show();\n419: \t\tbutton.Text:SetTextToFit(text);\n420: \t\tbutton.Text:SetWidth(button.Text:GetWidth() + 15);\n421: \n422: \t\tbutton.HighlightBGTex:SetAlpha(0);\n423: \n424: \t\tif description:IsEnabled() then\n425: \t\t\tbutton.Text:SetTextColor(VERY_LIGHT_GRAY_COLOR:GetRGB());\n426: \t\telse\n427: \t\t\tbutton.Text:SetTextColor(DISABLED_FONT_COLOR:GetRGB());\n428: \t\tend\n429: \n430: \t\ttruncated = button.Text:IsTruncated();\n431: \n432: \t\tbutton:Layout();\n433: \tend);\n434: \n435: \toptionDescription:SetFinalInitializer(SetHighlightButtonFinalInitializer);\n436: \toptionDescription:SetResponder(onSelect);\n437: \toptionDescription:SetOnEnter(OnEnter);\n438: \toptionDescription:SetOnLeave(OnLeave);\n439: \toptionDescription:SetData(data);\n440: \n441: \treturn optionDescription;\n442: end",
+        "contentHash": "d0652abb1342716477922694891fde3fa4c7fa523a699e8dfe4c3e436749d447",
+        "line": 377,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuTemplates.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "374: \tbutton.NarrationGetIndexInfo = MenuButtonNarrationGetIndexInfo;\n375: end\n376: \n377: function MenuTemplates.CreateHighlightButton(text, onSelect, data, onEnter)\n378: \tlocal optionDescription = CreateMenuElementDescription(\"WowMenuDropdownHighlightButtonTemplate\");\n379: \n380: \tlocal truncated = false;",
+        "contentHash": "d0652abb1342716477922694891fde3fa4c7fa523a699e8dfe4c3e436749d447",
+        "line": 377,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuUtil.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "232: -- looks good with WowStyle2DropdownTemplate, immitates the Settings menu\n233: function MenuUtil.CreateHighlightButton(text, data, onEnter)\n234: \t--assert(type(text) == \"string\");\n235: \tlocal elementDescription = MenuTemplates.CreateHighlightButton(text, data, onEnter);\n236: \treturn ConfigureTextButton(text, elementDescription);\n237: end\n238: ",
+        "contentHash": "21904561943c3bfb0ad8a451778e2d4cddb361ec7b1a73c0e428d870ed1581f4",
+        "line": 235,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ButtonFinalInitializer",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuTemplates.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "109: local function ButtonFinalInitializer(button, description, menu)\n110: \tMenuTemplates.RecurseSetupFontString(button);\n111: \n112: \tlocal enabled = description:IsEnabled();\n113: \tbutton:SetEnabled(enabled);\n114: \n115: \tMenuTemplates.SetHierarchyEnabled(button, enabled);\n116: \n117: \tbutton.owningMenu = menu;\n118: \tbutton.NarrationGetName = MenuButtonNarrationGetName;\n119: \tbutton.NarrationGetContext = MenuButtonNarrationGetContext;\n120: \tbutton.NarrationGetIndexInfo = MenuButtonNarrationGetIndexInfo;\n121: end",
+        "contentHash": "d0652abb1342716477922694891fde3fa4c7fa523a699e8dfe4c3e436749d447",
+        "line": 109,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Menu/MenuTemplates.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "106: Final initializer is called after all other initializers are called so that\n107: the recursion functions here can find any of the regions that were attached.\n108: ]]--\n109: local function ButtonFinalInitializer(button, description, menu)\n110: \tMenuTemplates.RecurseSetupFontString(button);\n111: \n112: \tlocal enabled = description:IsEnabled();",
+        "contentHash": "d0652abb1342716477922694891fde3fa4c7fa523a699e8dfe4c3e436749d447",
+        "line": 109,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuElementDescriptionProxyMixin:SetOnEnter",
+        "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "758: \tfunction MenuElementDescriptionProxyMixin:SetOnEnter(onEnter)\n759: \t\tif onEnter == nil then\n760: \t\t\tself.onEnter = nil;\n761: \t\t\treturn;\n762: \t\tend\n763: \n764: \t\tself.onEnter = function(...)\n765: \t\t\tonEnter(...);\n766: \t\tend\n767: \tend",
+        "contentHash": "25d5bf5e7e53c2963ffa9ecebc323a27dfd07f4b3901379668a438ccfa14738d",
+        "line": 758,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "755: \t\treturn self.playSoundOnSubmenuClick;\n756: \tend\n757: \n758: \tfunction MenuElementDescriptionProxyMixin:SetOnEnter(onEnter)\n759: \t\tif onEnter == nil then\n760: \t\t\tself.onEnter = nil;\n761: \t\t\treturn;",
+        "contentHash": "25d5bf5e7e53c2963ffa9ecebc323a27dfd07f4b3901379668a438ccfa14738d",
+        "line": 758,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "MenuElementDescriptionProxyMixin:SetOnLeave",
+        "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "791: \tfunction MenuElementDescriptionProxyMixin:SetOnLeave(onLeave)\n792: \t\tif onLeave == nil then\n793: \t\t\tself.onLeave = nil;\n794: \t\t\treturn;\n795: \t\tend\n796: \n797: \t\tself.onLeave = function(...)\n798: \t\t\tonLeave(...);\n799: \t\tend\n800: \tend",
+        "contentHash": "25d5bf5e7e53c2963ffa9ecebc323a27dfd07f4b3901379668a438ccfa14738d",
+        "line": 791,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_Menu/Menu.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "788: \t\tend\n789: \tend\n790: \n791: \tfunction MenuElementDescriptionProxyMixin:SetOnLeave(onLeave)\n792: \t\tif onLeave == nil then\n793: \t\t\tself.onLeave = nil;\n794: \t\t\treturn;",
+        "contentHash": "25d5bf5e7e53c2963ffa9ecebc323a27dfd07f4b3901379668a438ccfa14738d",
+        "line": 791,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

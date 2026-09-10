@@ -284,7 +284,7 @@ function ResultList:Create(parent, controller)
     local metrics = theme and theme.Metrics or {}
     local columns = metrics.resultColumns or GRID_COLUMNS
     local tiles, rowHeight, rowGap = metrics.resultTiles or DEFAULT_TILES, metrics.rowHeight or TILE_HEIGHT, metrics.rowGap or 8
-    local tileWidth = metrics.resultTileWidth or TILE_WIDTH
+    local tileWidth = (metrics.resultTileWidth or TILE_WIDTH) - 12
     local iconSize = metrics.iconSize or 32
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetScript("OnHide", hideTooltip)
@@ -295,6 +295,9 @@ function ResultList:Create(parent, controller)
         rowHeight = rowHeight, rowGap = rowGap, tileWidth = tileWidth, gridColumns = columns, maxRows = tiles, offset = 0 }, ResultList)
     if frame.EnableMouseWheel then frame:EnableMouseWheel(true) end
     frame:SetScript("OnMouseWheel", function(_, delta) self:Scroll(delta > 0 and -1 or 1) end)
+    self.scrollbar = Lychee.UI.Components:CreateScrollbar(frame, function(value)
+        self:Scroll(math.floor(value + 0.5) - self.offset)
+    end)
 
     for index = 1, tiles do
         local row = CreateFrame("Button", nil, frame)
@@ -383,6 +386,7 @@ function ResultList:Clear()
     hideTooltip()
     for index = 1, #self.rows do clearRow(self.rows[index]) end
     self.items = EMPTY_ITEMS; self.session, self.generation, self.selected, self.offset = nil, nil, 1, 0
+    self.scrollbar:SetRange(0, #self.rows, 0)
 end
 
 function ResultList:SetItems(items, session, generation, offset)
@@ -393,6 +397,7 @@ function ResultList:SetItems(items, session, generation, offset)
     self.offset = math.max(0, math.min(offset or 0, math.max(0, #self.items - #self.rows)))
     local count = math.min(#self.items - self.offset, #self.rows)
     self:Resize(count)
+    self.scrollbar:SetRange(#self.items, #self.rows, self.offset)
     for index = 1, count do
         local item, row = self.items[index + self.offset], self.rows[index]
         if type(item) == "table" then

@@ -149,6 +149,9 @@ function Components:CreateButton(parent, options)
         local textToken = options.textColors and options.textColors[state]
         if not textToken then textToken = options.textColors and options.textColors.normal end
         if textToken then setTextColor(self.label, textToken) end
+        if self.strokes and textToken then
+            for index = 1, #self.strokes do setColorTexture(self.strokes[index], textToken) end
+        end
         return true
     end
     function component:SetState(state) return applyState(self, state) end
@@ -184,6 +187,88 @@ function Components:CreateButton(parent, options)
     component:SetText(options.text)
     component:SetState("normal")
     return component
+end
+
+function Components:CreateNavigationButton(parent, options)
+    options = options or {}
+    options.colors = { normal = "transparent" }
+    options.textColors = { normal = "textMuted", hover = "accentHover", pressed = "accentHover", disabled = "disabled" }
+    local component = self:CreateButton(parent, options)
+    function component:SetSelected(selected)
+        local token = selected and "text" or "textMuted"
+        if options.textColors.normal == token then return end
+        options.textColors.normal = token
+        self._state = nil
+        self:RefreshPointerState()
+    end
+    return component
+end
+
+-- One track and thumb per viewport. The only per-frame work is an active drag.
+function Components:CreateScrollbar(parent, onChanged)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetWidth(12)
+    frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, -2)
+    frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", 0, 2)
+    frame:EnableMouse(true)
+    local track = frame:CreateTexture(nil, "BACKGROUND")
+    track:SetWidth(2)
+    track:SetPoint("TOP", frame, "TOP", 0, 0)
+    track:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
+    setColorTexture(track, "border")
+    local thumb = frame:CreateTexture(nil, "ARTWORK")
+    thumb:SetWidth(3)
+    setColorTexture(thumb, "accent")
+    local bar = { frame = frame, thumb = thumb, maximum = 0, value = 0, total = 0, viewport = 0 }
+    function bar:StopDrag()
+        if self.dragOffset == nil then return end
+        self.dragOffset = nil
+        frame:SetScript("OnUpdate", nil)
+    end
+    function bar:SetRange(total, viewport, value)
+        self.total, self.viewport = total, viewport
+        self.maximum = math.max(0, total - viewport)
+        self.value = math.max(0, math.min(self.maximum, value or 0))
+        local height = math.max(0, frame:GetHeight())
+        local thumbHeight = math.min(height, math.max(24, height * viewport / math.max(1, total)))
+        self.travel = math.max(0, height - thumbHeight)
+        local offset = self.maximum > 0 and self.travel * self.value / self.maximum or 0
+        if self._height ~= thumbHeight then thumb:SetHeight(thumbHeight); self._height = thumbHeight end
+        if self._offset ~= offset then
+            thumb:ClearAllPoints(); thumb:SetPoint("TOP", frame, "TOP", 0, -offset); self._offset = offset
+        end
+        if self.maximum == 0 then self:StopDrag() end
+        setShown(frame, self.maximum > 0 and height > 0)
+    end
+    function bar:SetValue(value)
+        if InCombatLockdown and InCombatLockdown() then self:StopDrag(); return end
+        value = math.max(0, math.min(self.maximum, value))
+        if value ~= self.value then onChanged(value) end
+    end
+    local function cursorOffset()
+        local _, y = GetCursorPosition()
+        local top = frame:GetTop()
+        return top and top - y / frame:GetEffectiveScale()
+    end
+    local function drag()
+        if (InCombatLockdown and InCombatLockdown()) or not IsMouseButtonDown("LeftButton") then bar:StopDrag(); return end
+        local offset = cursorOffset()
+        if offset and bar.travel > 0 then bar:SetValue((offset - bar.dragOffset) / bar.travel * bar.maximum) end
+    end
+    frame:SetScript("OnMouseDown", function(_, button)
+        if button ~= "LeftButton" or bar.maximum == 0 or (InCombatLockdown and InCombatLockdown()) then return end
+        local offset = cursorOffset()
+        if not offset then return end
+        local relative = offset - bar._offset
+        bar.dragOffset = relative >= 0 and relative <= bar._height and relative or bar._height / 2
+        drag()
+        if bar.dragOffset ~= nil then frame:SetScript("OnUpdate", drag) end
+    end)
+    frame:SetScript("OnMouseUp", function() bar:StopDrag() end)
+    frame:SetScript("OnHide", function() bar:StopDrag() end)
+    frame:SetScript("OnSizeChanged", function() bar:SetRange(bar.total, bar.viewport, bar.value) end)
+    frame:Hide()
+    return bar
 end
 
 function Components:CreateStatus(parent, options)
@@ -234,7 +319,7 @@ function Components:CreateEmptyState(parent, options)
     return component
 end
 
-local actionMenuInset = { left = 4, right = 4, top = 4, bottom = 4 }
+local actionMenuInset = { left = 6, right = 6, top = 6, bottom = 6 }
 local actionMenuPadding = { width = 0, height = 0 }
 local actionMenuStyle = {}
 function actionMenuStyle:GetInset() return actionMenuInset end
@@ -251,7 +336,7 @@ function actionMenuStyle:Generate()
     background:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1)
     background:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1)
     background:SetDrawLayer("BACKGROUND", 0)
-    background:SetColorTexture(unpack(colors.tooltip))
+    background:SetColorTexture(unpack(colors.window))
 end
 
 local function initializeActionMenuButton(button)
@@ -260,7 +345,7 @@ local function initializeActionMenuButton(button)
     label:SetFont(STANDARD_TEXT_FONT, theme.FontSizes.body, "")
     label:SetShadowOffset(0, 0)
     label:SetTextColor(unpack(theme.Colors.text))
-    local width = math.max(132, math.min(280, label:GetStringWidth() + 20))
+    local width = math.max(156, math.min(280, label:GetStringWidth() + 24))
     label:ClearAllPoints()
     label:SetPoint("LEFT", button, "LEFT", 12, 0)
     label:SetPoint("RIGHT", button, "RIGHT", -12, 0)
@@ -268,8 +353,16 @@ local function initializeActionMenuButton(button)
     label:SetJustifyH("LEFT")
     label:SetWordWrap(false)
     button.highlight:SetBlendMode("BLEND")
-    button.highlight:SetColorTexture(unpack(theme.Colors.surfaceSelected))
-    return width, 28
+    button.highlight:SetColorTexture(0, 0, 0, 0)
+    return width, 32
+end
+
+local function enterActionMenu(button)
+    button.fontString:SetTextColor(unpack(getTheme().Colors.accentHover))
+end
+
+local function leaveActionMenu(button)
+    button.fontString:SetTextColor(unpack(getTheme().Colors.text))
 end
 
 function Components:StyleActionMenuOwner(owner)
@@ -278,6 +371,8 @@ end
 
 function Components:StyleActionMenuButton(description)
     description:AddInitializer(initializeActionMenuButton)
+    description:SetOnEnter(enterActionMenu)
+    description:SetOnLeave(leaveActionMenu)
 end
 
 Lychee.UI.Components = Components

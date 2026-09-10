@@ -55,16 +55,19 @@ function Input:Create(parent, focusController)
     edit:SetAllPoints(container)
     if edit.SetFontObject then edit:SetFontObject("GameFontHighlight") end
     if theme then theme:SetFont(edit, "input") end
+    if edit.SetJustifyV then edit:SetJustifyV("MIDDLE") end
 
     local searchIcon = container:CreateTexture(nil, "ARTWORK")
     searchIcon:SetSize(16, 16)
     searchIcon:SetPoint("LEFT", container, "LEFT", 14, 0)
-    if searchIcon.SetAtlas then searchIcon:SetAtlas("common-search-magnifyingglass", false) end
+    searchIcon:SetTexture("Interface\\AddOns\\Lychee\\Media\\MenuIcons\\search.tga")
 
     local placeholder = container:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     placeholder:SetPoint("LEFT", container, "LEFT", 40, 0)
     placeholder:SetPoint("RIGHT", container, "RIGHT", -20, 0)
     placeholder:SetJustifyH("LEFT")
+    placeholder:SetHeight(height)
+    if placeholder.SetJustifyV then placeholder:SetJustifyV("MIDDLE") end
     placeholder:SetText(localizedPlaceholder())
     if theme then theme:SetFont(placeholder, "input") end
 

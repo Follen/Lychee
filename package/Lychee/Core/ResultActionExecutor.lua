@@ -305,7 +305,6 @@ function Executor:ShowActions(row)
         end
         if canPin then
             local pinned = I.UserPreferences:PinIndex(item.ref) ~= nil
-            if #actions > 0 and root.CreateDivider then root:CreateDivider() end
             local description = root:CreateButton(pinned and "取消固定" or "固定到首页", function()
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
