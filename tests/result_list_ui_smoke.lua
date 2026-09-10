@@ -111,10 +111,10 @@ parent:SetSize(720, 500)
 local list = _G.Lychee.UI.ResultList:Create(parent, controller)
 
 assert(#list.rows == 8, "eight visible result rows are precreated")
-assert(list.gridColumns == 1 and list.frame:GetHeight() == 478, "result list uses a compact single column")
+assert(list.gridColumns == 1 and list.frame:GetHeight() == 410, "result list uses a compact single column")
 for index = 1, 8 do
     local row = list.rows[index]
-    assert(row:GetHeight() == 58, "row height remains fixed")
+    assert(row:GetHeight() == 46, "row height remains fixed")
     assert(row.primaryTarget and row.secondary, "primary and secondary interaction targets are precreated")
     assert(not row:IsShown(), "new row starts cleared")
 end
@@ -164,7 +164,7 @@ assert(#created == frameCount, "query update does not create frames or regions")
 assert(rowOne:IsShown() and rowTwo:IsShown() and not list.rows[3]:IsShown(), "only populated rows are shown")
 assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "builtin.player-spells", "freshness fields bind to row")
 assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == longText, "name and description remain separately constrained")
-assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 58, "long text cannot mutate row geometry")
+assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 46, "long text cannot mutate row geometry")
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
 assert(rowOne.category:GetText() == "自定义类型", "type label takes precedence over category")
 assert(rowOne.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim and rowTwo.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim,
@@ -177,6 +177,7 @@ assert(rowOne._categoryInset == 42, "visible secondary button keeps label clear"
 assert(rowTwo._categoryInset == 12, "label without visible secondary button matches icon inset")
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
+assert(rowOne.bg._lycheeColorToken==Lychee.UI.Theme.Colors.surface,"selected row has no background highlight")
 rowTwo.scripts.OnEnter(rowTwo)
 assert(list.selected == 2 and not rowOne._selected and rowTwo._selected, "hover moves the single current selection")
 assert(not rowOne.accent:IsShown() and rowTwo.accent:IsShown(), "only the hovered current row has an accent")

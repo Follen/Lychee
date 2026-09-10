@@ -273,7 +273,7 @@ local function secondaryAction(interaction)
 end
 
 local function renderRowState(row)
-    local background = row._selected and "rowSelected" or "row"
+    local background = "row"
     setTextureColor(row.bg, background)
     setShown(row.accent, row._selected == true)
     local showSecondary = row.secondaryAction and row._selected or false
@@ -332,7 +332,8 @@ function ResultList:Create(parent, controller)
     local iconSize = metrics.iconSize or 32
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetScript("OnHide", hideTooltip)
-    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, -10)
+    local inset=metrics.listInset or 4
+    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", inset, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -inset, -10)
     local gridRows = math.ceil(tiles / columns)
     frame:SetHeight(gridRows * rowHeight + math.max(0, gridRows - 1) * rowGap)
     local self = setmetatable({ frame = frame, controller = controller, rows = {}, items = EMPTY_ITEMS, selected = 1,
@@ -352,9 +353,9 @@ function ResultList:Create(parent, controller)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
         row.bg = row:CreateTexture(nil, "BACKGROUND"); row.bg:SetAllPoints()
-        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(2, 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
+        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(metrics.selectionWidth or 2, metrics.selectionHeight or 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
 
-        row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", 12, 0)
+        row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", metrics.listIconInset or 12, 0)
         row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); setTextureColor(row.dragHighlight, "actionHover")
         row.dragger = CreateFrame("Button", nil, row); row.dragger:SetSize(iconSize + 6, iconSize + 6); row.dragger:SetPoint("CENTER", row.icon, "CENTER")
         row.dragger:SetScript("OnDragStart", function(button)
@@ -382,9 +383,9 @@ function ResultList:Create(parent, controller)
 
         row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -12, 0); row._categoryInset = 12; row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
         setTextColor(row.category, "dim")
-        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", 56, -10); row.title:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.title:SetHeight(19); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
-        if theme then theme:SetFont(row.title, "title"); theme:SetFont(row.category, "meta") end
-        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -3); row.subtext:SetPoint("RIGHT", row, "RIGHT", -138, 0); row.subtext:SetHeight(14); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
+        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", metrics.listTitleInset or 48, -6); row.title:SetPoint("RIGHT", row, "RIGHT", -112, 0); row.title:SetHeight(18); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
+        if theme then theme:SetFont(row.title, "body"); theme:SetFont(row.category, "meta") end
+        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2); row.subtext:SetPoint("RIGHT", row, "RIGHT", -112, 0); row.subtext:SetHeight(14); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
         row.description = row.subtext
         if theme then theme:SetFont(row.subtext, "body") end
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
@@ -449,6 +450,13 @@ function ResultList:SetItems(items, session, generation, offset)
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
         cachedText(row, "title", row.title, item.text)
         cachedText(row, "subtext", row.subtext, item.subtext ~= "" and item.subtext or item.description or item.summary or "")
+        local single=row.subtext:GetText()==""
+        if row._singleTitle~=single then
+            row.title:ClearAllPoints()
+            row.title:SetPoint(single and "LEFT" or "TOPLEFT",row,single and "LEFT" or "TOPLEFT",Lychee.UI.Theme.Metrics.listTitleInset,single and 0 or -6)
+            row.title:SetPoint("RIGHT",row,"RIGHT",-112,0)
+            row._singleTitle=single
+        end
         cachedText(row, "category", row.category, kindText(item))
         local icon = item.icon
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); cropIcon(row.icon); row._icon = icon end

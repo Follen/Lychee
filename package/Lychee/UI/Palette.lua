@@ -14,7 +14,8 @@ local WIDTH, HEIGHT = 640, 220
 local HEADER_HEIGHT, FOOTER_HEIGHT = 56, 28
 local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 7, 81, 76
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 4, 6, 18
-local RECENT_LIMIT, RECENT_HEIGHT = 5, 46
+local LIST_METRICS = Lychee.UI.Theme.Metrics
+local RECENT_LIMIT, RECENT_HEIGHT = 5, LIST_METRICS.rowHeight
 local HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE = 4, 8
 
 local FALLBACK = {
@@ -275,17 +276,17 @@ local function createHomeView(parent, controller)
     function view:ConfigureLayout(tile, recent)
         if tile._recentLayout == recent then return end
         tile._recentLayout = recent
-        tile:SetSize(recent and 592 or HOME_TILE_WIDTH, recent and RECENT_HEIGHT or HOME_TILE_HEIGHT)
+        tile:SetSize(recent and (LIST_METRICS.resultTileWidth-12) or HOME_TILE_WIDTH, recent and RECENT_HEIGHT or HOME_TILE_HEIGHT)
         tile.icon:ClearAllPoints()
         tile.title:ClearAllPoints()
         tile.bg:ClearAllPoints()
         if recent then
-            tile.icon:SetPoint("LEFT", tile, "LEFT", 8, 0)
-            tile.title:SetPoint("LEFT", tile, "LEFT", 48, 0)
+            tile.icon:SetPoint("LEFT", tile, "LEFT", LIST_METRICS.listIconInset, 0)
+            tile.title:SetPoint("LEFT", tile, "LEFT", LIST_METRICS.listTitleInset, 0)
             tile.title:SetPoint("RIGHT", tile, "RIGHT", -112, 0)
             tile.title:SetJustifyH("LEFT")
             tile.title:SetHeight(18)
-            tile.bg:SetSize(2, 22)
+            tile.bg:SetSize(LIST_METRICS.selectionWidth, LIST_METRICS.selectionHeight)
             tile.bg:SetPoint("LEFT", tile, "LEFT", 0, 0)
         else
             tile.icon:SetPoint("TOP", tile, "TOP", 0, -8)

@@ -800,6 +800,12 @@ local recentTile = palette.homeView.tiles[1]
 local recentButton = assert(boundButton(recentTile), "recent tile has a prepared direct spell click")
 assert(recentTile.bg:GetWidth() < recentTile.bg:GetHeight(), "recent list selection uses a side accent")
 assertEq(recentTile:GetWidth(), 592, "recent entry is a full-width list row")
+local resultRow=palette.list.rows[1]
+assertEq(resultRow:GetWidth(),recentTile:GetWidth(),"search uses recent list width")
+assertEq(resultRow:GetHeight(),recentTile:GetHeight(),"search uses recent row height")
+assertEq(resultRow.icon:GetWidth(),recentTile.icon:GetWidth(),"search uses recent icon size")
+assertEq(resultRow.accent:GetWidth(),recentTile.bg:GetWidth(),"selection marker widths match")
+assertEq(resultRow.accent:GetHeight(),recentTile.bg:GetHeight(),"selection marker heights match")
 assertEq(recentTile.title.wordWrap, false, "recent entry names use one line")
 assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
 local beforeDrag = _G.__pickup or 0
