@@ -1,0 +1,5 @@
+Achievement query20 allocated_KiB=150.4 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=47.00 allocated_KiB=1380.8 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=4 aggregate_entries=24008 aggregate_text_bytes=379744
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=822.9 peak_batch_ms=2.00 frames=2 disabled_work=0

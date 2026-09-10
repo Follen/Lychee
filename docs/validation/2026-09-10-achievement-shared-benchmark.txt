@@ -1,0 +1,44 @@
+before sample=1
+Achievement query20 allocated_KiB=150.9 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=47.00 allocated_KiB=1381.8 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=4 aggregate_entries=24008 aggregate_text_bytes=379744
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=822.9 peak_batch_ms=2.00 frames=2 disabled_work=0
+
+after sample=1
+Achievement query20 allocated_KiB=151.1 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=48.00 allocated_KiB=6525.4 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=10 aggregate_entries=7002 aggregate_text_bytes=111046
+Achievement shared PASS serialized_ten_roles=320575 independent_ten_roles=2767501 reduction=88.4% roundtrip/differences/updates/corruption/budget
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=1336.4 peak_batch_ms=2.00 frames=2 disabled_work=0
+
+before sample=2
+Achievement query20 allocated_KiB=149.4 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=51.00 allocated_KiB=1382.8 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=4 aggregate_entries=24008 aggregate_text_bytes=379744
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=822.9 peak_batch_ms=2.00 frames=2 disabled_work=0
+
+after sample=2
+Achievement query20 allocated_KiB=151.1 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=49.00 allocated_KiB=6524.7 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=10 aggregate_entries=7002 aggregate_text_bytes=111046
+Achievement shared PASS serialized_ten_roles=320575 independent_ten_roles=2767501 reduction=88.4% roundtrip/differences/updates/corruption/budget
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=1336.4 peak_batch_ms=2.00 frames=2 disabled_work=0
+
+before sample=3
+Achievement query20 allocated_KiB=151.8 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=50.00 allocated_KiB=1382.5 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=4 aggregate_entries=24008 aggregate_text_bytes=379744
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=822.9 peak_batch_ms=2.00 frames=2 disabled_work=0
+
+after sample=3
+Achievement query20 allocated_KiB=150.9 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=52.00 allocated_KiB=6525.4 retained_growth_KiB=0.0 achievement_reads=0
+Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=10 aggregate_entries=7002 aggregate_text_bytes=111046
+Achievement shared PASS serialized_ten_roles=320575 independent_ten_roles=2767501 reduction=88.4% roundtrip/differences/updates/corruption/budget
+Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild
+Achievements PASS records=6002 retained_KiB=1336.4 peak_batch_ms=2.00 frames=2 disabled_work=0

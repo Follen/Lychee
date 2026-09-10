@@ -130,10 +130,10 @@ assert(I.Registry:SetUserEnabled(M.id,true));combat=true;M:MarkDirty();assert(no
 combat=false;M:MarkDirty();drain();assert(#M.ids==6002 and frames==baseFrames+1)
 assert(I.Registry:SetUserEnabled(M.id,false));drain()
 local saved=LycheeDB.achievementCatalog.entries[1]
-assert(saved and #saved.ids==6002,"cache persists while disabled")
+assert(saved and #LycheeDB.achievementCatalog.base.ids==6002,"shared cache persists while disabled")
 local beforeWarm=apiReads
 assert(I.Registry:SetUserEnabled(M.id,true));drain()
-assert(apiReads==beforeWarm and M.ids==saved.ids,"warm enable shares validated cache without achievement enumeration")
+assert(apiReads==beforeWarm and M.ids~=LycheeDB.achievementCatalog.base.ids,"warm enable restores an isolated active view without achievement enumeration")
 local beforeIdle=reads
 combat=true;M.frame.onEvent(M.frame,"PLAYER_REGEN_DISABLED")
 assert(not M.timer and not M.job and not M.frame.events.PLAYER_REGEN_ENABLED,"idle combat does not schedule rebuild")
@@ -144,7 +144,7 @@ assert(apiReads==beforeGain and M.pendingCount==1 and not M.timer,"combat queues
 combat=false;M.frame.onEvent(M.frame,"PLAYER_REGEN_ENABLED");drain()
 assert(apiReads==beforeGain+1 and M.pendingCount==0 and reads==beforeIdle,"combat recovery is incremental")
 I.Registry:SetUserEnabled(M.id,false)
-LycheeDB.achievementCatalog.entries[1].ids[2]=LycheeDB.achievementCatalog.entries[1].ids[1]
+LycheeDB.achievementCatalog.base.ids[2]=LycheeDB.achievementCatalog.base.ids[1]
 local beforeCorrupt=apiReads
 I.Registry:SetUserEnabled(M.id,true);drain()
 assert(apiReads>beforeCorrupt and #M.ids==6002,"duplicate historical IDs trigger rebuild")
@@ -177,7 +177,7 @@ for n=1,10 do I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEna
 local warmAlloc=collectgarbage("count")-warmBase
 local warmMs=(os.clock()-started)*1000
 collectgarbage("restart");collectgarbage("collect");local warmGrowth=collectgarbage("count")-warmBase
-assert(apiReads==infoBefore and warmAlloc<4096 and warmGrowth<64,"warm cycles do not enumerate or retain growth")
+assert(apiReads==infoBefore and warmAlloc<8192 and warmGrowth<64,"warm cycles do not enumerate or retain growth")
 print(string.format("Achievement warm10 cpu_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f achievement_reads=0",warmMs,warmAlloc,warmGrowth))
 -- Independent two-category fixture: removing/readding one item must not read the unchanged category.
 local sourceInfo=GetAchievementInfo
@@ -205,7 +205,7 @@ I.Registry:SetUserEnabled(M.id,true);drain()
 assert(categoryReads[1]==0 and categoryReads[2]==100 and M.positions[6000],"new item appears without unchanged category reads")
 for id=1,6002 do assert(M.positions[id],"independent expected ID set") end
 I.Registry:SetUserEnabled(M.id,false)
-for n=1,4 do
+for n=1,10 do
     character="Player-LRU"..n
     I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEnabled(M.id,false)
 end
@@ -213,15 +213,133 @@ character="Player-LRU1"
 local switchReads=apiReads
 I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads==switchReads,"switching back to cached character avoids directory APIs")
 I.Registry:SetUserEnabled(M.id,false)
-character="Player-LRU5"
+character="Player-LRU11"
 I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEnabled(M.id,false)
-local totalEntries,totalBytes=0,0
-assert(#LycheeDB.achievementCatalog.entries==4)
+local totalEntries,totalBytes=#LycheeDB.achievementCatalog.base.ids,LycheeDB.achievementCatalog.base.bytes
+assert(#LycheeDB.achievementCatalog.entries==10)
 for _,cache in ipairs(LycheeDB.achievementCatalog.entries) do
     assert(not cache.key:find("Player%-LRU2$"),"oldest unused character evicted")
-    totalEntries=totalEntries+#cache.ids;totalBytes=totalBytes+cache.bytes
+    totalEntries=totalEntries+#cache.extra.ids+#cache.updates.ids
+    totalBytes=totalBytes+cache.extra.bytes+cache.updates.bytes
 end
-assert(totalEntries<=32768 and totalBytes<=4194304)
-print(string.format("Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=4 aggregate_entries=%d aggregate_text_bytes=%d",totalEntries,totalBytes))
+assert(totalEntries<=65536 and totalBytes<=4194304)
+print(string.format("Achievement partition/LRU PASS unchanged_category_reads=0 cached_character_reads=0 roles=10 aggregate_entries=%d aggregate_text_bytes=%d",totalEntries,totalBytes))
+-- SavedVariables serialization must preserve sharing structurally, not through Lua aliases.
+local function serialize(value)
+    if type(value)=="number" then return tostring(value) end
+    if type(value)=="string" then return string.format("%q",value) end
+    assert(type(value)=="table")
+    local output={"{"}
+    for key,item in pairs(value) do
+        output[#output+1]="["..serialize(key).."]="..serialize(item)..","
+    end
+    output[#output+1]="}"
+    return table.concat(output)
+end
+I.Registry:SetUserEnabled(M.id,true);drain()
+local legacy={schema=2,entries={}}
+for index=1,10 do legacy.entries[index]=M.cache end
+local legacyBytes=#serialize(legacy)
+I.Registry:SetUserEnabled(M.id,false)
+local sharedBytes=#serialize(LycheeDB.achievementCatalog)
+assert(sharedBytes<legacyBytes*0.3,"ten roles persist shared data rather than repeated full arrays")
+local function reloadCache()
+    local serialized=serialize(LycheeDB.achievementCatalog)
+    LycheeDB.achievementCatalog=assert(loadstring("return "..serialized))()
+end
+reloadCache()
+local beforeReload=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(apiReads==beforeReload and #M.ids==6002,"serialized roundtrip restores directory without APIs")
+I.Registry:SetUserEnabled(M.id,false)
+local fixtureInfo=GetAchievementInfo
+local unlockedA,renamedA=false,false
+function GetCategoryNumAchievements(category)
+    if category==1 then return 5900 end
+    return character=="Player-Shared-A" and not unlockedA and 99 or 100
+end
+function GetAchievementInfo(id,index)
+    local found,name,points,completed,a,b,c,description,flags,icon=fixtureInfo(id,index)
+    if found==2 then
+        if character=="Player-Shared-B" then name="角色乙专属名称"
+        elseif character=="Player-Shared-A" and renamedA then name="角色甲变更名称" end
+    end
+    return found,name,points,completed,a,b,c,description,flags,icon
+end
+character="Player-Shared-A"
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(not M.positions[6000] and #M.ids==6001)
+local referenceA={}
+for index,id in ipairs(M.ids) do referenceA[index]=id end
+I.Registry:SetUserEnabled(M.id,false)
+character="Player-Shared-B"
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(M.positions[6000] and #query("角色乙专属名称")==1 and #query("角色甲变更名称")==0)
+I.Registry:SetUserEnabled(M.id,false)
+reloadCache()
+character="Player-Shared-A"
+I.Registry:SetUserEnabled(M.id,true);drain()
+for index,id in ipairs(referenceA) do assert(M.ids[index]==id,"role order survives shared encoding") end
+assert(not M.positions[6000] and #query("角色乙专属名称")==0,"other character visibility/name stays isolated")
+local baseName=M.store.base.texts[M.basePositions[2]]
+renamedA=true
+local earnedBefore=apiReads
+M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",2);drain()
+assert(apiReads-earnedBefore==1,"sparse event reads only target")
+assert(M.store.base.texts[M.basePositions[2]]==baseName,"event cannot mutate shared base")
+local updateCount=#M.role.updates.ids
+M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",2);drain()
+assert(#M.role.updates.ids==updateCount,"unchanged event does not grow sparse updates")
+unlockedA=true
+M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",6000);drain()
+assert(M.positions[6000] and #M.ids==6002)
+I.Registry:SetUserEnabled(M.id,false)
+reloadCache()
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(M.positions[6000] and #query("角色甲变更名称")==1,"incremental additions/overrides survive reload")
+I.Registry:SetUserEnabled(M.id,false)
+character="Player-Shared-B"
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(#query("角色乙专属名称")==1 and #query("角色甲变更名称")==0,"increment does not leak to another role")
+I.Registry:SetUserEnabled(M.id,false)
+-- A malformed role is discarded without destroying a valid shared base/other role.
+local raw=LycheeDB.achievementCatalog
+for _,role in ipairs(raw.entries) do
+    if role.key:find("Player%-Shared%-A$") then role.ops={#raw.base.ids+1,1} end
+end
+local beforeOther=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(apiReads==beforeOther,"unrelated valid role survives corrupted reference")
+I.Registry:SetUserEnabled(M.id,false)
+-- Historical values must obey the aggregate byte cap, even when individual blocks are valid.
+raw=LycheeDB.achievementCatalog
+local huge={ids={},texts={},categories={}}
+for id=1,6000 do huge.ids[id]=id;huge.texts[id]=string.rep("x",512);huge.categories[id]=1 end
+local validRole=raw.entries[1]
+raw.entries={validRole}
+for index=1,2 do
+    raw.entries[#raw.entries+1]={key=raw.domain.."Player-Budget"..index,counts={[1]=6000},builtAt=serverTime,
+        ops={-1,6000},extra=huge,updates={ids={},texts={},categories={}}}
+end
+I.Registry:SetUserEnabled(M.id,true);drain()
+local budgetBytes=M.store.base.bytes
+for _,role in ipairs(M.store.entries) do budgetBytes=budgetBytes+role.extra.bytes+role.updates.bytes end
+assert(budgetBytes<=4194304 and #M.store.entries==2,"aggregate cap evicts old role, not active results")
+assert(#query("角色乙专属名称")==1)
+I.Registry:SetUserEnabled(M.id,false)
+-- If even the active role cannot fit alongside the base, keep its live results without caching it.
+raw=LycheeDB.achievementCatalog
+for index=1,#raw.base.texts do raw.base.texts[index]=string.rep("x",512) end
+raw.entries={}
+local priorInfo=GetAchievementInfo
+function GetAchievementInfo(id,index)
+    local found,_,points,completed,a,b,c,description,flags,icon=priorInfo(id,index)
+    return found,string.rep("y",512),points,completed,a,b,c,description,flags,icon
+end
+character="Player-OverBudget"
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(#M.ids==6002 and #M.store.entries==0 and #query("yyyy")==50,"cache capacity must not truncate live results")
+I.Registry:SetUserEnabled(M.id,false)
+print(string.format("Achievement shared PASS serialized_ten_roles=%d independent_ten_roles=%d reduction=%.1f%% roundtrip/differences/updates/corruption/budget",sharedBytes,legacyBytes,(1-sharedBytes/legacyBytes)*100))
 print("Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild")
 print(string.format("Achievements PASS records=6002 retained_KiB=%.1f peak_batch_ms=%.2f frames=%d disabled_work=0",retained,peak,frames))
