@@ -1240,4 +1240,95 @@ do
     controller:Hide("whitespace-test")
     print("Whitespace home view PASS")
 end
+
+do
+    local controller=LycheeInternal.Host.PaletteController
+    local savedTimers=C_Timer;C_Timer=nil
+    controller:Hide("recent-regression-reset")
+    local function record(id) return {id=id,title="Recent "..id,kindTitle="Fixture"} end
+    local source=assert(Lychee:RegisterProvider({id="recent.dynamic",apiVersion=2,version="1.0.0",title="Recent fixture",
+        entries={record("static")},
+        query=function(_,reply) reply({record("first"),record("last")}) end,
+        resolve=function(id) return record(id) end}))
+    LycheeDB.palette.pinned={}
+    LycheeDB.palette.recent={
+        {providerID="recent.dynamic",entryID="first"},
+        {providerID="recent.dynamic",entryID="static"},
+        {providerID="recent.dynamic",entryID="last"},
+    }
+    controller.input:SetText("");assert(controller:Show())
+    local function assertHome(label)
+        local expected=3+#LycheeDB.palette.pinned
+        assert(#controller.homeView.sections==expected,label..": expected all saved entries")
+        for i=1,expected do
+            local tile=controller.homeView.tiles[i]
+            assert(tile:IsShown() and tile.item,label..": missing recent row "..i)
+            assert(I.ResultActionExecutor:IsRowCurrent(tile),label..": stale recent row "..i)
+        end
+    end
+    assertHome("initial")
+    for _,text in ipairs({"R","Re","R",""}) do
+        controller.input.frame:SetText(text)
+        controller.input.frame.scripts.OnTextChanged(controller.input.frame,true)
+    end
+    assertHome("backspace to empty")
+    local ref=LycheeDB.palette.recent[1]
+    local first=assert(I.Providers:Resolve(ref))
+    local second=assert(I.Providers:Resolve(ref))
+    assert(I.Providers:IsCurrent(first) and I.Providers:IsCurrent(second),"resolving one ID must not invalidate another live snapshot")
+    LycheeDB.palette.pinned={ref}
+    controller:MarkHomeDirty();assertHome("pin and recent share identity")
+    collectgarbage("collect");assertHome("GC keeps visible identities")
+    local frames=createdFrames
+    local elapsed,maxCycle=0,0
+    collectgarbage("collect");local retainedBefore=collectgarbage("count")
+    collectgarbage("stop");local allocatedBefore=collectgarbage("count")
+    for cycle=1,100 do
+        local started=os.clock()
+        for _,text in ipairs({"R","Re","R",""}) do
+            controller.input.frame:SetText(text)
+            controller.input.frame.scripts.OnTextChanged(controller.input.frame,true)
+        end
+        local duration=(os.clock()-started)*1000;elapsed=elapsed+duration;maxCycle=math.max(maxCycle,duration)
+        assertHome("repeat "..cycle)
+    end
+    local allocated=collectgarbage("count")-allocatedBefore
+    collectgarbage("restart");collectgarbage("collect")
+    local growth=collectgarbage("count")-retainedBefore
+    assert(createdFrames==frames,"query/clear reuses existing frames")
+    assert(maxCycle<5 and growth<512,"recent lifecycle budget")
+    print(string.format("Recent lifecycle: 100 cycles %.3f ms total, %.3f ms max, %.1f KiB allocated, %.1f KiB retained growth, 0 new frames",elapsed,maxCycle,allocated,growth))
+    -- Deterministic real scheduler: queue timer callbacks, including cancelled ones.
+    local queue={}
+    C_Timer={NewTimer=function(_,fn)
+        local timer={callback=fn};function timer:Cancel() self.cancelled=true end
+        queue[#queue+1]=timer;return timer
+    end}
+    for _,text in ipairs({"R","Re",""}) do
+        controller.input.frame:SetText(text)
+        controller.input.frame.scripts.OnTextChanged(controller.input.frame,true)
+    end
+    for i=1,#queue do queue[i].callback() end
+    assertHome("late and cancelled search callbacks")
+    C_Timer=nil
+    controller:Hide("recent-reopen");controller:Show();assertHome("reopen")
+    local tile=controller.homeView.tiles[2]
+    controller:InvalidateRow(tile);controller:PrepareHome();assertHome("rebind rejected row")
+    local oldItem=controller.homeView.tiles[2].item
+    assert(source:Update({upsert={{id="static",title="Updated static"}}}))
+    assertHome("Provider update")
+    assert(not I.Providers:IsCurrent(oldItem),"Provider update rejects old resolved snapshot")
+    local entry=I.Providers.entries["recent.dynamic"]
+    local function resolvedCount() local n=0;for _ in pairs(entry.resolved) do n=n+1 end;return n end
+    collectgarbage("collect");local beforeCount=resolvedCount()
+    for i=1,200 do I.Providers:Resolve(ref) end
+    collectgarbage("collect")
+    assert(resolvedCount()==beforeCount,"discarded resolved snapshots are reclaimed")
+    oldItem=controller.homeView.tiles[2].item
+    assert(source:SetEnabled(false))
+    assert(not I.Providers:IsCurrent(oldItem),"disabled Provider rejects old resolved snapshot")
+    assert(source:SetEnabled(true));controller:MarkHomeDirty();assertHome("Provider re-enabled")
+    controller:Hide("recent-regression-done");source:Unregister();C_Timer=savedTimers
+    print("Dynamic recent query lifecycle PASS")
+end
 end)()

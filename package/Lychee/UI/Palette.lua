@@ -785,16 +785,22 @@ function Palette:RefreshHomeSections(allowExpand)
     end
     self:SetHomeSections(sections, allowExpand)
     self.homeDirty = false
-    if self:IsHomeVisible() then self:PrepareHome(); self:ResizeForMode("home") end
+    if self:IsHomeVisible() then self:PrepareHome(true); self:ResizeForMode("home") end
     return true
 end
 
-function Palette:PrepareHome()
+function Palette:PrepareHome(rebound)
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return end
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
     for index = 1, #self.homeView.sections do
         local tile = self.homeView.tiles[index]
         tile.session, tile.generation = self.session, self.generation
+        -- Query-scoped Provider records can expire while Home is hidden. Rebind
+        -- saved identities before the executor rejects and hides individual rows.
+        -- A failed resolver gets only this one pass, never recursive retries.
+        if not rebound and executor and tile.section.item and not executor:IsRowCurrent(tile) then
+            return self:RefreshHomeSections(false)
+        end
     end
     if executor then executor:PrepareVisibleRows(self.homeView.tiles) end
 end

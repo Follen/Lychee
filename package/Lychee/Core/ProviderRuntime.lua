@@ -1,8 +1,10 @@
 local I = _G.LycheeInternal
 local P = { entries = {}, jobs = {}, diagnostics = {}, queryEpoch = 0, entryLimit = 4096, queryLimit = 256 }
 I.Providers = P
-local weakValues = { __mode = "v" }
-local function resolvedRecords() return setmetatable({}, weakValues) end
+-- Membership follows each live resolved snapshot, not its ID: pins and recent
+-- may resolve the same entry independently. UI/action references keep it alive.
+local weakRecords = { __mode = "k" }
+local function resolvedRecords() return setmetatable({}, weakRecords) end
 
 local function copy(value)
     if type(value) ~= "table" then return value end
@@ -310,7 +312,7 @@ function P:IsCurrent(item)
     return active(entry) and item._providerRevision == entry.revision
         and record ~= nil and (not identity or identity:MatchesScope(record.scope or entry.definition.scope))
         and (not item._dynamicEpoch or item._dynamicEpoch == entry.dynamicEpoch)
-        and (item._providerRecord == entry.recordMap[item.id] or item._providerRecord == entry.dynamic[item.id] or item._providerRecord == entry.resolved[item.id])
+        and (item._providerRecord == entry.recordMap[item.id] or item._providerRecord == entry.dynamic[item.id] or entry.resolved[item._providerRecord] == true)
 end
 local function materialize(entry, record)
     local item = I.Search.Query:Materialize({ record = record, sourceID = entry.id .. ":records",
@@ -344,7 +346,7 @@ function P:Resolve(ref, context)
         if result == nil then return nil end
         local restored, err = records(entry, { result })
         if not restored or restored[1].id ~= ref.entryID then report(entry, err and err.code or "INVALID_SCHEMA", "resolve"); return nil end
-        record = restored[1]; entry.resolved[record.id] = record
+        record = restored[1]; entry.resolved[record] = true
     end
     local identity = I.Search.RuntimeIdentity
     if record and identity and not identity:MatchesScope(record.scope or entry.definition.scope) then return nil end

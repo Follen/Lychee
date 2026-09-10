@@ -1,0 +1,12 @@
+Lazy Palette: 58 frame creations deferred until first open
+Recent scroll bounds lifecycle PASS
+Secondary secure action spell checks: 1
+Already released button attribute writes: 0
+Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)
+Lychee settings and pins interaction PASS
+General settings navigation PASS
+Bag right-click routing PASS
+Whitespace home view PASS
+Recent lifecycle: 100 cycles 69.000 ms total, 2.000 ms max, 4345.4 KiB allocated, 15.9 KiB retained growth, 0 new frames
+Dynamic recent query lifecycle PASS
+BASELINE ONLY: expected identity/display assertion failures = 825
