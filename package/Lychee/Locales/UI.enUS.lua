@@ -132,6 +132,24 @@ L:Add({
 L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary"})
 L:Add({["点击保存应用搜索设置"]="Save to apply search settings"})
 L:Add({
+    ["普通搜索"]="Search by name",["直接输入名称即可搜索"]="Enter a name to find matching content",
+    ["快捷搜索"]="Search shortcuts",
+    ["添加打开%s列表的关键词"]="Add a keyword to open %s",
+    ["添加只搜索%s的前缀"]="Add a prefix to search %s",
+    ["打开%s列表"]="Open %s",["只搜索%s"]="Search only %s",
+    ["通过下面的快捷入口查找"]="Use the shortcuts below to find content",
+    ["修改"]="Edit",["取消编辑"]="Cancel edit",["名称"]="name",
+    ["搜索 %s"]="Search %s",[" · 另有 %d 个入口"]=" · %d more",
+    ["填写你想输入的词，多个词用逗号分隔"]="Enter the words you want to type, separated by commas",
+    ["搜索 %s，显示列表"]="Search %s to open the list",
+    ["搜索 %s，只查找此功能"]="Search %s to search only this provider",
+    ["添加打开列表的关键词"]="Add a keyword to open the list",
+    ["添加限定搜索的前缀"]="Add a prefix to search within this provider",
+    ["打开列表"]="Open the list",["限定搜索"]="Search within",
+    ["关于此功能"]="About this feature",["收起功能信息"]="Hide feature information",
+    ["修改搜索设置不影响已固定的内容"]="Search settings do not change your pinned items",
+})
+L:Add({
     ["参与普通搜索"]="Include in search",
     ["按内容名称搜索时显示此来源"]="Find this provider's content by name",
     ["快捷入口"]="Shortcuts",

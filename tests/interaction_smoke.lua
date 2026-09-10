@@ -1398,6 +1398,13 @@ do
     local function edit(input,value) input:SetText(value);input.scripts.OnTextChanged(input,true) end
     assert(page.entry==LycheeInternal.Providers.entries["manage.ui"])
     assert(not page.save.enabled and not view.tabs.providers.frame:IsShown())
+    assert(not page.prefixInput:IsShown() and not page.keywordInput:IsShown() and not page.technical:IsShown(),"overview hides editors and technical details")
+    page.fields.prefix.add.frame.scripts.OnClick()
+    assert(page.prefixInput:IsShown() and not page.keywordInput:IsShown(),"add opens one editor")
+    edit(page.prefixInput,"临时入口");page.fields.prefix.edit.frame.scripts.OnClick()
+    assert(not page.prefixInput:IsShown() and page.prefixInput:GetText()=="" and not page.dirty,"cancel edit restores field")
+    page.about.frame.scripts.OnClick();assert(page.technical:IsShown())
+    page.about.frame.scripts.OnClick();assert(not page.technical:IsShown())
     edit(page.prefixInput,"草稿");assert(page.save.enabled)
     page.toggle.scripts.OnClick();assert(page.prefixInput:GetText()=="草稿" and page.save.enabled)
     page.toggle.scripts.OnClick();page.cancel.frame.scripts.OnClick()

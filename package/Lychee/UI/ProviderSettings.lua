@@ -64,21 +64,33 @@ function P:Create(parent,controller,onBack)
         view.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
     end)
     view.toggle:SetScript("OnMouseDown",function() view.toggle.press=view.generation end)
-    view.globalLabel=label(L["参与普通搜索"],8,-56,width-70)
+    view.globalLabel=label(L["普通搜索"],8,-56,width-70)
     view.globalHint=label(L["按内容名称搜索时显示此来源"],8,-78,width-70,"meta")
     view.globalToggle=UI.Components:CreateToggle(frame);view.globalToggle:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-62)
     view.globalToggle:SetScript("OnMouseDown",function() view.globalToggle.press=view.generation end)
     view.globalToggle:SetScript("OnClick",function()
         local pressed=view.globalToggle.press;view.globalToggle.press=nil
         if not current() or view.entry.definition.searchable==false or pressed~=nil and pressed~=view.generation then return end
-        view.global=not view.global;view.globalToggle:SetChecked(view.global);view:UpdateDirty()
+        view.global=not view.global;view.globalToggle:SetChecked(view.global);view.globalHint:SetText(L[view.global and "直接输入名称即可搜索" or "通过下面的快捷入口查找"]);view:UpdateDirty()
     end)
-    view.heading=label(L["快捷入口"],8,-112)
+    view.heading=label(L["快捷搜索"],8,-112)
     view.fields={}
     for _,spec in ipairs({{"keyword","直接打开列表",136},{"prefix","在此来源内搜索",228}}) do
         local kind,title,y=spec[1],spec[2],spec[3]
         local field={};view.fields[kind]=field
-        field.label=label(L[title],8,-y,width-16)
+        field.label=label(L[title],8,-y,width-110)
+        field.summary=label("",8,-y-22,width-110,"body");UI.Theme:SetTextColor(field.summary,"text")
+        field.edit=button(L["修改"],width-88,-y,80,function()
+            if view.editing==kind then
+                field.input:SetText(field.before or "");view.editing=nil;view:UpdateDirty();view:Layout()
+            else
+                view:ClearFocus();view.editing=kind;field.before=field.input:GetText();view:Layout();field.input:SetFocus()
+            end
+        end,nil,28,true)
+        field.add=button("",0,-y,width,function()
+            view:ClearFocus();view.editing=kind;field.before=field.input:GetText();view:Layout();field.input:SetFocus()
+        end,nil,32,true)
+        field.add.label:SetJustifyH("LEFT");field.add.label:ClearAllPoints();field.add.label:SetPoint("LEFT",field.add.frame,"LEFT",8,0);field.add.label:SetSize(width-16,24)
         local input=CreateFrame("EditBox",nil,frame);field.input=input
         input:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-y-24);input:SetSize(width-16,32)
         input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text")
@@ -92,7 +104,7 @@ function P:Create(parent,controller,onBack)
         field.example=label("",8,-y-60,width-16,"meta")
         input:SetScript("OnTextChanged",function(_,userInput) if userInput then view:UpdateDirty() end;view:UpdateExamples() end)
         input:SetScript("OnEnterPressed",function() view:Save() end)
-        input:SetScript("OnEscapePressed",function() if current() then input:ClearFocus();back() end end)
+        input:SetScript("OnEscapePressed",function() if current() then input:SetText(field.before or "");view.editing=nil;view:UpdateDirty();view:Layout() end end)
     end
     view.prefixInput=view.fields.prefix.input;view.keywordInput=view.fields.keyword.input
     view.help=label(L["独立查询入口，由功能自身决定触发词"],8,-64,width-16);view.help:SetHeight(44);view.help:Hide()
@@ -103,21 +115,62 @@ function P:Create(parent,controller,onBack)
     end
     function view:UpdateExamples()
         for kind,field in pairs(self.fields) do
-            local word=""
+            local word="";local count=0
             for value in field.input:GetText():gsub("，",","):gmatch("[^,]+") do
                 value=value:match("^%s*(.-)%s*$")
-                if word=="" then word=value end
-                if L:IsChinese() and value:find("[\128-\255]") then word=value;break end
+                if value~="" then
+                    count=count+1
+                    if word=="" or L:IsChinese() and not word:find("[\128-\255]") and value:find("[\128-\255]") then word=value end
+                end
             end
-            field.example:SetText(word=="" and L["未设置 · 填写名称，多个名称用逗号分隔"] or L:Format(kind=="keyword" and "输入 %s → 显示此来源列表" or "输入 %s：内容 → 搜索此来源",word))
+            field.word,field.count=word,count
+            local example=kind=="keyword" and word or word.."："..(self.sample or L["名称"])
+            field.summary:SetText(L:Format("搜索 %s",example)..(count>1 and L:Format(" · 另有 %d 个入口",count-1) or ""))
+            field.example:SetText(word=="" and L["填写你想输入的词，多个词用逗号分隔"] or L:Format(kind=="keyword" and "搜索 %s，显示列表" or "搜索 %s，只查找此功能",example))
         end
+    end
+    function view:Layout()
+        local independent=self.entry.definition.searchable==false
+        local key=tostring(independent)..":"..tostring(self.editing)..":"..tostring(self.fields.prefix.count>0)..":"..tostring(self.fields.keyword.count>0)..":"..tostring(self.aboutOpen)..":"..tostring(self.dirty)..":"..tostring(self.error:GetText()~="")
+        if self.layoutKey==key then return end
+        self.layoutKey=key
+        local y=128
+        for _,kind in ipairs({"prefix","keyword"}) do
+            local field=self.fields[kind];local editing=self.editing==kind and not independent
+            local exists=field.count>0
+            field.add:SetText(L:Format(kind=="keyword" and "添加打开%s列表的关键词" or "添加只搜索%s的前缀",self.entry.definition.title))
+            field.add.frame:ClearAllPoints();field.add.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-y)
+            field.add.frame:SetShown(not independent and not exists and not editing)
+            field.label:ClearAllPoints();field.label:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-y)
+            field.label:SetText(L:Format(kind=="keyword" and "打开%s列表" or "只搜索%s",self.entry.definition.title))
+            field.label:SetShown(not independent and (exists or editing))
+            field.edit.frame:ClearAllPoints();field.edit.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",width-88,-y)
+            field.edit:SetText(L[editing and "取消编辑" or "修改"]);field.edit.frame:SetShown(not independent and (exists or editing))
+            field.summary:ClearAllPoints();field.summary:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-y-24)
+            field.summary:SetShown(not independent and exists and not editing)
+            field.input:ClearAllPoints();field.input:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-y-28);field.input:SetShown(editing)
+            field.example:ClearAllPoints();field.example:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-y-64);field.example:SetShown(editing)
+            y=y+(editing and 108 or exists and 68 or 44)
+        end
+        self.about.frame:ClearAllPoints();self.about.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-(independent and 116 or y+12))
+        self.about:SetText(L[self.aboutOpen and "收起功能信息" or "关于此功能"])
+        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-(independent and 148 or y+44))
+        self.technical:SetShown(self.aboutOpen==true)
+        local errorY=independent and 180 or y+44+(self.aboutOpen and 36 or 0)
+        self.error:ClearAllPoints();self.error:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-errorY)
+        local height=errorY+(self.error:GetText()~="" and 40 or 8)
+        if contentHeight~=height then contentHeight=height;frame:SetHeight(height);range() end
+        self.save.frame:SetShown(not independent and (self.dirty or self.editing~=nil))
+        self.cancel.frame:SetShown(not independent and (self.dirty or self.editing~=nil))
     end
     function view:UpdateDirty()
         if not current() then return end
+        local hint=L[self.global and "直接输入名称即可搜索" or "通过下面的快捷入口查找"]
+        if self.globalHint:GetText()~=hint then self.globalHint:SetText(hint) end
         self.resetDraft=false
         self.dirty=self.global~=self.savedGlobal or self.prefixInput:GetText()~=self.savedPrefix or self.keywordInput:GetText()~=self.savedKeyword
         self.save:SetEnabled(self.dirty and self.entry.definition.searchable~=false)
-        self.error:SetText("");self.technical:Show()
+        self.error:SetText("");self:UpdateExamples();self:Layout()
         controller:SetStatusText(L[self.dirty and "点击保存应用搜索设置" or "搜索设置已保存"])
     end
     function view:Save()
@@ -132,7 +185,10 @@ function P:Create(parent,controller,onBack)
         local ok,err
         if self.resetDraft then ok,err=I.Search.ProviderPolicy:Set(self.id,nil,nil,nil)
         else ok,err=I.Search.ProviderPolicy:SetConfiguration(self.id,self.global,values(self.prefixInput),values(self.keywordInput)) end
-        if not ok then self.technical:Hide();self.error:SetText(L[err]);return end
+        if not ok then
+            self.error:SetText(L[err]);self:Layout();controller:SetStatusText(L[err])
+            bar:SetValue(math.max(0,contentHeight-scroll:GetHeight()));return
+        end
         self:ClearFocus();self:Refresh();controller:SetStatusText(L["搜索设置已保存"])
     end
     view.save=button(L["保存"],0,0,72,function() view:Save() end,outer,30,true)
@@ -145,15 +201,21 @@ function P:Create(parent,controller,onBack)
         view.prefixInput:SetText(table.concat(list,", "));view.keywordInput:SetText(table.concat(words,", "))
         view:UpdateExamples();view:UpdateDirty()
         view.resetDraft=true;view.dirty=view.dirty or I.Search.ProviderPolicy:Override(view.id)~=nil;view.save:SetEnabled(view.dirty)
+        view.editing=nil;view:Layout()
         if view.dirty then controller:SetStatusText(L["点击保存应用搜索设置"]) end
     end,outer,30,true)
     view.reset.frame:ClearAllPoints();view.reset.frame:SetPoint("BOTTOMLEFT",outer,"BOTTOMLEFT",0,6)
+    view.about=button(L["关于此功能"],0,0,160,function() view.aboutOpen=not view.aboutOpen;view:Layout() end,nil,28,true)
+    view.about.label:SetJustifyH("LEFT")
     function view:Refresh()
         if not current() then return end
+        self.layoutKey=nil
         local definition=self.entry.definition;local independent=definition.searchable==false
         local state=I.Registry.entries[self.id];self.toggle:SetChecked(state.userEnabled,true)
         self.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
+        self.editing=nil
         local global,list,words=I.Search.ProviderPolicy:Configuration(self.id,definition)
+        self.globalHint:SetText(L[global and "直接输入名称即可搜索" or "通过下面的快捷入口查找"] )
         self.global,self.savedGlobal=global,global
         self.savedPrefix,self.savedKeyword=table.concat(list,", "),table.concat(words,", ")
         self.globalToggle:SetChecked(global,true);self.globalToggle:SetShown(not independent)
@@ -172,13 +234,16 @@ function P:Create(parent,controller,onBack)
         self.error:SetText("");self.technical:Show()
         local clients={}
         for _,product in ipairs(definition.scope.products or {definition.scope.product or "retail"}) do clients[#clients+1]=L[CLIENTS[product] or product] end
-        self.technical:SetText(L["版本"].." "..tostring(definition.version).."  ·  "..table.concat(clients,", "))
+        self.technical:SetText(L["版本"].." "..tostring(definition.version).."  ·  "..table.concat(clients,", "));self:Layout()
     end
     function view:Show(id,icon,description)
         self.id,self.entry=id,I.Providers.entries[id]
+        local first=self.entry.records and self.entry.records[1]
+        self.sample=first and type(first.title)=="string" and #first.title<=42 and not first.title:find("|",1,true) and first.title or L["名称"]
+        self.aboutOpen=false
         self.generation=self.generation+1;outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
         self.icon:SetTexture(icon);self.title:SetText(self.entry.definition.title);self.detail:SetText(description or "");self:Refresh()
-        controller:SetStatusText(L["来源启停即时生效，其余设置保存后生效"])
+        controller:SetStatusText(L["修改搜索设置不影响已固定的内容"])
     end
     outer:SetScript("OnHide",function()
         view:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
