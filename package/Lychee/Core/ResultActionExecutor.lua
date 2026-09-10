@@ -242,10 +242,10 @@ function Executor:Execute(row, actionID)
         result, actionErr = self:_OpenPanel(item, row, action.panel, action.state or item.payload or {}, palette.session, palette.generation)
     elseif action and action.kind == "drag-spell" then
         result, actionErr = pickupSpell(action.spellID)
-    elseif action and action.kind == "secure-spell" then
+    elseif action and (action.kind == "secure-spell" or action.kind == "secure-item") then
         if actionID == (interaction and interaction.primaryActionID or "") then
             local Lychee = _G.Lychee
-            if Lychee and Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(action.spellID) then
+            if action.kind == "secure-spell" and Lychee and Lychee.Secure and Lychee.Secure.Policy and not Lychee.Secure.Policy:IsSpellAvailable(action.spellID) then
                 return false, "ACTION_UNAVAILABLE"
             end
             return false, "ACTION_REQUIRES_HARDWARE_CLICK"
@@ -266,7 +266,7 @@ function Executor:ExecutePrimary(row)
     if item and item.providerID and not action then return false, "NO_ACTION" end
     -- A protected spell must receive the physical click on its prepared secure
     -- button.  Keyboard submission and scripted row activation stay honest.
-    if action and action.kind == "secure-spell" then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
+    if action and (action.kind == "secure-spell" or action.kind == "secure-item") then return false, "ACTION_REQUIRES_HARDWARE_CLICK" end
     return self:Execute(row, action and action.id or "default")
 end
 
@@ -334,7 +334,7 @@ function Executor:PrepareVisibleRows(rows)
         elseif row:IsShown() then
             self:ConfigureDragTarget(row.dragger or row, row.item)
             local action = primaryActionFor(row.item)
-            if action and action.kind == "secure-spell" then
+            if action and (action.kind == "secure-spell" or action.kind == "secure-item") then
                 local button = broker:Prepare(action, {
                     controller = palette,
                     row = row,

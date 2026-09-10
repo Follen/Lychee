@@ -3,11 +3,12 @@ local Boundary = { MAX_DEPTH = 8, MAX_FIELDS = 128 }
 I.Boundary = Boundary
 -- Immutable validation vocabulary; never allocate it per record/action.
 local DEFAULT_OPTIONS = {}
-local ACTION_KEYS = { id=true, title=true, kind=true, intent=true, panel=true, state=true, spellID=true }
+local ACTION_KEYS = { id=true, title=true, kind=true, intent=true, panel=true, state=true, spellID=true, itemID=true }
 local ACTION_KIND_KEYS = {
     provider={id=true,title=true,kind=true},
     intent={id=true,title=true,kind=true,intent=true},
     ["open-panel"]={id=true,title=true,kind=true,panel=true,state=true},
+    ["secure-item"]={id=true,title=true,kind=true,itemID=true},
     ["secure-spell"]={id=true,title=true,kind=true,spellID=true},
     ["drag-spell"]={id=true,title=true,kind=true,spellID=true},
 }
@@ -152,7 +153,7 @@ function Boundary:ValidateSearchAction(action, field)
     if not keyOK then return nil, keyErr end
     if not stableID(action.id, 64) then return schemaFailure(field .. ".id") end
     local kind = action.kind
-    if kind ~= "provider" and kind ~= "intent" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "drag-spell" then
+    if kind ~= "provider" and kind ~= "intent" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "secure-item" and kind ~= "drag-spell" then
         return schemaFailure(field .. ".kind")
     end
     keyOK, keyErr = allowedKeys(action, ACTION_KIND_KEYS[kind], field)
@@ -170,6 +171,7 @@ function Boundary:ValidateSearchAction(action, field)
     if (kind == "secure-spell" or kind == "drag-spell") and not positiveInteger(action.spellID) then
         return schemaFailure(field .. ".spellID")
     end
+    if kind == "secure-item" and not positiveInteger(action.itemID) then return schemaFailure(field .. ".itemID") end
     if action.intent ~= nil then
         local intentOK, intentErr = validateIntent(action.intent, field .. ".intent")
         if not intentOK then return nil, intentErr end

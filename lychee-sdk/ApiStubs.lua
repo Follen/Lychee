@@ -30,6 +30,12 @@
 ---@field kind 'secure-spell'|'drag-spell'
 ---@field spellID integer
 
+---@class LycheeItemAction
+---@field id string
+---@field title? LycheeText
+---@field kind 'secure-item'
+---@field itemID integer
+
 ---@class LycheeViewAction
 ---@field id string
 ---@field title? LycheeText
@@ -37,7 +43,7 @@
 ---@field panel string
 ---@field state? table
 
----@alias LycheeEntryAction string|LycheeSpellAction|LycheeViewAction
+---@alias LycheeEntryAction string|LycheeSpellAction|LycheeItemAction|LycheeViewAction
 
 ---@class LycheeSpellDrag
 ---@field type 'spell'

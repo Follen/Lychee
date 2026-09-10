@@ -35,6 +35,10 @@ function Policy:IsSpellAvailable(spellID)
 end
 function Policy:Check(descriptor)
     if not self:CanConfigure() then return false, "COMBAT_LOCKED" end
+    if descriptor.kind == "item" then
+        if not C_Item or not C_Item.GetItemCount or C_Item.GetItemCount(descriptor.itemID, false) <= 0 then return false, "ITEM_NOT_FOUND" end
+        return true
+    end
     local ok, available, mountID = pcall(collectedMount, descriptor.spellID)
     if ok and available then return true, nil, mountID end
     if not self:IsSpellAvailable(descriptor.spellID) then return false, "ACTION_UNAVAILABLE" end

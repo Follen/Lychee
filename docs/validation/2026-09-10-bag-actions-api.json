@@ -1,0 +1,153 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Container.UseContainerItem",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "584: \t\t\tName = \"UseContainerItem\",\n585: \t\t\tType = \"Function\",\n586: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n587: \n588: \t\t\tArguments =\n589: \t\t\t{\n590: \t\t\t\t{ Name = \"containerIndex\", Type = \"BagIndex\", Nilable = false },\n591: \t\t\t\t{ Name = \"slotIndex\", Type = \"luaIndex\", Nilable = false },\n592: \t\t\t\t{ Name = \"unitToken\", Type = \"UnitToken\", Nilable = true },\n593: \t\t\t\t{ Name = \"bankType\", Type = \"BankType\", Nilable = true },\n594: \t\t\t\t{ Name = \"reagentBankOpen\", Type = \"bool\", Nilable = false, Default = false },\n595: \t\t\t},\n596: \t\t},",
+        "contentHash": "c22fe196197e1a42b4188facb40baa4fb5ede07ac3eb27eb314bb17565bcd968",
+        "line": 584,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "581: \t\t\t},\n582: \t\t},\n583: \t\t{\n584: \t\t\tName = \"UseContainerItem\",\n585: \t\t\tType = \"Function\",\n586: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n587: ",
+        "contentHash": "c22fe196197e1a42b4188facb40baa4fb5ede07ac3eb27eb314bb17565bcd968",
+        "line": 584,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Item.GetItemCount",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "429: \t\t\tName = \"GetItemCount\",\n430: \t\t\tType = \"Function\",\n431: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n432: \n433: \t\t\tArguments =\n434: \t\t\t{\n435: \t\t\t\t{ Name = \"itemInfo\", Type = \"ItemInfo\", Nilable = false },\n436: \t\t\t\t{ Name = \"includeBank\", Type = \"bool\", Nilable = false, Default = false },\n437: \t\t\t\t{ Name = \"includeUses\", Type = \"bool\", Nilable = false, Default = false },\n438: \t\t\t\t{ Name = \"includeReagentBank\", Type = \"bool\", Nilable = false, Default = false },\n439: \t\t\t\t{ Name = \"includeAccountBank\", Type = \"bool\", Nilable = false, Default = false },\n440: \t\t\t},\n441: \n442: \t\t\tReturns =\n443: \t\t\t{\n444: \t\t\t\t{ Name = \"count\", Type = \"number\", Nilable = false },\n445: \t\t\t},\n446: \t\t},",
+        "contentHash": "96a47025f01b338a1fb6891825bc1d71e888910008cd12dd22a54089427c64ae",
+        "line": 429,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "ContainerFrameUtil_GetItemButtonAndContainer",
+        "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/ContainerFrame.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2037: function ContainerFrameUtil_GetItemButtonAndContainer(bagID, slot)\n2038: \tlocal container = ContainerFrameUtil_GetShownFrameForID(bagID);\n2039: \tif container then\n2040: \t\tfor itemIndex, itemButton in container:EnumerateValidItems() do\n2041: \t\t\tif itemButton:GetBagID() == bagID and itemButton:GetID() == slot then\n2042: \t\t\t\treturn itemButton, container;\n2043: \t\t\tend\n2044: \t\tend\n2045: \tend\n2046: end",
+        "contentHash": "173bd5513472d3cc33be6db76ede5d83314e38a4208c70339b8a4d9f545604bc",
+        "line": 2037,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "SECURE_ACTIONS.item",
+        "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "412: \t\tend\n413: \tend;\n414: \n415: SECURE_ACTIONS.item =\n416:     function (self, unit, button)\n417:         local item = SecureButton_GetModifiedAttribute(self, \"item\", button);\n418:         if ( not item ) then",
+        "contentHash": "5fd1efcbfc20b4d426187f55dbee52542d37befd1ef52082db1f466f1049929a",
+        "line": 415,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "Class_EquipItem:BAG_UPDATE_DELAYED",
+        "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1310: function Class_EquipItem:BAG_UPDATE_DELAYED()\n1311: \tif (self.IsActive) then\n1312: \t\tlocal container, slot = TutorialHelper:FindItemInContainer(self.ItemData.ItemID);\n1313: \t\tif (container and slot) then\n1314: \t\t\tself.ItemData.Container, self.ItemData.ContainerSlot = container, slot;\n1315: \t\t\tself:UpdatePointer();\n1316: \t\telse\n1317: \t\t\tself:Interrupt();\n1318: \t\t\tTutorials.ShowBags:Interrupt();\n1319: \t\tend\n1320: \tend\n1321: end",
+        "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+        "line": 1310,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_CatalogShop/Blizzard_CatalogShop_Details.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "91: \t\tframe:Init();\n92: \t\tframe:SetProductInfo(productInfo);\n93: \t\tframe:SetSelected(isSelected);\n94: \t\tframe:SetScript(\"OnClick\", function(button, buttonName)\n95: \t\t\tscrollContainer.selectionBehavior:ToggleSelect(button);\n96: \t\t\tEventRegistry:TriggerEvent(\"CatalogShop.OnBundleChildSelected\", productInfo);\n97: \t\tend);",
+        "contentHash": "768f9afdc3d1ca9342e74f5fbfcbe386d639a9f21b28b622e66a2d6a05947e7a",
+        "line": 94,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

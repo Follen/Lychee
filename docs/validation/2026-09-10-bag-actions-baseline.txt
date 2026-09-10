@@ -1,0 +1,7 @@
+COLD builtin.bags cpu_ms=48.00 peak_wall_ms=3.01 scheduled_seconds=0.66
+COLD builtin.keystones cpu_ms=1.00 peak_wall_ms=1.02 scheduled_seconds=0.03
+COLD builtin.equipment-sets cpu_ms=2.00 peak_wall_ms=2.18 scheduled_seconds=0.03
+COLD builtin.talent-loadouts cpu_ms=2.00 peak_wall_ms=1.53 scheduled_seconds=0.03
+COLD builtin.blizzard-settings cpu_ms=20.00 peak_wall_ms=2.04 scheduled_seconds=0.27
+MEASURE disabled=34.6 retained=2228.0 alloc=3937.6 growth=-0.1 max_batch=3.00 total=78.00
+EXPANSION PASS disabled_KiB=34.6 added_KiB=2228.0 alloc100_KiB=3937.6 growth_KiB=-0.1 query100_ms=22.00 batches=492 max_batch_ms=3.00 total_cpu_ms=155.00

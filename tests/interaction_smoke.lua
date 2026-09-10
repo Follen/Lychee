@@ -1218,4 +1218,16 @@ do
     Lychee.UI.Motion:SetReduced(before)
     print("General settings navigation PASS")
 end
+do
+    local controller=LycheeInternal.Host.PaletteController
+    local original=controller.ActivateRowAction
+    local row={item={providerID="builtin.bags"}}
+    local located=false
+    controller.ActivateRowAction=function(_,target,action)
+        assert(target==row and action=="locate");located=true;return true
+    end
+    assert(controller:ShowRowActions(row) and located,"bag right-click directly locates")
+    controller.ActivateRowAction=original
+    print("Bag right-click routing PASS")
+end
 end)()

@@ -49,6 +49,24 @@ C_Container={GetContainerNumSlots=function(b) return b==0 and 512 or 0 end,
     GetContainerItemID=function(b,s) return b==0 and bags[s] and bags[s].itemID end,
     SetItemSearch=function(s) calls.bagSearch=s end}
 function OpenAllBags() calls.bags=true end
+function ContainerFrameUtil_GetItemButtonAndContainer()
+    return {IsVisible=function() return true end,GetFrameLevel=function() return 1 end}
+end
+local createCatalogFrame=CreateFrame
+function CreateFrame(...)
+    local f=createCatalogFrame(...)
+    function f:EnableMouse() end
+    function f:ClearAllPoints() end
+    function f:SetAllPoints() end
+    function f:SetParent() end
+    function f:SetFrameLevel() end
+    function f:Show() self.shown=true end
+    function f:Hide() self.shown=false end
+    function f:CreateTexture()
+        return {SetColorTexture=function() end,SetPoint=function() end,SetHeight=function() end,SetWidth=function() end,SetAllPoints=function() end}
+    end
+    return f
+end
 C_SpecializationInfo={GetSpecialization=function() return 1 end,GetSpecializationInfo=function() return 62 end}
 local talentIDs,gearIDs={},{}
 for n=1,16 do talentIDs[n]=n;gearIDs[n]=n end
@@ -123,7 +141,9 @@ drain()
 for _,m in ipairs(modules) do assert(not m.lastError,m.id..":"..tostring(m.lastError)) end
 for id,metric in pairs(metrics) do
     print(string.format("COLD %s cpu_ms=%.2f peak_wall_ms=%.2f scheduled_seconds=%.2f",id,metric.cpu,metric.peak,metric.finish))
-    assert(metric.cpu<50 and metric.peak<5 and metric.finish<1.5,"cold budget "..id)
+    -- Bags now validate one secure-item descriptor per entry; measured baseline/new in bag-actions.md.
+    local cpuBudget=id=="builtin.bags" and 75 or 50
+    assert(metric.cpu<cpuBudget and metric.peak<5 and metric.finish<1.5,"cold budget "..id)
 end
 collectgarbage("collect"); local retained=collectgarbage("count")-baseKB
 local function query(text)

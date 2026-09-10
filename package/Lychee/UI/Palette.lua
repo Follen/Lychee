@@ -1083,6 +1083,9 @@ function Palette:ActivateRowAction(row, actionID)
     return result, err
 end
 function Palette:ShowRowActions(row)
+    if row and row.item and row.item.providerID == "builtin.bags" then
+        return self:ActivateRowAction(row,"locate")
+    end
     Lychee.UI.ResultList:HideTooltip()
     if row and not row.item and row.section and row.section.pinnedRef and MenuUtil and MenuUtil.CreateContextMenu then
         if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end

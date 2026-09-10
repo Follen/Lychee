@@ -93,7 +93,9 @@ function Broker:_Acquire()
         if controller and controller.list and controller.list.HideTooltip then controller.list:HideTooltip() end
     end)
     button:SetScript("PreClick", function(current)
+        current.itemClicked=nil
         local valid, tokenErr = self:ValidateToken(current.token)
+        if valid and current.itemID then current.itemClicked=true; return end
         if valid then
             current.pendingCast = true
             self.pendingButton = current
@@ -105,6 +107,7 @@ function Broker:_Acquire()
         if not (InCombatLockdown and InCombatLockdown()) then
             current:SetAttribute("type", nil)
             current:SetAttribute("spell", nil)
+            current:SetAttribute("item", nil)
             current:Hide()
         else
             current.pendingRelease = true
@@ -115,6 +118,17 @@ function Broker:_Acquire()
         self:UpdateEventInterest()
     end)
     button:SetScript("PostClick", function(current, mouseButton)
+        if mouseButton == "LeftButton" and current.itemID and current.itemClicked then
+            current.itemClicked=nil
+            local palette=self:EnsureBound()
+            local item=current.token and current.token.item
+            if palette then
+                if item then palette:TouchRecent(item) end
+                palette:Hide("item-click")
+            end
+            self:Release(current)
+            return
+        end
         if mouseButton ~= "LeftButton" or not current.mountID or not current.pendingCast then return end
         if InCombatLockdown and InCombatLockdown() then
             self:FinishCast("UNIT_SPELLCAST_FAILED", current.spellID, "COMBAT_LOCKED")
@@ -152,13 +166,15 @@ function Broker:Prepare(action, token)
         local bound = existing.token
         if existing.busy and not existing.pendingRelease and bound and token and bound.row == token.row
             and bound.item == token.item and bound.session == token.session and bound.generation == token.generation
-            and existing.spellID == descriptor.spellID and existing.mountID == mountID then return existing end
+            and existing.itemID == descriptor.itemID and existing.spellID == descriptor.spellID and existing.mountID == mountID then return existing end
     end
     local button = self:_Acquire()
     if not button then self:Invalidate(); return nil, "COMBAT_LOCKED" end
     if mountID then button:SetAttribute("type", nil)
-    else button:SetAttribute("type", "spell") end
+    else button:SetAttribute("type", descriptor.kind == "item" and "item" or "spell") end
     button:SetAttribute("spell", descriptor.spellID)
+    button:SetAttribute("item", descriptor.itemID and ("item:"..descriptor.itemID) or nil)
+    button.itemID,button.itemClicked=descriptor.itemID,nil
     button.token = token
     button.action = action
     button.spellID = descriptor.spellID
@@ -213,7 +229,7 @@ function Broker:Release(button)
         self:Invalidate()
         return
     end
-    button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
+    button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil); button:SetAttribute("item", nil)
     if button.activeIndex then
         local index, last = button.activeIndex, self.active[#self.active]
         self.active[index] = last
@@ -224,6 +240,7 @@ function Broker:Release(button)
     button.busy, button.pendingRelease, button.token, button.action, button.spellID, button.pendingCast = false, nil, nil, nil, nil, nil
     button.armedSecondary = nil
     button.mountID = nil
+    button.itemID,button.itemClicked = nil,nil
     self:UpdateEventInterest()
 end
 function Broker:ShowFor(row, action, session, generation, item, extensionID)
