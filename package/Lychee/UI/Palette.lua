@@ -185,6 +185,15 @@ local function createHomeView(parent, controller)
     end
 
     view.scrollbar = Lychee.UI.Components:CreateScrollbar(frame, function(value) view:SetScroll(value) end)
+    function view:RefreshScrollRect()
+        if not frame:IsShown() or (InCombatLockdown and InCombatLockdown()) or not frame.UpdateScrollChildRect then return end
+        local width,height=frame:GetWidth(),frame:GetHeight()
+        local contentHeight=content:GetHeight()
+        if not self._scrollRectDirty and self._rectWidth==width and self._rectHeight==height and self._rectContentHeight==contentHeight then return end
+        frame:UpdateScrollChildRect()
+        self._rectWidth,self._rectHeight,self._rectContentHeight=width,height,contentHeight
+        self._scrollRectDirty=false
+    end
     function view:SetScroll(value)
         if InCombatLockdown and InCombatLockdown() then return end
         local viewport = math.max(0, frame:GetHeight() - 20)
@@ -194,7 +203,8 @@ local function createHomeView(parent, controller)
         end
         self.scrollbar:SetRange(content:GetHeight(), viewport, self.scroll)
     end
-    frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll) end)
+    frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll);view:RefreshScrollRect() end)
+    frame:SetScript("OnShow",function() view._scrollRectDirty=true;view:RefreshScrollRect() end)
     if frame.SetVerticalScroll then
         frame:SetScript("OnMouseWheel", function(_, delta)
             view:SetScroll(view.scroll - delta * 42)
@@ -280,6 +290,7 @@ local function createHomeView(parent, controller)
 
     function view:ConfigureLayout(tile, recent)
         if tile._recentLayout == recent then return end
+        self._scrollRectDirty=true
         tile._recentLayout = recent
         tile:SetSize(recent and (LIST_METRICS.resultTileWidth-12) or HOME_TILE_WIDTH, recent and RECENT_HEIGHT or HOME_TILE_HEIGHT)
         tile.icon:ClearAllPoints()
@@ -338,6 +349,7 @@ local function createHomeView(parent, controller)
                 if not header then break end
                 local anchorKey = cursorY
                 if header._homeAnchorKey ~= anchorKey then
+                    self._scrollRectDirty=true
                     header:ClearAllPoints()
                     header:SetPoint("TOPLEFT", self.content, "TOPLEFT", 12, -cursorY)
                     header._homeAnchorKey = anchorKey
@@ -366,6 +378,7 @@ local function createHomeView(parent, controller)
             local layoutY = cursorY + row * (tileHeight + HOME_ROW_GAP)
             local anchorKey = layoutY * HOME_COLUMNS + col
             if tile._homeAnchorKey ~= anchorKey then
+                self._scrollRectDirty=true
                 tile:ClearAllPoints()
                 tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", 12 + col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP), -layoutY)
                 tile._homeAnchorKey = anchorKey
@@ -402,12 +415,14 @@ local function createHomeView(parent, controller)
                 setShown(tile.icon, false)
             end
             for fallbackIndex = 1, #tile.fallback do setShown(tile.fallback[fallbackIndex], not section.icon) end
+            if not tile:IsShown() then self._scrollRectDirty=true end
             setShown(tile, true)
             self:RenderTileState(tile)
         end
         setShown(self.manage.frame, pinnedHeader == true)
         for index = tileCount + 1, #self.tiles do
             local tile = self.tiles[index]
+            if tile:IsShown() then self._scrollRectDirty=true end
             tile.section, tile.index, tile._hovered = nil, nil, nil
             tile.item, tile.session, tile.generation, tile.extensionID = nil, nil, nil, nil
             setShown(tile.bg, false)
@@ -435,6 +450,7 @@ local function createHomeView(parent, controller)
             self.selected = firstEnabled or 1
         end
         for index = 1, #self.tiles do self:RenderTileState(self.tiles[index]) end
+        self:RefreshScrollRect()
     end
 
     view:EnsureCapacity(HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE)

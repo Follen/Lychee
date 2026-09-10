@@ -26,6 +26,7 @@ local function object(kind, parent)
     function o:SetWidth(w) mutation(self, "SetWidth"); self.width = w end
     function o:GetWidth() return self.width end
     function o:GetHeight() return self.height end
+    function o:UpdateScrollChildRect() mutation(self,"UpdateScrollChildRect");self.rectUpdates=(self.rectUpdates or 0)+1 end
     function o:SetAlpha(value) mutation(self,"SetAlpha");self.alpha=value end
     function o:GetAlpha() return self.alpha or 1 end
     function o:GetStringHeight() return 15 end
@@ -165,6 +166,32 @@ local palette = (function()
     print("Lazy Palette: "..(createdFrames-before).." frame creations deferred until first open")
     return result
 end)()
+do
+    local view=LycheeInternal.Host.PaletteController.homeView
+    view.frame:Show()
+    local before=view.frame.rectUpdates or 0
+    view.frame:SetHeight(300)
+    view.frame.scripts.OnSizeChanged(view.frame)
+    assert((view.frame.rectUpdates or 0)>before,"expanded recent viewport must refresh native scroll bounds")
+    before=view.frame.rectUpdates
+    view.frame.scripts.OnSizeChanged(view.frame)
+    assert(view.frame.rectUpdates==before,"identical viewport must not refresh native bounds")
+    assert(view.frame.scripts.OnShow,"first show must flush scroll bounds built while hidden")
+    view.frame.scripts.OnShow(view.frame)
+    assert(view.frame.rectUpdates>before)
+    before=view.frame.rectUpdates
+    view.frame:Hide();view.frame:SetHeight(320)
+    view.frame.scripts.OnSizeChanged(view.frame)
+    assert(view.frame.rectUpdates==before,"hidden layout waits until shown")
+    view.frame:Show();view.frame.scripts.OnShow(view.frame)
+    assert(view.frame.rectUpdates>before,"reopening flushes hidden geometry")
+    before=view.frame.rectUpdates
+    _G.__combat=true;view._scrollRectDirty=true;view:RefreshScrollRect()
+    assert(view.frame.rectUpdates==before and view._scrollRectDirty,"combat defers bounds refresh")
+    _G.__combat=false;view:RefreshScrollRect()
+    assert(view.frame.rectUpdates>before and not view._scrollRectDirty)
+    print("Recent scroll bounds lifecycle PASS")
+end
 assert(palette)
 assertEq(palette.frame:GetWidth(), 640, "compact palette width")
 assertEq(palette.frame:GetHeight(), 220, "initial palette height")
