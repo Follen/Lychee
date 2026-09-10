@@ -1,4 +1,23 @@
-# Lychee SDK：Provider API 2.5
+# Lychee SDK：Provider API 2.6
+
+## 普通搜索与快捷入口（revision 6，推荐）
+
+普通搜索与两种快捷入口可以组合。声明 `minApiRevision=6` 并检查 `Supports(2,6)`：
+
+```lua
+-- 放入完整 Provider 声明；scope.products 和 Provider i18n 要求不变。
+searchGlobal = true,
+searchPrefixes = {"首领", "boss"},
+searchKeywords = {"首领列表", "bosslist"},
+```
+
+输入首领名参与普通搜索；`首领：名字` 仅搜索此来源；完整输入 `首领列表` 展示此来源列表。三者同时可用。`searchGlobal=false` 只关闭普通搜索（静态、别名和动态 query），不影响两个快捷入口。精确触发快捷入口优先选择来源，不将普通搜索结果拼入该列表。用户别名仍属于单条结果，不能绕过来源的普通搜索开关。
+
+此声明不能同时提供 searchMode 或 searchable=false。两种词表各0–8个，空表显式移除该入口；未提供 searchPrefixes 时沿用已存在的内置前缀，未提供 searchKeywords 时没有直接入口。searchGlobal=false 且两种有效入口均空时注册失败（INVALID_SCHEMA / searchGlobal.routes），管理页也阻止相同配置。格式、48字节上限、冲突、回调形状与下文一致。空表可持久化，false 不会被当成省略值。新 Host 的配置优先级为用户组合配置 > 旧用户模式覆盖 > Provider 声明。
+
+旧 revision 1–5 原行为保留：global 对应普通搜索和前缀；prefix 对应仅前缀；keyword 对应仅直接入口。旧模式中未启用的词表不会在升级后突然启用。用户从新管理页保存后可明确组合所有能力；清空字段只移除该类入口，恢复默认并保存会删除用户覆盖。旧 searchable=false 自定义查询继续独立，不能由用户设置绕过。队伍钥匙默认使用 searchGlobal=false、searchPrefixes={} 和 searchKeywords={"key","钥匙","分数"}，允许用户额外打开普通搜索或添加前缀。
+
+以下 revision 4/5 模式为兼容说明，新接入推荐使用上述组合声明。
 
 ## 关键词触发（revision 5）
 

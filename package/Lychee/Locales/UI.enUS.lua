@@ -132,6 +132,19 @@ L:Add({
 L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary"})
 L:Add({["点击保存应用搜索设置"]="Save to apply search settings"})
 L:Add({
+    ["参与普通搜索"]="Include in search",
+    ["按内容名称搜索时显示此来源"]="Find this provider's content by name",
+    ["快捷入口"]="Shortcuts",
+    ["直接打开列表"]="Open this list",
+    ["在此来源内搜索"]="Search within this provider",
+    ["未设置 · 填写名称，多个名称用逗号分隔"]="Not set · Enter names separated by commas",
+    ["输入 %s → 显示此来源列表"]="Type %s to open this list",
+    ["输入 %s：内容 → 搜索此来源"]="Type %s: content to search this provider",
+    ["请保留普通搜索或至少一个快捷入口"]="Keep search enabled or add at least one shortcut",
+    ["仅通过快捷入口"]="Shortcuts only",
+    ["来源启停即时生效，其余设置保存后生效"]="Provider on/off applies immediately. Save other changes to apply.",
+})
+L:Add({
     ["关键词触发"]="Keyword trigger",
     ["触发词"]="Trigger words",
     ["完整输入触发词，直接显示此功能内容"]="Enter an exact trigger to show this provider's content",

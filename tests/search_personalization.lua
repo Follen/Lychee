@@ -121,6 +121,33 @@ end
 print("Search personalization PASS: real query, aliases, filtering, disable/reload, caps, literal highlight")
 do
     local policy=I.Search.ProviderPolicy
+    local function definition(id)
+        return {id=id,apiVersion=2,minApiRevision=6,version="1",title="Combined",scope={products={"retail"}},i18n={enUS={TITLE="Combined"}},
+            searchGlobal=true,searchPrefixes={"inside"},searchKeywords={"openlist"},entries={{id="one",title="Unique target"}}}
+    end
+    assert(Lychee:Supports(2,6))
+    local bad=definition("combined.bad");bad.minApiRevision=5;assert(not Lychee:RegisterProvider(bad))
+    bad=definition("combined.bad");bad.searchMode="global";assert(not Lychee:RegisterProvider(bad))
+    bad=definition("combined.bad");bad.searchGlobal=false;bad.searchPrefixes={};bad.searchKeywords={};assert(not Lychee:RegisterProvider(bad))
+    local handle=assert(Lychee:RegisterProvider(definition("combined.test")))
+    assert(#query("Unique target")==1 and #query("inside:target")==1 and #query("openlist")==1)
+    assert(policy:SetConfiguration("combined.test",false,{"within"},{"showlist"}))
+    assert(#query("Unique target")==0 and #query("inside:target")==0 and #query("openlist")==0)
+    assert(#query("within:target")==1 and #query("showlist")==1)
+    local saved=LycheeDB.palette;LycheeDB={palette=saved};policy.owner=nil
+    assert(not policy:Configuration("combined.test",definition("combined.test")) and #query("showlist")==1,"false survives saved migration")
+    assert(not policy:SetConfiguration("combined.test",false,{},{}))
+    assert(policy:SetConfiguration("combined.test",true,{},{}))
+    assert(#query("Unique target")==1 and #query("within:target")==0 and #query("showlist")==0,"empty tables remove shortcuts")
+    LycheeDB={palette=LycheeDB.palette};policy.owner=nil;assert(#query("within:target")==0,"empty tables survive reload")
+    assert(policy:Set("combined.test",nil,nil,nil));assert(#query("inside:target")==1 and #query("openlist")==1)
+    assert(handle:SetEnabled(false));assert(#query("openlist")==0)
+    assert(handle:SetEnabled(true));assert(#query("openlist")==1)
+    assert(handle:Unregister());assert(#query("openlist")==0)
+    print("Combined search policy PASS: coexistence, exact route priority, revision, saved false/empty, reset, lifecycle")
+end
+do
+    local policy=I.Search.ProviderPolicy
     local calls=0
     local function definition(id,list)
         return {id=id,apiVersion=2,minApiRevision=4,version="1",title="Scoped",

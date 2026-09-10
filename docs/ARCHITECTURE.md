@@ -1,6 +1,6 @@
 # Lychee 通用搜索框架
 
-当前契约：Provider API 2.5 / revision 5。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
+当前契约：Provider API 2.6 / revision 6。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
 
 Provider 可声明 `searchable=false` 保留目录与引用能力，同时退出通用搜索索引；独立 query 控制触发范围。该策略由 Host 通用协议处理，查询引擎不判断具体 Provider ID。省略声明保持旧行为。
 
@@ -73,7 +73,7 @@ ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state
 
 ## 内置 Provider
 
-`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 为 2 / revision 5。
+`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 为 2 / revision 6。
 
 关键词触发归 ProviderPolicy 所有：注册／保存时验证词表，失效后构建有限路由快照；精确命中转为空文本来源查询，复用既有索引和动态查询入口。Index 继续只认识 sourceID/excludedSources 通用条件，不识别模式或 Provider ID。触发词用大小写／首尾空白规范化，与通用模糊搜索的标点处理分离。队伍钥匙使用同一声明，删除独立触发判断和重复查询目录，查询回调仅限频请求刷新。
 
@@ -115,3 +115,5 @@ Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实�
 ## 内部结构维护
 
 内置功能按职责存放在 `package/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](PROJECT_STRUCTURE.md)。
+
+revision 6 将普通搜索 searchGlobal 与两个快捷入口词表解耦。ProviderPolicy.Configuration 把旧声明和旧用户 mode 覆盖映射为原有效能力，新用户组合配置优先；Snapshot 负责独立入口路由与冲突归属。UI 只编辑组合配置，不再暴露互斥模式。旧模式中未启用的词表不会自动激活。

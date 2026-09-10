@@ -146,10 +146,11 @@
 ---@field id string Globally unique; lower-case ASCII letters/numbers/dots/hyphens.
 ---@field apiVersion 2
 ---@field searchable? boolean Since revision 3. Default true; false excludes static entries and user aliases from general search, including source filters. Dynamic query and stable resolution remain available. Immutable registration option.
----@field searchMode? 'global'|'prefix'|'keyword' global/prefix since revision 4; keyword since revision 5. Default global; user settings may override. Not allowed with searchable=false.
----@field searchPrefixes? string[] Since revision 4. 1..8 unique case-insensitive prefixes, <=48 bytes each; no spaces, separators or color markup. Required for searchMode=prefix. Conflicts rejected at registration.
----@field searchKeywords? string[] Since revision 5. 1..8 unique exact triggers, <=48 bytes each; ASCII case-insensitive, trimmed; no internal whitespace, commas, colons or markup. Required for keyword mode. Unique across providers, independent of prefix names. Trigger maps to an empty source-scoped query; user settings may override.
----@field minApiRevision? integer Use 5 for keyword/searchKeywords, 4 for global/prefix/searchPrefixes, 3 for searchable, 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
+---@field searchMode? 'global'|'prefix'|'keyword' Legacy exclusive modes (revision 4/5); original behavior retained. New providers should use searchGlobal. Cannot coexist with searchGlobal or searchable=false.
+---@field searchGlobal? boolean Since revision 6. Independently include records and query in ordinary search. Both shortcut types remain active. Cannot coexist with searchMode or searchable=false. If false, at least one shortcut is required.
+---@field searchPrefixes? string[] Since revision 4. 1..8 unique case-insensitive prefixes, <=48 bytes each; no spaces, separators or color markup. Required for searchMode=prefix. With searchGlobal (revision 6), empty array disables prefix shortcuts. Conflicts rejected at registration.
+---@field searchKeywords? string[] Since revision 5. 1..8 unique exact triggers, <=48 bytes each; ASCII case-insensitive, trimmed; no internal whitespace, commas, colons or markup. Required for legacy keyword mode. With searchGlobal (revision 6), empty array disables direct shortcuts. Unique across providers, independent of prefix names. Trigger maps to an empty source-scoped query; user settings may override.
+---@field minApiRevision? integer Use 6 for searchGlobal (empty prefix/keyword arrays remove shortcuts), 5 for keyword/searchKeywords, 4 for global/prefix/searchPrefixes, 3 for searchable, 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
 ---@field version string Integration version.
 ---@field title string|table<string,string>|LycheeLocaleKey Legacy localized maps require default.
 ---@field i18n? LycheeLocaleResources Required for revision 2. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.
@@ -187,7 +188,7 @@
 
 ---@class LycheeFacade
 ---@field API_VERSION 2
----@field API_REVISION 5
+---@field API_REVISION 6
 ---@field Supports fun(self:LycheeFacade,apiVersion:integer,minRevision?:integer):boolean
 ---@field IsReady fun(self:LycheeFacade):boolean
 ---@field RegisterReady fun(self:LycheeFacade,callback:fun(info:{apiVersion:integer,apiRevision:integer})):LycheeReadySubscription?,LycheeError?

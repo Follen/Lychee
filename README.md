@@ -26,7 +26,7 @@ Lychee 是 World of Warcraft 游戏内的通用搜索工具。Provider 提供可
 
 Alt+Space 仅在没有已有 Lychee 绑定且该组合键未被占用时自动设置。空输入显示最近使用，右键打开动作菜单；Enter 执行普通动作，技能施放需要真实鼠标点击。战斗中不能呼出搜索。
 
-0.2.0 使用 Provider API 2 / revision 5，兼容 revision 1/2/3/4。支持全局搜索、仅前缀搜索和关键词触发，并保留旧独立查询声明；点击功能来源进入二级管理页，可调整模式、前缀和触发词。队伍钥匙默认由 key／钥匙／分数精确触发。本次 revision 更新不改变 SavedVariables schema；从 schema 1 升级仍沿用原有整份 `LycheeDB` 重置规则。未声明客户端范围的旧 Provider 仅在正式服启用。第三方集成须使用 `RegisterProvider`。
+0.2.0 使用 Provider API 2 / revision 6，兼容 revision 1/2/3/4/5。普通搜索与两类快捷入口可独立组合，并保留旧模式及独立查询声明；点击功能来源进入二级管理页，可开关普通搜索、配置直接打开列表与来源内搜索的入口。队伍钥匙默认由 key／钥匙／分数精确触发。本次 revision 更新不改变 SavedVariables schema；从 schema 1 升级仍沿用原有整份 `LycheeDB` 重置规则。未声明客户端范围的旧 Provider 仅在正式服启用。第三方集成须使用 `RegisterProvider`。
 
 ## 开发文档
 

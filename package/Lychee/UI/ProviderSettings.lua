@@ -64,126 +64,112 @@ function P:Create(parent,controller,onBack)
         view.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
     end)
     view.toggle:SetScript("OnMouseDown",function() view.toggle.press=view.generation end)
-    label(L["搜索方式"],8,-56)
-    view.choices={}
-    for index,choice in ipairs({{"default","跟随默认","使用此功能推荐的搜索方式"},{"global","全局搜索","直接输入关键词，也可使用前缀"},{"prefix","仅前缀搜索","输入前缀后才搜索此功能"},{"keyword","关键词触发","完整输入触发词，直接显示此功能内容"}}) do
-        local mode,title=choice[1],choice[2]
-        local b=button(L[title],0,-80-(index-1)*44,width,function()
-            view:CaptureInput();view.mode=mode;view:PaintChoice();view:UpdateDirty()
-        end,nil,40)
-        b.label:ClearAllPoints();b.label:SetPoint("TOPLEFT",b.frame,"TOPLEFT",16,-3);b.label:SetSize(width-32,18);b.label:SetJustifyH("LEFT")
-        b.detail=b.frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");UI.Theme:SetFont(b.detail,"meta");UI.Theme:SetTextColor(b.detail,"textMuted")
-        b.detail:SetPoint("TOPLEFT",b.frame,"TOPLEFT",16,-22);b.detail:SetSize(width-32,14);b.detail:SetJustifyH("LEFT");b.detail:SetText(L[choice[3]])
-        b.mark=b.frame:CreateTexture(nil,"ARTWORK");b.mark:SetSize(metrics.selectionWidth,metrics.selectionHeight)
-        b.mark:SetPoint("LEFT",b.frame,"LEFT",0,0);UI.Theme:SetColorTexture(b.mark,"accent");b.mark:Hide()
-        local setState=b.SetState
-        function b:SetState(state)
-            local changed=setState(self,state)
-            if self.enabled~=false and view.mode==mode then UI.Theme:SetTextColor(self.label,"text") end
-            return changed
-        end
-        view.choices[mode]=b
+    view.globalLabel=label(L["参与普通搜索"],8,-56,width-70)
+    view.globalHint=label(L["按内容名称搜索时显示此来源"],8,-78,width-70,"meta")
+    view.globalToggle=UI.Components:CreateToggle(frame);view.globalToggle:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-62)
+    view.globalToggle:SetScript("OnMouseDown",function() view.globalToggle.press=view.generation end)
+    view.globalToggle:SetScript("OnClick",function()
+        local pressed=view.globalToggle.press;view.globalToggle.press=nil
+        if not current() or view.entry.definition.searchable==false or pressed~=nil and pressed~=view.generation then return end
+        view.global=not view.global;view.globalToggle:SetChecked(view.global);view:UpdateDirty()
+    end)
+    view.heading=label(L["快捷入口"],8,-112)
+    view.fields={}
+    for _,spec in ipairs({{"keyword","直接打开列表",136},{"prefix","在此来源内搜索",228}}) do
+        local kind,title,y=spec[1],spec[2],spec[3]
+        local field={};view.fields[kind]=field
+        field.label=label(L[title],8,-y,width-16)
+        local input=CreateFrame("EditBox",nil,frame);field.input=input
+        input:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-y-24);input:SetSize(width-16,32)
+        input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text")
+        if input.SetMaxBytes then input:SetMaxBytes(400) end
+        UI.Theme:CreateRoundedSurface(input,"surfaceSelected",4)
+        local line=input:CreateTexture(nil,"ARTWORK");field.line=line
+        line:SetPoint("BOTTOMLEFT",input,"BOTTOMLEFT",4,0);line:SetPoint("BOTTOMRIGHT",input,"BOTTOMRIGHT",-4,0);line:SetHeight(1)
+        UI.Theme:SetColorTexture(line,"borderStrong");line:Hide()
+        input:SetScript("OnEditFocusGained",function() line:Show() end)
+        input:SetScript("OnEditFocusLost",function() line:Hide() end)
+        field.example=label("",8,-y-60,width-16,"meta")
+        input:SetScript("OnTextChanged",function(_,userInput) if userInput then view:UpdateDirty() end;view:UpdateExamples() end)
+        input:SetScript("OnEnterPressed",function() view:Save() end)
+        input:SetScript("OnEscapePressed",function() if current() then input:ClearFocus();back() end end)
     end
-    view.help=label("",8,-84,width-16);view.help:SetHeight(40);view.help:Hide()
-    view.prefixLabel=label(L["搜索前缀"],8,-264)
-    local input=CreateFrame("EditBox",nil,frame);view.input=input
-    input:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-292);input:SetSize(width-16,32)
-    input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text")
-    if input.SetMaxBytes then input:SetMaxBytes(400) end
-    UI.Theme:CreateRoundedSurface(input,"surfaceSelected",4)
-    view.inputLine=input:CreateTexture(nil,"ARTWORK");view.inputLine:SetPoint("BOTTOMLEFT",input,"BOTTOMLEFT",4,0);view.inputLine:SetPoint("BOTTOMRIGHT",input,"BOTTOMRIGHT",-4,0);view.inputLine:SetHeight(1)
-    UI.Theme:SetColorTexture(view.inputLine,"borderStrong");view.inputLine:Hide()
-    input:SetScript("OnEditFocusGained",function() view.inputLine:Show() end)
-    input:SetScript("OnEditFocusLost",function() view.inputLine:Hide() end)
-    view.example=label("",8,-328,width-16,"meta")
-    view.error=label("",8,-352,width-16,"meta");view.error:SetHeight(36);UI.Theme:SetTextColor(view.error,"warning")
-    local function save()
-        if not current() or not view.dirty or view.entry.definition.searchable==false then return end
-        view:CaptureInput()
-        local function custom(kind)
-            local raw=view.draft[kind];local list={}
-            for value in raw:gsub("，",","):gmatch("[^,]+") do list[#list+1]=value end
-            local original=table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition,kind),", ")
-            return raw~=original and list or nil
-        end
-        local mode=view.mode~="default" and view.mode or nil
-        local ok,err=I.Search.ProviderPolicy:Set(view.id,mode,custom("prefix"),custom("keyword"))
-        if not ok then view.technical:Hide();view.error:SetText(L[err]);return end
-        input:ClearFocus();view:Refresh();controller:SetStatusText(L["搜索设置已保存"])
+    view.prefixInput=view.fields.prefix.input;view.keywordInput=view.fields.keyword.input
+    view.help=label(L["独立查询入口，由功能自身决定触发词"],8,-64,width-16);view.help:SetHeight(44);view.help:Hide()
+    view.error=label("",8,-316,width-16,"meta");view.error:SetHeight(36);UI.Theme:SetTextColor(view.error,"warning")
+    view.technical=label("",8,-316,width-16,"meta");view.technical:SetHeight(36)
+    function view:ClearFocus()
+        for _,field in pairs(self.fields) do field.input:ClearFocus();field.line:Hide() end
     end
-    view.save=button(L["保存"],0,0,72,save,outer,30,true)
+    function view:UpdateExamples()
+        for kind,field in pairs(self.fields) do
+            local word=""
+            for value in field.input:GetText():gsub("，",","):gmatch("[^,]+") do
+                value=value:match("^%s*(.-)%s*$")
+                if word=="" then word=value end
+                if L:IsChinese() and value:find("[\128-\255]") then word=value;break end
+            end
+            field.example:SetText(word=="" and L["未设置 · 填写名称，多个名称用逗号分隔"] or L:Format(kind=="keyword" and "输入 %s → 显示此来源列表" or "输入 %s：内容 → 搜索此来源",word))
+        end
+    end
+    function view:UpdateDirty()
+        if not current() then return end
+        self.resetDraft=false
+        self.dirty=self.global~=self.savedGlobal or self.prefixInput:GetText()~=self.savedPrefix or self.keywordInput:GetText()~=self.savedKeyword
+        self.save:SetEnabled(self.dirty and self.entry.definition.searchable~=false)
+        self.error:SetText("");self.technical:Show()
+        controller:SetStatusText(L[self.dirty and "点击保存应用搜索设置" or "搜索设置已保存"])
+    end
+    function view:Save()
+        if not current() or not self.dirty or self.entry.definition.searchable==false then return end
+        local function values(input)
+            local list={}
+            for value in input:GetText():gsub("，",","):gmatch("[^,]+") do
+                if value:find("%S") then list[#list+1]=value end
+            end
+            return list
+        end
+        local ok,err
+        if self.resetDraft then ok,err=I.Search.ProviderPolicy:Set(self.id,nil,nil,nil)
+        else ok,err=I.Search.ProviderPolicy:SetConfiguration(self.id,self.global,values(self.prefixInput),values(self.keywordInput)) end
+        if not ok then self.technical:Hide();self.error:SetText(L[err]);return end
+        self:ClearFocus();self:Refresh();controller:SetStatusText(L["搜索设置已保存"])
+    end
+    view.save=button(L["保存"],0,0,72,function() view:Save() end,outer,30,true)
     view.save.frame:ClearAllPoints();view.save.frame:SetPoint("BOTTOMRIGHT",outer,"BOTTOMRIGHT",-8,6)
     view.cancel=button(L["取消"],0,0,72,back,outer,30,true)
     view.cancel.frame:ClearAllPoints();view.cancel.frame:SetPoint("RIGHT",view.save.frame,"LEFT",-8,0)
     view.reset=button(L["恢复默认"],0,0,120,function()
-        view.mode="default"
-        for _,kind in ipairs({"prefix","keyword"}) do view.draft[kind]=table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition,kind),", ") end
-        view.inputKind=nil
-        view:PaintChoice();view:UpdateDirty()
+        local global,list,words=I.Search.ProviderPolicy:Configuration(view.id,view.entry.definition,true)
+        view.global=global;view.globalToggle:SetChecked(global)
+        view.prefixInput:SetText(table.concat(list,", "));view.keywordInput:SetText(table.concat(words,", "))
+        view:UpdateExamples();view:UpdateDirty()
+        view.resetDraft=true;view.dirty=view.dirty or I.Search.ProviderPolicy:Override(view.id)~=nil;view.save:SetEnabled(view.dirty)
+        if view.dirty then controller:SetStatusText(L["点击保存应用搜索设置"]) end
     end,outer,30,true)
     view.reset.frame:ClearAllPoints();view.reset.frame:SetPoint("BOTTOMLEFT",outer,"BOTTOMLEFT",0,6)
-    view.technical=label("",8,-352,width-16,"meta");view.technical:SetHeight(36)
-    input:SetScript("OnEnterPressed",save)
-    input:SetScript("OnEscapePressed",function() if current() then input:ClearFocus();outer:Hide();onBack() end end)
-    function view:UpdateExample()
-        local prefix=""
-        for value in input:GetText():gsub("，",","):gmatch("[^,]+") do
-            value=value:match("^%s*(.-)%s*$")
-            if prefix=="" then prefix=value end
-            if L:IsChinese() and value:find("[\128-\255]") then prefix=value;break end
-        end
-        local keyword=self.inputKind=="keyword"
-        self.example:SetText(L[keyword and "多个触发词用逗号分隔" or "多个前缀用逗号分隔"]..(prefix~="" and " · "..L:Format(keyword and "直接输入：%s" or "搜索示例：%s：关键词",prefix) or ""))
-    end
-    input:SetScript("OnTextChanged",function(_,userInput)
-        if userInput then view:UpdateDirty() end
-        view:UpdateExample()
-    end)
-    function view:PaintChoice()
-        for mode,control in pairs(self.choices) do control.mark:SetShown(mode==self.mode);UI.Theme:SetTextColor(control.label,mode==self.mode and "text" or "textMuted") end
-        local mode=self.mode=="default" and self.entry.definition.searchMode or self.mode
-        local kind=mode=="keyword" and "keyword" or "prefix"
-        if self.inputKind~=kind then
-            self.inputKind=kind;input:SetText(self.draft[kind]);input:ClearFocus()
-        end
-        self.prefixLabel:SetText(L[kind=="keyword" and "触发词" or "搜索前缀"])
-        self:UpdateExample()
-    end
-    function view:CaptureInput()
-        if self.draft and self.inputKind then self.draft[self.inputKind]=input:GetText() end
-    end
-    function view:UpdateDirty()
-        if not current() then return end
-        self:CaptureInput()
-        self.dirty=self.mode~=self.savedMode or self.draft.prefix~=self.savedPrefix or self.draft.keyword~=self.savedKeyword
-        self.save:SetEnabled(self.dirty and self.entry.definition.searchable~=false)
-        self.error:SetText("");self.technical:Show()
-        self:UpdateExample()
-        controller:SetStatusText(L[self.dirty and "点击保存应用搜索设置" or "搜索设置已保存"])
-    end
     function view:Refresh()
         if not current() then return end
-        local policy=I.Search.ProviderPolicy;local definition=self.entry.definition
+        local definition=self.entry.definition;local independent=definition.searchable==false
         local state=I.Registry.entries[self.id];self.toggle:SetChecked(state.userEnabled,true)
         self.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
-        local row=policy:Override(self.id);local effective,list,words=policy:Effective(self.id,definition)
-        self.mode=row and row.mode or "default"
-        local independent=definition.searchable==false
-        local desiredHeight=independent and 176 or 392
-        if contentHeight~=desiredHeight then contentHeight=desiredHeight;frame:SetHeight(contentHeight);range() end
-        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,independent and -132 or -352)
-        self.help:SetText(L["独立查询入口，由功能自身决定触发词"]);self.help:SetShown(independent)
-        self.choices.default.detail:SetText(L["使用此功能推荐的搜索方式"].." · "..L[definition.searchMode=="keyword" and "关键词触发" or definition.searchMode=="prefix" and "仅前缀搜索" or "全局搜索"])
-        for _,b in pairs(self.choices) do b:SetEnabled(not independent);b.frame:SetShown(not independent) end
+        local global,list,words=I.Search.ProviderPolicy:Configuration(self.id,definition)
+        self.global,self.savedGlobal=global,global
+        self.savedPrefix,self.savedKeyword=table.concat(list,", "),table.concat(words,", ")
+        self.globalToggle:SetChecked(global,true);self.globalToggle:SetShown(not independent)
+        self.globalLabel:SetShown(not independent);self.globalHint:SetShown(not independent);self.heading:SetShown(not independent)
+        self.help:SetShown(independent)
+        for kind,field in pairs(self.fields) do
+            field.label:SetShown(not independent);field.input:SetShown(not independent);field.example:SetShown(not independent)
+            field.input:EnableMouse(not independent);if field.input.EnableKeyboard then field.input:EnableKeyboard(not independent) end
+            field.input:SetText(kind=="prefix" and self.savedPrefix or self.savedKeyword)
+        end
+        self:ClearFocus();self:UpdateExamples();self.resetDraft,self.dirty=false,false
         self.save:SetEnabled(false);self.reset:SetEnabled(not independent)
-        self.prefixLabel:SetShown(not independent);input:SetShown(not independent);self.example:SetShown(not independent)
-        self.draft={prefix=table.concat(list,", "),keyword=table.concat(words or {},", ")};self.inputKind=nil
-        input:ClearFocus();input:EnableMouse(not independent)
-        if input.EnableKeyboard then input:EnableKeyboard(not independent) end
-        if independent then input:SetText("") end
-        self.savedMode,self.savedPrefix,self.savedKeyword,self.dirty=self.mode,self.draft.prefix,self.draft.keyword,false
-        self:UpdateExample()
-        self.error:SetText("");self.technical:Show();self:PaintChoice()
+        local desiredHeight=independent and 160 or 352
+        if contentHeight~=desiredHeight then contentHeight=desiredHeight;frame:SetHeight(contentHeight);range() end
+        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,independent and -120 or -316)
+        self.error:SetText("");self.technical:Show()
         local clients={}
         for _,product in ipairs(definition.scope.products or {definition.scope.product or "retail"}) do clients[#clients+1]=L[CLIENTS[product] or product] end
         self.technical:SetText(L["版本"].." "..tostring(definition.version).."  ·  "..table.concat(clients,", "))
@@ -192,10 +178,10 @@ function P:Create(parent,controller,onBack)
         self.id,self.entry=id,I.Providers.entries[id]
         self.generation=self.generation+1;outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
         self.icon:SetTexture(icon);self.title:SetText(self.entry.definition.title);self.detail:SetText(description or "");self:Refresh()
-        controller:SetStatusText(L["开关即时生效，搜索设置需保存"])
+        controller:SetStatusText(L["来源启停即时生效，其余设置保存后生效"])
     end
     outer:SetScript("OnHide",function()
-        input:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
+        view:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
         view.generation=view.generation+1;view.id,view.entry=nil,nil
     end)
     return view

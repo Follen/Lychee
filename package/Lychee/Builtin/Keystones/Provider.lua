@@ -146,7 +146,8 @@ local function build(self,put,checkpoint)
 end
 M=C:New("builtin.keystones",L["队伍钥匙"],{"GROUP_ROSTER_UPDATE","BAG_UPDATE_DELAYED","CHALLENGE_MODE_MAPS_UPDATE",
     "MYTHIC_PLUS_NEW_WEEKLY_RECORD","INSPECT_READY","SPELLS_CHANGED","CHAT_MSG_ADDON"},build)
-M.searchMode="keyword"
+M.searchGlobal=false
+M.searchPrefixes={}
 M.searchKeywords={"key","钥匙","分数"}
 M.members={}
 function M:onStart()
