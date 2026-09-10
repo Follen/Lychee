@@ -235,7 +235,7 @@ local function createHomeView(parent, controller)
         if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
         Lychee.UI.Theme:SetFont(tile.title, "body")
-        tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -3)
+        tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -5)
         tile.category = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         tile.category:SetPoint("RIGHT", tile, "RIGHT", -12, 0)
         tile.category:SetWidth(90)
@@ -297,7 +297,7 @@ local function createHomeView(parent, controller)
             tile.title:SetJustifyH("CENTER")
             tile.title:SetHeight(28)
             tile.bg:SetSize(32, 2)
-            tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -3)
+            tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -5)
         end
         if tile.title.SetWordWrap then tile.title:SetWordWrap(not recent) end
         if tile.title.SetMaxLines then tile.title:SetMaxLines(recent and 1 or 2) end
