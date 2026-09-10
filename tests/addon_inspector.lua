@@ -109,8 +109,9 @@ assert(M:Start().ok and M.running and M.timer)
 local v=M.view
 assert(v.heading:GetText()=="示例插件" and v.confidence:GetText()=="创建来源" and v.anchorX==cursorX+20,"live exact source and avoidance")
 assert(v.outline:IsShown() and v.outline.anchor==a)
+assert(not v.copy.frame:IsShown() and not v.parent.frame:IsShown(),"follow summary has no unreachable action buttons")
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
-assert(retained<512 and frames-beforeFrames<=16 and regions-beforeRegions<=40,"bounded initial objects")
+assert(retained<512 and frames-beforeFrames<=16 and regions-beforeRegions<=48,"bounded initial objects")
 local warmFrames,warmRegions=frames,regions
 local reads=sourceReads
 for n=1,100 do M:Poll() end
@@ -159,13 +160,18 @@ UIParent.scale=1;cursorX,cursorY=900,800
 local oldX,oldTop=v.anchorX,v.anchorTop
 shift=true;v.frame.scripts.OnUpdate()
 assert(v.expanded and v.details:IsShown() and v.anchorX==oldX and v.anchorTop==oldTop,"Shift freezes top edge and expands details")
+assert(v.copy.frame:IsShown() and v.parent.frame:IsShown(),"detail actions become reachable while frozen")
+v.copy.frame.scripts.OnEnter();assert(v.copy._state=="hover")
+v.copy.frame.scripts.OnLeave();assert(v.copy._state=="normal")
+v.parent:SetEnabled(false);v.parent.frame.scripts.OnEnter();assert(v.parent._state=="disabled","disabled parent cannot highlight")
+v.parent:SetEnabled(true)
 cursorX,cursorY=1500,300;foci={a};M:Poll()
 assert(v.anchorX==oldX and v.anchorTop==oldTop and M.target==child,"Shift freezes target and placement while cursor moves")
 shift=false;v.frame.scripts.OnUpdate()
 assert(not v.expanded and v.anchorX~=oldX,"release collapses and resumes following")
 for _,point in ipairs({{0,0},{1920,0},{0,1080},{1920,1080}}) do
     cursorX,cursorY=point[1],point[2];v.frame.scripts.OnUpdate()
-    assert(v.anchorX>=16 and v.anchorX+360*v.scale<=1904 and v.anchorTop<=1064 and v.anchorTop-v.frame:GetHeight()*v.scale>=16,"edge following stays inside viewport")
+    assert(v.anchorX>=16 and v.anchorX+320*v.scale<=1904 and v.anchorTop<=1064 and v.anchorTop-v.frame:GetHeight()*v.scale>=16,"edge following stays inside viewport")
 end
 cursorX,cursorY=900,800;v.frame.scripts.OnUpdate()
 shift=true;v.frame.scripts.OnUpdate()

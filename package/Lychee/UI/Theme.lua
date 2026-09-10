@@ -183,16 +183,25 @@ end
 -- Seven reusable regions keep the corner radius fixed as the window grows.
 function Theme:CreateRoundedSurface(frame, token, radius)
     radius = radius or 10
+    local surface={regions={}}
+    function surface:SetColor(color)
+        for _,region in ipairs(self.regions) do
+            if region._roundedCorner then Theme:SetVertexColor(region,color)
+            else Theme:SetColorTexture(region,color) end
+        end
+    end
     local middle = frame:CreateTexture(nil, "BACKGROUND")
     middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius, 0)
     middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius, 0)
     self:SetColorTexture(middle, token)
+    surface.regions[#surface.regions+1]=middle
     for _, side in ipairs({ "LEFT", "RIGHT" }) do
         local strip = frame:CreateTexture(nil, "BACKGROUND")
         strip:SetPoint("TOP" .. side, frame, "TOP" .. side, 0, -radius)
         strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, 0, radius)
         strip:SetWidth(radius)
         self:SetColorTexture(strip, token)
+        surface.regions[#surface.regions+1]=strip
     end
     local corners = {
         { "TOPLEFT", 0, 1, 0, 1 }, { "TOPRIGHT", 1, 0, 0, 1 },
@@ -206,7 +215,9 @@ function Theme:CreateRoundedSurface(frame, token, radius)
         texture:SetTexture("Interface\\AddOns\\Lychee\\Media\\rounded-corner.tga")
         if texture.SetTexCoord then texture:SetTexCoord(corner[2], corner[3], corner[4], corner[5]) end
         self:SetVertexColor(texture, token)
+        texture._roundedCorner=true;surface.regions[#surface.regions+1]=texture
     end
+    return surface
 end
 
 Lychee.UI.Theme = Theme

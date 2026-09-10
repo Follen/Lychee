@@ -166,6 +166,11 @@ function Components:CreateButton(parent, options)
     if options.point then frame:SetPoint(options.point, parent, options.relativePoint or options.point, options.x or 0, options.y or 0) end
     local bg = frame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
+    local rounded
+    if options.radius then
+        bg:Hide()
+        rounded=getTheme():CreateRoundedSurface(frame,"transparent",options.radius)
+    end
     local label = frame:CreateFontString(nil, "OVERLAY", options.font or "GameFontNormal")
     label:SetAllPoints()
     if label.SetJustifyH then label:SetJustifyH("CENTER") end
@@ -178,7 +183,9 @@ function Components:CreateButton(parent, options)
         if Lychee.UI.Motion then Lychee.UI.Motion:Alpha(self.label,state=="pressed" and 0.70 or 1,Lychee.UI.Motion.durations.feedback) end
         local token = options.colors and options.colors[state]
         if not token then token = options.colors and options.colors.normal end
-        if token then setColorTexture(self.bg, token) end
+        if token then
+            if rounded then rounded:SetColor(token) else setColorTexture(self.bg, token) end
+        end
         local textToken = options.textColors and options.textColors[state]
         if not textToken then textToken = options.textColors and options.textColors.normal end
         if textToken then setTextColor(self.label, textToken) end
