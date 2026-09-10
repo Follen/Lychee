@@ -133,7 +133,10 @@ local function build(self,put,checkpoint)
         local description=table.concat(lines,"\n")
         local badge=total and (L:Format("分数 %s",colored(string.format("%.0f",total),C_ChallengeMode.GetDungeonScoreRarityColor and C_ChallengeMode.GetDungeonScoreRarityColor(total)))) or L["分数未知"]
         local id="key:"..entry.guid
-        put({id=id,title=title,kind="keystone",kindTitle=badge,subtitle=subtitle,description=description,
+        -- Seasonal runs are tooltip data, not searchable terms for this key.
+        -- Keep the full score fingerprint below so rating changes still publish.
+        put({id=id,title=title,kind="keystone",kindTitle=badge,subtitle=subtitle,
+            description=#maps==0 and L["赛季副本列表尚未获取"] or L["当季副本成绩"],
             icon=dungeonIcon or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\keystone.tga",aliases={"钥匙","key","keys","大秘境","分数"},
             payload={guid=entry.guid,mapID=map,level=level,scoreRows=scoreRows},
             actions=spell and {{id="teleport",title=L["传送"],kind="secure-spell",spellID=spell}} or {}},

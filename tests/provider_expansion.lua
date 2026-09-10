@@ -100,7 +100,7 @@ function IsInRaid() return false end
 local maps,runs={},{}
 for n=1,8 do maps[n]=600+n;runs[n]={challengeModeID=600+n,mapScore=200+n,bestRunLevel=12,finishedSuccess=n~=2} end
 C_MythicPlus={GetOwnedKeystoneChallengeMapID=function() return 601 end,GetOwnedKeystoneLevel=function() return 10 end,RequestMapInfo=function() end}
-C_ChallengeMode={GetMapTable=function() return maps end,GetMapUIInfo=function(id) return "地城"..(id-600),id,1800,134400 end}
+C_ChallengeMode={GetMapTable=function() return maps end,GetMapUIInfo=function(id) return id==602 and "毒牙祭坛" or "地城"..(id-600),id,1800,134400 end}
 C_ChallengeMode.GetDungeonScoreRarityColor=function() return {r=1,g=0.5,b=0} end
 C_ChallengeMode.GetSpecificDungeonScoreRarityColor=function() return {r=0.5,g=0,b=1} end
 C_MythicPlus.GetSeasonBestForMap=function(id) if id==602 then return {level=11},{level=12} end end
@@ -193,17 +193,31 @@ assert(action(I.Builtin.TalentLoadouts,"apply","talent:2").ok and calls.talent==
 talentIDs={1};assert(not action(I.Builtin.TalentLoadouts,"apply","talent:2").ok)
 assert(action(I.Builtin.EquipmentSets,"equip","equipment:2").ok and calls.gear==2)
 local keys=I.Builtin.Keystones
+for _,item in ipairs(query("毒牙")) do
+    assert(item.providerID~="builtin.keystones","unrelated keys must not match a dungeon listed only in seasonal scores")
+end
 local ownItem=find("key","key:Player-1-1")
-assert(ownItem.kindTitle=="分数 |cffff80002500|r" and ownItem.description:find("208.0",1,true))
+assert(ownItem.kindTitle=="分数 |cffff80002500|r" and ownItem.payload.scoreRows[8][3]:find("208.0",1,true))
 assert(ownItem.icon==134400 and ownItem.text:find("|cff4080ff我-甲服|r",1,true))
 assert(#ownItem.payload.scoreRows==8 and ownItem.payload.scoreRows[2][2]=="限时 +11","own timed record must win over overtime level")
 assert(find("key","key:Player-2-2").payload.scoreRows[2][2]=="超时 +12","peer overtime must not appear timed")
 assert(find("key","key:Player-3-3").payload.scoreRows[1][2]=="未获取")
 assert(ownItem.searchRecord.actions[1].spellID==1286801)
+assert(find("地城1","key:Player-1-1"),"actual key dungeon remains searchable")
+assert(find("分数","key:Player-1-1"),"score overview remains searchable")
 event(keys,"CHAT_MSG_ADDON","LibKS","12,601,2700","PARTY","同名")
 assert(not keys.members["同名-乙服"].received,"ambiguous short name rejected")
 event(keys,"CHAT_MSG_ADDON","LibKS","12,601,2700","GUILD","同名-乙服");drain()
 assert(find("key","key:Player-2-2").text:find("+12",1,true))
+stamp=stamp+2
+event(keys,"CHAT_MSG_ADDON","LibKS","13,602,2700","PARTY","同名-乙服");drain()
+local matched=query("毒牙")
+assert(#matched==1 and matched[1].id=="key:Player-2-2","only the actual matching key is returned")
+stamp=stamp+2
+event(keys,"CHAT_MSG_ADDON","LibKS","12,601,2700","PARTY","同名-乙服");drain()
+local keyRevision=keys.handle:GetState().revision
+runs[8].mapScore=209;keys:MarkDirty();drain()
+assert(keys.handle:GetState().revision>keyRevision and find("key","key:Player-1-1").payload.scoreRows[8][3]:find("209.0",1,true),"score-only update still refreshes tooltip")
 local messages=calls.messages;query("key");query("key");assert(calls.messages==messages,"request throttle")
 event(keys,"CHAT_MSG_ADDON","LibKS","20,601,9999","PARTY","外人-乙服")
 assert(not keys.members["外人-乙服"])
