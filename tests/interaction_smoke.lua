@@ -1230,4 +1230,14 @@ do
     controller.ActivateRowAction=original
     print("Bag right-click routing PASS")
 end
+do
+    local controller=LycheeInternal.Host.PaletteController
+    controller:CloseSettings();controller:Show()
+    controller.input:SetText("   ");controller:SetQueryMode("   ")
+    assert(controller.homeView.frame:IsShown() and not controller.list.frame:IsShown(),"whitespace uses recent view")
+    controller:ApplyResults({},controller.generation,controller.session)
+    assert(controller.homeView.frame:IsShown(),"empty reply must not switch whitespace back to search")
+    controller:Hide("whitespace-test")
+    print("Whitespace home view PASS")
+end
 end)()

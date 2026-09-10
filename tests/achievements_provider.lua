@@ -80,6 +80,11 @@ drain();assert(actual and #actual==1 and actual[1].id=="achievement:6000","enabl
 local previousReads=reads
 M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",6000);drain()
 assert(reads==previousReads+1 and #M.ids==6002,"earned achievement refreshes catalogue")
+I.Search.Query:Query("   ",{visible=true})
+assert(not I.Providers:HasPendingQuery(),"whitespace must not query all achievements")
+local categoryResults
+I.Search.Query:Query("成就：",{visible=true},nil,function(items) categoryResults=items end)
+drain();assert(categoryResults and #categoryResults>0,"explicit category remains browsable")
 local result=query("6001")
 query("测试成就6001")
 collectgarbage("collect");collectgarbage("stop")

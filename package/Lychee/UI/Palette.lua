@@ -600,10 +600,10 @@ function Palette:Create()
         self:SetQueryMode(text)
     end)
     self.input:SetSubmitCallback(function()
-        if self.input:GetText() == "" then self.homeView:ActivateSelected() else self:ActivateSelected() end
+        if I.Search.Normalizer:IsBlank(self.input:GetText()) then self.homeView:ActivateSelected() else self:ActivateSelected() end
     end)
     self.input:SetMoveCallback(function(delta)
-        if self.input:GetText() == "" then self.homeView:Move(delta) else self.list:Move(delta) end
+        if I.Search.Normalizer:IsBlank(self.input:GetText()) then self.homeView:Move(delta) else self.list:Move(delta) end
     end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -892,7 +892,7 @@ end
 function Palette:SetQueryMode(text)
     if self.settingsOpen then return false end
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
-    local empty = (text or "") == ""
+    local empty = I.Search.Normalizer:IsBlank(text)
     local nextMode=empty and not self.activeFilter and "home" or "search"
     local changedMode=self._motionMode~=nextMode
     if changedMode and Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
@@ -966,7 +966,7 @@ function Palette:ApplyResults(items, generation, session, offset)
     if self.viewHost and self.viewHost:IsActive() then
         setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
         setShown(self.viewHost.frame, true); self:SetStatus("panel")
-    elseif self.input:GetText() ~= "" or self.activeFilter then
+    elseif not I.Search.Normalizer:IsBlank(self.input:GetText()) or self.activeFilter then
         self:ResizeForMode("search", #items)
         setShown(self.homeView.frame, false); setShown(self.list.frame, #items > 0); setShown(self.emptyState, #items == 0 and not self.searchPending)
         if self.searchPending then self:SetStatusText("搜索中…") else self:SetStatus("search", #items) end
@@ -997,7 +997,7 @@ function Palette:Show()
     self:ResizeForMode("home")
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
-    if self.input:GetText() == "" and not self.activeFilter then self:RefreshHomeSections(true) end
+    if I.Search.Normalizer:IsBlank(self.input:GetText()) and not self.activeFilter then self:RefreshHomeSections(true) end
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
     if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.frame,"enter") end
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space

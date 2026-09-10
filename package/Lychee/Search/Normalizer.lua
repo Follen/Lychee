@@ -5,6 +5,10 @@ I.Search.Normalizer = N
 
 local function lower(value) return string.lower(tostring(value or "")) end
 
+function N:IsBlank(value)
+    return not tostring(value or ""):find("%S")
+end
+
 function N:Normalize(value)
     local raw = lower(value)
     local cacheable = #raw <= self.cacheTextLimit

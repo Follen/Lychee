@@ -127,6 +127,7 @@ print(string.format("UI motion PASS frames=%d groups=%d alpha2000_KiB=%.2f cpu_m
 LycheeInternal={Search={}}
 Lychee.UI.Theme={Metrics={rowHeight=46}}
 Lychee.UI.ResultList={HideTooltip=function() end}
+dofile("package/Lychee/Search/Normalizer.lua")
 dofile("package/Lychee/UI/Palette.lua")
 function methods:RegisterEvent() end
 function methods:UnregisterEvent() end

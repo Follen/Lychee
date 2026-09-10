@@ -261,6 +261,12 @@ function Q:Query(raw, context, externalGeneration, callback)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
     local request=self:_BuildRequest(raw,context,generation)
+    if request.normalized == "" and not request.filter then
+        self.active=false
+        local results={}
+        self:_Commit(generation,results)
+        return generation,results
+    end
     local results = self:_Execute(raw, context, generation, request)
     if I.Providers and raw ~= "" and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
         local base = results
