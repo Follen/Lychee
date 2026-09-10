@@ -16,8 +16,11 @@ local function label(parent, role, color)
     return result
 end
 local function button(parent, title, width, callback)
-    return Lychee.UI.Components:CreateButton(parent, {width=width, height=28, text=title,
-        colors={normal="transparent",hover="surfaceHover"},textColors={normal="textMuted",hover="text"},onClick=callback})
+    local control = Lychee.UI.Components:CreateButton(parent, {width=width, height=28, text=title,
+        colors={normal="transparent",hover="surfaceHover",pressed="surfaceSelected",disabled="transparent"},
+        textColors={normal="textMuted",hover="text",pressed="text",disabled="disabled"},onClick=callback})
+    Lychee.UI.Theme:SetFont(control.label,"body")
+    return control
 end
 local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
     ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6 }
@@ -74,8 +77,8 @@ function Settings:Create(parent, controller)
             if not ok then controller:ReportActionResult(false,err);return end
             controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("更改已保存，固定记录保留")
         end)
-        row.up=button(row,"↑",24,function() self:Move(row.pinIndex,-1) end);row.up.frame:SetPoint("RIGHT",row,"RIGHT",-128,0)
-        row.down=button(row,"↓",24,function() self:Move(row.pinIndex,1) end);row.down.frame:SetPoint("RIGHT",row,"RIGHT",-100,0)
+        row.up=button(row,"上移",40,function() self:Move(row.pinIndex,-1) end);row.up.frame:SetPoint("RIGHT",row,"RIGHT",-132,0)
+        row.down=button(row,"下移",40,function() self:Move(row.pinIndex,1) end);row.down.frame:SetPoint("RIGHT",row,"RIGHT",-88,0)
         row.remove=button(row,"取消固定",76,function()
             if not row.pinIndex then return end
             self.removedIndex=row.pinIndex;self.removed=I.UserPreferences:Remove(row.pinIndex)

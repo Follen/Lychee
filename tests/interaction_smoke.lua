@@ -1108,7 +1108,33 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     assert(controller.settingsOpen and not I.Search.Session.visible and not controller.input.container:IsShown())
     assert(not controller:ApplyResults({a},controller.generation,controller.session), "settings suppresses search results")
     local view=controller.settingsView
-    view:Move(2,-1);assert(prefs:GetPins()[1].entryID=="b")
+    local moveDown=view.rows[1].down
+    moveDown.frame.IsMouseOver=function() return false end
+    moveDown.frame.scripts.OnEnter()
+    moveDown.frame.scripts.OnMouseDown()
+    moveDown.frame.scripts.OnLeave()
+    moveDown.frame.scripts.OnMouseUp()
+    assert(moveDown._state=="normal", "release outside must not leave reorder button highlighted")
+    local moveUp=view.rows[1].up
+    moveUp.frame.scripts.OnEnter()
+    assert(moveUp._state=="disabled", "disabled reorder button must not enter hover state")
+    moveUp.frame.scripts.OnLeave()
+    assert(moveUp._state=="disabled", "disabled reorder button must stay disabled after leave")
+    moveUp.frame.scripts.OnMouseUp()
+    assert(moveUp._state=="disabled", "release must not reactivate disabled reorder button")
+    moveUp.frame.scripts.OnClick()
+    assert(prefs:GetPins()[1].entryID=="a", "disabled click must not reorder pins")
+    local secondUp=view.rows[2].up
+    secondUp.frame.IsMouseOver=function() return true end
+    secondUp.frame.scripts.OnEnter()
+    secondUp.frame.scripts.OnMouseDown()
+    secondUp.frame.scripts.OnMouseUp()
+    secondUp.frame.scripts.OnClick()
+    assert(prefs:GetPins()[1].entryID=="b", "actual reorder click moves the correct pin")
+    assert(secondUp._state=="hover" and view.rows[1].up._state=="disabled", "refresh preserves pointer and boundary states")
+    secondUp.frame.scripts.OnHide()
+    assert(secondUp._state=="normal", "hidden button discards stale hover")
+    secondUp.frame.IsMouseOver=nil
     view.rows[1].remove.frame.scripts.OnClick()
     assert(#prefs:GetPins()==1 and view.undo.frame:IsShown())
     view.undo.frame.scripts.OnClick();assert(prefs:GetPins()[1].entryID=="b" and #prefs:GetPins()==2)

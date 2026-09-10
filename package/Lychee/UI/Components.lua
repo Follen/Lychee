@@ -140,6 +140,7 @@ function Components:CreateButton(parent, options)
     local component = { frame = frame, bg = bg, label = label, _state = nil, _text = nil }
     local function applyState(self, state)
         state = state or "normal"
+        if self.enabled == false then state = "disabled" end
         if self._state == state then return false end
         self._state = state
         local token = options.colors and options.colors[state]
@@ -151,6 +152,11 @@ function Components:CreateButton(parent, options)
         return true
     end
     function component:SetState(state) return applyState(self, state) end
+    function component:RefreshPointerState()
+        local hovered = self._hovered == true
+        if frame.IsMouseOver then hovered = frame:IsMouseOver() end
+        return self:SetState(frame:IsShown() and hovered and "hover" or "normal")
+    end
     function component:SetText(value)
         if self._text == value then return false end
         self._text = value
@@ -158,16 +164,23 @@ function Components:CreateButton(parent, options)
     end
     function component:SetEnabled(enabled)
         enabled = enabled ~= false
-        self.enabled = enabled
-        if enabled and type(frame.Enable) == "function" then frame:Enable()
-        elseif not enabled and type(frame.Disable) == "function" then frame:Disable() end
-        return self:SetState(enabled and "normal" or "disabled")
+        if self.enabled ~= enabled then
+            self.enabled = enabled
+            if enabled and type(frame.Enable) == "function" then frame:Enable()
+            elseif not enabled and type(frame.Disable) == "function" then frame:Disable() end
+        end
+        return self:RefreshPointerState()
     end
-    frame:SetScript("OnEnter", function() component:SetState("hover") end)
-    frame:SetScript("OnLeave", function() component:SetState("normal") end)
+    frame:SetScript("OnEnter", function() component._hovered = true; component:SetState("hover") end)
+    frame:SetScript("OnLeave", function() component._hovered = false; component:SetState("normal") end)
     frame:SetScript("OnMouseDown", function() component:SetState("pressed") end)
-    frame:SetScript("OnMouseUp", function() component:SetState("hover") end)
-    if options.onClick then frame:SetScript("OnClick", options.onClick) end
+    frame:SetScript("OnMouseUp", function() component:RefreshPointerState() end)
+    frame:SetScript("OnHide", function() component._hovered = false; component:SetState("normal") end)
+    if options.onClick then
+        frame:SetScript("OnClick", function(...)
+            if component.enabled ~= false then return options.onClick(...) end
+        end)
+    end
     component:SetText(options.text)
     component:SetState("normal")
     return component

@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "data": {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "IsMouseOver",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "470: \t\t\tName = \"IsMouseOver\",\n471: \t\t\tType = \"Function\",\n472: \t\t\tSecretWhenAnchoringSecret = true,\n473: \t\t\tConstSecretAccessor = true,\n474: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n475: \n476: \t\t\tArguments =\n477: \t\t\t{\n478: \t\t\t\t{ Name = \"offsetTop\", Type = \"uiUnit\", Nilable = false, Default = 0 },\n479: \t\t\t\t{ Name = \"offsetBottom\", Type = \"uiUnit\", Nilable = false, Default = 0 },\n480: \t\t\t\t{ Name = \"offsetLeft\", Type = \"uiUnit\", Nilable = false, Default = 0 },\n481: \t\t\t\t{ Name = \"offsetRight\", Type = \"uiUnit\", Nilable = false, Default = 0 },\n482: \t\t\t},\n483: \n484: \t\t\tReturns =\n485: \t\t\t{\n486: \t\t\t\t{ Name = \"isMouseOver\", Type = \"bool\", Nilable = false },\n487: \t\t\t},\n488: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 470,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+}
