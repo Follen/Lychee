@@ -1,4 +1,29 @@
-# Lychee SDK：Provider API 2.4
+# Lychee SDK：Provider API 2.5
+
+## 关键词触发（revision 5）
+
+当用户完整输入约定词时展示该来源内容，可声明 `searchMode="keyword"` 和 `searchKeywords`，无需自写触发判断：
+
+```lua
+if Lychee and Lychee:Supports(2, 5) then
+    Lychee:RegisterProvider({
+        id="example.quick", apiVersion=2, minApiRevision=5, version="1.0.0",
+        title={key="TITLE"}, scope={products={"retail"}},
+        i18n={enUS={TITLE="Quick tools"},zhCN={TITLE="快捷工具"}},
+        searchMode="keyword", searchKeywords={"quick","快捷"},
+        entries={{id="hello",title="Hello",actions={"open"}}},
+        actions={open={title="Open",run=function() print("Hello") return {ok=true} end}},
+    })
+end
+```
+
+输入 `quick`、` QUICK ` 或 `快捷` 展示此来源的条目；`qui`、`quick extra`、`quick:` 不触发。只忽略英文大小写及首尾空白，不走模糊匹配或标点归一化。触发词是字面字符串，不是 LocaleRef；可以同时声明中英文词。1–8 个唯一词，每词最多48字节，不允许内部空白、冒号、逗号、控制符和富文本标记。
+
+Host 将触发转换为 `raw=""`、`normalized=""`、`tokens={}`、`filter.sourceID="example.quick:records"` 的来源内查询：静态条目直接由索引提供，动态 `query` 只需响应该查询，不要再次判断原触发词。非触发输入不调用关键词来源的 `query`，也不匹配其静态条目和用户别名。结果仍受 Host 的数量限制、排序、生命周期及启停检查约束。显式上下文 `searchFilter.sourceID` 是既有来源浏览入口，仍允许访问；冒号前缀不会绕过 keyword 模式。
+
+触发词在来源间唯一，冲突返回 `INVALID_SCHEMA / searchKeywords.conflict`，不抢占其他来源；同名冒号前缀属于不同命名空间，可共存。禁用来源仍保留名称归属，注销后释放声明归属。用户保存覆盖后按覆盖词占用，原词释放。历史配置发生冲突时同词不路由，避免随机选择来源。
+
+管理页可覆盖模式、前缀及触发词，两种词表分别保存；切换模式不混用词表，恢复默认并保存会清除覆盖。声明优先级为用户覆盖 > Provider 默认 > global。API 2 revision 1–4 兼容，旧 `searchable=false` 的自定义 query 行为不变；它不能同时声明 searchMode/searchPrefixes/searchKeywords。简单触发可迁移到 keyword；复杂独立查询继续使用原协议。队伍钥匙已迁移为 `searchKeywords={"key","钥匙","分数"}`，条目 ID、固定和最近使用引用保持不变。
 
 ## 前缀搜索与用户管理（revision 4）
 
@@ -16,7 +41,7 @@
 
 `false` 排除静态 entries 的标题、描述、关键词、Provider aliases 和用户别名匹配，也排除来源／类别过滤直接列举；不等于禁用。entries 仍按原协议保存、更新、解析和执行，最近使用／固定引用不受影响。`query` 回调仍会收到查询，可自行精确匹配入口词并 `reply(entries)`；不匹配时 `reply({})`。延迟查询与动作权限沿用原契约，不增加专用 Host 特例。
 
-内置队伍钥匙采用此模式，只在规范化后完整等于 `key`、`分数` 或 `钥匙` 时返回队伍。忽略两端空格及英文大小写；副本名、角色名、`keys`、`大秘境`、前缀空查询不会触发。
+内置队伍钥匙已从此独立查询模式迁移到 revision 5 的关键词触发声明；默认触发词仍为 `key`、`分数`、`钥匙`。需要自定义解析逻辑的第三方来源可以继续使用 `searchable=false`。
 
 在完整 Provider 声明中加入以下字段，`currentEntries` 由 Provider 维护：
 

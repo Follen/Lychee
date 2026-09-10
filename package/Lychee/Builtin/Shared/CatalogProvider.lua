@@ -135,7 +135,10 @@ function C:Init()
     end
     local m=self
     self.handle=self.handle or _G.Lychee:RegisterProvider({
-        id=self.id,apiVersion=2,version="1.0.0",title=self.title,minApiRevision=self.searchable~=nil and 3 or 2,searchable=self.searchable,i18n=self.locale.resources,scope=I.Builtin.Support:Scope(self.id),entries={},actions=self.actions,query=self.query,resolve=self.resolve,
+        id=self.id,apiVersion=2,version="1.0.0",title=self.title,
+        minApiRevision=(self.searchMode=="keyword" or self.searchKeywords~=nil) and 5 or (self.searchMode~=nil or self.searchPrefixes~=nil) and 4 or self.searchable~=nil and 3 or 2,
+        searchable=self.searchable,searchMode=self.searchMode,searchPrefixes=self.searchPrefixes,searchKeywords=self.searchKeywords,
+        i18n=self.locale.resources,scope=I.Builtin.Support:Scope(self.id),entries={},actions=self.actions,query=self.query,resolve=self.resolve,
         onEnable=function(handle)
             m.handle, m.active=handle,true
             -- Disabled Host records may remain for history; re-read and replace

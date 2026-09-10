@@ -153,3 +153,49 @@ do
     assert(handle:Unregister());assert(#query("scope:目标")==0)
     print("Prefix policy PASS: global exclusion, routed search, dynamic guard, override, conflict, reset, lifecycle")
 end
+do
+    local policy=I.Search.ProviderPolicy
+    local calls,last=0,nil
+    local function definition(id,words)
+        return {id=id,apiVersion=2,minApiRevision=5,version="1",title="Triggered",scope={products={"retail"}},i18n={enUS={TITLE="Triggered"}},
+            searchMode="keyword",searchKeywords=words,searchPrefixes={(id:gsub("%.",""))},entries={{id="one",title="Hidden dungeon"}},
+            query=function(request,reply) calls=calls+1;last=request;reply({{id="live",title="Live result"}}) end}
+    end
+    assert(Lychee:Supports(2,5))
+    local old=definition("keyword.old",{"show"});old.minApiRevision=4
+    assert(not Lychee:RegisterProvider(old),"keyword declarations require revision 5")
+    local missing=definition("keyword.missing",nil);assert(not Lychee:RegisterProvider(missing))
+    local handle,registrationError=Lychee:RegisterProvider(definition("keyword.test",{"KEYWORD","触发"}))
+    assert(handle,registrationError and tostring(registrationError.code)..":"..tostring(registrationError.field))
+    assert(#query("Hidden dungeon")==0 and calls==0,"keyword provider does no work for ordinary input")
+    assert(#query("keyword extra")==0 and #query("keywor")==0 and #query(" ")==0 and calls==0,"whole query required")
+    assert(#query("keyword:")==0 and #query("keyword!")==0 and #query("keyword。")==0 and calls==0,"punctuation is not discarded for triggers")
+    assert(#query(" KEYWORD ")==2 and last.normalized=="" and last.filter.sourceID=="keyword.test:records","trigger routes empty scoped query")
+    assert(last.filter.excludedSources==nil and last.filter.policyVersion==nil,"internal filters remain private")
+    assert(#query("触发")==2 and #query("keywordtest:Hidden")==0,"colon cannot bypass keyword mode")
+    local bad,err=Lychee:RegisterProvider(definition("keyword.other",{"触发"}))
+    assert(not bad and err.field=="searchKeywords.conflict")
+    local coexist=definition("keyword.prefix",{"different"});coexist.searchMode="prefix";coexist.searchPrefixes={"触发"};coexist.query=nil
+    local other=assert(Lychee:RegisterProvider(coexist))
+    assert(#query("触发:Hidden")==1 and #query("触发")==2,"prefix and trigger namespaces are independent")
+    assert(not policy:Set("keyword.test","keyword",nil,{"different"}),"overrides cannot steal another trigger")
+    assert(other:Unregister())
+    assert(not policy:Set("keyword.test","keyword",nil,{"bad word"}))
+    for _,words in ipairs({{"a","A"},{"x:"},{string.rep("x",49)},{"1","2","3","4","5","6","7","8","9"}}) do
+        assert(not policy:Set("keyword.test","keyword",nil,words),"trigger validation is bounded")
+    end
+    assert(policy:Set("keyword.test","keyword",nil,{"新的"}))
+    assert(#query("触发")==0 and #query("新的")==2,"override replaces declaration trigger")
+    local saved=LycheeDB.palette;LycheeDB={palette=saved};policy.owner=nil
+    assert(#query("新的")==2,"keyword overrides survive reload")
+    assert(handle:SetEnabled(false));assert(#query("新的")==0)
+    assert(handle:SetEnabled(true));assert(#query("新的")==2)
+    assert(handle:Update({upsert={{id="one",title="Changed dungeon"}}}));assert(#query("新的")==2)
+    assert(policy:Set("keyword.test","global",nil,nil));assert(#query("Changed dungeon")>=1)
+    assert(policy:Set("keyword.test","prefix",{"scoped"},nil));assert(#query("scoped:Changed")>=1 and #query("触发")==0)
+    assert(policy:Set("keyword.test",nil,nil,nil));assert(#query("触发")==2 and #query("Changed dungeon")==0)
+    assert(handle:Unregister());assert(#query("触发")==0)
+    LycheeDB={palette={providerSearch={{id="keyword.corrupt",mode="keyword",keywords={"bad:word"}}}}};policy.owner=nil
+    assert(#policy:Data()==0,"raw saved trigger input is revalidated")
+    print("Keyword policy PASS: exact routing, no global work, revision, conflict, override, mode switch, reload, lifecycle")
+end

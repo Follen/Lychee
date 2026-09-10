@@ -1,6 +1,8 @@
 # lychee-sdk
 
-Provider API 2.4 / revision 4 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+Provider API 2.5 / revision 5 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+
+revision 5 新增 `searchMode="keyword", searchKeywords={"quick","快捷"}`。检查 `Supports(2,5)`，声明 `minApiRevision=5`；Host 负责精确触发和来源隔离，query 收到空文本及本来源 sourceID，无需重复判断触发词。用户可在管理页修改触发词或切换模式。触发词和冒号前缀互不混用；保留旧独立查询兼容。完整示例、冲突与生命周期语义见 [SDK 接入](../docs/SDK.md)。
 
 revision 4 新增 `searchMode="global"|"prefix"` 和 `searchPrefixes={"前缀","prefix"}`，支持默认仅前缀搜索及用户管理页覆盖。使用时检查 `Supports(2,4)` 并声明 `minApiRevision=4`；与 `searchable=false` 的独立查询模式互斥。旧回调收到的 request.filter 结构不变，不暴露 Host 内部策略条件。
 

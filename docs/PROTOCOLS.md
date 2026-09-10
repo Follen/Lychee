@@ -1,6 +1,6 @@
 # Provider API 2 协议参考
 
-Host 版本：API_VERSION=2，API_REVISION=4。SDK helper 和 LuaLS 类型均使用本协议。兼容 API 2 revision 1/2/3；SavedVariables schema 本次不变。
+Host 版本：API_VERSION=2，API_REVISION=5。SDK helper 和 LuaLS 类型均使用本协议。兼容 API 2 revision 1/2/3/4；SavedVariables schema 本次不变。
 
 ## 公共 facade
 
@@ -22,8 +22,9 @@ Host 版本：API_VERSION=2，API_REVISION=4。SDK helper 和 LuaLS 类型均使
 | title | 必填非空 string、带非空 default 的本地化映射，或已注册 i18n 中的 `{key="NAME"}`。 |
 | entries | 可选 Entry[]，最多 4096 条；entries 与 query 至少声明一个，空目录有效。 |
 | searchable | revision 3 可选 boolean，默认 true；使用时 minApiRevision >=3。false 排除静态目录全部文本及用户别名的通用匹配，也不允许通过 source/category filter 直接列举；query、Update、Resolve、动作、固定与最近使用不受影响。注册后不可通过 Update 修改。 |
-| searchMode | revision 4 可选 `global`／`prefix`，默认 global，用户可覆盖。prefix 仅在明确指定本来源的范围内搜索静态条目或调用动态 query；不能与 searchable=false 同时声明。 |
+| searchMode | revision 4 可选 `global`／`prefix`；revision 5 增加 `keyword`。默认 global，用户可覆盖。prefix 要求来源范围；keyword 将精确触发词映射到空文本来源查询。非触发全局搜索排除该来源静态、别名及 query。不能与 searchable=false 同时声明。 |
 | searchPrefixes | revision 4 可选 string[]；prefix 模式必填，1–8 个唯一前缀，每个最多48字节。忽略大小写及两端空格，禁止内部空格、冒号、逗号、控制符和富文本标记。与现有前缀冲突返回 INVALID_SCHEMA / searchPrefixes.conflict。 |
+| searchKeywords | revision 5 可选 string[]；keyword 模式必填，1–8 个唯一字面触发词，每个最多48字节。英文大小写不敏感、裁去首尾空白；保留标点差异，禁止内部空白、冒号、逗号、控制符和富文本标记。不是 LocaleRef，可同时声明中英文词。冲突返回 INVALID_SCHEMA / searchKeywords.conflict。前缀和触发词分开占用与保存。 |
 | query | 可选 function(request, reply, context)，返回 nil 或 cancel(reason)。 |
 | resolve | 可选 function(entryID, context)，同步返回当前 Entry 或 nil。 |
 | actions | 可选 map<actionID, {title:string|LocaleRef, run:function(entry,context):ActionResult}>。 |

@@ -110,7 +110,7 @@ C_SpellBook={IsSpellKnown=function(id) return id==1286801 end}
 C_ChatInfo={RegisterAddonMessagePrefix=function() return 0 end,SendAddonMessage=function(prefix,msg,channel)
     calls.messages=(calls.messages or 0)+1;assert(prefix=="LibKS" and channel=="PARTY");return 0 end}
 for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
-    "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
+    "Search/ProviderPolicy.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "Core/ResultActionExecutor.lua","Builtin/Shared/CatalogProvider.lua","Builtin/Bags/Provider.lua","Builtin/TalentLoadouts/Provider.lua","Builtin/EquipmentSets/Provider.lua",
     "Builtin/BlizzardSettings/Provider.lua","Builtin/Keystones/Provider.lua","Builtin/Init.lua"}) do dofile("package/Lychee/"..file) end
@@ -233,7 +233,8 @@ event(b,"GET_ITEM_INFO_RECEIVED",99999);assert(#timers==0,"unrelated item event"
 event(b,"BAG_UPDATE_DELAYED");drain();assert(b.handle:GetState().revision==rev,"no-change must not publish")
 combat=true;event(b,"PLAYER_REGEN_DISABLED");assert(not b.timer and not b.job)
 combat=false;event(b,"PLAYER_REGEN_ENABLED");drain()
-local source=I.Search.Query:_BuildRequest("未知:物品",{},1);assert(source.raw=="未知:物品" and not source.filter)
+local source=I.Search.Query:_BuildRequest("未知:物品",{},1)
+assert(source.raw=="未知:物品" and not source.filter.sourceID and source.filter.excludedSources["builtin.keystones:records"],"unknown prefix retains global policy")
 -- Independent reference: prefix isolation equals a direct scan of this fixture.
 local fixture=assert(Lychee:RegisterProvider({id="builtin.player-spells",title="技能",version="1",apiVersion=2,
     entries={{id="frost",title="冰霜箭"},{id="fire",title="火焰箭"}}}))

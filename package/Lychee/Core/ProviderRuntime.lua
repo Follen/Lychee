@@ -165,7 +165,7 @@ function P:Register(definition)
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
     ok, err = keys(definition, { id=true, apiVersion=true, minApiRevision=true, version=true, title=true,
-        entries=true, query=true, resolve=true, searchable=true, searchMode=true, searchPrefixes=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
+        entries=true, query=true, resolve=true, searchable=true, searchMode=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
     if not _G.Lychee:Supports(definition.apiVersion, definition.minApiRevision) then return failure("UNSUPPORTED_API", "apiVersion") end

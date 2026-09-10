@@ -1412,6 +1412,13 @@ do
     assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="prefix","reset is a draft until saved")
     page.save.frame.scripts.OnClick()
     assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="global")
+    page.choices.keyword.frame.scripts.OnClick();page.input:SetText("展示");page.input.scripts.OnTextChanged(page.input,true)
+    page.choices.prefix.frame.scripts.OnClick();page.input:SetText("范围");page.input.scripts.OnTextChanged(page.input,true)
+    page.choices.keyword.frame.scripts.OnClick();assert(page.input:GetText()=="展示","mode changes preserve separate trigger draft")
+    page.save.frame.scripts.OnClick()
+    assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="keyword")
+    local _,triggered=LycheeInternal.Search.Query:Query("展示",{visible=true});assert(#triggered==1)
+    page.reset.frame.scripts.OnClick();page.save.frame.scripts.OnClick()
     local before=createdFrames
     for index=1,20 do view:OpenProvider("manage.ui",134400) end
     assert(before==createdFrames,"provider detail uses a fixed pool")

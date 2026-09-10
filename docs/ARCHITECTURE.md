@@ -1,6 +1,6 @@
 # Lychee 通用搜索框架
 
-当前契约：Provider API 2.4 / revision 4。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
+当前契约：Provider API 2.5 / revision 5。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
 
 Provider 可声明 `searchable=false` 保留目录与引用能力，同时退出通用搜索索引；独立 query 控制触发范围。该策略由 Host 通用协议处理，查询引擎不判断具体 Provider ID。省略声明保持旧行为。
 
@@ -73,7 +73,9 @@ ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state
 
 ## 内置 Provider
 
-`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 为 2 / revision 4。
+`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 为 2 / revision 5。
+
+关键词触发归 ProviderPolicy 所有：注册／保存时验证词表，失效后构建有限路由快照；精确命中转为空文本来源查询，复用既有索引和动态查询入口。Index 继续只认识 sourceID/excludedSources 通用条件，不识别模式或 Provider ID。触发词用大小写／首尾空白规范化，与通用模糊搜索的标点处理分离。队伍钥匙使用同一声明，删除独立触发判断和重复查询目录，查询回调仅限频请求刷新。
 
 - `Crests.lua`：一个可搜索条目和一个托管视图；五档当前迷雾纹章首次打开时创建固定行，之后复用。只在显示时注册 `CURRENCY_DISPLAY_UPDATE`，带货币 ID 的事件仅刷新对应行；关闭、禁用、注销均停止事件，读取失败显示“—”并允许重试。
 - `GameMenus.lua`：34 条静态菜单记录，每条引用固定开窗函数和本地透明 TGA 图标；支持分页的界面传明确页签，切换式入口先检查已打开状态。冒险指南的六个入口从实际页签控件读取 ID，复用原生 OnClick 路径同步显示与游戏保存的页签；隐藏、禁用或受限页签返回失败。

@@ -363,8 +363,9 @@ function Settings:Create(parent, controller)
             if self.tab=="providers" then
                 local state=record.state
                 if I.Search and I.Search.ProviderPolicy then
-                    local mode,prefixes=I.Search.ProviderPolicy:Effective(record.id,record.provider.definition)
+                    local mode,prefixes,keywords=I.Search.ProviderPolicy:Effective(record.id,record.provider.definition)
                     text(row.detail,(record.provider.definition.searchable==false and L["独立查询入口"]
+                        or mode=="keyword" and L["关键词触发"].." · "..table.concat(keywords," / ")
                         or mode=="prefix" and L["仅前缀搜索"].." · "..(prefixes[1] or "").."："
                         or providerDescriptions[record.id] or L["全局搜索"]))
                 else text(row.detail,providerDescriptions[record.id] or L["内置功能"]) end

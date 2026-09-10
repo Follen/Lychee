@@ -10,7 +10,7 @@ function P:Create(parent,controller,onBack)
     outer:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",-metrics.listInset,2);outer:Hide()
     local scroll=CreateFrame("ScrollFrame",nil,outer)
     scroll:SetPoint("TOPLEFT",outer,"TOPLEFT",0,-32);scroll:SetPoint("BOTTOMRIGHT",outer,"BOTTOMRIGHT",0,48)
-    local contentHeight=348
+    local contentHeight=392
     local frame=CreateFrame("Frame",nil,scroll);frame:SetSize(width,contentHeight);scroll:SetScrollChild(frame)
     local bar
     bar=UI.Components:CreateScrollbar(scroll,function(value) bar.value=value;scroll:SetVerticalScroll(value) end)
@@ -66,10 +66,10 @@ function P:Create(parent,controller,onBack)
     view.toggle:SetScript("OnMouseDown",function() view.toggle.press=view.generation end)
     label(L["搜索方式"],8,-56)
     view.choices={}
-    for index,choice in ipairs({{"default","跟随默认","使用此功能推荐的搜索方式"},{"global","全局搜索","直接输入关键词，也可使用前缀"},{"prefix","仅前缀搜索","输入前缀后才搜索此功能"}}) do
+    for index,choice in ipairs({{"default","跟随默认","使用此功能推荐的搜索方式"},{"global","全局搜索","直接输入关键词，也可使用前缀"},{"prefix","仅前缀搜索","输入前缀后才搜索此功能"},{"keyword","关键词触发","完整输入触发词，直接显示此功能内容"}}) do
         local mode,title=choice[1],choice[2]
         local b=button(L[title],0,-80-(index-1)*44,width,function()
-            view.mode=mode;view:PaintChoice();view:UpdateDirty()
+            view:CaptureInput();view.mode=mode;view:PaintChoice();view:UpdateDirty()
         end,nil,40)
         b.label:ClearAllPoints();b.label:SetPoint("TOPLEFT",b.frame,"TOPLEFT",16,-3);b.label:SetSize(width-32,18);b.label:SetJustifyH("LEFT")
         b.detail=b.frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");UI.Theme:SetFont(b.detail,"meta");UI.Theme:SetTextColor(b.detail,"textMuted")
@@ -85,9 +85,9 @@ function P:Create(parent,controller,onBack)
         view.choices[mode]=b
     end
     view.help=label("",8,-84,width-16);view.help:SetHeight(40);view.help:Hide()
-    view.prefixLabel=label(L["搜索前缀"],8,-220)
+    view.prefixLabel=label(L["搜索前缀"],8,-264)
     local input=CreateFrame("EditBox",nil,frame);view.input=input
-    input:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-248);input:SetSize(width-16,32)
+    input:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-292);input:SetSize(width-16,32)
     input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text")
     if input.SetMaxBytes then input:SetMaxBytes(400) end
     UI.Theme:CreateRoundedSurface(input,"surfaceSelected",4)
@@ -95,16 +95,19 @@ function P:Create(parent,controller,onBack)
     UI.Theme:SetColorTexture(view.inputLine,"borderStrong");view.inputLine:Hide()
     input:SetScript("OnEditFocusGained",function() view.inputLine:Show() end)
     input:SetScript("OnEditFocusLost",function() view.inputLine:Hide() end)
-    view.example=label("",8,-284,width-16,"meta")
-    view.error=label("",8,-308,width-16,"meta");view.error:SetHeight(36);UI.Theme:SetTextColor(view.error,"warning")
+    view.example=label("",8,-328,width-16,"meta")
+    view.error=label("",8,-352,width-16,"meta");view.error:SetHeight(36);UI.Theme:SetTextColor(view.error,"warning")
     local function save()
         if not current() or not view.dirty or view.entry.definition.searchable==false then return end
-        local raw=input:GetText();local list={}
-        for value in raw:gsub("，",","):gmatch("[^,]+") do list[#list+1]=value end
+        view:CaptureInput()
+        local function custom(kind)
+            local raw=view.draft[kind];local list={}
+            for value in raw:gsub("，",","):gmatch("[^,]+") do list[#list+1]=value end
+            local original=table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition,kind),", ")
+            return raw~=original and list or nil
+        end
         local mode=view.mode~="default" and view.mode or nil
-        local original=table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition),", ")
-        local custom=raw~=original and list or nil
-        local ok,err=I.Search.ProviderPolicy:Set(view.id,mode,custom)
+        local ok,err=I.Search.ProviderPolicy:Set(view.id,mode,custom("prefix"),custom("keyword"))
         if not ok then view.technical:Hide();view.error:SetText(L[err]);return end
         input:ClearFocus();view:Refresh();controller:SetStatusText(L["搜索设置已保存"])
     end
@@ -115,11 +118,12 @@ function P:Create(parent,controller,onBack)
     view.cancel.frame:ClearAllPoints();view.cancel.frame:SetPoint("RIGHT",view.save.frame,"LEFT",-8,0)
     view.reset=button(L["恢复默认"],0,0,120,function()
         view.mode="default"
-        input:SetText(table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition),", "))
+        for _,kind in ipairs({"prefix","keyword"}) do view.draft[kind]=table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition,kind),", ") end
+        view.inputKind=nil
         view:PaintChoice();view:UpdateDirty()
     end,outer,30)
     view.reset.frame:ClearAllPoints();view.reset.frame:SetPoint("BOTTOMLEFT",outer,"BOTTOMLEFT",0,6)
-    view.technical=label("",8,-308,width-16,"meta");view.technical:SetHeight(36)
+    view.technical=label("",8,-352,width-16,"meta");view.technical:SetHeight(36)
     input:SetScript("OnEnterPressed",save)
     input:SetScript("OnEscapePressed",function() if current() then input:ClearFocus();outer:Hide();onBack() end end)
     function view:UpdateExample()
@@ -129,7 +133,8 @@ function P:Create(parent,controller,onBack)
             if prefix=="" then prefix=value end
             if L:IsChinese() and value:find("[\128-\255]") then prefix=value;break end
         end
-        self.example:SetText(L["多个前缀用逗号分隔"]..(prefix~="" and " · "..L:Format("搜索示例：%s：关键词",prefix) or ""))
+        local keyword=self.inputKind=="keyword"
+        self.example:SetText(L[keyword and "多个触发词用逗号分隔" or "多个前缀用逗号分隔"]..(prefix~="" and " · "..L:Format(keyword and "直接输入：%s" or "搜索示例：%s：关键词",prefix) or ""))
     end
     input:SetScript("OnTextChanged",function(_,userInput)
         if userInput then view:UpdateDirty() end
@@ -137,10 +142,21 @@ function P:Create(parent,controller,onBack)
     end)
     function view:PaintChoice()
         for mode,control in pairs(self.choices) do control.mark:SetShown(mode==self.mode);UI.Theme:SetTextColor(control.label,mode==self.mode and "text" or "textMuted") end
+        local mode=self.mode=="default" and self.entry.definition.searchMode or self.mode
+        local kind=mode=="keyword" and "keyword" or "prefix"
+        if self.inputKind~=kind then
+            self.inputKind=kind;input:SetText(self.draft[kind]);input:ClearFocus()
+        end
+        self.prefixLabel:SetText(L[kind=="keyword" and "触发词" or "搜索前缀"])
+        self:UpdateExample()
+    end
+    function view:CaptureInput()
+        if self.draft and self.inputKind then self.draft[self.inputKind]=input:GetText() end
     end
     function view:UpdateDirty()
         if not current() then return end
-        self.dirty=self.mode~=self.savedMode or input:GetText()~=self.savedText
+        self:CaptureInput()
+        self.dirty=self.mode~=self.savedMode or self.draft.prefix~=self.savedPrefix or self.draft.keyword~=self.savedKeyword
         self.save:SetEnabled(self.dirty and self.entry.definition.searchable~=false)
         self.error:SetText("");self.technical:Show()
         self:UpdateExample()
@@ -151,21 +167,22 @@ function P:Create(parent,controller,onBack)
         local policy=I.Search.ProviderPolicy;local definition=self.entry.definition
         local state=I.Registry.entries[self.id];self.toggle:SetChecked(state.userEnabled,true)
         self.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
-        local row=policy:Override(self.id);local effective,list=policy:Effective(self.id,definition)
+        local row=policy:Override(self.id);local effective,list,words=policy:Effective(self.id,definition)
         self.mode=row and row.mode or "default"
         local independent=definition.searchable==false
-        local desiredHeight=independent and 176 or 348
+        local desiredHeight=independent and 176 or 392
         if contentHeight~=desiredHeight then contentHeight=desiredHeight;frame:SetHeight(contentHeight);range() end
-        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,independent and -132 or -308)
+        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,independent and -132 or -352)
         self.help:SetText(L["独立查询入口，由功能自身决定触发词"]);self.help:SetShown(independent)
-        self.choices.default.detail:SetText(L["使用此功能推荐的搜索方式"].." · "..L[definition.searchMode=="prefix" and "仅前缀搜索" or "全局搜索"])
+        self.choices.default.detail:SetText(L["使用此功能推荐的搜索方式"].." · "..L[definition.searchMode=="keyword" and "关键词触发" or definition.searchMode=="prefix" and "仅前缀搜索" or "全局搜索"])
         for _,b in pairs(self.choices) do b:SetEnabled(not independent);b.frame:SetShown(not independent) end
         self.save:SetEnabled(false);self.reset:SetEnabled(not independent)
         self.prefixLabel:SetShown(not independent);input:SetShown(not independent);self.example:SetShown(not independent)
-        input:SetText(table.concat(list,", "));input:ClearFocus();input:EnableMouse(not independent)
+        self.draft={prefix=table.concat(list,", "),keyword=table.concat(words or {},", ")};self.inputKind=nil
+        input:ClearFocus();input:EnableMouse(not independent)
         if input.EnableKeyboard then input:EnableKeyboard(not independent) end
         if independent then input:SetText("") end
-        self.savedMode,self.savedText,self.dirty=self.mode,input:GetText(),false
+        self.savedMode,self.savedPrefix,self.savedKeyword,self.dirty=self.mode,self.draft.prefix,self.draft.keyword,false
         self:UpdateExample()
         self.error:SetText("");self.technical:Show();self:PaintChoice()
         local clients={}

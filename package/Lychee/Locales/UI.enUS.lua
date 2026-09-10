@@ -132,6 +132,16 @@ L:Add({
 L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary"})
 L:Add({["点击保存应用搜索设置"]="Save to apply search settings"})
 L:Add({
+    ["关键词触发"]="Keyword trigger",
+    ["触发词"]="Trigger words",
+    ["完整输入触发词，直接显示此功能内容"]="Enter an exact trigger to show this provider's content",
+    ["多个触发词用逗号分隔"]="Separate triggers with commas",
+    ["直接输入：%s"]="Type: %s",
+    ["触发词最多8个，每个48字节，不含空格或冒号"]="Use up to 8 triggers, each within 48 bytes, without spaces or colons",
+    ["请先设置触发词"]="Set a trigger word first",
+    ["触发词已被其他功能使用"]="This trigger is used by another provider",
+})
+L:Add({
     ["使用此功能推荐的搜索方式"]="Use this provider's recommended mode",
     ["搜索并施放已学技能"]="Find and cast learned spells",
     ["搜索并召唤坐骑"]="Find and summon mounts",
