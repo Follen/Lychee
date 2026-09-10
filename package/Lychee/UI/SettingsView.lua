@@ -30,6 +30,12 @@ local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["buil
     ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
     ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
 local providerDescriptions = {
+    ["builtin.player-spells"]=L["搜索并施放已学技能"],
+    ["builtin.mounts"]=L["搜索并召唤坐骑"],
+    ["builtin.bosses"]=L["搜索首领并查看指南"],
+    ["builtin.game-menus"]=L["快速打开游戏面板"],
+    ["builtin.crests"]=L["查看当前角色的纹章数量"],
+    ["builtin.great-vault"]=L["查看宏伟宝库进度与奖励"],
     ["builtin.bags"]=L["搜索物品并定位背包"],
     ["builtin.talent-loadouts"]=L["搜索并切换天赋方案"],
     ["builtin.equipment-sets"]=L["搜索并切换装备方案"],
@@ -146,6 +152,15 @@ function Settings:Create(parent, controller)
         row.detail=label(row,"meta","textMuted");row.detail:SetPoint("TOPLEFT",row.name,"BOTTOMLEFT",0,-3);row.detail:SetPoint("RIGHT",row,"RIGHT",-180,0);row.detail:SetHeight(14)
         row.state=label(row,"meta","textMuted");row.state:SetPoint("RIGHT",row,"RIGHT",-54,0);row.state:SetWidth(118);row.state:SetJustifyH("RIGHT")
         row.toggle=Lychee.UI.Components:CreateToggle(row);row.toggle:SetPoint("RIGHT",row,"RIGHT",-metrics.listIconInset,0)
+        row.manage=button(row,L["点击管理"],54,function()
+            if currentClick(row.manage.frame,row) then self:OpenProvider(row.providerID,row._icon) end
+        end)
+        row.manage.frame:SetPoint("RIGHT",row,"RIGHT",-52,0)
+        bindPress(row.manage.frame,row,row.manage)
+        row.hover=row:CreateTexture(nil,"BACKGROUND");row.hover:SetAllPoints(row)
+        Lychee.UI.Theme:SetColorTexture(row.hover,"surfaceHover");row.hover:Hide()
+        row:SetScript("OnEnter",function() if self.tab=="providers" then row.hover:Show() end end)
+        row:SetScript("OnLeave",function() row.hover:Hide() end)
         row.toggle:SetScript("OnClick",function()
             if not currentClick(row.toggle,row) then return end
             if not row.providerID then return end
@@ -165,6 +180,8 @@ function Settings:Create(parent, controller)
         end);row.remove.frame:SetPoint("RIGHT",row,"RIGHT",-8,0)
         bindPress(row.toggle,row)
         bindPress(row,row)
+        local release=row.GetScript and row:GetScript("OnHide")
+        row:SetScript("OnHide",function() row.hover:Hide();if release then release() end end)
         row:SetScript("OnClick",function()
             if self.tab=="providers" and currentClick(row,row) then self:OpenProvider(row.providerID,row._icon) end
         end)
@@ -210,7 +227,8 @@ function Settings:Create(parent, controller)
             self.providerView.frame:Hide()
         end
         if self.aliasView and self.aliasView.frame:IsShown() then return end
-        for id,tab in pairs(self.tabs) do tab:SetSelected(id==self.tab) end
+        for id,tab in pairs(self.tabs) do tab.frame:Show();tab:SetSelected(id==self.tab) end
+        self.underline:Show()
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
         shown(scroll,self.tab~="general")
@@ -326,6 +344,7 @@ function Settings:Create(parent, controller)
             local identity=self.tab=="pins" and record.pin or record.provider
             local rebound=row.providerID~=record.id or row.pinIndex~=record.pinIndex or row._bindingIdentity~=identity
             if rebound then
+                row.hover:Hide();row.manage._hovered=false;row.manage:SetState("normal")
                 row.toggle:FinishMotion()
                 row._bindingGeneration=(row._bindingGeneration or 0)+1
                 row.up._hovered,row.down._hovered,row.remove._hovered=false,false,false
@@ -347,15 +366,19 @@ function Settings:Create(parent, controller)
                     local mode,prefixes=I.Search.ProviderPolicy:Effective(record.id,record.provider.definition)
                     text(row.detail,(record.provider.definition.searchable==false and L["独立查询入口"]
                         or mode=="prefix" and L["仅前缀搜索"].." · "..(prefixes[1] or "").."："
-                        or L["全局搜索"]).."  ·  "..L["点击管理"])
+                        or providerDescriptions[record.id] or L["全局搜索"]))
                 else text(row.detail,providerDescriptions[record.id] or L["内置功能"]) end
-                text(row.state,state.incompatible and L["版本不兼容"] or state.state=="pending" and L["尚未加载"] or state.userEnabled==false and L["已关闭"] or state.ownerEnabled==false and L["扩展自行停用"] or L["已启用"])
+                text(row.state,"")
+                if state.incompatible or state.state=="pending" or state.userEnabled==false or state.ownerEnabled==false then
+                    text(row.detail,state.incompatible and L["版本不兼容"] or state.state=="pending" and L["尚未加载"] or state.userEnabled==false and L["已关闭"] or L["扩展自行停用"])
+                end
                 row.toggle:SetChecked(state.userEnabled,rebound)
             else
                 text(row.detail,record.item and displayTitle(record.item.sourceTitle, "") or L["来源已关闭或条目暂不可用"])
                 text(row.state,"")
                 row.up:SetEnabled(index>1);row.down:SetEnabled(index<#data)
             end
+            shown(row.manage.frame,self.tab=="providers")
             shown(row.toggle,self.tab=="providers");shown(row.up.frame,self.tab=="pins");shown(row.down.frame,self.tab=="pins");shown(row.remove.frame,self.tab=="pins")
             record.item=nil
             shown(row,true)
@@ -381,6 +404,8 @@ function Settings:Create(parent, controller)
         if self.general then self.general:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.providerView:Show(id,icon,providerDescriptions[id])
+        for _,tab in pairs(self.tabs) do tab.frame:Hide() end
+        self.underline:Hide()
         if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.providerView.frame,"page") end
     end
     return view

@@ -131,3 +131,15 @@ L:Add({
 
 L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary"})
 L:Add({["点击保存应用搜索设置"]="Save to apply search settings"})
+L:Add({
+    ["使用此功能推荐的搜索方式"]="Use this provider's recommended mode",
+    ["搜索并施放已学技能"]="Find and cast learned spells",
+    ["搜索并召唤坐骑"]="Find and summon mounts",
+    ["搜索首领并查看指南"]="Find bosses and open their journal",
+    ["快速打开游戏面板"]="Quickly open game panels",
+    ["查看当前角色的纹章数量"]="View this character's crest balances",
+    ["查看宏伟宝库进度与奖励"]="View Great Vault progress and rewards",
+    ["直接输入关键词，也可使用前缀"]="Search by keyword, with or without a prefix",
+    ["输入前缀后才搜索此功能"]="Search this provider only when a prefix is entered",
+    ["开关即时生效，搜索设置需保存"]="Toggles apply immediately. Save search settings to apply.",
+})

@@ -1395,10 +1395,22 @@ do
     if row then row.scripts.OnMouseDown();row.scripts.OnClick() else view:OpenProvider("manage.ui",134400) end
     local page=assert(view.providerView)
     assert(page.entry==LycheeInternal.Providers.entries["manage.ui"])
+    assert(not page.save.enabled and not view.tabs.providers.frame:IsShown(),"detail replaces root tabs; unchanged settings cannot save")
+    page.input:SetText("草稿");page.input.scripts.OnTextChanged(page.input,true)
+    assert(page.save.enabled,"editing prefixes enables save")
+    page.toggle.scripts.OnClick()
+    assert(page.input:GetText()=="草稿" and page.save.enabled,"toggle preserves unsaved search draft")
+    page.toggle.scripts.OnClick()
+    page.cancel.frame.scripts.OnClick()
+    assert(view.tabs.providers.frame:IsShown(),"cancel returns to root navigation")
+    view:OpenProvider("manage.ui",134400)
+    assert(page.input:GetText()~="草稿" and not page.save.enabled,"cancel discards draft")
     page.choices.prefix.frame.scripts.OnClick();page.input:SetText("管理, manage");page.save.frame.scripts.OnClick()
     assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="prefix")
     local _,items=LycheeInternal.Search.Query:Query("管理:目标",{visible=true});assert(#items==1)
     page.reset.frame.scripts.OnClick()
+    assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="prefix","reset is a draft until saved")
+    page.save.frame.scripts.OnClick()
     assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="global")
     local before=createdFrames
     for index=1,20 do view:OpenProvider("manage.ui",134400) end
