@@ -210,15 +210,21 @@ function Settings:Create(parent, controller)
                 icon:SetPoint("LEFT",general,"LEFT",metrics.listIconInset,0);icon:SetTexture(iconRoot.."settings.tga")
                 local title=label(general,"body");title:SetPoint("TOPLEFT",general,"TOPLEFT",metrics.listTitleInset,-7);title:SetText("动态效果")
                 local detail=label(general,"meta","textMuted");detail:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-3);detail:SetText("窗口、页面与控件的过渡动画")
-                self.motion=button(general,"",80,function()
+                local toggle=Lychee.UI.Components:CreateToggle(general)
+                self.motion={frame=toggle,label=label(general,"meta","textMuted")}
+                self.motion.label:SetPoint("RIGHT",toggle,"LEFT",-12,0)
+                toggle:SetScript("OnClick",function()
                     local motion=Lychee.UI.Motion
                     if not motion or not frame:IsShown() or view.tab~="general" or (InCombatLockdown and InCombatLockdown()) then return end
                     motion:SetReduced(not motion:IsReduced())
-                    text(view.motion.label,motion:IsReduced() and "减少" or "标准")
+                    toggle:SetChecked(not motion:IsReduced())
+                    text(view.motion.label,motion:IsReduced() and "关闭" or "开启")
                 end)
                 self.motion.frame:SetPoint("RIGHT",general,"RIGHT",-metrics.listIconInset,0)
             end
-            text(self.motion.label,Lychee.UI.Motion and Lychee.UI.Motion:IsReduced() and "减少" or "标准")
+            local enabled=not (Lychee.UI.Motion and Lychee.UI.Motion:IsReduced())
+            self.motion.frame:SetChecked(enabled,true)
+            text(self.motion.label,enabled and "开启" or "关闭")
             shown(self.general,true)
             return
         end

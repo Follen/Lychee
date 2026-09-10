@@ -1209,6 +1209,8 @@ do
     local before=Lychee.UI.Motion:IsReduced()
     view.motion.frame.scripts.OnClick(view.motion.frame)
     assert(Lychee.UI.Motion:IsReduced()~=before,"general setting saves motion preference")
+    assert(view.motion.frame._enabled==not Lychee.UI.Motion:IsReduced(),"animation switch matches saved preference")
+    assert(view.motion.label:GetText()==(Lychee.UI.Motion:IsReduced() and "关闭" or "开启"))
     view:SetTab("providers")
     assert(not general:IsShown() and view.scrollFrame:IsShown())
     view:SetTab("general")
