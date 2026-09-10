@@ -111,17 +111,16 @@ function P:Create(parent,controller,onBack)
         if not ok then view.technical:Hide();view.error:SetText(L[err]);return end
         input:ClearFocus();view:Refresh();controller:SetStatusText(L["搜索设置已保存"])
     end
-    view.save=button(L["保存"],0,0,80,save,outer,30)
+    view.save=button(L["保存"],0,0,72,save,outer,30,true)
     view.save.frame:ClearAllPoints();view.save.frame:SetPoint("BOTTOMRIGHT",outer,"BOTTOMRIGHT",-8,6)
-    UI.Theme:CreateRoundedSurface(view.save.frame,"surfaceSelected",4)
-    view.cancel=button(L["取消"],0,0,72,back,outer,30)
+    view.cancel=button(L["取消"],0,0,72,back,outer,30,true)
     view.cancel.frame:ClearAllPoints();view.cancel.frame:SetPoint("RIGHT",view.save.frame,"LEFT",-8,0)
     view.reset=button(L["恢复默认"],0,0,120,function()
         view.mode="default"
         for _,kind in ipairs({"prefix","keyword"}) do view.draft[kind]=table.concat(I.Search.ProviderPolicy:Defaults(view.id,view.entry.definition,kind),", ") end
         view.inputKind=nil
         view:PaintChoice();view:UpdateDirty()
-    end,outer,30)
+    end,outer,30,true)
     view.reset.frame:ClearAllPoints();view.reset.frame:SetPoint("BOTTOMLEFT",outer,"BOTTOMLEFT",0,6)
     view.technical=label("",8,-352,width-16,"meta");view.technical:SetHeight(36)
     input:SetScript("OnEnterPressed",save)
