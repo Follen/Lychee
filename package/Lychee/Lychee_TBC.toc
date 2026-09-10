@@ -23,6 +23,7 @@ Builtin/AddonInspector/Locales.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua
+Search/ProviderPolicy.lua
 Search/StaticIndex.lua
 Core/CommandCatalog.lua
 Core/CapabilityBroker.lua
@@ -49,6 +50,7 @@ UI/ResultList.lua
 UI/ViewHost.lua
 Core/ResultActionExecutor.lua
 UI/AliasSettings.lua
+UI/ProviderSettings.lua
 UI/SettingsView.lua
 UI/AddonInspector.lua
 UI/Palette.lua

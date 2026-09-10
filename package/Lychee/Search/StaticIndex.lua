@@ -484,7 +484,7 @@ end
 
 local function filterIdentity(filter)
     if type(filter) ~= "table" then return "" end
-    return tostring(filter.categoryID or "") .. "\0" .. tostring(filter.sourceID or "")
+    return tostring(filter.categoryID or "") .. "\0" .. tostring(filter.sourceID or "") .. "\0" .. tostring(filter.policyVersion or "")
 end
 
 local function filteredSet(self, filter)
@@ -554,6 +554,7 @@ end
 
 local function matchesFilter(entry, filter)
     if type(filter) ~= "table" then return true end
+    if filter.excludedSources and filter.excludedSources[entry.sourceID] then return false end
     if filter.sourceID and entry.sourceID ~= filter.sourceID then return false end
     if filter.categoryID and entry.categoryID ~= filter.categoryID then return false end
     return true

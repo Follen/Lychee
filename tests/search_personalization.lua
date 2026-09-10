@@ -5,7 +5,7 @@ function InCombatLockdown() return false end
 function CreateFrame() return {RegisterEvent=function() end,SetScript=function() end,Hide=function() end,Show=function() end} end
 UIParent={}
 for _,file in ipairs({"Bootstrap.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
-    "Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/StaticIndex.lua",
+    "Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/ProviderPolicy.lua","Search/StaticIndex.lua",
     "Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "Core/UserPreferences.lua","Search/Personalization.lua","UI/Theme.lua","UI/TextHighlight.lua"}) do dofile("package/Lychee/"..file) end
@@ -119,3 +119,37 @@ do
     print("Provider searchable contract PASS: declaration, update, filter, alias, resolve, disable, dynamic")
 end
 print("Search personalization PASS: real query, aliases, filtering, disable/reload, caps, literal highlight")
+do
+    local policy=I.Search.ProviderPolicy
+    local calls=0
+    local function definition(id,list)
+        return {id=id,apiVersion=2,minApiRevision=4,version="1",title="Scoped",
+            scope={products={"retail"}},i18n={enUS={TITLE="Scoped"}},searchMode="prefix",searchPrefixes=list,
+            entries={{id="one",title="限定目标"}},query=function(_,reply) calls=calls+1;reply({}) end}
+    end
+    local handle=assert(Lychee:RegisterProvider(definition("prefix.test",{"限定","scope"})))
+    local legacyCalled,legacyFilter=0,nil
+    local legacy=assert(Lychee:RegisterProvider({id="prefix.legacy",apiVersion=2,version="1",title="Legacy",
+        query=function(request,reply) legacyCalled=legacyCalled+1;legacyFilter=request.filter;reply({}) end}))
+    local before=calls
+    assert(#query("限定目标")==0 and calls==before,"global search excludes static and dynamic provider work")
+    assert(legacyCalled==1 and legacyFilter==nil,"legacy callback retains unfiltered request shape")
+    assert(legacy:Unregister())
+    assert(#query("限定：目标")==1 and #query(" SCOPE :目标")==1)
+    assert(#query("限定：")==1 and #query(" ")==0)
+    local bad,err=Lychee:RegisterProvider(definition("prefix.collision",{"scope"}))
+    assert(not bad and err.field=="searchPrefixes.conflict")
+    assert(not Lychee:RegisterProvider(definition("prefix.invalid",{"bad:prefix"})))
+    assert(policy:Set("prefix.test","global",nil));assert(#query("限定目标")==1)
+    assert(policy:Set("prefix.test","prefix",{"newprefix"}))
+    assert(policy:Effective("prefix.test",{searchable=false})=="global","old override cannot constrain independent query")
+    assert(#query("限定目标")==0 and #query("newprefix:目标")==1 and #query("scope:目标")==0)
+    assert(not policy:Set("prefix.test","prefix",{"key"}))
+    assert(policy:Set("prefix.test",nil,nil));assert(#query("scope:目标")==1)
+    local saved=LycheeDB.palette;LycheeDB={palette=saved};policy.owner=nil
+    assert(#query("scope:目标")==1,"reload normalization retains declaration")
+    assert(handle:SetEnabled(false));assert(#query("scope:目标")==0)
+    assert(handle:SetEnabled(true));assert(#query("scope:目标")==1)
+    assert(handle:Unregister());assert(#query("scope:目标")==0)
+    print("Prefix policy PASS: global exclusion, routed search, dynamic guard, override, conflict, reset, lifecycle")
+end

@@ -1,4 +1,14 @@
-# Lychee SDK：Provider API 2.3
+# Lychee SDK：Provider API 2.4
+
+## 前缀搜索与用户管理（revision 4）
+
+新字段示例：`minApiRevision=4, searchMode="prefix", searchPrefixes={"成就库","myachievements"}`。仍须声明 scope.products 和 i18n；前缀是可同时使用的字面字符串，不是 LocaleRef。注册前检查 `Supports(2,4)`。
+
+省略 searchMode 默认 global。prefix 模式下，全局文本、用户别名和动态 query 均不召回该来源；输入 `成就库：关键词` 或 `myachievements:keyword` 后，Host 统一解析前缀、传入 sourceID 范围，动态回调中的 raw/normalized 是去除前缀后的文字。显式前缀后留空可列举其静态目录；未知前缀保留原搜索含义。原匹配和排序算法不变。
+
+用户点击功能来源进入二级页，可选择跟随默认、全局或仅前缀，并修改前缀。用户覆盖优先于声明，恢复默认会清除覆盖；配置不写回 Provider definition。前缀需唯一，冲突保存失败；内置旧前缀保持兼容，用户指定自定义前缀后替换该来源的旧前缀。SavedVariables 保留最多128个来源覆盖，每来源最多8个48字节前缀。
+
+`searchable=false` 继续表示独立查询，不接受 searchMode/searchPrefixes 或用户搜索方式覆盖；它的动态回调不受前缀模式限制。启用开关仍独立控制来源生命周期，搜索方式不改变动作权限、固定和最近使用规则。
 
 ## 是否参与通用搜索（revision 3）
 

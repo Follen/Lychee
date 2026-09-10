@@ -95,6 +95,15 @@
       ]
     },
     {
+      "path": "Search/ProviderPolicy.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Search/StaticIndex.lua",
       "products": [
         "retail",
@@ -321,6 +330,15 @@
     },
     {
       "path": "UI/AliasSettings.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/ProviderSettings.lua",
       "products": [
         "retail",
         "classic",

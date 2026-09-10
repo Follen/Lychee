@@ -146,7 +146,9 @@
 ---@field id string Globally unique; lower-case ASCII letters/numbers/dots/hyphens.
 ---@field apiVersion 2
 ---@field searchable? boolean Since revision 3. Default true; false excludes static entries and user aliases from general search, including source filters. Dynamic query and stable resolution remain available. Immutable registration option.
----@field minApiRevision? integer Use 3 for searchable, 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
+---@field searchMode? 'global'|'prefix' Since revision 4. Default global; user settings may override. Not allowed with searchable=false.
+---@field searchPrefixes? string[] Since revision 4. 1..8 unique case-insensitive prefixes, <=48 bytes each; no spaces, separators or color markup. Required for searchMode=prefix. Conflicts rejected at registration.
+---@field minApiRevision? integer Use 4 for searchMode/searchPrefixes, 3 for searchable, 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
 ---@field version string Integration version.
 ---@field title string|table<string,string>|LycheeLocaleKey Legacy localized maps require default.
 ---@field i18n? LycheeLocaleResources Required for revision 2. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.

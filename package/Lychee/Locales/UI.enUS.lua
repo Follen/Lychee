@@ -104,3 +104,30 @@ L:Add({
     ["清空记忆"] = "Clear memory",
     ["搜索记忆已清空"] = "Search memory cleared",
 })
+
+L:Add({
+    ["返回功能来源"] = "Back to providers",
+    ["搜索方式"] = "Search mode",
+    ["跟随默认"] = "Default",
+    ["全局搜索"] = "Global search",
+    ["仅前缀搜索"] = "Prefix only",
+    ["搜索前缀"] = "Search prefixes",
+    ["恢复默认"] = "Reset defaults",
+    ["搜索设置已保存"] = "Search settings saved",
+    ["点击管理"] = "Manage",
+    ["独立查询入口"] = "Custom query",
+    ["独立查询入口，由功能自身决定触发词"] = "This provider controls its own query triggers.",
+    ["默认：%s；多个前缀用逗号分隔"] = "Default: %s. Separate prefixes with commas.",
+    ["搜索示例：%s：关键词"] = "Example: %s: keyword",
+    ["多个前缀用逗号分隔"] = "Separate prefixes with commas",
+    ["不可修改独立查询入口"] = "Custom query behavior cannot be overridden",
+    ["搜索方式无效"] = "Invalid search mode",
+    ["前缀最多8个，每个48字节，不含空格或冒号"] = "Use up to 8 prefixes, each within 48 bytes, without spaces or colons",
+    ["请先设置搜索前缀"] = "Set a search prefix first",
+    ["前缀已被其他功能使用"] = "This prefix is used by another provider",
+    ["搜索设置已达上限"] = "Search settings limit reached",
+    ["版本"] = "Version",
+})
+
+L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary"})
+L:Add({["点击保存应用搜索设置"]="Save to apply search settings"})

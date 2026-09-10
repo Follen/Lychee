@@ -124,6 +124,7 @@ function Settings:Create(parent, controller)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
+        if view.providerView then view.providerView.frame:Hide() end
         if view.aliasView then view.aliasView.frame:Hide() end
         view.dragIndex,view.data=nil,nil
         for _,row in ipairs(view.rows) do releaseIdentity(row) end
@@ -163,6 +164,10 @@ function Settings:Create(parent, controller)
             controller:MarkHomeDirty();self:Refresh();controller:SetStatusText(L["已取消固定，可以撤销"])
         end);row.remove.frame:SetPoint("RIGHT",row,"RIGHT",-8,0)
         bindPress(row.toggle,row)
+        bindPress(row,row)
+        row:SetScript("OnClick",function()
+            if self.tab=="providers" and currentClick(row,row) then self:OpenProvider(row.providerID,row._icon) end
+        end)
         bindPress(row.up.frame,row,row.up);bindPress(row.down.frame,row,row.down);bindPress(row.remove.frame,row,row.remove)
         row:RegisterForDrag("LeftButton")
         row:SetScript("OnDragStart",function() if self.tab=="pins" then self.dragIndex=row.pinIndex end end)
@@ -188,6 +193,8 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
+        controller:SetStatusText(L["更改即时生效"])
+        if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
         if Lychee.UI.Motion then
             Lychee.UI.Motion:Cancel(content,true)
@@ -198,6 +205,10 @@ function Settings:Create(parent, controller)
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
+        if self.providerView and self.providerView.frame:IsShown() then
+            if I.Providers.entries[self.providerView.id]==self.providerView.entry then return end
+            self.providerView.frame:Hide()
+        end
         if self.aliasView and self.aliasView.frame:IsShown() then return end
         for id,tab in pairs(self.tabs) do tab:SetSelected(id==self.tab) end
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
@@ -332,7 +343,12 @@ function Settings:Create(parent, controller)
             text(row.name,record.title)
             if self.tab=="providers" then
                 local state=record.state
-                text(row.detail,providerDescriptions[record.id] or (record.builtin and L["内置功能"] or record.id).."  ·  "..tostring(record.version or ""))
+                if I.Search and I.Search.ProviderPolicy then
+                    local mode,prefixes=I.Search.ProviderPolicy:Effective(record.id,record.provider.definition)
+                    text(row.detail,(record.provider.definition.searchable==false and L["独立查询入口"]
+                        or mode=="prefix" and L["仅前缀搜索"].." · "..(prefixes[1] or "").."："
+                        or L["全局搜索"]).."  ·  "..L["点击管理"])
+                else text(row.detail,providerDescriptions[record.id] or L["内置功能"]) end
                 text(row.state,state.incompatible and L["版本不兼容"] or state.state=="pending" and L["尚未加载"] or state.userEnabled==false and L["已关闭"] or state.ownerEnabled==false and L["扩展自行停用"] or L["已启用"])
                 row.toggle:SetChecked(state.userEnabled,rebound)
             else
@@ -357,6 +373,15 @@ function Settings:Create(parent, controller)
         scroll:Hide();self.undo.frame:Hide()
         self.aliasView:Show(ref,title)
         return true
+    end
+    function view:OpenProvider(id,icon)
+        if not frame:IsShown() or InCombatLockdown() or not I.Providers.entries[id] then return end
+        if not self.providerView then self.providerView=Lychee.UI.ProviderSettings:Create(frame,controller,function() view:Refresh();controller:SetStatusText(L["更改即时生效"]) end) end
+        if self.aliasView then self.aliasView.frame:Hide() end
+        if self.general then self.general:Hide() end
+        scroll:Hide();self.undo.frame:Hide()
+        self.providerView:Show(id,icon,providerDescriptions[id])
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.providerView.frame,"page") end
     end
     return view
 end

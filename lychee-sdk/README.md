@@ -1,6 +1,8 @@
 # lychee-sdk
 
-Provider API 2.3 / revision 3 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+Provider API 2.4 / revision 4 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+
+revision 4 新增 `searchMode="global"|"prefix"` 和 `searchPrefixes={"前缀","prefix"}`，支持默认仅前缀搜索及用户管理页覆盖。使用时检查 `Supports(2,4)` 并声明 `minApiRevision=4`；与 `searchable=false` 的独立查询模式互斥。旧回调收到的 request.filter 结构不变，不暴露 Host 内部策略条件。
 
 revision 3 新增可选 `searchable:boolean`，默认 true。`searchable=false` 的 entries 不参与通用搜索和别名召回，但仍支持更新、引用解析、动作及动态 query。使用时声明 `minApiRevision=3` 并检查 `Supports(2,3)`；旧 Provider 继续保持原行为。完整边界见接入教程。
 

@@ -97,11 +97,11 @@ end
 
 local root = "package/Lychee/"
 local files = {
-    "Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
+    "Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua","Search/ProviderPolicy.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Core/UserPreferences.lua","Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua","UI/TextHighlight.lua", "UI/Motion.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua","UI/SettingsView.lua", "UI/Palette.lua",
+    "UI/FocusController.lua", "UI/Theme.lua","UI/TextHighlight.lua", "UI/Motion.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua","UI/ProviderSettings.lua","UI/SettingsView.lua", "UI/Palette.lua",
 }
 for i = 1, #files do
     local before = createdFrames
@@ -1384,5 +1384,36 @@ do
     assert(P:Find({providerID="alias.ui",entryID="one"})==nil,"hidden save ignored")
     controller:Hide("alias-complete");source:Unregister()
     print("Alias UI PASS: menu, editor, search, settings, cancel, stale delete, reuse, hidden save")
+end
+do
+    local controller=LycheeInternal.Host.PaletteController
+    local source=assert(Lychee:RegisterProvider({id="manage.ui",apiVersion=2,version="1",title="管理测试",entries={{id="one",title="管理搜索目标"}}}))
+    controller:Show();controller:OpenSettings("providers")
+    local view=controller.settingsView
+    local row
+    for _,candidate in ipairs(view.rows) do if candidate.providerID=="manage.ui" then row=candidate end end
+    if row then row.scripts.OnMouseDown();row.scripts.OnClick() else view:OpenProvider("manage.ui",134400) end
+    local page=assert(view.providerView)
+    assert(page.entry==LycheeInternal.Providers.entries["manage.ui"])
+    page.choices.prefix.frame.scripts.OnClick();page.input:SetText("管理, manage");page.save.frame.scripts.OnClick()
+    assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="prefix")
+    local _,items=LycheeInternal.Search.Query:Query("管理:目标",{visible=true});assert(#items==1)
+    page.reset.frame.scripts.OnClick()
+    assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="global")
+    local before=createdFrames
+    for index=1,20 do view:OpenProvider("manage.ui",134400) end
+    assert(before==createdFrames,"provider detail uses a fixed pool")
+    page.save.frame.scripts.OnMouseDown();view:OpenProvider("manage.ui",134400)
+    page.choices.prefix.frame.scripts.OnClick();page.input:SetText("过期");page.save.frame.scripts.OnClick()
+    assert(LycheeInternal.Search.ProviderPolicy:Effective("manage.ui",page.entry.definition)=="global","rebound save ignored")
+    source:Unregister();page.save.frame.scripts.OnClick()
+    local independent=assert(Lychee:RegisterProvider({id="manage.independent",apiVersion=2,minApiRevision=3,version="1",title="独立来源",
+        searchable=false,scope={products={"retail"}},i18n={enUS={TITLE="Independent"}},entries={}}))
+    view:OpenProvider("manage.independent",134400)
+    assert(page.choices.prefix.enabled==false and page.save.enabled==false and page.reset.enabled==false,"independent mode cannot be overridden")
+    independent:Unregister()
+    controller:CloseSettings();page.frame.scripts.OnHide();assert(not page.input.focused)
+    controller:Hide("management-done")
+    print("Provider management UI PASS: detail, mode, prefix, reset, stale click, reuse, release")
 end
 end)()

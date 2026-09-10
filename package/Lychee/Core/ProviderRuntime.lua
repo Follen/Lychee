@@ -15,6 +15,19 @@ end
 local function failure(code, field, owner)
     return nil, { code = code, field = field, providerID = owner, retryable = false }
 end
+local function publicQueryRequest(request)
+    local result={}
+    for key,value in pairs(request) do
+        if key=="filter" and type(value)=="table" then
+            local filter={}
+            for field,setting in pairs(value) do
+                if field~="excludedSources" and field~="policyVersion" then filter[field]=copy(setting) end
+            end
+            if next(filter) then result.filter=filter end
+        else result[key]=copy(value) end
+    end
+    return result
+end
 local function report(entry, code, field)
     entry.lastError = { providerID = entry.id, code = code, field = field }
     P.diagnostics[#P.diagnostics + 1] = entry.lastError
@@ -152,10 +165,14 @@ function P:Register(definition)
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
     ok, err = keys(definition, { id=true, apiVersion=true, minApiRevision=true, version=true, title=true,
-        entries=true, query=true, resolve=true, searchable=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
+        entries=true, query=true, resolve=true, searchable=true, searchMode=true, searchPrefixes=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
     if not _G.Lychee:Supports(definition.apiVersion, definition.minApiRevision) then return failure("UNSUPPORTED_API", "apiVersion") end
+    if I.Search.ProviderPolicy then
+        local valid,field=I.Search.ProviderPolicy:ValidateDefinition(definition)
+        if not valid then return failure("INVALID_SCHEMA",field) end
+    end
     if definition.searchable~=nil then
         if type(definition.searchable)~="boolean" then return failure("INVALID_SCHEMA","searchable") end
         if (definition.minApiRevision or 1)<3 then return failure("INVALID_SCHEMA","searchable.minApiRevision") end
@@ -273,6 +290,7 @@ function P:Register(definition)
     internal, err = draft:Commit()
     if not internal then return nil, err end
     self.entries[entry.id] = entry
+    if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
     local source = internal:GetSearchSource("records")
     handle = { id = entry.id }
     function handle:Update(delta)
@@ -357,6 +375,7 @@ function P:Register(definition)
         local removed, removeError = internal:Unregister()
         if removed then
             P.entries[entry.id] = nil
+            if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
             entry.localizer=nil
             entry.records, entry.recordMap, entry.recordOrder, entry.dynamic, entry.resolved = {}, {}, {}, {}, {}
             definition.actions, definition.drags, definition.views, definition.query, definition.resolve = nil, nil, nil, nil, nil
@@ -485,7 +504,8 @@ function P:Search(request, context, onChange)
     end
     local ids = {}
     for id, entry in pairs(self.entries) do
-        if active(entry) and entry.definition.query and (not request.filter or not request.filter.sourceID or request.filter.sourceID == id .. ":records") then ids[#ids + 1] = id end
+        if active(entry) and entry.definition.query and (not request.filter or not request.filter.sourceID or request.filter.sourceID == id .. ":records")
+            and not (request.filter and request.filter.excludedSources and request.filter.excludedSources[id..":records"]) then ids[#ids + 1] = id end
     end
     table.sort(ids)
     for _, id in ipairs(ids) do
@@ -524,7 +544,7 @@ function P:Search(request, context, onChange)
             if not collecting and onChange then onChange(gather()) end
             return true
         end
-        local ok, cancel = pcall(entry.definition.query, copy(request), reply, copy(context or {}))
+        local ok, cancel = pcall(entry.definition.query, publicQueryRequest(request), reply, copy(context or {}))
         if not ok then
             output[id], entry.dynamic = nil, {}
             report(entry, "CALLBACK_ERROR", "query"); finish(job, "error")

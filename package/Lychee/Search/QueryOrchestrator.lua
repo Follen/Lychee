@@ -119,6 +119,9 @@ end
 
 function Q:_BuildRequest(raw, context, generation)
     local text, filter = tostring(raw or ""), context and context.searchFilter
+    if I.Search.ProviderPolicy then
+        text,filter=I.Search.ProviderPolicy:Route(text,filter)
+    else
     -- Fixed aliases select an existing source; ordinary text takes no parser
     -- allocation and unknown prefixes retain their original search meaning.
     local first,last=text:find(":",1,true)
@@ -128,6 +131,7 @@ function Q:_BuildRequest(raw, context, generation)
         local prefix=I.Search.Normalizer:Normalize(text:sub(1,first-1))
         local source=self.categoryPrefixes and self.categoryPrefixes[prefix]
         if source then text=text:sub(last+1); filter={sourceID=source..":records"} end
+    end
     end
     local normalized = I.Search.Normalizer:Normalize(text)
     return { generation = generation, raw = text, normalized = normalized, preferenceKey=I.Search.Normalizer:Normalize(raw),
@@ -167,7 +171,7 @@ end
 
 function Q:_Execute(raw, context, generation, request)
     request = request or self:_BuildRequest(raw, context, generation)
-    local filtered = type(request.filter) == "table"
+    local filtered = type(request.filter) == "table" and (request.filter.sourceID or request.filter.categoryID)
     local catalogBudget = filtered and 0 or math.min(self.catalogLimit, self.limit)
     local ambientBudget = self.limit
     local catalogResults = not filtered and I.Catalog and I.Catalog:Query(request, catalogBudget) or EMPTY
@@ -248,7 +252,7 @@ function Q:Query(raw, context, externalGeneration, callback)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
     local request=self:_BuildRequest(raw,context,generation)
-    if request.normalized == "" and not request.filter then
+    if request.normalized == "" and not (request.filter and (request.filter.sourceID or request.filter.categoryID)) then
         self.active=false
         local results={}
         self:_Commit(generation,results)
