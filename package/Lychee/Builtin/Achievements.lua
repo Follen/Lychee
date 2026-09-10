@@ -19,7 +19,9 @@ local function build(self,_,checkpoint)
     end
     local categories=GetCategoryList()
     for _,category in ipairs(categories) do
-        local total=GetCategoryNumAchievements(category,true) or 0
+        -- Match the category-index domain used by Blizzard's achievement list.
+        -- Superseded stages are added through the series APIs below.
+        local total=GetCategoryNumAchievements(category) or 0
         for index=1,total do
             local id=GetAchievementInfo(category,index)
             if add(id) then
@@ -69,7 +71,7 @@ local function open(entry)
         return true
     end)
 end
-M=I.Builtin.CatalogProvider:New("builtin.achievements","成就",{},build,
+M=I.Builtin.CatalogProvider:New("builtin.achievements","成就",{"ACHIEVEMENT_EARNED"},build,
     {open={title="查看成就",run=open},share={title="贴到聊天框",run=share}})
 M.resolve=function(key)
     local id=type(key)=="string" and tonumber(key:match("^achievement:(%d+)$"))

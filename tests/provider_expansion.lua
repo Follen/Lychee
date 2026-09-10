@@ -184,7 +184,7 @@ debugprofilestop=realProfiler
 assert(action(I.Builtin.BlizzardSettings,"open",find("设置:设置256").id).ok and calls.category==7 and calls.setting=="设置256")
 assert(action(I.Builtin.BlizzardSettings,"cdm","cdm").ok and calls.cdm)
 bags[1],bags[2]=bags[2],bags[1]
-assert(action(I.Builtin.Bags,"locate","item:1").ok and calls.bagSearch=="物品1")
+assert(action(I.Builtin.Bags,"locate","item:1").ok and calls.bagSearch=="")
 bags[2]=nil
 assert(not action(I.Builtin.Bags,"locate","item:1").ok,"stale slot must not act on another item")
 event(I.Builtin.Bags,"BAG_UPDATE_DELAYED");drain()

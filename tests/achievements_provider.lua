@@ -31,11 +31,12 @@ local function drain()
 end
 local reads,complete,shift,linked,opened=0,false,false,nil,nil
 function GetCategoryList() reads=reads+1;return {1} end
-function GetCategoryNumAchievements(_,all) assert(all);return 6000 end
+function GetCategoryNumAchievements(_,all) return all and 6003 or 6000 end
 function GetAchievementInfo(id,index)
+    if index and index>6000 then error("Invalid achievement index") end
     if index then id=index end
     if id<1 or id>6002 then return end
-    return id,"测试成就"..id,10,complete,nil,nil,nil,"成就描述",0,134400
+    return id,id==6000 and "引领潮流：乌拉特点" or "测试成就"..id,10,complete,nil,nil,nil,"成就描述",0,134400
 end
 function GetPreviousAchievement(id) return id==1 and 6001 or nil end
 function GetNextAchievement(id) return id==1 and 6002 or nil end
@@ -58,7 +59,7 @@ local baseFrames,baseTimers=frames,#timers
 collectgarbage("collect");local baseline=collectgarbage("count")
 M:Init();assert(reads==0 and frames==baseFrames and #timers==baseTimers,"disabled means no scans/frames/timers")
 assert(I.Registry:SetUserEnabled(M.id,true));drain()
-assert(#M.ids==6002 and not M.job and not M.timer)
+assert(M.ids and #M.ids==6002 and not M.job and not M.timer,"enabled achievement catalog missing: "..tostring(M.lastError))
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
 assert(retained<4096,"6002 compact records stay below 4 MiB")
 local function query(q)
@@ -66,6 +67,12 @@ local function query(q)
     M.query({normalized=q,limit=50},function(v) result=v end);drain();assert(result)
     return result
 end
+local actual
+I.Search.Query:Query("引领潮流",{visible=true},nil,function(items) actual=items end)
+drain();assert(actual and #actual==1 and actual[1].id=="achievement:6000","enabled achievement missing from real search")
+local previousReads=reads
+M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",6000);drain()
+assert(reads==previousReads+1 and #M.ids==6002,"earned achievement refreshes catalogue")
 local result=query("6001")
 query("测试成就6001")
 collectgarbage("collect");collectgarbage("stop")

@@ -33,7 +33,7 @@ local slot=2
 C_Container={GetContainerNumSlots=function(b) return b==0 and 4 or 0 end,
     GetContainerItemID=function(_,s) return present and s==slot and 123 or 999 end,
     GetContainerItemInfo=function(_,s) return {itemID=s==slot and 123 or 999,itemName="测试物品",stackCount=1} end,
-    SetItemSearch=noop}
+    SetItemSearch=function(text) assert(text=="", "locating must never leave a global name filter") end}
 function OpenAllBags() end
 local bagButton={IsVisible=function() return visible end,GetFrameLevel=function() return 3 end}
 local locatedSlot
@@ -61,6 +61,31 @@ timers[#timers].callback();assert(not glow.shown and not next(glow.events))
 combat=true;assert(not bags.actions.locate.run(entry).ok);combat=false
 visible=false;assert(not bags.actions.locate.run(entry).ok and not glow.shown);visible=true
 present=false;assert(not bags.actions.locate.run(entry).ok);present=true
+-- Adapter fixtures model the versioned source structures, not global frame names.
+local getter=ContainerFrameUtil_GetItemButtonAndContainer
+ContainerFrameUtil_GetItemButtonAndContainer=function() error("custom bags must not select hidden Blizzard buttons") end
+local custom={IsVisible=function() return true end,GetFrameLevel=function() return 3 end,GetID=function() return slot end}
+local count=0
+NDui_Backpack={IsVisible=function() return true end,GetButton=function(_,b,s) assert(b==0 and s==slot);count=count+1;return custom end}
+assert(bags.actions.locate.run(entry).ok and glow.anchor==custom and count==1)
+NDui_Backpack=nil
+local box={GetText=function() return "old search" end,SetText=function(_,text) assert(text=="");count=count+1 end}
+local frame={IsVisible=function() return true end,Bags={[0]={[slot]=custom}},editBox=box}
+ElvUI={{GetModule=function(_,name) assert(name=="Bags");return {BagFrame=frame} end}}
+assert(bags.actions.locate.run(entry).ok and glow.anchor==custom)
+ElvUI=nil
+local scroll
+custom.GetTop=function() return 100 end
+local parent={IsVisible=function() return true end,GetID=function() return 0 end,GetChildren=function() return custom end}
+EUI_Bags={IsVisible=function() return true end,_searchBox=box,
+    SetSelectedView=function(_,view) assert(view==0) end,RefreshInventory=function() count=count+1 end,
+    _scrollChild={GetChildren=function() return parent end},
+    _scrollFrame={GetTop=function() return 500 end,GetVerticalScroll=function() return 0 end,
+        GetVerticalScrollRange=function() return 900 end,SetVerticalScroll=function(_,value) scroll=value end}}
+assert(bags.actions.locate.run(entry).ok and glow.anchor==custom and scroll==392)
+bags:onStop();assert(not glow.shown and not next(glow.events))
+EUI_Bags=nil;ContainerFrameUtil_GetItemButtonAndContainer=getter
+print("Bag adapters PASS Blizzard / ElvUI / NDui / Ellesmere, no persistent name filter")
 timers={};collectgarbage('collect');local memory=collectgarbage('count');collectgarbage('stop')
 local started=os.clock()
 for n=1,100 do assert(bags.actions.locate.run(entry).ok);bags:onStop() end

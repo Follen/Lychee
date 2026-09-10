@@ -70,6 +70,59 @@ local function build(self,put,checkpoint)
     end
     self.pendingItem=nil
 end
+-- Adapter reads only: no persistent hooks, no global item-name filter.
+local function clearSearch(box)
+    if box and box.GetText and box.SetText and box:GetText()~="" then box:SetText("") end
+end
+local function visible(button) return button and button.IsVisible and button:IsVisible() end
+local function euiButton(frame,itemID)
+    local child=frame._scrollChild
+    if not child or not child.GetChildren then return end
+    local parents={child:GetChildren()}
+    local checked=0
+    for index=1,math.min(#parents,2048) do
+        local parent=parents[index]
+        if visible(parent) and parent.GetID and parent.GetChildren then
+            local bag=parent:GetID()
+            if bag and bag>=0 and bag<=bagLast() then
+                local children={parent:GetChildren()}
+                for i=1,math.min(#children,16) do
+                    local button=children[i]
+                    checked=checked+1
+                    if checked>1024 then return end
+                    local slot=button.GetID and button:GetID()
+                    if slot and slot>0 and visible(button) and C_Container.GetContainerItemID(bag,slot)==itemID then
+                        local sf=frame._scrollFrame
+                        if sf and sf.GetTop and button.GetTop and sf:GetTop() and button:GetTop() then
+                            local offset=sf:GetVerticalScroll()+sf:GetTop()-button:GetTop()-8
+                            sf:SetVerticalScroll(math.max(0,math.min(sf:GetVerticalScrollRange(),offset)))
+                        end
+                        return button
+                    end
+                end
+            end
+        end
+    end
+end
+local function findButton(bag,slot,itemID)
+    local eui=_G.EUI_Bags
+    if visible(eui) and eui.SetSelectedView and eui.RefreshInventory then
+        clearSearch(eui._searchBox)
+        eui:SetSelectedView(0)
+        eui:RefreshInventory()
+        return euiButton(eui,itemID)
+    end
+    local elv=_G.ElvUI and _G.ElvUI[1]
+    local bags=elv and elv.GetModule and elv:GetModule("Bags",true)
+    local frame=bags and bags.BagFrame
+    if visible(frame) then
+        clearSearch(frame.editBox)
+        return frame.Bags and frame.Bags[bag] and frame.Bags[bag][slot]
+    end
+    local ndui=_G.NDui_Backpack
+    if visible(ndui) and ndui.GetButton then return ndui:GetButton(bag,slot) end
+    return ContainerFrameUtil_GetItemButtonAndContainer and ContainerFrameUtil_GetItemButtonAndContainer(bag,slot)
+end
 local function locate(entry)
     if InCombatLockdown and InCombatLockdown() then return {ok=false,code="COMBAT_LOCKED"} end
     clearHighlight()
@@ -80,14 +133,14 @@ local function locate(entry)
             scanned=scanned+1
             if scanned>1024 then return {ok=false,code="BAG_SLOT_LIMIT"} end
             if C_Container.GetContainerItemID(bag,slot)==itemID then
-                local info=C_Container.GetContainerItemInfo(bag,slot)
-                local name=info and (info.itemName or (info.hyperlink and info.hyperlink:match("%[(.-)%]")))
-                if not name or not OpenAllBags or not C_Container.SetItemSearch then break end
+                if not OpenAllBags then return {ok=false,code="ACTION_UNAVAILABLE"} end
+                -- Clear the filter left by the previous implementation. Never set
+                -- a new global name filter: third-party search boxes cannot own it.
+                if C_Container.SetItemSearch then C_Container.SetItemSearch("") end
                 OpenAllBags()
-                C_Container.SetItemSearch(name)
-                local button=ContainerFrameUtil_GetItemButtonAndContainer and ContainerFrameUtil_GetItemButtonAndContainer(bag,slot)
+                local button=findButton(bag,slot,itemID)
                 if not button or not button:IsVisible() then
-                    return {ok=false,message="已打开背包搜索；当前背包界面不支持格子高亮"}
+                    return {ok=false,message="已打开背包；目标格位当前不可见，请展开对应分类"}
                 end
                 showHighlight(button)
                 return {ok=true,close=true}

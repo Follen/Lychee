@@ -1,0 +1,190 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "AchievementFrame_GetCategoryNumAchievements_All",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1865: function AchievementFrame_GetCategoryNumAchievements_All (categoryID)\n1866: \tlocal numAchievements, numCompleted, numIncomplete = GetCategoryNumAchievements(categoryID);\n1867: \treturn numAchievements, numCompleted, 0;\n1868: end",
+        "contentHash": "5ecdbb7b082cb8457a4dc286ef5b90b9c6d65a55365c57242f8a1ea10cffb0cc",
+        "line": 1865,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1862: \tobjectivesFrame.mode = ACHIEVEMENTMODE_PROGRESSIVE;\n1863: end\n1864: \n1865: function AchievementFrame_GetCategoryNumAchievements_All (categoryID)\n1866: \tlocal numAchievements, numCompleted, numIncomplete = GetCategoryNumAchievements(categoryID);\n1867: \treturn numAchievements, numCompleted, 0;\n1868: end",
+        "contentHash": "5ecdbb7b082cb8457a4dc286ef5b90b9c6d65a55365c57242f8a1ea10cffb0cc",
+        "line": 1865,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "AchievementFrame_FindDisplayedAchievement",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "3286: function AchievementFrame_FindDisplayedAchievement(baseAchievementID)\n3287: \tlocal id = baseAchievementID;\n3288: \tlocal _, _, _, completed = GetAchievementInfo(id);\n3289: \tif ( not completed and GetPreviousAchievement(id) ) then\n3290: \t\tlocal prevID = GetPreviousAchievement(id);\n3291: \t\t_, _, _, completed = GetAchievementInfo(prevID);\n3292: \t\twhile ( prevID and not completed ) do\n3293: \t\t\tid = prevID;\n3294: \t\t\tprevID = GetPreviousAchievement(id);\n3295: \t\t\tif ( prevID ) then\n3296: \t\t\t\t_, _, _, completed = GetAchievementInfo(prevID);\n3297: \t\t\tend\n3298: \t\tend\n3299: \telseif ( completed ) then\n3300: \t\tlocal nextID;\n3301: \t\tnextID, completed = GetNextAchievement(id);\n3302: \t\tif ( nextID and completed ) then\n3303: \t\t\tlocal newID\n3304: \t\t\twhile ( nextID and completed ) do\n3305: \t\t\t\tnewID, completed = GetNextAchievement(nextID);\n3306: \t\t\t\tif ( completed ) then\n3307: \t\t\t\t\tnextID = newID;\n3308: \t\t\t\tend\n3309: \t\t\tend\n3310: \t\t\tid = nextID;\n3311: \t\tend\n3312: \tend\n3313: \n3314: \treturn id;\n3315: end",
+        "contentHash": "5ecdbb7b082cb8457a4dc286ef5b90b9c6d65a55365c57242f8a1ea10cffb0cc",
+        "line": 3286,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "2670: \n2671: \t-- Figure out if this is part of a progressive achievement; if it is and it's incomplete, make sure the previous level was completed.\n2672: \t-- If not, find the first incomplete achievement in the chain and display that instead.\n2673: \tlocal displayedId = AchievementFrame_FindDisplayedAchievement(id);\n2674: \tlocal category = GetAchievementCategory(displayedId);\n2675: \tAchievementFrame_UpdateAndSelectCategory(category);\n2676: ",
+        "contentHash": "5ecdbb7b082cb8457a4dc286ef5b90b9c6d65a55365c57242f8a1ea10cffb0cc",
+        "line": 2673,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AchievementInfoDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "93: \t\t{\n94: \t\t\tName = \"AchievementEarned\",\n95: \t\t\tType = \"Event\",\n96: \t\t\tLiteralName = \"ACHIEVEMENT_EARNED\",\n97: \t\t\tSynchronousEvent = true,\n98: \t\t\tPayload =\n99: \t\t\t{",
+        "contentHash": "4633463714eb2917b10858c3ccf750dd86459fbdf4b6acb4c96068ba14bf6f60",
+        "line": 96,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "9.1.7",
+    "resolvedCommit": "3860a8d5b7a31d7c9b989a7654bf1554961a678e",
+    "results": [
+      {
+        "kind": "function",
+        "name": "EUI_Bags:SetSelectedView",
+        "path": "EllesmereUIBags/EllesmereUIBags.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "295: function EUI_Bags:SetSelectedView(idx)\n296:     selectedCategoryIndex = idx\n297:     selectedGroupName = nil\n298: end",
+        "contentHash": "c5af47f5bf52b341a5506bd93694228ff0c22e0f3531414b8f8ab41835c43ca6",
+        "line": 295,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "ellesmereui",
+    "product": "main",
+    "requestedRef": "9.1.7",
+    "resolvedCommit": "3860a8d5b7a31d7c9b989a7654bf1554961a678e",
+    "results": [
+      {
+        "kind": "function",
+        "name": "GetOrCreateSlot",
+        "path": "EllesmereUIBags/EllesmereUIBags.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "2596: local function GetOrCreateSlot(idx)\n2597:     if itemSlots[idx] then return itemSlots[idx] end\n2598:     -- NEVER CreateFrame a secure ContainerFrameItemButtonTemplate in combat -- a button\n2599:     -- born in combat is tainted (UseContainerItem() -> ADDON_ACTION_FORBIDDEN in M+/Delves).\n2600:     -- Pre-warmed pool covers normal counts; past it, callers skip the slot until PLAYER_REGEN_ENABLED.\n2601:     if InCombatLockdown() then return nil end\n2602: \n2603:     local slotParent = CreateFrame(\"Frame\", nil, EUI_Bags)\n2604:     slotParent:SetSize(SLOT_SIZE, SLOT_SIZE)\n2605:     local btn = CreateFrame(\"ItemButton\", nil, slotParent, \"ContainerFrameItemButtonTemplate\")\n2606:     btn:SetAllPoints(slotParent)\n2607:     btn:RegisterForClicks(\"LeftButtonUp\", \"RightButtonUp\")\n2608:     btn:RegisterForDrag(\"LeftButton\")\n2609:     btn:HookScript(\"OnDragStart\", function()\n2610:         _itemDragFrame:Show()\n2611:     end)\n2612: \n2613:     -- Right-click deposit routing: with a bank tab selected, queue the transfer instead of\n2614:     -- Blizzard's default first-free-slot routing (queue handles locked items/allocation so rapid\n2615:     -- clicks don't collide). State lives in an EXTERNAL weak table, never on the frame: PreClick custom keys taint the secure chain -> ADDON_ACTION_FORBIDDEN.\n2616:     btn:HookScript(\"PreClick\", function(self, button)\n2617:         if button ~= \"RightButton\" then return end\n2618:         local bank = _G.EUI_BankFrame\n2619:         if not bank or not bank:IsVisible() then return end\n2620:         local targetBag = bank:GetSelectedTabBagID()\n2621:         if not targetBag then return end\n2622:         local srcBag = self:GetParent():GetID()\n2623:         local srcSlot = self:GetID()\n2624:         if not srcBag or not srcSlot or srcSlot == 0 then return end\n2625:         local info = C_Container.GetContainerItemInfo(srcBag, srcSlot)\n2626:         if not info then return end\n2627:         bank:QueueTransfer(srcBag, srcSlot)\n2628:         _bankRouted[self] = true\n2629:     end)\n2630:     btn:HookScript(\"OnClick\", function(self, button)\n2631:         if button == \"RightButton\" and _bankRouted[self] then\n2632:             _bankRouted[self] = nil\n2633:             ClearCursor()\n2634:         end\n2635:     end)\n2636: \n2637:     btn:HookScript(\"OnMouseUp\", function(self, button)\n2638:         if button ~= \"MiddleButton\" then return end\n2639:         local bagID = self:GetParent():GetID()\n2640:         local slotID = self:GetID()\n2641:         if not bagID or not slotID or slotID == 0 then return end\n2642:         local info = C_Container.GetContainerItemInfo(bagID, slotID)\n2643:         if not info or not info.itemID then return end\n2644:         -- If this item has a custom category assignment, middle-click unassigns it\n2645:         local assignments = EllesmereUIDB and EllesmereUIDB.bagItemAssignments\n2646:         if assignments and assignments[info.itemID] then\n2647:             EUI_CategoryManager:UnassignItem(info.itemID)\n2648:             if EUI_Bags.RefreshInventory then EUI_Bags:RefreshInventory() end\n2649:             return\n2650:         end\n2651:         if not EllesmereUIDB then EllesmereUIDB = {} end\n2652:         if not EllesmereUIDB.bagPinnedItems then EllesmereUIDB.bagPinnedItems = {} end\n2653:         local pinned = EllesmereUIDB.bagPinnedItems\n2654:         local itemLink = C_Container.GetContainerItemLink(bagID, slotID)\n2655:         local isGear = IsGearItem(itemLink)\n2656:         -- Pin key is the normalized itemID+bonusIDs identity (distinguishes\n2657:         -- upgrade tracks -- see NormalizePinKey above); pinKey == info.itemID\n2658:         -- when no link is available. A legacy itemID-keyed pin (written before\n2659:         -- this fix, conflating every track) is adopted into `cur` once and\n2660:         -- then always cleared here, regardless of which specific track was\n2661:         -- clicked -- there's no way to know which track a legacy entry\n2662:         -- originally meant, so the honest self-heal is \"this interaction\n2663:         -- resolves the ambiguity,\" not \"this interaction guesses which track\n2664:         -- it was.\" Re-pin afterward to set a precise, track-specific entry.\n2665:         local pinKey = NormalizePinKey(itemLink, info.itemID)\n2666:         local legacyCur = pinned[info.itemID] or 0\n2667:         local cur = pinned[pinKey] or 0\n2668:         if legacyCur > 0 and cur == 0 then cur = legacyCur end\n2669:         pinned[info.itemID] = nil\n2670:         if isGear then\n2671:             -- Gear: per-stack count toggle\n2672:             if cur > 0 then\n2673:                 cur = cur - 1\n2674:                 pinned[pinKey] = cur > 0 and cur or nil\n2675:             else",
+        "contentHash": "c5af47f5bf52b341a5506bd93694228ff0c22e0f3531414b8f8ab41835c43ca6",
+        "line": 2596,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "ndui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "c198b6f0fb39dfac2a9bea85a0c7c76ad540c8d2",
+    "results": [
+      {
+        "kind": "function",
+        "name": "Implementation:GetButton",
+        "path": "Interface/AddOns/NDui/Libs/cargBags/base/implementation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "vendor",
+        "excerpt": "280: function Implementation:GetButton(bagID, slotID)\n281: \treturn self.buttons[toBagSlot(bagID, slotID)]\n282: end",
+        "contentHash": "0bb60ec4ea5ce2875883ba56362fdb56f65dd98c05388a06172ce26c73c60c41",
+        "line": 280,
+        "score": 85,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": -15
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "elvui",
+    "product": "main",
+    "requestedRef": "latest",
+    "resolvedCommit": "fdc08aaefc7c0810af685404d43b8ccfade8c497",
+    "results": [
+      {
+        "kind": "function",
+        "name": "B:UpdateSlot",
+        "path": "ElvUI/Game/Shared/Modules/Bags/Bags.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "678: function B:UpdateSlot(frame, bagID, slotID)\n679: \tlocal bag = frame.Bags[bagID]\n680: \tlocal slot = bag and bag[slotID]\n681: \tif not slot then return end\n682: \n683: \tlocal db = B.db\n684: \tlocal info = B:GetContainerItemInfo(bagID, slotID)\n685: \n686: \tslot.name, slot.spellID, slot.itemID, slot.rarity, slot.locked, slot.readable, slot.itemLink, slot.isBound = nil, nil, info.itemID, info.quality, info.isLocked, info.isReadable, info.hyperlink, info.isBound\n687: \tslot.isQuestItem, slot.QuestID, slot.isActiveQuest = nil, nil, nil\n688: \tslot.isJunk = (slot.rarity and slot.rarity == ITEMQUALITY_POOR) and not info.hasNoValue\n689: \tslot.isEquipment, slot.junkDesaturate = nil, slot.isJunk and db.junkDesaturate\n690: \tslot.hasItem = (info.iconFileID and 1) or nil -- used for ShowInspectCursor\n691: \n692: \tSetItemButtonTexture(slot, (info.iconFileID ~= 4701874 and info.iconFileID) or E.Media.Textures.Invisible)\n693: \tSetItemButtonCount(slot, info.stackCount)\n694: \tSetItemButtonDesaturated(slot, slot.locked or slot.junkDesaturate)\n695: \tSetItemButtonQuality(slot, slot.rarity, slot.itemLink)\n696: \n697: \tslot.Count:SetTextColor(db.countFontColor.r, db.countFontColor.g, db.countFontColor.b)\n698: \tslot.itemLevel:SetText('')\n699: \tslot.bindType:SetText('')\n700: \tslot.centerText:SetText('')\n701: \n702: \tif bagID == KEYRING_CONTAINER then\n703: \t\tslot.keyringTexture:SetShown(not info.iconFileID)\n704: \tend\n705: \n706: \tif slot.itemLink then\n707: \t\tlocal _, spellID = GetItemSpell(slot.itemLink)\n708: \t\tlocal name, _, _, _, _, _, _, _, itemEquipLoc, _, _, itemClassID, itemSubClassID, bindType = GetItemInfo(slot.itemLink)\n709: \t\tslot.name, slot.spellID, slot.isEquipment, slot.itemEquipLoc, slot.itemClassID, slot.itemSubClassID = name, spellID, B.IsEquipmentSlot[itemEquipLoc], itemEquipLoc, itemClassID, itemSubClassID\n710: \n711: \t\tif E.Classic then\n712: \t\t\tslot.isBound = C_Item_IsBound(slot.itemLocation)\n713: \t\t\tslot.isQuestItem, slot.isActiveQuest = B:GetItemQuestInfo(slot.itemLink, bindType, itemClassID)\n714: \t\telse\n715: \t\t\tlocal questInfo = B:GetContainerItemQuestInfo(bagID, slotID)\n716: \t\t\tslot.isQuestItem, slot.QuestID, slot.isActiveQuest = questInfo.isQuestItem, questInfo.questID, questInfo.isActive\n717: \t\tend\n718: \n719: \t\tlocal WuE = E.Retail and bindType == 2 and C_Item_IsBoundToAccountUntilEquip(slot.itemLocation) and WARBAND_UNTIL_EQUIPPED\n720: \t\tlocal bindTo = (not slot.isBound and bindType ~= 1) and db.showBindType and B.BindText[WuE or bindType]\n721: \t\tif bindTo then slot.bindType:SetText(bindTo) end\n722: \n723: \t\tlocal mult = E.Retail and db.itemInfo and itemSpellID[spellID]\n724: \t\tif mult then\n725: \t\t\tslot.centerText:SetText(mult * info.stackCount)\n726: \t\tend\n727: \n728: \t\tif E.Retail then\n729: \t\t\tslot:RegisterEvent('COLOR_OVERRIDES_RESET')\n730: \t\t\tslot:RegisterEvent('COLOR_OVERRIDE_UPDATED')\n731: \t\tend\n732: \n733: \t\tslot:RegisterEvent('INVENTORY_SEARCH_UPDATE')\n734: \t\tslot.searchOverlay:SetShown(info.isFiltered)\n735: \telse\n736: \t\tif E.Retail then\n737: \t\t\tslot:UnregisterEvent('COLOR_OVERRIDES_RESET')\n738: \t\t\tslot:UnregisterEvent('COLOR_OVERRIDE_UPDATED')\n739: \t\tend\n740: \n741: \t\tslot:UnregisterEvent('INVENTORY_SEARCH_UPDATE')\n742: \t\tslot.searchOverlay:SetShown(false)\n743: \tend\n744: \n745: \tif slot.Cooldown then\n746: \t\tif slot.spellID then\n747: \t\t\tB:UpdateCooldown(slot)\n748: \t\t\tslot:RegisterEvent('SPELL_UPDATE_COOLDOWN')\n749: \t\telse\n750: \t\t\tslot.Cooldown:Hide()\n751: \t\t\tslot:UnregisterEvent('SPELL_UPDATE_COOLDOWN')\n752: \t\t\tSetItemButtonTextureVertexColor(slot, 1, 1, 1)\n753: \t\tend\n754: \tend\n755: \n756: \tif E.Retail then\n757: \t\tif slot.ScrapIcon then",
+        "contentHash": "ee34a076d5525c9a73d87f8f5f0bd2d3dad87be28065a930004f368013c8380c",
+        "line": 678,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]
