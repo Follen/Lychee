@@ -32,9 +32,7 @@ function UI.CreateAddonInspector(owner)
     end
     if view.details.SetMaxLines then view.details:SetMaxLines(3);view.parents:SetMaxLines(3) end
     local function button(title,x,y,width,action,rounded)
-        local b=C:CreateButton(frame,{text=title,width=width,height=30,radius=rounded and 6 or nil,point="TOPLEFT",x=x,y=y,
-            colors={normal=rounded and "surfaceSelected" or "transparent",hover=rounded and "surfaceHover" or "transparent",pressed=rounded and "border" or "transparent",disabled="transparent"},
-            textColors={normal="textMuted",hover="text",pressed="text",disabled="disabled"},onClick=action})
+        local b=C:CreateNavigationButton(frame,{text=title,width=width,height=30,point="TOPLEFT",x=x,y=y,onClick=action})
         T:SetFont(b.label,"body");return b
     end
     view.close=button("Esc",266,-6,40,function() owner:Stop() end)
@@ -52,6 +50,7 @@ function UI.CreateAddonInspector(owner)
     local edit=CreateFrame("EditBox",nil,frame);view.edit=edit
     edit:SetPoint("TOPLEFT",16,-60);edit:SetSize(288,230);edit:SetMultiLine(true);edit:SetAutoFocus(false)
     T:SetFont(edit,"body");T:SetTextColor(edit,"text");edit:Hide()
+    edit:SetTextInsets(10,10,8,8);C:StyleEditBox(edit)
     edit:SetScript("OnEscapePressed",function() owner:Stop() end)
     edit:SetScript("OnTextChanged",function(_,userInput)
         if userInput and view.report then edit:SetText(view.report);edit:HighlightText() end

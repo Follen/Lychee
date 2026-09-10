@@ -31,12 +31,10 @@ function P:Create(parent,controller,onBack)
         text:SetPoint("TOPLEFT",frame,"TOPLEFT",x,y);text:SetSize(w or width,22);text:SetJustifyH("LEFT");text:SetText(value)
         return text
     end
-    local function button(value,x,y,w,fn,container,height,navigation,primary)
+    local function button(value,x,y,w,fn,container,height,navigation,primary,direction,underline)
         local b
         container=container or frame
-        b=UI.Components:CreateButton(container,{text=value,width=w,height=height or 28,radius=not navigation and 4 or nil,
-            colors=navigation and {normal="transparent"} or {normal="transparent",hover="surfaceHover",pressed="surfaceSelected"},
-            textColors={normal=primary and "text" or "textMuted",hover="text",pressed="text",disabled="disabled"},onClick=function()
+        b=UI.Components:CreateNavigationButton(container,{text=value,width=w,height=height or 28,primary=primary,direction=direction,underline=underline,onClick=function()
             local pressed=b.press;b.press=nil
             if current() and (pressed==nil or pressed==view.generation) then fn() end
         end})
@@ -48,8 +46,8 @@ function P:Create(parent,controller,onBack)
         b.frame:SetPoint("TOPLEFT",container,"TOPLEFT",x,y);return b
     end
     local function back() outer:Hide();onBack() end
-    view.back=button(L["返回功能来源"],0,0,132,back,outer,28,true)
-    view.back.label:ClearAllPoints();view.back.label:SetPoint("TOPLEFT",view.back.frame,"TOPLEFT",8,0)
+    view.back=button(L["返回功能来源"],0,0,152,back,outer,28,true,false,"left")
+    view.back.label:ClearAllPoints();view.back.label:SetPoint("TOPLEFT",view.back.frame,"TOPLEFT",22,0)
     view.back.label:SetPoint("BOTTOMRIGHT",view.back.frame,"BOTTOMRIGHT",-8,0);view.back.label:SetJustifyH("LEFT")
     view.icon=frame:CreateTexture(nil,"ARTWORK");view.icon:SetSize(metrics.iconSize,metrics.iconSize);view.icon:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listIconInset,-10)
     view.title=label("",metrics.listTitleInset,-4,width-160);UI.Theme:SetTextColor(view.title,"text")
@@ -85,26 +83,27 @@ function P:Create(parent,controller,onBack)
         local field={};view.fields[kind]=field
         field.label=label(L[kind=="prefix" and "搜索前缀" or "快捷关键词"],8,0,valueX-24)
         UI.Theme:SetTextColor(field.label,"text")
-        field.hint=label("",valueX,0,valueWidth,"meta");field.hint:SetHeight(36)
+        field.hint=label("",valueX,0,valueWidth,"meta");field.hint:SetHeight(28)
         field.tokens={}
         for index=1,8 do
             local chip=CreateFrame("Frame",nil,frame)
-            UI.Theme:CreateRoundedSurface(chip,"surfaceSelected",4)
             local text=chip:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
             UI.Theme:SetFont(text,"body");UI.Theme:SetTextColor(text,"text")
-            text:SetPoint("LEFT",chip,"LEFT",10,0);text:SetJustifyH("LEFT")
+            if text.SetWordWrap then text:SetWordWrap(false) end
+            if text.SetMaxLines then text:SetMaxLines(1) end
+            text:SetPoint("LEFT",chip,"LEFT",0,0);text:SetJustifyH("LEFT")
             field.tokens[index]={frame=chip,label=text};chip:Hide()
         end
-        field.edit=button(L["编辑"],valueX,0,64,function() view:BeginEdit(kind) end,nil,28,true,true)
+        field.edit=button(L["编辑"],valueX,0,140,function() view:BeginEdit(kind) end,nil,28,true,false,nil,true)
         local input=CreateFrame("EditBox",nil,frame);field.input=input
         input:SetSize(valueWidth,32);input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0)
         UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text");if input.SetMaxBytes then input:SetMaxBytes(400) end
-        UI.Theme:CreateRoundedSurface(input,"surfaceSelected",4)
+        field.inputStyle=UI.Components:StyleEditBox(input)
         field.example=label(L["多个词用逗号分隔；清空可移除此入口"],valueX,0,valueWidth,"meta");field.example:SetHeight(36)
         field.save=button(L["保存"],0,0,64,function() if view.editing==kind then view:Save() end end,nil,28,true,true)
         field.cancel=button(L["取消"],0,0,64,function() if view.editing==kind then view:CancelEdit() end end,nil,28,true)
         input:SetScript("OnTextChanged",function(_,userInput) if userInput and current() and view.editing==kind then
-            view.error:SetText("");view:Layout()
+            field.inputStyle:SetInvalid(false);view.error:SetText("");view:Layout()
         end end)
         input:SetScript("OnEnterPressed",function() if view.editing==kind then view:Save() end end)
         input:SetScript("OnEscapePressed",function() if current() and view.editing==kind then view:CancelEdit() end end)
@@ -113,7 +112,7 @@ function P:Create(parent,controller,onBack)
     view.help=label(L["独立查询入口，由功能自身决定触发词"],8,-68,width-16);view.help:SetHeight(44)
     view.error=label("",8,0,width-16,"meta");view.error:SetHeight(36);UI.Theme:SetTextColor(view.error,"warning")
     view.technical=label("",8,0,width-16,"meta");view.technical:SetHeight(36)
-    function view:ClearFocus() for _,field in pairs(self.fields) do field.input:ClearFocus() end end
+    function view:ClearFocus() for _,field in pairs(self.fields) do field.input:ClearFocus();field.inputStyle:SetInvalid(false) end end
     function view:CancelEdit()
         if not current() then return end
         self:ClearFocus();self.editing=nil;self.generation=self.generation+1
@@ -145,10 +144,10 @@ function P:Create(parent,controller,onBack)
             for index,chip in ipairs(field.tokens) do
                 local value=words[index]
                 if value and chip.value~=value then
-                    chip.value=value;chip.label:SetWidth(tokenWidth-20);chip.label:SetText(value)
+                    chip.value=value;chip.label:SetWidth(tokenWidth);chip.label:SetText(value)
                     local measured=chip.label.GetStringWidth and chip.label:GetStringWidth() or #value*7
-                    chip.width=math.min(tokenWidth,math.max(32,measured+20))
-                    chip.frame:SetSize(chip.width,28);chip.label:SetSize(chip.width-20,22)
+                    chip.width=math.min(tokenWidth,math.max(16,measured))
+                    chip.frame:SetSize(chip.width,24);chip.label:SetSize(chip.width,22)
                 end
             end
             if kind=="prefix" then
@@ -177,25 +176,26 @@ function P:Create(parent,controller,onBack)
             for index,chip in ipairs(field.tokens) do
                 local shown=not independent and not editing and index<=field.count
                 if shown then
-                    if x+chip.width>valueX+tokenWidth then x=valueX;rowY=rowY+34 end
+                    if x+chip.width>valueX+tokenWidth then x=valueX;rowY=rowY+28 end
                     at(chip.frame,x,rowY);chip.x,chip.y=x,rowY
-                    x=x+chip.width+6
+                    x=x+chip.width+14
                 end
                 chip.frame:SetShown(shown)
             end
             local configured=field.count>0
             local editWidth=configured and 64 or 140
-            field.edit.frame:SetWidth(editWidth);at(field.edit.frame,configured and width-8-editWidth or valueX,0)
+            field.edit.frame:SetWidth(editWidth);at(field.edit.frame,width-8-editWidth,0)
             field.edit.label:ClearAllPoints();field.edit.label:SetAllPoints(field.edit.frame)
-            field.edit.label:SetJustifyH(configured and "RIGHT" or "LEFT")
+            field.edit.label:SetJustifyH("RIGHT")
             field.edit.frame:SetShown(not independent and not editing);field.edit:SetEnabled(self.editing==nil)
-            at(field.hint,valueX,rowY+36);field.hint:SetShown(not independent and not editing)
+            field.hint:SetWidth(configured and valueWidth or valueWidth-editWidth-12)
+            at(field.hint,valueX,configured and rowY+26 or 3);field.hint:SetShown(not independent and not editing)
             at(field.input,valueX,0);field.input:SetShown(editing)
             at(field.example,valueX,40);field.example:SetShown(editing)
             at(field.cancel.frame,width-144,78);field.cancel.frame:SetShown(editing)
             at(field.save.frame,width-72,78);field.save.frame:SetShown(editing)
             if editing then errorY=y+112 end
-            y=y+(editing and (hasError and 152 or 112) or rowY+76)
+            y=y+(editing and (hasError and 152 or 112) or rowY+(configured and 64 or 48))
         end
         if not self.editing then errorY=independent and 116 or y end
         self.error:ClearAllPoints();self.error:SetPoint("TOPLEFT",frame,"TOPLEFT",valueX,-errorY);self.error:SetWidth(valueWidth);self.error:SetShown(hasError)
@@ -203,6 +203,7 @@ function P:Create(parent,controller,onBack)
         local aboutY=independent and 120 or y
         self.about.frame:ClearAllPoints();self.about.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-aboutY)
         self.about:SetText(L[self.aboutOpen and "收起版本信息" or "版本与兼容性"])
+        self.about:SetDirection(self.aboutOpen and "down" or "right")
         self.reset.frame:ClearAllPoints();self.reset.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-aboutY)
         self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-aboutY-28)
         self.technical:SetShown(self.aboutOpen==true)
@@ -211,6 +212,7 @@ function P:Create(parent,controller,onBack)
     end
 
     function view:Failure(err)
+        if self.editing then self.fields[self.editing].inputStyle:SetInvalid(true) end
         self.error:SetText(L[err]);self:Layout();controller:SetStatusText(L[err])
     end
     function view:Save()
@@ -233,8 +235,8 @@ function P:Create(parent,controller,onBack)
         view.generation=view.generation+1;view:Refresh();controller:SetStatusText(L["已恢复默认搜索设置"])
     end,frame,30,true)
     view.reset.label:ClearAllPoints();view.reset.label:SetAllPoints(view.reset.frame);view.reset.label:SetJustifyH("RIGHT")
-    view.about=button(L["版本与兼容性"],0,0,200,function() view.aboutOpen=not view.aboutOpen;view:Layout() end,nil,28,true)
-    view.about.label:ClearAllPoints();view.about.label:SetPoint("LEFT",view.about.frame,"LEFT",8,0);view.about.label:SetSize(184,24);view.about.label:SetJustifyH("LEFT")
+    view.about=button(L["版本与兼容性"],0,0,200,function() view.aboutOpen=not view.aboutOpen;view:Layout() end,nil,28,true,false,"right")
+    view.about.label:ClearAllPoints();view.about.label:SetPoint("LEFT",view.about.frame,"LEFT",22,0);view.about.label:SetSize(170,24);view.about.label:SetJustifyH("LEFT")
     function view:Refresh()
         if not current() then return end
         self:ClearFocus();self.layoutKey=nil;self.editing=nil

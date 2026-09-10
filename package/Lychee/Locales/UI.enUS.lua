@@ -1,6 +1,7 @@
 local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
+    ["编辑"] = "Edit",
     ["插件识别"] = "Addon Inspector",
     ["创建位置"] = "Created at",
     ["父级关联"] = "Parent sources",

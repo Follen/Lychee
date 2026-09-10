@@ -232,8 +232,39 @@ end
 function Components:CreateNavigationButton(parent, options)
     options = options or {}
     options.colors = { normal = "transparent" }
-    options.textColors = { normal = "textMuted", hover = "accentHover", pressed = "accentHover", disabled = "disabled" }
+    options.textColors = { normal = options.primary and "accentHover" or options.muted and "textMuted" or "text", hover = "accentHover", pressed = "accentHover", disabled = "disabled" }
     local component = self:CreateButton(parent, options)
+    if options.direction then
+        component.strokes={}
+        for index=1,2 do
+            local stroke=component.frame:CreateTexture(nil,"ARTWORK")
+            stroke:SetSize(6,1.25);component.strokes[index]=stroke
+        end
+        function component:SetDirection(direction)
+            if self._direction==direction then return end
+            self._direction=direction
+            for index,stroke in ipairs(self.strokes) do
+                local sign=index==1 and 1 or -1
+                local vertical=direction=="down" or direction=="up"
+                local x=vertical and sign*2 or 0
+                local y=vertical and 0 or sign*2
+                local angle=(direction=="left" or direction=="down") and sign*math.pi/4 or -sign*math.pi/4
+                stroke:ClearAllPoints();stroke:SetPoint("CENTER",self.frame,"LEFT",8+x,y);stroke:SetRotation(angle)
+            end
+        end
+        component:SetDirection(options.direction)
+    elseif options.underline then
+        local line=component.frame:CreateTexture(nil,"ARTWORK");component.strokes={line}
+        line:SetHeight(1);line:SetPoint("BOTTOMRIGHT",component.label,"BOTTOMRIGHT",0,4)
+        local set=component.SetText
+        function component:SetText(value)
+            local changed=set(self,value)
+            local measured=self.label.GetStringWidth and self.label:GetStringWidth() or 32
+            line:SetWidth(measured);return changed
+        end
+        component:SetText(options.text)
+    end
+    component._state=nil;component:RefreshPointerState()
     function component:SetSelected(selected)
         local token = selected and "text" or "textMuted"
         if options.textColors.normal == token then return end
@@ -242,6 +273,26 @@ function Components:CreateNavigationButton(parent, options)
         self:RefreshPointerState()
     end
     return component
+end
+
+-- Form fields own their surface state; page controllers retain validation and
+-- commit behavior. One surface and three event callbacks, created only once.
+function Components:StyleEditBox(input)
+    if input._lycheeField then return input._lycheeField end
+    local theme=getTheme()
+    theme:CreateSurface(input,"field","fieldBorder")
+    local style={focused=false,invalid=false}
+    input._lycheeField=style
+    function style:Apply()
+        theme:ApplySurface(input,"field",self.invalid and "danger" or self.focused and "accentHover" or "fieldBorder")
+    end
+    function style:SetInvalid(invalid)
+        self.invalid=invalid==true;self:Apply()
+    end
+    input:SetScript("OnEditFocusGained",function() style.focused=true;style:Apply() end)
+    input:SetScript("OnEditFocusLost",function() style.focused=false;style:Apply() end)
+    input:SetScript("OnHide",function() style.focused=false;style.invalid=false;style:Apply() end)
+    return style
 end
 
 -- One track and thumb per viewport. The only per-frame work is an active drag.

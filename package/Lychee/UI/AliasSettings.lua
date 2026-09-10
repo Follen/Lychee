@@ -8,8 +8,8 @@ local function label(parent,value,x,y,width)
     text:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y);text:SetWidth(width);text:SetHeight(22);text:SetJustifyH("LEFT");text:SetText(value)
     return text
 end
-local function button(parent,value,width,x,y,callback)
-    local control=UI.Components:CreateNavigationButton(parent,{text=value,width=width,height=28,onClick=callback})
+local function button(parent,value,width,x,y,callback,primary)
+    local control=UI.Components:CreateNavigationButton(parent,{text=value,width=width,height=28,onClick=callback,primary=primary})
     control.frame:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y)
     return control
 end
@@ -46,8 +46,8 @@ function A:Create(parent,controller,onBack)
     input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"input")
     UI.Theme:SetTextColor(input,"text")
     if input.SetMaxBytes then input:SetMaxBytes(192) end
-    local background=input:CreateTexture(nil,"BACKGROUND");background:SetAllPoints(input);UI.Theme:SetColorTexture(background,"surfaceSelected")
-    local line=input:CreateTexture(nil,"ARTWORK");line:SetHeight(1);line:SetPoint("BOTTOMLEFT",input,"BOTTOMLEFT",0,0);line:SetPoint("BOTTOMRIGHT",input,"BOTTOMRIGHT",0,0);UI.Theme:SetColorTexture(line,"borderStrong")
+    local inputStyle=UI.Components:StyleEditBox(input);view.inputStyle=inputStyle
+    UI.Theme:SetTextColor(view.target,"text")
     view.error=label(editor,"",0,-150,width-20)
     view.error:SetHeight(44)
     UI.Theme:SetTextColor(view.error,"warning")
@@ -56,13 +56,15 @@ function A:Create(parent,controller,onBack)
         if not active() or not view.editing then return end
         local ok,err=I.Search.Personalization:SetAlias(view.ref,input:GetText(),view.title)
         if not ok then
+            inputStyle:SetInvalid(true)
             view.error:SetText(err=="ALIAS_LIMIT" and L["别名已达上限，请先删除一项"] or L["别名最多96字节，不能包含换行或竖线"]);return
         end
         input:ClearFocus();controller:SetStatusText(L["别名已保存"]);view:ShowList()
     end
-    view.save=button(editor,L["保存"],72,0,-114,save)
+    view.save=button(editor,L["保存"],72,0,-114,save,true)
     view.cancel=button(editor,L["取消"],72,88,-114,cancel)
     input:SetScript("OnEnterPressed",save);input:SetScript("OnEscapePressed",cancel)
+    input:SetScript("OnTextChanged",function(_,userInput) if userInput then inputStyle:SetInvalid(false);view.error:SetText("") end end)
     frame:SetScript("OnHide",function()
         input:ClearFocus();view.ref,view.title,view.data,view.editing=nil,nil,nil,nil
         view.bar:StopDrag()
@@ -71,6 +73,7 @@ function A:Create(parent,controller,onBack)
     function view:Edit(ref,title)
         if not active() then return end
         self.ref={providerID=ref.providerID,entryID=ref.entryID};self.title=title;self.editing=true
+        inputStyle:SetInvalid(false)
         scroll:Hide();editor:Show();self.target:SetText(title or ref.entryID);self.error:SetText("")
         local row=I.Search.Personalization:Find(ref)
         input:SetText(row and row.alias or "");input:SetFocus()

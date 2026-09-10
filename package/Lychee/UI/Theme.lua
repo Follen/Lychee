@@ -18,6 +18,8 @@ Theme.Colors = {
     input = { 0.055, 0.055, 0.063, 1 },
     inputHover = { 0.055, 0.055, 0.063, 1 },
     inputFocus = { 0.055, 0.055, 0.063, 1 },
+    field = { 0.085, 0.085, 0.095, 1 },
+    fieldBorder = { 0.400, 0.400, 0.420, 1 },
     action = { 0.075, 0.078, 0.088, 1 },
     actionHover = { 0.175, 0.115, 0.125, 1 },
     border = { 0.110, 0.110, 0.125, 1 },
@@ -30,7 +32,7 @@ Theme.Colors = {
     text = { 0.940, 0.932, 0.910, 1 },
     textMuted = { 0.710, 0.705, 0.690, 1 },
     textDim = { 0.590, 0.580, 0.590, 1 },
-    disabled = { 0.315, 0.315, 0.325, 1 },
+    disabled = { 0.400, 0.400, 0.420, 1 },
     switchOff = { 0.215, 0.215, 0.230, 1 },
     success = { 0.310, 0.690, 0.455, 1 },
     warning = { 0.880, 0.645, 0.250, 1 },
@@ -154,13 +156,14 @@ function Theme:CreateSurface(frame, backgroundColor, borderColor)
     surface.background:SetAllPoints(frame)
     local thickness = self.Metrics.border
     local anchors = {
-        { "TOPLEFT", "TOPRIGHT", 0, 0, 0, -thickness },
-        { "BOTTOMLEFT", "BOTTOMRIGHT", 0, thickness, 0, 0 },
-        { "TOPLEFT", "BOTTOMLEFT", 0, -thickness, thickness, 0 },
-        { "TOPRIGHT", "BOTTOMRIGHT", -thickness, -thickness, 0, 0 },
+        { "TOPLEFT", "TOPRIGHT", 0, 0, 0, 0 },
+        { "BOTTOMLEFT", "BOTTOMRIGHT", 0, 0, 0, 0 },
+        { "TOPLEFT", "BOTTOMLEFT", 0, -thickness, 0, thickness },
+        { "TOPRIGHT", "BOTTOMRIGHT", 0, -thickness, 0, thickness },
     }
     for index = 1, 4 do
         local edge = frame:CreateTexture(nil, "BORDER", nil, -1)
+        if index<=2 then edge:SetHeight(thickness) else edge:SetWidth(thickness) end
         local anchor = anchors[index]
         edge:SetPoint(anchor[1], frame, anchor[1], anchor[3], anchor[4])
         edge:SetPoint(anchor[2], frame, anchor[2], anchor[5], anchor[6])

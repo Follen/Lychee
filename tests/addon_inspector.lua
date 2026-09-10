@@ -55,6 +55,7 @@ function methods:Disable() self.disabled=true end
 function methods:IsMouseOver() return false end
 function methods:SetMultiLine(...) end
 function methods:SetAutoFocus(...) end
+function methods:SetTextInsets(...) self.insets={...} end
 function methods:SetFocus() self.focused=true end
 function methods:ClearFocus() self.focused=false end
 function methods:HighlightText() self.highlighted=true end

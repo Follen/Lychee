@@ -1462,4 +1462,24 @@ do
     controller:Hide("management-done")
     print("Provider management UI PASS: detail, mode, prefix, reset, stale click, reuse, release")
 end
+
+do
+    local input=CreateFrame("EditBox",nil,UIParent)
+    local style=Lychee.UI.Components:StyleEditBox(input)
+    local edges=input._lycheeSurface.border
+    assert(edges[1]:GetHeight()==1 and edges[2]:GetHeight()==1 and edges[3]:GetWidth()==1 and edges[4]:GetWidth()==1,
+        "field boundary has visible horizontal and vertical thickness")
+    local count=createdFrames
+    assert(Lychee.UI.Components:StyleEditBox(input)==style,"field style is installed once")
+    input.scripts.OnEditFocusGained()
+    style:SetInvalid(true);input.scripts.OnEditFocusLost()
+    assert(style.invalid and not style.focused,"invalid state survives focus loss")
+    input.scripts.OnEditFocusGained();style:SetInvalid(false)
+    assert(style.focused and not style.invalid,"correction retains focus")
+    style:SetInvalid(true);input.scripts.OnHide()
+    assert(not style.invalid and not style.focused,"hidden fields release temporary state")
+    for index=1,100 do input.scripts.OnEditFocusGained();input.scripts.OnEditFocusLost() end
+    assert(createdFrames==count and not input.scripts.OnUpdate,"field focus has no new frames or driver")
+    print("Form field lifecycle PASS: focus, invalid, correction, hide, reuse")
+end
 end)()
