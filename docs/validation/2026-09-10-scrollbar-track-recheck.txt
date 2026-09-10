@@ -1,0 +1,6 @@
+C:\Program Files (x86)\Lua\5.1\lua.exe: tests/provider_expansion.lua:126: cold budget builtin.bags
+stack traceback:
+	[C]: in function 'assert'
+	tests/provider_expansion.lua:126: in main chunk
+	[C]: ?
+COLD builtin.bags cpu_ms=53.00 peak_wall_ms=3.07 scheduled_seconds=0.66
