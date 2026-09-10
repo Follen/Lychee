@@ -1399,7 +1399,7 @@ do
     assert(page.entry==LycheeInternal.Providers.entries["manage.ui"])
     assert(not view.tabs.providers.frame:IsShown() and page.save==nil and page.cancel==nil,"no second page-level confirmation")
     assert(not page.prefixInput:IsShown() and not page.keywordInput:IsShown() and not page.technical:IsShown())
-    assert(page.fields.keyword.state:IsShown() and not page.fields.keyword.caption:IsShown(),"empty status is separate from examples")
+    assert(page.fields.keyword.edit.frame:IsShown() and not page.fields.keyword.tokens[1].frame:IsShown(),"empty field offers add without placeholder state")
     local function begin(kind) page.fields[kind].edit.frame.scripts.OnClick() end
     local function save(kind,value) begin(kind);edit(page.fields[kind].input,value);page.fields[kind].save.frame.scripts.OnClick() end
     begin("prefix");assert(page.prefixInput:IsShown() and not page.keywordInput:IsShown())
@@ -1417,7 +1417,7 @@ do
     begin("prefix");assert(page.prefixInput:GetText()~="草稿")
     page.fields.prefix.cancel.frame.scripts.OnClick()
     save("prefix","范围");save("keyword","展示")
-    assert(not page.fields.keyword.state:IsShown() and page.fields.keyword.caption:IsShown() and page.fields.keyword.summary:GetText()=="展示","saved keyword shows actual input")
+    assert(page.fields.keyword.tokens[1].frame:IsShown() and page.fields.keyword.tokens[1].label:GetText()=="展示","saved keyword shows actual configuration")
     local function search(q) local _,items=LycheeInternal.Search.Query:Query(q,{visible=true});return items end
     assert(#search("目标")==1 and #search("范围:目标")==1 and #search("展示")==1,"all routes coexist")
     begin("keyword");edit(page.keywordInput,"展现")
@@ -1426,11 +1426,22 @@ do
     page.fields.keyword.save.frame.scripts.OnClick()
     assert(#search("目标")==0 and #search("范围:目标")==1 and #search("展现")==1,"field save preserves committed toggle")
     save("prefix","");save("keyword","")
-    assert(page.fields.prefix.state:IsShown() and not page.fields.prefix.summary:IsShown(),"clearing removes the example")
+    assert(not page.fields.prefix.tokens[1].frame:IsShown() and page.fields.prefix.edit.frame:IsShown(),"clearing restores add action")
     assert(page.error:GetText()~="" and page.editing=="keyword" and #search("展现")==1,"invalid edit stays open without changing live search")
     page.keywordInput.scripts.OnEscapePressed();assert(page.editing==nil)
     page.reset.frame.scripts.OnClick();assert(policy:Configuration("manage.ui",page.entry.definition),"reset applies immediately")
     page.globalToggle.scripts.OnClick();assert(policy:Configuration("manage.ui",page.entry.definition) and page.error:GetText()~="","failed toggle leaves configuration on")
+    local fullWords={}
+    for index=1,8 do fullWords[index]="managementlongprefix"..index end
+    save("prefix",table.concat(fullWords,", "))
+    local lastY=0
+    for index,chip in ipairs(page.fields.prefix.tokens) do
+        assert(chip.frame:IsShown() and chip.label:GetText()==fullWords[index],"all configured words visible")
+        assert(chip.x+chip.width<=584 and chip.y>=lastY,"tokens fit their column and wrap")
+        lastY=chip.y
+    end
+    assert(lastY>0,"long word list wraps")
+    page.reset.frame.scripts.OnClick()
     local before=createdFrames
     for index=1,20 do view:OpenProvider("manage.ui",134400);begin("prefix");page.fields.prefix.cancel.frame.scripts.OnClick() end
     assert(before==createdFrames,"provider detail uses a fixed pool")

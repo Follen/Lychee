@@ -207,3 +207,13 @@ L:Add({
     ["收起版本信息"]="Hide version information",
     ["已恢复默认搜索设置"]="Default search settings restored",
 })
+
+L:Add({
+    ["快捷关键词"]="Quick keywords",
+    ["+ 添加前缀"]="+ Add prefix",
+    ["+ 添加关键词"]="+ Add keyword",
+    ["输入 %s，只搜索此功能"]="Type %s to search only this feature.",
+    ["给搜索内容加上前缀，只查找此功能。"]="Add a prefix to your search to find content only in this feature.",
+    ["输入 %s，直接显示此功能的搜索结果"]="Type %s to show results from this feature.",
+    ["设置一个好记的词，输入后直接显示此功能的搜索结果。"]="Choose a memorable word to show results from this feature.",
+})
