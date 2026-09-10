@@ -20,6 +20,7 @@ function methods:CreateAnimationGroup()
     local g={scripts={},playing=false}
     function g:SetScript(k,v) self.scripts[k]=v end
     function g:Stop() self.playing=false end
+    function g:IsPlaying() return self.playing end
     function g:Play() self.playing=true;self.a.progress=0 end
     function g:CreateAnimation(kind)
         assert(kind=="Alpha" or kind=="Translation")
@@ -64,6 +65,15 @@ s.group.scripts.OnFinished();assert(r:GetAlpha()==0 and not s.playing)
 M:Selection(r,true);s.group.scripts.OnFinished()
 M:Selection(r,true);assert(not s.playing,"same selected state does not replay")
 local called=0
+M:Alpha(r,0,0.1)
+M:Alpha(r,0,0)
+assert(r:GetAlpha()==0 and not s.playing,"instant same-target request must settle a running fade")
+M:Alpha(r,1,0)
+M:Alpha(r,0,0.1)
+s.group:Stop()
+M:Alpha(r,0,0.1)
+assert(s.group:IsPlaying(),"native interruption must not leave same-target requests stuck")
+M:Alpha(r,1,0)
 M:Alpha(r,0,0.1,function() called=called+1 end)
 M:Cancel(r,true);s.group.scripts.OnFinished();assert(called==0,"cancel discards completion")
 M:Height(r,400);M.driver.scripts.OnUpdate(M.driver,0.1)

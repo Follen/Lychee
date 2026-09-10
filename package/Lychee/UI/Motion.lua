@@ -48,7 +48,11 @@ end
 function Motion:Alpha(region,target,duration,finished,initial)
     if not region or not region.SetAlpha then if finished then finished() end;return false end
     local state=region._lycheeMotion
-    if state and state.playing and state.to==target and not finished then return true end
+    if state and state.playing and state.group.IsPlaying and not state.group:IsPlaying() then
+        -- Native interruption can outlive the engine's playback, but not our flag.
+        state.playing=false;state.finished=nil
+    end
+    if state and state.playing and state.to==target and not finished and duration~=0 and not self:IsReduced() and not combat() then return true end
     local current=region.GetAlpha and region:GetAlpha() or 1
     if state and state.playing then
         current=state.from+(state.to-state.from)*state.alpha:GetSmoothProgress()
