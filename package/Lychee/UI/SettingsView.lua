@@ -24,6 +24,21 @@ local function button(parent, title, width, callback)
 end
 local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
     ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6 }
+local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
+local providerIcons = {
+    ["builtin.player-spells"] = iconRoot .. "spellbook.tga",
+    ["builtin.mounts"] = iconRoot .. "mounts.tga",
+    ["builtin.bosses"] = iconRoot .. "journal-dungeons.tga",
+    ["builtin.game-menus"] = iconRoot .. "game-menu.tga",
+    ["builtin.crests"] = iconRoot .. "currency.tga",
+    ["builtin.great-vault"] = iconRoot .. "great-vault.tga",
+}
+local function rowIcon(record)
+    local pin = type(record.pin) == "table" and record.pin or nil
+    local icon = record.item and record.item.icon or pin and pin.icon
+    if type(icon) == "string" and icon ~= "" or type(icon) == "number" and icon > 0 then return icon end
+    return providerIcons[record.id or pin and pin.providerID] or iconRoot .. "settings.tga"
+end
 local function displayTitle(value, fallback)
     if type(value)=="string" then return value end
     if type(value)=="table" then return value[GetLocale and GetLocale() or "enUS"] or value.default or value.enUS or fallback end
@@ -62,7 +77,8 @@ function Settings:Create(parent, controller)
     function view:Acquire(index)
         if self.rows[index] then return self.rows[index] end
         local row=CreateFrame("Button",nil,content);row:SetSize(592,46)
-        row.name=label(row,"body");row.name:SetPoint("TOPLEFT",row,"TOPLEFT",10,-7);row.name:SetPoint("RIGHT",row,"RIGHT",-188,0);row.name:SetHeight(17)
+        row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(28,28);row.icon:SetPoint("LEFT",row,"LEFT",10,0)
+        row.name=label(row,"body");row.name:SetPoint("TOPLEFT",row,"TOPLEFT",50,-7);row.name:SetPoint("RIGHT",row,"RIGHT",-188,0);row.name:SetHeight(17)
         row.detail=label(row,"meta","textMuted");row.detail:SetPoint("TOPLEFT",row.name,"BOTTOMLEFT",0,-3);row.detail:SetPoint("RIGHT",row,"RIGHT",-180,0);row.detail:SetHeight(14)
         row.state=label(row,"meta","textMuted");row.state:SetPoint("RIGHT",row,"RIGHT",-54,0);row.state:SetWidth(118);row.state:SetJustifyH("RIGHT")
         row.line=row:CreateTexture(nil,"BACKGROUND");row.line:SetHeight(1);row.line:SetPoint("BOTTOMLEFT",row,"BOTTOMLEFT",8,0);row.line:SetPoint("BOTTOMRIGHT",row,"BOTTOMRIGHT",-8,0);Lychee.UI.Theme:SetColorTexture(row.line,"border")
@@ -142,6 +158,8 @@ function Settings:Create(parent, controller)
             local row=self:Acquire(index)
             if row._y~=y then row:ClearAllPoints();row:SetPoint("TOPLEFT",content,"TOPLEFT",0,-y);row._y=y end
             row.providerID,row.pinIndex=record.id,record.pinIndex
+            local icon=rowIcon(record)
+            if row._icon~=icon and row.icon:SetTexture(icon)~=false then row._icon=icon end
             text(row.name,record.title)
             if self.tab=="providers" then
                 local state=record.state
@@ -159,7 +177,11 @@ function Settings:Create(parent, controller)
             shown(row.toggle,self.tab=="providers");shown(row.up.frame,self.tab=="pins");shown(row.down.frame,self.tab=="pins");shown(row.remove.frame,self.tab=="pins")
             shown(row,true);y=y+46
         end
-        for index=#data+1,#self.rows do local row=self.rows[index];row.providerID,row.pinIndex=nil,nil;shown(row,false) end
+        for index=#data+1,#self.rows do
+            local row=self.rows[index];row.providerID,row.pinIndex=nil,nil
+            if row._icon~=nil and row.icon:SetTexture(nil)~=false then row._icon=nil end
+            shown(row,false)
+        end
         if #data==0 then groupCount=1;self:Header(1,self.tab=="pins" and "还没有固定项。搜索条目后，右键固定到首页。" or "没有已接入的功能来源",12) end
         for index=groupCount+1,#self.groups do shown(self.groups[index],false) end
         local height=math.max(40,y+12);if content:GetHeight()~=height then content:SetHeight(height) end

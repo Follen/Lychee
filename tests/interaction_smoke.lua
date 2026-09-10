@@ -1097,7 +1097,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     local prefs=I.UserPreferences
     LycheeDB.palette.pinned={};LycheeDB.palette.recent={}
     local source=assert(Lychee:RegisterProvider({id="settings.fixture",apiVersion=2,version="1.0.0",title="设置测试来源",
-        entries={{id="a",title="设置固定甲",actions={"open"}},{id="b",title="设置固定乙",actions={"open"}}},
+        entries={{id="a",title="设置固定甲",icon=123,actions={"open"}},{id="b",title="设置固定乙",icon=456,actions={"open"}}},
         actions={open={title="打开",run=function() return {ok=true} end}}}))
     controller:Show()
     local a=assert(prefs:Resolve({providerID=source.id,entryID="a"}))
@@ -1108,6 +1108,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     assert(controller.settingsOpen and not I.Search.Session.visible and not controller.input.container:IsShown())
     assert(not controller:ApplyResults({a},controller.generation,controller.session), "settings suppresses search results")
     local view=controller.settingsView
+    assert(view.rows[1].icon.texture==123 and view.rows[2].icon.texture==456, "settings pins use entry icons")
     local moveDown=view.rows[1].down
     moveDown.frame.IsMouseOver=function() return false end
     moveDown.frame.scripts.OnEnter()
@@ -1131,6 +1132,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     secondUp.frame.scripts.OnMouseUp()
     secondUp.frame.scripts.OnClick()
     assert(prefs:GetPins()[1].entryID=="b", "actual reorder click moves the correct pin")
+    assert(view.rows[1].icon.texture==456 and view.rows[2].icon.texture==123, "reused rows update icons after reorder")
     assert(secondUp._state=="hover" and view.rows[1].up._state=="disabled", "refresh preserves pointer and boundary states")
     secondUp.frame.scripts.OnHide()
     assert(secondUp._state=="normal", "hidden button discards stale hover")
@@ -1142,8 +1144,11 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     local fixtureRow
     for _,row in ipairs(view.rows) do if row.providerID==source.id then fixtureRow=row end end
     assert(fixtureRow, "settings lists third-party providers")
+    assert(fixtureRow.icon.texture=="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga", "provider tab clears old entry icon")
     fixtureRow.toggle.scripts.OnClick()
     assert(not source:GetState().enabled and #prefs:GetPins()==2)
+    view:SetTab("pins")
+    assert(view.rows[1].icon.texture==456 and view.rows[2].icon.texture==123, "disabled pins retain saved icons")
     assert(controller:CloseSettings(true))
     assert(controller:IsHomeVisible() and I.Search.Session.visible and #controller.homeView.sections==2)
     assert(controller.homeView.tiles[1]:IsShown() and not controller.homeView.tiles[1].item, "disabled pin stays visible")
