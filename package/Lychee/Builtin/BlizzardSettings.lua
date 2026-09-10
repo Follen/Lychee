@@ -9,7 +9,7 @@ end
 local function build(_,put,checkpoint)
     put({id="reload",title="重载界面",kind="command",kindTitle="系统",icon=iconRoot.."reload.tga",
         subtitle="重新加载插件与界面",aliases={"rl","reload","/rl","/reload"},actions={"reload"}},"reload:1")
-    put({id="cdm",title="暴雪冷却管理器",kind="setting",kindTitle="设置",icon=iconRoot.."cooldown-manager.tga",
+    put({id="cdm",title="暴雪冷却管理器",kind="setting",kindTitle="暴雪设置",icon=iconRoot.."cooldown-manager.tga",
         subtitle="打开冷却管理器设置",aliases={"cdm","cooldown manager","冷却设置"},actions={"cdm"}},"cdm:1")
     if not SettingsPanel or not SettingsPanel.GetAllCategories or not Settings then error("SETTINGS_NOT_READY") end
     local count=0
