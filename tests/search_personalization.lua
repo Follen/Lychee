@@ -85,4 +85,37 @@ assert(after<2 and afterMax<10,"bounded overlay exceeds offline latency budget")
 assert(growth<16,"repeated queries retain unexpected memory")
 print(string.format("Alias capacity benchmark (200 queries, Lua 5.1): off mean=%.3f max=%.3f alloc=%.1f KiB; on mean=%.3f max=%.3f alloc=%.1f KiB retained_delta=%.2f KiB",before,beforeMax,beforeAlloc,after,afterMax,afterAlloc,growth))
 assert(perf:Unregister())
+do
+    local function definition(value,revision)
+        return {id="restricted",apiVersion=2,minApiRevision=revision or 3,version="1",title="Restricted",
+            scope={products={"retail"}},i18n={enUS={TITLE="Restricted"}},searchable=value,
+            entries={{id="row",title="Hidden title",aliases={"hiddenalias"}}},
+            query=function(request,reply)
+                reply(request.normalized=="trigger" and {{id="row",title="Dynamic title"}} or {})
+            end}
+    end
+    assert(Lychee:Supports(2,3))
+    assert(not Lychee:RegisterProvider(definition("false")))
+    assert(not Lychee:RegisterProvider(definition(false,2)))
+    local restricted=assert(Lychee:RegisterProvider(definition(false)))
+    assert(#query("Hidden")==0 and #query("hiddenalias")==0)
+    assert(#query("",{visible=true,searchFilter={sourceID="restricted:records"}})==0)
+    assert(#query("trigger")==1,"dynamic query remains available")
+    local ref={providerID="restricted",entryID="row"}
+    assert(I.Providers:Resolve(ref,{}),"stable references still resolve")
+    P:Remove(P:Aliases()[1]);assert(P:SetAlias(ref,"privatealias"))
+    assert(#query("privatealias")==0,"user aliases cannot bypass searchable=false")
+    assert(restricted:Update({upsert={{id="row",title="Updated hidden"}}}))
+    assert(#query("Updated")==0 and I.Providers:Resolve(ref,{}).text=="Updated hidden")
+    assert(restricted:SetEnabled(false));assert(#query("trigger")==0)
+    assert(restricted:SetEnabled(true));assert(#query("Updated")==0 and #query("trigger")==1)
+    local indexed=I.Search.StaticIndex.entries["restricted:records:row"]
+    assert(indexed and indexed.fields==nil and not indexed.indexed,"no search postings retained")
+    assert(restricted:Update({remove={"row"}}));assert(not I.Providers:Resolve(ref,{}))
+    assert(restricted:Unregister())
+    local normal=assert(Lychee:RegisterProvider(definition(true)))
+    assert(#query("Hidden")==1,"explicit true retains old behavior")
+    assert(normal:Unregister())
+    print("Provider searchable contract PASS: declaration, update, filter, alias, resolve, disable, dynamic")
+end
 print("Search personalization PASS: real query, aliases, filtering, disable/reload, caps, literal highlight")

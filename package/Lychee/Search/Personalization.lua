@@ -108,7 +108,9 @@ function P:AddAliases(results,request,context)
     for _,row in ipairs(self:Aliases()) do
         if resolved>=request.limit then break end
         local filter=type(request.filter)=="table" and request.filter or nil
-        if row.product==product and (not filter or not filter.sourceID or filter.sourceID==row.ref.providerID..":records") then
+        local provider=I.Providers and I.Providers.entries[row.ref.providerID]
+        if row.product==product and not (provider and provider.definition.searchable==false)
+            and (not filter or not filter.sourceID or filter.sourceID==row.ref.providerID..":records") then
             local score=normalizer:ScoreNormalized(request.normalized,normalizer:Normalize(row.alias),"alias",false)
             if score then
                 resolved=resolved+1

@@ -1,6 +1,6 @@
 # Provider API 2 协议参考
 
-Host 版本：API_VERSION=2，API_REVISION=1。SDK helper 和 LuaLS 类型均使用本协议。旧 API 和 SavedVariables 不做兼容或迁移。
+Host 版本：API_VERSION=2，API_REVISION=3。SDK helper 和 LuaLS 类型均使用本协议。兼容 API 2 revision 1/2；SavedVariables schema 本次不变。
 
 ## 公共 facade
 
@@ -21,6 +21,7 @@ Host 版本：API_VERSION=2，API_REVISION=1。SDK helper 和 LuaLS 类型均使
 | version | 必填非空 string，集成自身版本。 |
 | title | 必填非空 string、带非空 default 的本地化映射，或已注册 i18n 中的 `{key="NAME"}`。 |
 | entries | 可选 Entry[]，最多 4096 条；entries 与 query 至少声明一个，空目录有效。 |
+| searchable | revision 3 可选 boolean，默认 true；使用时 minApiRevision >=3。false 排除静态目录全部文本及用户别名的通用匹配，也不允许通过 source/category filter 直接列举；query、Update、Resolve、动作、固定与最近使用不受影响。注册后不可通过 Update 修改。 |
 | query | 可选 function(request, reply, context)，返回 nil 或 cancel(reason)。 |
 | resolve | 可选 function(entryID, context)，同步返回当前 Entry 或 nil。 |
 | actions | 可选 map<actionID, {title:string|LocaleRef, run:function(entry,context):ActionResult}>。 |

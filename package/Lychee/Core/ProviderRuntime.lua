@@ -152,10 +152,14 @@ function P:Register(definition)
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
     ok, err = keys(definition, { id=true, apiVersion=true, minApiRevision=true, version=true, title=true,
-        entries=true, query=true, resolve=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
+        entries=true, query=true, resolve=true, searchable=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
     if not _G.Lychee:Supports(definition.apiVersion, definition.minApiRevision) then return failure("UNSUPPORTED_API", "apiVersion") end
+    if definition.searchable~=nil then
+        if type(definition.searchable)~="boolean" then return failure("INVALID_SCHEMA","searchable") end
+        if (definition.minApiRevision or 1)<3 then return failure("INVALID_SCHEMA","searchable.minApiRevision") end
+    end
     if definition.scope ~= nil and type(definition.scope) ~= "table" then return failure("INVALID_SCHEMA", "scope") end
     ok, err = I.Boundary:ValidateScope(definition.scope or {},"scope")
     if not ok then return nil, err end
@@ -260,7 +264,7 @@ function P:Register(definition)
         onHostAttached = adoptRecords, onEnabled = start, onDisabled = stop }, { public = true })
     if not draft then return nil, err end
     ok, err = draft:RegisterSearchSource({ id = "records", title = definition.title, version = 2, revision = 1,
-        priority = 0, scope = definition.scope or {}, snapshot = function() return entry.records end })
+        priority = 0, scope = definition.scope or {}, searchable=definition.searchable, snapshot = function() return entry.records end })
     if not ok then draft:Abort(); return nil, err end
     for id, view in pairs(definition.views or {}) do
         ok, err = draft:RegisterPanelFactory({ id = id, create = view.create, stateSchema = view.stateSchema })

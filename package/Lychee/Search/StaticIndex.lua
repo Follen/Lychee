@@ -139,7 +139,7 @@ local function buildEntry(source, record)
         categoryID = categoryID(record),
         categoryOrder = categoryOrder(record),
     }
-    if not source.enabled then entry.fields = nil; return entry end
+    if not source.enabled or source.searchable==false then entry.fields = nil; return entry end
     addText(entry, "title", record.title, record.scope or source.scope)
     addText(entry, "alias", record.aliases, record.scope or source.scope)
     addText(entry, "keyword", record.keywords, record.scope or source.scope)
@@ -167,7 +167,7 @@ end
 
 local function installEntry(self, entry)
     self.entries[entry.key] = entry
-    if entry.source.enabled then updateMemberships(self, entry, addSet); entry.indexed = true end
+    if entry.source.enabled and entry.source.searchable~=false then updateMemberships(self, entry, addSet); entry.indexed = true end
 end
 
 local function removeEntry(self, entry)
@@ -264,6 +264,7 @@ function Index:RegisterSource(descriptor)
         generation = self.sourceGeneration,
         _generation = self.sourceGeneration,
         enabled = descriptor._enabled ~= false,
+        searchable = descriptor.searchable ~= false,
         extensionID = descriptor._extensionID or descriptor.extensionID,
         title = descriptor.title,
         extensionTitle = descriptor.extensionTitle,
@@ -580,7 +581,7 @@ function Index:Search(query, limit, filter, compact)
     local deadline = started and (started + self.fuzzyBudgetMS) or nil
     for candidateIndex = 1, #candidates do
         local entry = self.entries[candidates[candidateIndex]]
-        if entry and entry.source.enabled and matchesFilter(entry, filter) then
+        if entry and entry.source.enabled and entry.source.searchable~=false and matchesFilter(entry, filter) then
             local bestScore, bestField, bestText, bestType, bestDistance
             local allTokens = #queryTerms > 1
             if normalized == "" then bestScore, bestField, bestText, bestType = 1, "filter", "", "filter" end

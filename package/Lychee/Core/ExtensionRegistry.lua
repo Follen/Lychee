@@ -265,7 +265,7 @@ function Registry:_Publish(entry)
             local source=entry.sources[i]
             local sourceID=entry.id..":"..source.id
             source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled and entry.userEnabled
-            local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,revision=source.revision,title=source.title,extensionTitle=entry.descriptor.title,_enabled=source._enabled,_extensionID=entry.id})
+            local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,searchable=source.searchable,revision=source.revision,title=source.title,extensionTitle=entry.descriptor.title,_enabled=source._enabled,_extensionID=entry.id})
             if not registered then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","searchSource",entry.id) end
             local records=source.records
             if type(source.snapshot)=="function" then

@@ -1,6 +1,8 @@
 # lychee-sdk
 
-Provider API 2.2 / revision 2 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+Provider API 2.3 / revision 3 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+
+revision 3 新增可选 `searchable:boolean`，默认 true。`searchable=false` 的 entries 不参与通用搜索和别名召回，但仍支持更新、引用解析、动作及动态 query。使用时声明 `minApiRevision=3` 并检查 `Supports(2,3)`；旧 Provider 继续保持原行为。完整边界见接入教程。
 
 - [接入教程](../docs/SDK.md)
 - [协议参考](../docs/PROTOCOLS.md)

@@ -203,7 +203,10 @@ assert(#ownItem.payload.scoreRows==8 and ownItem.payload.scoreRows[2][2]=="限�
 assert(find("key","key:Player-2-2").payload.scoreRows[2][2]=="超时 +12","peer overtime must not appear timed")
 assert(find("key","key:Player-3-3").payload.scoreRows[1][2]=="未获取")
 assert(ownItem.searchRecord.actions[1].spellID==1286801)
-assert(find("地城1","key:Player-1-1"),"actual key dungeon remains searchable")
+for _,term in ipairs({"地城1","毒牙","我-甲服","keys","大秘境","key:","钥匙：毒牙"}) do
+    for _,item in ipairs(query(term)) do assert(item.providerID~="builtin.keystones","restricted key query: "..term) end
+end
+assert(find(" KEY ","key:Player-1-1") and find("钥匙","key:Player-1-1"))
 assert(find("分数","key:Player-1-1"),"score overview remains searchable")
 event(keys,"CHAT_MSG_ADDON","LibKS","12,601,2700","PARTY","同名")
 assert(not keys.members["同名-乙服"].received,"ambiguous short name rejected")
@@ -212,7 +215,8 @@ assert(find("key","key:Player-2-2").text:find("+12",1,true))
 stamp=stamp+2
 event(keys,"CHAT_MSG_ADDON","LibKS","13,602,2700","PARTY","同名-乙服");drain()
 local matched=query("毒牙")
-assert(#matched==1 and matched[1].id=="key:Player-2-2","only the actual matching key is returned")
+assert(#matched==0,"dungeon search never returns team keys, even matching keys")
+assert(find("key","key:Player-2-2").payload.mapID==602,"key trigger still returns updated member")
 stamp=stamp+2
 event(keys,"CHAT_MSG_ADDON","LibKS","12,601,2700","PARTY","同名-乙服");drain()
 local keyRevision=keys.handle:GetState().revision

@@ -144,8 +144,17 @@ local function build(self,put,checkpoint)
         checkpoint()
     end
 end
+local function buildQueryRows(self,put,checkpoint)
+    local rows={}
+    build(self,function(record,signature) rows[#rows+1]=record;put(record,signature) end,checkpoint)
+    self.pendingQueryRows=rows
+end
 M=C:New("builtin.keystones",L["队伍钥匙"],{"GROUP_ROSTER_UPDATE","BAG_UPDATE_DELAYED","CHALLENGE_MODE_MAPS_UPDATE",
-    "MYTHIC_PLUS_NEW_WEEKLY_RECORD","INSPECT_READY","SPELLS_CHANGED","CHAT_MSG_ADDON"},build)
+    "MYTHIC_PLUS_NEW_WEEKLY_RECORD","INSPECT_READY","SPELLS_CHANGED","CHAT_MSG_ADDON"},buildQueryRows)
+M.searchable=false
+function M:onReady()
+    self.queryRows=self.pendingQueryRows;self.pendingQueryRows=nil
+end
 M.members={}
 function M:onStart()
     roster(self)
@@ -155,6 +164,7 @@ function M:onStart()
     send(self,true)
 end
 function M:onStop()
+    self.queryRows,self.pendingQueryRows=nil,nil
     self.members={}; self.lastRequest=nil; self.lastReply=nil; self.lastQuery=nil
     self.sentMap,self.sentLevel,self.sentRating=nil,nil,nil
 end
@@ -182,11 +192,11 @@ function M:onEvent(event,prefix,message,channel,sender)
 end
 M.query=function(request,reply)
     local q=request.normalized
-    if request.filter and request.filter.sourceID=="builtin.keystones:records" or q=="key" or q=="keys" or q=="钥匙" then
+    if q=="key" or q=="分数" or q=="钥匙" then
         if not M.lastQuery or time()-M.lastQuery>=10 then
             M.lastQuery=time(); send(M,true); M:MarkDirty()
         end
-    end
-    reply({})
+        reply(M.queryRows or {})
+    else reply({}) end
 end
 I.Builtin.Keystones=M

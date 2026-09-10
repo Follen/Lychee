@@ -1,4 +1,27 @@
-# Lychee SDK：Provider API 2.2
+# Lychee SDK：Provider API 2.3
+
+## 是否参与通用搜索（revision 3）
+
+声明 `minApiRevision=3, searchable=false`，并用 `Lychee:Supports(2,3)` 检测 Host。省略 `searchable` 或设为 `true` 时沿用原行为；只接受布尔值，声明后不能通过 Update 修改。使用该字段必须至少 revision 3，scope.products 与 i18n 仍按 revision 2 的约定提供。
+
+`false` 排除静态 entries 的标题、描述、关键词、Provider aliases 和用户别名匹配，也排除来源／类别过滤直接列举；不等于禁用。entries 仍按原协议保存、更新、解析和执行，最近使用／固定引用不受影响。`query` 回调仍会收到查询，可自行精确匹配入口词并 `reply(entries)`；不匹配时 `reply({})`。延迟查询与动作权限沿用原契约，不增加专用 Host 特例。
+
+内置队伍钥匙采用此模式，只在规范化后完整等于 `key`、`分数` 或 `钥匙` 时返回队伍。忽略两端空格及英文大小写；副本名、角色名、`keys`、`大秘境`、前缀空查询不会触发。
+
+在完整 Provider 声明中加入以下字段，`currentEntries` 由 Provider 维护：
+
+```lua
+minApiRevision = 3,
+searchable = false,
+query = function(request, reply)
+    local q = request.normalized
+    if q == "key" or q == "分数" or q == "钥匙" then
+        reply(currentEntries)
+    else
+        reply({})
+    end
+end,
+```
 
 SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、坐骑、纹章、游戏菜单、首领、宏伟宝库和第三方示例使用同一接口。字段与限制见 [协议参考](PROTOCOLS.md)，编辑器类型见 [ApiStubs.lua](../lychee-sdk/ApiStubs.lua)。
 
