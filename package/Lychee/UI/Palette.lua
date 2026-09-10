@@ -484,8 +484,26 @@ function Palette:Create()
     Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
     Lychee.UI.Theme:SetTextColor(self.settingsTitle, "text")
     self.settingsTitle:SetText("荔枝设置"); self.settingsTitle:Hide()
-    self.settingsBack = components:CreateButton(self.header, {width=72,height=28,point="RIGHT",relativePoint="RIGHT",x=-72,
-        text="返回搜索",colors={normal="transparent",hover="surfaceHover"},onClick=function() self:CloseSettings() end})
+    self.settingsBack = components:CreateButton(self.header, {
+        width = 90, height = 28, point = "RIGHT", relativePoint = "RIGHT", x = -66,
+        text = "返回搜索",
+        colors = { normal = "transparent", hover = "surfaceHover", pressed = "surfaceSelected" },
+        textColors = { normal = "textMuted", hover = "text", pressed = "text" },
+        onClick = function() self:CloseSettings() end,
+    })
+    local backLabel = self.settingsBack.label
+    Lychee.UI.Theme:SetFont(backLabel, "body")
+    backLabel:ClearAllPoints()
+    backLabel:SetPoint("LEFT", self.settingsBack.frame, "LEFT", 26, 0)
+    backLabel:SetPoint("RIGHT", self.settingsBack.frame, "RIGHT", -10, 0)
+    backLabel:SetJustifyH("LEFT")
+    for direction = -1, 1, 2 do
+        local stroke = self.settingsBack.frame:CreateTexture(nil, "ARTWORK")
+        stroke:SetSize(6, 1.25)
+        stroke:SetPoint("CENTER", self.settingsBack.frame, "LEFT", 13, direction * 1.9)
+        Lychee.UI.Theme:SetColorTexture(stroke, "textMuted")
+        stroke:SetRotation(direction * math.pi / 4)
+    end
     self.settingsBack.frame:Hide()
     self.closeComponent = components:CreateButton(self.header, {
         width = 38, height = 26, point = "RIGHT", relativePoint = "RIGHT", x = -16,

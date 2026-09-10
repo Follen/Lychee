@@ -51,6 +51,7 @@ local function object(kind, parent)
     function o:CreateTexture() return object("Texture", self) end
     function o:CreateFontString() return object("FontString", self) end
     function o:SetTexture(v) self.texture = v end
+    function o:SetRotation(radians) self.rotation = radians end
     function o:SetColorTexture() end
     function o:SetTextColor(...) self.textColor = { ... } end
     function o:SetText(v) self.text = v end

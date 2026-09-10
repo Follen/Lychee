@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "data": {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetRotation",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleTextureBaseAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "524: \t\t\tName = \"SetRotation\",\n525: \t\t\tType = \"Function\",\n526: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Rotation },\n527: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n528: \n529: \t\t\tArguments =\n530: \t\t\t{\n531: \t\t\t\t{ Name = \"radians\", Type = \"number\", Nilable = false },\n532: \t\t\t\t{ Name = \"normalizedRotationPoint\", Type = \"vector2\", Mixin = \"Vector2DMixin\", Nilable = true },\n533: \t\t\t},\n534: \t\t},",
+        "contentHash": "41ce287e9ad62e977de38d180d91fb9ed54b425f7f68ee3bdaffd77619572586",
+        "line": 524,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+}
