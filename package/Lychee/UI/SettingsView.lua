@@ -44,6 +44,7 @@ local providerDescriptions = {
     ["builtin.achievements"]=L["搜索成就、查看进度与分享链接"],
     ["builtin.addon-inspector"]=L["指向界面，识别来源插件"],
     ["builtin.ellesmere"]=L["用 EUI：搜索设置页面或解锁界面"],
+    ["builtin.exwind"]=L["用 EX：搜索设置页面或解锁界面"],
 }
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local providerIcons = {

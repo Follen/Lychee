@@ -434,6 +434,9 @@
       "provider": "builtin.ellesmere"
     },
     {
+      "provider": "builtin.exwind"
+    },
+    {
       "path": "Builtin/Init.lua",
       "products": [
         "retail",
@@ -444,6 +447,14 @@
     }
   ],
   "providers": [
+    {
+      "id": "builtin.exwind",
+      "module": "Exwind",
+      "products": ["retail"],
+      "files": ["Builtin/Exwind/Provider.lua"],
+      "requires": [],
+      "locales": "Builtin/Exwind/Locales.lua"
+    },
     {
       "id": "builtin.ellesmere",
       "module": "Ellesmere",

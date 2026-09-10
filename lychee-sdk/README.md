@@ -13,6 +13,7 @@ revision 3 新增可选 `searchable:boolean`，默认 true。`searchable=false` 
 - [接入教程](../docs/SDK.md)
 - [协议参考](../docs/PROTOCOLS.md)
 - [Ellesmere 动态设置适配](../docs/validation/2026-09-11-ellesmere-provider.md)：使用现有 revision 6 前缀、延迟查询、稳定引用和普通动作，不新增 Host 专用协议。上游没有索引枚举接口时，区分动态页面目录与被动收集的具体设置，不以 hook 宣称完整覆盖。
+- [Exwind 动态设置适配](../docs/validation/2026-09-11-exwind-provider.md)：复用 revision 6，只读第三方公开的模块、静态布局与路由声明；分批搜索、点击时重新校验目标，不为索引执行布局生成函数或创建设置框体。
 - [开发与验证](../docs/DEVELOPMENT.md)：示例安装、依赖与检查步骤。
 - `ApiStubs.lua`：LuaLS 类型声明，仅供编辑器使用，不写入运行时 TOC。
 - `LycheeAPI.lua`：可选的 facade 检测、版本判断和 RegisterProvider 转发。
