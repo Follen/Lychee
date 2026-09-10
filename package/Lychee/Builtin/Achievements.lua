@@ -3,25 +3,31 @@ local N=I.Search.Normalizer
 local M
 local LIMIT=32768
 local function combat() return InCombatLockdown and InCombatLockdown() end
-local function build(self,_,checkpoint)
+local function fullBuild(self,checkpoint)
     if not GetCategoryList or not GetAchievementInfo then error("ACHIEVEMENT_API_UNAVAILABLE") end
-    local ids,texts,seen={},{},{}
+    local ids,texts,seen,counts={},{},{},{}
+    local bytes=0
     local function add(id)
         if not id or seen[id] then return false end
         seen[id]=true
         local found,name=GetAchievementInfo(id)
         if found and name then
             if #ids>=LIMIT then error("ACHIEVEMENT_CATALOG_LIMIT") end
-            ids[#ids+1]=id;texts[#texts+1]=N:Normalize(name)
+            local text=N:Normalize(name)
+            bytes=bytes+#text
+            if #text>512 or bytes>4194304 then error("ACHIEVEMENT_TEXT_LIMIT") end
+            ids[#ids+1]=id;texts[#texts+1]=text
         end
         checkpoint()
         return true
     end
     local categories=GetCategoryList()
+    if #categories>512 then error("ACHIEVEMENT_CATEGORY_LIMIT") end
     for _,category in ipairs(categories) do
         -- Match the category-index domain used by Blizzard's achievement list.
         -- Superseded stages are added through the series APIs below.
         local total=GetCategoryNumAchievements(category) or 0
+        counts[category]=total
         for index=1,total do
             local id=GetAchievementInfo(category,index)
             if add(id) then
@@ -33,7 +39,111 @@ local function build(self,_,checkpoint)
         end
         checkpoint()
     end
-    self.ids,self.texts=ids,texts
+    local positions={}
+    for index,id in ipairs(ids) do positions[id]=index;checkpoint() end
+    local cache={key=self.cacheKey,ids=ids,texts=texts,counts=counts,builtAt=GetServerTime(),bytes=bytes}
+    LycheeDB.achievementCatalog=cache
+    self.ids,self.texts,self.positions,self.cache=ids,texts,positions,cache
+    self.pendingIDs,self.pendingCount={},0
+    self.forceFull=nil
+end
+local function identityKey()
+    local r=I.Search.RuntimeIdentity:Current()
+    local guid=UnitGUID("player")
+    if type(guid)~="string" then error("ACHIEVEMENT_IDENTITY_PENDING") end
+    return table.concat({"achievement-v1",r.product,r.build,r.locale,guid},"|")
+end
+local function integer(v) return type(v)=="number" and v>0 and v<=2147483647 and v==math.floor(v) end
+local function restore(self,checkpoint)
+    local examined=0
+    local function metadataCheckpoint()
+        examined=examined+1
+        if examined%16==0 then checkpoint() end
+    end
+    local cache=LycheeDB.achievementCatalog
+    if type(cache)~="table" or cache.key~=self.cacheKey or type(cache.ids)~="table" or type(cache.texts)~="table" or type(cache.counts)~="table" then return false end
+    local stamp=cache.builtAt
+    local now=GetServerTime()
+    if type(stamp)~="number" or stamp~=stamp or stamp>now or stamp<now-604800 then return false end
+    local n=#cache.ids
+    if n<1 or n>LIMIT or #cache.texts~=n then return false end
+    local count=0
+    for k in pairs(cache.ids) do
+        count=count+1;if count>LIMIT or not integer(k) or k>n then return false end
+        metadataCheckpoint()
+    end
+    if count~=n then return false end
+    count=0
+    for k in pairs(cache.texts) do
+        count=count+1;if count>LIMIT or not integer(k) or k>n then return false end
+        metadataCheckpoint()
+    end
+    if count~=n then return false end
+    local positions,bytes={},0
+    for index=1,n do
+        local id,text=cache.ids[index],cache.texts[index]
+        if not integer(id) or positions[id] or type(text)~="string" or #text>512 then return false end
+        bytes=bytes+#text;if bytes>4194304 then return false end
+        positions[id]=index;metadataCheckpoint()
+    end
+    count=0
+    for id,total in pairs(cache.counts) do
+        count=count+1
+        if count>512 or not integer(id) or type(total)~="number" or total<0 or total>LIMIT or total~=math.floor(total) then return false end
+        metadataCheckpoint()
+    end
+    local categories=GetCategoryList()
+    if #categories~=count then return false end
+    for _,category in ipairs(categories) do
+        if cache.counts[category]~=(GetCategoryNumAchievements(category) or 0) then return false end
+        checkpoint()
+    end
+    cache={key=self.cacheKey,ids=cache.ids,texts=cache.texts,counts=cache.counts,builtAt=stamp,bytes=bytes}
+    LycheeDB.achievementCatalog=cache
+    self.ids,self.texts,self.positions,self.cache=cache.ids,cache.texts,positions,cache
+    return true
+end
+local function increment(self,checkpoint)
+    local seen={}
+    local function add(id)
+        if not integer(id) or seen[id] then return false end
+        seen[id]=true
+        local found,name=GetAchievementInfo(id)
+        if not found or not name then error("ACHIEVEMENT_DATA_PENDING") end
+        local text=N:Normalize(name)
+        local index=self.positions[id]
+        local bytes=self.cache.bytes-(index and #self.texts[index] or 0)+#text
+        if #text>512 or bytes>4194304 or (not index and #self.ids>=LIMIT) then error("ACHIEVEMENT_CATALOG_LIMIT") end
+        index=index or #self.ids+1
+        self.ids[index],self.texts[index],self.positions[id]=id,text,index
+        self.cache.bytes=bytes
+        checkpoint()
+        return true
+    end
+    for id in pairs(self.pendingIDs) do
+        if add(id) then
+            local previous=GetPreviousAchievement(id)
+            while add(previous) do previous=GetPreviousAchievement(previous) end
+            local nextID=GetNextAchievement(id)
+            while add(nextID) do nextID=GetNextAchievement(nextID) end
+        end
+        local category=GetAchievementCategory(id)
+        if category and self.cache.counts[category]~=nil then
+            self.cache.counts[category]=GetCategoryNumAchievements(category) or 0
+        end
+        self.pendingIDs[id]=nil;self.pendingCount=self.pendingCount-1
+        checkpoint()
+    end
+end
+local function build(self,_,checkpoint)
+    if self.restoreCache then
+        self.cacheKey=identityKey()
+        local restored=restore(self,checkpoint)
+        self.restoreCache=nil
+        if not restored then LycheeDB.achievementCatalog=nil;self.forceFull=true end
+    end
+    if not self.ids or self.forceFull then fullBuild(self,checkpoint)
+    elseif self.pendingCount>0 then increment(self,checkpoint) end
 end
 local function record(id)
     local found,name,points,completed,_,_,_,description,_,icon=GetAchievementInfo(id)
@@ -79,14 +189,35 @@ M.resolve=function(key)
 end
 M.batchSize,M.batchDelay=128,0
 function M:onReady()
+    self.needsWork=false
     local resume=self.resumeQuery;self.resumeQuery=nil
     if resume then resume()
     elseif I.Search.Session then I.Search.Session:SourceChanged("achievements-ready") end
 end
-function M:onStart() self.lastError=nil end
+function M:onStart()
+    self.lastError=nil;self.restoreCache=true;self.needsWork=true
+    self.pendingIDs,self.pendingCount={},0
+end
+function M:MarkDirty()
+    if combat() and self.cancelQuery then self.cancelQuery() end
+    if not self.needsWork then return end
+    return I.Builtin.CatalogProvider.MarkDirty(self)
+end
+function M:onEvent(event,id)
+    if event=="ACHIEVEMENT_EARNED" then
+        if not integer(id) then return end
+        if not self.pendingIDs[id] then
+            if self.pendingCount>=256 then self.forceFull=true
+            else self.pendingIDs[id]=true;self.pendingCount=self.pendingCount+1 end
+        end
+        self.needsWork=true
+    end
+    self:MarkDirty()
+end
 function M:onStop()
     if self.cancelQuery then self.cancelQuery();self.cancelQuery=nil end
-    self.ids,self.texts=nil,nil
+    self.ids,self.texts,self.positions,self.cache=nil,nil,nil,nil
+    self.pendingIDs,self.pendingCount,self.needsWork=nil,0,false
 end
 M.query=function(request,reply)
     if M.cancelQuery then M.cancelQuery() end

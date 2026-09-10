@@ -1,4 +1,10 @@
 local timers,frames,combat={},0,false
+local apiReads=0
+local serverTime=1000000
+local character="Player-fixture"
+function GetServerTime() return serverTime end
+function UnitGUID() return character end
+function GetAchievementCategory() return 1 end
 function GetLocale() return "zhCN" end
 function GetBuildInfo() return "12.1.0","69587","fixture",120100 end
 function InCombatLockdown() return combat end
@@ -33,6 +39,7 @@ local reads,complete,shift,linked,opened=0,false,false,nil,nil
 function GetCategoryList() reads=reads+1;return {1} end
 function GetCategoryNumAchievements(_,all) return all and 6003 or 6000 end
 function GetAchievementInfo(id,index)
+    apiReads=apiReads+1
     if index and index>6000 then error("Invalid achievement index") end
     if index then id=index end
     if id<1 or id>6002 then return end
@@ -77,9 +84,9 @@ end
 local actual
 I.Search.Query:Query("引领潮流",{visible=true},nil,function(items) actual=items end)
 drain();assert(actual and #actual==1 and actual[1].id=="achievement:6000","enabled achievement missing from real search")
-local previousReads=reads
+local previousReads,previousAPI=reads,apiReads
 M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",6000);drain()
-assert(reads==previousReads+1 and #M.ids==6002,"earned achievement refreshes catalogue")
+assert(reads==previousReads and apiReads==previousAPI+1 and #M.ids==6002,"earned achievement reads only its ID")
 I.Search.Query:Query("   ",{visible=true})
 assert(not I.Providers:HasPendingQuery(),"whitespace must not query all achievements")
 local categoryResults
@@ -122,4 +129,55 @@ assert(not M.ids and not M.texts and not M.job and not M.timer and not M.cancelQ
 assert(I.Registry:SetUserEnabled(M.id,true));combat=true;M:MarkDirty();assert(not M.timer)
 combat=false;M:MarkDirty();drain();assert(#M.ids==6002 and frames==baseFrames+1)
 assert(I.Registry:SetUserEnabled(M.id,false));drain()
+local saved=LycheeDB.achievementCatalog
+assert(saved and #saved.ids==6002,"cache persists while disabled")
+local beforeWarm=apiReads
+assert(I.Registry:SetUserEnabled(M.id,true));drain()
+assert(apiReads==beforeWarm and M.ids==saved.ids,"warm enable shares validated cache without achievement enumeration")
+local beforeIdle=reads
+combat=true;M.frame.onEvent(M.frame,"PLAYER_REGEN_DISABLED")
+assert(not M.timer and not M.job and not M.frame.events.PLAYER_REGEN_ENABLED,"idle combat does not schedule rebuild")
+combat=false
+local beforeGain=apiReads
+combat=true;M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",6000)
+assert(apiReads==beforeGain and M.pendingCount==1 and not M.timer,"combat queues ID only")
+combat=false;M.frame.onEvent(M.frame,"PLAYER_REGEN_ENABLED");drain()
+assert(apiReads==beforeGain+1 and M.pendingCount==0 and reads==beforeIdle,"combat recovery is incremental")
+I.Registry:SetUserEnabled(M.id,false)
+LycheeDB.achievementCatalog.ids[2]=LycheeDB.achievementCatalog.ids[1]
+local beforeCorrupt=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain()
+assert(apiReads>beforeCorrupt and #M.ids==6002,"duplicate historical IDs trigger rebuild")
+I.Registry:SetUserEnabled(M.id,false)
+serverTime=serverTime+604801
+local beforeExpired=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeExpired,"expired cache gets full audit")
+I.Registry:SetUserEnabled(M.id,false)
+character="Player-other"
+local beforeCharacter=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeCharacter,"character visibility is isolated")
+I.Registry:SetUserEnabled(M.id,false);drain()
+local beforeCounts=apiReads
+LycheeDB.achievementCatalog.counts[1]=5999
+I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeCounts,"offline category drift rebuilds")
+I.Registry:SetUserEnabled(M.id,false)
+I.Search.RuntimeIdentity.build="next-build"
+local beforeBuild=apiReads
+I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeBuild,"build signature invalidates cache")
+combat=true
+for id=1,257 do M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",id) end
+assert(M.pendingCount==256 and M.forceFull and not M.timer,"bounded event queue falls back to one full rebuild")
+combat=false;M.frame.onEvent(M.frame,"PLAYER_REGEN_ENABLED");drain()
+assert(M.pendingCount==0 and not M.forceFull)
+I.Registry:SetUserEnabled(M.id,false);drain()
+collectgarbage("collect");local warmBase=collectgarbage("count")
+local infoBefore,started=apiReads,os.clock()
+collectgarbage("stop")
+for n=1,10 do I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEnabled(M.id,false);drain() end
+local warmAlloc=collectgarbage("count")-warmBase
+local warmMs=(os.clock()-started)*1000
+collectgarbage("restart");collectgarbage("collect");local warmGrowth=collectgarbage("count")-warmBase
+assert(apiReads==infoBefore and warmAlloc<4096 and warmGrowth<64,"warm cycles do not enumerate or retain growth")
+print(string.format("Achievement warm10 cpu_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f achievement_reads=0",warmMs,warmAlloc,warmGrowth))
+print("Achievement cache PASS warm_info_reads=0 earned_info_reads=1 idle_combat_work=0 corrupt/expiry/character rebuild")
 print(string.format("Achievements PASS records=6002 retained_KiB=%.1f peak_batch_ms=%.2f frames=%d disabled_work=0",retained,peak,frames))

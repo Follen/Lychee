@@ -1,0 +1,92 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SystemTime.GetServerTime",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SystemTimeDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "30: \t\t\tName = \"GetServerTime\",\n31: \t\t\tType = \"Function\",\n32: \n33: \t\t\tReturns =\n34: \t\t\t{\n35: \t\t\t\t{ Name = \"time\", Type = \"number\", Nilable = false },\n36: \t\t\t},\n37: \t\t},",
+        "contentHash": "b0f6a65338eba5ab554ffa32bff791ff0912e3ea9f4a2e32093102729fc23adf",
+        "line": 30,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Unit.UnitGUID",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1213: \t\t\tName = \"UnitGUID\",\n1214: \t\t\tType = \"Function\",\n1215: \t\t\tSecretWhenUnitIdentityRestricted = true,\n1216: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1217: \n1218: \t\t\tArguments =\n1219: \t\t\t{\n1220: \t\t\t\t{ Name = \"unit\", Type = \"UnitTokenPvPRestrictedForAddOns\", Nilable = false },\n1221: \t\t\t},\n1222: \n1223: \t\t\tReturns =\n1224: \t\t\t{\n1225: \t\t\t\t{ Name = \"result\", Type = \"WOWGUID\", Nilable = true },\n1226: \t\t\t},\n1227: \t\t},",
+        "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+        "line": 1213,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_AchievementUI/Cata/Blizzard_AchievementUI.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "1804: \tend\n1805: \n1806: \tlocal tabIndex = 1;\n1807: \tlocal category = GetAchievementCategory(id);\n1808: \tif ( bit.band(flags, ACHIEVEMENT_FLAGS_GUILD) == ACHIEVEMENT_FLAGS_GUILD ) then\n1809: \t\ttabIndex = 2;\n1810: \tend",
+        "contentHash": "f603f7dfeef45ea6baaa5e63e9175b274767ed165d352ed6a0fe854f5d23b7a7",
+        "line": 1807,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AchievementInfoDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "93: \t\t{\n94: \t\t\tName = \"AchievementEarned\",\n95: \t\t\tType = \"Event\",\n96: \t\t\tLiteralName = \"ACHIEVEMENT_EARNED\",\n97: \t\t\tSynchronousEvent = true,\n98: \t\t\tPayload =\n99: \t\t\t{",
+        "contentHash": "4633463714eb2917b10858c3ccf750dd86459fbdf4b6acb4c96068ba14bf6f60",
+        "line": 96,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]
