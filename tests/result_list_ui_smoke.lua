@@ -111,6 +111,9 @@ parent:SetSize(720, 500)
 local list = _G.Lychee.UI.ResultList:Create(parent, controller)
 
 assert(#list.rows == 8, "eight visible result rows are precreated")
+local barTop,barBottom=list.scrollbar.frame.points[1],list.scrollbar.frame.points[2]
+assert(barTop[2]==parent and barTop[4]==0,"scrollbar right edge belongs to outer content gutter")
+assert(barBottom[2]==list.frame and barBottom[4]==Lychee.UI.Theme.Metrics.listInset,"scrollbar compensates for row inset")
 assert(list.gridColumns == 1 and list.frame:GetHeight() == 410, "result list uses a compact single column")
 for index = 1, 8 do
     local row = list.rows[index]

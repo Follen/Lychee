@@ -343,6 +343,10 @@ function ResultList:Create(parent, controller)
     self.scrollbar = Lychee.UI.Components:CreateScrollbar(frame, function(value)
         self:Scroll(math.floor(value + 0.5) - self.offset)
     end)
+    -- Keep the scrollbar in the content gutter, outside the indented rows.
+    self.scrollbar.frame:ClearAllPoints()
+    self.scrollbar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,-12)
+    self.scrollbar.frame:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",inset,2)
 
     for index = 1, tiles do
         local row = CreateFrame("Button", nil, frame)
