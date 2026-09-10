@@ -55,3 +55,9 @@ source list/check 确认本机 retail 对应 live 最新版本，无待更新。
 | Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua | 915 | `Name = "SetTextInsets"`，参数 left/right/top/bottom 均为 uiUnit；文本框内距 |
 
 本轮全部修改限于 Lychee 自有区域，不更改共享字体或 Blizzard 框架。战斗时沿用原有窗口关闭；没有新增战斗路径工作。交付后 `/reload` 即可加载；真实客户端中英文、缩放、输入边界与鼠标反馈仍待用户验证。
+
+## 后续调整：移除行内操作下划线
+
+用户实机反馈后，删除编辑／添加按钮的下划线及对应公共样式分支，保留纯文字、右对齐和红色 hover。DESIGN.md 已更新；以上下划线描述仅记录上一版实现。每个详情页减少两条纹理，不增加对象、事件或驱动，配置与点击行为不变。
+
+完整 check_contract、wowdoc validate（71 Lua，无诊断）、diff --check 通过；实际 Lua 布局离线预览确认无下划线，游戏内观感仍待验证。本次移除装饰，不新增 API；查档 sourceId=wow-ui-source、product=retail、requestedRef=latest、resolvedCommit=8ea15b61e45c0ed4eba01439c90757f86eb78d34，SimpleEditBoxAPIDocumentation.lua:902（Interface/AddOns/Blizzard_APIDocumentationGenerated/），excerpt `Name = "SetTextColor"`。原始检查日志 `.codex/no-action-underline-checks.txt`。

@@ -253,16 +253,6 @@ function Components:CreateNavigationButton(parent, options)
             end
         end
         component:SetDirection(options.direction)
-    elseif options.underline then
-        local line=component.frame:CreateTexture(nil,"ARTWORK");component.strokes={line}
-        line:SetHeight(1);line:SetPoint("BOTTOMRIGHT",component.label,"BOTTOMRIGHT",0,4)
-        local set=component.SetText
-        function component:SetText(value)
-            local changed=set(self,value)
-            local measured=self.label.GetStringWidth and self.label:GetStringWidth() or 32
-            line:SetWidth(measured);return changed
-        end
-        component:SetText(options.text)
     end
     component._state=nil;component:RefreshPointerState()
     function component:SetSelected(selected)

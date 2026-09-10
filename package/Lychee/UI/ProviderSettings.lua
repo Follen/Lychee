@@ -31,10 +31,10 @@ function P:Create(parent,controller,onBack)
         text:SetPoint("TOPLEFT",frame,"TOPLEFT",x,y);text:SetSize(w or width,22);text:SetJustifyH("LEFT");text:SetText(value)
         return text
     end
-    local function button(value,x,y,w,fn,container,height,navigation,primary,direction,underline)
+    local function button(value,x,y,w,fn,container,height,navigation,primary,direction)
         local b
         container=container or frame
-        b=UI.Components:CreateNavigationButton(container,{text=value,width=w,height=height or 28,primary=primary,direction=direction,underline=underline,onClick=function()
+        b=UI.Components:CreateNavigationButton(container,{text=value,width=w,height=height or 28,primary=primary,direction=direction,onClick=function()
             local pressed=b.press;b.press=nil
             if current() and (pressed==nil or pressed==view.generation) then fn() end
         end})
@@ -94,7 +94,7 @@ function P:Create(parent,controller,onBack)
             text:SetPoint("LEFT",chip,"LEFT",0,0);text:SetJustifyH("LEFT")
             field.tokens[index]={frame=chip,label=text};chip:Hide()
         end
-        field.edit=button(L["编辑"],valueX,0,140,function() view:BeginEdit(kind) end,nil,28,true,false,nil,true)
+        field.edit=button(L["编辑"],valueX,0,140,function() view:BeginEdit(kind) end,nil,28,true)
         local input=CreateFrame("EditBox",nil,frame);field.input=input
         input:SetSize(valueWidth,32);input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0)
         UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text");if input.SetMaxBytes then input:SetMaxBytes(400) end
