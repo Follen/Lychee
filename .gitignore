@@ -1,5 +1,7 @@
 .codex/
+# Local research checkouts and design-tool state are not project source.
 analyze/
+.impeccable/
 AGENTS.md
 tools/__pycache__/
 # >>> Comet managed project state >>>

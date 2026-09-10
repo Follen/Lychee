@@ -1,78 +1,184 @@
-# Lychee
+<div align="center">
 
-Lychee 是 World of Warcraft 游戏内的通用搜索工具。Provider 提供可搜索条目及其交互，Host 负责搜索、排序、统一展示、最近使用与执行约束。内置功能和第三方插件使用同一套公共 SDK；业务种类不由框架枚举。
+<img src="package/Lychee/Media/lychee-logo.png" width="88" alt="荔枝标识">
 
-`package/Lychee` 是唯一运行时 AddOn。`lychee-sdk` 是开发包，不作为独立插件安装。默认快捷键为 Alt+Space，也可在游戏按键设置中修改。
+# 荔枝启动器
 
-## 项目目录
+**技能、物品、设置，一个入口。**
 
-运行时内部的功能归属、生成文件和扩展步骤见 [项目结构与维护入口](docs/PROJECT_STRUCTURE.md)。
+按下 <kbd>Alt</kbd> + <kbd>Space</kbd>，输入你要找的内容。
 
-| 目录 | 职责 |
-|---|---|
-| `package/Lychee/` | 唯一游戏运行时，安装时复制这个目录 |
-| `package/Lychee/PublicAPI/` | Host 提供给其他插件调用的公共接口实现 |
-| `lychee-sdk/` | 开发者使用的类型声明、接入文档和示例；不是另一个运行时 |
-| `tools/` | TOC、游戏目录和图标的生成工具，见 [工具说明](tools/README.md) |
-| `tests/` | 契约、交互和性能验证 |
-| `assets/` | 图标等可编辑源素材 |
-| `docs/` | 架构、协议、开发说明与历史验证记录 |
+[简体中文](README.md) · [English](README.en.md)
 
-根目录不再保留重复的 SDK 导航或空的源码目录。隐藏工具目录和本地 `analyze/` 不属于插件发布内容。
+[![版本](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](package/Lychee/Lychee.toc)
+[![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](package/Lychee)
+[![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
+[![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
 
-## 安装与升级
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r6-536b85?style=flat-square)](docs/SDK.md)
+[![许可](https://img.shields.io/badge/license-非商业%20·%20署名-d53c49?style=flat-square)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
+[![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
 
-将 `package/Lychee` 文件夹复制到对应客户端的 `Interface/AddOns/Lychee`，确认 `Lychee.toc` 直接位于该目录下。首次安装或 TOC/模块列表变化后重启客户端。本仓库的检查、提交和正式服同步顺序见 [开发与验证](docs/DEVELOPMENT.md)。
+[安装](#install) · [试着搜一下](#search) · [插件设置直达](#integrations) · [开发 Provider](#developers)
 
-Alt+Space 仅在没有已有 Lychee 绑定且该组合键未被占用时自动设置。空输入显示最近使用，右键打开动作菜单；Enter 执行普通动作，技能施放需要真实鼠标点击。战斗中不能呼出搜索。
+<img src="docs/media/search-spells.png" width="960" alt="游戏内实机截图：搜索奥术，展示奥术智慧、奥术宝珠、奥术冲击等技能，匹配文字以荔枝红高亮。">
 
-0.2.0 使用 Provider API 2 / revision 6，兼容 revision 1/2/3/4/5。普通搜索与两类快捷入口可独立组合，并保留旧模式及独立查询声明；点击功能来源进入二级管理页，可开关普通搜索、配置直接打开列表与来源内搜索的入口。队伍钥匙默认由 key／钥匙／分数精确触发。本次 revision 更新不改变 SavedVariables schema；从 schema 1 升级仍沿用原有整份 `LycheeDB` 重置规则。未声明客户端范围的旧 Provider 仅在正式服启用。第三方集成须使用 `RegisterProvider`。
+<sub>游戏内实机截图 · 搜索「奥术」</sub>
 
-## 开发文档
+</div>
 
-- [架构](docs/ARCHITECTURE.md)：模块职责、生命周期、扩展边界。
-- [SDK 接入](docs/SDK.md)：API 2 快速开始和可运行示例。
-- [协议参考](docs/PROTOCOLS.md)：字段、限制、错误和行为约定。
-- [SDK 开发包](lychee-sdk/README.md)：LuaLS 类型、辅助函数和第三方示例。
-- [开发与验证](docs/DEVELOPMENT.md)：环境要求、检查命令、示例安装和客户端验收。
-- [产品约定](PRODUCT.md) 与 [界面设计](DESIGN.md)：产品范围、交互和视觉规范。
-- [框架决策](docs/architecture/2026-09-10-provider-framework.md)：方案比较、取舍和验收范围。
-- `docs/comet/` 保留先前工作流的规格与历史；当前 Provider API 2 以以上架构与协议文档为准。
+想用一个技能，却不记得它放在哪条动作栏；想改一个设置，却不记得它藏在哪层菜单。荔枝让你从**名字**出发：找到它，然后施放、使用、切换，或打开对应页面。
 
-## 当前实现
+<a id="search"></a>
 
-已实现静态目录和增量更新、同步或延迟查询、当前条目恢复、普通回调动作、技能安全动作、独立拖动、托管视图和动作菜单。所有内置功能通过公共 Provider API 注册：
+## 试着搜一下
 
-| Provider | 搜索与点击行为 |
-|---|---|
-| 玩家技能 | 搜索当前角色技能，使用现有技能安全动作与拖动 |
-| Ellesmere UI（正式服） | 在功能来源中启用后，用 `EUI：悬停施法` 搜索动态页面、`EUI：解锁` 进入解锁模式。已观察到的具体设置可定位分区和控件；首次启用前或尚未注册的具体设置不保证齐全。详见 [接入边界与验证](docs/validation/2026-09-11-ellesmere-provider.md) |
-| Exwind（正式服） | 在功能来源中启用后，用 `EX：自动修理` 搜索 ExwindTools、EXBoss 等已注册模块和静态设置名称，点击打开所在设置页；`EX：解锁` 进入编辑模式。支持 `ex:`、`Ex:`、`EX:` 和中文冒号。私有页面与函数生成的设置不保证齐全，详见 [接入边界与验证](docs/validation/2026-09-11-exwind-provider.md) |
-| 纹章 | 搜索“纹章 / 神话 / 英雄 / 勇士 / 老兵 / 冒险者”等，统一命中“纹章”；点击在搜索框内容区显示当前角色五档迷雾纹章数量 |
-| 游戏菜单 | 34 个带语义图标的入口，覆盖角色、声望、货币、天赋、收藏、社交、组队、PvP、宏和设置等；包含旅程、旅行者日志、推荐玩法、地下城、团队副本、教程六个指南页签直达入口 |
-| 首领 | 搜索首领名或副本/团本名，选择首领后直接打开对应冒险指南页面；目录含 1,154 个首领、214 个分组 |
+| 想做什么 | 输入什么 | 找到之后 |
+| :--- | :--- | :--- |
+| 找角色已学会的技能 | `变形术` | 点击施放，也能拖到动作栏 |
+| 找背包里的东西 | `炉石` | 点击使用；右键可定位背包格子 |
+| 打开游戏页面 | `传家宝` | 直接打开传家宝收藏 |
+| 分享一个成就 | `引领潮流` | 找到成就，Shift + 左键贴入聊天框 |
+| 看小队钥匙 | `key`、`钥匙` 或 `分数` | 显示队伍钥匙和分数（正式服） |
+| 只找技能，不混入其他内容 | `技能：变形术` | 仅显示玩家技能中的匹配项 |
 
-纹章与首领目录的生成基线为正式服 `12.1.0.69587 / zhCN`；英文首领和副本名称通过客户端原生冒险指南 API 分批读取，临时缺失时显示英文 ID 占位并在相关模块加载后更新。纹章图标为神话迷雾纹章；数量来自角色实时货币 API，只在视图显示期间监听变化。首领使用副本图标，旧团本没有攻略章节的首领也保留。目录更新与验证见 [内置 Provider 记录](docs/validation/2026-09-10-builtin-providers.md)。
+技能、背包和成就的结果取决于当前角色及客户端；首次整理成就目录时会显示“搜索中”，准备好后自动更新。
 
-游戏菜单使用统一的透明线条图标，按功能语义生成；[图标预览](docs/architecture/2026-09-10-menu-icons.png) 与 [页签验收记录](docs/validation/2026-09-10-menu-icons-and-journal-tabs.md) 可供核对。“地下城 / 团队副本”打开冒险指南目录；“地下城查找器 / 团队查找器”打开组队页面。
+### 常用的，留在手边
 
-API 2 不提供旧 SDK 适配；SavedVariables 使用全新的 schema 2，不迁移旧历史或索引。
+- **固定**：把常用内容放在搜索首页，空着搜索框就能用。
+- **别名**：右键给某个条目起个好记的名字，例如给传送门设为 `回家`；在设置里统一管理。
+- **记住选择**：同一个搜索词，下次优先照顾你之前选过的结果。
+- **命中高亮**：中文、英文匹配部分直接标出，扫一眼就能确认。
 
-在仓库根目录执行 `pwsh -File tests/check_contract.ps1` 运行契约检查。真实 WoW 的视觉、硬件点击、战斗/taint 和 CPU/帧时间仍须在客户端验证，离线测试不能替代这些证据。
+### 搜索范围，由你决定
+
+在 **设置 → 功能来源 → 选择一个功能** 中，可以分别调整：
+
+| 设置 | 用起来是什么样 |
+| :--- | :--- |
+| 普通搜索 | 直接输入内容名称，就能找到这个功能的结果 |
+| 搜索前缀 | 输入 `技能：变形术`，只查玩家技能 |
+| 快捷关键词 | 将 `abc` 设为入口，完整输入 `abc` 时直接显示该功能的结果 |
+
+三种入口可以同时存在。**别名对应一个条目，快捷关键词对应整个功能来源**；例如 `回家` 找一个传送门，`key` 查看队伍钥匙。
+
+<table>
+<tr>
+<td width="50%" align="center"><a href="docs/media/search-achievements.png"><img src="docs/media/search-achievements.png" alt="成就搜索实机截图：显示完成状态和 Shift 点击分享提示。"></a></td>
+<td width="50%" align="center"><a href="docs/media/provider-settings.png"><img src="docs/media/provider-settings.png" alt="功能来源管理实机截图：分别启用、关闭和管理各个功能。"></a></td>
+</tr>
+<tr>
+<td align="center"><strong>找到成就，顺手分享</strong><br>完成状态与聊天分享入口放在结果旁</td>
+<td align="center"><strong>用哪些功能，自己选</strong><br>按来源开关，也能单独调整搜索入口</td>
+</tr>
+</table>
+
+<sub>点击截图查看原图。</sub>
+
+<a id="integrations"></a>
+
+## 插件里的设置，也能直达
+
+正式服安装对应插件后，在功能来源里启用集成，再用前缀搜索：
+
+| 插件 | 搜索示例 | 打开哪里 |
+| :--- | :--- | :--- |
+| **Ellesmere UI** | `EUI：悬停施法` | 已收集到的设置页；有定位信息时可跳到分区或控件 |
+| **Ellesmere UI** | `EUI：解锁` | 解锁模式 |
+| **Exwind** | `EX：自动修理` | ExwindTools、ExBoss 等已注册模块中的对应设置页 |
+| **Exwind** | `EX：解锁` | 编辑模式 |
+
+默认只有带前缀的搜索会进入这两个集成。`EUI:` / `eui:`、`EX:` / `ex:` 和中文冒号都可以。
+
+目录从已安装插件的注册数据中收集。尚未生成或未公开注册的设置可能暂时搜不到；集成不会保证覆盖插件里的每一个选项。
+
+**不知道一个界面属于哪个插件？** 搜索 `插件识别`，进入后用鼠标指向它：浮窗跟随鼠标，显示来源或推测结果；按住 <kbd>Shift</kbd> 展开详情，<kbd>Esc</kbd> 退出。
+
+<a id="install"></a>
+
+## 安装
+
+1. [下载仓库 ZIP](https://github.com/Follen/Lychee/archive/refs/heads/main.zip)，解压。
+2. 把里面的 **`package/Lychee` 整个文件夹**复制到你所用客户端的 `Interface/AddOns/`。
+3. 重启游戏，在插件列表启用 **荔枝启动器**，按 <kbd>Alt</kbd> + <kbd>Space</kbd>。
+
+最终目录应是这样：
+
+```text
+Interface/
+└── AddOns/
+    └── Lychee/
+        ├── Lychee.toc
+        ├── Lychee_Mainline.toc
+        ├── Bootstrap.lua
+        └── …
+```
+
+**不要把解压后的整个仓库放进 AddOns。** `lychee-sdk`、`docs` 和 `assets` 都不需要安装。仓库 ZIP 是当前开发版本。
+
+快捷键已被其他功能占用时，荔枝不会覆盖它；可在游戏的按键设置里重新绑定。
+
+| 操作 | 按键 |
+| :--- | :--- |
+| 打开搜索 | <kbd>Alt</kbd> + <kbd>Space</kbd>（默认） |
+| 选择结果 | <kbd>↑</kbd> / <kbd>↓</kbd> |
+| 执行普通动作 | <kbd>Enter</kbd> 或左键 |
+| 查看条目动作 | 右键 |
+| 退出 | <kbd>Esc</kbd> |
+
+受游戏安全规则限制，战斗中不能呼出搜索；施放技能等安全动作需要真实鼠标点击。
+
+<a id="clients"></a>
 
 ## 客户端与语言
 
-荔枝启动器 / Lychee Launcher：魔兽世界万用启动器。游戏中的“荔枝 / Lychee”使用荔枝红，其余名称保持正常颜色。
+同一个安装目录包含四套客户端加载清单，按客户端提供适用的功能。
 
-| 客户端 | TOC | 当前 Interface |
-|---|---|---|
-| World of Warcraft（正式服） | Lychee_Mainline.toc | 120100 |
-| Mists of Pandaria Classic（熊猫人之谜怀旧服） | Lychee_Mists.toc | 50504 |
-| Titan Reforged（泰坦重铸服务器「时光」） | Lychee_Wrath.toc | 38002 |
-| Burning Crusade Classic Anniversary Edition（燃烧的远征周年纪念版） | Lychee_TBC.toc | 20506 |
+| 客户端 | 通用功能¹ | 坐骑 · 装备方案 · 成就 | 正式服功能² |
+| :--- | :---: | :---: | :---: |
+| **World of Warcraft** · 正式服 | ✓ | ✓ | ✓ |
+| **Mists of Pandaria Classic** · 熊猫人之谜怀旧服 | ✓ | ✓ | — |
+| **Titan Reforged** · 泰坦重铸「时光」 | ✓ | ✓ | — |
+| **Burning Crusade Classic Anniversary Edition** · 燃烧的远征周年纪念版 | ✓ | — | — |
 
-Host 与每个 Provider 各自管理英文、中文文案；zhTW 回退 zhCN，enGB 回退 enUS。游戏物品、技能、成就等名称读取当前客户端原生语言。Provider 通过 `scope.products` 声明支持范围，API 2.2 同时要求注册自己的 `i18n`。
+¹ 技能、背包、游戏菜单、暴雪设置、插件识别。背包定位适配暴雪原生、ElvUI、NDUI 和 Ellesmere 背包界面。
 
-四客户端通用：技能、背包、游戏菜单、暴雪设置、插件识别。坐骑、装备方案、成就支持正式服／熊猫人之谜／泰坦重铸，并检查对应 API。纹章、团队钥匙、宝库、天赋方案、首领目录仅正式服。各客户端缺少的菜单入口不显示。
+² 纹章、宏伟宝库、天赋方案、首领指南、队伍钥匙，以及 Ellesmere UI / Exwind 集成。
 
-`tools/client_manifest.json` 是 TOC 加载清单，运行 `python tools/build_client_tocs.py` 生成，`--check` 检查漂移。客户端升级时须重新核对接口与 API。离线矩阵检查不替代各客户端的实机加载、战斗和安全动作验证。
+以上为当前声明的适配范围，**不代表所有客户端都已完成实机验证**；具体入口也会检查当前客户端是否提供相应 API。版本基线见[开发文档](docs/DEVELOPMENT.md)。
+
+界面支持 **简体中文、English**，跟随游戏语言；繁体中文客户端暂用简体文案。物品、技能等游戏内容使用客户端本身的名称。
+
+<a id="developers"></a>
+
+## 把你的插件接进来
+
+一个 Provider 提供内容和动作，荔枝负责搜索、排序和展示。你可以声明支持的客户端、注册自己的中英文文案，并为不同客户端提供不同实现。
+
+**[从 SDK 接入开始 →](docs/SDK.md)** · [协议参考](docs/PROTOCOLS.md) · [示例与类型定义](lychee-sdk/README.md)
+
+<details>
+<summary><strong>维护与验证</strong></summary>
+
+- [项目结构](docs/PROJECT_STRUCTURE.md)：运行时、SDK、工具和文档各放在哪里。
+- [架构](docs/ARCHITECTURE.md)：搜索与 Provider 的职责边界。
+- [开发与验证](docs/DEVELOPMENT.md)：环境、检查和客户端验收。
+- [设计规范](DESIGN.md) · [性能约定](PERFORMANCE.md)。
+
+在仓库根目录运行 `pwsh -File tests/check_contract.ps1`。需要 Lua 5.1、Python 和 ripgrep；离线测试不能替代游戏内的战斗、安全动作和视觉验证。
+
+`analyze/` 是本地研究资料，受 Git 忽略规则保护，不进入仓库或插件安装包。
+
+</details>
+
+## 反馈与授权
+
+[报告问题或提建议](https://github.com/Follen/Lychee/issues)。请带上客户端类型、荔枝版本、复现步骤；涉及其他插件时也附上它的版本。有 Lua 报错的话，贴完整报错比只发截图更有用。
+
+**免费使用 · 原版完整分发须署名 · 禁止商用 · 禁止冒名发布。** 发布修改版需取得书面授权；用于向本项目提交改进的明确标注 Fork 按许可证中的贡献例外处理。
+
+本项目采用[自定义非商业署名许可证](LICENSE)，属于源码可见项目，不使用开源许可证。完整条款以许可证为准；[第三方素材](THIRD_PARTY_NOTICES.md)保留各自授权。
+
+分发署名：**Lychee（荔枝启动器）— Follen · https://github.com/Follen/Lychee**

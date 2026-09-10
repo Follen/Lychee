@@ -1,0 +1,14 @@
+Lychee Launcher / 荔枝启动器
+Author / 作者: Follen
+Project / 项目: https://github.com/Follen/Lychee
+License / 许可: LICENSE.txt (Lychee Non-Commercial Attribution License 1.0)
+
+Original Lychee code and artwork are covered by LICENSE.txt.
+Current menu-artwork provenance is documented in Media/MenuIcons/LICENSE.txt.
+
+World of Warcraft, client-provided names, icons and game content remain the
+property of Blizzard Entertainment and the applicable rights holders.
+Names of integrated addons identify compatibility, not official endorsement.
+
+Lychee 原创代码和素材适用 LICENSE.txt；菜单图标来源见 Media/MenuIcons/LICENSE.txt。
+游戏名称、客户端提供的图标与内容，以及集成插件的名称，仍归各自权利人所有。
