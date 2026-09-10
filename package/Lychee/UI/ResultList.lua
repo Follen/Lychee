@@ -296,6 +296,8 @@ local function renderRowState(row)
 end
 
 local function clearRow(row)
+    row._matchTitle,row._matchSubtitle,row._matchQuery=nil,nil,nil
+    row._matchRenderedTitle,row._matchRenderedSubtitle=nil,nil
     if Lychee.UI.Motion then
         Lychee.UI.Motion:Cancel(row.title,true);Lychee.UI.Motion:Cancel(row.subtext,true)
         Lychee.UI.Motion:Cancel(row.bg,true);Lychee.UI.Motion:Cancel(row.accent,true)
@@ -335,7 +337,7 @@ function ResultList:ShowActionTooltip(action, owner)
 end
 
 function ResultList:ShowTooltip(row, owner)
-    showTooltip(owner or row, row.title:GetText(), row.item)
+    showTooltip(owner or row, row.item and row.item.text or row.title:GetText(), row.item)
 end
 
 function ResultList:Create(parent, controller)
@@ -398,7 +400,7 @@ function ResultList:Create(parent, controller)
             if self.controller then self.controller:ActivateRow(owner) end
         end)
         row.primaryTarget:SetScript("OnEnter", function(button)
-            local owner = button:GetParent(); self:SetHover(owner, true); showTooltip(button, owner.title:GetText(), owner.item)
+            local owner = button:GetParent(); self:SetHover(owner, true); showTooltip(button, owner.item and owner.item.text, owner.item)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
@@ -457,6 +459,12 @@ end
 
 function ResultList:SetItems(items, session, generation, offset)
     hideTooltip()
+    local highlight=Lychee.UI.TextHighlight
+    local controller=self.controller
+    local raw=controller and controller.input and controller.input:GetText() or ""
+    local query=_G.LycheeInternal.Search and _G.LycheeInternal.Search.Query
+    local request=highlight and query and query:_BuildRequest(raw)
+    local highlightQuery=request and request.normalized or raw
     local selectedRow = self.rows[self.selected or 1]
     local selectedID = selectedRow and selectedRow.stableID
     self.items, self.session, self.generation = items or EMPTY_ITEMS, session, generation
@@ -470,8 +478,18 @@ function ResultList:SetItems(items, session, generation, offset)
         row.item, row.index = item, index
         local changedIdentity=row.stableID~=stableItemID(item)
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
-        cachedText(row, "title", row.title, item.text)
-        cachedText(row, "subtext", row.subtext, item.subtext ~= "" and item.subtext or item.description or item.summary or "")
+        local title=item.text
+        local subtitle=item.subtext ~= "" and item.subtext or item.description or item.summary or ""
+        if highlight then
+            if row._matchTitle~=title or row._matchSubtitle~=subtitle or row._matchQuery~=highlightQuery then
+                row._matchTitle,row._matchSubtitle,row._matchQuery=title,subtitle,highlightQuery
+                row._matchRenderedTitle=highlight:Format(title,highlightQuery)
+                row._matchRenderedSubtitle=highlight:Format(subtitle,highlightQuery)
+            end
+            title,subtitle=row._matchRenderedTitle,row._matchRenderedSubtitle
+        end
+        cachedText(row, "title", row.title, title)
+        cachedText(row, "subtext", row.subtext, subtitle)
         local single=row.subtext:GetText()==""
         if row._singleTitle~=single then
             row.title:ClearAllPoints()

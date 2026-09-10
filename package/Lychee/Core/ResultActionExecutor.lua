@@ -305,6 +305,12 @@ function Executor:ShowActions(row)
             if components then components:StyleActionMenuButton(description) end
         end
         if canPin then
+            local aliasButton=root:CreateButton(L["设置别名"],function()
+                local current,reason=self:Validate(row,session,generation,item)
+                if not current then return false,reason end
+                return self.palette:EditAlias(item)
+            end)
+            if components then components:StyleActionMenuButton(aliasButton) end
             local pinned = I.UserPreferences:PinIndex(item.ref) ~= nil
             local description = root:CreateButton(pinned and L["取消固定"] or L["固定到首页"], function()
                 local current, reason = self:Validate(row, session, generation, item)

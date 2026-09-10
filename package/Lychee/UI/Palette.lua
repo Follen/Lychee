@@ -710,6 +710,9 @@ function Palette:TouchRecent(item)
     if not item or not item.ref or item.ref.providerID == "lychee.settings" or not I.Providers or not I.Providers:CanRemember(item) then return false end
     local ref = item.ref
     local db = paletteDB()
+    if I.Search.Personalization and self.input and not self.settingsOpen then
+        I.Search.Personalization:Remember(self.input:GetText(),item)
+    end
     for index = #db.recent, 1, -1 do
         local previous = db.recent[index]
         if previous.providerID == ref.providerID and previous.entryID == ref.entryID then table.remove(db.recent, index) end
@@ -1070,9 +1073,6 @@ function Palette:ActivateRowAction(row, actionID)
     return result, err
 end
 function Palette:ShowRowActions(row)
-    if row and row.item and row.item.providerID == "builtin.bags" then
-        return self:ActivateRowAction(row,"locate")
-    end
     Lychee.UI.ResultList:HideTooltip()
     if row and not row.item and row.section and row.section.pinnedRef and MenuUtil and MenuUtil.CreateContextMenu then
         if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
@@ -1092,6 +1092,13 @@ function Palette:ShowRowActions(row)
     local result, err = I.ResultActionExecutor:ShowActions(row)
     self:ReportActionResult(result, err)
     return result, err
+end
+function Palette:EditAlias(item)
+    if not I.UserPreferences:CanPin(item) then return false end
+    local ref,title=item.ref,item.text
+    if not self:OpenSettings("general") then return false end
+    self.settingsView:OpenAliases(ref,title)
+    return true
 end
 function Palette:BeginRowDrag(row)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor

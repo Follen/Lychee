@@ -12,6 +12,8 @@ Provider API 2.2 / revision 2 的开发包。它不是独立 AddOn，不要整�
 
 实际插件只依赖 Host `_G.Lychee`。TOC 使用 `## OptionalDeps: Lychee`。先判断 `Supports(2,2)`，再调用一次 RegisterProvider；后续通过返回句柄更新或注销。
 
+用户自定义别名和查询选择记忆由 Host 管理，不需要增加 SDK 字段，也不改写 Provider 声明的 `aliases`。保持 Provider ID 与 entry ID 稳定；动态条目提供 `resolve` 才能跨查询恢复。来源停用或条目暂不可用时，用户别名不能绕过可用性和动作权限检查。名称翻译或改名不应改变业务 ID。
+
 API 2 不保留旧 Extension/Command 多角色接入流程，也不迁移旧数据。内置玩家技能使用相同公共入口，可以作为较完整的事件驱动实现参考。
 
 ## API 2.2：产品和语言归 Provider 所有

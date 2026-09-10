@@ -124,6 +124,7 @@ function Settings:Create(parent, controller)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
+        if view.aliasView then view.aliasView.frame:Hide() end
         view.dragIndex,view.data=nil,nil
         for _,row in ipairs(view.rows) do releaseIdentity(row) end
     end)
@@ -187,6 +188,7 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
+        if self.aliasView then self.aliasView.frame:Hide() end
         if Lychee.UI.Motion then
             Lychee.UI.Motion:Cancel(content,true)
             if self.general then Lychee.UI.Motion:Cancel(self.general,true) end
@@ -196,6 +198,7 @@ function Settings:Create(parent, controller)
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
+        if self.aliasView and self.aliasView.frame:IsShown() then return end
         for id,tab in pairs(self.tabs) do tab:SetSelected(id==self.tab) end
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
@@ -222,6 +225,21 @@ function Settings:Create(parent, controller)
                     text(view.motion.label,motion:IsReduced() and L["关闭"] or L["开启"])
                 end)
                 self.motion.frame:SetPoint("RIGHT",general,"RIGHT",-metrics.listIconInset,0)
+                local aliases=CreateFrame("Frame",nil,general);aliases:SetSize(rowWidth,metrics.rowHeight)
+                aliases:SetPoint("TOPLEFT",general,"TOPLEFT",0,-rowStride)
+                local aliasTitle=label(aliases,"body");aliasTitle:SetPoint("TOPLEFT",aliases,"TOPLEFT",metrics.listTitleInset,-7);aliasTitle:SetText(L["自定义别名"])
+                local aliasDetail=label(aliases,"meta","textMuted");aliasDetail:SetPoint("TOPLEFT",aliasTitle,"BOTTOMLEFT",0,-3);aliasDetail:SetText(L["用自己熟悉的名字搜索条目"])
+                self.aliasManage=button(aliases,L["管理别名"],110,function() view:OpenAliases() end)
+                self.aliasManage.frame:SetPoint("RIGHT",aliases,"RIGHT",-metrics.listIconInset,0)
+                local memory=CreateFrame("Frame",nil,general);memory:SetSize(rowWidth,metrics.rowHeight)
+                memory:SetPoint("TOPLEFT",general,"TOPLEFT",0,-rowStride*2)
+                local memoryTitle=label(memory,"body");memoryTitle:SetPoint("TOPLEFT",memory,"TOPLEFT",metrics.listTitleInset,-7);memoryTitle:SetText(L["搜索记忆"])
+                local memoryDetail=label(memory,"meta","textMuted");memoryDetail:SetPoint("TOPLEFT",memoryTitle,"BOTTOMLEFT",0,-3);memoryDetail:SetText(L["相同搜索优先显示上次选择"])
+                self.clearChoices=button(memory,L["清空记忆"],110,function()
+                    if not frame:IsShown() or view.tab~="general" or InCombatLockdown() then return end
+                    I.Search.Personalization:ClearChoices();controller:SetStatusText(L["搜索记忆已清空"])
+                end)
+                self.clearChoices.frame:SetPoint("RIGHT",memory,"RIGHT",-metrics.listIconInset,0)
             end
             local enabled=not (Lychee.UI.Motion and Lychee.UI.Motion:IsReduced())
             self.motion.frame:SetChecked(enabled,true)
@@ -331,6 +349,14 @@ function Settings:Create(parent, controller)
             if row._icon~=nil and row.icon:SetTexture(nil)~=false then row._icon=nil end
             shown(row,false)
         end
+    end
+    function view:OpenAliases(ref,title)
+        if not frame:IsShown() or InCombatLockdown() then return false end
+        if not self.aliasView then self.aliasView=Lychee.UI.AliasSettings:Create(frame,controller,function() view:Refresh() end) end
+        if self.general then self.general:Hide() end
+        scroll:Hide();self.undo.frame:Hide()
+        self.aliasView:Show(ref,title)
+        return true
     end
     return view
 end

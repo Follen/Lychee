@@ -4,6 +4,8 @@ SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、坐骑�
 
 ## 最小接入
 
+Host 自动为可持久引用的条目提供用户别名和查询选择记忆，无需额外 SDK 注册。业务 ID 保持稳定；动态条目通过 `resolve` 恢复。用户别名独立保存，不会写入 Provider 声明的 `aliases`，也不能绕过来源启用状态或动作权限。
+
 第三方 TOC 声明 `## OptionalDeps: Lychee`。SDK 缺失时插件自身仍能运行。
 
 ```lua

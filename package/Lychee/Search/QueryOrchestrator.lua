@@ -130,7 +130,7 @@ function Q:_BuildRequest(raw, context, generation)
         if source then text=text:sub(last+1); filter={sourceID=source..":records"} end
     end
     local normalized = I.Search.Normalizer:Normalize(text)
-    return { generation = generation, raw = text, normalized = normalized,
+    return { generation = generation, raw = text, normalized = normalized, preferenceKey=I.Search.Normalizer:Normalize(raw),
         tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit,
         contextToken = context and context.token, session = context and context.session,
         visible = context and context.visible, filter = filter }
@@ -222,7 +222,9 @@ function Q:_Execute(raw, context, generation, request)
         end
     end
     request.limit = self.limit
+    if I.Search.Personalization then I.Search.Personalization:AddAliases(out,request,context) end
     table.sort(out, resultLess)
+    if I.Search.Personalization then I.Search.Personalization:Promote(out,request) end
     while #out > self.limit do out[#out] = nil end
     return out
 end
@@ -261,6 +263,7 @@ function Q:Query(raw, context, externalGeneration, callback)
             for _, item in ipairs(base) do appendUnique(combined, seen, item) end
             for _, item in ipairs(dynamic) do appendUnique(combined, seen, item) end
             table.sort(combined, resultLess)
+            if I.Search.Personalization then I.Search.Personalization:Promote(combined,request) end
             while #combined > self.limit do combined[#combined] = nil end
             return combined
         end

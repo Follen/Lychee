@@ -3,6 +3,7 @@ _G.Lychee = Lychee
 Lychee.UI = Lychee.UI or {}
 
 local Theme = {}
+Theme.MatchColorCode = "|cffff9aa2"
 
 -- Canonical tokens are immutable by convention. Their table identity is also
 -- used as the native-setter cache key, so callers should reference, not copy.

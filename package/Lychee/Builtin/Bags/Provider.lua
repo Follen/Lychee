@@ -63,7 +63,7 @@ local function build(self,put,checkpoint)
     end
     for itemID,row in pairs(items) do
         local positions=table.concat(row.positions,"、")
-        local subtitle=L:Format("共 %d 个 · 左键使用 · 右键定位",row.count)
+        local subtitle=L:Format("共 %d 个 · 左键使用 · 右键更多",row.count)
         put({id="item:"..itemID,title=row.name,kind="item",kindTitle=L["背包"],icon=row.icon,
             subtitle=subtitle,description=L["背包/格位："]..positions,keywords="背包 物品 bags "..itemID,
             payload={itemID=itemID},actions={{id="use",title=L["使用物品"],kind="secure-item",itemID=itemID},"locate"}},row.name.."\0"..tostring(row.icon).."\0"..row.count.."\0"..positions)

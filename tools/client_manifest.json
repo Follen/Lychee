@@ -194,6 +194,15 @@
       ]
     },
     {
+      "path": "Search/Personalization.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "PublicAPI/SDK.lua",
       "products": [
         "retail",
@@ -248,6 +257,15 @@
       ]
     },
     {
+      "path": "UI/TextHighlight.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "UI/Motion.lua",
       "products": [
         "retail",
@@ -294,6 +312,15 @@
     },
     {
       "path": "Core/ResultActionExecutor.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/AliasSettings.lua",
       "products": [
         "retail",
         "classic",

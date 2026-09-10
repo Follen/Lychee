@@ -38,6 +38,7 @@ local function object(kind, parent)
     function o:SetBackdrop() end
     function o:EnableMouse() end
     function o:SetAutoFocus() end
+    function o:EnableMouseWheel(value) self.mouseWheel=value end
     function o:SetTextInsets() end
     function o:RegisterForClicks() end
     function o:RegisterForDrag(...) mutation(self, "RegisterForDrag"); self.dragButtons = { ... } end
@@ -99,8 +100,8 @@ local files = {
     "Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
-    "Core/UserPreferences.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua", "UI/Motion.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/SettingsView.lua", "UI/Palette.lua",
+    "Core/UserPreferences.lua","Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
+    "UI/FocusController.lua", "UI/Theme.lua","UI/TextHighlight.lua", "UI/Motion.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua","UI/SettingsView.lua", "UI/Palette.lua",
 }
 for i = 1, #files do
     local before = createdFrames
@@ -980,7 +981,7 @@ MenuUtil = { CreateContextMenu=function(_, generator)
     end })
 end }
 fixtureTile.scripts.OnClick(fixtureTile, "RightButton")
-assertEq(#menuEntries, 3, "recent Provider entry exposes all actions and pin")
+assertEq(#menuEntries, 4, "recent Provider entry exposes all actions, alias and pin")
 assert(fixtureTile.menuMixin and menuEntries[1].initializer, "recent action menu receives Lychee styling")
 local originalMouseOver = palette.frame.IsMouseOver
 palette.frame.IsMouseOver = function() return false end
@@ -1012,7 +1013,7 @@ local secureMenuRow = findEntry(palette.list.rows, "secure-menu")
 local secureMenuButton = assert(boundButton(secureMenuRow))
 menuEntries={}
 secureMenuButton.scripts.OnMouseDown(secureMenuButton, "RightButton")
-assertEq(#menuEntries, 4, "secure overlay exposes the same actions and pin")
+assertEq(#menuEntries, 5, "secure overlay exposes the same actions, alias and pin")
 assert(not secureMenuButton.pendingCast, "right-button menu does not initiate a protected cast")
 assert(menuEntries[2].callback() and menuRan==1)
 LycheeDB.palette.recent={}
@@ -1221,14 +1222,14 @@ do
 end
 do
     local controller=LycheeInternal.Host.PaletteController
-    local original=controller.ActivateRowAction
+    local original=LycheeInternal.ResultActionExecutor.ShowActions
     local row={item={providerID="builtin.bags"}}
     local located=false
-    controller.ActivateRowAction=function(_,target,action)
-        assert(target==row and action=="locate");located=true;return true
+    LycheeInternal.ResultActionExecutor.ShowActions=function(_,target)
+        assert(target==row);located=true;return true
     end
-    assert(controller:ShowRowActions(row) and located,"bag right-click directly locates")
-    controller.ActivateRowAction=original
+    assert(controller:ShowRowActions(row) and located,"bag right-click opens actions including locate and alias")
+    LycheeInternal.ResultActionExecutor.ShowActions=original
     print("Bag right-click routing PASS")
 end
 do
@@ -1331,5 +1332,57 @@ do
     assert(source:SetEnabled(true));controller:MarkHomeDirty();assertHome("Provider re-enabled")
     controller:Hide("recent-regression-done");source:Unregister();C_Timer=savedTimers
     print("Dynamic recent query lifecycle PASS")
+end
+dofile(root .. "Search/RuntimeIdentity.lua")
+do
+    local controller=LycheeInternal.Host.PaletteController
+    local P=LycheeInternal.Search.Personalization
+    local source=assert(Lychee:RegisterProvider({id="alias.ui",apiVersion=2,version="1.0.0",title="Aliases",
+        entries={{id="one",title="别名测试物品"},{id="two",title="第二物品"}}}))
+    controller:Show();typeQuery("别名测试物品")
+    local row=findEntry(controller.list.rows,"one")
+    menuEntries={}
+    MenuUtil={CreateContextMenu=function(_,generator)
+        generator(nil,{CreateButton=function(_,title,callback)
+            menuEntries[#menuEntries+1]={title=title,callback=callback}
+            return {AddInitializer=function() end,SetOnEnter=function() end,SetOnLeave=function() end}
+        end})
+    end}
+    controller:ShowRowActions(row)
+    local aliasAction
+    for _,entry in ipairs(menuEntries) do if entry.title=="设置别名" then aliasAction=entry end end
+    assert(aliasAction,"search right click offers alias")
+    aliasAction.callback()
+    local page=controller.settingsView.aliasView
+    assert(page and page.editing and page.input.focused,"editor opens and focuses input")
+    page.input:SetText("回家神器");page.save.frame.scripts.OnClick()
+    assert(not page.editing and not page.input.focused and #page.data==1)
+    controller:CloseSettings();typeQuery("回家神器")
+    assert(findEntry(controller.list.rows,"one"),"saved alias searches original entry")
+    controller:OpenSettings("general");controller.settingsView.aliasManage.frame.scripts.OnClick()
+    page.scroll:SetHeight(120);page:Render()
+    local edit=page.rows[1].edit.frame
+    edit.scripts.OnMouseDown();edit.scripts.OnClick()
+    assert(page.editing)
+    page.input:SetText("不保存");page.cancel.frame.scripts.OnClick()
+    assert(P:Find({providerID="alias.ui",entryID="one"}).alias=="回家神器")
+    local remove=page.rows[1].remove.frame
+    remove.scripts.OnMouseDown()
+    P:SetAlias({providerID="alias.ui",entryID="one"},"已更新","别名测试物品");page:ShowList()
+    remove.scripts.OnClick();assert(#page.data==1,"stale click cannot delete replacement")
+    remove.scripts.OnMouseDown();remove.scripts.OnClick();assert(#page.data==0)
+    local before=createdFrames
+    for index=1,20 do controller.settingsView:OpenAliases();page:ShowList() end
+    assert(createdFrames==before,"alias page and row pool reused")
+    page:Edit({providerID="alias.ui",entryID="one"},"别名测试物品")
+    controller:CloseSettings()
+    -- The simple frame adapter does not dispatch inherited OnHide events.
+    controller.settingsView.frame.scripts.OnHide()
+    page.frame.scripts.OnHide()
+    assert(not page.input.focused and not page.editing,"closing releases editor")
+    page.input:SetText("过期");page.save.frame.scripts.OnClick()
+    assert(P:Find({providerID="alias.ui",entryID="one"})==nil,"hidden save ignored")
+    controller:Hide("alias-complete");source:Unregister()
+    print("Alias UI PASS: menu, editor, search, settings, cancel, stale delete, reuse, hidden save")
 end
 end)()

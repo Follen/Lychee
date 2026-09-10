@@ -83,6 +83,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Interaction smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/result_list_ui_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Result list UI smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/search_personalization.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Search personalization failed' }
     & $lua.Source 'tests/search_platform_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search platform smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/search_session_smoke.lua'
