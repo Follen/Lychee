@@ -76,11 +76,17 @@ function M:Focus()
     end
     return frame
 end
+function M:UpdatePointer()
+    if not self.running then return end
+    if InCombatLockdown and InCombatLockdown() then self:Stop();return end
+    self.view:SetPaused(IsShiftKeyDown and IsShiftKeyDown() or false)
+    self.view:Place(self.target)
+end
 function M:Poll()
     if not self.running then return end
     if InCombatLockdown and InCombatLockdown() then self:Stop();return end
-    -- Explicit pause keeps copy/detail controls reachable while default mode yields.
-    if (IsShiftKeyDown and IsShiftKeyDown()) or self.view.copying then return end
+    self:UpdatePointer()
+    if not self.running or self.view.paused or self.view.copying then return end
     local target,own=self:Focus()
     if own then self.view:Place(self.target);return end
     if target~=self.target then

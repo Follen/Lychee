@@ -25,7 +25,7 @@ function methods:SetWidth(w) self.width=w end
 function methods:SetHeight(h) self.height=h end
 function methods:GetWidth() return self.width end
 function methods:GetHeight() return self.height end
-function methods:SetPoint(...) self.point={...} end
+function methods:SetPoint(...) self.point={...};self.pointWrites=(self.pointWrites or 0)+1 end
 function methods:ClearAllPoints() self.point=nil end
 function methods:SetAllPoints(target) self.anchor=target end
 function methods:SetText(v) self.text=v end
@@ -107,7 +107,7 @@ foci={a}
 collectgarbage("collect");local baseline=collectgarbage("count")
 assert(M:Start().ok and M.running and M.timer)
 local v=M.view
-assert(v.heading:GetText()=="示例插件" and v.confidence:GetText()=="创建来源" and v.corner==2,"live exact source and avoidance")
+assert(v.heading:GetText()=="示例插件" and v.confidence:GetText()=="创建来源" and v.anchorX==cursorX+20,"live exact source and avoidance")
 assert(v.outline:IsShown() and v.outline.anchor==a)
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
 assert(retained<512 and frames-beforeFrames<=16 and regions-beforeRegions<=40,"bounded initial objects")
@@ -141,25 +141,41 @@ UIParent:SetSize(1920,1080)
 local child=frame(a)
 foci={child};M:Poll()
 assert(M.data.title=="示例插件" and M.data.confidence=="可能来自 · 根据父级来源")
-local previousCorner=v.corner
-cursorX=previousCorner%2==1 and 1850 or 50
-cursorY=previousCorner<=2 and 1000 or 50
-foci={v.frame};M:Poll()
-assert(v.corner~=previousCorner,"cursor entering inspector must move it aside")
-local movedCorner=v.corner
-for n=1,20 do M:Poll() end
-assert(v.corner==movedCorner,"stationary cursor must not make inspector bounce")
-shift=true
-local pausedCorner=v.corner
-foci={a};M:Poll()
-assert(v.corner==pausedCorner and M.target==child,"Shift pauses both target and placement")
+cursorX,cursorY=900,800
+v.frame.scripts.OnUpdate()
+assert(v.anchorX==920 and v.anchorTop==780,"window follows cursor with gap")
+local pointerReads,pointerWrites=sourceReads,v.frame.pointWrites
+collectgarbage("collect");collectgarbage("stop")
+local pointerMemory=collectgarbage("count");local pointerStart=os.clock()
+for i=1,10000 do v.frame.scripts.OnUpdate() end
+local pointerAllocated=collectgarbage("count")-pointerMemory
+local pointerElapsed=(os.clock()-pointerStart)*1000
+collectgarbage("restart")
+assert(pointerAllocated<128 and sourceReads==pointerReads and v.frame.pointWrites==pointerWrites,"steady following avoids allocation, source reads and redundant setters")
+print(string.format("Pointer10000 ms=%.2f allocated_KiB=%.1f source_reads=0 redundant_setters=0",pointerElapsed,pointerAllocated))
+UIParent.scale=2;cursorX,cursorY=1800,1600;v.frame.scripts.OnUpdate()
+assert(v.anchorX==920 and v.anchorTop==780,"cursor coordinates respect UI scale")
+UIParent.scale=1;cursorX,cursorY=900,800
+local oldX,oldTop=v.anchorX,v.anchorTop
+shift=true;v.frame.scripts.OnUpdate()
+assert(v.expanded and v.details:IsShown() and v.anchorX==oldX and v.anchorTop==oldTop,"Shift freezes top edge and expands details")
+cursorX,cursorY=1500,300;foci={a};M:Poll()
+assert(v.anchorX==oldX and v.anchorTop==oldTop and M.target==child,"Shift freezes target and placement while cursor moves")
+shift=false;v.frame.scripts.OnUpdate()
+assert(not v.expanded and v.anchorX~=oldX,"release collapses and resumes following")
+for _,point in ipairs({{0,0},{1920,0},{0,1080},{1920,1080}}) do
+    cursorX,cursorY=point[1],point[2];v.frame.scripts.OnUpdate()
+    assert(v.anchorX>=16 and v.anchorX+360*v.scale<=1904 and v.anchorTop<=1064 and v.anchorTop-v.frame:GetHeight()*v.scale>=16,"edge following stays inside viewport")
+end
+cursorX,cursorY=900,800;v.frame.scripts.OnUpdate()
+shift=true;v.frame.scripts.OnUpdate()
 foci={v.copy.frame};M:Poll();assert(M.target==child,"paused panel preserves target")
 v.copy.frame.scripts.OnClick(v.copy.frame)
 assert(v.copying and v.edit.focused and v.edit.highlighted and v.report:find("父级关联",1,true))
 M:Poll();assert(v.copying)
 v.edit.scripts.OnEscapePressed();shift=false;cursorX,cursorY=960,540
 assert(not M.running and not M.timer and not v.frame:IsShown() and not v.outline:IsShown() and not v.report)
-assert(not v.frame.keyboard and next(v.frame.events)==nil and not M.target and not M.data)
+assert(not v.frame.keyboard and not v.frame.scripts.OnUpdate and next(v.frame.events)==nil and not M.target and not M.data)
 foci={a};M:Start()
 local stale=M.timer
 M:Stop();M:Start();local current=M.timer

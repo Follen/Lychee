@@ -1,0 +1,9 @@
+# Cursor-follow inspector
+
+User replaces four-corner avoidance with cursor following; Shift freezes and expands details, release collapses/resumes. Existing old-code regression failed: Shift detail layout must not bypass frozen placement. New behavior tests replace the obsolete release-over-controls hold contract.
+
+Pre-change budget: no new controls/timers; remove manual detail toggle. Active visible OnUpdate does bounded cursor/Shift reads and changed-position setters only; no source analysis or table allocation in position loop. Existing 10 Hz target analysis retains 16-parent / 1 ms guard. Hide/disable/combat detach OnUpdate. 100 lifecycle cycles allocations <1 MiB, retained growth <64 KiB; 10,000 steady position updates <128 KiB allocation, no new Frame/Region, no source reads. Pixel tracking, viewport edge placement and real game frame time remain client verification items.
+
+No new API types; GetCursorPosition, IsShiftKeyDown and frame geometry use existing versioned retail evidence in inspector-cursor-api.json and inspector-avoidance-api.json. OnUpdate lifecycle evidence queried separately.
+
+Results: real view/controller tests pass cursor following, four viewport corners, UI scale conversion, Shift automatic expansion/top-edge freeze, movement while Shift held, release collapse/resume, copy focus, lifecycle cancellation and combat exit. 10,000 steady pointer updates: 9 ms total, 0.0 KiB allocations, zero source reads/redundant setters. 100 open/poll/close cycles: 2–3 ms, 377.1 KiB allocated, 1.1 KiB retained growth; 7 Frames/24 Regions, initial retained 25.0 KiB (previous 8/26, 29.1 KiB). Offline clock granularity limits timing conclusions. Full contract and wowdoc static validation pass; no actual client FPS or animation smoothness claim. Source attribution logic unchanged from fd8f87f.
