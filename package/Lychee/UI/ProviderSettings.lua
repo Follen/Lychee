@@ -6,6 +6,7 @@ function P:Create(parent,controller,onBack)
     local metrics=UI.Theme.Metrics
     local width=metrics.resultTileWidth-metrics.listInset
     local valueX=136;local valueWidth=width-valueX-8
+    local tokenWidth=valueWidth-68
     local view={generation=0};local outer=CreateFrame("Frame",nil,parent);view.frame=outer
     outer:SetPoint("TOPLEFT",parent,"TOPLEFT",metrics.listInset,0)
     outer:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",-metrics.listInset,2);outer:Hide()
@@ -66,9 +67,9 @@ function P:Create(parent,controller,onBack)
     end)
     view.toggle:SetScript("OnMouseDown",function() view.toggle.press=view.generation end)
     local policy=I.Search.ProviderPolicy
-    view.globalLabel=label(L["普通搜索"],8,-76,120);UI.Theme:SetTextColor(view.globalLabel,"text")
-    view.globalHint=label("",valueX,-76,valueWidth-50,"meta");view.globalHint:SetHeight(36)
-    view.globalToggle=UI.Components:CreateToggle(frame);view.globalToggle:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-78)
+    view.globalLabel=label(L["普通搜索"],8,-60,120);UI.Theme:SetTextColor(view.globalLabel,"text")
+    view.globalHint=label("",valueX,-60,valueWidth-50,"meta");view.globalHint:SetHeight(22)
+    view.globalToggle=UI.Components:CreateToggle(frame);view.globalToggle:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-62)
     view.globalToggle:SetScript("OnMouseDown",function() view.globalToggle.press=view.generation end)
     view.globalToggle:SetScript("OnClick",function()
         local pressed=view.globalToggle.press;view.globalToggle.press=nil
@@ -144,18 +145,18 @@ function P:Create(parent,controller,onBack)
             for index,chip in ipairs(field.tokens) do
                 local value=words[index]
                 if value and chip.value~=value then
-                    chip.value=value;chip.label:SetWidth(valueWidth-20);chip.label:SetText(value)
+                    chip.value=value;chip.label:SetWidth(tokenWidth-20);chip.label:SetText(value)
                     local measured=chip.label.GetStringWidth and chip.label:GetStringWidth() or #value*7
-                    chip.width=math.min(valueWidth,math.max(32,measured+20))
+                    chip.width=math.min(tokenWidth,math.max(32,measured+20))
                     chip.frame:SetSize(chip.width,28);chip.label:SetSize(chip.width-20,22)
                 end
             end
             if kind=="prefix" then
                 field.hint:SetText(word and L:Format("输入 %s，只搜索此功能",word..(L:IsChinese() and "：" or ": ")..self.sample)
-                    or L["给搜索内容加上前缀，只查找此功能。"])
+                    or L["加上前缀，只搜此功能"])
             else
-                field.hint:SetText(word and L:Format("输入 %s，直接显示此功能的搜索结果",word)
-                    or L["设置一个好记的词，输入后直接显示此功能的搜索结果。"])
+                field.hint:SetText(word and L:Format("输入 %s，查看此功能结果",word)
+                    or L["设一个词，直达此功能结果"])
             end
 
         end
@@ -167,7 +168,7 @@ function P:Create(parent,controller,onBack)
             ..":"..self.fields.prefix.wordsKey..":"..self.fields.keyword.wordsKey
         if self.layoutKey==key then return end
         self.layoutKey=key
-        local y=136;local errorY=112
+        local y=104;local errorY=90
         for _,kind in ipairs({"prefix","keyword"}) do
             local field=self.fields[kind];local editing=self.editing==kind and not independent
             local function at(region,x,offset) region:ClearAllPoints();region:SetPoint("TOPLEFT",frame,"TOPLEFT",x,-y-offset) end
@@ -176,15 +177,17 @@ function P:Create(parent,controller,onBack)
             for index,chip in ipairs(field.tokens) do
                 local shown=not independent and not editing and index<=field.count
                 if shown then
-                    if x+chip.width>width-8 then x=valueX;rowY=rowY+34 end
+                    if x+chip.width>valueX+tokenWidth then x=valueX;rowY=rowY+34 end
                     at(chip.frame,x,rowY);chip.x,chip.y=x,rowY
                     x=x+chip.width+6
                 end
                 chip.frame:SetShown(shown)
             end
-            local editWidth=field.count>0 and 56 or 140
-            if x+editWidth>width-8 then x=valueX;rowY=rowY+34 end
-            field.edit.frame:SetWidth(editWidth);at(field.edit.frame,x,rowY)
+            local configured=field.count>0
+            local editWidth=configured and 64 or 140
+            field.edit.frame:SetWidth(editWidth);at(field.edit.frame,configured and width-8-editWidth or valueX,0)
+            field.edit.label:ClearAllPoints();field.edit.label:SetAllPoints(field.edit.frame)
+            field.edit.label:SetJustifyH(configured and "RIGHT" or "LEFT")
             field.edit.frame:SetShown(not independent and not editing);field.edit:SetEnabled(self.editing==nil)
             at(field.hint,valueX,rowY+36);field.hint:SetShown(not independent and not editing)
             at(field.input,valueX,0);field.input:SetShown(editing)
@@ -192,18 +195,18 @@ function P:Create(parent,controller,onBack)
             at(field.cancel.frame,width-144,78);field.cancel.frame:SetShown(editing)
             at(field.save.frame,width-72,78);field.save.frame:SetShown(editing)
             if editing then errorY=y+112 end
-            y=y+(editing and (hasError and 166 or 126) or rowY+92)
+            y=y+(editing and (hasError and 152 or 112) or rowY+76)
         end
         if not self.editing then errorY=independent and 116 or y end
         self.error:ClearAllPoints();self.error:SetPoint("TOPLEFT",frame,"TOPLEFT",valueX,-errorY);self.error:SetWidth(valueWidth);self.error:SetShown(hasError)
         if hasError and not self.editing then y=y+40 end
-        local aboutY=independent and 160 or y+12
+        local aboutY=independent and 120 or y
         self.about.frame:ClearAllPoints();self.about.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-aboutY)
         self.about:SetText(L[self.aboutOpen and "收起版本信息" or "版本与兼容性"])
-        self.reset.frame:ClearAllPoints();self.reset.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",0,-aboutY)
-        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-aboutY-34)
+        self.reset.frame:ClearAllPoints();self.reset.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-aboutY)
+        self.technical:ClearAllPoints();self.technical:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-aboutY-28)
         self.technical:SetShown(self.aboutOpen==true)
-        local height=aboutY+(self.aboutOpen and 78 or 40)
+        local height=aboutY+(self.aboutOpen and 70 or 32)
         if contentHeight~=height then contentHeight=height;frame:SetHeight(height);range() end
     end
 
@@ -229,6 +232,7 @@ function P:Create(parent,controller,onBack)
         if not ok then view:Failure(err);return end
         view.generation=view.generation+1;view:Refresh();controller:SetStatusText(L["已恢复默认搜索设置"])
     end,frame,30,true)
+    view.reset.label:ClearAllPoints();view.reset.label:SetAllPoints(view.reset.frame);view.reset.label:SetJustifyH("RIGHT")
     view.about=button(L["版本与兼容性"],0,0,200,function() view.aboutOpen=not view.aboutOpen;view:Layout() end,nil,28,true)
     view.about.label:ClearAllPoints();view.about.label:SetPoint("LEFT",view.about.frame,"LEFT",8,0);view.about.label:SetSize(184,24);view.about.label:SetJustifyH("LEFT")
     function view:Refresh()

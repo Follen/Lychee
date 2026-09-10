@@ -217,3 +217,9 @@ L:Add({
     ["输入 %s，直接显示此功能的搜索结果"]="Type %s to show results from this feature.",
     ["设置一个好记的词，输入后直接显示此功能的搜索结果。"]="Choose a memorable word to show results from this feature.",
 })
+
+L:Add({
+    ["设一个词，直达此功能结果"]="Choose a word for this feature's results",
+    ["输入 %s，查看此功能结果"]="Type %s for this feature's results",
+    ["加上前缀，只搜此功能"]="Add a prefix to search only this feature",
+})

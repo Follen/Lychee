@@ -1437,7 +1437,7 @@ do
     local lastY=0
     for index,chip in ipairs(page.fields.prefix.tokens) do
         assert(chip.frame:IsShown() and chip.label:GetText()==fullWords[index],"all configured words visible")
-        assert(chip.x+chip.width<=584 and chip.y>=lastY,"tokens fit their column and wrap")
+        assert(chip.x+chip.width<=516 and chip.y>=lastY,"tokens reserve the fixed edit column and wrap")
         lastY=chip.y
     end
     assert(lastY>0,"long word list wraps")
