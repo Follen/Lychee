@@ -174,7 +174,7 @@ if check then
     I.Registry.entries["builtin.mounts"]={userEnabled=true}
     view:SetTab("providers")
     assert(view.rows[1].providerID=="builtin.mounts","built-in ordering survives reuse")
-    assert(view.rows[2]._y==104,"group spacing survives virtualization")
+    assert(view.rows[2]._y==110,"group spacing survives virtualization with shared row gap")
     for id in pairs(I.Providers.entries) do I.Providers.entries[id]=nil end
     local added={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
     local icons={"toys.tga","talents.tga","character.tga","settings.tga","keystone.tga"}

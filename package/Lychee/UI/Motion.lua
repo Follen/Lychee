@@ -6,13 +6,44 @@ function Motion:IsReduced()
     return LycheeDB and LycheeDB.palette and LycheeDB.palette.reduceMotion==true
 end
 function Motion:Cancel(region,settle)
-    local state=region and region._lycheeMotion
+    local state=region and (region._lycheeMotion or region._lycheeSlide)
     if not state then return end
     local current=state.to
     if state.playing then current=state.from+(state.to-state.from)*state.alpha:GetSmoothProgress() end
     state.playing=false;state.finished=nil
     state.group:Stop()
-    if not combat() then region:SetAlpha(settle and state.to or current) end
+    if not combat() then
+        if state.slide then
+            local x=settle and state.to or current
+            region:ClearAllPoints();region:SetPoint("LEFT",state.parent,"LEFT",x,0);region._slideX=x
+        else region:SetAlpha(settle and state.to or current) end
+    end
+end
+-- Translation owns only the knob's visual position; no per-frame Lua callback.
+function Motion:Slide(region,parent,target,instant)
+    if combat() then return end
+    local state=region._lycheeSlide
+    if state and state.playing and state.to==target and not instant then return end
+    if state and state.playing then self:Cancel(region,false) end
+    local current=region._slideX or target
+    if instant or self:IsReduced() or not region.CreateAnimationGroup or math.abs(current-target)<0.001 then
+        if state then state.from,state.to=target,target end
+        if region._slideX~=target then
+            region:ClearAllPoints();region:SetPoint("LEFT",parent,"LEFT",target,0);region._slideX=target
+        end
+        return
+    end
+    if not state then
+        if #self.groups>=self.limit then self:Slide(region,parent,target,true);return end
+        local group=region:CreateAnimationGroup()
+        local animation=group:CreateAnimation("Translation");animation:SetSmoothing("OUT")
+        state={region=region,parent=parent,group=group,alpha=animation,slide=true}
+        region._lycheeSlide=state;self.groups[#self.groups+1]=state
+        group:SetScript("OnFinished",function() if state.playing then self:Cancel(region,true) end end)
+    end
+    state.from,state.to=current,target
+    state.alpha:SetOffset(target-current,0);state.alpha:SetDuration(0.18)
+    state.playing=true;state.group:Play()
 end
 function Motion:Alpha(region,target,duration,finished,initial)
     if not region or not region.SetAlpha then if finished then finished() end;return false end

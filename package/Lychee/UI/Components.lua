@@ -90,6 +90,38 @@ function Components:CreateSurface(parent, options)
     return component
 end
 
+function Components:CreateToggle(parent)
+    local theme=getTheme();local metrics=theme.Metrics
+    local frame=CreateFrame("Button",nil,parent)
+    frame:SetSize(metrics.switchWidth,metrics.switchHeight)
+    theme:CreateRoundedSurface(frame,"switchOff",8)
+    frame.bg=CreateFrame("Frame",nil,frame);frame.bg:SetAllPoints(frame)
+    theme:CreateRoundedSurface(frame.bg,"accent",8)
+    frame.knob=CreateFrame("Frame",nil,frame);frame.knob:SetSize(14,14)
+    theme:CreateRoundedSurface(frame.knob,"text",6.9)
+    -- Thumb must not inherit the accent overlay's fading alpha.
+    if frame.knob.SetFrameLevel then frame.knob:SetFrameLevel(frame.bg:GetFrameLevel()+1) end
+    function frame:SetChecked(checked,instant)
+        checked=checked==true
+        if self._enabled==checked and not instant then return end
+        self._enabled=checked
+        local x=checked and metrics.switchWidth-16 or 2
+        local motion=Lychee.UI.Motion
+        if motion then
+            motion:Slide(self.knob,self,x,instant)
+            motion:Alpha(self.bg,checked and 1 or 0,instant and 0 or 0.18)
+        else
+            if self.knob._slideX~=x then self.knob:ClearAllPoints();self.knob:SetPoint("LEFT",self,"LEFT",x,0);self.knob._slideX=x end
+            if self.bg.SetAlpha then self.bg:SetAlpha(checked and 1 or 0) else setShown(self.bg,checked) end
+        end
+    end
+    function frame:FinishMotion()
+        if Lychee.UI.Motion then Lychee.UI.Motion:Cancel(self.knob,true);Lychee.UI.Motion:Cancel(self.bg,true) end
+    end
+    frame:SetScript("OnHide",function() frame:FinishMotion() end)
+    return frame
+end
+
 function Components:CreateBrand(parent, options)
     options = options or {}
     local frame = CreateFrame("Frame", nil, parent)

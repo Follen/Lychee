@@ -1,5 +1,8 @@
 local I, Lychee = _G.LycheeInternal, _G.Lychee
 local Settings = {}
+local metrics=Lychee.UI.Theme.Metrics
+local rowWidth=metrics.resultTileWidth-metrics.listInset
+local rowStride=metrics.rowHeight+metrics.rowGap
 Lychee.UI.SettingsView = Settings
 local function text(region, value)
     value = value or ""
@@ -58,6 +61,7 @@ local function displayTitle(value, fallback)
     return fallback
 end
 local function releaseIdentity(row)
+    if row.toggle then row.toggle:FinishMotion() end
     row._bindingGeneration=(row._bindingGeneration or 0)+1
     row.providerID,row.pinIndex,row._bindingIdentity=nil,nil,nil
 end
@@ -68,6 +72,7 @@ local function bindPress(control,row,component)
         if component then component:SetState("pressed") end
     end)
     control:SetScript("OnHide",function()
+        if control.FinishMotion then control:FinishMotion() end
         if control._pressGeneration~=nil then control._pressGeneration=false end
         if component then component._hovered=false;component:SetState("normal") end
     end)
@@ -84,7 +89,7 @@ function Settings:Create(parent, controller)
     local view = {controller=controller, rows={}, groups={}, tab="providers",scroll=0}
     local frame=CreateFrame("Frame",nil,parent);frame:SetAllPoints(parent);frame:Hide();view.frame=frame
     local sourceTab=button(frame,"功能来源",86,function() view:SetTab("providers") end)
-    sourceTab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-2)
+    sourceTab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2)
     local pinsTab=button(frame,"已固定",86,function() view:SetTab("pins") end)
     pinsTab.frame:SetPoint("LEFT",sourceTab.frame,"RIGHT",12,0)
     view.tabs={providers=sourceTab,pins=pinsTab}
@@ -104,10 +109,13 @@ function Settings:Create(parent, controller)
         end
     end)
     view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",view.motion and -158 or -10,-2);view.undo.frame:Hide()
-    local scroll=CreateFrame("ScrollFrame",nil,frame);scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-42);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-8,0)
-    local content=CreateFrame("Frame",nil,scroll);content:SetSize(580,1);scroll:SetScrollChild(content)
+    local scroll=CreateFrame("ScrollFrame",nil,frame);scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-metrics.listInset,2)
+    local content=CreateFrame("Frame",nil,scroll);content:SetSize(rowWidth,1);scroll:SetScrollChild(content)
     view.scrollFrame,view.content=scroll,content
     view.scrollbar=Lychee.UI.Components:CreateScrollbar(scroll,function(value) view:SetScroll(value) end)
+    view.scrollbar.frame:ClearAllPoints()
+    view.scrollbar.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",0,-metrics.settingsTabsHeight)
+    view.scrollbar.frame:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",0,2)
     function view:SetScroll(value)
         if InCombatLockdown and InCombatLockdown() then return end
         local maximum=math.max(0,content:GetHeight()-scroll:GetHeight())
@@ -117,7 +125,7 @@ function Settings:Create(parent, controller)
     if scroll.EnableMouseWheel then scroll:EnableMouseWheel(true) end
     scroll:SetScript("OnMouseWheel",function(_,delta)
         if InCombatLockdown and InCombatLockdown() then return end
-        view:SetScroll(view.scroll-delta*46)
+        view:SetScroll(view.scroll-delta*rowStride)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
@@ -135,15 +143,12 @@ function Settings:Create(parent, controller)
 
     function view:Acquire(index)
         if self.rows[index] then return self.rows[index] end
-        local row=CreateFrame("Button",nil,content);row:SetSize(580,46)
-        row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(28,28);row.icon:SetPoint("LEFT",row,"LEFT",10,0)
-        row.name=label(row,"body");row.name:SetPoint("TOPLEFT",row,"TOPLEFT",50,-7);row.name:SetPoint("RIGHT",row,"RIGHT",-188,0);row.name:SetHeight(17)
+        local row=CreateFrame("Button",nil,content);row:SetSize(rowWidth,metrics.rowHeight)
+        row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(metrics.iconSize,metrics.iconSize);row.icon:SetPoint("LEFT",row,"LEFT",metrics.listIconInset,0)
+        row.name=label(row,"body");row.name:SetPoint("TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7);row.name:SetPoint("RIGHT",row,"RIGHT",-188,0);row.name:SetHeight(17)
         row.detail=label(row,"meta","textMuted");row.detail:SetPoint("TOPLEFT",row.name,"BOTTOMLEFT",0,-3);row.detail:SetPoint("RIGHT",row,"RIGHT",-180,0);row.detail:SetHeight(14)
         row.state=label(row,"meta","textMuted");row.state:SetPoint("RIGHT",row,"RIGHT",-54,0);row.state:SetWidth(118);row.state:SetJustifyH("RIGHT")
-        row.line=row:CreateTexture(nil,"BACKGROUND");row.line:SetHeight(1);row.line:SetPoint("BOTTOMLEFT",row,"BOTTOMLEFT",8,0);row.line:SetPoint("BOTTOMRIGHT",row,"BOTTOMRIGHT",-8,0);Lychee.UI.Theme:SetColorTexture(row.line,"border")
-        row.toggle=CreateFrame("Button",nil,row);row.toggle:SetSize(30,18);row.toggle:SetPoint("RIGHT",row,"RIGHT",-10,0)
-        row.toggle.bg=row.toggle:CreateTexture(nil,"BACKGROUND");row.toggle.bg:SetAllPoints()
-        row.toggle.knob=row.toggle:CreateTexture(nil,"ARTWORK");row.toggle.knob:SetSize(12,12);Lychee.UI.Theme:SetColorTexture(row.toggle.knob,"text")
+        row.toggle=Lychee.UI.Components:CreateToggle(row);row.toggle:SetPoint("RIGHT",row,"RIGHT",-metrics.listIconInset,0)
         row.toggle:SetScript("OnClick",function()
             if not currentClick(row.toggle,row) then return end
             if not row.providerID then return end
@@ -230,7 +235,7 @@ function Settings:Create(parent, controller)
                     groupCount=groupCount+1;self:Header(groupCount,group,y);y=y+23;lastGroup=group
                 end
             end
-            record.y=y;y=y+46
+            record.y=y;y=y+rowStride
         end
         if #data==0 then groupCount=1;self:Header(1,self.tab=="pins" and "还没有固定项。搜索条目后，右键固定到首页。" or "没有已接入的功能来源",12) end
         for index=groupCount+1,#self.groups do shown(self.groups[index],false) end
@@ -249,7 +254,7 @@ function Settings:Create(parent, controller)
         local low,high=1,#data
         while low<=high do
             local middle=math.floor((low+high)/2)
-            if data[middle].y+46<=self.scroll then low=middle+1 else high=middle-1 end
+            if data[middle].y+metrics.rowHeight<=self.scroll then low=middle+1 else high=middle-1 end
         end
         local visible=0
         for index=low,#data do
@@ -260,7 +265,9 @@ function Settings:Create(parent, controller)
             local y=record.y
             if row._y~=y then row:ClearAllPoints();row:SetPoint("TOPLEFT",content,"TOPLEFT",0,-y);row._y=y end
             local identity=self.tab=="pins" and record.pin or record.provider
-            if row.providerID~=record.id or row.pinIndex~=record.pinIndex or row._bindingIdentity~=identity then
+            local rebound=row.providerID~=record.id or row.pinIndex~=record.pinIndex or row._bindingIdentity~=identity
+            if rebound then
+                row.toggle:FinishMotion()
                 row._bindingGeneration=(row._bindingGeneration or 0)+1
                 row.up._hovered,row.down._hovered,row.remove._hovered=false,false,false
                 row.up:SetState("normal");row.down:SetState("normal");row.remove:SetState("normal")
@@ -279,10 +286,7 @@ function Settings:Create(parent, controller)
                 local state=record.state
                 text(row.detail,providerDescriptions[record.id] or (record.builtin and "内置功能" or record.id).."  ·  "..tostring(record.version or ""))
                 text(row.state,state.incompatible and "版本不兼容" or state.state=="pending" and "尚未加载" or state.userEnabled==false and "已关闭" or state.ownerEnabled==false and "扩展自行停用" or "已启用")
-                Lychee.UI.Theme:SetColorTexture(row.toggle.bg,state.userEnabled and "accent" or "disabled")
-                if row.toggle._enabled~=state.userEnabled then
-                    row.toggle.knob:ClearAllPoints();row.toggle.knob:SetPoint("LEFT",row.toggle,"LEFT",state.userEnabled and 15 or 3,0);row.toggle._enabled=state.userEnabled
-                end
+                row.toggle:SetChecked(state.userEnabled,rebound)
             else
                 text(row.detail,record.item and displayTitle(record.item.sourceTitle, "") or "来源已关闭或条目暂不可用")
                 text(row.state,"")

@@ -12,6 +12,8 @@ function methods:IsShown() return self.shown end
 function methods:Show() self.shown=true end
 function methods:Hide() self.shown=false end
 function methods:SetScript(k,v) self.scripts[k]=v end
+function methods:ClearAllPoints() end
+function methods:SetPoint(_,_,_,x) self.x=x end
 function CreateFrame() frames=frames+1;return region() end
 function methods:CreateAnimationGroup()
     groups=groups+1
@@ -20,13 +22,14 @@ function methods:CreateAnimationGroup()
     function g:Stop() self.playing=false end
     function g:Play() self.playing=true;self.a.progress=0 end
     function g:CreateAnimation(kind)
-        assert(kind=="Alpha")
+        assert(kind=="Alpha" or kind=="Translation")
         local a={progress=0}
         function a:SetSmoothing(s) self.smoothing=s end
         function a:GetSmoothProgress() return self.progress end
         function a:SetFromAlpha(v) self.from=v end
         function a:SetToAlpha(v) self.to=v end
         function a:SetDuration(v) self.duration=v end
+        function a:SetOffset(x,y) self.x,self.y=x,y end
         self.a=a;return a
     end
     return g
@@ -34,10 +37,27 @@ end
 dofile("package/Lychee/UI/Motion.lua")
 local M=Lychee.UI.Motion
 assert(frames==0 and groups==0,"cold motion has zero engine objects")
+local knob,parent=region(),region()
+M:Slide(knob,parent,2,true)
+assert(groups==0 and knob.x==2,"binding is immediate and does not allocate animations")
+M:Slide(knob,parent,16)
+local slide=knob._lycheeSlide
+slide.alpha.progress=0.5
+M:Slide(knob,parent,2)
+assert(knob.x==9 and slide.from==9 and slide.alpha.x==-7,"rapid reversal preserves displayed position")
+slide.group.scripts.OnFinished()
+assert(knob.x==2 and not slide.playing)
+M:Slide(knob,parent,16);M:Slide(knob,parent,2,true)
+slide.group.scripts.OnFinished()
+assert(knob.x==2 and not slide.playing,"rebind cancels old movement")
+M:Slide(knob,parent,16);M:SetReduced(true)
+assert(knob.x==16 and not slide.playing,"reduced motion settles thumb")
+M:SetReduced(false)
+local groupBaseline=groups
 local r=region()
-M:Selection(r,false);assert(groups==0 and not r:IsShown())
+M:Selection(r,false);assert(groups==groupBaseline and not r:IsShown())
 M:Selection(r,true);local s=r._lycheeMotion
-assert(groups==1 and s.from==0 and s.to==1)
+assert(groups==groupBaseline+1 and s.from==0 and s.to==1)
 s.alpha.progress=0.4
 M:Selection(r,false);assert(math.abs(s.from-0.4)<0.001 and s.to==0,"reverse starts from displayed alpha")
 s.group.scripts.OnFinished();assert(r:GetAlpha()==0 and not s.playing)
@@ -110,6 +130,32 @@ assert(p.visible and r:IsShown(),"old exit cannot hide new open")
 p:Hide("close");s.group.scripts.OnFinished()
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 print("Palette animated close/reopen PASS")
+-- Exercise the actual reusable switch, not just the motion primitive.
+function methods:CreateTexture() return region() end
+function methods:SetSize() end
+function methods:SetWidth() end
+function methods:SetAllPoints() end
+function methods:SetTexture() end
+function methods:SetColorTexture() end
+function methods:SetVertexColor() end
+dofile("package/Lychee/UI/Theme.lua")
+dofile("package/Lychee/UI/Components.lua")
+local toggle=Lychee.UI.Components:CreateToggle(parent)
+toggle:SetChecked(false,true)
+assert(toggle.bg:GetAlpha()==0 and toggle.knob:GetAlpha()==1 and toggle.knob.x==2)
+toggle:SetChecked(true)
+assert(toggle.knob._lycheeSlide.playing and toggle.bg._lycheeMotion.playing)
+toggle.scripts.OnHide()
+assert(not toggle.knob._lycheeSlide.playing and not toggle.bg._lycheeMotion.playing)
+local switchGroups=groups
+collectgarbage("collect");collectgarbage("stop")
+before=collectgarbage("count")
+for i=1,2000 do toggle:SetChecked(i%2==0) end
+local switchAllocation=collectgarbage("count")-before
+collectgarbage("restart")
+assert(groups==switchGroups and switchAllocation<512)
+toggle:FinishMotion()
+print(string.format("Switch PASS cycles2000_KiB=%.2f group_growth=0",switchAllocation))
 for i=1,100 do M:Reveal(region()) end
 assert(groups==96 and #M.groups==96,"native groups have a hard capacity")
 M:StopAll()
