@@ -209,7 +209,7 @@ local function createHomeView(parent, controller)
         tile.ownerView = self
         tile:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
-        tile.bg:SetSize(40, 2)
+        tile.bg:SetSize(28, 2)
         paint(tile.bg, color("accent"))
         tile.bg:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
@@ -235,7 +235,7 @@ local function createHomeView(parent, controller)
         if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
         Lychee.UI.Theme:SetFont(tile.title, "body")
-        tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -6)
+        tile.bg:SetPoint("TOP", tile.icon, "BOTTOM", 0, -2)
         tile.category = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         tile.category:SetPoint("RIGHT", tile, "RIGHT", -12, 0)
         tile.category:SetWidth(90)
@@ -295,8 +295,9 @@ local function createHomeView(parent, controller)
             tile.title:SetPoint("RIGHT", tile, "RIGHT", -2, 0)
             tile.title:SetJustifyH("CENTER")
             tile.title:SetHeight(28)
-            tile.bg:SetSize(24, 2)
-            tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -3)
+            -- Mark the icon, not the variable-height title below it.
+            tile.bg:SetSize(28, 2)
+            tile.bg:SetPoint("TOP", tile.icon, "BOTTOM", 0, -2)
         end
         if tile.title.SetWordWrap then tile.title:SetWordWrap(not recent) end
         if tile.title.SetMaxLines then tile.title:SetMaxLines(recent and 1 or 2) end
