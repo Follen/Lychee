@@ -48,10 +48,24 @@ local featureCreateFrame=CreateFrame
 CreateFrame=nil
 dofile("package/Lychee/".."Bootstrap.lua")
 CreateFrame=featureCreateFrame
+dofile("package/Lychee/".."Builtin/Definitions.lua")
+dofile("package/Lychee/".."Builtin/Shared/Support.lua")
 dofile("package/Lychee/".."Core/ProviderLocales.lua")
-dofile("package/Lychee/".."Locales/Builtin.enUS.lua")
+dofile("package/Lychee/".."Builtin/Achievements/Locales.lua")
+dofile("package/Lychee/".."Builtin/AddonInspector/Locales.lua")
+dofile("package/Lychee/".."Builtin/Bags/Locales.lua")
+dofile("package/Lychee/".."Builtin/BlizzardSettings/Locales.lua")
+dofile("package/Lychee/".."Builtin/Bosses/Locales.lua")
+dofile("package/Lychee/".."Builtin/Crests/Locales.lua")
+dofile("package/Lychee/".."Builtin/EquipmentSets/Locales.lua")
+dofile("package/Lychee/".."Builtin/GameMenus/Locales.lua")
+dofile("package/Lychee/".."Builtin/GreatVault/Locales.lua")
+dofile("package/Lychee/".."Builtin/Keystones/Locales.lua")
+dofile("package/Lychee/".."Builtin/Mounts/Locales.lua")
+dofile("package/Lychee/".."Builtin/PlayerSpells/Locales.lua")
+dofile("package/Lychee/".."Builtin/TalentLoadouts/Locales.lua")
 dofile("package/Lychee/".."Search/RuntimeIdentity.lua")
-dofile('package/Lychee/Builtin/Bags.lua')
+dofile('package/Lychee/Builtin/Bags/Provider.lua')
 local bags=LycheeInternal.Builtin.Bags
 assert(#frames==0 and #timers==0)
 local entry={payload={itemID=123}}

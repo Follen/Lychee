@@ -24,7 +24,7 @@ C_MountJournal={
     GetMountIDs=function() local ids={};for n=1,1500 do ids[n]=n end;return ids end,
     GetMountInfoByID=function(n) return mountNames[(n-1)%#mountNames+1]..n,100000+n,123456,false,true,1,false,false,nil,false,true,n end,
 }
-dofile("package/Lychee/Builtin/Mounts.lua")
+dofile("package/Lychee/Builtin/Mounts/Provider.lua")
 assert(I.Builtin.Mounts:Init())
 if arg[1]=="--stress" then
     local spells={}

@@ -42,16 +42,16 @@ local function drain()
 end
 function EJ_GetInstanceInfo(id) instanceReads=instanceReads+1;if namesReady then return "Localized instance "..id end end
 function EJ_GetEncounterInfo(id) bossReads=bossReads+1;if namesReady then return "Localized boss "..id end end
-for _,file in ipairs({"Bootstrap.lua","Core/ProviderLocales.lua","Locales/Builtin.enUS.lua","Core/ContextStore.lua",
+for _,file in ipairs({"Bootstrap.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua","Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua",
     "Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua",
     "Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua",
-    "Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua","Builtin/CatalogProvider.lua",
-    "Builtin/InterfaceActions.lua","Builtin/Data/JournalCatalog.lua"}) do dofile("package/Lychee/"..file) end
+    "Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua","Builtin/Shared/CatalogProvider.lua",
+    "Builtin/Shared/InterfaceActions.lua","Builtin/Bosses/JournalCatalog.lua"}) do dofile("package/Lychee/"..file) end
 local I=LycheeInternal
 local data=I.Builtin.JournalCatalog
 local subset={};for i=1,65 do subset[i]=data.encounters[i] end;data.encounters=subset
 local firstID,firstInstance=subset[1][1],subset[1][2]
-dofile("package/Lychee/Builtin/Bosses.lua")
+dofile("package/Lychee/Builtin/Bosses/Provider.lua")
 local m=I.Builtin.Bosses
 local baseFrames=#frames
 collectgarbage("collect");local memoryBefore=collectgarbage("count");collectgarbage("stop")

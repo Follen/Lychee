@@ -29,6 +29,24 @@
       ]
     },
     {
+      "path": "Builtin/Definitions.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Shared/Support.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Core/ProviderLocales.lua",
       "products": [
         "retail",
@@ -47,13 +65,7 @@
       ]
     },
     {
-      "path": "Locales/Builtin.enUS.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "providerLocales": true
     },
     {
       "path": "Core/ContextStore.lua",
@@ -191,15 +203,6 @@
       ]
     },
     {
-      "path": "Builtin/Data/PlayerSpellAliases.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
       "path": "Secure/Descriptor.lua",
       "products": [
         "retail",
@@ -326,7 +329,7 @@
       ]
     },
     {
-      "path": "Builtin/PlayerSpells/Provider.lua",
+      "path": "Builtin/Shared/InterfaceActions.lua",
       "products": [
         "retail",
         "classic",
@@ -335,7 +338,7 @@
       ]
     },
     {
-      "path": "Builtin/PlayerSpells/Init.lua",
+      "path": "Builtin/Shared/CatalogProvider.lua",
       "products": [
         "retail",
         "classic",
@@ -344,112 +347,43 @@
       ]
     },
     {
-      "path": "Builtin/InterfaceActions.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "provider": "builtin.player-spells"
     },
     {
-      "path": "Builtin/Data/JournalCatalog.lua",
-      "products": [
-        "retail"
-      ]
+      "provider": "builtin.mounts"
     },
     {
-      "path": "Builtin/CatalogProvider.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "provider": "builtin.crests"
     },
     {
-      "path": "Builtin/Crests.lua",
-      "products": [
-        "retail"
-      ]
+      "provider": "builtin.game-menus"
     },
     {
-      "path": "Builtin/GameMenus.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "provider": "builtin.bosses"
     },
     {
-      "path": "Builtin/Bosses.lua",
-      "products": [
-        "retail"
-      ]
+      "provider": "builtin.great-vault"
     },
     {
-      "path": "Builtin/Mounts.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan"
-      ]
+      "provider": "builtin.bags"
     },
     {
-      "path": "Builtin/GreatVault.lua",
-      "products": [
-        "retail"
-      ]
+      "provider": "builtin.talent-loadouts"
     },
     {
-      "path": "Builtin/Bags.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "provider": "builtin.equipment-sets"
     },
     {
-      "path": "Builtin/Loadouts.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan"
-      ]
+      "provider": "builtin.blizzard-settings"
     },
     {
-      "path": "Builtin/BlizzardSettings.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "provider": "builtin.keystones"
     },
     {
-      "path": "Builtin/Keystones.lua",
-      "products": [
-        "retail"
-      ]
+      "provider": "builtin.achievements"
     },
     {
-      "path": "Builtin/Achievements.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan"
-      ]
-    },
-    {
-      "path": "Builtin/AddonInspector.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
+      "provider": "builtin.addon-inspector"
     },
     {
       "path": "Builtin/Init.lua",
@@ -459,6 +393,206 @@
         "titan",
         "anniversary"
       ]
+    }
+  ],
+  "providers": [
+    {
+      "id": "builtin.player-spells",
+      "module": "PlayerSpells",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ],
+      "files": [
+        "Builtin/PlayerSpells/Aliases.lua",
+        "Builtin/PlayerSpells/Provider.lua",
+        "Builtin/PlayerSpells/Init.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/PlayerSpells/Locales.lua"
+    },
+    {
+      "id": "builtin.mounts",
+      "module": "Mounts",
+      "products": [
+        "retail",
+        "classic",
+        "titan"
+      ],
+      "files": [
+        "Builtin/Mounts/Provider.lua"
+      ],
+      "requires": [
+        "C_MountJournal.GetMountIDs",
+        "C_MountJournal.GetMountInfoByID"
+      ],
+      "locales": "Builtin/Mounts/Locales.lua"
+    },
+    {
+      "id": "builtin.crests",
+      "module": "Crests",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/Crests/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/Crests/Locales.lua"
+    },
+    {
+      "id": "builtin.game-menus",
+      "module": "GameMenus",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ],
+      "files": [
+        "Builtin/GameMenus/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/GameMenus/Locales.lua"
+    },
+    {
+      "id": "builtin.bosses",
+      "module": "Bosses",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/Bosses/JournalCatalog.lua",
+        "Builtin/Bosses/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/Bosses/Locales.lua"
+    },
+    {
+      "id": "builtin.great-vault",
+      "module": "GreatVault",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/GreatVault/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/GreatVault/Locales.lua"
+    },
+    {
+      "id": "builtin.bags",
+      "module": "Bags",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ],
+      "files": [
+        "Builtin/Bags/Provider.lua"
+      ],
+      "requires": [
+        "C_Container.GetContainerNumSlots",
+        "C_Container.GetContainerItemInfo"
+      ],
+      "locales": "Builtin/Bags/Locales.lua"
+    },
+    {
+      "id": "builtin.talent-loadouts",
+      "module": "TalentLoadouts",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/TalentLoadouts/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/TalentLoadouts/Locales.lua"
+    },
+    {
+      "id": "builtin.equipment-sets",
+      "module": "EquipmentSets",
+      "products": [
+        "retail",
+        "classic",
+        "titan"
+      ],
+      "files": [
+        "Builtin/EquipmentSets/Provider.lua"
+      ],
+      "requires": [
+        "C_EquipmentSet.GetEquipmentSetIDs",
+        "C_EquipmentSet.GetEquipmentSetInfo",
+        "C_EquipmentSet.UseEquipmentSet"
+      ],
+      "locales": "Builtin/EquipmentSets/Locales.lua"
+    },
+    {
+      "id": "builtin.blizzard-settings",
+      "module": "BlizzardSettings",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ],
+      "files": [
+        "Builtin/BlizzardSettings/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/BlizzardSettings/Locales.lua"
+    },
+    {
+      "id": "builtin.keystones",
+      "module": "Keystones",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/Keystones/Provider.lua"
+      ],
+      "requires": [],
+      "locales": "Builtin/Keystones/Locales.lua"
+    },
+    {
+      "id": "builtin.achievements",
+      "module": "Achievements",
+      "products": [
+        "retail",
+        "classic",
+        "titan"
+      ],
+      "files": [
+        "Builtin/Achievements/Provider.lua"
+      ],
+      "requires": [
+        "GetCategoryList",
+        "GetAchievementInfo",
+        "GetAchievementCriteriaInfo",
+        "GetAchievementNumCriteria",
+        "GetAchievementLink"
+      ],
+      "locales": "Builtin/Achievements/Locales.lua"
+    },
+    {
+      "id": "builtin.addon-inspector",
+      "module": "AddonInspector",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ],
+      "files": [
+        "Builtin/AddonInspector/Provider.lua"
+      ],
+      "requires": [
+        "GetMouseFoci"
+      ],
+      "locales": "Builtin/AddonInspector/Locales.lua"
     }
   ]
 }

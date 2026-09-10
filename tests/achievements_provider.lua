@@ -55,10 +55,10 @@ AchievementFrame={IsShown=function() return opened~=nil end}
 function ToggleAchievementFrame() opened=0 end
 function AchievementFrame_SelectAchievement(id) opened=id end
 ChatFrameUtil={InsertLink=function(link) linked=link;return false end,OpenChat=function(link) linked=link;return {} end}
-for _,file in ipairs({"Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
-    "Builtin/InterfaceActions.lua","Builtin/CatalogProvider.lua","Builtin/Achievements.lua"}) do dofile("package/Lychee/"..file) end
+    "Builtin/Shared/InterfaceActions.lua","Builtin/Shared/CatalogProvider.lua","Builtin/Achievements/Provider.lua"}) do dofile("package/Lychee/"..file) end
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.Achievements

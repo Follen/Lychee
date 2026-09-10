@@ -152,7 +152,7 @@ function M:Init()
     if not LycheeDB.optionalProviderDefaults[self.id] then
         LycheeDB.optionalProviderDefaults[self.id]=true;LycheeDB.disabledProviders[self.id]=true
     end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=2,i18n=L.resources,version="1.0.0",title=L["插件识别"],scope={products={"retail","classic","titan","anniversary"}},
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=2,i18n=L.resources,version="1.0.0",title=L["插件识别"],scope=I.Builtin.Support:Scope("builtin.addon-inspector"),
         entries={{id="inspect",title=L["插件识别"],kindTitle=L["工具"],subtitle=L["指向界面，查看来自哪个插件"],
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\addon-inspector.tga",
             aliases={"这是什么插件","识别插件","框体","界面来源","wtf","inspect","frame"},actions={"inspect"}}},

@@ -7,7 +7,7 @@ local function now() return debugprofilestop and debugprofilestop() or 0 end
 
 -- Only finite, flat scalar signatures survive a successful catalogue commit.
 function C:New(id, title, events, build, actions)
-    local m = {id=id, locale=I.ProviderLocales:Builtin(id), products={"retail"}, title=title, events=events, build=build, actions=actions, epoch=0, signatures={}}
+    local m = {id=id, locale=I.ProviderLocales:Builtin(id),  title=title, events=events, build=build, actions=actions, epoch=0, signatures={}}
     setmetatable(m, {__index=self})
     return m
 end
@@ -17,19 +17,32 @@ function C:Cancel()
     self.job=nil
 end
 function C:Detach(reason)
+    local wasActive=self.active
     self.active=false; self:Cancel()
     if self.frame then self.frame:UnregisterAllEvents(); self.frame:SetScript("OnEvent",nil) end
-    self.dirty=nil; self.signatures={}
-    if self.onStop then pcall(self.onStop,self) end
-    if reason=="unregister" then self.handle=nil end
+    self.dirty=nil
+    -- Keep only committed identities while disabled: Host retains its records.
+    -- Their scalar signatures are invalidated, so re-enable revalidates all rows.
+    for id in pairs(self.signatures) do self.signatures[id]=false end
+    if wasActive and self.onStop then pcall(self.onStop,self) end
+    if reason=="unregister" then self.handle=nil;self.signatures={} end
 end
 function C:MarkDirty()
     if not self.active then return end
+    if combat() and self.onPause then self:onPause() end
+    if not self.active or (self.hasWork and not self:hasWork()) then return end
     self.dirty=true
     self:Cancel()
     if combat() then self.frame:RegisterEvent("PLAYER_REGEN_ENABLED"); return end
     self.frame:UnregisterEvent("PLAYER_REGEN_ENABLED")
     self:Queue()
+end
+function C:NotifyReady()
+    if not self.active or not self.onReady then return end
+    local epoch=self.epoch
+    local handled=self:onReady()
+    if not self.active or self.epoch~=epoch or handled then return end
+    if I.Search and I.Search.Session then I.Search.Session:SourceChanged(self.id) end
 end
 function C:Queue()
     if not self.active or self.timer then return end
@@ -61,11 +74,18 @@ function C:Step()
             local epoch=self.epoch
             local function flush()
                 if #upsert==0 and #remove==0 then return end
-                local committed,err=self.handle:Update({upsert=upsert,remove=remove})
+                local handle,ledger=self.handle,self.signatures
+                local committed,err=handle:Update({upsert=upsert,remove=remove})
+                -- Update may synchronously disable or replace this registration.
+                -- Successful writes belong to its original identity ledger even
+                -- when paused; never copy them into a replacement registration.
+                if committed and self.handle==handle and self.signatures==ledger then
+                    local current=self.active and epoch==self.epoch
+                    for _,record in ipairs(upsert) do ledger[record.id]=current and signatures[record.id] or false end
+                    for _,id in ipairs(remove) do ledger[id]=nil end
+                end
                 if not self.active or epoch~=self.epoch then return false end
                 if not committed then error(err and err.code or "SOURCE_COMMIT_FAILED") end
-                for _,record in ipairs(upsert) do self.signatures[record.id]=signatures[record.id] end
-                for _,id in ipairs(remove) do self.signatures[id]=nil end
                 upsert,remove={},{}
                 coroutine.yield(); count=0; started=now()
                 return true
@@ -100,7 +120,7 @@ function C:Step()
     if not ok then self.lastError=tostring(result); self.job=nil; return end
     if coroutine.status(self.job)~="dead" then self:Queue(); return end
     self.job=nil
-    if self.onReady then self:onReady() end
+    self:NotifyReady()
 end
 function C:Init()
     if self.handle then
@@ -115,11 +135,9 @@ function C:Init()
     end
     local m=self
     self.handle=self.handle or _G.Lychee:RegisterProvider({
-        id=self.id,apiVersion=2,version="1.0.0",title=self.title,minApiRevision=2,i18n=self.locale.resources,scope={products=self.products},entries={},actions=self.actions,query=self.query,resolve=self.resolve,
+        id=self.id,apiVersion=2,version="1.0.0",title=self.title,minApiRevision=2,i18n=self.locale.resources,scope=I.Builtin.Support:Scope(self.id),entries={},actions=self.actions,query=self.query,resolve=self.resolve,
         onEnable=function(handle)
             m.handle, m.active=handle,true
-            local entry=I.Providers.entries[m.id]
-            for id in pairs(entry and entry.recordMap or {}) do m.signatures[id]=false end
             -- Disabled Host records may remain for history; re-read and replace
             -- every record on enable, including deletion of obsolete identities.
             if not m.frame then m.frame=CreateFrame("Frame") end

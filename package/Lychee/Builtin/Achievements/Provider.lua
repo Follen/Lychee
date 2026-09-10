@@ -352,17 +352,17 @@ M.batchSize,M.batchDelay=128,0
 function M:onReady()
     self.needsWork=false
     local resume=self.resumeQuery;self.resumeQuery=nil
-    if resume then resume()
-    elseif I.Search.Session then I.Search.Session:SourceChanged("achievements-ready") end
+    if resume then resume();return true end
 end
 function M:onStart()
     self.lastError=nil;self.restoreCache=true;self.needsWork=true
     self.pendingIDs,self.pendingCount={},0
 end
-function M:MarkDirty()
-    if combat() and self.cancelQuery then self.cancelQuery() end
-    if not self.needsWork then return end
-    return I.Builtin.CatalogProvider.MarkDirty(self)
+function M:hasWork()
+    return self.needsWork
+end
+function M:onPause()
+    if self.cancelQuery then self.cancelQuery() end
 end
 function M:onEvent(event,id)
     if event=="ACHIEVEMENT_EARNED" then
@@ -454,5 +454,3 @@ M.query=function(request,reply)
     return cancel
 end
 I.Builtin.Achievements=M
-
-M.products={"retail","classic","titan"}

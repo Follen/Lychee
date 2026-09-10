@@ -37,7 +37,6 @@ function M:onEvent(event,addon)
 end
 function M:onReady()
     if not self.hasFallback and self.frame then self.frame:UnregisterEvent("ADDON_LOADED") end
-    if I.Search.Session then I.Search.Session:SourceChanged("bosses-ready") end
 end
 -- Chinese uses the shipped canonical catalogue, preserving its zero-driver
 -- startup baseline. English native lookup is separately bounded by the builder.
@@ -52,7 +51,7 @@ if I.Locale:IsChinese() then
                 payload={encounterID=encounter[1],instanceID=encounter[2]},actions={"open"}}
         end
         local handle,err=Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=2,version="1.0.0",
-            title=L["首领"],i18n=L.resources,scope={products={"retail"}},entries=records,actions=self.actions,
+            title=L["首领"],i18n=L.resources,scope=I.Builtin.Support:Scope("builtin.bosses"),entries=records,actions=self.actions,
             onEnable=function() return function(reason) if reason=="unregister" then M.handle=nil end end end})
         self.handle=handle
         return handle~=nil,err

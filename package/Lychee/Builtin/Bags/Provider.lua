@@ -158,5 +158,3 @@ function M:onEvent(event,itemID)
 end
 function M:onStop() clearHighlight();self.pendingItem=nil end
 I.Builtin.Bags=M
-
-M.products={"retail","classic","titan","anniversary"}

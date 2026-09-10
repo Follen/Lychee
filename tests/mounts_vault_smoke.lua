@@ -42,10 +42,10 @@ local journal={
 }
 C_MountJournal=journal
 local root="package/Lychee/"
-for _, path in ipairs({"Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua", "Builtin/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _, path in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
-    "Secure/Descriptor.lua","Secure/Policy.lua","Builtin/InterfaceActions.lua","Builtin/Mounts.lua","Builtin/GreatVault.lua","Builtin/Init.lua"}) do dofile(root..path) end
+    "Secure/Descriptor.lua","Secure/Policy.lua","Builtin/Shared/InterfaceActions.lua","Builtin/Mounts/Provider.lua","Builtin/GreatVault/Provider.lua","Builtin/Init.lua"}) do dofile(root..path) end
 local I, M = LycheeInternal, LycheeInternal.Builtin.Mounts
 local function find(text, provider)
     local _, items=I.Search.Query:Query(text,{visible=true})

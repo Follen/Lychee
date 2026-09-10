@@ -11,9 +11,18 @@
 ## Bindings: Bindings.xml
 
 Bootstrap.lua
+Builtin/Definitions.lua
+Builtin/Shared/Support.lua
 Core/ProviderLocales.lua
 Locales/UI.enUS.lua
-Locales/Builtin.enUS.lua
+Builtin/PlayerSpells/Locales.lua
+Builtin/Mounts/Locales.lua
+Builtin/GameMenus/Locales.lua
+Builtin/Bags/Locales.lua
+Builtin/EquipmentSets/Locales.lua
+Builtin/BlizzardSettings/Locales.lua
+Builtin/Achievements/Locales.lua
+Builtin/AddonInspector/Locales.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua
@@ -29,7 +38,6 @@ Search/SearchSession.lua
 Core/ProviderRuntime.lua
 Core/UserPreferences.lua
 PublicAPI/SDK.lua
-Builtin/Data/PlayerSpellAliases.lua
 Secure/Descriptor.lua
 Secure/Policy.lua
 Secure/SecureActionBroker.lua
@@ -44,15 +52,16 @@ Core/ResultActionExecutor.lua
 UI/SettingsView.lua
 UI/AddonInspector.lua
 UI/Palette.lua
+Builtin/Shared/InterfaceActions.lua
+Builtin/Shared/CatalogProvider.lua
+Builtin/PlayerSpells/Aliases.lua
 Builtin/PlayerSpells/Provider.lua
 Builtin/PlayerSpells/Init.lua
-Builtin/InterfaceActions.lua
-Builtin/CatalogProvider.lua
-Builtin/GameMenus.lua
-Builtin/Mounts.lua
-Builtin/Bags.lua
-Builtin/Loadouts.lua
-Builtin/BlizzardSettings.lua
-Builtin/Achievements.lua
-Builtin/AddonInspector.lua
+Builtin/Mounts/Provider.lua
+Builtin/GameMenus/Provider.lua
+Builtin/Bags/Provider.lua
+Builtin/EquipmentSets/Provider.lua
+Builtin/BlizzardSettings/Provider.lua
+Builtin/Achievements/Provider.lua
+Builtin/AddonInspector/Provider.lua
 Builtin/Init.lua

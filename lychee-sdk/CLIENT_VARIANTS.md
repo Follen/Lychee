@@ -79,3 +79,7 @@ end
 - 对实际使用的 WoW API 记录对应 wowdoc product/ref/commit 证据；分别报告离线测试与客户端实机验证。
 
 现有内置 Provider 已有差异实现实例：PlayerSpells 在现代与旧式技能书接口之间选择扫描路径，GameMenus 按客户端提供不同入口。之后新增或扩大支持范围时，必须按上述规则继续维护，而不是仅修改 products 数组。
+
+## Lychee 内置实现的维护入口
+
+上述公开约定保持不变。Lychee 仓库内的内置功能使用 `tools/client_manifest.json` 统一维护产品范围、必需能力和文件归属，由工具生成加载清单与运行时支持表；对应实现和语言资源放在 `package/Lychee/Builtin/<功能>/`。这是 Host 仓库内部的构建约定，第三方无需依赖 `LycheeInternal`、`Builtin.Support` 或此清单，仍使用自己的实现选择并注册普通 Provider。具体步骤见 [项目结构](../docs/PROJECT_STRUCTURE.md)。

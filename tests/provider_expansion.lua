@@ -109,11 +109,11 @@ function GetLFGDungeonInfo(id) return id==3102 and "地城1" or "其他" end
 C_SpellBook={IsSpellKnown=function(id) return id==1286801 end}
 C_ChatInfo={RegisterAddonMessagePrefix=function() return 0 end,SendAddonMessage=function(prefix,msg,channel)
     calls.messages=(calls.messages or 0)+1;assert(prefix=="LibKS" and channel=="PARTY");return 0 end}
-for _,file in ipairs({"Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
-    "Core/ResultActionExecutor.lua","Builtin/CatalogProvider.lua","Builtin/Bags.lua","Builtin/Loadouts.lua",
-    "Builtin/BlizzardSettings.lua","Builtin/Keystones.lua","Builtin/Init.lua"}) do dofile("package/Lychee/"..file) end
+    "Core/ResultActionExecutor.lua","Builtin/Shared/CatalogProvider.lua","Builtin/Bags/Provider.lua","Builtin/TalentLoadouts/Provider.lua","Builtin/EquipmentSets/Provider.lua",
+    "Builtin/BlizzardSettings/Provider.lua","Builtin/Keystones/Provider.lua","Builtin/Init.lua"}) do dofile("package/Lychee/"..file) end
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local baseFrames=#frames
@@ -248,7 +248,13 @@ assert(allocation<4096,"100-query allocation")
 assert(growth<512,"retained growth")
 for _,m in ipairs(modules) do
     m:MarkDirty();assert(I.Registry:SetUserEnabled(m.id,false))
-    assert(not m.timer and not m.job and not next(m.frame.events) and not next(m.signatures),"disable cleanup")
+    assert(not m.timer and not m.job and not next(m.frame.events),"disable stops work")
+    local retainedIDs=0
+    for id,signature in pairs(m.signatures) do
+        assert(type(id)=="string" and signature==false,"disabled keeps only invalidated identity keys")
+        retainedIDs=retainedIDs+1
+    end
+    assert(retainedIDs<=4096,"retained identities stay bounded")
 end
 drain()
 bags[3]=nil

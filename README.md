@@ -6,6 +6,8 @@ Lychee 是 World of Warcraft 游戏内的通用搜索工具。Provider 提供可
 
 ## 项目目录
 
+运行时内部的功能归属、生成文件和扩展步骤见 [项目结构与维护入口](docs/PROJECT_STRUCTURE.md)。
+
 | 目录 | 职责 |
 |---|---|
 | `package/Lychee/` | 唯一游戏运行时，安装时复制这个目录 |

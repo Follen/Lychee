@@ -61,7 +61,9 @@ Push-Location $root
 try {
     & python 'tools/build_client_tocs.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Client TOC generation drift' }
-    foreach ($test in @('provider_locales','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
+    & python 'tests/client_manifest.py'
+    if ($LASTEXITCODE -ne 0) { throw 'Client manifest checks failed' }
+    foreach ($test in @('provider_locales','provider_locale_ownership','catalog_lifecycle','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }

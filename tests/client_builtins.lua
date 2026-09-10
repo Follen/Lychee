@@ -17,7 +17,7 @@ function GetSpellBookItemTexture(slot) return 500+slot end
 function IsPassiveSpell(slot) return slot==2 end
 function GetBuildInfo() return "2.5.7","70000","fixture",20507 end
 local function load(path) dofile(root..path) end
-load("Core/ProviderLocales.lua");load("Locales/Builtin.enUS.lua")
+load("Builtin/Definitions.lua");load("Builtin/Shared/Support.lua");load("Core/ProviderLocales.lua");load("Builtin/Achievements/Locales.lua");load("Builtin/AddonInspector/Locales.lua");load("Builtin/Bags/Locales.lua");load("Builtin/BlizzardSettings/Locales.lua");load("Builtin/Bosses/Locales.lua");load("Builtin/Crests/Locales.lua");load("Builtin/EquipmentSets/Locales.lua");load("Builtin/GameMenus/Locales.lua");load("Builtin/GreatVault/Locales.lua");load("Builtin/Keystones/Locales.lua");load("Builtin/Mounts/Locales.lua");load("Builtin/PlayerSpells/Locales.lua");load("Builtin/TalentLoadouts/Locales.lua")
 for id,resources in pairs(I.BuiltinLocaleData) do
     local translator,err=I.ProviderLocales:Builtin(id)
     assert(translator,id..":"..tostring(err and err.field))
@@ -41,7 +41,7 @@ assert(spells.items[101] and spells.items[104] and not spells.items[102] and not
 local records=spells:BuildSearchRecords()
 assert(#records==2 and records[1].actions[1].spellID==101)
 assert(records[1].actions[1].title=="Cast")
-load("Builtin/InterfaceActions.lua");load("Builtin/GameMenus.lua")
+load("Builtin/Shared/InterfaceActions.lua");load("Builtin/GameMenus/Provider.lua")
 for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     product=client;I.Builtin.GameMenus.handle=nil;I.Builtin.GameMenus:Init()
     local def=captured["builtin.game-menus"]
@@ -57,7 +57,7 @@ for _,client in ipairs({"retail","classic","titan","anniversary"}) do
         assert(def.actions.open.run(entries.spellbook).ok)
     end
 end
-load("Builtin/CatalogProvider.lua");load("Builtin/BlizzardSettings.lua")
+load("Builtin/Shared/CatalogProvider.lua");load("Builtin/BlizzardSettings/Provider.lua")
 for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     product=client;local found={}
     I.Builtin.BlizzardSettings.build({},function(row) found[row.id]=row end,function() end)
@@ -66,7 +66,7 @@ for _,client in ipairs({"retail","classic","titan","anniversary"}) do
 end
 -- No journal UI creation: English names come from IDs; fallback never leaks Chinese.
 I.Builtin.JournalCatalog={instances={[7]={"中文副本",1}},encounters={{9,7,"中文首领"}}}
-load("Builtin/Bosses.lua")
+load("Builtin/Bosses/Provider.lua")
 local rows={}
 I.Builtin.Bosses.build({},function(row) rows[#rows+1]=row end,function() end)
 assert(rows[1].title=="Boss 9" and rows[1].subtitle=="Instance 7")

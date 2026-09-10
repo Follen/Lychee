@@ -20,6 +20,6 @@ python tools/build_client_tocs.py --check
 pwsh -NoProfile -File tests/check_contract.ps1
 ```
 
-需要更新客户端加载清单时编辑 `tools/client_manifest.json`，再执行 `python tools/build_client_tocs.py`。图标／数据生成命令会更新输出文件，不作为常规测试全部执行；旧版轮廓工具与当前扁平工具有相同输出目录，分别用于对应素材的重建。
+客户端与内置功能支持范围只在 `tools/client_manifest.json` 维护：`providers` 声明功能归属、产品范围、语言资源和必需能力，`files` 中的 provider 引用只决定加载位置。执行 `python tools/build_client_tocs.py` 同时生成 TOC 与 `Builtin/Definitions.lua`；`--check` 检查两者漂移。见 [结构维护步骤](../docs/PROJECT_STRUCTURE.md)。图标／数据生成命令会更新输出文件，不作为常规测试全部执行；旧版轮廓工具与当前扁平工具有相同输出目录，分别用于对应素材的重建。
 
 这些文件原来位于 `tests/`。历史验证报告、已有产物的 generator 元数据及生成注释保留当时路径作为来源记录；重跑时使用此目录下同名工具。新的产物记录会使用 tools 路径。不要为清理目录而重生成游戏数据或图标。

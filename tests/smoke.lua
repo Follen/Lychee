@@ -28,10 +28,10 @@ C_SpellBook = {
 }
 local root = "package/Lychee/"
 local files = {
-    "Bootstrap.lua", "Core/ProviderLocales.lua", "Locales/Builtin.enUS.lua", "Builtin/CatalogProvider.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
+    "Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Core/ResultActionExecutor.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
-    "Builtin/Data/PlayerSpellAliases.lua", "Builtin/PlayerSpells/Provider.lua",
+    "Builtin/PlayerSpells/Aliases.lua", "Builtin/PlayerSpells/Provider.lua",
     "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua",
 }
 for i = 1, #files do dofile(root .. files[i]) end

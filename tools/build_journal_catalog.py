@@ -23,5 +23,5 @@ lines.extend(["    },", "    encounters={"])
 for row in sorted(valid, key=lambda row: (row["JournalInstanceID"], row["OrderIndex"], row["ID"])):
     lines.append(f'        {{{row["ID"]}, {row["JournalInstanceID"]}, {quote(row["Name_lang"])}}},')
 lines.extend(["    },", "}", ""])
-(ROOT / "package/Lychee/Builtin/Data/JournalCatalog.lua").write_text("\n".join(lines), encoding="utf-8", newline="\n")
+(ROOT / "package/Lychee/Builtin/Bosses/JournalCatalog.lua").write_text("\n".join(lines), encoding="utf-8", newline="\n")
 print(f"Journal catalogue: {len(valid)} encounters, {len(used)} instances; {len(encounters)-len(valid)} rows without an available named instance omitted.")

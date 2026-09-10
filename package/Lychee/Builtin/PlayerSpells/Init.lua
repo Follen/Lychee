@@ -49,7 +49,7 @@ function M:Init()
     local module = self
     local handle, err = _G.Lychee:RegisterProvider({
         id = self.Provider.extensionID, apiVersion = 2, minApiRevision=2, i18n=L.resources, version = "2.0.0", title = L["玩家技能"],
-        scope={products={"retail","classic","titan","anniversary"}}, entries = {},
+        scope=I.Builtin.Support:Scope("builtin.player-spells"), entries = {},
         onEnable = function(providerHandle)
             module.Provider.providerHandle = providerHandle
             module.Provider._active = true

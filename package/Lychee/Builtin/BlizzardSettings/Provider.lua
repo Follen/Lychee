@@ -67,5 +67,3 @@ function M:onEvent(event,name)
     if event~="ADDON_LOADED" or name=="Blizzard_Settings" or name=="Blizzard_SettingsDefinitions_Frame" then self:MarkDirty() end
 end
 I.Builtin.BlizzardSettings=M
-
-M.products={"retail","classic","titan","anniversary"}

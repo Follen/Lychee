@@ -107,3 +107,7 @@ SavedVariables schema 2 保存来源开关、最小身份历史和固定项的�
 ## Provider 内部的版本适配层
 
 Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实例可用性，后者允许同一业务在不同 product/interface/build 下采用不同数据源、事件与交互。适配器归 Provider 所有，推荐按 TOC 加载，初始化时唯一选择；共享入口仅提交一个普通 descriptor。Host 不依赖具体适配器或新增游戏业务分支。未选中分支不创建业务资源，稳定 ID／缓存版本隔离／清理遵循 [SDK 版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。
+
+## 内部结构维护
+
+内置功能按职责存放在 `package/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](PROJECT_STRUCTURE.md)。
