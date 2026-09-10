@@ -69,47 +69,17 @@ function M:CheckFocus(frame)
     if not frame or frame==UIParent or frame==WorldFrame or self:Read(frame,"IsForbidden") then return end
     local current=frame
     for depth=1,16 do
-        if current==self.stackTooltip then return nil,true end
         if self.view and (current==self.view.frame or current==self.view.outline) then return nil,true end
         if current==UIParent or current==WorldFrame or not current then break end
         current=self:Read(current,"GetParent")
     end
     return frame
 end
-function M:StackFocus()
-    if not self.stackAttempted then
-        self.stackAttempted=true
-        -- Same native picker as /fstack; never take over its global tooltip/CVars.
-        self.stackTooltip=call(CreateFrame,"GameTooltip",nil,UIParent,"SharedTooltipTemplate")
-        if self.stackTooltip then
-            self.stackTooltip:SetAlpha(0)
-            self.stackTooltip:EnableMouse(false)
-            self.stackTooltip:Hide()
-        end
-    end
-    local tooltip=self.stackTooltip
-    if not tooltip or type(tooltip.SetFrameStack)~="function" then return end
-    -- Our outline is also a visible region. Exclude it from native hit testing
-    -- within this call, otherwise it can trap selection on the previous target.
-    local outline=self.view and self.view.outline
-    local restoreOutline=outline and outline:IsShown()
-    if restoreOutline then outline:Hide() end
-    tooltip:SetOwner(UIParent,"ANCHOR_NONE")
-    local frame=call(tooltip.SetFrameStack,tooltip,false,true,0)
-    tooltip:Hide()
-    tooltip:ClearLines()
-    if restoreOutline then outline:Show() end
-    return frame
-end
 function M:Focus()
-    local frame,own=self:CheckFocus(self:StackFocus())
-    if frame or own then return frame,own end
-    -- Older/limited clients may not expose SetFrameStack. Check all input foci
-    -- within a small bound rather than discarding the list after its first item.
     local foci=call(GetMouseFoci)
     if type(foci)~="table" then return end
     for index=1,math.min(#foci,32) do
-        frame,own=self:CheckFocus(foci[index])
+        local frame,own=self:CheckFocus(foci[index])
         if frame or own then return frame,own end
     end
 end
@@ -144,7 +114,6 @@ function M:Stop()
     self.running=false;self.epoch=self.epoch+1
     if self.timer then self.timer:Cancel();self.timer=nil end
     self.target,self.data=nil,nil
-    if self.stackTooltip then self.stackTooltip:Hide();self.stackTooltip:ClearLines() end
     if self.view then self.view:Hide() end
 end
 function M:Start()
