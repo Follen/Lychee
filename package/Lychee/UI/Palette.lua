@@ -982,6 +982,8 @@ function Palette:SetResults(items, generation, session)
 end
 
 function Palette:Show()
+    local inspector=I.Builtin and I.Builtin.AddonInspector
+    if inspector and inspector.running then inspector:Stop() end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if self.visible then return true end
     self:Create()

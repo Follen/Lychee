@@ -105,6 +105,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "UI motion lifecycle failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/bag_actions.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Bag actions failed' }
+    & $lua.Source 'tests/addon_inspector.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Addon inspector failed' }
     & $lua.Source 'tests/achievements_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw "Achievements Provider failed with exit code $LASTEXITCODE" }
 } finally {

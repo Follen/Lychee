@@ -15,4 +15,5 @@ function I.Builtin:Init()
     if self.BlizzardSettings then self.BlizzardSettings:Init() end
     if self.Keystones then self.Keystones:Init() end
     if self.Achievements then self.Achievements:Init() end
+    if self.AddonInspector then self.AddonInspector:Init() end
 end

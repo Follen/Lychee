@@ -35,6 +35,7 @@ UI/ResultList.lua
 UI/ViewHost.lua
 Core/ResultActionExecutor.lua
 UI/SettingsView.lua
+UI/AddonInspector.lua
 UI/Palette.lua
 Builtin/PlayerSpells/Provider.lua
 Builtin/PlayerSpells/Init.lua
@@ -51,4 +52,5 @@ Builtin/Loadouts.lua
 Builtin/BlizzardSettings.lua
 Builtin/Keystones.lua
 Builtin/Achievements.lua
+Builtin/AddonInspector.lua
 Builtin/Init.lua

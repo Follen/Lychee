@@ -27,7 +27,7 @@ end
 local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
     ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6,
     ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
-    ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12 }
+    ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
 local providerDescriptions = {
     ["builtin.bags"]="搜索物品并定位背包",
     ["builtin.talent-loadouts"]="搜索并切换天赋方案",
@@ -35,6 +35,7 @@ local providerDescriptions = {
     ["builtin.blizzard-settings"]="定位设置、重载界面与冷却管理器",
     ["builtin.keystones"]="队伍钥匙、分数与副本传送",
     ["builtin.achievements"]="搜索成就、查看进度与分享链接",
+    ["builtin.addon-inspector"]="指向界面，识别来源插件",
 }
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local providerIcons = {
@@ -50,6 +51,7 @@ local providerIcons = {
     ["builtin.blizzard-settings"] = iconRoot .. "settings.tga",
     ["builtin.keystones"] = iconRoot .. "keystone.tga",
     ["builtin.achievements"] = iconRoot .. "achievements.tga",
+    ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
 }
 local function rowIcon(record)
     local pin = type(record.pin) == "table" and record.pin or nil
