@@ -1,0 +1,42 @@
+[
+  {
+    "version": "baseline",
+    "output": [
+      "provider run=1 directory=500 single_updates=100 ms=4.000 allocated_kib=866.127",
+      "provider run=2 directory=500 single_updates=100 ms=4.000 allocated_kib=842.220",
+      "provider run=3 directory=500 single_updates=100 ms=4.000 allocated_kib=840.720",
+      "provider run=4 directory=500 single_updates=100 ms=4.000 allocated_kib=840.720",
+      "provider run=5 directory=500 single_updates=100 ms=4.000 allocated_kib=840.720"
+    ]
+  },
+  {
+    "version": "core-working",
+    "output": [
+      "provider run=1 directory=500 single_updates=100 ms=3.000 allocated_kib=625.502",
+      "provider run=2 directory=500 single_updates=100 ms=5.000 allocated_kib=601.595",
+      "provider run=3 directory=500 single_updates=100 ms=4.000 allocated_kib=600.095",
+      "provider run=4 directory=500 single_updates=100 ms=3.000 allocated_kib=600.095",
+      "provider run=5 directory=500 single_updates=100 ms=4.000 allocated_kib=600.095"
+    ]
+  },
+  {
+    "version": "baseline",
+    "output": [
+      "provider run=1 directory=500 single_updates=100 ms=4.000 allocated_kib=866.127",
+      "provider run=2 directory=500 single_updates=100 ms=3.000 allocated_kib=842.220",
+      "provider run=3 directory=500 single_updates=100 ms=4.000 allocated_kib=840.720",
+      "provider run=4 directory=500 single_updates=100 ms=5.000 allocated_kib=840.720",
+      "provider run=5 directory=500 single_updates=100 ms=4.000 allocated_kib=840.720"
+    ]
+  },
+  {
+    "version": "core-working",
+    "output": [
+      "provider run=1 directory=500 single_updates=100 ms=4.000 allocated_kib=625.502",
+      "provider run=2 directory=500 single_updates=100 ms=4.000 allocated_kib=601.595",
+      "provider run=3 directory=500 single_updates=100 ms=4.000 allocated_kib=600.095",
+      "provider run=4 directory=500 single_updates=100 ms=5.000 allocated_kib=600.095",
+      "provider run=5 directory=500 single_updates=100 ms=4.000 allocated_kib=600.095"
+    ]
+  }
+]

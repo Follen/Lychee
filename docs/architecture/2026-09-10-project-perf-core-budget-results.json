@@ -1,0 +1,59 @@
+[
+  {
+    "output": [
+      "boundary run=1 records=10000 ms=129.000 allocated_kib=22969.257",
+      "C:\\Program Files (x86)\\Lua\\5.1\\lua.exe: tests/performance_core.lua:28: boundary allocation budget: 10000 validations must allocate <8192 KiB",
+      "stack traceback:",
+      "\t[C]: in function 'assert'",
+      "\ttests/performance_core.lua:28: in main chunk",
+      "\t[C]: ?"
+    ],
+    "test": "tests/performance_core.lua",
+    "exitCode": 1,
+    "version": "baseline"
+  },
+  {
+    "output": [
+      "C:\\Program Files (x86)\\Lua\\5.1\\lua.exe: tests/perf_core_provider.lua:28: provider allocation budget: 100 single-record updates must allocate <768 KiB",
+      "stack traceback:",
+      "\t[C]: in function 'assert'",
+      "\ttests/perf_core_provider.lua:28: in main chunk",
+      "\t[C]: ?",
+      "provider run=1 directory=500 single_updates=100 ms=3.000 allocated_kib=866.127"
+    ],
+    "test": "tests/perf_core_provider.lua",
+    "exitCode": 1,
+    "version": "baseline"
+  },
+  {
+    "output": [
+      "boundary run=1 records=10000 ms=117.000 allocated_kib=3752.241",
+      "boundary run=2 records=10000 ms=115.000 allocated_kib=3750.507",
+      "boundary run=3 records=10000 ms=116.000 allocated_kib=3750.507",
+      "boundary run=4 records=10000 ms=111.000 allocated_kib=3750.507",
+      "boundary run=5 records=10000 ms=117.000 allocated_kib=3750.507",
+      "scheduler subscribers=1 ticks=1000 ms=0.000 allocated_kib=0.000",
+      "scheduler subscribers=16 ticks=1000 ms=2.000 allocated_kib=0.000",
+      "scheduler subscribers=256 ticks=1000 ms=34.000 allocated_kib=0.000",
+      "ready cancellations=2000 retained_kib=-0.859 pending=0",
+      "performance_core regression passed; scheduler frame count=1"
+    ],
+    "test": "tests/performance_core.lua",
+    "exitCode": 0,
+    "version": "working"
+  },
+  {
+    "output": [
+      "provider run=1 directory=500 single_updates=100 ms=3.000 allocated_kib=597.377",
+      "provider run=2 directory=500 single_updates=100 ms=3.000 allocated_kib=573.470",
+      "provider run=3 directory=500 single_updates=100 ms=3.000 allocated_kib=571.970",
+      "provider run=4 directory=500 single_updates=100 ms=2.000 allocated_kib=571.970",
+      "provider run=5 directory=500 single_updates=100 ms=3.000 allocated_kib=571.970",
+      "provider pending jobs after 200 searches=1",
+      "perf_core_provider regression passed"
+    ],
+    "test": "tests/perf_core_provider.lua",
+    "exitCode": 0,
+    "version": "working"
+  }
+]

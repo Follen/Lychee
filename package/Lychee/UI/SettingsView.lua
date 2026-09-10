@@ -44,6 +44,28 @@ local function displayTitle(value, fallback)
     if type(value)=="table" then return value[GetLocale and GetLocale() or "enUS"] or value.default or value.enUS or fallback end
     return fallback
 end
+local function releaseIdentity(row)
+    row._bindingGeneration=(row._bindingGeneration or 0)+1
+    row.providerID,row.pinIndex,row._bindingIdentity=nil,nil,nil
+end
+local function bindPress(control,row,component)
+    control:SetScript("OnMouseDown",function()
+        control._pressGeneration=row._bindingGeneration
+        if component and component.enabled==false then control._pressGeneration=false end
+        if component then component:SetState("pressed") end
+    end)
+    control:SetScript("OnHide",function()
+        if control._pressGeneration~=nil then control._pressGeneration=false end
+        if component then component._hovered=false;component:SetState("normal") end
+    end)
+    if component then
+        local setEnabled=component.SetEnabled
+        function component:SetEnabled(enabled)
+            if enabled==false and control._pressGeneration~=nil then control._pressGeneration=false end
+            return setEnabled(self,enabled)
+        end
+    end
+end
 
 function Settings:Create(parent, controller)
     local view = {controller=controller, rows={}, groups={}, tab="providers",scroll=0}
@@ -68,11 +90,24 @@ function Settings:Create(parent, controller)
     view.scrollFrame,view.content=scroll,content
     if scroll.EnableMouseWheel then scroll:EnableMouseWheel(true) end
     scroll:SetScript("OnMouseWheel",function(_,delta)
+        if InCombatLockdown and InCombatLockdown() then return end
         local maximum=math.max(0,content:GetHeight()-scroll:GetHeight())
         local value=math.max(0,math.min(maximum,view.scroll-delta*46))
-        if value~=view.scroll then view.scroll=value;scroll:SetVerticalScroll(value) end
+        if value~=view.scroll then view.scroll=value;scroll:SetVerticalScroll(value);view:RenderVisible() end
     end)
-    frame:SetScript("OnHide",function() view.dragIndex=nil end)
+    scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
+    frame:SetScript("OnHide",function()
+        view.dragIndex,view.data=nil,nil
+        for _,row in ipairs(view.rows) do releaseIdentity(row) end
+    end)
+    local function currentClick(control,row)
+        local generation=control._pressGeneration
+        control._pressGeneration=nil
+        if generation~=nil and generation~=row._bindingGeneration then return false end
+        if not frame:IsShown() or not row:IsShown() or (InCombatLockdown and InCombatLockdown()) then return false end
+        if row.providerID then return I.Providers.entries[row.providerID]==row._bindingIdentity end
+        return row.pinIndex~=nil and I.UserPreferences:GetPins()[row.pinIndex]==row._bindingIdentity
+    end
 
     function view:Acquire(index)
         if self.rows[index] then return self.rows[index] end
@@ -86,6 +121,7 @@ function Settings:Create(parent, controller)
         row.toggle.bg=row.toggle:CreateTexture(nil,"BACKGROUND");row.toggle.bg:SetAllPoints()
         row.toggle.knob=row.toggle:CreateTexture(nil,"ARTWORK");row.toggle.knob:SetSize(12,12);Lychee.UI.Theme:SetColorTexture(row.toggle.knob,"text")
         row.toggle:SetScript("OnClick",function()
+            if not currentClick(row.toggle,row) then return end
             if not row.providerID then return end
             local source=I.Registry.entries[row.providerID]
             if not source then return end
@@ -93,13 +129,16 @@ function Settings:Create(parent, controller)
             if not ok then controller:ReportActionResult(false,err);return end
             controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("更改已保存，固定记录保留")
         end)
-        row.up=button(row,"上移",40,function() self:Move(row.pinIndex,-1) end);row.up.frame:SetPoint("RIGHT",row,"RIGHT",-132,0)
-        row.down=button(row,"下移",40,function() self:Move(row.pinIndex,1) end);row.down.frame:SetPoint("RIGHT",row,"RIGHT",-88,0)
+        row.up=button(row,"上移",40,function() if currentClick(row.up.frame,row) then self:Move(row.pinIndex,-1) end end);row.up.frame:SetPoint("RIGHT",row,"RIGHT",-132,0)
+        row.down=button(row,"下移",40,function() if currentClick(row.down.frame,row) then self:Move(row.pinIndex,1) end end);row.down.frame:SetPoint("RIGHT",row,"RIGHT",-88,0)
         row.remove=button(row,"取消固定",76,function()
+            if not currentClick(row.remove.frame,row) then return end
             if not row.pinIndex then return end
             self.removedIndex=row.pinIndex;self.removed=I.UserPreferences:Remove(row.pinIndex)
             controller:MarkHomeDirty();self:Refresh();controller:SetStatusText("已取消固定，可以撤销")
         end);row.remove.frame:SetPoint("RIGHT",row,"RIGHT",-8,0)
+        bindPress(row.toggle,row)
+        bindPress(row.up.frame,row,row.up);bindPress(row.down.frame,row,row.down);bindPress(row.remove.frame,row,row.remove)
         row:RegisterForDrag("LeftButton")
         row:SetScript("OnDragStart",function() if self.tab=="pins" then self.dragIndex=row.pinIndex end end)
         row:SetScript("OnDragStop",function()
@@ -131,20 +170,31 @@ function Settings:Create(parent, controller)
         for id,tab in pairs(self.tabs) do Lychee.UI.Theme:SetTextColor(tab.label,id==self.tab and "text" or "textMuted") end
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.add.frame,self.tab=="pins");shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
-        local data={}
+        local data,count=self.data or {},0
         if self.tab=="providers" then
             for id,provider in pairs(I.Providers.entries) do
                 local state=I.Registry.entries[id]
-                if id~="lychee.settings" and state then data[#data+1]={id=id,state=state,title=displayTitle(provider.definition.title,id),version=provider.definition.version,
-                    builtin=builtinOrder[id]~=nil,order=builtinOrder[id] or 100} end
+                if id~="lychee.settings" and state then
+                    count=count+1
+                    local record=data[count] or {};data[count]=record
+                    if record.pinIndex~=nil then record.pin,record.pinIndex=nil,nil end
+                    record.id,record.state,record.provider=id,state,provider
+                    record.title,record.version=displayTitle(provider.definition.title,id),provider.definition.version
+                    record.builtin,record.order=builtinOrder[id]~=nil,builtinOrder[id] or 100
+                end
             end
+            for index=#data,count+1,-1 do data[index]=nil end
             table.sort(data,function(a,b) if a.order~=b.order then return a.order<b.order end;return a.id<b.id end)
         else
             I.UserPreferences:MigratePins()
             for index,pin in ipairs(I.UserPreferences:GetPins()) do
-                local item=I.UserPreferences:Resolve(pin)
-                data[#data+1]={pin=pin,pinIndex=index,item=item,title=item and item.text or type(pin)=="table" and (pin.title or pin.entryID) or tostring(pin)}
+                count=count+1
+                local record=data[count] or {};data[count]=record
+                record.id,record.state,record.title,record.version,record.builtin,record.order=nil,nil,nil,nil,nil,nil
+                record.provider=nil
+                record.pin,record.pinIndex=pin,index
             end
+            for index=#data,count+1,-1 do data[index]=nil end
         end
         local y,groupCount,lastGroup=0,0,nil
         for index,record in ipairs(data) do
@@ -155,9 +205,47 @@ function Settings:Create(parent, controller)
                     groupCount=groupCount+1;self:Header(groupCount,group,y);y=y+23;lastGroup=group
                 end
             end
-            local row=self:Acquire(index)
+            record.y=y;y=y+46
+        end
+        if #data==0 then groupCount=1;self:Header(1,self.tab=="pins" and "还没有固定项。搜索条目后，右键固定到首页。" or "没有已接入的功能来源",12) end
+        for index=groupCount+1,#self.groups do shown(self.groups[index],false) end
+        self.data=data
+        local height=math.max(40,y+12);if content:GetHeight()~=height then content:SetHeight(height) end
+        self:RenderVisible()
+    end
+    function view:RenderVisible()
+        if not self.data or (InCombatLockdown and InCombatLockdown()) then return end
+        local data=self.data
+        local viewport=scroll:GetHeight()
+        local maximum=math.max(0,content:GetHeight()-viewport)
+        if self.scroll>maximum then self.scroll=maximum;scroll:SetVerticalScroll(maximum) end
+        -- Geometry is sorted once per data refresh; wheel work is O(log N + K).
+        local low,high=1,#data
+        while low<=high do
+            local middle=math.floor((low+high)/2)
+            if data[middle].y+46<=self.scroll then low=middle+1 else high=middle-1 end
+        end
+        local visible=0
+        for index=low,#data do
+            local record=data[index]
+            if record.y>=self.scroll+viewport then break end
+            visible=visible+1
+            local row=self:Acquire(visible)
+            local y=record.y
             if row._y~=y then row:ClearAllPoints();row:SetPoint("TOPLEFT",content,"TOPLEFT",0,-y);row._y=y end
-            row.providerID,row.pinIndex=record.id,record.pinIndex
+            local identity=self.tab=="pins" and record.pin or record.provider
+            if row.providerID~=record.id or row.pinIndex~=record.pinIndex or row._bindingIdentity~=identity then
+                row._bindingGeneration=(row._bindingGeneration or 0)+1
+                row.up._hovered,row.down._hovered,row.remove._hovered=false,false,false
+                row.up:SetState("normal");row.down:SetState("normal");row.remove:SetState("normal")
+            end
+            row.providerID,row.pinIndex,row._bindingIdentity=record.id,record.pinIndex,identity
+            if self.tab=="pins" then
+                -- Resolve only visible pins, and retain no resolved catalog item.
+                record.item=I.UserPreferences:Resolve(record.pin)
+                local pin=record.pin
+                record.title=record.item and record.item.text or type(pin)=="table" and (pin.title or pin.entryID) or tostring(pin)
+            end
             local icon=rowIcon(record)
             if row._icon~=icon and row.icon:SetTexture(icon)~=false then row._icon=icon end
             text(row.name,record.title)
@@ -175,17 +263,14 @@ function Settings:Create(parent, controller)
                 row.up:SetEnabled(index>1);row.down:SetEnabled(index<#data)
             end
             shown(row.toggle,self.tab=="providers");shown(row.up.frame,self.tab=="pins");shown(row.down.frame,self.tab=="pins");shown(row.remove.frame,self.tab=="pins")
-            shown(row,true);y=y+46
+            record.item=nil
+            shown(row,true)
         end
-        for index=#data+1,#self.rows do
-            local row=self.rows[index];row.providerID,row.pinIndex=nil,nil
+        for index=visible+1,#self.rows do
+            local row=self.rows[index];releaseIdentity(row)
             if row._icon~=nil and row.icon:SetTexture(nil)~=false then row._icon=nil end
             shown(row,false)
         end
-        if #data==0 then groupCount=1;self:Header(1,self.tab=="pins" and "还没有固定项。搜索条目后，右键固定到首页。" or "没有已接入的功能来源",12) end
-        for index=groupCount+1,#self.groups do shown(self.groups[index],false) end
-        local height=math.max(40,y+12);if content:GetHeight()~=height then content:SetHeight(height) end
-        local maximum=math.max(0,height-scroll:GetHeight());if self.scroll>maximum then self.scroll=maximum;scroll:SetVerticalScroll(maximum) end
     end
     return view
 end

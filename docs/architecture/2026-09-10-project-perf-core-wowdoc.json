@@ -1,0 +1,112 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "C_Timer.NewTimer",
+    "results": {
+      "kind": "api-function",
+      "name": "C_Timer.NewTimer",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "39: \t\t\tName = \"NewTimer\",\n40: \t\t\tType = \"Function\",\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n46: \t\t\t\t{ Name = \"callback\", Type = \"TickerCallback\", Nilable = false },\n47: \t\t\t},\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"cbObject\", Type = \"TickerCallback\", Nilable = false },\n52: \t\t\t},\n53: \t\t},",
+      "contentHash": "72b5d79e91b3d8185cff68e5a6cd91498cb3aecd8ea6809a84e4d0edc805bc4c",
+      "line": 39,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "issecretvalue",
+    "results": {
+      "kind": "api-function",
+      "name": "FrameScript.issecretvalue",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "263: \t\t\tName = \"issecretvalue\",\n264: \t\t\tType = \"Function\",\n265: \t\t\tSecureHooksAllowed = false,\n266: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n267: \t\t\tDocumentation = { \"Returns true if a supplied value is a secret value.\" },\n268: \n269: \t\t\tArguments =\n270: \t\t\t{\n271: \t\t\t\t{ Name = \"value\", Type = \"LuaValueReference\", Nilable = false },\n272: \t\t\t},\n273: \n274: \t\t\tReturns =\n275: \t\t\t{\n276: \t\t\t\t{ Name = \"isSecret\", Type = \"bool\", Nilable = false },\n277: \t\t\t},\n278: \t\t},",
+      "contentHash": "00f538cb711b5baa0a7f819fae4b038c9189e234ac70c1aaf8c51e4d9335628c",
+      "line": 263,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "canaccessvalue",
+    "results": {
+      "kind": "api-function",
+      "name": "FrameScript.canaccessvalue",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "65: \t\t\tName = \"canaccessvalue\",\n66: \t\t\tType = \"Function\",\n67: \t\t\tSecureHooksAllowed = false,\n68: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n69: \t\t\tDocumentation = { \"Returns true if the immediate calling function has appropriate permissions to access and operate on a specific value.\" },\n70: \n71: \t\t\tArguments =\n72: \t\t\t{\n73: \t\t\t\t{ Name = \"value\", Type = \"LuaValueReference\", Nilable = false },\n74: \t\t\t},\n75: \n76: \t\t\tReturns =\n77: \t\t\t{\n78: \t\t\t\t{ Name = \"canAccessValue\", Type = \"bool\", Nilable = false },\n79: \t\t\t},\n80: \t\t},",
+      "contentHash": "00f538cb711b5baa0a7f819fae4b038c9189e234ac70c1aaf8c51e4d9335628c",
+      "line": 65,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "canaccesstable",
+    "results": {
+      "kind": "api-function",
+      "name": "FrameScript.canaccesstable",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "48: \t\t\tName = \"canaccesstable\",\n49: \t\t\tType = \"Function\",\n50: \t\t\tSecureHooksAllowed = false,\n51: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n52: \t\t\tDocumentation = { \"Returns true if the immediate calling function has appropriate permissions to index secret tables. This will return false if the caller cannot access the table value itself, or if access to the table contents is disallowed by taint.\" },\n53: \n54: \t\t\tArguments =\n55: \t\t\t{\n56: \t\t\t\t{ Name = \"table\", Type = \"LuaValueReference\", Nilable = false },\n57: \t\t\t},\n58: \n59: \t\t\tReturns =\n60: \t\t\t{\n61: \t\t\t\t{ Name = \"canAccessTable\", Type = \"bool\", Nilable = false },\n62: \t\t\t},\n63: \t\t},",
+      "contentHash": "00f538cb711b5baa0a7f819fae4b038c9189e234ac70c1aaf8c51e4d9335628c",
+      "line": 48,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": null,
+    "results": {
+      "kind": "function",
+      "name": "AccountStoreBaseCardMixin:OnUpdate",
+      "path": "Interface/AddOns/Blizzard_AccountStore/Blizzard_AccountStoreCardTemplates.lua",
+      "matchedBy": "exact_symbol",
+      "role": "project",
+      "excerpt": "96: function AccountStoreBaseCardMixin:OnUpdate(dt)\n97: \tself.timeSinceUpdate = (self.timeSinceUpdate or 0) + dt;\n98: \n99: \tif self.timeSinceUpdate > AccountStoreCardUpdateCadenceSeconds then\n100: \t\tself.timeSinceUpdate = 0;\n101: \t\tself:CheckForItemStateUpdate();\n102: \tend\n103: end",
+      "contentHash": "0f27d9aa15f8567bfc061d37109ce32f2374d31134f279e2c33f02633bd4bdef",
+      "line": 96,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  }
+]

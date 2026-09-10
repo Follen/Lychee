@@ -102,9 +102,11 @@ local function finish(job, reason)
 end
 function P:CancelQueries(reason, owner)
     if not owner then self.queryEpoch = self.queryEpoch + 1 end
+    local epoch = self.queryEpoch
     local pending = {}
     for job in pairs(self.jobs) do if not owner or job.entry == owner then pending[#pending + 1] = job end end
     for index = 1, #pending do finish(pending[index], reason or "cancelled") end
+    return epoch
 end
 
 function P:Register(definition)
@@ -383,7 +385,11 @@ end
 
 -- One completion per Provider per query, whether synchronous or delayed.
 function P:Search(request, context, onChange)
-    local output, collecting, epoch = {}, true, self.queryEpoch
+    -- Search is also callable without QueryOrchestrator. Supersede old work at
+    -- this boundary; a cancel callback may reenter and start an even newer query.
+    local epoch = self:CancelQueries("query-replaced")
+    if epoch ~= self.queryEpoch then return {} end
+    local output, collecting = {}, true
     local function gather()
         local result = {}
         for _, list in pairs(output) do for _, item in ipairs(list) do if P:IsCurrent(item) then result[#result + 1] = item end end end
@@ -400,10 +406,15 @@ function P:Search(request, context, onChange)
         if entry and active(entry) then
         entry.dynamic, entry.resolved = {}, resolvedRecords()
         entry.dynamicEpoch = entry.dynamicEpoch + 1
-        local job = { entry = entry, epoch = epoch }
+        local job = { entry = entry, epoch = epoch, revision = entry.revision, dynamicEpoch = entry.dynamicEpoch }
         self.jobs[job] = true
         local function reply(input)
-            if job.done or not active(entry) or job.epoch ~= P.queryEpoch then return failure("STALE_REQUEST", "query", id) end
+            if job.done then return failure("STALE_REQUEST", "query", id) end
+            if not active(entry) or job.epoch ~= P.queryEpoch or job.revision ~= entry.revision
+                or job.dynamicEpoch ~= entry.dynamicEpoch then
+                finish(job, "stale")
+                return failure("STALE_REQUEST", "query", id)
+            end
             local list, map = records(entry, input, P.queryLimit)
             if not list then report(entry, map.code, "query"); finish(job, "invalid"); return nil, map end
             entry.dynamic = map
@@ -434,7 +445,10 @@ function P:Search(request, context, onChange)
             if cancel and not pcall(cancel, job.reason) then report(entry, "CALLBACK_ERROR", "query.cancel") end
         else
             job.cancel = cancel
-            if C_Timer and C_Timer.NewTimer then job.timer = C_Timer.NewTimer(5, function() report(entry, "QUERY_TIMEOUT", "query"); finish(job, "timeout") end) end
+            if C_Timer and C_Timer.NewTimer then job.timer = C_Timer.NewTimer(5, function()
+                if job.done then return end
+                report(entry, "QUERY_TIMEOUT", "query"); finish(job, "timeout")
+            end) end
         end
         end
     end

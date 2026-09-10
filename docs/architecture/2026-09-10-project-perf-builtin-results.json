@@ -1,0 +1,45 @@
+{
+  "baselineCommit": "4e12531",
+  "environment": "Windows Lua 5.1 offline; 200 spells; 100 refreshes; 300 secure idle events",
+  "runs": [
+    {
+      "secureBefore": "secure idle: subscriptions=4 delivered callbacks=300 per 300 player events",
+      "before": "builtin perf: disabled scans=1 unchanged commits=20 unrelated scans=1 frames after reenable=2 late scans=1; frames after 20 more toggles=22; 100 unchanged refresh 67.000ms 37353.8KiB allocated 0.0KiB retained growth",
+      "after": [
+        "builtin perf: disabled scans=0 unchanged commits=0 unrelated scans=0 frames after reenable=1 late scans=0; frames after 20 more toggles=1; 100 unchanged refresh 35.000ms 9172.6KiB allocated 0.0KiB retained growth",
+        "Builtin lifecycle/incremental regression PASS"
+      ],
+      "run": 1,
+      "secureAfter": [
+        "secure idle: subscriptions=0 delivered callbacks=0 per 300 player events",
+        "Secure event lifecycle PASS"
+      ]
+    },
+    {
+      "secureBefore": "secure idle: subscriptions=4 delivered callbacks=300 per 300 player events",
+      "before": "builtin perf: disabled scans=1 unchanged commits=20 unrelated scans=1 frames after reenable=2 late scans=1; frames after 20 more toggles=22; 100 unchanged refresh 65.000ms 37353.8KiB allocated 0.0KiB retained growth",
+      "after": [
+        "builtin perf: disabled scans=0 unchanged commits=0 unrelated scans=0 frames after reenable=1 late scans=0; frames after 20 more toggles=1; 100 unchanged refresh 31.000ms 9172.6KiB allocated 0.0KiB retained growth",
+        "Builtin lifecycle/incremental regression PASS"
+      ],
+      "run": 2,
+      "secureAfter": [
+        "secure idle: subscriptions=0 delivered callbacks=0 per 300 player events",
+        "Secure event lifecycle PASS"
+      ]
+    },
+    {
+      "secureBefore": "secure idle: subscriptions=4 delivered callbacks=300 per 300 player events",
+      "before": "builtin perf: disabled scans=1 unchanged commits=20 unrelated scans=1 frames after reenable=2 late scans=1; frames after 20 more toggles=22; 100 unchanged refresh 67.000ms 37353.8KiB allocated 0.0KiB retained growth",
+      "after": [
+        "builtin perf: disabled scans=0 unchanged commits=0 unrelated scans=0 frames after reenable=1 late scans=0; frames after 20 more toggles=1; 100 unchanged refresh 31.000ms 9172.6KiB allocated 0.0KiB retained growth",
+        "Builtin lifecycle/incremental regression PASS"
+      ],
+      "run": 3,
+      "secureAfter": [
+        "secure idle: subscriptions=0 delivered callbacks=0 per 300 player events",
+        "Secure event lifecycle PASS"
+      ]
+    }
+  ]
+}

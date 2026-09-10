@@ -1,0 +1,61 @@
+{
+  "baselineCommit": "4e12531",
+  "environment": "Windows Lua 5.1; independent processes; 5 alternating pairs; offline only",
+  "runs": [
+    {
+      "run": 1,
+      "before": [
+        "SEARCH normalization_2048_KiB=2839.7 normalization_ms=46.0 long_cache_retained_KiB=2421.2 invalidation_keys=5000 candidates_before=1000 candidates_after_cancel=1000",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ],
+      "after": [
+        "SEARCH normalization_2048_KiB=626.1 normalization_ms=35.0 long_cache_retained_KiB=-21.5 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ]
+    },
+    {
+      "run": 2,
+      "before": [
+        "SEARCH normalization_2048_KiB=2839.7 normalization_ms=44.0 long_cache_retained_KiB=2421.2 invalidation_keys=5000 candidates_before=1000 candidates_after_cancel=1000",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ],
+      "after": [
+        "SEARCH normalization_2048_KiB=626.1 normalization_ms=34.0 long_cache_retained_KiB=-21.5 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ]
+    },
+    {
+      "run": 3,
+      "before": [
+        "SEARCH normalization_2048_KiB=2839.7 normalization_ms=49.0 long_cache_retained_KiB=2421.2 invalidation_keys=5000 candidates_before=1000 candidates_after_cancel=1000",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ],
+      "after": [
+        "SEARCH normalization_2048_KiB=626.1 normalization_ms=38.0 long_cache_retained_KiB=-21.5 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ]
+    },
+    {
+      "run": 4,
+      "before": [
+        "SEARCH normalization_2048_KiB=2839.7 normalization_ms=43.0 long_cache_retained_KiB=2421.2 invalidation_keys=5000 candidates_before=1000 candidates_after_cancel=1000",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ],
+      "after": [
+        "SEARCH normalization_2048_KiB=626.1 normalization_ms=36.0 long_cache_retained_KiB=-21.5 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ]
+    },
+    {
+      "run": 5,
+      "before": [
+        "SEARCH normalization_2048_KiB=2839.7 normalization_ms=44.0 long_cache_retained_KiB=2421.2 invalidation_keys=5000 candidates_before=1000 candidates_after_cancel=1000",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ],
+      "after": [
+        "SEARCH normalization_2048_KiB=626.1 normalization_ms=37.0 long_cache_retained_KiB=-21.5 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0",
+        "Search allocation, byte-normalization and cancellation checks PASS"
+      ]
+    }
+  ]
+}

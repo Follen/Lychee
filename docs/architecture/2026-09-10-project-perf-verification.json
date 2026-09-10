@@ -1,0 +1,22 @@
+{
+  "baselineCommit": "4e12531",
+  "testGroups": 20,
+  "testsPassed": true,
+  "contractOutput": "Lychee Provider API 2 contract PASS\r\nLychee persistent Provider preference PASS\r\nResolved record lifetime PASS\r\nLychee registry boundary smoke PASS\r\nLychee smoke PASS\r\nBuilt-in providers PASS: 1154 bosses; init 94.00 ms / retained 3815.6 KiB; alternating query mean 0.130 ms (offline Lua only)\r\nMounts/vault PASS: 1500 mounts; init 106.00 ms / retained 3481.8 KiB; alternating query mean 0.680 ms (offline Lua only)\r\nLychee default binding smoke PASS\r\nLazy Palette: 56 frame creations deferred until first open\r\nSecondary secure action spell checks: 1\r\nAlready released button attribute writes: 0\r\nLychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)\r\nLychee settings and pins interaction PASS\r\nLychee result list UI smoke PASS\r\nLychee search platform PASS\r\nLychee search session smoke PASS\r\nLychee command catalog smoke PASS\r\nLychee capability broker PASS\r\nSearch memory regression PASS: 8,836 distance pairs, full-scan ranking, disable/re-enable, removal and bounded cache\r\nMEMORY entries=2689 builtins_KiB=4401.3 combined_KiB=7832.1 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.417\r\nSEARCH normalization_2048_KiB=626.1 normalization_ms=33.0 long_cache_retained_KiB=-21.8 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0\r\nSearch allocation, byte-normalization and cancellation checks PASS\r\nproviders=1000 rows=9 objects=180 cold_ms=1.000 retained_kib=446.1 refresh20_ms=19.000 refresh20_alloc_kib=42.4 pool_growth=0\r\npins30_initial_resolves=9\r\nperformance_ui: PASS (budgets enforced)\r\nboundary run=1 records=10000 ms=116.000 allocated_kib=3752.241\r\nboundary run=2 records=10000 ms=114.000 allocated_kib=3750.507\r\nboundary run=3 records=10000 ms=112.000 allocated_kib=3750.507\r\nboundary run=4 records=10000 ms=114.000 allocated_kib=3750.507\r\nboundary run=5 records=10000 ms=112.000 allocated_kib=3750.507\r\nscheduler subscribers=1 ticks=1000 ms=1.000 allocated_kib=0.000\r\nscheduler subscribers=16 ticks=1000 ms=2.000 allocated_kib=0.000\r\nscheduler subscribers=256 ticks=1000 ms=33.000 allocated_kib=0.000\r\nready cancellations=2000 retained_kib=-0.859 pending=0\r\nperformance_core regression passed; scheduler frame count=1\r\nprovider run=1 directory=500 single_updates=100 ms=3.000 allocated_kib=597.377\r\nprovider run=2 directory=500 single_updates=100 ms=3.000 allocated_kib=573.470\r\nprovider run=3 directory=500 single_updates=100 ms=3.000 allocated_kib=571.970\r\nprovider run=4 directory=500 single_updates=100 ms=4.000 allocated_kib=571.970\r\nprovider run=5 directory=500 single_updates=100 ms=3.000 allocated_kib=571.970\r\nprovider pending jobs after 200 searches=1\r\nperf_core_provider regression passed\r\nbuiltin perf: disabled scans=0 unchanged commits=0 unrelated scans=0 frames after reenable=1 late scans=0; frames after 20 more toggles=1; 100 unchanged refresh 32.000ms 9172.6KiB allocated 0.0KiB retained growth\r\nBuiltin lifecycle/incremental regression PASS\r\nsecure idle: subscriptions=0 delivered callbacks=0 per 300 player events\r\nSecure event lifecycle PASS\r\nLychee contract checks PASS\r\n",
+  "luaFilesParsed": 39,
+  "xmlAndTocReferences": "PASS",
+  "wowdoc": {
+    "ok": true,
+    "data": {
+      "checkedLua": 39,
+      "diagnostics": null,
+      "path": "package/Lychee",
+      "product": "retail",
+      "ref": "latest",
+      "sourceId": "wow-ui-source",
+      "valid": true
+    }
+  },
+  "diffCheck": "PASS",
+  "clientValidation": "Not run: real rendering, combat, taint, frame-time and in-game CPU/memory require client verification"
+}

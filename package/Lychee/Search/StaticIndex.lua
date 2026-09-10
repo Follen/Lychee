@@ -238,6 +238,10 @@ function Index:OnChange(callback)
     return true
 end
 
+function Index:ClearQueryCache()
+    self.previousQuery, self.previousCandidates, self.previousFilterKey = nil, nil, nil
+end
+
 function Index:Clear()
     self.sources, self.entries = {}, {}
     self.exact, self.prefix, self.tokens, self.grams, self.categories = {}, {}, {}, {}, {}
@@ -440,7 +444,9 @@ end
 function Index:Invalidate(sourceID, key)
     local source = self.sources[sourceID]
     if not source then return nil, "SOURCE_NOT_FOUND" end
-    source.invalidation[tostring(key or "*")] = true
+    -- Invalidation already bumps the entire source generation. Retaining every
+    -- caller-supplied key adds unbounded history without enabling finer refresh.
+    source.invalidation["*"] = true
     local revision, generation = bump(self, source, nil, "invalidated")
     return true, generation, revision
 end

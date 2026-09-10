@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "data": {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "matchedTag": null,
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Timer.NewTimer",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "39: \t\t\tName = \"NewTimer\",\n40: \t\t\tType = \"Function\",\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n46: \t\t\t\t{ Name = \"callback\", Type = \"TickerCallback\", Nilable = false },\n47: \t\t\t},\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"cbObject\", Type = \"TickerCallback\", Nilable = false },\n52: \t\t\t},\n53: \t\t},",
+        "contentHash": "72b5d79e91b3d8185cff68e5a6cd91498cb3aecd8ea6809a84e4d0edc805bc4c",
+        "line": 39,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 local I = _G.LycheeInternal
-local S={active={}, keys={}, index={}, frame=nil}
+local S={active={}, keys={}, index={}, versions={}, sequence=0, limit=256, frame=nil,
+    tickKeys={}, tickVersions={}}
 I.Scheduler=S
 
 local function ensureFrame(self)
@@ -12,21 +13,39 @@ local function ensureFrame(self)
 end
 
 function S:_Tick(elapsed)
-    local i = 1
-    while i <= #self.keys do
+    if self.ticking then return false end
+    self.ticking = true
+    local count = #self.keys
+    local keys, versions = self.tickKeys, self.tickVersions
+    for i = 1, count do
         local key = self.keys[i]
-        local fn = self.active[key]
-        local keep = fn and fn(elapsed)
-        if self.index[key] then
-            if keep == false then self:Remove(key) else i = i + 1 end
+        keys[i], versions[i] = key, self.versions[key]
+    end
+    for i = 1, count do
+        local key, version = keys[i], versions[i]
+        keys[i], versions[i] = nil, nil
+        -- Adds/replacements run next tick; swap-remove cannot skip a survivor.
+        if self.versions[key] == version then
+            local ok, keep = pcall(self.active[key], elapsed)
+            if not ok then
+                for remaining = i + 1, count do keys[remaining], versions[remaining] = nil, nil end
+                if self.versions[key] == version then self:Remove(key) end
+                self.ticking = nil
+                error(keep, 0)
+            end
+            if keep == false and self.versions[key] == version then self:Remove(key) end
         end
     end
+    self.ticking = nil
     if #self.keys == 0 and self.frame then self.frame:Hide() end
 end
 
 function S:Add(key, fn)
     if key == nil or type(fn) ~= "function" then return false end
+    if not self.index[key] and #self.keys >= self.limit then return false, "TASK_LIMIT" end
     ensureFrame(self)
+    self.sequence = self.sequence + 1
+    self.versions[key] = self.sequence
     if self.index[key] then
         self.active[key] = fn
         return true
@@ -46,7 +65,7 @@ function S:Remove(key)
     self.keys[index] = lastKey
     self.index[lastKey] = index
     self.keys[last] = nil
-    self.index[key], self.active[key] = nil, nil
+    self.index[key], self.active[key], self.versions[key] = nil, nil, nil
     if #self.keys == 0 and self.frame then self.frame:Hide() end
     return true
 end
@@ -54,6 +73,9 @@ end
 S.Stop = S.Remove
 
 function S:Clear()
-    self.active, self.keys, self.index = {}, {}, {}
+    for i = #self.keys, 1, -1 do
+        local key = self.keys[i]
+        self.active[key], self.index[key], self.versions[key], self.keys[i] = nil, nil, nil, nil
+    end
     if self.frame then self.frame:Hide() end
 end

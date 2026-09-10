@@ -1,0 +1,2369 @@
+[
+  {
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "RegisterUnitEvent",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "1063: \t\t\tName = \"RegisterUnitEvent\",\n1064: \t\t\tType = \"Function\",\n1065: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1066: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1067: \t\t\tAddsForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1068: \n1069: \t\t\tArguments =\n1070: \t\t\t{\n1071: \t\t\t\t{ Name = \"eventName\", Type = \"cstring\", Nilable = false },\n1072: \t\t\t\t{ Name = \"units\", Type = \"UnitTokenType\", Nilable = false, StrideIndex = 1 },\n1073: \t\t\t},\n1074: \n1075: \t\t\tReturns =\n1076: \t\t\t{\n1077: \t\t\t\t{ Name = \"registered\", Type = \"bool\", Nilable = false },\n1078: \t\t\t},\n1079: \t\t},",
+          "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+          "line": 1063,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "api-function",
+          "name": "FrameScript.RegisterUnitEventCallback",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "official-generated-api",
+          "excerpt": "324: \t\t\t},\n325: \t\t},\n326: \t\t{\n327: \t\t\tName = \"RegisterUnitEventCallback\",\n328: \t\t\tType = \"Function\",\n329: \t\t\tSecureHooksAllowed = false,\n330: \t\t\tSecretArguments = \"AllowedWhenUntainted\",",
+          "contentHash": "00f538cb711b5baa0a7f819fae4b038c9189e234ac70c1aaf8c51e4d9335628c",
+          "line": 327,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "api-function",
+          "name": "RegisterUnitEventCallback",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "official-generated-api",
+          "excerpt": "1078: \t\t\t},\n1079: \t\t},\n1080: \t\t{\n1081: \t\t\tName = \"RegisterUnitEventCallback\",\n1082: \t\t\tType = \"Function\",\n1083: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1084: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },",
+          "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+          "line": 1081,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "746: \tend\n747: end\n748: \n749: function PrivateAuraAnchorContainerMixin:RegisterUnitEvents()\n750: \tself.eventFrame:RegisterUnitEvent(\"UNIT_AURA\", self.watcher:GetUnit());\n751: \tself.eventFrame:RegisterUnitEvent(\"UNIT_AURA_BLOCKED\", self.watcher:GetUnit());\n752: \tself.eventFrame:RegisterUnitEvent(\"UNIT_AURA_BLOCK_LIST_CLEARED\", self.watcher:GetUnit());",
+          "contentHash": "031e7b6970fbc63eceed73a1a0dae24373bdc6cf67053f05fff1d745e14232a6",
+          "line": 749,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+          "matchedBy": "fts5",
+          "role": "official-generated-api",
+          "excerpt": "1060: \t\t\t},\n1061: \t\t},\n1062: \t\t{\n1063: \t\t\tName = \"RegisterUnitEvent\",\n1064: \t\t\tType = \"Function\",\n1065: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1066: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },",
+          "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+          "line": 1063,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "FrameScript",
+          "target": "FrameScript.RegisterUnitEventCallback",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+          "line": 327
+        },
+        {
+          "source": "FrameScript",
+          "target": "FrameScript.UnregisterUnitEventCallback",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+          "line": 491
+        },
+        {
+          "source": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "target": "UNIT_AURA",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "line": 750
+        },
+        {
+          "source": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "target": "UNIT_AURA_BLOCKED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "line": 751
+        },
+        {
+          "source": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "target": "UNIT_AURA_BLOCK_LIST_CLEARED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "line": 752
+        },
+        {
+          "source": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "line": 753
+        },
+        {
+          "source": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "target": "PLAYER_REGEN_DISABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "line": 754
+        },
+        {
+          "source": "StatusTrackingManagerMixin:RegisterEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/StatusTrackingManagerOverrides.lua",
+          "line": 19
+        },
+        {
+          "source": "ActionBarButtonEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 212
+        },
+        {
+          "source": "ActionBarButtonEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 213
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 262
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 263
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 264
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 265
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 266
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 267
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 268
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 269
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 270
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 271
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 272
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 280
+        },
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 281
+        },
+        {
+          "source": "PetActionBarMixin:OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/PetActionBar.lua",
+          "line": 62
+        },
+        {
+          "source": "AzeriteEmpoweredItemUIMixin:OnItemSet",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/Blizzard_AzeriteEmpoweredItemUI.lua",
+          "line": 281
+        },
+        {
+          "source": "AuraFrameEventListenerMixin:AuraFrameEventListener_OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BuffFrame/BuffFrame.lua",
+          "line": 276
+        },
+        {
+          "source": "ExecuteCastRandom",
+          "target": "CastRandomManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastRandomManager.lua",
+          "line": 57
+        },
+        {
+          "source": "ExecuteCastRandom",
+          "target": "CastRandomManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastRandomManager.lua",
+          "line": 58
+        },
+        {
+          "source": "ExecuteCastRandom",
+          "target": "CastRandomManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastRandomManager.lua",
+          "line": 59
+        },
+        {
+          "source": "ExecuteCastRandom",
+          "target": "CastRandomManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastRandomManager.lua",
+          "line": 60
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "CastSequenceManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 134
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "CastSequenceManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 135
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "CastSequenceManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 136
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "CastSequenceManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 137
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "CastSequenceManager:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 138
+        },
+        {
+          "source": "MountJournal_OnLoad",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+          "line": 149
+        },
+        {
+          "source": "WardrobeCollectionFrameMixin:OnShow",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_Wardrobe.lua",
+          "line": 197
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 232
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 233
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 234
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 238
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 239
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 240
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 247
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 251
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RegisterForUnitHealth",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 443
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:UpdateSpecSpecificSettings",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 473
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:UpdateSpecSpecificSettings",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 474
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:UpdateSpecSpecificSettings",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 475
+        },
+        {
+          "source": "CooldownViewerMixin:OnShow",
+          "target": "self:RegisterUnitEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewer.lua",
+          "line": 1737
+        }
+      ]
+    },
+    "symbol": "RegisterUnitEvent"
+  },
+  {
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "UnregisterEvent",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "1596: \t\t\tName = \"UnregisterEvent\",\n1597: \t\t\tType = \"Function\",\n1598: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1599: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1600: \t\t\tAddsForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1601: \n1602: \t\t\tArguments =\n1603: \t\t\t{\n1604: \t\t\t\t{ Name = \"eventName\", Type = \"cstring\", Nilable = false },\n1605: \t\t\t},\n1606: \n1607: \t\t\tReturns =\n1608: \t\t\t{\n1609: \t\t\t\t{ Name = \"registered\", Type = \"bool\", Nilable = false },\n1610: \t\t\t},\n1611: \t\t},",
+          "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+          "line": 1596,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Dispatcher:UnregisterEvent",
+          "path": "Interface/AddOns/Blizzard_Dispatcher/Blizzard_Dispatcher.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "160: function Dispatcher:UnregisterEvent(event, ownerOrID)\n161: \t-- print(\"UnregisterEvent\", event, ownerOrID)\n162: \n163: \tif ((event ~= nil) and (self.Events[event] ~= nil) and (ownerOrID ~= nil)) then\n164: \n165: \t\t-- First, Remove the callback\n166: \t\tlocal callbackTable = self.Events[event];\n167: \t\tlocal id = ownerOrID;\n168: \n169: \t\tif (type(ownerOrID) == \"table\") then\n170: \t\t\tid = self:FindKeyByValue(callbackTable, function(callbackData) return callbackData.Callback == ownerOrID; end);\n171: \t\tend\n172: \n173: \t\tif (id) then\n174: \t\t\tcallbackTable[id] = nil;\n175: \t\tend\n176: \n177: \t\t-- Second, Remove the event if no callbacks remain\n178: \t\tlocal first = next(self.Events[event]);\n179: \t\tif (first == nil) then\n180: \t\t\tself.Events[event] = nil;\n181: \n182: \t\t\t-- Handle OnUpdate\n183: \t\t\tif (event == \"OnUpdate\") then\n184: \t\t\t\tself.EventFrame:SetScript(\"OnUpdate\", nil);\n185: \t\t\tend\n186: \t\tend\n187: \tend\n188: end",
+          "contentHash": "019a1dd7a3d7a4449e4734e3107fb56ab77377c1c725b40c0775e3a58fecd599",
+          "line": 160,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "MapCanvasDataProviderMixin:UnregisterEvent",
+          "path": "Interface/AddOns/Blizzard_MapCanvas/MapCanvas_DataProviderBase.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "90: function MapCanvasDataProviderMixin:UnregisterEvent(event)\n91: \tif self.registeredEvents and self.registeredEvents[event] then\n92: \t\tself.registeredEvents[event] = nil;\n93: \t\tself:GetMap():RemoveDataProviderEvent(event);\n94: \tend\n95: end",
+          "contentHash": "22d116c7d374116623ca1f4adab12a5dea48a6f94485606712578b96a59df7a0",
+          "line": 90,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "api-function",
+          "name": "FrameScript.UnregisterEventCallback",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "official-generated-api",
+          "excerpt": "476: \t\t\t},\n477: \t\t},\n478: \t\t{\n479: \t\t\tName = \"UnregisterEventCallback\",\n480: \t\t\tType = \"Function\",\n481: \t\t\tSecureHooksAllowed = false,\n482: \t\t\tSecretArguments = \"AllowedWhenUntainted\",",
+          "contentHash": "00f538cb711b5baa0a7f819fae4b038c9189e234ac70c1aaf8c51e4d9335628c",
+          "line": 479,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "GenericItemSocketingFrameMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_ItemSocketingUI/Blizzard_ItemSocketingUI.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "187: \tend\n188: end\n189: \n190: function GenericItemSocketingFrameMixin:UnregisterEvents()\n191: \tif self.registeredForEvents then\n192: \t\tFrameUtil.UnregisterFrameForEvents(self, GENERIC_ITEM_SOCKETING_FRAME_EVENTS);\n193: \t\tself.registeredForEvents = false;",
+          "contentHash": "a96fa080403c69328bc3084de3702f95055c99b62e56f3cc4d7acb8e41864861",
+          "line": 190,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "NarrationManagerMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_Narration/Blizzard_NarrationManager.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "64: \tEventRegistry:TriggerEvent(\"Narration.SystemStatus\", true);\n65: end\n66: \n67: function NarrationManagerMixin:UnregisterEvents()\n68: \tif not self.eventsRegistered then\n69: \t\tassertsafe(false, \"NarrationManager:UnregisterEvents - Events not registered\");\n70: \t\treturn;",
+          "contentHash": "702558cfa23130c1de180d9f1d22e9481b1170ee201d91373d79f5e46cb47acb",
+          "line": 67,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "QuestDataProviderMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_SharedMapDataProviders/QuestDataProvider.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "39: \tEventRegistry:RegisterCallback(\"Supertracking.OnChanged\", function() self:RefreshAllData() end, self);\n40: end\n41: \n42: function QuestDataProviderMixin:UnregisterEvents()\n43: \tself:UnregisterEvent(\"QUEST_LOG_UPDATE\");\n44: \tself:UnregisterEvent(\"QUEST_WATCH_LIST_CHANGED\");\n45: \tself:UnregisterEvent(\"QUEST_POI_UPDATE\");",
+          "contentHash": "8e11e913de8004fe012adb4ee6ce6db72f63ffc1bb7260c1124d3a5fba1929fa",
+          "line": 42,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "CallbackRegistryMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_SharedXMLBase/CallbackRegistry.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "248: \tend\n249: end\n250: \n251: function CallbackRegistryMixin:UnregisterEvents()\n252: \tfor callbackType, callbackTable in pairs(self:GetCallbackTables()) do\n253: \t\twipe(callbackTable);\n254: \tend",
+          "contentHash": "95ba8fb6cf3fe38864296703e4334247da5cb6207827d6bc617a621ad25aad01",
+          "line": 251,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "CallbackRegistryMixin:UnregisterEventsByEventTable",
+          "path": "Interface/AddOns/Blizzard_SharedXMLBase/CallbackRegistry.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "254: \tend\n255: end\n256: \n257: function CallbackRegistryMixin:UnregisterEventsByEventTable(eventTable)\n258: \tif type(eventTable) ~= \"table\" then\n259: \t\terror(\"CallbackRegistryMixin:UnregisterEventsByEventTable 'eventTable' requires table type.\");\n260: \tend",
+          "contentHash": "95ba8fb6cf3fe38864296703e4334247da5cb6207827d6bc617a621ad25aad01",
+          "line": 257,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "UnitPopupToggleMuteMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_UnitPopup/UnitPopupCustomControls.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "115: \tself:RegisterStateUpdateEvent(\"VOICE_CHAT_SILENCED_CHANGED\");\n116: end\n117: \n118: function UnitPopupToggleMuteMixin:UnregisterEvents()\n119: \tself:UnregisterStateUpdateEvent(\"VOICE_CHAT_MUTED_CHANGED\");\n120: \tself:UnregisterStateUpdateEvent(\"VOICE_CHAT_SILENCED_CHANGED\");\n121: end",
+          "contentHash": "03db05e5b84d6ac7a9bf1f5d61e19c63125b672f41096b76ccc85dc9e60f99c8",
+          "line": 118,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "UnitPopupToggleDeafenMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_UnitPopup/UnitPopupCustomControls.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "145: \tself:RegisterStateUpdateEvent(\"VOICE_CHAT_DEAFENED_CHANGED\");\n146: end\n147: \n148: function UnitPopupToggleDeafenMixin:UnregisterEvents()\n149: \tself:UnregisterStateUpdateEvent(\"VOICE_CHAT_DEAFENED_CHANGED\");\n150: end\n151: ",
+          "contentHash": "03db05e5b84d6ac7a9bf1f5d61e19c63125b672f41096b76ccc85dc9e60f99c8",
+          "line": 148,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "UnitPopupToggleUserMuteMixin:UnregisterEvents",
+          "path": "Interface/AddOns/Blizzard_UnitPopup/UnitPopupCustomControls.lua",
+          "matchedBy": "symbol_prefix",
+          "role": "project",
+          "excerpt": "199: \tself:RegisterStateUpdateEvent(\"VOICE_CHAT_CHANNEL_MEMBER_SILENCED_CHANGED\");\n200: end\n201: \n202: function UnitPopupToggleUserMuteMixin:UnregisterEvents()\n203: \tself:UnregisterStateUpdateEvent(\"VOICE_CHAT_CHANNEL_MEMBER_MUTE_FOR_ME_CHANGED\");\n204: \tself:UnregisterStateUpdateEvent(\"VOICE_CHAT_CHANNEL_MEMBER_MUTE_FOR_ALL_CHANGED\");\n205: \tself:UnregisterStateUpdateEvent(\"VOICE_CHAT_CHANNEL_MEMBER_SILENCED_CHANGED\");",
+          "contentHash": "03db05e5b84d6ac7a9bf1f5d61e19c63125b672f41096b76ccc85dc9e60f99c8",
+          "line": 202,
+          "score": 80,
+          "scoreParts": {
+            "match": 80,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+          "matchedBy": "fts5",
+          "role": "official-generated-api",
+          "excerpt": "1593: \t\t\t},\n1594: \t\t},\n1595: \t\t{\n1596: \t\t\tName = \"UnregisterEvent\",\n1597: \t\t\tType = \"Function\",\n1598: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1599: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },",
+          "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+          "line": 1596,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_Dispatcher/Blizzard_Dispatcher.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "133: \n134: \t-- Unregister any existing event with that owner (each owner can only have each event registered once)\n135: \tif (type(callback) == \"table\") then\n136: \t\tself:UnregisterEvent(event, callback);\n137: \tend\n138: \n139: \t-- Create an empty table if this is the first handler for this event",
+          "contentHash": "019a1dd7a3d7a4449e4734e3107fb56ab77377c1c725b40c0775e3a58fecd599",
+          "line": 136,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "FrameScript",
+          "target": "FrameScript.UnregisterEventCallback",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+          "line": 479
+        },
+        {
+          "source": "UIThemeContainerMixin:UIThemeContainerFrame_OnPostHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AccessibilityTemplates/Mainline/AccessibilityTemplates.lua",
+          "line": 15
+        },
+        {
+          "source": "UIThemeContainerMixin:UIThemeContainerFrame_OnPostHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AccessibilityTemplates/Mainline/AccessibilityTemplates.lua",
+          "line": 16
+        },
+        {
+          "source": "AchievementFrameStats_OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2274
+        },
+        {
+          "source": "AchievementFrameSummaryCategory_OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AchievementUI/Mainline/Blizzard_AchievementUI.lua",
+          "line": 2611
+        },
+        {
+          "source": "ActionBarButtonAssistedCombatRotationFrameMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1857
+        },
+        {
+          "source": "ActionBarButtonAssistedCombatRotationFrameMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1858
+        },
+        {
+          "source": "ActionBarButtonAssistedCombatRotationFrameMixin:OnEvent",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1871
+        },
+        {
+          "source": "ActionBarButtonAssistedCombatRotationFrameMixin:OnEvent",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1874
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 379
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 380
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 381
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 382
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 383
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 384
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 385
+        },
+        {
+          "source": "SpellFlyoutMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/SpellFlyout.lua",
+          "line": 386
+        },
+        {
+          "source": "AdventureMapQuestChoiceDialogMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AdventureMap/AM_QuestDialog.lua",
+          "line": 74
+        },
+        {
+          "source": "AdventureMapQuestChoiceDialogMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AdventureMap/AM_QuestDialog.lua",
+          "line": 75
+        },
+        {
+          "source": "ArtifactPerksMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 73
+        },
+        {
+          "source": "ArtifactPerksMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 74
+        },
+        {
+          "source": "ArtifactTitleTemplateMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 1172
+        },
+        {
+          "source": "ArtifactTitleTemplateMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactPerks.lua",
+          "line": 1173
+        },
+        {
+          "source": "ArtifactUIMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactUI.lua",
+          "line": 95
+        },
+        {
+          "source": "ArtifactUIMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactUI.lua",
+          "line": 96
+        },
+        {
+          "source": "ArtifactUIMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactUI.lua",
+          "line": 97
+        },
+        {
+          "source": "ArtifactUIMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ArtifactUI/Blizzard_ArtifactUI.lua",
+          "line": 98
+        },
+        {
+          "source": "AsyncRequestMixin:StopRequest",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AsyncRequest/Blizzard_AsyncRequest.lua",
+          "line": 72
+        },
+        {
+          "source": "AuctionHouseAuctionsSummaryLineMixin:Init",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseAuctionsFrame.lua",
+          "line": 84
+        },
+        {
+          "source": "AuctionHouseAuctionsSummaryLineMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseAuctionsFrame.lua",
+          "line": 111
+        },
+        {
+          "source": "AuctionHouseCommoditiesBuyDisplayMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseCommoditiesBuyFrame.lua",
+          "line": 88
+        },
+        {
+          "source": "AuctionHouseCommoditiesBuyDisplayMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseCommoditiesBuyFrame.lua",
+          "line": 89
+        },
+        {
+          "source": "AuctionHouseFrameMixin:OnEvent",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseFrame.lua",
+          "line": 416
+        },
+        {
+          "source": "AuctionHouseItemDisplayMixin:SetItemKey",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseSharedTemplates.lua",
+          "line": 218
+        },
+        {
+          "source": "AuctionHouseItemDisplayMixin:SetItemInternal",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseSharedTemplates.lua",
+          "line": 290
+        },
+        {
+          "source": "AuctionHouseTableCellItemKeyMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.lua",
+          "line": 41
+        },
+        {
+          "source": "AuctionHouseTableCellItemKeyMixin:TryUpdateDisplay",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.lua",
+          "line": 61
+        },
+        {
+          "source": "AuctionHouseTableCellFavoriteMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.lua",
+          "line": 203
+        },
+        {
+          "source": "AuctionHouseTableCellAllAuctionsPriceMixin:OnEvent",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.lua",
+          "line": 519
+        },
+        {
+          "source": "AuctionHouseTableCellLevelMixin:UpdateDisplay",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.lua",
+          "line": 823
+        },
+        {
+          "source": "AuctionHouseTableCellLevelMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.lua",
+          "line": 838
+        },
+        {
+          "source": "CheckRequestGuildRoster",
+          "target": "self:UnRegisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AutoComplete/AutoComplete.lua",
+          "line": 145
+        },
+        {
+          "source": "AzeriteEssenceListMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteEssenceUI/Blizzard_AzeriteEssenceUI.lua",
+          "line": 647
+        },
+        {
+          "source": "AzeriteEssenceListMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteEssenceUI/Blizzard_AzeriteEssenceUI.lua",
+          "line": 648
+        },
+        {
+          "source": "AzeriteMilestoneBaseMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteEssenceUI/Blizzard_AzeriteEssenceUI.lua",
+          "line": 948
+        },
+        {
+          "source": "AzeriteEmpoweredItemPowerMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/AzeriteEmpoweredItemPowerMixin.lua",
+          "line": 51
+        },
+        {
+          "source": "AzeriteEmpoweredItemPowerMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/AzeriteEmpoweredItemPowerMixin.lua",
+          "line": 52
+        },
+        {
+          "source": "AzeriteEmpoweredItemSlotMixin:OnHide",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/AzeriteEmpoweredItemSlotMixin.lua",
+          "line": 11
+        },
+        {
+          "source": "AzeriteEmpoweredItemUIMixin:Clear",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AzeriteUI/Blizzard_AzeriteEmpoweredItemUI.lua",
+          "line": 242
+        },
+        {
+          "source": "BNToastMixin:DisableToasts",
+          "target": "self:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BNet/Mainline/BNet.lua",
+          "line": 165
+        }
+      ]
+    },
+    "symbol": "UnregisterEvent"
+  },
+  {
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "function",
+          "name": "BoostTutorial:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_BoostTutorial.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "21: function BoostTutorial:UNIT_SPELLCAST_SUCCEEDED(unit, cast, spellID)\n22: \t-- NOTE: Might not want to to do this here in case the tutorial requires multiple spell casts...\n23: \t-- but in that case, shouldn't the server be telling the client to highlight a spell?\n24: \tself:UnhighlightSpells(spellID);\n25: end",
+          "contentHash": "bef17fef52c09c982108afa92205da52c9b7640e45ac910549ffa3a48034c930",
+          "line": 21,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_ActionBarCallout:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "979: function Class_ActionBarCallout:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n980: \tif (unit ~= \"player\") then return; end\n981: \n982: \tif (spellID == self.SpellID) then\n983: \t\tself.SuccessfulCastCount = self.SuccessfulCastCount + 1;\n984: \tend\n985: \n986: \tif (self.SuccessfulCastCount >= 4) then\n987: \t\tDispatcher:RegisterEvent(\"PLAYER_REGEN_ENABLED\", function() self:Complete() end, true);\n988: \tend\n989: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 979,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_UseQuestItem:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2048: function Class_UseQuestItem:UNIT_SPELLCAST_SUCCEEDED(unit, spellName, spellRank, spellLineID, spellID)\n2049: \tif (unit ~= \"player\") then return; end\n2050: \n2051: \tif (self.Data.SpellID == spellID) then\n2052: \t\tself:Complete();\n2053: \tend\n2054: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2048,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_AbilityUse_Watcher:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2153: function Class_AbilityUse_Watcher:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n2154: \tif (unit == \"player\") then\n2155: \t\tlocal desiredSpellID = TutorialHelper:FilterByClass(TutorialData.StartingAbility);\n2156: \t\tif (spellID == desiredSpellID) then\n2157: \t\t\t-- Anytime the player uses the correct ability, clear out the timer.\n2158: \t\t\tself.CombatTimeWithNoAbility = 0;\n2159: \t\tend\n2160: \tend\n2161: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2153,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_AbilityUse_AbilityReminder:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2213: function Class_AbilityUse_AbilityReminder:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n2214: \tif ((unit == \"player\") and (spellID == self.SpellID)) then\n2215: \t\tself:Complete();\n2216: \tend\n2217: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2213,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_UseHearthstone:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2556: function Class_UseHearthstone:UNIT_SPELLCAST_SUCCEEDED(unitID, _, spellID)\n2557: \tif ((unitID == \"player\") and (spellID == 8690)) then\n2558: \t\tself:Complete();\n2559: \tend\n2560: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2556,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_Dranei_9283:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2656: function Class_Dranei_9283:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n2657: \t if ((unit == \"player\") and (spellID == self.SpellID)) then\n2658: \t \tself:Complete();\n2659: \t end\n2660: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2656,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_BloodElf_8346:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2692: function Class_BloodElf_8346:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n2693: \t if ((unit == \"player\") and (spellID == self.SpellID)) then\n2694: \t \tself:Complete();\n2695: \t end\n2696: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2692,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "456: function Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED(caster, spelllineID, spellID)\n457: \tif spellID == self.spellID then\n458: \tif (self.playerClass == \"WARRIOR\" or self.playerClass == \"ROGUE\") then\n459: \t\t\t-- warriors and rogues have a resource callout that reinforces ability use\n460: \t\t\tself:ShowResourceCallout();\n461: \t\t\treturn;\n462: \t\tend\n463: \n464: \t\tself:HideAbilityPrompt();\n465: \t\tself.firstTime = false;\n466: \t\tlocal button = TutorialHelper:GetActionButtonBySpellID(spellID);\n467: \t\tlocal isUsable = C_ActionBar.IsUsableAction(button.action);\n468: \t\tif isUsable then\n469: \t\t\tself:ShowAbilityPrompt();\n470: \t\tend\n471: \tend\n472: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 456,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_UseQuestItem:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "1015: function Class_UseQuestItem:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n1016: \tif spellID == self.questData.ItemSpell then\n1017: \t\tself:StartWatchingTarget();\n1018: \tend\n1019: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 1015,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_EnhancedCombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "1508: function Class_EnhancedCombatTactics:UNIT_SPELLCAST_SUCCEEDED(unitID, _, spellID)\n1509: \tif unitID == \"player\" then\n1510: \t\tif spellID == self.combatData.resourceSpenderSpellID then\n1511: \t\t\tself:HideSpenderPrompt();\n1512: \t\telseif spellID == self.combatData.resourceBuilderSpellID then\n1513: \t\t\tself:HideBuilderPrompt();\n1514: \t\tend\n1515: \t\tself:HideScreenTutorial();\n1516: \tend\n1517: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 1508,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_EnhancedCombatTactics_Warrior:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "1623: function Class_EnhancedCombatTactics_Warrior:UNIT_SPELLCAST_SUCCEEDED(unitID, _, spellID)\n1624: \tif unitID == \"player\" then\n1625: \t\tself:HideScreenTutorial();\n1626: \t\tself:HideBuilderPrompt();\n1627: \t\tself:HideSpenderPrompt();\n1628: \t\tself:HidePointerTutorials();\n1629: \n1630: \t\tif self.combatData.resourceBuilderSpellID == spellID then\n1631: \t\t\tDispatcher:RegisterEvent(\"UNIT_POWER_FREQUENT\", self);-- now register so we can use RAGE\n1632: \t\t\tDispatcher:RegisterEvent(\"UNIT_TARGETABLE_CHANGED\", self);\n1633: \t\t\tDispatcher:UnregisterEvent(\"UNIT_TARGET\", self);\n1634: \t\tend\n1635: \tend\n1636: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 1623,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_EnhancedCombatTactics_Rogue:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "1738: function Class_EnhancedCombatTactics_Rogue:UNIT_SPELLCAST_SUCCEEDED(unitID, _, spellID)\n1739: \tif unitID == \"player\" then\n1740: \t\tif spellID == self.combatData.resourceSpenderSpellID then\n1741: \t\t\tself:HideSpenderPrompt();\n1742: \t\t\t-- the rogue tutorial teaches 3, then 4, then 5 point eviscerates, in that order\n1743: \t\t\tself.resourceGateAmount = min(self.resourceGateAmount + 1, 5);\n1744: \t\telseif spellID == self.combatData.resourceBuilderSpellID then\n1745: \t\t\tself:HideBuilderPrompt();\n1746: \t\tend\n1747: \t\tself:HideScreenTutorial();\n1748: \tend\n1749: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 1738,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_EnhancedCombatTactics_Ranged:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "1939: function Class_EnhancedCombatTactics_Ranged:UNIT_SPELLCAST_SUCCEEDED(unitID, _, spellID)\n1940: \tif unitID == \"player\" then\n1941: \t\tif self.combatData.resourceSpenderSpellID == spellID then\n1942: \t\t\tself:HideBuilderPrompt();\n1943: \t\t\tself:HideSpenderPrompt();\n1944: \t\t\tDispatcher:RegisterEvent(\"UNIT_TARGETABLE_CHANGED\", self);\n1945: \t\tend\n1946: \tend\n1947: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 1939,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_SelfHeal:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2256: function Class_SelfHeal:UNIT_SPELLCAST_SUCCEEDED(caster, spelllineID, spellID)\n2257: \tlocal tutorialData = TutorialData:GetFactionData();\n2258: \tif spellID == tutorialData.SelfHealSpellID then\n2259: \t\tDispatcher:UnregisterEvent(\"UNIT_SPELLCAST_SUCCEEDED\", self);\n2260: \n2261: \t\tself:HidePointerTutorials();\n2262: \t\tlocal content = {text = TutorialHelper:FormatString(NPEV2_SELF_HEAL_P2), icon=nil};\n2263: \t\tself:ShowScreenTutorial(content);\n2264: \n2265: \t\tself.tutorialSuccess = true;\n2266: \t\tself.Timer = C_Timer.NewTimer(10, function()\n2267: \t\t\tTutorialManager:Finished(self:Name());\n2268: \t\tend);\n2269: \tend\n2270: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 2256,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_UseMount:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2992: function Class_UseMount:UNIT_SPELLCAST_SUCCEEDED(caster, spelllineID, spellID)\n2993: \tif self.mountSpellID == spellID then\n2994: \t\tTutorialManager:Finished(self:Name());\n2995: \tend\n2996: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 2992,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_StealthWatcher:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "679: function Class_StealthWatcher:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n680: \tlocal STEALTH_SPELL_ID = 1784;\n681: \tif spellID == STEALTH_SPELL_ID then\n682: \t\tself:Complete();\n683: \tend\n684: end",
+          "contentHash": "f6f565982fde65d0ad1db8315e6aae00a92933c964b5135d84f68cc9532cec11",
+          "line": 679,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_DruidFormWatcher:UNIT_SPELLCAST_SUCCEEDED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "733: function Class_DruidFormWatcher:UNIT_SPELLCAST_SUCCEEDED(unit, _, spellID)\n734: \tif spellID == TutorialData.DruidAnimalFormSpells.CAT_FORM_SPELL_ID then\n735: \t\tself:HidePointerTutorial(self.pointerID);\n736: \t\tDispatcher:RegisterEvent(\"PLAYER_LEVEL_CHANGED\", self);\n737: \telseif spellID == TutorialData.DruidAnimalFormSpells.BEAR_FORM_SPELL_ID then\n738: \t\tself:Complete();\n739: \tend\n740: end",
+          "contentHash": "f6f565982fde65d0ad1db8315e6aae00a92933c964b5135d84f68cc9532cec11",
+          "line": 733,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "ActionBarActionEventsFrameMixin:OnLoad",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 263
+        },
+        {
+          "source": "BoostTutorial:Init",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_BoostTutorial.lua",
+          "line": 219
+        },
+        {
+          "source": "Class_ActionBarCallout:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 923
+        },
+        {
+          "source": "Class_ActionBarCallout:Warrior_InitiatePointer2",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 954
+        },
+        {
+          "source": "Class_ActionBarCallout:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 987
+        },
+        {
+          "source": "Class_UseQuestItem:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2044
+        },
+        {
+          "source": "Class_AbilityUse_Watcher:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2123
+        },
+        {
+          "source": "Class_AbilityUse_AbilityReminder:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2197
+        },
+        {
+          "source": "Class_UseHearthstone:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2553
+        },
+        {
+          "source": "Class_Dranei_9283:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2651
+        },
+        {
+          "source": "Class_BloodElf_8346:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2687
+        },
+        {
+          "source": "ExecuteCastRandom",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastRandomManager.lua",
+          "line": 57
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 135
+        },
+        {
+          "source": "MountJournalDynamicFlightModeButtonMixin:OnShow",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+          "line": 1022
+        },
+        {
+          "source": "CombatAudioAlertManagerMixin:RefreshEvents",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_CombatAudioAlerts/Blizzard_CombatAudioAlertManager.lua",
+          "line": 238
+        },
+        {
+          "source": "Class_Intro_CombatTactics:ShowAbilityPrompt",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 441
+        },
+        {
+          "source": "Class_UseQuestItem:InRange",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1002
+        },
+        {
+          "source": "Class_EnhancedCombatTactics:UNIT_TARGET",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1428
+        },
+        {
+          "source": "Class_EnhancedCombatTactics_Warrior:UNIT_TARGET",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1595
+        },
+        {
+          "source": "Class_EnhancedCombatTactics_Warrior:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "UNIT_POWER_FREQUENT",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1631
+        },
+        {
+          "source": "Class_EnhancedCombatTactics_Warrior:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "UNIT_TARGETABLE_CHANGED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1632
+        },
+        {
+          "source": "Class_EnhancedCombatTactics_Ranged:AtCloseRange",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1899
+        },
+        {
+          "source": "Class_EnhancedCombatTactics_Ranged:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "UNIT_TARGETABLE_CHANGED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1944
+        },
+        {
+          "source": "Class_SelfHeal:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 2227
+        },
+        {
+          "source": "Class_UseMount:OnBegin",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 2966
+        },
+        {
+          "source": "Class_StealthWatcher:PLAYER_LEVEL_CHANGED",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 674
+        },
+        {
+          "source": "Class_DruidFormWatcher:PLAYER_LEVEL_CHANGED",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 722
+        },
+        {
+          "source": "Class_DruidFormWatcher:PLAYER_LEVEL_CHANGED",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 727
+        },
+        {
+          "source": "Class_DruidFormWatcher:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "PLAYER_LEVEL_CHANGED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 736
+        },
+        {
+          "source": "ScrappingMachineMixin:OnShow",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ScrappingMachineUI/Blizzard_ScrappingMachineUI.lua",
+          "line": 64
+        },
+        {
+          "source": "WorldMapActionButtonMixin:Refresh",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/WorldMapActionButton.lua",
+          "line": 93
+        },
+        {
+          "source": "UnitFrame_Initialize",
+          "target": "UNIT_SPELLCAST_SUCCEEDED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/UnitFrame.lua",
+          "line": 100
+        },
+        {
+          "source": "BoostTutorial:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:UnhighlightSpells",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_BoostTutorial.lua",
+          "line": 24
+        },
+        {
+          "source": "Class_ActionBarCallout:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "Dispatcher:RegisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 987
+        },
+        {
+          "source": "Class_ActionBarCallout:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:Complete",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 987
+        },
+        {
+          "source": "Class_UseQuestItem:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:Complete",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2052
+        },
+        {
+          "source": "Class_AbilityUse_Watcher:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "TutorialHelper:FilterByClass",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2155
+        },
+        {
+          "source": "Class_AbilityUse_AbilityReminder:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:Complete",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2215
+        },
+        {
+          "source": "Class_UseHearthstone:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:Complete",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2558
+        },
+        {
+          "source": "Class_Dranei_9283:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:Complete",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2658
+        },
+        {
+          "source": "Class_BloodElf_8346:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:Complete",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2694
+        },
+        {
+          "source": "Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:ShowResourceCallout",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 460
+        },
+        {
+          "source": "Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:HideAbilityPrompt",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 464
+        },
+        {
+          "source": "Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "TutorialHelper:GetActionButtonBySpellID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 466
+        },
+        {
+          "source": "Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "C_ActionBar.IsUsableAction",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 467
+        },
+        {
+          "source": "Class_Intro_CombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:ShowAbilityPrompt",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 469
+        },
+        {
+          "source": "Class_UseQuestItem:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:StartWatchingTarget",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1017
+        },
+        {
+          "source": "Class_EnhancedCombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:HideSpenderPrompt",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1511
+        },
+        {
+          "source": "Class_EnhancedCombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:HideBuilderPrompt",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1513
+        },
+        {
+          "source": "Class_EnhancedCombatTactics:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "self:HideScreenTutorial",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 1515
+        }
+      ]
+    },
+    "symbol": "UNIT_SPELLCAST_SUCCEEDED"
+  },
+  {
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "snapshotId": "wow-ui-source-retail-8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+      "results": [
+        {
+          "kind": "function",
+          "name": "Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "1502: function Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED(...)\n1503: \tself:UnsuppressChildren();\n1504: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 1502,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_AbilityUse_Watcher:PLAYER_REGEN_ENABLED",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2149: function Class_AbilityUse_Watcher:PLAYER_REGEN_ENABLED()\n2150: \tDispatcher:UnregisterEvent(\"OnUpdate\", self);\n2151: end",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 2149,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_SelfHeal:PLAYER_REGEN_ENABLED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "2294: function Class_SelfHeal:PLAYER_REGEN_ENABLED()\n2295: \tself.inCombat = false;\n2296: end",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 2294,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_LowHealthWatcher:PLAYER_REGEN_ENABLED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "329: function Class_LowHealthWatcher:PLAYER_REGEN_ENABLED()\n330: \tself.inCombat = false;\n331: end",
+          "contentHash": "f6f565982fde65d0ad1db8315e6aae00a92933c964b5135d84f68cc9532cec11",
+          "line": 329,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "function",
+          "name": "Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "856: function Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED(...)\n857: \tself:UnsuppressChildren();\n858: end",
+          "contentHash": "f6f565982fde65d0ad1db8315e6aae00a92933c964b5135d84f68cc9532cec11",
+          "line": 856,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua",
+          "matchedBy": "fts5",
+          "role": "official-generated-api",
+          "excerpt": "3764: \t\t{\n3765: \t\t\tName = \"PlayerRegenEnabled\",\n3766: \t\t\tType = \"Event\",\n3767: \t\t\tLiteralName = \"PLAYER_REGEN_ENABLED\",\n3768: \t\t\tSynchronousEvent = true,\n3769: \t\t},\n3770: \t\t{",
+          "contentHash": "bc7fd554d45760061d699ff18ec9d9fec45b3b3796a9323d661e003dee5fdbe7",
+          "line": 3767,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Mainline/AssistedCombatManager.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "293: \t\t\tself.updateFrame:SetScript(\"OnUpdate\", function(_frame, elapsed) self:OnUpdate(elapsed); end);\n294: \n295: \t\t\tEventRegistry:RegisterCallback(\"ActionButton.OnActionChanged\", self.OnActionButtonActionChanged, self);\n296: \t\t\tEventRegistry:RegisterFrameEventAndCallback(\"PLAYER_REGEN_ENABLED\", self.OnPlayerRegenChanged, self);\n297: \t\t\tEventRegistry:RegisterFrameEventAndCallback(\"PLAYER_REGEN_DISABLED\", self.OnPlayerRegenChanged, self);\n298: \t\tend\n299: \telseif wasActive then",
+          "contentHash": "d78fda6ccbe0dbe60277f68fada7745b22a55d34dd2144d60a9bb87b81e41664",
+          "line": 296,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionBar.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "259: \n260: \tself.isShownExternal = self:IsShown();\n261: \n262: \tself:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n263: \tself:RegisterEvent(\"PLAYER_REGEN_DISABLED\");\n264: end\n265: ",
+          "contentHash": "b1f3c29d6d673e5ffb056b834f7e379e67d54261dc8fadf88fb6ca589552ad8c",
+          "line": 262,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "1846: end\n1847: \n1848: function ActionBarButtonAssistedCombatRotationFrameMixin:OnShow()\n1849: \tself:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n1850: \tself:RegisterEvent(\"PLAYER_REGEN_DISABLED\");\n1851: \n1852: \tself:UpdateGlow();",
+          "contentHash": "54fb5625a5e8aa343cbbc0be805b23e2b3b329011e792448e6b732a4bebd8cba",
+          "line": 1849,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "984: \tend\n985: \n986: \tif (self.SuccessfulCastCount >= 4) then\n987: \t\tDispatcher:RegisterEvent(\"PLAYER_REGEN_ENABLED\", function() self:Complete() end, true);\n988: \tend\n989: end\n990: ",
+          "contentHash": "e132c8f3a2a799bdadb01025356909893a9cdaa8e201a52c386befa59e28d303",
+          "line": 987,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "98: \tlocal reset = \"\";\n99: \tif ( event == \"PLAYER_TARGET_CHANGED\" ) then\n100: \t\treset = \"target\";\n101: \telseif ( event == \"PLAYER_REGEN_ENABLED\" ) then\n102: \t\treset = \"combat\";\n103: \tend\n104: \tfor sequence, entry in pairs(CastSequenceTable) do",
+          "contentHash": "fcfe44fc9a3d35e1117fb905ce21cbe7afa9e395f382ed30292e0136a5de7aa4",
+          "line": 101,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "143: \tself:RegisterEvent(\"UI_MODEL_SCENE_INFO_UPDATED\");\n144: \tself:RegisterEvent(\"PLAYER_LEVEL_CHANGED\");\n145: \tself:RegisterEvent(\"PLAYER_MOUNT_DISPLAY_CHANGED\");\n146: \tself:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n147: \tself:RegisterEvent(\"MOUNT_EQUIPMENT_APPLY_RESULT\");\n148: \tself:RegisterEvent(\"CURSOR_CHANGED\");\n149: \tself:RegisterUnitEvent(\"UNIT_FORM_CHANGED\", \"player\");",
+          "contentHash": "1384d4cffb626d27fc7d9a103c61d0e696bb41018859467c0c36422de0231233",
+          "line": 146,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_CombatText/Shared/CombatText.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "98: \t\tend\n99: \telseif ( event == \"PLAYER_REGEN_DISABLED\" ) then\n100: \t\tmessageType = \"ENTERING_COMBAT\";\n101: \telseif ( event == \"PLAYER_REGEN_ENABLED\" ) then\n102: \t\tmessageType = \"LEAVING_COMBAT\";\n103: \telseif ( event == \"COMBAT_TEXT_UPDATE\" ) then\n104: \t\tdata, arg3, arg4 = C_CombatText.GetCurrentEventInfo();",
+          "contentHash": "2c4947c0ee97e181f01a883bd496dd2c5fbf5043917e93aaec3292b53c898971",
+          "line": 101,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_CombatText/Shared/CombatTextConstants.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "100: \tUNIT_HEALTH = true,\n101: \tUNIT_POWER_UPDATE = true,\n102: \tPLAYER_REGEN_DISABLED = true,\n103: \tPLAYER_REGEN_ENABLED = true,\n104: \tRUNE_POWER_UPDATE = true,\n105: \tUNIT_ENTERED_VEHICLE = true,\n106: \tUNIT_EXITING_VEHICLE = true,",
+          "contentHash": "b72e93644a9fa76de8c1492b66de803bae4b98c2374e1cd0879377b647c1c805",
+          "line": 103,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_ExpansionTrial/Mainline/Blizzard_ExpansionTrial.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "26: \t\tself.ExpansionImage:SetTexture(expansionDisplayInfo.logo);\n27: \tend\n28: \n29: \tEventRegistry:RegisterFrameEventAndCallback(\"PLAYER_REGEN_ENABLED\", function()\n30: \t\tself:CheckProcessQueuedDialogs();\n31: \tend);\n32: ",
+          "contentHash": "aa7858dac11e757aac2b4e103dfec3ea131dd223e5eba78bf163aad5d8955563",
+          "line": 29,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_FrameXML/QuestSession.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "124: function QuestSessionDialogMixin:BaseOnShow()\n125: \tif self:RequiresValidateDialog() then\n126: \t\tself:RegisterEvent(\"PLAYER_REGEN_DISABLED\");\n127: \t\tself:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n128: \t\tself:RegisterEvent(\"GROUP_ROSTER_UPDATE\");\n129: \n130: \t\tself:CheckValidateDialog();",
+          "contentHash": "85ab47d70af498787c91a30de19729a41c3732d9853fb80c9f10f5399e0fdc0a",
+          "line": 127,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_FrameXML/Shared/LowHealthFrame.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "22: \tEventRegistry:RegisterCallback(\"UI.TopLevelParentHidden\", self.EvaluateVisibleState, self);\n23: \t\n24: \tself:RegisterEvent(\"PLAYER_REGEN_DISABLED\");\n25: \tself:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n26: \t\n27: \tself:RegisterEvent(\"PLAYER_ENTERING_WORLD\");\n28: \tself:RegisterEvent(\"VARIABLES_LOADED\");",
+          "contentHash": "7cd7d47b8aa18b06a3d010a311d3fd03bb98354d9971b1c510c915f5b2d1110a",
+          "line": 25,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_FrameXMLUtil/AuraUtil.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "475: \t\tcachedSelfBuffChecks = {};\n476: \t\tcachedPriorityChecks = {};\n477: \tend\n478: \tEventRegistry:RegisterFrameEvent(\"PLAYER_REGEN_ENABLED\");\n479: \tEventRegistry:RegisterFrameEvent(\"PLAYER_REGEN_DISABLED\");\n480: \tEventRegistry:RegisterCallback(\"PLAYER_REGEN_ENABLED\", DumpCaches, {});\n481: \tEventRegistry:RegisterCallback(\"PLAYER_REGEN_DISABLED\", DumpCaches, {});",
+          "contentHash": "c273c6be5d4bfce92c54510f5a1729f84bf9762ded0a4a9c523363d713b5f909",
+          "line": 478,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/LFGFrame.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "116: \n117: \tself:RegisterEvent(\"VARIABLES_LOADED\");\n118: \n119: \tself:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n120: \n121: \t--These just update states (roles changeable, buttons clickable, etc.)\n122: \tself:RegisterEvent(\"LFG_ROLE_CHECK_SHOW\");",
+          "contentHash": "0862ce9e4b7260b6ec7b446afec675dc96ed9fd519fe035b8502fecf8d5bde84",
+          "line": 119,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "2228: \t\t\tDispatcher:RegisterEvent(\"PLAYER_DEAD\", self);\n2229: \t\t\tDispatcher:RegisterEvent(\"UNIT_HEALTH\", self);\n2230: \t\t\tDispatcher:RegisterEvent(\"PLAYER_REGEN_DISABLED\", self);\n2231: \t\t\tDispatcher:RegisterEvent(\"PLAYER_REGEN_ENABLED\", self);\n2232: \n2233: \t\t\tself:ShowPointerTutorial(TutorialHelper:FormatString(NPEV2_SELF_HEAL_P1), \"DOWN\", button, 0, 0, nil, \"DOWN\");\n2234: \t\tend",
+          "contentHash": "bcae35d328ab20150e551890af2eee5be9ec25a5fb3ebfc2d06df7d8682e0f07",
+          "line": 2231,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "311: function Class_LowHealthWatcher:StartWatching()\n312: \tDispatcher:RegisterEvent(\"UNIT_HEALTH\", self);\n313: \tDispatcher:RegisterEvent(\"PLAYER_REGEN_DISABLED\", self);\n314: \tDispatcher:RegisterEvent(\"PLAYER_REGEN_ENABLED\", self);\n315: \n316: \tself.inCombat = false;\n317: end",
+          "contentHash": "f6f565982fde65d0ad1db8315e6aae00a92933c964b5135d84f68cc9532cec11",
+          "line": 314,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_PTRFeedback/Blizzard_PTRFeedback_Events.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "265:     QUEST_COMPLETE = QuestCompleteHandler,\n266:     QUEST_TURNED_IN = QuestTurnedInHandler,\n267:     QUEST_FINISHED = QuestFinishedHandler,\n268:     PLAYER_REGEN_ENABLED = PTR_IssueReporter.CheckSurveyQueue,\n269:     PLAYER_DEAD = CombatLogEventHandler,\n270:     BARBER_SHOP_OPEN = BarberShopOpenedHandler,\n271:     BARBER_SHOP_CLOSE = BarberShopClosedHandler,",
+          "contentHash": "a16aa70bdd0389b056e2708616d9cf3378488248ce3b61372c08f05b45764f08",
+          "line": 268,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_PlayerSpells/ClassTalents/Blizzard_ClassTalentsFrame.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "39: local ClassTalentsFrameEvents = {\n40: \t\"TRAIT_CONFIG_CREATED\",\n41: \t\"ACTIVE_COMBAT_CONFIG_CHANGED\",\n42: \t\"PLAYER_REGEN_ENABLED\",\n43: \t\"PLAYER_REGEN_DISABLED\",\n44: \t\"STARTER_BUILD_ACTIVATION_FAILED\",\n45: \t\"TRAIT_CONFIG_DELETED\",",
+          "contentHash": "937df3644ad40650aa1ebb42f3849bda2a701695871e477e7a9ee244ae540b8b",
+          "line": 42,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "706: \t\t\t\tlocal eventUnit, updateInfo = ...;\n707: \t\t\t\tassertsafe(UnitIsUnit(eventUnit, self.watcher:GetUnit()), \"Received UNIT_AURA for wrong unit. Expected %s, got %s\", self.watcher:GetUnit(), eventUnit);\n708: \t\t\t\tself:HandleUpdateInfo(false, updateInfo);\n709: \t\t\telseif event == \"PLAYER_REGEN_ENABLED\" or event == \"PLAYER_REGEN_DISABLED\" then\n710: \t\t\t\tself:HandleUpdateInfo(false, nil);\n711: \t\t\telseif event == \"UNIT_AURA_BLOCKED\" then\n712: \t\t\t\tlocal eventUnit, auraInstanceID = ...;",
+          "contentHash": "031e7b6970fbc63eceed73a1a0dae24373bdc6cf67053f05fff1d745e14232a6",
+          "line": 709,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        },
+        {
+          "kind": "source",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureStateDriver.lua",
+          "matchedBy": "fts5",
+          "role": "project",
+          "excerpt": "191: SecureStateDriverManager:RegisterEvent(\"PLAYER_TARGET_CHANGED\");\n192: SecureStateDriverManager:RegisterEvent(\"PLAYER_FOCUS_CHANGED\");\n193: SecureStateDriverManager:RegisterEvent(\"PLAYER_REGEN_DISABLED\");\n194: SecureStateDriverManager:RegisterEvent(\"PLAYER_REGEN_ENABLED\");\n195: SecureStateDriverManager:RegisterEvent(\"UNIT_PET\");\n196: SecureStateDriverManager:RegisterEvent(\"GROUP_ROSTER_UPDATE\");\n197: -- Deliberately ignoring mouseover and others' target changes because they change so much",
+          "contentHash": "bebd4a4b18e610233ff8f734df7b473df08fe25b1ce383b0c7883ae962a63029",
+          "line": 194,
+          "score": 70,
+          "scoreParts": {
+            "match": 70,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "EditModeActionBarMixin:EditModeActionBar_OnLoad",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionBar.lua",
+          "line": 262
+        },
+        {
+          "source": "ActionBarButtonAssistedCombatRotationFrameMixin:OnShow",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ActionBar/Shared/ActionButton.lua",
+          "line": 1849
+        },
+        {
+          "source": "Class_ActionBarCallout:UNIT_SPELLCAST_SUCCEEDED",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 987
+        },
+        {
+          "source": "Class_HealthBarCallout:OnBegin",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 1025
+        },
+        {
+          "source": "Class_LootCorpseWatcher:OnBegin",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 1460
+        },
+        {
+          "source": "Class_AbilityUse_Watcher:OnBegin",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2122
+        },
+        {
+          "source": "Class_AbilityUse_AbilityReminder:OnBegin",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2201
+        },
+        {
+          "source": "Class_Level3Ability:PLAYER_REGEN_DISABLED",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2243
+        },
+        {
+          "source": "ExecuteCastSequence",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/CastSequenceManager.lua",
+          "line": 140
+        },
+        {
+          "source": "MountJournal_OnLoad",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_MountCollection.lua",
+          "line": 146
+        },
+        {
+          "source": "QuestSessionDialogMixin:BaseOnShow",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_FrameXML/QuestSession.lua",
+          "line": 127
+        },
+        {
+          "source": "LowHealthFrameMixin:OnLoad",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_FrameXML/Shared/LowHealthFrame.lua",
+          "line": 25
+        },
+        {
+          "source": "LFGEventFrame_OnLoad",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_GroupFinder/Shared/LFGFrame.lua",
+          "line": 119
+        },
+        {
+          "source": "Class_SelfHeal:OnBegin",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialTutorials.lua",
+          "line": 2231
+        },
+        {
+          "source": "Class_LowHealthWatcher:StartWatching",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 314
+        },
+        {
+          "source": "Class_LootCorpseWatcher:StartWatching",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 806
+        },
+        {
+          "source": "PrivateAuraAnchorContainerMixin:RegisterUnitEvents",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_PrivateAurasUI/Blizzard_PrivateAurasUI.lua",
+          "line": 753
+        },
+        {
+          "source": "<top-level@Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureStateDriver.lua:194>",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureStateDriver.lua",
+          "line": 194
+        },
+        {
+          "source": "QuestSessionManagementMixin:OnShow",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestMapFrame.lua",
+          "line": 642
+        },
+        {
+          "source": "FullResourcePulse:Initialize",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/BuilderSpenderFrame.lua",
+          "line": 202
+        },
+        {
+          "source": "PlayerFrame_OnLoad",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/PlayerFrame.lua",
+          "line": 60
+        },
+        {
+          "source": "WarlockPowerBar:OnLoad",
+          "target": "PLAYER_REGEN_ENABLED",
+          "kind": "register-event",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_UnitFrame/Mainline/ShardBar.lua",
+          "line": 4
+        },
+        {
+          "source": "Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED",
+          "target": "self:UnsuppressChildren",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 1503
+        },
+        {
+          "source": "Class_AbilityUse_Watcher:PLAYER_REGEN_ENABLED",
+          "target": "Dispatcher:UnregisterEvent",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_BoostTutorial/Blizzard_TutorialLogic.lua",
+          "line": 2150
+        },
+        {
+          "source": "Class_LootCorpseWatcher:PLAYER_REGEN_ENABLED",
+          "target": "self:UnsuppressChildren",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_NewPlayerExperience/Blizzard_TutorialWatchers.lua",
+          "line": 857
+        }
+      ]
+    },
+    "symbol": "PLAYER_REGEN_ENABLED"
+  }
+]

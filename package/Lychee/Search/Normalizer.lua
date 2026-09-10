@@ -1,28 +1,23 @@
 local I = _G.LycheeInternal
 I.Search = I.Search or {}
-local N = { locale = (GetLocale and GetLocale()) or "enUS", cache = {}, cacheKeys = {}, cacheCursor = 0, cacheLimit = 1024 }
+local N = { locale = (GetLocale and GetLocale()) or "enUS", cache = {}, cacheKeys = {}, cacheCursor = 0, cacheLimit = 1024, cacheTextLimit = 256 }
 I.Search.Normalizer = N
 
 local function lower(value) return string.lower(tostring(value or "")) end
 
 function N:Normalize(value)
     local raw = lower(value)
-    local cached = self.cache[raw]
+    local cacheable = #raw <= self.cacheTextLimit
+    local cached = cacheable and self.cache[raw]
     if cached then return cached end
     -- Lua 5.1's locale-aware %p can classify UTF-8 bytes as punctuation.
     -- Normalize only ASCII punctuation/control bytes so Chinese text survives.
-    local buffer = {}
-    for index = 1, #raw do
-        local byte = raw:byte(index)
-        if byte <= 32 or byte == 127 or (byte >= 33 and byte <= 47)
-            or (byte >= 58 and byte <= 64) or (byte >= 91 and byte <= 96)
-            or (byte >= 123 and byte <= 126) then
-            buffer[#buffer + 1] = " "
-        else
-            buffer[#buffer + 1] = raw:sub(index, index)
-        end
-    end
-    local normalized = table.concat(buffer):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+    -- Explicit byte ranges preserve UTF-8 and avoid a table/string per byte.
+    local normalized = raw:gsub("[%z\1-\47\58-\64\91-\96\123-\127]+", " ")
+        :gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+    -- Long descriptions remain searchable without retaining arbitrary text.
+    -- At most 1024 keys plus values of <=256 bytes: <=512 KiB of text payload.
+    if not cacheable then return normalized end
     local slot = self.cacheCursor % self.cacheLimit + 1
     local previous = self.cacheKeys[slot]
     if previous then self.cache[previous] = nil end

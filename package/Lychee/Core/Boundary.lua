@@ -1,6 +1,23 @@
 local I = _G.LycheeInternal
 local Boundary = { MAX_DEPTH = 8, MAX_FIELDS = 128 }
 I.Boundary = Boundary
+-- Immutable validation vocabulary; never allocate it per record/action.
+local DEFAULT_OPTIONS = {}
+local ACTION_KEYS = { id=true, title=true, kind=true, intent=true, panel=true, state=true, spellID=true }
+local ACTION_KIND_KEYS = {
+    provider={id=true,title=true,kind=true},
+    intent={id=true,title=true,kind=true,intent=true},
+    ["open-panel"]={id=true,title=true,kind=true,panel=true,state=true},
+    ["secure-spell"]={id=true,title=true,kind=true,spellID=true},
+    ["drag-spell"]={id=true,title=true,kind=true,spellID=true},
+}
+local RECORD_KEYS = {
+    id=true,kind=true,kindTitle=true,category=true,title=true,subtitle=true,subtext=true,
+    aliases=true,keywords=true,description=true,icon=true,scope=true,actions=true,
+    primaryActionID=true,drag=true,payload=true,availability=true,_extensionID=true,
+}
+local TEXT_FIELDS = { "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }
+local CATEGORY_KEYS = {id=true,title=true,order=true,color=true}
 
 local function failure(code, field)
     return nil, { code = code, field = field, retryable = false }
@@ -55,7 +72,7 @@ local function visit(value, options, seen, depth, field, parentKey)
 end
 
 function Boundary:Validate(value, field, options)
-    return visit(value, options or {}, {}, 0, field, nil)
+    return visit(value, options or DEFAULT_OPTIONS, {}, 0, field, nil)
 end
 
 local function schemaValue(boundary, value, schema, field)
@@ -131,20 +148,14 @@ function Boundary:ValidateSearchAction(action, field)
     if type(action) ~= "table" then return schemaFailure(field) end
     local ok, why = self:Validate(action, field)
     if not ok then return nil, why end
-    local keyOK, keyErr = allowedKeys(action, {
-        id = true, title = true, kind = true, intent = true, panel = true, state = true, spellID = true,
-    }, field)
+    local keyOK, keyErr = allowedKeys(action, ACTION_KEYS, field)
     if not keyOK then return nil, keyErr end
     if not stableID(action.id, 64) then return schemaFailure(field .. ".id") end
     local kind = action.kind
     if kind ~= "provider" and kind ~= "intent" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "drag-spell" then
         return schemaFailure(field .. ".kind")
     end
-    local kindKeys = { id=true, title=true, kind=true }
-    if kind == "intent" then kindKeys.intent = true
-    elseif kind == "open-panel" then kindKeys.panel, kindKeys.state = true, true
-    elseif kind == "secure-spell" or kind == "drag-spell" then kindKeys.spellID = true end
-    keyOK, keyErr = allowedKeys(action, kindKeys, field)
+    keyOK, keyErr = allowedKeys(action, ACTION_KIND_KEYS[kind], field)
     if not keyOK then return nil, keyErr end
     if action.title ~= nil and type(action.title) ~= "string" and type(action.title) ~= "table" then
         return schemaFailure(field .. ".title")
@@ -206,13 +217,7 @@ function Boundary:ValidateSearchRecord(record, field)
     if type(record) ~= "table" then return schemaFailure(field) end
     local ok, why = self:Validate(record, field)
     if not ok then return nil, why end
-    local keyOK, keyErr = allowedKeys(record, {
-        id = true, kind = true, kindTitle = true, category = true, title = true, subtitle = true, subtext = true,
-        aliases = true, keywords = true, description = true, icon = true, scope = true,
-        actions = true, primaryActionID = true, drag = true, payload = true,
-        availability = true,
-        _extensionID = true,
-    }, field)
+    local keyOK, keyErr = allowedKeys(record, RECORD_KEYS, field)
     if not keyOK then return nil, keyErr end
     if not stableID(record.id) or type(record.kind) ~= "string" or record.kind == "" then
         return schemaFailure(field)
@@ -220,14 +225,14 @@ function Boundary:ValidateSearchRecord(record, field)
     if not record.title and not record.aliases and not record.keywords and not record.description and not record.category then
         return schemaFailure(field .. ".content")
     end
-    for _, name in ipairs({ "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }) do
+    for _, name in ipairs(TEXT_FIELDS) do
         local textOK, textErr = validateTextField(record[name], field .. "." .. name)
         if not textOK then return nil, textErr end
     end
     if record.category ~= nil then
         if type(record.category) ~= "string" and type(record.category) ~= "table" then return schemaFailure(field .. ".category") end
         if type(record.category) == "table" then
-            local categoryKeysOK, categoryKeysErr = allowedKeys(record.category, { id = true, title = true, order = true, color = true }, field .. ".category")
+            local categoryKeysOK, categoryKeysErr = allowedKeys(record.category, CATEGORY_KEYS, field .. ".category")
             if not categoryKeysOK then return nil, categoryKeysErr end
             if record.category.id ~= nil and not stableID(record.category.id, 192) then return schemaFailure(field .. ".category.id") end
             local titleOK, titleErr = validateTextField(record.category.title, field .. ".category.title")

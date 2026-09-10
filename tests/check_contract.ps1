@@ -87,6 +87,18 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/performance_memory.lua' '--check'
     if ($LASTEXITCODE -ne 0) { throw "Memory budget failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/performance_search.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Search lifecycle budget failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/performance_ui.lua' '--check'
+    if ($LASTEXITCODE -ne 0) { throw "UI pool budget failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/performance_core.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Core lifecycle budget failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/perf_core_provider.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Provider workload budget failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/performance_builtin_secure.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Built-in lifecycle budget failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/perf_builtin_secure_events.lua'
+    if ($LASTEXITCODE -ne 0) { throw "Secure event lifecycle failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location
 }

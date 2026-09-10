@@ -192,12 +192,13 @@ function P:ClearDescriptionRequest(spellID)
     if type(spellID) == "number" then self.descriptionRequests[spellID] = nil end
 end
 
-function P:BuildSearchRecords()
+function P:BuildSearchRecords(items)
+    items = items or self.items
     local records, ids = {}, {}
-    for spellID in pairs(self.items) do ids[#ids + 1] = spellID end
+    for spellID in pairs(items) do ids[#ids + 1] = spellID end
     table.sort(ids)
     for index = 1, #ids do
-        local spellID, spell = ids[index], self.items[ids[index]]
+        local spellID, spell = ids[index], items[ids[index]]
         if type(spell) == "table" and type(spell.name) == "string" and spell.name ~= "" then
             records[#records + 1] = {
                 id = "spell:" .. tostring(spellID),
@@ -224,21 +225,41 @@ function P:BuildSearchRecords()
 end
 
 function P:Refresh()
+    if InCombatLockdown and InCombatLockdown() then return refreshFailed(self, "COMBAT_LOCKED") end
+    local previous = self.items
     local refreshed = self:RefreshFromSpellBook()
     if refreshed and self.providerHandle then
-        local committed = self.providerHandle:Update({ replace = self:BuildSearchRecords() })
-        if not committed then return refreshFailed(self, "SOURCE_COMMIT_FAILED") end
+        local changed, remove = {}, {}
+        for id, spell in pairs(self.items) do
+            local old = previous[id]
+            if not old or old.name ~= spell.name or old.icon ~= spell.icon or old.subtext ~= spell.subtext
+                or old.description ~= spell.description or old.aliases ~= spell.aliases then
+                changed[id] = spell
+            end
+        end
+        for id in pairs(previous) do
+            if not self.items[id] then remove[#remove + 1] = "spell:" .. tostring(id) end
+        end
+        if next(changed) or #remove > 0 then
+            local committed = self.providerHandle:Update({ upsert = self:BuildSearchRecords(changed), remove = remove })
+            if not committed then
+                self.items = previous
+                return refreshFailed(self, "SOURCE_COMMIT_FAILED")
+            end
+        end
     end
     return refreshed
 end
 
 function P:Detach(releaseSource)
     self._active = false
+    self._epoch = (self._epoch or 0) + 1
     self._refreshPending = nil
     if self._eventFrame then
         if type(self._eventFrame.UnregisterAllEvents) == "function" then self._eventFrame:UnregisterAllEvents() end
         self._eventFrame:SetScript("OnEvent", nil)
     end
     self._eventFrame = nil
-    if releaseSource then self.providerHandle = nil end
+    for spellID in pairs(self.descriptionRequests) do self.descriptionRequests[spellID] = nil end
+    if releaseSource then self.providerHandle = nil; self.items = {} end
 end

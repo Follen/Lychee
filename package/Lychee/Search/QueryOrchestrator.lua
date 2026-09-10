@@ -286,6 +286,7 @@ end
 function Q:Cancel(reason, generation)
     if I.Providers then I.Providers:CancelQueries(reason) end
     self:_CancelTimer()
+    if I.Search.StaticIndex and I.Search.StaticIndex.ClearQueryCache then I.Search.StaticIndex:ClearQueryCache() end
     self.last = { generation = generation, results = {}, cancelled = reason or "INVALIDATED" }
     self.pending, self.active = nil, false
     return true

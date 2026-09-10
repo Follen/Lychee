@@ -5,19 +5,30 @@ Lychee.Secure = Lychee.Secure or {}
 local Broker = {}
 Broker.__index = Broker
 
+function Broker:UpdateEventInterest()
+    local cast = self.pendingButton and self.pendingButton.pendingCast or false
+    local regen = self.dirty == true
+    if self._observingCast == cast and self._observingRegen == regen then return end
+    self.eventFrame:UnregisterAllEvents()
+    if regen then self.eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED") end
+    if cast then
+        if self.eventFrame.RegisterUnitEvent then
+            self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+            self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player")
+            self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "player")
+        else
+            self.eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+            self.eventFrame:RegisterEvent("UNIT_SPELLCAST_FAILED")
+            self.eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+        end
+    end
+    self._observingCast, self._observingRegen = cast, regen
+end
+
 function Broker:Create(parent)
     local self = setmetatable({ parent = parent or UIParent, buttons = {}, active = {}, dirty = false }, Broker)
     self.eventFrame = CreateFrame("Frame")
-    self.eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-    if self.eventFrame.RegisterUnitEvent then
-        self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
-        self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player")
-        self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "player")
-    else
-        self.eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-        self.eventFrame:RegisterEvent("UNIT_SPELLCAST_FAILED")
-        self.eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
-    end
+    self._observingCast, self._observingRegen = false, false
     self.eventFrame:SetScript("OnEvent", function(_, event, unit, _, spellID, reason)
         if event == "PLAYER_REGEN_ENABLED" then
             self:Flush()
@@ -86,6 +97,7 @@ function Broker:_Acquire()
         if valid then
             current.pendingCast = true
             self.pendingButton = current
+            self:UpdateEventInterest()
             self:Notify("pending", current.action)
             return
         end
@@ -99,6 +111,8 @@ function Broker:_Acquire()
             self.dirty = true
         end
         current.busy, current.token, current.action, current.pendingCast = false, nil, nil, nil
+        if self.pendingButton == current then self.pendingButton = nil end
+        self:UpdateEventInterest()
     end)
     button:SetScript("PostClick", function(current, mouseButton)
         if mouseButton ~= "LeftButton" or not current.mountID or not current.pendingCast then return end
@@ -132,7 +146,7 @@ function Broker:Prepare(action, token)
     local descriptor, err = Lychee.Secure.Descriptor.FromAction(action)
     if not descriptor then return nil, err end
     local ok, policyErr, mountID = Lychee.Secure.Policy:Check(descriptor)
-    if not ok then self.dirty = true; return nil, policyErr end
+    if not ok then self:Invalidate(); return nil, policyErr end
     for index = 1, #self.buttons do
         local existing = self.buttons[index]
         local bound = existing.token
@@ -141,7 +155,7 @@ function Broker:Prepare(action, token)
             and existing.spellID == descriptor.spellID and existing.mountID == mountID then return existing end
     end
     local button = self:_Acquire()
-    if not button then self.dirty = true; return nil, "COMBAT_LOCKED" end
+    if not button then self:Invalidate(); return nil, "COMBAT_LOCKED" end
     if mountID then button:SetAttribute("type", nil)
     else button:SetAttribute("type", "spell") end
     button:SetAttribute("spell", descriptor.spellID)
@@ -177,6 +191,7 @@ function Broker:FinishCast(event, spellID, reason)
     if spellID and button.spellID and spellID ~= button.spellID then return false end
     button.pendingCast = false
     self.pendingButton = nil
+    self:UpdateEventInterest()
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
         local item = button.token and button.token.item
         self:Notify("success", button.action)
@@ -195,7 +210,7 @@ function Broker:Release(button)
     if not button or (not button.busy and not button.pendingRelease and not button.activeIndex) then return end
     if InCombatLockdown and InCombatLockdown() then
         button.pendingRelease = true
-        self.dirty = true
+        self:Invalidate()
         return
     end
     button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil)
@@ -209,6 +224,7 @@ function Broker:Release(button)
     button.busy, button.pendingRelease, button.token, button.action, button.spellID, button.pendingCast = false, nil, nil, nil, nil, nil
     button.armedSecondary = nil
     button.mountID = nil
+    self:UpdateEventInterest()
 end
 function Broker:ShowFor(row, action, session, generation, item, extensionID)
     local button, err = self:Prepare(action, {
@@ -248,8 +264,9 @@ function Broker:Flush()
             self:Release(button)
         end
     end
+    self:UpdateEventInterest()
 end
-function Broker:Invalidate() self.dirty = true end
+function Broker:Invalidate() self.dirty = true; self:UpdateEventInterest() end
 function Broker:ReleaseAll()
     for i = 1, #self.buttons do self:Release(self.buttons[i]) end
 end

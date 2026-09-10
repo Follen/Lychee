@@ -156,6 +156,9 @@
 - `lua tests/performance_memory.lua --check`：2,689 条固定数据常驻低于 9 MiB、48 次查询累计分配低于 4 MiB、重复查询保留增长低于 512 KiB。
 - `lua tests/performance_memory.lua --stress`：扩展规模测量；`--disable`：停用与恢复数据源测量。
 - `lua tests/search_memory_regression.lua`：匹配正确性、缓存界限和索引生命周期检查。
+- `lua tests/performance_search.lua`：2,048 次规范化分配低于 1 MiB、长文本缓存保留增量低于 512 KiB、取消后旧候选归零。
+- `lua tests/performance_ui.lua --check`：固定 400 高视口、1,000 来源场景不超过 10 行，新增替身保留低于 1 MiB、20 次刷新分配低于 512 KiB，并检查重绑点击身份。
+- `lua tests/performance_core.lua`、`lua tests/perf_core_provider.lua`：固定校验/增量更新分配预算及调度、取消、回复代次检查；`performance_builtin_secure.lua`、`perf_builtin_secure_events.lua` 验证事件与启停生命周期。详见 [全项目测量与覆盖](docs/validation/2026-09-10-project-performance.md)。
 - `powershell -NoProfile -File tests/check_contract.ps1`：完整契约验证；运行时改动另需 Lua/XML/TOC 静态检查、wowdoc 验证和 `git diff --check`。
 
 上述预算适用于现有固定离线场景，不是所有未来功能的总内存限额。改变预算必须附同输入前后数据及产品理由，不得为让失败测试通过而直接提高阈值。详见 [测量记录](docs/validation/2026-09-10-deep-memory-optimization.md)。

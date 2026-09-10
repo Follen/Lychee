@@ -152,11 +152,23 @@ function Registry:RegisterReady(callback)
     if type(callback) ~= "function" then return nil, failure("INVALID_CALLBACK", "callback") end
     local listener = { callback = callback }
     local token = {}
-    function token:Cancel() listener.callback = nil; return true end
+    function token:Cancel()
+        listener.callback = nil
+        local index = listener.index
+        if index and Registry.readyListeners[index] == listener then
+            table.remove(Registry.readyListeners, index)
+            for nextIndex = index, #Registry.readyListeners do Registry.readyListeners[nextIndex].index = nextIndex end
+        end
+        listener.index = nil
+        return true
+    end
     if self.ready then
         invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
         listener.callback = nil
-    else self.readyListeners[#self.readyListeners+1]=listener end
+    else
+        listener.index = #self.readyListeners + 1
+        self.readyListeners[listener.index] = listener
+    end
     return token
 end
 function Registry:SetReady(ready)
@@ -166,7 +178,7 @@ function Registry:SetReady(ready)
     local callbacks=self.readyListeners; self.readyListeners={}
     for i=1,#callbacks do
         local callback = callbacks[i].callback
-        callbacks[i].callback = nil
+        callbacks[i].callback, callbacks[i].index = nil, nil
         if callback then invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision}) end
     end
     local pending={}

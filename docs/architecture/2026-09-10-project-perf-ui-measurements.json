@@ -1,0 +1,77 @@
+[
+  {
+    "round": 1,
+    "baseline": [
+      "providers=1000 rows=1000 objects=18018 cold_ms=28.000 retained_kib=15412.6 refresh20_ms=48.000 refresh20_alloc_kib=5946.0 pool_growth=0",
+      "pins30_initial_resolves=30",
+      "performance_ui: PASS (measurement only)"
+    ],
+    "baselineExit": 0,
+    "updated": [
+      "providers=1000 rows=9 objects=180 cold_ms=2.000 retained_kib=446.1 refresh20_ms=19.000 refresh20_alloc_kib=42.4 pool_growth=0",
+      "pins30_initial_resolves=9",
+      "performance_ui: PASS (budgets enforced)"
+    ],
+    "updatedExit": 0
+  },
+  {
+    "round": 2,
+    "baseline": [
+      "providers=1000 rows=1000 objects=18018 cold_ms=31.000 retained_kib=15412.6 refresh20_ms=46.000 refresh20_alloc_kib=5946.0 pool_growth=0",
+      "pins30_initial_resolves=30",
+      "performance_ui: PASS (measurement only)"
+    ],
+    "baselineExit": 0,
+    "updated": [
+      "providers=1000 rows=9 objects=180 cold_ms=1.000 retained_kib=446.1 refresh20_ms=19.000 refresh20_alloc_kib=42.4 pool_growth=0",
+      "pins30_initial_resolves=9",
+      "performance_ui: PASS (budgets enforced)"
+    ],
+    "updatedExit": 0
+  },
+  {
+    "round": 3,
+    "baseline": [
+      "providers=1000 rows=1000 objects=18018 cold_ms=30.000 retained_kib=15412.6 refresh20_ms=46.000 refresh20_alloc_kib=5946.0 pool_growth=0",
+      "pins30_initial_resolves=30",
+      "performance_ui: PASS (measurement only)"
+    ],
+    "baselineExit": 0,
+    "updated": [
+      "providers=1000 rows=9 objects=180 cold_ms=2.000 retained_kib=446.1 refresh20_ms=22.000 refresh20_alloc_kib=42.4 pool_growth=0",
+      "pins30_initial_resolves=9",
+      "performance_ui: PASS (budgets enforced)"
+    ],
+    "updatedExit": 0
+  },
+  {
+    "round": 4,
+    "baseline": [
+      "providers=1000 rows=1000 objects=18018 cold_ms=31.000 retained_kib=15412.6 refresh20_ms=46.000 refresh20_alloc_kib=5946.0 pool_growth=0",
+      "pins30_initial_resolves=30",
+      "performance_ui: PASS (measurement only)"
+    ],
+    "baselineExit": 0,
+    "updated": [
+      "providers=1000 rows=9 objects=180 cold_ms=1.000 retained_kib=446.1 refresh20_ms=18.000 refresh20_alloc_kib=42.4 pool_growth=0",
+      "pins30_initial_resolves=9",
+      "performance_ui: PASS (budgets enforced)"
+    ],
+    "updatedExit": 0
+  },
+  {
+    "round": 5,
+    "baseline": [
+      "providers=1000 rows=1000 objects=18018 cold_ms=30.000 retained_kib=15412.6 refresh20_ms=46.000 refresh20_alloc_kib=5946.0 pool_growth=0",
+      "pins30_initial_resolves=30",
+      "performance_ui: PASS (measurement only)"
+    ],
+    "baselineExit": 0,
+    "updated": [
+      "providers=1000 rows=9 objects=180 cold_ms=1.000 retained_kib=446.1 refresh20_ms=20.000 refresh20_alloc_kib=42.4 pool_growth=0",
+      "pins30_initial_resolves=9",
+      "performance_ui: PASS (budgets enforced)"
+    ],
+    "updatedExit": 0
+  }
+]
