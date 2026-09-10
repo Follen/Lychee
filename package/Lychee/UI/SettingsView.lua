@@ -22,7 +22,16 @@ local function button(parent, title, width, callback)
     return control
 end
 local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
-    ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6 }
+    ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6,
+    ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
+    ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11 }
+local providerDescriptions = {
+    ["builtin.bags"]="搜索物品并定位背包",
+    ["builtin.talent-loadouts"]="搜索并切换天赋方案",
+    ["builtin.equipment-sets"]="搜索并切换装备方案",
+    ["builtin.blizzard-settings"]="定位设置、重载界面与冷却管理器",
+    ["builtin.keystones"]="队伍钥匙、分数与副本传送",
+}
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local providerIcons = {
     ["builtin.player-spells"] = iconRoot .. "spellbook.tga",
@@ -31,6 +40,11 @@ local providerIcons = {
     ["builtin.game-menus"] = iconRoot .. "game-menu.tga",
     ["builtin.crests"] = iconRoot .. "currency.tga",
     ["builtin.great-vault"] = iconRoot .. "great-vault.tga",
+    ["builtin.bags"] = iconRoot .. "toys.tga",
+    ["builtin.talent-loadouts"] = iconRoot .. "talents.tga",
+    ["builtin.equipment-sets"] = iconRoot .. "character.tga",
+    ["builtin.blizzard-settings"] = iconRoot .. "settings.tga",
+    ["builtin.keystones"] = iconRoot .. "keystone.tga",
 }
 local function rowIcon(record)
     local pin = type(record.pin) == "table" and record.pin or nil
@@ -254,7 +268,7 @@ function Settings:Create(parent, controller)
             text(row.name,record.title)
             if self.tab=="providers" then
                 local state=record.state
-                text(row.detail,(record.builtin and "内置功能" or record.id).."  ·  "..tostring(record.version or ""))
+                text(row.detail,providerDescriptions[record.id] or (record.builtin and "内置功能" or record.id).."  ·  "..tostring(record.version or ""))
                 text(row.state,state.incompatible and "版本不兼容" or state.state=="pending" and "尚未加载" or state.userEnabled==false and "已关闭" or state.ownerEnabled==false and "扩展自行停用" or "已启用")
                 Lychee.UI.Theme:SetColorTexture(row.toggle.bg,state.userEnabled and "accent" or "disabled")
                 if row.toggle._enabled~=state.userEnabled then

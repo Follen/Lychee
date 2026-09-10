@@ -176,6 +176,21 @@ if check then
     assert(view.rows[1].providerID=="builtin.mounts","built-in ordering survives reuse")
     assert(view.rows[2]._y==104,"group spacing survives virtualization")
     for id in pairs(I.Providers.entries) do I.Providers.entries[id]=nil end
+    local added={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
+    local icons={"toys.tga","talents.tga","character.tga","settings.tga","keystone.tga"}
+    for _,id in ipairs(added) do
+        I.Providers.entries[id]={definition={title="新增功能",version="1.0.0"}}
+        I.Registry.entries[id]={userEnabled=false}
+    end
+    view:SetTab("providers")
+    for index,id in ipairs(added) do
+        local record,row=view.data[index],view.rows[index]
+        assert(record.id==id and record.builtin,"new providers belong to built-in group: "..id)
+        assert(not row.detail:GetText():find("builtin.",1,true),"internal ID must not be presented as description")
+        assert(row._icon=="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"..icons[index],"provider icon: "..id)
+        assert(I.Registry.entries[id].userEnabled==false,"presentation must preserve disabled state")
+    end
+    for id in pairs(I.Providers.entries) do I.Providers.entries[id]=nil end
     view:Refresh()
     for _,row in ipairs(view.rows) do assert(not row:IsShown(),"empty source list releases pooled rows") end
 end
