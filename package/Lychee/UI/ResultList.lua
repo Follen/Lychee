@@ -12,8 +12,8 @@ local EMPTY_ITEMS = {}
 local UI_LOCALE = GetLocale and GetLocale() or "enUS"
 local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
 local FALLBACK = {
-    row = { 0.075, 0.078, 0.09, 0.96 }, rowHover = { 0.105, 0.108, 0.122, 0.98 },
-    rowSelected = { 0.145, 0.105, 0.115, 0.98 }, outline = { 0.30, 0.19, 0.21, 0.85 },
+    row = { 0.075, 0.078, 0.09, 0.96 }, rowHover = { 0.090, 0.090, 0.090, 1 },
+    rowSelected = { 0.120, 0.120, 0.120, 1 }, outline = { 0.30, 0.19, 0.21, 0.85 },
     accent = { 0.91, 0.20, 0.30, 1 }, action = { 0.13, 0.135, 0.15, 1 },
     actionHover = { 0.20, 0.205, 0.23, 1 }, text = { 0.96, 0.945, 0.91, 1 },
     muted = { 0.62, 0.63, 0.67, 1 }, dim = { 0.45, 0.46, 0.50, 1 },
