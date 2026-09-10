@@ -77,6 +77,12 @@ M.resolve=function(key)
     local id=type(key)=="string" and tonumber(key:match("^achievement:(%d+)$"))
     return id and record(id) or nil
 end
+M.batchSize,M.batchDelay=128,0
+function M:onReady()
+    local resume=self.resumeQuery;self.resumeQuery=nil
+    if resume then resume()
+    elseif I.Search.Session then I.Search.Session:SourceChanged("achievements-ready") end
+end
 function M:onStart() self.lastError=nil end
 function M:onStop()
     if self.cancelQuery then self.cancelQuery();self.cancelQuery=nil end
@@ -96,6 +102,7 @@ M.query=function(request,reply)
         cancelled=true
         if timer then timer:Cancel();timer=nil end
         selected=nil;reply=nil;result=nil;records=nil
+        M.resumeQuery=nil
         if M.cancelQuery==cancel then M.cancelQuery=nil end
     end
     M.cancelQuery=cancel
@@ -104,6 +111,7 @@ M.query=function(request,reply)
         if cancelled or not M.active or combat() then cancel();return end
         if not M.ids then
             if M.lastError then local send=reply;cancel();send({});return end
+            M.resumeQuery=step;return
         else
             local started=debugprofilestop and debugprofilestop() or 0
             local count=0
@@ -140,13 +148,13 @@ M.query=function(request,reply)
                         index=index+1;count=count+1
                         if debugprofilestop and debugprofilestop()-started>=1 then break end
                     end
-                    if index<=#result then timer=C_Timer.NewTimer(0.01,finish)
+                    if index<=#result then timer=C_Timer.NewTimer(0,finish)
                     else local send,output=reply,records;cancel();send(output) end
                 end
                 finish();return
             end
         end
-        timer=C_Timer.NewTimer(0.01,step)
+        timer=C_Timer.NewTimer(0,step)
     end
     step()
     return cancel

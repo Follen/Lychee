@@ -384,6 +384,10 @@ function P:Execute(item, actionID, context, dragging)
 end
 
 -- One completion per Provider per query, whether synchronous or delayed.
+function P:HasPendingQuery()
+    return next(self.jobs) ~= nil
+end
+
 function P:HasQuery(filter)
     if type(filter)~="table" or not filter.sourceID then return true end
     if type(filter.sourceID)~="string" then return false end
@@ -455,6 +459,7 @@ function P:Search(request, context, onChange)
             if C_Timer and C_Timer.NewTimer then job.timer = C_Timer.NewTimer(5, function()
                 if job.done then return end
                 report(entry, "QUERY_TIMEOUT", "query"); finish(job, "timeout")
+                if onChange then onChange(gather()) end
             end) end
         end
         end

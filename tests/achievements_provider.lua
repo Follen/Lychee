@@ -58,7 +58,14 @@ local M=I.Builtin.Achievements
 local baseFrames,baseTimers=frames,#timers
 collectgarbage("collect");local baseline=collectgarbage("count")
 M:Init();assert(reads==0 and frames==baseFrames and #timers==baseTimers,"disabled means no scans/frames/timers")
-assert(I.Registry:SetUserEnabled(M.id,true));drain()
+assert(I.Registry:SetUserEnabled(M.id,true))
+local coldResults
+local timersBeforeQuery=#timers
+I.Providers:Search({normalized="引领潮流",limit=20},{},function(items) coldResults=items end)
+assert(M.resumeQuery and I.Providers:HasPendingQuery(),"cold search waits for catalogue completion")
+assert(#timers==timersBeforeQuery+1,"waiting adds only Host timeout, no polling timer")
+drain()
+assert(coldResults and #coldResults==1 and not M.resumeQuery and not I.Providers:HasPendingQuery(),"cold search automatically receives the target")
 assert(M.ids and #M.ids==6002 and not M.job and not M.timer,"enabled achievement catalog missing: "..tostring(M.lastError))
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
 assert(retained<4096,"6002 compact records stay below 4 MiB")

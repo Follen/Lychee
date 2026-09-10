@@ -34,7 +34,7 @@ end
 function C:Queue()
     if not self.active or self.timer then return end
     local epoch=self.epoch
-    self.timer=C_Timer.NewTimer(0.01, function()
+    self.timer=C_Timer.NewTimer(self.batchDelay or 0.01, function()
         if not self.active or self.epoch~=epoch then return end
         self.timer=nil
         self:Step()
@@ -47,7 +47,7 @@ function C:Step()
             local records, signatures, count, started = {}, {}, 0, now()
             local function checkpoint()
                 count=count+1
-                if count>=32 or now()-started>=1 then
+                if count>=(self.batchSize or 32) or now()-started>=1 then
                     coroutine.yield(); count=0; started=now()
                 end
             end
@@ -100,6 +100,7 @@ function C:Step()
     if not ok then self.lastError=tostring(result); self.job=nil; return end
     if coroutine.status(self.job)~="dead" then self:Queue(); return end
     self.job=nil
+    if self.onReady then self:onReady() end
 end
 function C:Init()
     if self.handle then

@@ -81,7 +81,7 @@ function Session:_Accept(results, generation, session, pending)
     if not current then return false end
     local palette = self.palette
     if not palette or not palette.visible or type(palette.ApplyResults) ~= "function" then return false end
-    palette.searchPending=pending==true
+    palette.searchPending=pending==true or (I.Providers and I.Providers.HasPendingQuery and I.Providers:HasPendingQuery()) or false
     return palette:ApplyResults(results, generation, session)
 end
 
