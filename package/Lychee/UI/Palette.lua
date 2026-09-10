@@ -11,7 +11,7 @@ local Palette = {}
 Palette.__index = Palette
 
 local WIDTH, HEIGHT = 640, 220
-local HEADER_HEIGHT, FOOTER_HEIGHT = 56, 28
+local HEADER_HEIGHT, FOOTER_HEIGHT = Lychee.UI.Theme.Metrics.headerHeight or 56, Lychee.UI.Theme.Metrics.footerHeight or 32
 local HOME_COLUMNS, HOME_TILE_WIDTH, HOME_TILE_HEIGHT = 7, 81, 76
 local HOME_COLUMN_GAP, HOME_ROW_GAP, HOME_GROUP_GAP = 4, 6, 18
 local LIST_METRICS = Lychee.UI.Theme.Metrics
@@ -541,21 +541,18 @@ function Palette:Create()
     })
     self.close = self.closeComponent.frame
     Lychee.UI.Theme:SetFont(self.closeComponent.label, "body")
-    self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted" })
+    self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted", left=LIST_METRICS.footerInset, right=LIST_METRICS.footerInset })
     self.status = self.statusComponent.label
     Lychee.UI.Theme:SetFont(self.status, "meta")
     self.footerHint = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -18, 0)
+    self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -LIST_METRICS.footerInset, 0)
     tint(self.footerHint, color("muted"))
     Lychee.UI.Theme:SetFont(self.footerHint, "meta")
-    for _, band in ipairs({ self.footer }) do
-        local line = band:CreateTexture(nil, "BORDER")
-        local edge = band == self.header and "BOTTOM" or "TOP"
-        line:SetPoint(edge .. "LEFT", band, edge .. "LEFT", 16, 0)
-        line:SetPoint(edge .. "RIGHT", band, edge .. "RIGHT", -16, 0)
-        line:SetHeight(1)
-        paint(line, color("border"))
-    end
+    local footerLine = self.footer:CreateTexture(nil, "BORDER")
+    footerLine:SetPoint("TOPLEFT", self.footer, "TOPLEFT", LIST_METRICS.footerInset, 0)
+    footerLine:SetPoint("TOPRIGHT", self.footer, "TOPRIGHT", -LIST_METRICS.footerInset, 0)
+    footerLine:SetHeight(1)
+    Lychee.UI.Theme:SetColorTexture(footerLine,"footerDivider")
     local divider = self.header:CreateTexture(nil, "BORDER")
     divider:SetPoint("LEFT", self.header, "LEFT", 62, 0)
     divider:SetSize(1, 18)
