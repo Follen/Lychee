@@ -126,7 +126,7 @@ local function build(self,put,checkpoint)
         if map and map>0 then dungeon,_,_,dungeonIcon=C_ChallengeMode.GetMapUIInfo(map) end
         local _,class=UnitClass(entry.unit)
         local classColor=class and C_ClassColor and C_ClassColor.GetClassColor(class)
-        local title=colored(name,classColor)..(isMe and "（我）" or "").." · "..(dungeon and (dungeon.." +"..level) or (map==0 and "暂无钥匙" or "钥匙未知"))
+        local title=colored(name,classColor).." · "..(dungeon and (dungeon.." +"..level) or (map==0 and "暂无钥匙" or "钥匙未知"))
         local spell=dungeon and teleport(map)
         local subtitle=spell and "点击传送至该副本" or (dungeon and "尚未解锁对应传送" or "等待队友的兼容插件回复")
         local description=table.concat(lines,"\n")
