@@ -187,6 +187,11 @@ L:Add({
 
 L:Add({
     ["直接搜索名称"]="Search by name",
+    ["一词查看结果"]="Show results by keyword",
+    ["只在此功能中查找匹配名称"]="Find matching names within this feature only",
+    ["完整输入设定词，无需指定内容名称"]="Enter the exact keyword without a content name",
+    ["在普通搜索结果中包含此功能"]="Include this feature in regular search results",
+    ["输入示例"]="Try typing",
     ["设置入口"]="Set up",
     ["限定搜索范围"]="Search within this feature",
     ["一词打开列表"]="Open the list with a keyword",

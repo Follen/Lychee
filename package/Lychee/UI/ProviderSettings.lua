@@ -81,10 +81,12 @@ function P:Create(parent,controller,onBack)
     view.fields={}
     for _,kind in ipairs({"prefix","keyword"}) do
         local field={};view.fields[kind]=field
-        field.label=label(L[kind=="prefix" and "限定搜索范围" or "一词打开列表"],8,0,width-100)
+        field.label=label(L[kind=="prefix" and "限定搜索范围" or "一词查看结果"],8,0,width-200)
         UI.Theme:SetTextColor(field.label,"text")
-        field.hint=label(L[kind=="prefix" and "在名称前加上前缀，只查找此功能" or "完整输入关键词，直接显示此功能的列表"],8,0,width-16,"meta")
-        field.summary=label("",8,0,width-16,"body")
+        field.hint=label(L[kind=="prefix" and "只在此功能中查找匹配名称" or "完整输入设定词，无需指定内容名称"],8,0,width-16,"meta")
+        field.caption=label(L["输入示例"],8,0,76,"meta")
+        field.summary=label("",88,0,width-104,"body");UI.Theme:SetTextColor(field.summary,"text")
+        field.state=label(L["未设置"],width-164,0,76,"meta");field.state:SetJustifyH("RIGHT")
         field.edit=button(L["修改"],width-80,0,72,function() view:BeginEdit(kind) end,nil,28,true)
         local input=CreateFrame("EditBox",nil,frame);field.input=input
         input:SetSize(width-16,32);input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0)
@@ -126,19 +128,20 @@ function P:Create(parent,controller,onBack)
     function view:UpdateExamples()
         local global,prefixes,keywords=policy:Configuration(self.id,self.entry.definition)
         self.global=global
-        self.globalHint:SetText(global and L:Format("输入 %s → 搜索匹配内容",self.sample) or L["已关闭，请使用下方的搜索入口"])
+        self.globalHint:SetText(L["在普通搜索结果中包含此功能"])
         for kind,field in pairs(self.fields) do
             local words=kind=="prefix" and prefixes or keywords
             local word=representative(words);field.count=#words
             field.edit:SetText(L[word and "修改" or "设置入口"])
             local example=word and (kind=="prefix" and word..(L:IsChinese() and "：" or ": ")..self.sample or word)
-            field.summary:SetText(example and L:Format(kind=="prefix" and "%s → 仅搜索%s" or "%s → 打开%s列表",example,self.entry.definition.title) or L["未设置"])
+            field.summary:SetText(example or "")
         end
     end
     function view:Layout()
         local independent=self.entry.definition.searchable==false
         local hasError=self.error:GetText()~=""
         local key=tostring(independent)..":"..tostring(self.editing)..":"..tostring(self.aboutOpen)..":"..tostring(hasError)
+            ..":"..tostring(self.fields.prefix.count>0)..":"..tostring(self.fields.keyword.count>0)
         if self.layoutKey==key then return end
         self.layoutKey=key
         local y=136;local errorY=116
@@ -149,7 +152,10 @@ function P:Create(parent,controller,onBack)
             at(field.hint,8,24);field.hint:SetShown(not independent)
             at(field.edit.frame,width-80,0);field.edit.frame:SetShown(not independent and not editing)
             field.edit:SetEnabled(self.editing==nil)
-            at(field.summary,8,48);field.summary:SetShown(not independent and not editing)
+            local hasExample=not independent and not editing and field.count>0
+            at(field.caption,8,48);field.caption:SetShown(hasExample)
+            at(field.summary,88,48);field.summary:SetShown(hasExample)
+            at(field.state,width-164,3);field.state:SetShown(not independent and not editing and field.count==0)
             at(field.input,8,50);field.input:SetShown(editing)
             at(field.example,8,90);field.example:SetShown(editing)
             at(field.cancel.frame,width-144,86);field.cancel.frame:SetShown(editing)
@@ -182,7 +188,7 @@ function P:Create(parent,controller,onBack)
         local global,prefixes,keywords=policy:Configuration(self.id,self.entry.definition)
         local ok,err=policy:SetConfiguration(self.id,global,kind=="prefix" and list or prefixes,kind=="keyword" and list or keywords)
         if not ok then self:Failure(err);return end
-        self:CancelEdit();self:UpdateExamples();controller:SetStatusText(L["搜索设置已保存"])
+        self:CancelEdit();self:UpdateExamples();self:Layout();controller:SetStatusText(L["搜索设置已保存"])
     end
     view.reset=button(L["恢复默认"],0,0,120,function()
         if view.entry.definition.searchable==false then return end
