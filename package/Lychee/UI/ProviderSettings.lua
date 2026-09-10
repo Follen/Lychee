@@ -85,7 +85,7 @@ function P:Create(parent,controller,onBack)
     view.save=button(L["保存"],0,-316,72,save)
     view.reset=button(L["恢复默认"],96,-316,110,function()
         local ok,err=I.Search.ProviderPolicy:Set(view.id,nil,nil)
-        if ok then view:Refresh() else view.error:SetText(L[err]) end
+        if ok then view:Refresh();controller:SetStatusText(L["搜索设置已保存"]) else view.error:SetText(L[err]) end
     end)
     view.technical=label("",0,-394,width,"meta");view.technical:SetHeight(44)
     input:SetScript("OnEnterPressed",save)
@@ -122,7 +122,7 @@ function P:Create(parent,controller,onBack)
         self.id,self.entry=id,I.Providers.entries[id]
         self.generation=self.generation+1;outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
         self.icon:SetTexture(icon);self.title:SetText(self.entry.definition.title);self.detail:SetText(description or "");self:Refresh()
-        controller:SetStatusText(L["点击保存应用搜索设置"])
+        controller:SetStatusText(L[self.entry.definition.searchable==false and "更改即时生效" or "点击保存应用搜索设置"])
     end
     outer:SetScript("OnHide",function()
         input:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
