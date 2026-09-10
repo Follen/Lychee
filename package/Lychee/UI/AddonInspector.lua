@@ -71,7 +71,7 @@ function UI.CreateAddonInspector(owner)
             self.details:SetHeight(136)
         else self.details:SetHeight(176) end
         self.footer:ClearAllPoints();self.footer:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",16,10)
-        self.footer:SetText(self.copying and "Ctrl+C 复制 · Esc 退出识别" or (sourceSetting=="0" and "来源记录未开启 · 技术详情可启用" or "移动鼠标识别 · Esc 退出"))
+        self.footer:SetText(self.copying and "Ctrl+C 复制 · Esc 退出识别" or (sourceSetting=="0" and "来源记录未开启 · Shift 操作 · Esc 退出" or "Shift 暂停并操作 · Esc 退出"))
         if not self.copying then self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("") end
         self:Place(owner.target,true)
     end
@@ -111,13 +111,27 @@ function UI.CreateAddonInspector(owner)
                 if type(top)=="number" then top=top*ratio end
             end
         end
+        local cursorX,cursorY
+        if GetCursorPosition then
+            local ok,x,y=pcall(GetCursorPosition)
+            if ok and not (issecretvalue and (issecretvalue(x) or issecretvalue(y))) and type(x)=="number" and type(y)=="number" then
+                local rootScale=UIParent:GetEffectiveScale()
+                if rootScale>0 then cursorX,cursorY=x/rootScale,y/rootScale end
+            end
+        end
         local best,bestArea=1,math.huge
-        for index=1,4 do
+        -- Start at the current corner: ties preserve position instead of bouncing
+        -- back as soon as moving the popup exposes the frame underneath it.
+        for offset=0,3 do
+            local index=((self.corner or 1)-1+offset)%4+1
             local x=index%2==1 and width-w-16 or 16
             local y=index<=2 and height-h-16 or 16
             local area=0
             if type(left)=="number" and type(right)=="number" and type(bottom)=="number" and type(top)=="number" then
                 area=math.max(0,math.min(x+w,right)-math.max(x,left))*math.max(0,math.min(y+h,top)-math.max(y,bottom))
+            end
+            if cursorX and cursorX>=x-32 and cursorX<=x+w+32 and cursorY>=y-32 and cursorY<=y+h+32 then
+                area=area+width*height+1
             end
             if area<bestArea then best,bestArea=index,area end
             if area==0 then break end

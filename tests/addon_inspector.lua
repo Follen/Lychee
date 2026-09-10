@@ -1,5 +1,8 @@
 local frames,regions,sourceReads,reloads=0,0,0,0
 local combat=false
+local cursorX,cursorY,shift=960,540,false
+function GetCursorPosition() return cursorX,cursorY end
+function IsShiftKeyDown() return shift end
 local timers={}
 local methods={}
 local function frame(parent,name)
@@ -114,6 +117,22 @@ for n=1,100 do M:Poll() end
 assert(sourceReads==reads,"same target is not analyzed again")
 foci={b};M:Poll()
 assert(v.heading:GetText()=="ElvUI" and v.confidence:GetText():find("可能来自",1,true))
+local templateChild=frame(a,"UnrelatedGeneratedButton42")
+templateChild.location="Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureGroupHeaders.lua:100"
+foci={templateChild};M:Poll()
+assert(M.data.title=="示例插件" and M.data.confidence=="可能来自 · 根据父级来源","Blizzard template must not override dynamic addon parent evidence")
+local independent=frame(UIParent,"AnyName")
+independent.location="Interface/AddOns/ACompletelyDifferentAddon/Widgets.lua:12"
+local helper=frame(independent,"GeneratedParent")
+helper.location=templateChild.location
+local leaf=frame(helper,"GeneratedChild")
+leaf.location=templateChild.location
+foci={leaf};M:Poll()
+assert(M.data.title=="ACompletelyDifferentAddon" and M.data.confidence=="可能来自 · 根据父级来源","unknown installed addon is inferred dynamically through native helper ancestors")
+local noOwner=frame(UIParent,"UnknownGeneratedWidget")
+noOwner.location=templateChild.location
+foci={noOwner};M:Poll()
+assert(M.data.title=="归属未确定" and M.data.confidence=="创建位置来自暴雪代码","native helper alone is not ownership proof")
 local cyclic=frame(nil,"Loop");cyclic.parent=cyclic
 local cycleBefore=sourceReads
 foci={cyclic};M:Poll();assert(sourceReads-cycleBefore<=2,"cyclic parent walk is bounded")
@@ -122,11 +141,23 @@ UIParent:SetSize(1920,1080)
 local child=frame(a)
 foci={child};M:Poll()
 assert(M.data.title=="示例插件" and M.data.confidence=="可能来自 · 根据父级来源")
-foci={v.copy.frame};M:Poll();assert(M.target==child,"own panel preserves target")
+local previousCorner=v.corner
+cursorX=previousCorner%2==1 and 1850 or 50
+cursorY=previousCorner<=2 and 1000 or 50
+foci={v.frame};M:Poll()
+assert(v.corner~=previousCorner,"cursor entering inspector must move it aside")
+local movedCorner=v.corner
+for n=1,20 do M:Poll() end
+assert(v.corner==movedCorner,"stationary cursor must not make inspector bounce")
+shift=true
+local pausedCorner=v.corner
+foci={a};M:Poll()
+assert(v.corner==pausedCorner and M.target==child,"Shift pauses both target and placement")
+foci={v.copy.frame};M:Poll();assert(M.target==child,"paused panel preserves target")
 v.copy.frame.scripts.OnClick(v.copy.frame)
 assert(v.copying and v.edit.focused and v.edit.highlighted and v.report:find("父级关联",1,true))
 M:Poll();assert(v.copying)
-v.edit.scripts.OnEscapePressed()
+v.edit.scripts.OnEscapePressed();shift=false;cursorX,cursorY=960,540
 assert(not M.running and not M.timer and not v.frame:IsShown() and not v.outline:IsShown() and not v.report)
 assert(not v.frame.keyboard and next(v.frame.events)==nil and not M.target and not M.data)
 foci={a};M:Start()
@@ -138,7 +169,7 @@ foci={{secret=true}};M:Poll();assert(not M.data,"secret focus is never inspected
 local secretFrame=frame(UIParent,"Unknown");secretFrame.location={secret=true}
 foci={secretFrame};M:Poll();assert(M.data.confidence=="来源未确定")
 local native=frame(a,"Native");native.location="Interface/AddOns/Blizzard_Test/Main.lua:1"
-foci={native};M:Poll();assert(M.data.title=="暴雪原生界面" and M.data.confidence=="创建来源")
+foci={native};M:Poll();assert(M.data.title=="示例插件" and M.data.confidence=="可能来自 · 根据父级来源")
 foci={child};M:Poll();foci={v.parent.frame};v.parent.frame.scripts.OnClick()
 assert(M.target==a and M.data.confidence=="创建来源")
 combat=true;v.frame.scripts.OnEvent(v.frame,"PLAYER_REGEN_DISABLED")

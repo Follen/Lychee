@@ -26,18 +26,18 @@ function M:Source(location)
     local path=location:gsub("\\","/")
     local folder=path:match("[Ii]nterface/[Aa]dd[Oo]ns/([^/]+)/")
     if folder then
-        if folder:lower():match("^blizzard_") then return "暴雪原生界面",folder end
+        if folder:lower():match("^blizzard_") then return "暴雪创建代码",folder,true end
         return text(addonTitle(folder),folder),folder
     end
-    if path:find("FrameXML/",1,true) then return "暴雪原生界面","Blizzard UI" end
+    if path:find("FrameXML/",1,true) then return "暴雪创建代码","Blizzard UI",true end
 end
 function M:Analyze(frame)
     local location=self:Read(frame,"GetSourceLocation")
-    local title,folder=self:Source(location)
+    local title,folder,native=self:Source(location)
     local name=text(self:Read(frame,"GetName"),text(self:Read(frame,"GetDebugName"),"未命名框体"))
-    local data={name=name,title=title or "暂未识别",confidence=title and "创建来源" or "来源未确定",
+    local data={name=name,title=native and "归属未确定" or title or "暂未识别",confidence=native and "创建位置来自暴雪代码" or title and "创建来源" or "来源未确定",
         location=text(location,"未提供创建位置"),parents={},kind=text(self:Read(frame,"GetObjectType"))}
-    if not title then
+    if not title or native then
         local prefix=name:match("^([%a][%w]+)[_%-]")
         local guessed=prefix and addonTitle(prefix)
         if guessed then data.title=text(guessed);data.confidence="可能来自 · 根据框体名称" end
@@ -48,9 +48,9 @@ function M:Analyze(frame)
     for depth=1,16 do
         if not parent or parent==UIParent or parent==WorldFrame or visited[parent] then break end
         visited[parent]=true
-        local parentTitle=self:Source(self:Read(parent,"GetSourceLocation"))
+        local parentTitle,_,parentNative=self:Source(self:Read(parent,"GetSourceLocation"))
         data.parents[#data.parents+1]=text(self:Read(parent,"GetName"),"未命名父级")..(parentTitle and " · "..parentTitle or "")
-        if not title and data.confidence=="来源未确定" and parentTitle then
+        if (not title or native) and parentTitle and not parentNative and data.confidence~="可能来自 · 根据父级来源" then
             data.title=parentTitle;data.confidence="可能来自 · 根据父级来源"
         end
         parent=self:Read(parent,"GetParent")
@@ -79,8 +79,10 @@ end
 function M:Poll()
     if not self.running then return end
     if InCombatLockdown and InCombatLockdown() then self:Stop();return end
+    -- Explicit pause keeps copy/detail controls reachable while default mode yields.
+    if (IsShiftKeyDown and IsShiftKeyDown()) or self.view.copying then return end
     local target,own=self:Focus()
-    if own then return end
+    if own then self.view:Place(self.target);return end
     if target~=self.target then
         self.target=target;self.data=target and self:Analyze(target) or nil
         self.view:Update(target,self.data)
