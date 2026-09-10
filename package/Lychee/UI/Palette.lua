@@ -209,7 +209,7 @@ local function createHomeView(parent, controller)
         tile.ownerView = self
         tile:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         tile.bg = tile:CreateTexture(nil, "BACKGROUND")
-        tile.bg:SetSize(28, 2)
+        tile.bg:SetSize(32, 2)
         paint(tile.bg, color("accent"))
         tile.bg:Hide()
         tile.icon = tile:CreateTexture(nil, "ARTWORK")
@@ -235,7 +235,7 @@ local function createHomeView(parent, controller)
         if tile.title.SetMaxLines then tile.title:SetMaxLines(2) end
         tint(tile.title, color("text"))
         Lychee.UI.Theme:SetFont(tile.title, "body")
-        tile.bg:SetPoint("TOP", tile.icon, "BOTTOM", 0, -2)
+        tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -3)
         tile.category = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         tile.category:SetPoint("RIGHT", tile, "RIGHT", -12, 0)
         tile.category:SetWidth(90)
@@ -271,6 +271,7 @@ local function createHomeView(parent, controller)
         if tile._recentLayout == recent then return end
         self._scrollRectDirty=true
         tile._recentLayout = recent
+        tile._titleLayoutDirty = true
         tile:SetSize(recent and (LIST_METRICS.resultTileWidth-12) or HOME_TILE_WIDTH, recent and RECENT_HEIGHT or HOME_TILE_HEIGHT)
         tile.icon:ClearAllPoints()
         tile.title:ClearAllPoints()
@@ -295,9 +296,8 @@ local function createHomeView(parent, controller)
             tile.title:SetPoint("RIGHT", tile, "RIGHT", -2, 0)
             tile.title:SetJustifyH("CENTER")
             tile.title:SetHeight(28)
-            -- Mark the icon, not the variable-height title below it.
-            tile.bg:SetSize(28, 2)
-            tile.bg:SetPoint("TOP", tile.icon, "BOTTOM", 0, -2)
+            tile.bg:SetSize(32, 2)
+            tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -3)
         end
         if tile.title.SetWordWrap then tile.title:SetWordWrap(not recent) end
         if tile.title.SetMaxLines then tile.title:SetMaxLines(recent and 1 or 2) end
@@ -379,13 +379,19 @@ local function createHomeView(parent, controller)
             local title = homeLabel(section.title or section.text, "Lychee")
             setText(tile.category, homeLabel(section.meta, ""))
             tint(tile.title, color(section.enabled == false and "muted" or "text"))
-            if tile._title ~= title then
+            if tile._title ~= title or tile._titleLayoutDirty then
                 setText(tile.title, title)
                 if not recent and tile.title.GetStringHeight then
                     local height = math.max(14, math.min(28, tile.title:GetStringHeight()))
                     if tile.title:GetHeight() ~= height then tile.title:SetHeight(height) end
                 end
+                if not recent then
+                    local textWidth = tile.title.GetStringWidth and tile.title:GetStringWidth() or 64
+                    local markerWidth = math.floor(math.max(16, math.min(36, textWidth * 0.5)) + 0.5)
+                    if tile.bg:GetWidth() ~= markerWidth then tile.bg:SetWidth(markerWidth) end
+                end
                 tile._title = title
+                tile._titleLayoutDirty = nil
             end
             if section.icon then
                 if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end

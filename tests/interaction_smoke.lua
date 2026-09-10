@@ -1193,6 +1193,12 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     assert(I.Registry:SetUserEnabled(source.id,true))
     controller:RefreshHomeSections(true)
     assert(controller.homeView.tiles[1].item and controller.homeView.tiles[1]:GetWidth()==81)
+    -- Reusing the same title across layouts must not add an empty line below it.
+    local pinTile=controller.homeView.tiles[1]
+    local pinTitleHeight=pinTile.title:GetHeight()
+    controller.homeView:ConfigureLayout(pinTile,true)
+    controller.homeView:SetSections(controller.homeView.sections,true)
+    assertEq(pinTile.title:GetHeight(),pinTitleHeight,"same-name pin restores measured title height after recent layout")
     typeQuery("荔枝设置")
     local settingRow=findEntry(controller.list.rows,"settings")
     assert(settingRow and controller:ActivateRow(settingRow) and controller.settingsOpen, "search opens same settings page")
