@@ -1172,5 +1172,21 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     controller:Show();assert(controller:IsHomeVisible() and controller.input.container:IsShown())
     assert(not prefs:CanPin(prefs:Resolve({providerID="lychee.settings",entryID="settings"})))
     controller:Hide("done");assert(source:Unregister());C_Timer=savedTimers
-    print("Lychee settings and pins interaction PASS")
+print("Lychee settings and pins interaction PASS")
+do
+    local controller=LycheeInternal.Host.PaletteController
+    controller:OpenSettings("general")
+    local view=controller.settingsView
+    assert(view.general:IsShown() and not view.scrollFrame:IsShown())
+    local general=view.general
+    local before=Lychee.UI.Motion:IsReduced()
+    view.motion.frame.scripts.OnClick(view.motion.frame)
+    assert(Lychee.UI.Motion:IsReduced()~=before,"general setting saves motion preference")
+    view:SetTab("providers")
+    assert(not general:IsShown() and view.scrollFrame:IsShown())
+    view:SetTab("general")
+    assert(view.general==general,"general page reuses controls")
+    Lychee.UI.Motion:SetReduced(before)
+    print("General settings navigation PASS")
+end
 end)()

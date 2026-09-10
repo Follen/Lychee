@@ -92,15 +92,9 @@ function Settings:Create(parent, controller)
     sourceTab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2)
     local pinsTab=button(frame,"已固定",86,function() view:SetTab("pins") end)
     pinsTab.frame:SetPoint("LEFT",sourceTab.frame,"RIGHT",12,0)
-    view.tabs={providers=sourceTab,pins=pinsTab}
-    if Lychee.UI.Motion then
-        view.motion=button(frame,"",136,function()
-            Lychee.UI.Motion:SetReduced(not Lychee.UI.Motion:IsReduced())
-            text(view.motion.label,Lychee.UI.Motion:IsReduced() and "动态效果：减少" or "动态效果：标准")
-        end)
-        view.motion.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2)
-        text(view.motion.label,Lychee.UI.Motion:IsReduced() and "动态效果：减少" or "动态效果：标准")
-    end
+    local generalTab=button(frame,"综合设置",86,function() view:SetTab("general") end)
+    generalTab.frame:SetPoint("LEFT",pinsTab.frame,"RIGHT",12,0)
+    view.tabs={providers=sourceTab,pins= pinsTab,general=generalTab}
     view.underline=frame:CreateTexture(nil,"ARTWORK");view.underline:SetSize(60,2)
     Lychee.UI.Theme:SetColorTexture(view.underline,"accent")
     view.undo=button(frame,"撤销",48,function()
@@ -108,7 +102,7 @@ function Settings:Create(parent, controller)
             view.removed=nil;controller:MarkHomeDirty();view:Refresh();controller:SetStatusText("已恢复固定")
         end
     end)
-    view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",view.motion and -158 or -10,-2);view.undo.frame:Hide()
+    view.undo.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-2);view.undo.frame:Hide()
     local scroll=CreateFrame("ScrollFrame",nil,frame);scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-metrics.listInset,2)
     local content=CreateFrame("Frame",nil,scroll);content:SetSize(rowWidth,1);scroll:SetScrollChild(content)
     view.scrollFrame,view.content=scroll,content
@@ -192,14 +186,43 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
+        if Lychee.UI.Motion then
+            Lychee.UI.Motion:Cancel(content,true)
+            if self.general then Lychee.UI.Motion:Cancel(self.general,true) end
+        end
         self.tab=tab;self.scroll=0;scroll:SetVerticalScroll(0);self:Refresh()
-        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(content,"page") end
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or content,"page") end
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
         for id,tab in pairs(self.tabs) do tab:SetSelected(id==self.tab) end
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
+        shown(scroll,self.tab~="general")
+        if self.tab=="general" then
+            self.data=nil
+            for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
+            if not self.general then
+                local general=CreateFrame("Frame",nil,frame);self.general=general
+                general:SetSize(rowWidth,metrics.rowHeight)
+                general:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight)
+                local icon=general:CreateTexture(nil,"ARTWORK");icon:SetSize(metrics.iconSize,metrics.iconSize)
+                icon:SetPoint("LEFT",general,"LEFT",metrics.listIconInset,0);icon:SetTexture(iconRoot.."settings.tga")
+                local title=label(general,"body");title:SetPoint("TOPLEFT",general,"TOPLEFT",metrics.listTitleInset,-7);title:SetText("动态效果")
+                local detail=label(general,"meta","textMuted");detail:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-3);detail:SetText("窗口、页面与控件的过渡动画")
+                self.motion=button(general,"",80,function()
+                    local motion=Lychee.UI.Motion
+                    if not motion or not frame:IsShown() or view.tab~="general" or (InCombatLockdown and InCombatLockdown()) then return end
+                    motion:SetReduced(not motion:IsReduced())
+                    text(view.motion.label,motion:IsReduced() and "减少" or "标准")
+                end)
+                self.motion.frame:SetPoint("RIGHT",general,"RIGHT",-metrics.listIconInset,0)
+            end
+            text(self.motion.label,Lychee.UI.Motion and Lychee.UI.Motion:IsReduced() and "减少" or "标准")
+            shown(self.general,true)
+            return
+        end
+        if self.general then shown(self.general,false) end
         local data,count=self.data or {},0
         if self.tab=="providers" then
             for id,provider in pairs(I.Providers.entries) do
