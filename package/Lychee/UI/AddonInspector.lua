@@ -65,12 +65,12 @@ function UI.CreateAddonInspector(owner)
         else texture:SetWidth(1);texture:SetPoint("TOP"..edge);texture:SetPoint("BOTTOM"..edge) end
     end
     function view:Layout()
-        local expanded=self.expanded or self.copying
+        local expanded=(self.expanded and self.hasTarget) or self.copying
         local sourceSetting=owner:SourceSetting()
-        local setup=self.expanded and not self.copying and sourceSetting~=nil and sourceSetting~="1"
+        local setup=expanded and not self.copying and sourceSetting~=nil and sourceSetting~="1"
         frame:SetHeight(expanded and (setup and 402 or 366) or 140)
         for _,region in ipairs({self.details,self.detailMeta,self.sourceLabel,self.parentLabel,self.parents,self.divider}) do
-            region:SetShown(self.expanded and not self.copying)
+            region:SetShown(expanded and not self.copying)
         end
         self.name:SetShown(not self.copying)
         self.confidence:SetShown(not self.copying)
@@ -83,6 +83,7 @@ function UI.CreateAddonInspector(owner)
         self:Place(owner.target,true)
     end
     function view:Update(target,data)
+        self.hasTarget=data~=nil
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
         self.heading:SetText(data and data.title or L["插件识别"])
         self.confidence:SetText(data and data.confidence or L["指向界面，查看来自哪个插件"])

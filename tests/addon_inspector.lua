@@ -79,6 +79,20 @@ function GetBuildInfo() return "12.1.0","69587","fixture",120100 end
 function debugprofilestop() return os.clock()*1000 end
 local foci={}
 function GetMouseFoci() return foci end
+local stackTarget,stackReads,outlineDuringSample=nil,0,false
+local pickerOwner
+FrameStackTooltip=frame(UIParent,"FrameStackTooltip")
+fsobj=frame(UIParent,"ExistingDebugSelection")
+local debugTooltip,debugSelection=FrameStackTooltip,fsobj
+function methods:SetOwner(parent,anchor) self.owner,self.ownerAnchor=parent,anchor end
+function methods:ClearLines() self.stackCleared=true end
+function methods:SetFrameStack(showHidden,showRegions,advance)
+    assert(showHidden==false and showRegions==true,"inspect visible regions as well as frames")
+    stackReads=stackReads+1
+    outlineDuringSample=pickerOwner and pickerOwner.view.outline:IsShown() or false
+    self:Show() -- Native tooltip population can show its owner.
+    return stackTarget or foci[1]
+end
 local setting="0"
 C_CVar={GetCVar=function() return setting end,SetCVar=function(_,v) setting=v end}
 C_AddOns={GetAddOnMetadata=function(folder) return ({ElvUI="ElvUI",Example="示例插件"})[folder] end}
@@ -94,11 +108,12 @@ for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.AddonInspector
+pickerOwner=M
 local beforeFrames,beforeRegions=frames,regions
 M:Init()
 assert(not M.enabled and not M.view and frames==beforeFrames and regions==beforeRegions and sourceReads==0)
 assert(I.Registry:SetUserEnabled(M.id,true))
-assert(M.enabled and not M.view and not M.timer and sourceReads==0,"enabled idle creates no picker")
+assert(M.enabled and not M.view and not M.timer and not M.stackTooltip and stackReads==0 and sourceReads==0,"enabled idle creates no picker")
 local _,results=I.Search.Query:Query("插件识别",{visible=true})
 assert(results and #results>0,"real Host can search provider entry")
 local a=frame(UIParent,"ExampleWindow");a.location="@Interface/AddOns/Example/Main.lua:25"
@@ -114,6 +129,52 @@ assert(not v.copy.frame:IsShown() and not v.parent.frame:IsShown(),"follow summa
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
 assert(retained<512 and frames-beforeFrames<=16 and regions-beforeRegions<=48,"bounded initial objects")
 local warmFrames,warmRegions=frames,regions
+-- /fstack can see visual regions which are absent from mouse-input focus.
+local textLayer=frame(UIParent,"ExwindCentral_ExTools_CastSequence.textLayer")
+textLayer.location="Interface/AddOns/ExwindCore/libs/LibAsync/LibAsync.lua:162"
+textLayer.GetObjectType=function() return "FontString" end
+foci={};stackTarget=textLayer;M:Poll()
+assert(M.target==textLayer and M.data and M.data.title=="ExwindCore",
+    "visible non-mouse text layer must be identified like /fstack, not leave the introductory empty panel")
+assert(v.details:GetText()==textLayer.location,"native stack source reaches the details panel")
+assert(not outlineDuringSample and v.outline:IsShown(),"own outline is excluded only while sampling")
+assert(not M.stackTooltip:IsShown() and M.stackTooltip.stackCleared,"private sampler is hidden and cleared after sampling")
+local cooldownTexture=frame(UIParent,"EssentialCooldownViewer.2006e09d840.20012d1af00")
+cooldownTexture.location="Interface/AddOns/EllesmereUICooldownManager/EllesmereUICdmHooks.lua:3081"
+cooldownTexture.GetObjectType=function() return "Texture" end
+cooldownTexture.GetFrameLevel=false;cooldownTexture.GetFrameStrata=false
+foci={WorldFrame};stackTarget=cooldownTexture;M:Poll()
+assert(M.target==cooldownTexture and M.data.title=="EllesmereUICooldownManager" and M.data.kind=="Texture",
+    "visual cooldown region is identified even when only WorldFrame receives mouse input")
+assert(v.details:GetText()==cooldownTexture.location and M:Report():find(cooldownTexture.location,1,true),"copy retains the native source path")
+stackTarget=v.copy.label;foci={a};M:Poll()
+assert(M.target==cooldownTexture,"moving onto inspector children preserves the previous target")
+stackTarget={secret=true};foci={a};M:Poll()
+assert(M.target==a,"secret native target is discarded before use")
+local nativePicker=methods.SetFrameStack
+M.stackTooltip.SetFrameStack=false
+local forbidden=frame(UIParent,"Forbidden");forbidden.forbidden=true
+foci={WorldFrame,forbidden,b};M:Poll()
+assert(M.target==b,"unavailable native picker falls back past invalid input foci")
+M.stackTooltip.SetFrameStack=function() error("native picker temporarily unavailable") end
+foci={a};M:Poll()
+assert(M.target==a and v.outline:IsShown() and not M.stackTooltip:IsShown(),"native failure restores outline and falls back safely")
+M.stackTooltip.SetFrameStack=nativePicker
+stackTarget=cooldownTexture;M:Poll()
+assert(M.target==cooldownTexture,"native picking recovers after a temporary failure")
+M:Stop();shift=true;stackTarget=nil;foci={WorldFrame};M:Start()
+assert(not M.target and v.frame:GetHeight()==140 and not v.details:IsShown() and not v.copy.frame:IsShown(),
+    "Shift over empty space must not expand empty source and parent sections")
+stackTarget=textLayer;M:Poll()
+assert(M.target==textLayer and v.details:IsShown(),"Shift acquires a first target before freezing")
+local pausedReads=stackReads
+stackTarget=cooldownTexture;M:Poll()
+assert(M.target==textLayer and stackReads==pausedReads,"Shift freezes a real target without further native sampling")
+M:Stop();M:Start()
+assert(M.target==cooldownTexture and v.details:IsShown(),"starting with Shift held still acquires the visible region")
+shift=false
+stackTarget=nil;foci={a};M:Poll()
+assert(FrameStackTooltip==debugTooltip and fsobj==debugSelection and debugTooltip:IsShown(),"inspection leaves the existing /fstack session untouched")
 local reads=sourceReads
 for n=1,100 do M:Poll() end
 assert(sourceReads==reads,"same target is not analyzed again")
@@ -146,14 +207,14 @@ assert(M.data.title=="示例插件" and M.data.confidence=="可能来自 · 根�
 cursorX,cursorY=900,800
 v.frame.scripts.OnUpdate()
 assert(v.anchorX==920 and v.anchorTop==780,"window follows cursor with gap")
-local pointerReads,pointerWrites=sourceReads,v.frame.pointWrites
+local pointerReads,pointerWrites,pointerStackReads=sourceReads,v.frame.pointWrites,stackReads
 collectgarbage("collect");collectgarbage("stop")
 local pointerMemory=collectgarbage("count");local pointerStart=os.clock()
 for i=1,10000 do v.frame.scripts.OnUpdate() end
 local pointerAllocated=collectgarbage("count")-pointerMemory
 local pointerElapsed=(os.clock()-pointerStart)*1000
 collectgarbage("restart")
-assert(pointerAllocated<128 and sourceReads==pointerReads and v.frame.pointWrites==pointerWrites,"steady following avoids allocation, source reads and redundant setters")
+assert(pointerAllocated<128 and sourceReads==pointerReads and stackReads==pointerStackReads and v.frame.pointWrites==pointerWrites,"steady following avoids allocation, native sampling, source reads and redundant setters")
 print(string.format("Pointer10000 ms=%.2f allocated_KiB=%.1f source_reads=0 redundant_setters=0",pointerElapsed,pointerAllocated))
 UIParent.scale=2;cursorX,cursorY=1800,1600;v.frame.scripts.OnUpdate()
 assert(v.anchorX==920 and v.anchorTop==780,"cursor coordinates respect UI scale")
@@ -183,10 +244,14 @@ M:Poll();assert(v.copying)
 v.edit.scripts.OnEscapePressed();shift=false;cursorX,cursorY=960,540
 assert(not M.running and not M.timer and not v.frame:IsShown() and not v.outline:IsShown() and not v.report)
 assert(not v.frame.keyboard and not v.frame.scripts.OnUpdate and next(v.frame.events)==nil and not M.target and not M.data)
+local stoppedReads=stackReads
+M:Poll();M:UpdatePointer()
+assert(stackReads==stoppedReads and not M.stackTooltip:IsShown() and M.stackTooltip.stackCleared,"stopped inspector does no native work")
 foci={a};M:Start()
 local stale=M.timer
 M:Stop();M:Start();local current=M.timer
-stale.fn();assert(M.timer==current,"late callback from prior mode cannot create work")
+local staleReads=stackReads
+stale.fn();assert(M.timer==current and stackReads==staleReads,"late callback from prior mode cannot create work")
 foci={WorldFrame};M:Poll();assert(not M.data and not v.outline:IsShown())
 foci={{secret=true}};M:Poll();assert(not M.data,"secret focus is never inspected")
 local secretFrame=frame(UIParent,"Unknown");secretFrame.location={secret=true}
