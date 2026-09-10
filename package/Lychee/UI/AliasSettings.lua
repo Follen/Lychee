@@ -2,14 +2,15 @@ local I,UI=_G.LycheeInternal,_G.Lychee.UI
 local L=I.Locale
 local A={}
 UI.AliasSettings=A
-local function label(parent,value,x,y,width)
+local function label(parent,value,x,y,width,role)
     local text=parent:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-    UI.Theme:SetFont(text,"body");UI.Theme:SetTextColor(text,"textMuted")
+    UI.Theme:SetFont(text,role or "body");UI.Theme:SetTextColor(text,"textMuted")
     text:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y);text:SetWidth(width);text:SetHeight(22);text:SetJustifyH("LEFT");text:SetText(value)
     return text
 end
-local function button(parent,value,width,x,y,callback,primary)
-    local control=UI.Components:CreateNavigationButton(parent,{text=value,width=width,height=28,onClick=callback,primary=primary})
+local function button(parent,value,width,x,y,callback,primary,direction)
+    local control=UI.Components:CreateNavigationButton(parent,{text=value,width=width,height=28,onClick=callback,primary=primary,direction=direction})
+    UI.Theme:SetFont(control.label,"body")
     control.frame:SetPoint("TOPLEFT",parent,"TOPLEFT",x,y)
     return control
 end
@@ -18,17 +19,20 @@ function A:Create(parent,controller,onBack)
     local width=metrics.resultTileWidth-metrics.listInset
     local view={rows={},offset=0}
     local frame=CreateFrame("Frame",nil,parent);view.frame=frame
-    frame:SetPoint("TOPLEFT",parent,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight)
+    frame:SetPoint("TOPLEFT",parent,"TOPLEFT",metrics.listInset,0)
     frame:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",-metrics.listInset,2);frame:Hide()
     local function active() return frame:IsShown() and controller.visible and controller.settingsOpen and not InCombatLockdown() end
-    local back=button(frame,L["返回综合设置"],140,0,0,function() if active() then frame:Hide();onBack() end end)
+    local back=button(frame,L["返回综合设置"],188,0,0,function() if active() then frame:Hide();onBack() end end,false,"left")
+    back.label:ClearAllPoints();back.label:SetPoint("TOPLEFT",back.frame,"TOPLEFT",22,0)
+    back.label:SetPoint("BOTTOMRIGHT",back.frame,"BOTTOMRIGHT",-8,0);back.label:SetJustifyH("LEFT")
     view.back=back
+    view.heading=label(frame,L["自定义别名"],8,-36,width-16);UI.Theme:SetTextColor(view.heading,"text")
     local scroll=CreateFrame("ScrollFrame",nil,frame);view.scroll=scroll
-    scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-36);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",0,0)
+    scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-66);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",0,0)
     local content=CreateFrame("Frame",nil,scroll);view.content=content;content:SetSize(width,1);scroll:SetScrollChild(content)
     view.bar=UI.Components:CreateScrollbar(scroll,function(value) view.offset=value;scroll:SetVerticalScroll(value);view:Render() end)
     view.bar.frame:ClearAllPoints()
-    view.bar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,-metrics.settingsTabsHeight-36)
+    view.bar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,-66)
     view.bar.frame:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",0,2)
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel",function(_,delta)
@@ -37,18 +41,18 @@ function A:Create(parent,controller,onBack)
         scroll:SetVerticalScroll(view.offset);view:Render()
     end)
     scroll:SetScript("OnSizeChanged",function() if active() and not view.editing then view:Render() end end)
-    view.empty=label(content,L["还没有别名。右键搜索结果，选择设置别名。"],0,-10,width-20)
+    view.empty=label(content,L["还没有别名。右键搜索结果，选择设置别名。"],8,-8,width-16)
     local editor=CreateFrame("Frame",nil,frame);view.editor=editor;editor:SetAllPoints(scroll);editor:Hide()
-    view.target=label(editor,"",0,-8,width-20)
-    label(editor,L["输入别名，留空可删除"],0,-40,width-20)
+    view.target=label(editor,"",8,-8,width-16)
+    label(editor,L["输入别名，留空可删除"],8,-40,width-16,"meta")
     local input=CreateFrame("EditBox",nil,editor);view.input=input
-    input:SetSize(width-24,36);input:SetPoint("TOPLEFT",editor,"TOPLEFT",0,-70)
-    input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"input")
+    input:SetSize(width-16,36);input:SetPoint("TOPLEFT",editor,"TOPLEFT",8,-70)
+    input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"body")
     UI.Theme:SetTextColor(input,"text")
     if input.SetMaxBytes then input:SetMaxBytes(192) end
     local inputStyle=UI.Components:StyleEditBox(input);view.inputStyle=inputStyle
     UI.Theme:SetTextColor(view.target,"text")
-    view.error=label(editor,"",0,-150,width-20)
+    view.error=label(editor,"",8,-150,width-16,"meta")
     view.error:SetHeight(44)
     UI.Theme:SetTextColor(view.error,"warning")
     local function cancel() if active() then input:ClearFocus();view:ShowList() end end
@@ -61,8 +65,8 @@ function A:Create(parent,controller,onBack)
         end
         input:ClearFocus();controller:SetStatusText(L["别名已保存"]);view:ShowList()
     end
-    view.save=button(editor,L["保存"],72,0,-114,save,true)
-    view.cancel=button(editor,L["取消"],72,88,-114,cancel)
+    view.save=button(editor,L["保存"],64,width-72,-114,save,true)
+    view.cancel=button(editor,L["取消"],64,width-144,-114,cancel)
     input:SetScript("OnEnterPressed",save);input:SetScript("OnEscapePressed",cancel)
     input:SetScript("OnTextChanged",function(_,userInput) if userInput then inputStyle:SetInvalid(false);view.error:SetText("") end end)
     frame:SetScript("OnHide",function()
@@ -70,6 +74,11 @@ function A:Create(parent,controller,onBack)
         view.bar:StopDrag()
         for _,row in ipairs(view.rows) do row.record=nil;row.edit.frame.press=false;row.remove.frame.press=false end
     end)
+    function view:Fit(height)
+        if self.fittedHeight==height then return end
+        self.fittedHeight=height
+        if controller.ResizeForMode then controller:ResizeForMode("settings-detail",66+height) end
+    end
     function view:Edit(ref,title)
         if not active() then return end
         self.ref={providerID=ref.providerID,entryID=ref.entryID};self.title=title;self.editing=true
@@ -78,13 +87,18 @@ function A:Create(parent,controller,onBack)
         local row=I.Search.Personalization:Find(ref)
         input:SetText(row and row.alias or "");input:SetFocus()
         if input.HighlightText then input:HighlightText() end
+        self:Fit(204)
     end
     function view:Render()
         if not self.data or self.editing or not active() then return end
         local stride=metrics.rowHeight+metrics.rowGap
         local height=math.max(36,#self.data*stride)
         if content:GetHeight()~=height then content:SetHeight(height) end
+        self:Fit(height)
         local viewport=scroll:GetHeight()
+        if scroll.UpdateScrollChildRect and (self.rectHeight~=height or self.rectViewport~=viewport) then
+            scroll:UpdateScrollChildRect();self.rectHeight,self.rectViewport=height,viewport
+        end
         local offset=math.max(0,math.min(self.offset,math.max(0,height-viewport)))
         if self.offset~=offset then self.offset=offset;scroll:SetVerticalScroll(offset) end
         self.bar:SetRange(height,viewport,self.offset)
@@ -95,8 +109,8 @@ function A:Create(parent,controller,onBack)
             local row=self.rows[index]
             if not row then
                 row=CreateFrame("Frame",nil,content);row:SetSize(width,metrics.rowHeight)
-                row.title=label(row,"",0,-4,width-180);UI.Theme:SetTextColor(row.title,"text")
-                row.alias=label(row,"",0,-25,width-180)
+                row.title=label(row,"",8,-4,width-188);UI.Theme:SetTextColor(row.title,"text")
+                row.alias=label(row,"",8,-25,width-188,"meta")
                 local function current(control)
                     local pressed=control.press;control.press=nil
                     if not active() or (pressed~=nil and pressed~=row.record) then return false end
@@ -107,8 +121,12 @@ function A:Create(parent,controller,onBack)
                 row.remove=button(row,L["删除"],64,width-80,-9,function()
                     if current(row.remove.frame) then I.Search.Personalization:Remove(row.record);self:ShowList();controller:SetStatusText(L["别名已删除"]) end
                 end)
+                for _,control in ipairs({row.edit,row.remove}) do
+                    control.label:SetJustifyH("RIGHT")
+                end
                 for _,control in ipairs({row.edit.frame,row.remove.frame}) do
-                    control:SetScript("OnMouseDown",function() control.press=row.record end)
+                    local press=control.GetScript and control:GetScript("OnMouseDown")
+                    control:SetScript("OnMouseDown",function(...) control.press=row.record;if press then press(...) end end)
                     if control.HookScript then control:HookScript("OnHide",function() if control.press then control.press=false end end) end
                 end
                 self.rows[index]=row
@@ -129,6 +147,7 @@ function A:Create(parent,controller,onBack)
         self:Render()
     end
     function view:Show(ref,title)
+        self.fittedHeight,self.rectHeight=nil,nil
         frame:Show()
         if self.offset~=0 then self.offset=0;scroll:SetVerticalScroll(0) end
         if ref then self:Edit(ref,title) else self:ShowList() end

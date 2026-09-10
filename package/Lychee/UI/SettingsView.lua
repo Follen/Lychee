@@ -227,6 +227,7 @@ function Settings:Create(parent, controller)
             self.providerView.frame:Hide()
         end
         if self.aliasView and self.aliasView.frame:IsShown() then return end
+        if frame:IsShown() and controller.ResizeForMode then controller:ResizeForMode("settings") end
         for id,tab in pairs(self.tabs) do tab.frame:Show();tab:SetSelected(id==self.tab) end
         self.underline:Show()
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
@@ -391,10 +392,13 @@ function Settings:Create(parent, controller)
     end
     function view:OpenAliases(ref,title)
         if not frame:IsShown() or InCombatLockdown() then return false end
-        if not self.aliasView then self.aliasView=Lychee.UI.AliasSettings:Create(frame,controller,function() view:Refresh() end) end
+        if not self.aliasView then self.aliasView=Lychee.UI.AliasSettings:Create(frame,controller,function() view:SetTab("general") end) end
+        if self.providerView then self.providerView.frame:Hide() end
         if self.general then self.general:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.aliasView:Show(ref,title)
+        for _,tab in pairs(self.tabs) do tab.frame:Hide() end
+        self.underline:Hide()
         return true
     end
     function view:OpenProvider(id,icon)
@@ -404,6 +408,7 @@ function Settings:Create(parent, controller)
         if self.general then self.general:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.providerView:Show(id,icon,providerDescriptions[id])
+        if controller.ResizeForMode then controller:ResizeForMode("settings") end
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
         self.underline:Hide()
         if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.providerView.frame,"page") end

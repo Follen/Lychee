@@ -830,6 +830,7 @@ function Palette:ResizeForMode(mode, count)
     end
     if mode == "panel" then listHeight = 360 end
     if mode == "settings" then listHeight = metrics.resultTiles * rowHeight + (metrics.resultTiles - 1) * rowGap end
+    if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
     if self.frame:GetHeight() ~= desired then
