@@ -87,48 +87,69 @@ function P:Remember(query,item)
     if #rows>self.limit then rows[#rows]=nil end
 end
 function P:ClearChoices() self:Data().choices={} end
-function P:Promote(results,request)
+function P:Preferred(request)
     local product,locale=identity()
     for _,choice in ipairs(self:Data().choices) do
         if choice.product==product and choice.locale==locale and choice.query==(request.preferenceKey or request.normalized) then
-            for index,item in ipairs(results) do
-                if same(choice.ref,item.ref) then
-                    if index>1 then table.remove(results,index);table.insert(results,1,item) end
-                    return
-                end
-            end
+            return choice.ref
+        end
+    end
+end
+function P:Promote(results,request)
+    local preferred=self:Preferred(request)
+    if not preferred then return end
+    for index,item in ipairs(results) do
+        if same(preferred,item.ref) then
+            if index>1 then table.remove(results,index);table.insert(results,1,item) end
             return
         end
     end
 end
+local function aliasLess(left,right,scores,preferred)
+    local lp,rp=same(left.ref,preferred),same(right.ref,preferred)
+    if lp~=rp then return lp end
+    if scores[left]~=scores[right] then return scores[left]>scores[right] end
+    local a,b=left.ref,right.ref
+    if a.providerID~=b.providerID then return a.providerID<b.providerID end
+    return a.entryID<b.entryID
+end
 function P:AddAliases(results,request,context)
     local product=identity();local normalizer=I.Search.Normalizer
     if request.normalized=="" then return end
-    local resolved=0
+    local candidates,scores={},{}
+    local filter=type(request.filter)=="table" and request.filter or nil
     for _,row in ipairs(self:Aliases()) do
-        if resolved>=request.limit then break end
-        local filter=type(request.filter)=="table" and request.filter or nil
         local provider=I.Providers and I.Providers.entries[row.ref.providerID]
         if row.product==product and not (provider and provider.definition.searchable==false)
             and not (filter and filter.excludedSources and filter.excludedSources[row.ref.providerID..":records"])
             and (not filter or not filter.sourceID or filter.sourceID==row.ref.providerID..":records") then
             local score=normalizer:ScoreNormalized(request.normalized,normalizer:Normalize(row.alias),"alias",false)
             if score then
-                resolved=resolved+1
-                local item=I.Providers and I.Providers:Resolve(row.ref,context or {})
-                local category=item and item.searchRecord and item.searchRecord.category
-                local categoryID=type(category)=="table" and category.id or category
-                if item and (not filter or (not filter.sourceID or item.sourceID==filter.sourceID)
-                    and (not filter.categoryID or categoryID==filter.categoryID)) then
-                    local found
-                    for _,existing in ipairs(results) do if same(existing.ref,item.ref) then found=existing;break end end
-                    if not found then
-                        item.confidence=score;item.subtext=I.Locale["别名"].." · "..row.alias
-                        results[#results+1]=item
-                    elseif score>(found.confidence or 0) then
-                        found.confidence=score
-                    end
-                end
+                candidates[#candidates+1],scores[row]=row,score
+            end
+        end
+    end
+    -- Rank the bounded declaration set before resolving records. Missing,
+    -- disabled or filtered references must not consume visible result slots.
+    local preferred=self:Preferred(request)
+    table.sort(candidates,function(left,right) return aliasLess(left,right,scores,preferred) end)
+    local resolved=0
+    for _,row in ipairs(candidates) do
+        if resolved>=request.limit then break end
+        local score=scores[row]
+        local item=I.Providers and I.Providers:Resolve(row.ref,context or {})
+        local category=item and item.searchRecord and item.searchRecord.category
+        local categoryID=type(category)=="table" and category.id or category
+        if item and (not filter or (not filter.sourceID or item.sourceID==filter.sourceID)
+            and (not filter.categoryID or categoryID==filter.categoryID)) then
+            resolved=resolved+1
+            local found
+            for _,existing in ipairs(results) do if same(existing.ref,item.ref) then found=existing;break end end
+            if not found then
+                item.confidence=score;item.subtext=I.Locale["别名"].." · "..row.alias
+                results[#results+1]=item
+            elseif score>(found.confidence or 0) then
+                found.confidence=score
             end
         end
     end

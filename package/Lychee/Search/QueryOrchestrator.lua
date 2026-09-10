@@ -186,7 +186,9 @@ function Q:_Execute(raw, context, generation, request)
     end
     ambientBudget = math.max(0, self.limit - #out)
     if I.Search and I.Search.StaticIndex then
-        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter, true)
+        local preferred=I.Search.Personalization and I.Search.Personalization:Preferred(request)
+        local preferredKey=preferred and (preferred.providerID..":records:"..preferred.entryID)
+        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter, true, preferredKey)
         for index = 1, #indexed do
             local item = searchRecordItem(indexed[index])
             if item then
@@ -245,9 +247,21 @@ function Q:_CancelTimer()
     if timer and type(timer.Cancel) == "function" then pcall(timer.Cancel, timer) end
 end
 
+-- Detach old Host work before invoking Provider cancellation. Cancellation is
+-- external code and may start a newer operation, even within one generation.
+function Q:_BeginOperation()
+    self.operation = (self.operation or 0) + 1
+    local operation = self.operation
+    self.pending, self.active = nil, false
+    self:_CancelTimer()
+    return operation
+end
+
 function Q:Query(raw, context, externalGeneration, callback)
-    if I.Providers then I.Providers:CancelQueries("query-replaced") end
     local generation = self:_ResolveGeneration(externalGeneration, context)
+    local operation = self:_BeginOperation()
+    if I.Providers then I.Providers:CancelQueries("query-replaced") end
+    if self.operation ~= operation then return generation, {} end
     local current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     self.active = true
@@ -256,9 +270,10 @@ function Q:Query(raw, context, externalGeneration, callback)
         self.active=false
         local results={}
         self:_Commit(generation,results)
-        return generation,results
+        return generation,results,operation
     end
     local results = self:_Execute(raw, context, generation, request)
+    if self.operation ~= operation then return generation, {} end
     if I.Providers and raw ~= "" and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
         local base = results
         local function merge(dynamic)
@@ -272,24 +287,26 @@ function Q:Query(raw, context, externalGeneration, callback)
             return combined
         end
         local dynamic = I.Providers:Search(request, context, function(items)
-            if not self:_IsCurrent(generation, context) then return end
+            if self.operation ~= operation or not self:_IsCurrent(generation, context) then return end
             local combined = merge(items)
             self:_Commit(generation, combined)
             if callback then callback(combined, generation) end
         end)
         results = merge(dynamic)
     end
+    if self.operation ~= operation then return generation, {} end
     self.active = false
     current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
     if not self:_Commit(generation, results) then return generation, {} end
-    return generation, results
+    return generation, results, operation
 end
 
 function Q:Schedule(raw, context, externalGeneration, callback, delay)
-    if I.Providers then I.Providers:CancelQueries("input-changed") end
     local generation = self:_ResolveGeneration(externalGeneration, context)
-    self:_CancelTimer()
+    local operation = self:_BeginOperation()
+    if I.Providers then I.Providers:CancelQueries("input-changed") end
+    if self.operation ~= operation then return generation, false end
     self.pending = { raw = raw, context = context, generation = generation, callback = callback }
     local wait = delay
     if wait == nil then wait = self.debounceSeconds end
@@ -313,21 +330,20 @@ function Q:Schedule(raw, context, externalGeneration, callback, delay)
 end
 
 function Q:Flush(expectedGeneration)
-    self:_CancelTimer()
     local pending = self.pending
     if not pending or (expectedGeneration and pending.generation ~= expectedGeneration) then return false end
+    self:_CancelTimer()
     self.pending = nil
-    local generation, results = self:Query(pending.raw, pending.context, pending.generation, pending.callback)
-    if type(pending.callback) == "function" then pending.callback(results, generation) end
+    local generation, results, operation = self:Query(pending.raw, pending.context, pending.generation, pending.callback)
+    if operation and self.operation == operation and type(pending.callback) == "function" then pending.callback(results, generation) end
     return true, generation, results
 end
 
 function Q:Cancel(reason, generation)
-    if I.Providers then I.Providers:CancelQueries(reason) end
-    self:_CancelTimer()
+    self:_BeginOperation()
     if I.Search.StaticIndex and I.Search.StaticIndex.ClearQueryCache then I.Search.StaticIndex:ClearQueryCache() end
     self.last = { generation = generation, results = {}, cancelled = reason or "INVALIDATED" }
-    self.pending, self.active = nil, false
+    if I.Providers then I.Providers:CancelQueries(reason) end
     return true
 end
 

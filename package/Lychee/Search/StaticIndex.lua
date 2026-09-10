@@ -501,7 +501,7 @@ local function candidateKeys(self, normalized, filter)
     local out, seen = {}, {}
     local identity = filterIdentity(filter)
     if normalized == "" then
-        addCandidates(out, seen, filteredSet(self, filter), self.candidateLimit)
+        addCandidates(out, seen, filteredSet(self, filter), math.huge)
         return out, false
     end
     -- Every literal/token match must contain every gram of each query term.
@@ -561,6 +561,7 @@ local function matchesFilter(entry, filter)
 end
 
 local function resultLess(left, right)
+    if left.preferred ~= right.preferred then return left.preferred==true end
     if left.confidence ~= right.confidence then return left.confidence > right.confidence end
     local le,re=left.entry,right.entry
     local lp,rp=le and le.source.priority or left.sourcePriority,re and re.source.priority or right.sourcePriority
@@ -570,7 +571,7 @@ local function resultLess(left, right)
     return (le and le.stableID or left.stableID) < (re and re.stableID or right.stableID)
 end
 
-function Index:Search(query, limit, filter, compact)
+function Index:Search(query, limit, filter, compact, preferredKey)
     local normalized = I.Search.Normalizer:Normalize(query)
     if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
@@ -583,40 +584,16 @@ function Index:Search(query, limit, filter, compact)
     for candidateIndex = 1, #candidates do
         local entry = self.entries[candidates[candidateIndex]]
         if entry and entry.source.enabled and entry.source.searchable~=false and matchesFilter(entry, filter) then
-            local bestScore, bestField, bestText, bestType, bestDistance
-            local allTokens = #queryTerms > 1
-            if normalized == "" then bestScore, bestField, bestText, bestType = 1, "filter", "", "filter" end
-            if allTokens then
-                for termIndex = 1, #queryTerms do
-                    local tokenFound = false
-                    for fieldIndex = 3, #entry.fields, 3 do
-                        if entry.fields[fieldIndex]:find(queryTerms[termIndex], 1, true) then tokenFound = true; break end
-                    end
-                    if not tokenFound then allTokens = false; break end
-                end
-                if allTokens then bestScore, bestField, bestText, bestType = 0.82, "tokens", normalized, "token" end
-            end
-            local normalizer = I.Search.Normalizer
-            for fieldIndex = 1, #entry.fields, 3 do
-                local field, raw, text = entry.fields[fieldIndex], entry.fields[fieldIndex + 1], entry.fields[fieldIndex + 2]
-                local confidence, matchType = normalizer:ScoreNormalized(normalized, text, field, false)
-                if confidence and (not bestScore or confidence > bestScore or confidence == bestScore and field < bestField) then
-                    bestScore, bestField, bestText, bestType = confidence, field, raw, matchType
-                end
-            end
-            if not bestScore or bestScore < 0.56 then
-                local currentTime = deadline and nowMS()
-                if fuzzyCount >= self.fuzzyLimit then diagnose(self, "FUZZY_CANDIDATE_LIMIT")
-                elseif currentTime and currentTime >= deadline then diagnose(self, "FUZZY_TIME_BUDGET")
+            local normalizer=I.Search.Normalizer
+            local bestScore,bestField,bestText,bestType,bestDistance=normalizer:ScoreCompiled(normalized,entry.fields,queryTerms,false)
+            if normalized=="" then bestScore,bestField,bestText,bestType=1,"filter","","filter" end
+            if not bestScore or bestScore<0.56 then
+                local currentTime=deadline and nowMS()
+                if fuzzyCount>=self.fuzzyLimit then diagnose(self,"FUZZY_CANDIDATE_LIMIT")
+                elseif currentTime and currentTime>=deadline then diagnose(self,"FUZZY_TIME_BUDGET")
                 else
-                    fuzzyCount = fuzzyCount + 1
-                    for fieldIndex = 1, #entry.fields, 3 do
-                        local field, raw, text = entry.fields[fieldIndex], entry.fields[fieldIndex + 1], entry.fields[fieldIndex + 2]
-                        local confidence, matchType, distance = normalizer:ScoreNormalized(normalized, text, field, true)
-                        if matchType == "fuzzy" and (not bestScore or confidence > bestScore or confidence == bestScore and field < bestField) then
-                            bestScore, bestField, bestText, bestType, bestDistance = confidence, field, raw, matchType, distance
-                        end
-                    end
+                    fuzzyCount=fuzzyCount+1
+                    bestScore,bestField,bestText,bestType,bestDistance=normalizer:ScoreCompiled(normalized,entry.fields,queryTerms,true)
                 end
             end
             if bestScore then
@@ -626,10 +603,11 @@ function Index:Search(query, limit, filter, compact)
                 local cp=ce and ce.source.priority or (candidate and candidate.sourcePriority)
                 local co=ce and ce.categoryOrder or (candidate and candidate.categoryOrder)
                 local cs=ce and ce.stableID or (candidate and candidate.stableID)
-                local wins = not candidate or bestScore > candidate.confidence
+                local preferred=entry.key==preferredKey
+                local wins = not candidate or preferred and not candidate.preferred or preferred==candidate.preferred and (bestScore > candidate.confidence
                     or bestScore == candidate.confidence and (entry.source.priority > cp
                     or entry.source.priority == cp and (entry.categoryOrder < co
-                    or entry.categoryOrder == co and entry.stableID < cs))
+                    or entry.categoryOrder == co and entry.stableID < cs)))
                 if wins then
                     local result, position = previous, #out + 1
                     if previous then
@@ -652,6 +630,7 @@ function Index:Search(query, limit, filter, compact)
                         result.stableID = entry.stableID
                     end
                     result.confidence = bestScore
+                    result.preferred=preferred
                     local evidence = result.evidence
                     evidence.matchedField, evidence.matchedText, evidence.matchType = bestField, bestText, bestType
                     evidence.confidence, evidence.distance = bestScore, bestDistance

@@ -413,7 +413,7 @@ M.query=function(request,reply)
                 local id,title=M.ids[position],M.texts[position]
                 local match=true
                 if numericID~=id then
-                    for _,term in ipairs(terms) do if not title:find(term,1,true) then match=false;break end end
+                    for _,term in ipairs(terms) do if not I.Search.Normalizer:FindLiteral(term,title) then match=false;break end end
                 end
                 if match then
                     local rank=(numericID==id or query==title) and 3 or (query~="" and title:find(query,1,true)==1 and 2 or 1)

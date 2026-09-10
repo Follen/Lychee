@@ -93,6 +93,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Command catalog smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/capability_broker_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Capability broker smoke failed with exit code $LASTEXITCODE" }
+    foreach ($test in @('search_quality','search_ranking_regression','search_lifecycle_regression')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
     & $lua.Source 'tests/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/performance_memory.lua' '--check'

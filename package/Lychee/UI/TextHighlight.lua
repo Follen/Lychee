@@ -11,7 +11,7 @@ function H:Format(value,query)
         terms=terms+1;if terms>8 then break end
         local start=1
         while #ranges<32 do
-            local first,last=lowered:find(term,start,true)
+            local first,last=I.Search.Normalizer:FindLiteral(term,lowered,start)
             if not first then break end
             ranges[#ranges+1]={first,last};start=last+1
         end

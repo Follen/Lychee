@@ -26,7 +26,8 @@ for _,a in ipairs(words) do for _,b in ipairs(words) do
     if not b:find(a,1,true) then
         local expected=distance(a,b)
         local confidence,kind,actual=N:ScoreNormalized(a,b,"title",true)
-        if expected<=2 then assert(kind=="fuzzy" and actual==expected,"banded distance differs from oracle")
+        if #a<=2 and a:match("^[a-z]+$") then assert(not confidence,"short English cannot fuzzy-match")
+        elseif expected<=2 then assert(kind=="fuzzy" and actual==expected,"banded distance differs from oracle")
         else assert(not confidence,"false fuzzy match") end
     end
 end end
@@ -58,7 +59,15 @@ local function oracle(query,filter)
                 for _,value in ipairs(fields) do if value.normalized:find(term,1,true) then found=true;break end end
                 if not found then all=false;break end
             end
-            if all then best,field=.82,"tokens" end
+            if all then
+                local weakest=1
+                for _,term in ipairs(terms) do
+                    local strongest=0
+                    for _,value in ipairs(fields) do strongest=math.max(strongest,N:ScoreNormalized(term,value.normalized,value.field,false) or 0) end
+                    weakest=math.min(weakest,strongest)
+                end
+                best,field=weakest*.9,"tokens"
+            end
             for _,value in ipairs(fields) do
                 local score=N:ScoreNormalized(query,value.normalized,value.field,false)
                 if score and (not best or score>best or score==best and value.field<field) then best,field=score,value.field end

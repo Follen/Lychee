@@ -95,6 +95,8 @@ Request 包含 raw、normalized、tokens、limit、generation，以及可选 con
 
 `reply(Entry[])` 最多成功一次，单次最多 256 候选，Host 最终展示最多 20 条。静态和动态候选按 Provider+Entry 去重；同一 Provider 同 ID 的静态条目优先。不同 Provider 可有相同局部 ID。Host 决定排序，不接受任意绝对分数。
 
+Host 对静态和动态记录的文字字段共用非模糊评分；动态业务候选没有字面命中时仍保留原有排序回退。短英文、字段权重及用户偏好属于 Host 算法，不是 Provider 新增声明，参见 [匹配与排序](SDK.md#host-如何匹配与排序)。
+
 取消函数最多调用一次，原因包括 complete、query-replaced、input-changed、hidden、timeout、invalid、error 和启停原因。等待上限五秒；同步 Lua 不能被抢占。超时、完成、取消或旧实例的 reply 返回 nil, STALE_REQUEST。关闭后无查询 deadline 活动，输入变化取消旧请求。
 
 最近使用只保存 `{providerID,entryID}`。静态条目直接恢复；动态条目需要 resolve，返回 nil 代表当前不存在。resolve 不进行模糊搜索，也不返回异步任务。条目动作按恢复后的当前数据执行。临时 query 条目没有 resolve 时不记入历史。

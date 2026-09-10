@@ -137,16 +137,43 @@ local function score(field, matchType, distance)
     return value
 end
 
+local function letter(byte) return byte and byte>=97 and byte<=122 end
+local function shortFirstTerm(query)
+    local a,b,c=query:byte(1,3)
+    return letter(a) and (not b or b==32 or letter(b) and (not c or c==32))
+end
+local function hasShortTerm(query)
+    local first=1
+    while first<=#query do
+        local last=query:find(" ",first,true) or (#query+1)
+        local length=last-first
+        if length==1 and letter(query:byte(first)) or length==2 and letter(query:byte(first)) and letter(query:byte(first+1)) then return true end
+        first=last+1
+    end
+    return false
+end
+-- Shared literal seam for normalized scoring and original-text highlighting.
+-- ASCII alphanumerics and UTF-8 bytes continue a word; whitespace/punctuation do not.
+function N:FindLiteral(query,text,start)
+    local first,last=text:find(query,start or 1,true)
+    if not shortFirstTerm(query) then return first,last end
+    while first do
+        local before=first>1 and text:byte(first-1)
+        if not before or before<128 and not letter(before) and not (before>=48 and before<=57) then return first,last end
+        first,last=text:find(query,first+1,true)
+    end
+end
+
 -- The index already owns normalized fields. Scoring its candidates must not
 -- allocate evidence/options tables for every failed field comparison.
 function N:ScoreNormalized(normalizedQuery, normalizedText, field, allowFuzzy, fuzzyDistance)
     if normalizedQuery == "" or normalizedText == "" then return nil end
     field = field or "title"
     if normalizedText == normalizedQuery then return score(field, "exact"), "exact" end
-    local position = normalizedText:find(normalizedQuery, 1, true)
+    local position = self:FindLiteral(normalizedQuery, normalizedText)
     if position == 1 then return score(field, "prefix"), "prefix" end
     if position then return score(field, "substring"), "substring" end
-    if allowFuzzy ~= false and #normalizedQuery <= 32 and #normalizedText <= 64 then
+    if allowFuzzy ~= false and #normalizedQuery <= 32 and #normalizedText <= 64 and not hasShortTerm(normalizedQuery) then
         local ceiling = tonumber(fuzzyDistance) or 2
         local distance = boundedDistance(normalizedQuery, normalizedText, ceiling)
         if distance <= ceiling then
@@ -154,6 +181,57 @@ function N:ScoreNormalized(normalizedQuery, normalizedText, field, allowFuzzy, f
         end
     end
     return nil
+end
+
+-- Compiled fields are flat {field, original, normalized} triples. The same
+-- scorer serves indexed records and bounded dynamic-record adapters.
+function N:ScoreCompiled(query,fields,terms,allowFuzzy)
+    local best,matchedField,matchedText,kind,distance
+    if terms and #terms>1 then
+        local weakest=1
+        for _,term in ipairs(terms) do
+            local strongest
+            for offset=1,#fields,3 do
+                local value=self:ScoreNormalized(term,fields[offset+2],fields[offset],false)
+                if value and (not strongest or value>strongest) then strongest=value end
+            end
+            if not strongest then weakest=nil;break end
+            weakest=math.min(weakest,strongest)
+        end
+        if weakest then best,matchedField,matchedText,kind=weakest*0.9,"tokens",query,"token" end
+    end
+    for offset=1,#fields,3 do
+        local field,raw,text=fields[offset],fields[offset+1],fields[offset+2]
+        local value,matchType,edits=self:ScoreNormalized(query,text,field,allowFuzzy)
+        if value and (not best or value>best or value==best and field<matchedField) then
+            best,matchedField,matchedText,kind,distance=value,field,raw,matchType,edits
+        end
+    end
+    return best,matchedField,matchedText,kind,distance
+end
+local function recordField(self,fields,field,value,scope)
+    if value==nil then return end
+    local identity=I.Search.RuntimeIdentity
+    if type(value)=="string" then
+        if identity and not identity:MatchesScope(scope) then return end
+        local text=self:Normalize(value)
+        if text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=field,value,text end
+        return
+    end
+    for _,entry in ipairs(self:Localized(value,scope)) do
+        if self:LocaleRank(entry.locale) and (not identity or identity:MatchesScope(scope,entry)) then
+            local text=self:Normalize(entry.text)
+            if text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=field,entry.text,text end
+        end
+    end
+end
+function N:MatchRecord(query,record,scope)
+    local normalized=self:Normalize(query);local fields={};scope=record.scope or scope
+    recordField(self,fields,"title",record.title,scope);recordField(self,fields,"alias",record.aliases,scope)
+    recordField(self,fields,"keyword",record.keywords,scope);recordField(self,fields,"description",record.description,scope)
+    local category=record.category;recordField(self,fields,"category",type(category)=="table" and (category.title or category.id) or category,scope)
+    local confidence,field,text,kind=self:ScoreCompiled(normalized,fields,self:Terms(normalized),false)
+    if confidence then return {confidence=confidence,matchedField=field,matchedText=text,matchType=kind} end
 end
 
 function N:MatchText(query, text, field, options)

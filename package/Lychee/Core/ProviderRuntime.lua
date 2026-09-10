@@ -502,6 +502,12 @@ function P:Search(request, context, onChange)
         for _, list in pairs(output) do for _, item in ipairs(list) do if P:IsCurrent(item) then result[#result + 1] = item end end end
         return result
     end
+    local function settle(job, reason)
+        finish(job, reason)
+        -- finish may reenter through a Provider cancel callback. Only the
+        -- surviving query publishes its terminal state, including invalid replies.
+        if epoch == P.queryEpoch and not collecting and onChange then onChange(gather()) end
+    end
     local ids = {}
     for id, entry in pairs(self.entries) do
         if active(entry) and entry.definition.query and (not request.filter or not request.filter.sourceID or request.filter.sourceID == id .. ":records")
@@ -520,11 +526,11 @@ function P:Search(request, context, onChange)
             if job.done then return failure("STALE_REQUEST", "query", id) end
             if not active(entry) or job.epoch ~= P.queryEpoch or job.revision ~= entry.revision
                 or job.dynamicEpoch ~= entry.dynamicEpoch then
-                finish(job, "stale")
+                settle(job, "stale")
                 return failure("STALE_REQUEST", "query", id)
             end
             local list, map = records(entry, input, P.queryLimit)
-            if not list then report(entry, map.code, "query"); finish(job, "invalid"); return nil, map end
+            if not list then report(entry, map.code, "query"); settle(job, "invalid"); return nil, map end
             entry.dynamic = map
             local items = {}
             for index = 1, #list do
@@ -534,29 +540,27 @@ function P:Search(request, context, onChange)
                 if (not request.filter or not request.filter.categoryID or request.filter.categoryID == category)
                     and (not identity or identity:MatchesScope(record.scope or entry.definition.scope)) then
                     local item = materialize(entry, record)
-                    local match = I.Search.Normalizer:MatchText(request.normalized, item.text, "title", { allowFuzzy = false })
+                    local match = I.Search.Normalizer:MatchRecord(request.normalized, record, entry.definition.scope)
                     if match then item.confidence, item.evidence = match.confidence, match end
                     items[#items + 1] = item
                 end
             end
             output[id] = items
-            finish(job, "complete")
-            if not collecting and onChange then onChange(gather()) end
+            settle(job, "complete")
             return true
         end
         local ok, cancel = pcall(entry.definition.query, publicQueryRequest(request), reply, copy(context or {}))
         if not ok then
             output[id], entry.dynamic = nil, {}
-            report(entry, "CALLBACK_ERROR", "query"); finish(job, "error")
-        elseif cancel ~= nil and type(cancel) ~= "function" then report(entry, "INVALID_CALLBACK", "query.cancel"); finish(job, "error")
+            report(entry, "CALLBACK_ERROR", "query"); settle(job, "error")
+        elseif cancel ~= nil and type(cancel) ~= "function" then report(entry, "INVALID_CALLBACK", "query.cancel"); settle(job, "error")
         elseif job.done then
             if cancel and not pcall(cancel, job.reason) then report(entry, "CALLBACK_ERROR", "query.cancel") end
         else
             job.cancel = cancel
             if C_Timer and C_Timer.NewTimer then job.timer = C_Timer.NewTimer(5, function()
                 if job.done then return end
-                report(entry, "QUERY_TIMEOUT", "query"); finish(job, "timeout")
-                if onChange then onChange(gather()) end
+                report(entry, "QUERY_TIMEOUT", "query"); settle(job, "timeout")
             end) end
         end
         end
