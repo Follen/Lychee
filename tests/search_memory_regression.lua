@@ -44,15 +44,22 @@ local function oracle(query,filter)
     local out,terms={},N:Terms(query)
     for _,entry in pairs(index.entries) do
         if entry.source.enabled and (not filter or entry.sourceID==filter.sourceID) then
+            -- Derive the oracle from source records, independent of compiled layout.
+            local fields={}
+            for _,pair in ipairs({{"title","title"},{"aliases","alias"},{"keywords","keyword"}}) do
+                for _,value in ipairs(N:Localized(entry.record[pair[1]])) do
+                    fields[#fields+1]={normalized=N:Normalize(value.text),field=pair[2]}
+                end
+            end
             local best,field
             local all=#terms>1
             for _,term in ipairs(terms) do
                 local found=false
-                for _,value in ipairs(entry.fields) do if value.normalized:find(term,1,true) then found=true;break end end
+                for _,value in ipairs(fields) do if value.normalized:find(term,1,true) then found=true;break end end
                 if not found then all=false;break end
             end
             if all then best,field=.82,"tokens" end
-            for _,value in ipairs(entry.fields) do
+            for _,value in ipairs(fields) do
                 local score=N:ScoreNormalized(query,value.normalized,value.field,false)
                 if score and (not best or score>best or score==best and value.field<field) then best,field=score,value.field end
             end

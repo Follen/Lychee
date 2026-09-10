@@ -64,7 +64,7 @@ if arg[1]=="--disable" then
     print(string.format("DISABLE retained_KiB=%.1f reenabled_KiB=%.1f",disabled,collectgarbage("count")-baseline))
 end
 if arg[1]=="--check" then
-    assert(retained<9216,"combined directory exceeds 9 MiB retained memory budget")
+    assert(retained<7424,"combined directory exceeds 7.25 MiB retained memory budget")
     assert(allocated<4096,"48 searches allocate more than 4 MiB")
     assert(growth<512,"repeated search retains more than 512 KiB")
 end

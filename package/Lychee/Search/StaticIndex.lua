@@ -119,7 +119,10 @@ local function addText(entry, field, value, scope)
         local raw = values[index].text
         local normalized = I.Search.Normalizer:Normalize(raw)
         if normalized ~= "" then
-            entry.fields[#entry.fields + 1] = { field = field, text = raw, normalized = normalized }
+            -- Flat triples avoid a hash table per compiled field. Host-private;
+            -- public records and match evidence retain their named fields.
+            local fields, offset = entry.fields, #entry.fields
+            fields[offset + 1], fields[offset + 2], fields[offset + 3] = field, raw, normalized
         end
     end
 end
@@ -151,12 +154,11 @@ local function updateMemberships(self, entry, updateSet)
     -- and a tiny table for every prefix/gram of every record. Reconstruct only
     -- this entry's memberships when it is changed or removed (not on query).
     local seen = {}
-    for index = 1, #entry.fields do
-        local field = entry.fields[index]
-        local identity = field.field .. "\0" .. field.normalized
+    for index = 1, #entry.fields, 3 do
+        local identity = entry.fields[index] .. "\0" .. entry.fields[index + 2]
         if not seen[identity] then
             seen[identity] = true
-            local gramValues = grams(field.normalized)
+            local gramValues = grams(entry.fields[index + 2])
             for gramIndex = 1, #gramValues do updateSet(self.grams, gramValues[gramIndex], entry.key) end
         end
     end
@@ -582,19 +584,19 @@ function Index:Search(query, limit, filter)
             if allTokens then
                 for termIndex = 1, #queryTerms do
                     local tokenFound = false
-                    for fieldIndex = 1, #entry.fields do
-                        if entry.fields[fieldIndex].normalized:find(queryTerms[termIndex], 1, true) then tokenFound = true; break end
+                    for fieldIndex = 3, #entry.fields, 3 do
+                        if entry.fields[fieldIndex]:find(queryTerms[termIndex], 1, true) then tokenFound = true; break end
                     end
                     if not tokenFound then allTokens = false; break end
                 end
                 if allTokens then bestScore, bestField, bestText, bestType = 0.82, "tokens", normalized, "token" end
             end
             local normalizer = I.Search.Normalizer
-            for fieldIndex = 1, #entry.fields do
-                local field = entry.fields[fieldIndex]
-                local confidence, matchType = normalizer:ScoreNormalized(normalized, field.normalized, field.field, false)
-                if confidence and (not bestScore or confidence > bestScore or confidence == bestScore and field.field < bestField) then
-                    bestScore, bestField, bestText, bestType = confidence, field.field, field.text, matchType
+            for fieldIndex = 1, #entry.fields, 3 do
+                local field, raw, text = entry.fields[fieldIndex], entry.fields[fieldIndex + 1], entry.fields[fieldIndex + 2]
+                local confidence, matchType = normalizer:ScoreNormalized(normalized, text, field, false)
+                if confidence and (not bestScore or confidence > bestScore or confidence == bestScore and field < bestField) then
+                    bestScore, bestField, bestText, bestType = confidence, field, raw, matchType
                 end
             end
             if not bestScore or bestScore < 0.56 then
@@ -603,11 +605,11 @@ function Index:Search(query, limit, filter)
                 elseif currentTime and currentTime >= deadline then diagnose(self, "FUZZY_TIME_BUDGET")
                 else
                     fuzzyCount = fuzzyCount + 1
-                    for fieldIndex = 1, #entry.fields do
-                        local field = entry.fields[fieldIndex]
-                        local confidence, matchType, distance = normalizer:ScoreNormalized(normalized, field.normalized, field.field, true)
-                        if matchType == "fuzzy" and (not bestScore or confidence > bestScore or confidence == bestScore and field.field < bestField) then
-                            bestScore, bestField, bestText, bestType, bestDistance = confidence, field.field, field.text, matchType, distance
+                    for fieldIndex = 1, #entry.fields, 3 do
+                        local field, raw, text = entry.fields[fieldIndex], entry.fields[fieldIndex + 1], entry.fields[fieldIndex + 2]
+                        local confidence, matchType, distance = normalizer:ScoreNormalized(normalized, text, field, true)
+                        if matchType == "fuzzy" and (not bestScore or confidence > bestScore or confidence == bestScore and field < bestField) then
+                            bestScore, bestField, bestText, bestType, bestDistance = confidence, field, raw, matchType, distance
                         end
                     end
                 end

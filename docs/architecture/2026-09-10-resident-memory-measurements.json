@@ -1,0 +1,265 @@
+{
+  "baselineCommit": "2ac3924",
+  "lua": "Windows Lua 5.1",
+  "baselineBudgetExit": 1,
+  "baselineBudgetOutput": [
+    "C:\\Program Files (x86)\\Lua\\5.1\\lua.exe: tests/performance_memory.lua:67: combined directory exceeds 7.25 MiB retained memory budget",
+    "stack traceback:",
+    "\t[C]: in function 'assert'",
+    "\ttests/performance_memory.lua:67: in main chunk",
+    "\t[C]: ?",
+    "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+  ],
+  "runs": [
+    {
+      "round": 1,
+      "variant": "baseline",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 1,
+      "variant": "baseline",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=4402.9 combined_KiB=10590.9 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.396"
+      ]
+    },
+    {
+      "round": 1,
+      "variant": "baseline",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.333",
+        "DISABLE retained_KiB=7310.5 reenabled_KiB=7840.3"
+      ]
+    },
+    {
+      "round": 1,
+      "variant": "current",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 1,
+      "variant": "current",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=3878.9 combined_KiB=9527.7 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 1,
+      "variant": "current",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354",
+        "DISABLE retained_KiB=6786.4 reenabled_KiB=7152.2"
+      ]
+    },
+    {
+      "round": 2,
+      "variant": "baseline",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 2,
+      "variant": "baseline",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=4402.9 combined_KiB=10590.9 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 2,
+      "variant": "baseline",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354",
+        "DISABLE retained_KiB=7310.5 reenabled_KiB=7840.3"
+      ]
+    },
+    {
+      "round": 2,
+      "variant": "current",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.375"
+      ]
+    },
+    {
+      "round": 2,
+      "variant": "current",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=3878.9 combined_KiB=9527.7 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.333"
+      ]
+    },
+    {
+      "round": 2,
+      "variant": "current",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354",
+        "DISABLE retained_KiB=6786.4 reenabled_KiB=7152.2"
+      ]
+    },
+    {
+      "round": 3,
+      "variant": "baseline",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 3,
+      "variant": "baseline",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=4402.9 combined_KiB=10590.9 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 3,
+      "variant": "baseline",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.333",
+        "DISABLE retained_KiB=7310.5 reenabled_KiB=7840.3"
+      ]
+    },
+    {
+      "round": 3,
+      "variant": "current",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 3,
+      "variant": "current",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=3878.9 combined_KiB=9527.7 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.333"
+      ]
+    },
+    {
+      "round": 3,
+      "variant": "current",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.333",
+        "DISABLE retained_KiB=6786.4 reenabled_KiB=7152.2"
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "baseline",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.313"
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "baseline",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=4402.9 combined_KiB=10590.9 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "baseline",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354",
+        "DISABLE retained_KiB=7310.5 reenabled_KiB=7840.3"
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "current",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "current",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=3878.9 combined_KiB=9527.7 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.333"
+      ]
+    },
+    {
+      "round": 4,
+      "variant": "current",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.333",
+        "DISABLE retained_KiB=6786.4 reenabled_KiB=7152.2"
+      ]
+    },
+    {
+      "round": 5,
+      "variant": "baseline",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 5,
+      "variant": "baseline",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=4402.9 combined_KiB=10590.9 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 5,
+      "variant": "baseline",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=4402.9 combined_KiB=7833.8 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.396",
+        "DISABLE retained_KiB=7310.5 reenabled_KiB=7840.3"
+      ]
+    },
+    {
+      "round": 5,
+      "variant": "current",
+      "mode": "--measure",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354"
+      ]
+    },
+    {
+      "round": 5,
+      "variant": "current",
+      "mode": "--stress",
+      "output": [
+        "MEMORY entries=3689 builtins_KiB=3878.9 combined_KiB=9527.7 48_queries_alloc_KiB=2320.0 retained_growth_KiB=0.1 query_mean_ms=0.333"
+      ]
+    },
+    {
+      "round": 5,
+      "variant": "current",
+      "mode": "--disable",
+      "output": [
+        "MEMORY entries=2689 builtins_KiB=3878.9 combined_KiB=7145.6 48_queries_alloc_KiB=2317.0 retained_growth_KiB=0.1 query_mean_ms=0.354",
+        "DISABLE retained_KiB=6786.4 reenabled_KiB=7152.2"
+      ]
+    }
+  ]
+}
