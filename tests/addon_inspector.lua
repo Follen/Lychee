@@ -176,6 +176,22 @@ scene({aura});M:Poll();assert(M.target==auraIcon,"region geometry is converted u
 aura.scale=1;auraIcon.left=0;auraIcon.bottom=0;cursorX,cursorY=50,50
 local many={}
 for i=1,4095 do many[i]=frame(UIParent,"FarFrame");many[i].left=1000;many[i].bottom=1000 end
+-- Real client: running=true, visualPending=true, visualBest=<object>, target=nil.
+-- A large frame directory must not withhold an already discovered visible icon.
+local firstFar=many[1]
+many[1]=cdm;many[4096]=aura;scene(many);M:ResetVisual();M:Poll()
+assert(M.visualPending and M.visualBest==cdmIcon and M.target==cdmIcon,
+    "a discovered icon must display before the full frame scan completes")
+local partialReads=sourceReads
+M:Poll();assert(M.target==cdmIcon and sourceReads==partialReads,"unchanged partial result does not repeat source analysis")
+cdm:Hide();M:Poll();assert(not M.target,"hidden partial candidate is removed immediately")
+cdm:Show();M:ResetVisual();M:Poll();cursorX=500;M:Poll()
+assert(not M.target,"moving away clears a displayed partial candidate")
+cursorX=50;M:ResetVisual();M:Poll()
+local progressiveBatches=1
+while M.visualPending do M:Poll();progressiveBatches=progressiveBatches+1;assert(progressiveBatches<100) end
+assert(M.target==auraIcon,"later higher-layer candidate replaces the first displayed icon")
+many[1]=firstFar
 many[4096]=aura;scene(many);M:ResetVisual()
 local beforeBatch=enumerations;M:Poll()
 assert(enumerations-beforeBatch<=128 and M.visualPending and not M.target,"one batch has a fixed frame bound and does not publish a stale result")

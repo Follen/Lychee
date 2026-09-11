@@ -166,6 +166,11 @@ function M:VisualFocus()
         end
         if debugprofilestop and debugprofilestop()-started>=0.75 then break end
     end
+    -- Publish a discovered candidate at each batch boundary. Large frame trees
+    -- must not hold the UI empty until enumeration reaches its final frame.
+    local candidateScale=self.visualBestFrame and self:VisualFrame(self.visualBestFrame)
+    if candidateScale and self:VisualRegion(self.visualBest,candidateScale) then return self.visualBest end
+    self.visualBest,self.visualBestFrame=nil,nil
     -- Revalidate the retained result at the current pointer; never publish a
     -- previous position or a now-hidden icon while the next batch is pending.
     local scale=self.visualResultFrame and self:VisualFrame(self.visualResultFrame)
