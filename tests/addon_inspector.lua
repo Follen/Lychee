@@ -155,6 +155,8 @@ for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.AddonInspector
+local parentless=frame(nil,"ParentUnavailable")
+assert(M:CheckFocus(parentless)==parentless,"absent AuraButtonTooltip global must not exclude objects with no readable parent")
 local beforeFrames,beforeRegions=frames,regions
 M:Init()
 assert(not M.enabled and not M.view and frames==beforeFrames and regions==beforeRegions and sourceReads==0)
@@ -179,6 +181,8 @@ local function assertOutlineBehindPanel()
         "selection outline must render behind the inspector panel at overlapping screen coordinates")
 end
 assertOutlineBehindPanel()
+local auraTooltipLayer=frame(UIParent);auraTooltipLayer:SetFrameStrata("TOOLTIP");auraTooltipLayer:SetFrameLevel(200)
+assert(v.frame:GetFrameLevel()>auraTooltipLayer:GetFrameLevel(),"inspection panel must cover raised aura tooltip layers")
 assert(not v.copy.frame:IsShown() and not v.parent.frame:IsShown(),"follow summary has no unreachable action buttons")
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
 assert(retained<512 and frames-beforeFrames<=16 and regions-beforeRegions<=48,"bounded initial objects")
@@ -223,23 +227,26 @@ nativeTarget=nil
 -- but its pooled aura children deny content reads. A plain empty Frame is different.
 local auraShell=frame(UIParent,"EngineAuraShell")
 auraShell.location="Interface/AddOns/EllesmereUI/EllesmereUI_AuraKit.lua:1321"
-local restrictedAura=frame(auraShell);restrictedAura.IsVisible=function() error("restricted") end
+local restrictedAura=frame(auraShell);restrictedAura.kind="Texture";restrictedAura.texture="aura-icon"
+restrictedAura.location="Interface/AddOns/EllesmereUI/EllesmereUI_AuraKit.lua:1006"
+restrictedAura.IsVisible=function() error("restricted") end
 auraShell.children={restrictedAura};nativeTarget=auraShell;scene({auraShell,restrictedAura});M:Poll()
-assert(M.target==auraShell and M.data.contentUnverified and not v.outline:IsShown(),"native engine container shows source without claiming verified paint")
+assert(M.target==restrictedAura and M.data.title=="EllesmereUI" and M.data.contentUnverified and not v.outline:IsShown(),"native restricted aura icon supplies exact addon source without claiming verified paint")
 auraShell:SetSize(1,1);M:Poll()
-assert(M.target==auraShell and M.data.contentUnverified,"native restricted child can extend beyond the public container rect")
+assert(M.target==restrictedAura and M.data.contentUnverified,"native restricted child can extend beyond the public container rect")
 local shellRect=auraShell.GetRect;auraShell.GetRect=function() error("restricted geometry") end;M:Poll()
-assert(M.target==auraShell and M.data.contentUnverified,"native child evidence survives unreadable public container geometry")
+assert(M.target==restrictedAura and M.data.contentUnverified,"native child evidence survives unreadable public container geometry")
 auraShell.GetRect=shellRect;scene({auraShell});M:Poll()
-assert(M.target==auraShell and M.data.contentUnverified,"native container remains source-only when private descendant bounds cannot be verified")
+assert(not M.target,"native container cannot use descendants missing from the native snapshot")
 auraShell:SetSize(100,100);restrictedAura.IsVisible=function() return false end
 scene({auraShell,restrictedAura});M:Poll()
 assert(not M.target,"known hidden pooled children do not turn an empty container into unknown content")
 restrictedAura.IsVisible=function() error("restricted") end;M:Poll()
-assert(M.target==auraShell,"restricted native child evidence recovers after the next snapshot")
+assert(M.target==restrictedAura,"restricted native child evidence recovers after the next snapshot")
 auraShell:Hide();M:Poll();assert(not M.target,"known hidden container remains excluded despite native child evidence")
 auraShell:Show()
 local shellChildren=auraShell.GetChildren
+local shellRegions=auraShell.GetRegions;auraShell.GetRegions=function() error("restricted own content") end
 auraShell.GetChildren=function() return {secret=true} end
 auraShell.GetRect=function() error("restricted geometry") end
 scene({auraShell});M:Poll()
@@ -248,7 +255,7 @@ local shellReport=M:Report()
 assert(shellReport:find("nativeType=Frame",1,true) and shellReport:find("nativeRect=geometry-unreadable",1,true),"report preserves native type and geometry failure")
 auraShell.GetRect=shellRect;auraShell.left=200;M:Poll()
 assert(M.target==auraShell and M.data.contentUnverified,"parent rect is not a clipping rect for unverified child content")
-auraShell.left=nil;auraShell.GetChildren=shellChildren
+auraShell.left=nil;auraShell.GetChildren=shellChildren;auraShell.GetRegions=shellRegions
 local resourceOwner=frame(UIParent,"ResourceOwner")
 local secretText=frame(resourceOwner,"NativeResourceText");secretText.kind="FontString"
 secretText.GetText=function() return {secret=true} end
@@ -479,6 +486,11 @@ GameTooltip.visualRegions={hoverArt};GameTooltip.shown=true
 nativeTarget=hoverArt;scene({GameTooltip,hoverArt,cdmIcon});M:Poll()
 assert(M.target==cdmIcon,"GameTooltip artwork cannot become the inspected addon even when present in a native snapshot")
 GameTooltip:Hide();nativeTarget=nil
+AuraButtonTooltip=frame(UIParent,"AuraButtonTooltip")
+local auraTipPaint=frame(AuraButtonTooltip);auraTipPaint.kind="Texture";auraTipPaint.texture="tooltip"
+nativeTarget=auraTipPaint;scene({auraTipPaint,cdmIcon});M:Poll()
+assert(M.target==cdmIcon,"independent aura tooltip cannot become the inspected addon")
+nativeTarget=nil
 local auraIcon=frame(aura);auraIcon.kind="Texture";auraIcon.texture="aura-icon";aura.visualRegions={auraIcon}
 scene({aura});M:Poll()
 assert(M.target==aura and M.data.title=="AnotherAuraAddon","Buff/Debuff icon ownership is discovered without an addon-name mapping")

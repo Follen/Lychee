@@ -4,7 +4,9 @@ function UI.CreateAddonInspector(owner)
     local T,C=UI.Theme,UI.Components
     local view={owner=owner,expanded=false,copying=false}
     local frame=CreateFrame("Frame",nil,UIParent)
-    view.frame=frame;frame:Hide();frame:SetSize(320,120);frame:SetFrameStrata("TOOLTIP");frame:SetFrameLevel(1)
+    -- AuraButtonTooltip has a separate, raised tooltip layer. Reserve the
+    -- inspection panel's level without changing protected tooltip objects.
+    view.frame=frame;frame:Hide();frame:SetSize(320,120);frame:SetFrameStrata("TOOLTIP");frame:SetFrameLevel(10000)
     frame:SetClampedToScreen(true);frame:EnableMouse(true)
     T:CreateRoundedSurface(frame,"window",10)
     local function label(role,color,x,y,width,height)

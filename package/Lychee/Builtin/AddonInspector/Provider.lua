@@ -126,8 +126,10 @@ function M:CheckFocus(frame)
     frame=clean(frame)
     if not frame or frame==UIParent or frame==WorldFrame or self:Read(frame,"IsForbidden") then return end
     local current=frame
+    local auraTooltip=clean(_G.AuraButtonTooltip)
     for depth=1,16 do
-        if current==GameTooltip then return end
+        if not current then break end
+        if current==GameTooltip or (auraTooltip and current==auraTooltip) then return end
         if current==self.stackRoot or current==self.stackTooltip then return nil,true end
         if self.view and (current==self.view.frame or current==self.view.outline) then return nil,true end
         if current==UIParent or current==WorldFrame or not current then break end

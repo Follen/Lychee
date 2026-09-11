@@ -31,6 +31,14 @@ local paint=observation("Texture",parent)
 paint.GetEffectiveAlpha=nil;paint.DoesClipChildren=nil
 local p=Picker.New(allowed,observed,function() return 0 end)
 assert(p:Step(paint,nil,50,50).evidence==2,"real Region method surface supports verified paint")
+local wrapper=observation("Frame");wrapper.GetRect=known(0,0,1920,1080)
+local player=observation("Frame",wrapper);player.GetRect=known(800,100,200,35)
+wrapper.GetChildren=known(player)
+local chat=observation("FontString",parent);chat.GetText=known("RS")
+assert(not p:Step(wrapper,{wrapper},50,50).object,"fullscreen layout wrapper is not content at an empty pointer")
+assert(p:Step(wrapper,{wrapper,chat},50,50).object==chat,"fullscreen player wrapper must not steal Rurutia chat hit")
+player.GetRect={"secret"}
+assert(not p:Step(wrapper,{wrapper},50,50).object,"unreadable unrelated child geometry does not establish wrapper content")
 
 -- Report 324a9e22: empty public shell; six native aura children unreadable.
 -- Actual report does not contain raw getters. Each unavailable form below is a
@@ -44,8 +52,8 @@ for _,entry in ipairs(unavailable) do
     aura.GetEffectiveAlpha=nil;aura.DoesClipChildren=nil
     aura.GetSourceLocation=known("Interface/AddOns/EllesmereUI/EllesmereUI_AuraKit.lua:1006")
     shell.GetChildren=known(aura)
-    local r=p:Step(shell,function() error("native unknown must not request a fallback snapshot") end,50,50)
-    assert(r.object==shell and r.evidence==1 and not r.outline,"unreadable aura child retains native shell source")
+    local r=p:Step(shell,{shell,aura},50,50)
+    assert(r.object==aura and r.evidence==1 and not r.outline,"actual native aura child supplies source instead of its empty shell")
     -- If the engine's public hierarchy omits that child, the raw native child
     -- itself must survive the unknown-visibility gate in the fallback snapshot.
     shell.GetChildren=known()
@@ -107,14 +115,14 @@ local empty=observation("Frame")
 local unrelated=observation("Texture",empty)
 empty.GetChildren=known(unrelated)
 r=p:Step(nil,{empty},50,50)
-assert(r.object==empty and r.evidence==1,"only native container may provide unverified descendant source")
+assert(not r.object,"native container cannot borrow descendant content")
 assert(r.object~=unrelated and r.checked==1 and r.queued==1,"child is never enqueued as a candidate")
 local many={"known"}
 for i=1,64 do
     local child=observation("Frame",empty);child.IsVisible=known(false);many[#many+1]=child
 end
 empty.GetChildren=many;r=p:Step(empty,nil,50,50)
-assert(r.object==empty and r.evidence==1 and not reads[many[34]],"child checks stop at 32; incomplete is not empty")
+assert(not r.object and not reads[many[2]] and not reads[many[34]],"child hierarchy is never read to manufacture a candidate")
 empty.GetChildren=known();r=p:Step(empty,{empty},50,50);assert(not r.object,"confirmed empty leaf still rejected")
 
 -- Independent oracle for flat native observations. It has no batching, calls no

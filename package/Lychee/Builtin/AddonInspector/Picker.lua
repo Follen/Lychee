@@ -130,21 +130,6 @@ local function ownRegions(p,button,status,...)
     if grade==0 and select("#",...)>32 then return 1,"regions-truncated",math.huge end
     return grade,reason,area,paint
 end
-local function childContent(p,parent,status,...)
-    if status~="known" then return 1,"children-unreadable" end
-    for i=1,math.min(select("#",...),32) do
-        local child=select(i,...)
-        if secret(child) then return 1,"children-unreadable" end
-        if child==parent then child=nil end
-        if child and value(p,child,"IsForbidden")==true then return 1,"children-unreadable" end
-        if child and p.allowed(child) then
-            local grade=guard(p,child)
-            if grade~=0 then return 1,"descendant-content-unverified" end
-        end
-    end
-    if select("#",...)>32 then return 1,"children-truncated" end
-    return 0,"empty-frame"
-end
 local function evaluate(p,object)
     if not object or secret(object) or not p.allowed(object) then return 0,"excluded" end
     local guardGrade,guardReason=guard(p,object)
@@ -157,10 +142,9 @@ local function evaluate(p,object)
     else
         local button=(kind=="Button" or kind=="CheckButton") and value(p,object,"IsMouseClickEnabled")==true and object or nil
         grade,reason,area,paint=ownRegions(p,button,p.read(object,"GetRegions"))
-        if grade==0 then grade,reason=childContent(p,object,p.read(object,"GetChildren")) end
-        -- Under a restricted visibility observation even an empty public region
-        -- list cannot establish that the engine's private content is empty.
-        if grade==0 and guardGrade==1 then grade,reason=1,guardReason end
+        -- A layout container is not paint. Neither child existence nor an
+        -- unreadable visibility flag supplies self-content evidence. Native
+        -- descendants remain independent candidates in the fallback snapshot.
     end
     if grade==0 then return 0,reason end
     if guardGrade==1 then grade,reason=1,guardReason end
