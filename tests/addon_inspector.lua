@@ -56,11 +56,12 @@ function methods:GetTextColor() return 1,1,1,self.colorAlpha or 1 end
 function methods:GetDrawLayer() return self.layer or "ARTWORK",0 end
 function methods:DoesClipChildren() return self.clips or false end
 function methods:SetScale(v) self.scale=v end
-function methods:GetEffectiveScale() return self.scale end
+function methods:GetEffectiveScale() return self.scale*(self.parent and self.parent:GetEffectiveScale() or 1) end
 function methods:SetTexture(v) self.texture=v end
 function methods:SetFont(...) return true end
 function methods:SetTextColor(...) end
-function methods:SetColorTexture(...) end
+function methods:SetColorTexture(r,g,b,a) self.solid=true;self.colorAlpha=a or 1 end
+function methods:IsObjectLoaded() return self.solid==true or self.texture~=nil end
 function methods:SetVertexColor(...) end
 function methods:SetTexCoord(...) end
 function methods:SetShadowOffset(...) end
@@ -227,14 +228,59 @@ assert(M.target==textButton,"visible text button padding belongs to the clickabl
 local buttonClip=frame(UIParent);buttonClip.clips=true;buttonClip.width=60;textButton.parent=buttonClip
 M:Poll();assert(not M.target,"button padding cannot borrow text fully outside an ancestor clip")
 buttonClip.width=75;M:Poll();assert(M.target==textButton,"partly visible button text still supports its click padding")
-buttonClip.scale=2;buttonClip.width=30;M:Poll();assert(not M.target,"ancestor clipping uses its own effective scale")
+buttonClip.scale=2;textButton.scale=0.5;buttonClip.width=30;M:Poll();assert(not M.target,"ancestor clipping uses its own effective scale")
 buttonClip.width=38;M:Poll();assert(M.target==textButton,"scaled partial clip retains visible content")
-textButton.parent=UIParent
+textButton.parent=UIParent;textButton.scale=1
 local textRect=buttonText.GetRect;buttonText.GetRect=function() return nil end
 M:Poll();assert(not M.target,"unreadable button content bounds cannot prove visibility")
 buttonText.GetRect=textRect
 buttonText:Hide();M:Poll();assert(not M.target,"an empty invisible button must still be excluded")
 buttonText:Show();textButton.kind="Frame";M:Poll();assert(not M.target,"noninteractive empty overlay cannot borrow off-pointer text")
+nativeTarget=nil
+-- Rurutia ChatBar keeps a 24x18 button fixed while its centered text scales 1 -> 1.2.
+local hoverButton=frame(UIParent,"HoverTextButton");hoverButton.kind="Button"
+hoverButton.IsMouseClickEnabled=function() return true end
+hoverButton.left,hoverButton.bottom,hoverButton.width,hoverButton.height=200,200,24,18
+local hoverText=frame(hoverButton);hoverText.kind="FontString";hoverText.text="钥";hoverText.width,hoverText.height=18,18
+hoverButton.visualRegions={hoverText};cursorX,cursorY=210,210;nativeTarget=hoverButton;scene({hoverButton})
+for _,scale in ipairs({1,1.2,1,1.2}) do
+    hoverText.scale=scale;hoverText.left=212/scale-9;hoverText.bottom=209/scale-9
+    M:Poll();assert(M.target==hoverButton,"independently scaled hover text remains selectable in screen coordinates")
+end
+local clippedChat=frame(UIParent,"ClippedChatTextContainer");clippedChat.clips=true
+local clippedChatText=frame(clippedChat);clippedChatText.kind="FontString";clippedChatText.text="chat"
+nativeTarget=clippedChatText;scene({clippedChatText,hoverButton});M:Poll()
+assert(M.target==hoverButton,"fallback reaches scaled chat button after native clipped chat text is rejected")
+nativeTarget=hoverButton;scene({hoverButton})
+-- The same geometry occurs on noninteractive cooldown/aura decorative regions.
+hoverButton.kind="Frame";M:Poll();assert(M.target==hoverButton,"scaled regions do not require button padding to hit")
+hoverButton.kind="Button";cursorX,cursorY=223,209;M:Poll()
+assert(M.target==hoverButton,"text protruding beyond button height still proves visible click padding")
+hoverText.left=300;M:Poll();assert(not M.target,"fully detached paint cannot support button padding")
+hoverText.left=212/1.2-9
+hoverText.GetEffectiveScale=function() return {secret=true} end
+M:Poll();assert(not M.target,"secret region scale must not fall back to the parent's scale")
+hoverText.GetEffectiveScale=nil;hoverText:Hide();M:Poll();assert(not M.target,"scaled hidden paint is still rejected")
+nativeTarget=nil;cursorX,cursorY=50,50
+local solidOwner=frame(UIParent,"ResourceBackgroundOwner")
+local solidPaint=frame(solidOwner);solidPaint.kind="Texture";solidPaint:SetColorTexture(0,0,0,0.5)
+solidOwner.visualRegions={solidPaint}
+local hiddenCountOverlay=frame(solidOwner);hiddenCountOverlay:Hide();nativeTarget=hiddenCountOverlay;scene({hiddenCountOverlay,solidOwner})
+M:Poll();assert(M.target==solidOwner,"solid-color resource background without file or atlas remains visible")
+solidPaint:SetColorTexture(0,0,0,0);M:Poll();assert(not M.target,"fully transparent solid fill is filtered")
+solidPaint.solid=false;solidPaint.colorAlpha=1;M:Poll();assert(not M.target,"unset texture is not confused with a solid fill")
+local oldSolidEvidence,oldSolidProbe=M.solidTextureEvidence,M.solidTextureProbe
+local ambiguousRoot=frame()
+ambiguousRoot.CreateTexture=function(self)
+    local probe=frame(self);probe.IsObjectLoaded=function() return true end;return probe
+end
+M:ProbeSolidTextures(ambiguousRoot)
+assert(not M.solidTextureEvidence,"loaded state is not evidence when an empty probe also reports loaded")
+solidPaint.solid=true;M:Poll();assert(not M.target,"ambiguous client probe must preserve empty-texture rejection")
+assert(M:PickReport():find("solidTextureProbe=enabled=false",1,true),"unsupported solid evidence is reported explicitly")
+M.solidTextureEvidence,M.solidTextureProbe=oldSolidEvidence,oldSolidProbe
+solidPaint.solid=true;solidPaint.IsObjectLoaded=function() return {secret=true} end
+M:Poll();assert(not M.target,"unreadable loaded state is not paint evidence")
 nativeTarget=nil
 local rotatingWidget=frame(UIParent,"LayeredAuraOrResource")
 local overlayA=frame(rotatingWidget,"OverlayA")
@@ -405,7 +451,7 @@ cdm.strata="DIALOG";scene({aura,cdm});M:Poll();assert(M.target==cdm,"frame strat
 cdm.strata=nil
 cursorX,cursorY=500,500;M:Poll();assert(not M.target,"moving away never keeps an old result")
 aura.scale=2;auraIcon.left=100;auraIcon.bottom=100;cursorX,cursorY=250,250
-scene({aura});M:Poll();assert(M.target==aura,"region geometry is converted using the owning frame scale")
+scene({aura});M:Poll();assert(M.target==aura,"region effective scale includes the owning frame scale")
 aura.scale=1;auraIcon.left=0;auraIcon.bottom=0;cursorX,cursorY=50,50
 -- Real regressions: the empty high-strata anchor must not obscure lower artwork.
 emptyAnchor.strata="TOOLTIP";cursorAnchor.strata="TOOLTIP"

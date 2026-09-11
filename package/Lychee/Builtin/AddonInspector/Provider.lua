@@ -178,7 +178,9 @@ function M:VisualRegion(region,scale,button)
     local colorMethod
     if kind=="Texture" then
         local texture=self:Read(region,"GetTexture") or self:Read(region,"GetAtlas")
-        if not texture or texture=="" then return self:Reject("texture-empty-or-unreadable") end
+        if not texture or texture=="" then
+            if not self.solidTextureEvidence or self:Read(region,"IsObjectLoaded")~=true then return self:Reject("texture-empty-or-unreadable") end
+        end
         colorMethod="GetVertexColor"
     elseif kind=="FontString" then
         local value=self:Read(region,"GetText")
@@ -189,7 +191,10 @@ function M:VisualRegion(region,scale,button)
     local ok,_,_,_,colorAlpha=pcall(method(region,colorMethod),region)
     if not ok or secret(colorAlpha) or type(colorAlpha)~="number" then return self:Reject("color-unreadable") end
     if colorAlpha<=0 then return self:Reject("transparent-color") end
-    local area=self:HitRect(region,scale)
+    -- Region scaling is independent of its owning Frame (e.g. hover text zoom).
+    local regionScale=self:Read(region,"GetEffectiveScale")
+    if type(regionScale)~="number" or regionScale<=0 then return self:Reject("region-scale-unreadable") end
+    local area=self:HitRect(region,regionScale)
     if area or not button then return area end
     -- A text-only button's click target includes its padding. Require visible
     -- paint within the button, not the pointer sitting directly on that paint.
@@ -199,8 +204,12 @@ function M:VisualRegion(region,scale,button)
     if secret(l) or secret(b) or secret(w) or secret(h) or secret(fl) or secret(fb) or secret(fw) or secret(fh)
         or type(l)~="number" or type(b)~="number" or type(w)~="number" or type(h)~="number"
         or type(fl)~="number" or type(fb)~="number" or type(fw)~="number" or type(fh)~="number" then return end
-    if w>0 and h>0 and l>=fl and b>=fb and l+w<=fl+fw and b+h<=fb+fh then
-        local left,bottom,right,top=l*scale,b*scale,(l+w)*scale,(b+h)*scale
+    if w>0 and h>0 and fw>0 and fh>0 then
+        -- Text may extend past a short button. Only its visible overlap proves
+        -- that the button's otherwise empty click padding represents content.
+        local left,bottom=math.max(l*regionScale,fl*scale),math.max(b*regionScale,fb*scale)
+        local right,top=math.min((l+w)*regionScale,(fl+fw)*scale),math.min((b+h)*regionScale,(fb+fh)*scale)
+        if right<=left or top<=bottom then return self:Reject("button-content-outside") end
         local ancestor=button
         for depth=1,16 do
             if not ancestor then break end
@@ -374,6 +383,7 @@ function M:PickReport()
     local lines={"Picker: "..(pick.pending and "pending" or "complete"),
         "checked="..pick.checked.." queued="..pick.tail.." capped="..tostring(pick.capped),
         "native="..text(self:Read(pick.preferred,"GetDebugName")),"nativeFilter="..tostring(pick.rawReason)}
+    lines[#lines+1]="solidTextureProbe="..(self.solidTextureProbe or "not-run")
     for reason,count in pairs(pick.reasons) do lines[#lines+1]=reason.."="..count end
     if pick.unreadable then lines[#lines+1]="Some child/region lists could not be read" end
     if pick.details then
@@ -384,6 +394,30 @@ function M:PickReport()
     end
     return table.concat(lines,"\n")
 end
+-- Calibrate the engine's non-file texture evidence, never infer a solid fill
+-- from default vertex color alone. Both probes remain under the hidden sampler.
+function M:ProbeSolidTextures(root)
+    self.solidTextureEvidence=false;self.solidTextureProbe="unavailable"
+    local empty=call(method(root,"CreateTexture"),root)
+    local filled=call(method(root,"CreateTexture"),root)
+    if not empty or not filled then return end
+    call(method(empty,"SetSize"),empty,1,1);call(method(filled,"SetSize"),filled,1,1)
+    local emptyLoaded=self:Read(empty,"IsObjectLoaded")
+    local painted=pcall(method(filled,"SetColorTexture"),filled,0,0,0,1)
+    local filledLoaded=self:Read(filled,"IsObjectLoaded")
+    local alpha=self:Read(filled,"GetAlpha")
+    local ok,_,_,_,colorAlpha=pcall(method(filled,"GetVertexColor"),filled)
+    colorAlpha=clean(colorAlpha)
+    local opaque=ok and type(alpha)=="number" and alpha>0 and type(colorAlpha)=="number" and colorAlpha>0
+    local cleared=pcall(method(filled,"SetColorTexture"),filled,0,0,0,0)
+    local zeroAlpha=self:Read(filled,"GetAlpha")
+    local zok,_,_,_,zeroColorAlpha=pcall(method(filled,"GetVertexColor"),filled)
+    zeroColorAlpha=clean(zeroColorAlpha)
+    local transparent=zeroAlpha==0 or (zok and zeroColorAlpha==0)
+    self.solidTextureEvidence=painted and cleared and emptyLoaded==false and filledLoaded==true and opaque and transparent or false
+    self.solidTextureProbe="enabled="..tostring(self.solidTextureEvidence).." empty="..tostring(emptyLoaded)
+        .." filled="..tostring(filledLoaded).." transparent="..tostring(transparent)
+end
 local function sampleNative(tooltip,root)
     tooltip:SetOwner(root,"ANCHOR_NONE")
     tooltip:SetParent(root)
@@ -393,6 +427,7 @@ function M:NativeFocus()
     if not self.stackRoot then
         self.stackRoot=CreateFrame("Frame",nil,UIParent)
         self.stackRoot:Hide();self.stackRoot:EnableMouse(false)
+        self:ProbeSolidTextures(self.stackRoot)
         self.stackTooltip=call(CreateFrame,"GameTooltip",nil,self.stackRoot,"SharedTooltipTemplate")
         if self.stackTooltip then self.stackTooltip:EnableMouse(false);self.stackTooltip:Hide() end
     end
