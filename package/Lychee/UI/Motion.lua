@@ -1,5 +1,5 @@
 local UI = _G.Lychee.UI
-local Motion = {groups={}, limit=96, durations={enter=0.22, exit=0.14, page=0.14, feedback=0.10, resize=0.22}}
+local Motion = {groups={}, limit=96, durations={enter=0.30, exit=0.18, page=0.14, feedback=0.10, resize=0.22}}
 UI.Motion=Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 function Motion:IsReduced()
@@ -137,14 +137,102 @@ function Motion:Height(region,target)
     job.region,job.from,job.to,job.elapsed,job.duration=region,region:GetHeight(),target,0,self.durations.resize
     self.driver:SetScript("OnUpdate",heightTick);self.driver:Show()
 end
+-- One palette, one short-lived job. Actual geometry follows the artwork so
+-- protected click regions never lag behind a visual-only native transform.
+local function applyPresence(job)
+    local revision=Motion.presenceRevision
+    local region,layout=job.region,job.layout
+    local scale=(layout and layout._scale or 1)*(0.96+0.04*job.position)
+    local alpha=math.min(1,job.position/0.30)
+    if job.lastScale~=scale then
+        region:SetScale(scale)
+        if Motion.presenceRevision~=revision then return false end
+        job.lastScale=scale
+    end
+    if layout and layout._topInset then
+        local offset=-layout._topInset/scale
+        if job.lastOffset~=offset then
+            region:SetPoint("TOP",UIParent,"TOP",0,offset)
+            if Motion.presenceRevision~=revision then return false end
+            job.lastOffset=offset
+        end
+    end
+    if job.lastAlpha~=alpha then
+        region:SetAlpha(alpha)
+        if Motion.presenceRevision~=revision then return false end
+        job.lastAlpha=alpha
+    end
+    return true
+end
+function Motion:StopPresence(settle,complete)
+    local job=self.presence
+    if not job then return 0,0 end
+    self.presence=nil
+    self.presenceRevision=(self.presenceRevision or 0)+1
+    local revision=self.presenceRevision
+    self.presenceDriver:SetScript("OnUpdate",nil);self.presenceDriver:Hide()
+    local position,velocity=job.position,job.velocity
+    local finished=complete and job.finished
+    if settle and not combat() then job.position,job.velocity=job.target,0;applyPresence(job) end
+    if self.presenceRevision~=revision then return position,velocity end
+    job.region,job.layout,job.finished=nil,nil,nil
+    if finished then finished() end
+    return position,velocity
+end
+local function presenceTick(_,elapsed)
+    local job=Motion.presence
+    if not job then return end
+    if combat() or not job.region:IsShown() then Motion:StopPresence(false);return end
+    job.elapsed=math.min(job.duration,job.elapsed+elapsed)
+    -- Closed-form critically damped response: independent of frame rate, with
+    -- velocity carried into reversals instead of replaying a fresh ease curve.
+    local t,w=job.elapsed,job.omega
+    local displacement=job.from-job.target
+    local c=job.fromVelocity+w*displacement
+    local decay=math.exp(-w*t)
+    job.position=job.target+(displacement+c*t)*decay
+    job.velocity=(job.fromVelocity-w*c*t)*decay
+    if job.position<0 or job.position>1 then
+        job.position=math.max(0,math.min(1,job.position));job.velocity=0
+    end
+    if t==job.duration then Motion:StopPresence(true,true) else applyPresence(job) end
+end
+function Motion:Presence(region,shown,finished,initial,velocity,layout)
+    local target=shown and 1 or 0
+    local position=initial
+    if self.presence then position,velocity=self:StopPresence(false) end
+    if position==nil then position=shown and 0 or 1 end
+    if combat() then return false end
+    if self:IsReduced() or not region.CreateAnimationGroup or not region.SetScale then
+        region:SetAlpha(target)
+        if region.SetScale then region:SetScale(layout and layout._scale or 1) end
+        if layout and layout._topInset then region:SetPoint("TOP",UIParent,"TOP",0,-layout._topInset/(layout._scale or 1)) end
+        if finished then finished() end
+        return false
+    end
+    if not self.presenceDriver then self.presenceDriver=CreateFrame("Frame");self.presenceDriver:Hide() end
+    self.presenceState=self.presenceState or {}
+    local job=self.presenceState;self.presence=job
+    self.presenceRevision=(self.presenceRevision or 0)+1
+    job.region,job.layout,job.finished=region,layout,finished
+    job.position,job.velocity,job.from,job.fromVelocity=position,velocity or 0,position,velocity or 0
+    job.target,job.elapsed,job.omega=target,0,shown and 30 or 40
+    job.duration=shown and self.durations.enter or self.durations.exit
+    job.lastScale,job.lastOffset,job.lastAlpha=nil,nil,nil
+    if not applyPresence(job) then return false end
+    self.presenceDriver:SetScript("OnUpdate",presenceTick);self.presenceDriver:Show()
+    return true
+end
 function Motion:StopAll(except)
     self:StopHeight(false)
+    if self.presence and self.presence.region~=except then self:StopPresence(false) end
     for _,state in ipairs(self.groups) do if state.region~=except then self:Cancel(state.region,true) end end
 end
 function Motion:SetReduced(reduced)
     LycheeDB.palette=LycheeDB.palette or {}
     LycheeDB.palette.reduceMotion=reduced==true
     self:StopHeight(true)
+    self:StopPresence(true,true)
     -- Settling an exit must also release its window. Ordinary cancellation
     -- intentionally drops callbacks; changing this preference completes them.
     for _,state in ipairs(self.groups) do

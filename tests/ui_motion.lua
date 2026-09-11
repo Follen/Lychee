@@ -4,6 +4,7 @@ local frames,groups,combat=0,0,false
 function InCombatLockdown() return combat end
 local methods={}
 local function region() return setmetatable({alphaValue=1,height=200,shown=true,scripts={}},{__index=methods}) end
+function methods:SetScale(v) assert(not combat);self.scale=v end
 function methods:SetAlpha(v) assert(not combat);self.alphaValue=v end
 function methods:GetAlpha() return self.alphaValue end
 function methods:SetHeight(v) assert(not combat);self.height=v;if self.onHeight then self.onHeight(v) end end
@@ -13,7 +14,7 @@ function methods:Show() self.shown=true end
 function methods:Hide() self.shown=false end
 function methods:SetScript(k,v) self.scripts[k]=v end
 function methods:ClearAllPoints() end
-function methods:SetPoint(_,_,_,x) self.x=x end
+function methods:SetPoint(_,_,_,x,y) self.x,self.y=x,y end
 function CreateFrame() frames=frames+1;return region() end
 function methods:CreateAnimationGroup()
     groups=groups+1
@@ -150,45 +151,75 @@ function p:ApplyBoundedScale() end
 function p:ResizeForMode() end
 function p:RefreshHomeSections() end
 function p:SetQueryMode() end
+local function advance(seconds)
+    if M.presenceDriver and M.presenceDriver.scripts.OnUpdate then M.presenceDriver.scripts.OnUpdate(M.presenceDriver,seconds) end
+end
+p._scale,p._topInset=0.8,24
 r:Show();r:SetAlpha(1)
 p:Hide("close")
-assert(not p.visible and not input.enabled and p._motionClosing and r:IsShown(),"exit invalidates interaction before fading")
-s.alpha.progress=0.4
-local reopeningAlpha=s.from+(s.to-s.from)*0.4
+assert(not p.visible and not input.enabled and p._motionClosing and r:IsShown(),"exit invalidates interaction before motion")
+advance(0.05)
+local x,v=M.presence.position,M.presence.velocity
 p:Show()
 assert(p.visible and input.enabled and not p._motionClosing,"reopen cancels old exit")
-assert(math.abs(s.from-reopeningAlpha)<0.001,"reopen must continue from displayed exit alpha")
-s.group.scripts.OnFinished()
-assert(p.visible and r:IsShown(),"old exit cannot hide new open")
-p:Hide("close");s.group.scripts.OnFinished()
+assert(M.presence.position==x and M.presence.velocity==v,"reversal preserves position AND velocity")
+advance(1)
+assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening lands precisely")
+assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
+p:Hide("close");advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
-assert(s.from==0 and s.alpha.duration==0.22,"fresh entrance is a perceptible full fade")
-s.alpha.progress=0.5
+assert(math.abs(r.scale-0.768)<0.0001 and r:GetAlpha()==0,"fresh opening begins at 96 percent")
+advance(0.06)
+assert(r:GetAlpha()==1 and M.presence.position<1,"opacity resolves early while geometry continues settling")
+x,v=M.presence.position,M.presence.velocity
 p:Hide("escape")
-assert(s.from==0.5 and s.alpha.smoothing=="IN","close reverses the entrance without flashing")
-s.alpha.progress=0.3
+assert(M.presence.position==x and M.presence.velocity==v,"close preserves entrance momentum")
+advance(0.03)
+local elapsed=M.presence.elapsed
 p:Hide("escape")
-assert(s.alpha.progress==0.3,"repeated close must not restart the exit")
+assert(M.presence.elapsed==elapsed,"repeated close does not restart")
 M:SetReduced(true)
-assert(not p.visible and not r:IsShown() and not p._motionClosing,"reduced motion must complete pending close")
+assert(not p.visible and not r:IsShown() and not M.presence and not p._motionClosing,"reduced motion completes close")
 p:Show()
-assert(p.visible and r:GetAlpha()==1 and not s.playing,"reduced motion opens immediately")
-p:Hide("close")
-M:SetReduced(false)
-local paletteGroups=groups
+assert(p.visible and r:GetAlpha()==1 and r.scale==0.8 and not M.presence,"reduced opening is immediate")
+p:Hide("close");M:SetReduced(false)
+-- Closed form must give the same geometry at 30 and 120 Hz.
+p:Show();for i=1,3 do advance(1/30) end
+local at30=M.presence.position
+M:StopPresence(false);M:Presence(r,true,nil,0,0,p)
+for i=1,12 do advance(1/120) end
+assert(math.abs(M.presence.position-at30)<0.000001,"motion is frame-rate independent")
+combat=true;advance(0.01)
+assert(not M.presence and not M.presenceDriver.scripts.OnUpdate,"combat stops before protected setters")
+combat=false;p:Hide("cleanup")
+M:Presence(r,false,nil,1,0,p)
+local staleFinished=0
+M.presence.finished=function() staleFinished=staleFinished+1 end
+local originalScale=methods.SetScale
+r.SetScale=function(self,value)
+    originalScale(self,value);r.SetScale=originalScale
+    M:Presence(r,true,nil,0,0,p)
+end
+M:StopPresence(true,true)
+assert(M.presence and M.presence.target==1 and staleFinished==0,"settling layout reentry cannot erase a new animation or fire stale completion")
+advance(1)
+local paletteGroups,paletteFrames=groups,frames
 collectgarbage("collect");collectgarbage("stop")
 local paletteBase=collectgarbage("count")
+local started=os.clock()
 for i=1,1000 do
-    p:Show();s.alpha.progress=0.5;p:Hide("toggle")
-    s.alpha.progress=0.5;p:Show();s.group.scripts.OnFinished()
-    p:Hide("escape");s.group.scripts.OnFinished()
+    p:Show();advance(0.05);p:Hide("toggle")
+    advance(0.03);p:Show();for tick=1,36 do advance(1/120) end
+    p:Hide("escape");for tick=1,22 do advance(1/120) end
 end
+local paletteCPU=(os.clock()-started)*1000
 local paletteAllocated=collectgarbage("count")-paletteBase
 collectgarbage("restart")
-assert(groups==paletteGroups and paletteAllocated<512 and not s.playing and s.finished==nil,"warm palette cycles stay bounded and idle")
-print(string.format("Palette motion cycles1000_KiB=%.2f group_growth=0 idle_animation=false",paletteAllocated))
-print("Palette animated close/reopen PASS")
+assert(groups==paletteGroups and frames==paletteFrames and paletteAllocated<512 and not M.presence,"warm cycles are bounded")
+assert(not M.presenceDriver.scripts.OnUpdate and not M.presenceDriver:IsShown() and not M.presenceState.region and not M.presenceState.finished,"idle retains no active job or callback")
+print(string.format("Palette motion cycles1000_KiB=%.2f cpu_ms=%.2f frame_growth=0 group_growth=0 idle_callback=nil",paletteAllocated,paletteCPU))
+print("Palette spring close/reopen/velocity/scale/reduced/combat PASS")
 -- Exercise the actual reusable switch, not just the motion primitive.
 function methods:CreateTexture() return region() end
 function methods:SetSize() end

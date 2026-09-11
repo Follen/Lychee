@@ -1149,28 +1149,17 @@ assert(registrations == 1, "Escape registration is not duplicated")
 -- Repeat the native dispatcher with animation support: it must hide only the
 -- escape receiver, leaving the rendered hierarchy alive until exit completes.
 local oldAnimation=palette.frame.CreateAnimationGroup
-palette.frame.CreateAnimationGroup=function()
-    local group={scripts={}}
-    function group:SetScript(key,fn) self.scripts[key]=fn end
-    function group:Play() self.playing=true;self.animation.progress=0 end
-    function group:Stop() self.playing=false end
-    function group:IsPlaying() return self.playing end
-    function group:CreateAnimation()
-        local animation={progress=0}
-        function animation:SetSmoothing(value) self.smoothing=value end
-        function animation:SetFromAlpha(value) self.from=value end
-        function animation:SetToAlpha(value) self.to=value end
-        function animation:SetDuration(value) self.duration=value end
-        function animation:GetSmoothProgress() return self.progress end
-        self.animation=animation;return animation
-    end
-    return group
+local oldScale=palette.frame.SetScale
+palette.frame.SetScale=function(self,value) mutation(self,"SetScale");self.scale=value end
+palette.frame.CreateAnimationGroup=function() error("palette presence does not allocate native animation groups") end
+local motion=Lychee.UI.Motion
+local function finishPresence()
+    if motion.presence then motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,1) end
 end
 local reduced=LycheeDB.palette.reduceMotion
 LycheeDB.palette.reduceMotion=false
 palette:Show();palette.input:ClearFocus()
-local motion=palette.frame._lycheeMotion
-motion.group.scripts.OnFinished()
+finishPresence()
 for _,name in pairs(UISpecialFrames) do
     local receiver=_G[name]
     if receiver and receiver:IsShown() then
@@ -1180,17 +1169,18 @@ for _,name in pairs(UISpecialFrames) do
 end
 assert(not palette.visible and palette.frame:IsShown() and palette._motionClosing,"unfocused Escape preserves exit animation")
 assert(not palette.input.frame.focused and not palette.input:IsEnabled() and not palette.escapeFrame:IsShown(),"exit releases input and Escape receiver immediately")
-motion.group.scripts.OnFinished()
+finishPresence()
 assert(not palette.frame:IsShown() and not palette._motionClosing,"native Escape eventually hides the rendered window")
 palette:Show()
 _G.__combat=true
 RunPaletteCombatSnippet(palette.frame);palette.frame.scripts.OnHide(palette.frame)
 assert(not palette.escapeFrame:IsShown(),"combat exit cannot consume a later native Escape")
-assert(not palette.visible and not motion.playing and motion.finished==nil,"secure combat hide cancels entrance without delayed work")
+assert(not palette.visible and not motion.presence and not motion.presenceDriver.scripts.OnUpdate,"secure combat hide cancels entrance without delayed work")
 _G.__combat=false
 palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen restores Escape after combat cleanup")
-palette:Hide("animation-test");motion.group.scripts.OnFinished()
+palette:Hide("animation-test");finishPresence()
 palette.frame.CreateAnimationGroup=oldAnimation
+palette.frame.SetScale=oldScale
 LycheeDB.palette.reduceMotion=reduced
 local calls, originals = 0, {}
 for index, button in ipairs(secureBroker.buttons) do

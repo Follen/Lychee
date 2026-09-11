@@ -1,0 +1,65 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": {
+      "kind": "api-function",
+      "name": "SetScale",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "1470: \t\t\tName = \"SetScale\",\n1471: \t\t\tType = \"Function\",\n1472: \t\t\tIsProtectedFunction = true,\n1473: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Scale },\n1474: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1475: \n1476: \t\t\tArguments =\n1477: \t\t\t{\n1478: \t\t\t\t{ Name = \"scale\", Type = \"number\", Nilable = false },\n1479: \t\t\t},\n1480: \t\t},",
+      "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+      "line": 1470,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": {
+      "kind": "api-function",
+      "name": "SetPoint",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},",
+      "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+      "line": 135,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": {
+      "kind": "api-function",
+      "name": "SetScript",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "640: \t\t\tName = \"SetScript\",\n641: \t\t\tType = \"Function\",\n642: \t\t\tRequiresAssignableScript = true,\n643: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n644: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n645: \n646: \t\t\tArguments =\n647: \t\t\t{\n648: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n649: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n650: \t\t\t},\n651: \t\t},",
+      "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+      "line": 640,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  }
+]
