@@ -103,11 +103,17 @@ Host 对静态和动态记录的文字字段共用非模糊评分；动态业务
 
 Scope：可含 product、locale、minInterface、maxInterface、minBuild、maxBuild；产品/locale 为字符串，版本边界为整数。字段缺省不加该项约束。category/source 筛选同时约束动态候选。
 
-## 托管视图
+## 自定义视图
 
 View.create(context,initialState) 返回实例，Host 随后调用 instance:Mount(context,initialState)。context 包含 contentFrame、width、height、extensionID、panelID、session、generation。Mount 应使用 initialState 首次绘制。
 
 后续调用 instance:Update(state,context)。替换、关闭或注销时调用 Unmount(reason)、Dispose(reason)。实例应复用自己的 frame，并在卸载时停止事件、timer 和其他活动。不要将 contentFrame 保存到全局搜索结果或 SavedVariables。
+
+create每次挂载都调用；复用由Provider缓存保证，不存在自动缓存字段。Dispose每次卸载都会执行，
+不表示引擎Frame销毁。回调返回false不表示失败，抛错才清理；Unmount异常仍尝试Dispose。
+生命周期同步重入挂载/更新返回PANEL_BUSY；回调中请求关闭被接收并在回调结束后清理，
+被取消的挂载/更新返回PANEL_CANCELLED。正常API2顺序保持，完整责任见
+[视图生命周期](../lychee-sdk/VIEW_LIFECYCLE.md)。
 
 Schema 支持基础类型字符串（string/number/boolean/table/integer/any）、可选后缀 `?`、严格字段对象，以及 `{kind="array",items=Schema,maxItems?}`。运行时值仍必须满足 plain-data 边界。
 

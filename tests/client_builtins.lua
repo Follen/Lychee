@@ -65,7 +65,7 @@ for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     assert((found.cdm~=nil)==(client=="retail"))
 end
 -- No journal UI creation: English names come from IDs; fallback never leaks Chinese.
-I.Builtin.JournalCatalog={instances={[7]={"中文副本",1}},encounters={{9,7,"中文首领"}}}
+I.Builtin.JournalCatalog={instances={[7]={"中文副本",1}},encounters={9,7,"中文首领"},encounterCount=1}
 load("Builtin/Bosses/Provider.lua")
 local rows={}
 I.Builtin.Bosses.build({},function(row) rows[#rows+1]=row end,function() end)

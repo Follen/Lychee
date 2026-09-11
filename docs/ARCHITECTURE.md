@@ -22,7 +22,7 @@ Lychee:RegisterProvider(definition)
   -> ResultList / recent tiles: one presentation and interaction model
   -> ResultActionExecutor
        ordinary callback -> ProviderRuntime
-       managed view      -> ViewHost
+       custom view       -> ViewHost
        protected spell   -> SecureActionBroker + Policy
        declared drag     -> Host cursor adapter / Provider callback
 ```
@@ -127,6 +127,19 @@ SavedVariables schema 2 保存来源开关、最小身份历史和固定项的�
 Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实例可用性，后者允许同一业务在不同 product/interface/build 下采用不同数据源、事件与交互。适配器归 Provider 所有，推荐按 TOC 加载，初始化时唯一选择；共享入口仅提交一个普通 descriptor。Host 不依赖具体适配器或新增游戏业务分支。未选中分支不创建业务资源，稳定 ID／缓存版本隔离／清理遵循 [SDK 版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。
 
 ## 内部结构维护
+
+### 加载、创建与复用
+
+TOC列出的Lua在加载阶段执行，并非所有代码按需加载。Provider初始化、索引构建和Frame创建是另外三个阶段：
+搜索窗口首次打开时创建；具体目录按各Provider既有时序构建，不能以延后业务可用性冒充成本消除。
+首领目录保持原加载阶段与完整数据，仅使用连续三字段数组减少每条记录的小表。
+启动成本由`tests/performance_loading.lua`单独测量，不能用首次UI框体计数替代代码加载统计。
+
+ViewHost串行处理一次挂载会话；create每次调用，实例缓存归Provider，正常Unmount→Dispose顺序不变。
+重入挂载/更新拒绝，回调中请求关闭在回调结束后清理；归属保存在宿主字段中，不从可修改context重新推断。
+模板和完整契约见[SDK视图生命周期](../lychee-sdk/VIEW_LIFECYCLE.md)。
+Elles的版本敏感访问集中在Adapter，不能据此宣称与上游无耦合；详见
+[适配契约](../lychee-sdk/ADAPTER_COMPATIBILITY.md)和[本轮验证](validation/2026-09-11-loading-views-adapters.md)。
 
 内置功能按职责存放在 `package/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](PROJECT_STRUCTURE.md)。
 

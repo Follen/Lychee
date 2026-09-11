@@ -1,0 +1,75 @@
+sample=1 before
+TOC loading files=76 cpu_ms=20.00 allocated_KiB=3174.0 retained_KiB=1317.6 frames=2 events=3
+  434.5 KiB Builtin/Bosses/JournalCatalog.lua
+  214.2 KiB UI/Palette.lua
+  144.1 KiB Core/ExtensionRegistry.lua
+  119.7 KiB Search/StaticIndex.lua
+  116.3 KiB UI/ResultList.lua
+  110.8 KiB Core/ProviderRuntime.lua
+  100.5 KiB UI/SettingsView.lua
+  92.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=3.00 allocated_KiB=1046.9 retained_KiB=0.0 frames=1
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=8.000 allocation_20_queries_KiB=1669.2 retained_KiB=-0.1
+sample=1 after
+TOC loading files=77 cpu_ms=25.00 allocated_KiB=3116.6 retained_KiB=1269.3 frames=2 events=3
+  362.7 KiB Builtin/Bosses/JournalCatalog.lua
+  214.1 KiB UI/Palette.lua
+  144.1 KiB Core/ExtensionRegistry.lua
+  119.7 KiB Search/StaticIndex.lua
+  116.3 KiB UI/ResultList.lua
+  110.8 KiB Core/ProviderRuntime.lua
+  100.4 KiB UI/SettingsView.lua
+  92.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=3.00 allocated_KiB=921.9 retained_KiB=0.0 frames=1
+View lifecycle PASS legacy order/false returns/cached instance/reentry/cancellation/errors/owner isolation
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=9.000 allocation_20_queries_KiB=418.9 retained_KiB=-0.1
+sample=2 before
+TOC loading files=76 cpu_ms=21.00 allocated_KiB=3174.0 retained_KiB=1317.6 frames=2 events=3
+  434.5 KiB Builtin/Bosses/JournalCatalog.lua
+  214.2 KiB UI/Palette.lua
+  144.1 KiB Core/ExtensionRegistry.lua
+  119.7 KiB Search/StaticIndex.lua
+  116.3 KiB UI/ResultList.lua
+  110.8 KiB Core/ProviderRuntime.lua
+  100.5 KiB UI/SettingsView.lua
+  92.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=3.00 allocated_KiB=1046.9 retained_KiB=0.0 frames=1
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=8.000 allocation_20_queries_KiB=1667.9 retained_KiB=-0.1
+sample=2 after
+TOC loading files=77 cpu_ms=20.00 allocated_KiB=3116.6 retained_KiB=1269.3 frames=2 events=3
+  362.7 KiB Builtin/Bosses/JournalCatalog.lua
+  214.1 KiB UI/Palette.lua
+  144.1 KiB Core/ExtensionRegistry.lua
+  119.7 KiB Search/StaticIndex.lua
+  116.3 KiB UI/ResultList.lua
+  110.8 KiB Core/ProviderRuntime.lua
+  100.4 KiB UI/SettingsView.lua
+  92.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=2.00 allocated_KiB=921.9 retained_KiB=0.0 frames=1
+View lifecycle PASS legacy order/false returns/cached instance/reentry/cancellation/errors/owner isolation
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=9.000 allocation_20_queries_KiB=420.1 retained_KiB=-0.1
+sample=3 before
+TOC loading files=76 cpu_ms=24.00 allocated_KiB=3174.0 retained_KiB=1317.6 frames=2 events=3
+  434.5 KiB Builtin/Bosses/JournalCatalog.lua
+  214.2 KiB UI/Palette.lua
+  144.1 KiB Core/ExtensionRegistry.lua
+  119.7 KiB Search/StaticIndex.lua
+  116.3 KiB UI/ResultList.lua
+  110.8 KiB Core/ProviderRuntime.lua
+  100.5 KiB UI/SettingsView.lua
+  92.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=3.00 allocated_KiB=1046.9 retained_KiB=0.0 frames=1
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=9.000 allocation_20_queries_KiB=1668.7 retained_KiB=-0.1
+sample=3 after
+TOC loading files=77 cpu_ms=21.00 allocated_KiB=3116.6 retained_KiB=1269.3 frames=2 events=3
+  362.7 KiB Builtin/Bosses/JournalCatalog.lua
+  214.1 KiB UI/Palette.lua
+  144.1 KiB Core/ExtensionRegistry.lua
+  119.7 KiB Search/StaticIndex.lua
+  116.3 KiB UI/ResultList.lua
+  110.8 KiB Core/ProviderRuntime.lua
+  100.4 KiB UI/SettingsView.lua
+  92.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=3.00 allocated_KiB=921.9 retained_KiB=0.0 frames=1
+View lifecycle PASS legacy order/false returns/cached instance/reentry/cancellation/errors/owner isolation
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=7.000 allocation_20_queries_KiB=420.1 retained_KiB=-0.1

@@ -124,6 +124,8 @@
 ---@alias LycheeSchema string|table<string,any>
 
 ---@class LycheeViewContext
+---Current mount only: clear references on Unmount; do not mutate Host identity fields.
+---Context/state are not promised to be immutable or deep-copied on every mount.
 ---@field contentFrame table WoW content container owned by the Host.
 ---@field width number
 ---@field height number
@@ -133,12 +135,18 @@
 ---@field generation integer
 
 ---@class LycheeView
+---Provider owns reuse: create runs on every open and may return one cached instance.
+---False callback returns are not failure signals; thrown errors trigger cleanup.
+---Every close/replace/error invokes Unmount then Dispose; both must be idempotent and tolerate partial Mount.
+---Stop events/timers, invalidate late callbacks, clear context/business references; fixed UI may be retained.
+---Synchronous lifecycle reentry into mount/update returns PANEL_BUSY. A close request cancels after the callback returns.
 ---@field Mount fun(self:LycheeView,context:LycheeViewContext,initialState:table)
 ---@field Update? fun(self:LycheeView,state:table,context:LycheeViewContext)
 ---@field Unmount? fun(self:LycheeView,reason:string)
 ---@field Dispose? fun(self:LycheeView,reason:string)
 
 ---@class LycheeViewFactory
+---Fields remain create/stateSchema (API 2); no automatic Host cache or lifecycle flag.
 ---@field stateSchema table
 ---@field create fun(context:LycheeViewContext,initialState:table):LycheeView
 

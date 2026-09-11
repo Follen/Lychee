@@ -228,6 +228,12 @@ run 返回 `{ok=true,view="detail",state={...}}` 可以打开 `views.detail`。�
 
 完整可安装示例见 [ThirdPartyFixture](../lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua)：包含普通动作、只读条目、独立拖动、视图状态和卸载清理。
 
+宿主每次打开均调用create，复用由Provider显式缓存保证；每次关闭/替换都会依次调用Unmount和Dispose。
+Dispose不表示引擎Frame销毁，两次清理须幂等；保留固定控件树时清除当前业务/context引用。
+Mount/Update返回false不表示失败，抛错才触发清理。生命周期回调内同步重入挂载/更新返回PANEL_BUSY；
+请求关闭会在当前回调返回后完成清理，被取消的挂载/更新返回PANEL_CANCELLED。
+正常API2回调顺序与注册字段不变。详见[可复用视图与生命周期](../lychee-sdk/VIEW_LIFECYCLE.md)。
+
 ## 验证接入
 
 用户可以通过荔枝标志或搜索“荔枝设置”，分别开关内置与第三方 Provider。用户开关持久保存，与扩展自身的 `handle:SetEnabled()` 独立；两者同时启用时来源才有效。`handle:GetState()` 的 `enabled` 为实际状态，`ownerEnabled` 和 `userEnabled` 分别反映两个开关。停用会停止查询并调用原有清理生命周期，扩展自行启用不能覆盖用户的停用选择。

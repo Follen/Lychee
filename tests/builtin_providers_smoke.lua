@@ -216,10 +216,10 @@ assert(execute(boss).code=="UI_UNAVAILABLE", "journal must reach exact encounter
 EncounterJournal_OpenJournal=nil
 EncounterJournal_LoadUI=function() return false end
 assert(execute(boss).code=="UI_UNAVAILABLE")
-assert(#I.Providers.entries["builtin.bosses"].records==#I.Builtin.JournalCatalog.encounters)
+assert(#I.Providers.entries["builtin.bosses"].records==I.Builtin.JournalCatalog.encounterCount)
 for _, frame in ipairs(frames) do assert(not frame.scripts.OnUpdate, "no idle polling") end
 local queryStarted=os.clock()
 for index=1,100 do query(index%2==0 and "死亡矿井" or "纹章") end
 print(string.format("Built-in providers PASS: %d bosses; init %.2f ms / retained %.1f KiB; alternating query mean %.3f ms (offline Lua only)",
-    #I.Builtin.JournalCatalog.encounters,initMS,indexKB,(os.clock()-queryStarted)*10))
+    I.Builtin.JournalCatalog.encounterCount,initMS,indexKB,(os.clock()-queryStarted)*10))
 assert(indexKB < 8192, "built-in retained indexes exceed 8 MiB memory budget")

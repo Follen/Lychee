@@ -1,0 +1,82 @@
+[
+  {
+    "requestedRef": "latest",
+    "symbol": "CreateFrame",
+    "path": "Interface/AddOns/Blizzard_SharedXMLBase/FrameUtil.lua",
+    "excerpt": "155: function FrameUtil.CreateFrame(name, parent, template)\n156: \t-- NOTE: This use of the template type is not strictly correct, but should mostly work.\n157: \tlocal templateInfo = C_XMLUtil.GetTemplateInfo(template);\n158: \tlocal frameType = templateInfo and templateInfo.type or \"Frame\";\n159: \treturn CreateFrame(frameType, name, parent, template);\n160: end",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "line": 155,
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "SetParent",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+    "excerpt": "592: \t\t\tName = \"SetParent\",\n593: \t\t\tType = \"Function\",\n594: \t\t\tIsProtectedFunction = true,\n595: \t\t\tCheckAllowChangeParent = true,\n596: \t\t\tSecretArguments = \"NotAllowed\",\n597: \n598: \t\t\tArguments =\n599: \t\t\t{\n600: \t\t\t\t{ Name = \"parent\", Type = \"SimpleFrame\", Nilable = true },\n601: \t\t\t},\n602: \t\t},",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "line": 592,
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "SetAllPoints",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+    "excerpt": "111: \t\t\tName = \"SetAllPoints\",\n112: \t\t\tType = \"Function\",\n113: \t\t\tIsProtectedFunction = true,\n114: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n115: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n116: \n117: \t\t\tArguments =\n118: \t\t\t{\n119: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n120: \t\t\t\t{ Name = \"doResize\", Type = \"bool\", Nilable = false, Default = true },\n121: \t\t\t},\n122: \t\t},",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "line": 111,
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "Hide",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+    "excerpt": "686: \t\t\tName = \"Hide\",\n687: \t\t\tType = \"Function\",\n688: \t\t\tIsProtectedFunction = true,\n689: \n690: \t\t\tArguments =\n691: \t\t\t{\n692: \t\t\t},\n693: \t\t},",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "line": 686,
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "Show",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+    "excerpt": "1537: \t\t\tName = \"Show\",\n1538: \t\t\tType = \"Function\",\n1539: \t\t\tIsProtectedFunction = true,\n1540: \n1541: \t\t\tArguments =\n1542: \t\t\t{\n1543: \t\t\t},\n1544: \t\t},",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "sourceId": "wow-ui-source",
+    "line": 1537,
+    "product": "retail"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "_RegisterSearchEntry",
+    "path": "EllesmereUI_GlobalSearch.lua",
+    "excerpt": "22: function EllesmereUI._RegisterSearchEntry(label, labelLoc, tooltip, moduleFolder, page, sectionName, selectorSetter, selectorKey, isSection)\n23:     -- Opt-out for whole UI regions: a builder sets this around widget\n24:     -- construction it wants excluded from the search entirely (e.g. the QoL\n25:     -- Macro Factory, whose rows must never be indexed or deep-linked).\n26:     if EllesmereUI._searchIndexSuppress then return end\n27:     -- Composite labels (DualRow/TripleRow with an empty slot) can come in as whitespace\n28:     -- only (e.g. a single joining space with nothing on either side) -- trim before the\n29:     -- emptiness check so those don't register as inert, unmatchable junk entries.\n30:     if label then label = label:match(\"^%s*(.-)%s*$\") end\n31:     if not label or label == \"\" or not moduleFolder or not page then return end\n32:     local key = moduleFolder .. \"\\1\" .. page .. \"\\1\" .. label\n33:     if _seenKeys[key] then return end\n34:     _seenKeys[key] = true\n35:     _searchIndex[#_searchIndex + 1] = {\n36:         label = label,\n37:         labelLoc = labelLoc,\n38:         tooltip = tooltip,\n39:         module = moduleFolder,\n40:         section = sectionName,\n41:         page = page,\n42:         -- Present only for entries built while a page's own internal selector (CDM bar\n43:         -- / action bar / unit dropdown) was set to a specific value -- lets\n44:         -- JumpToResult restore that exact selection before navigating, so a setting\n45:         -- that only exists under one selector value (e.g. HoverCast-only options) is\n46:         -- actually there to find and highlight instead of silently not matching.\n47:         selectorSetter = selectorSetter,\n48:         selectorKey = selectorKey,\n49:         -- True for SectionHeader registrations: results render these as\n50:         -- \"Section: Title Case\" destinations instead of option rows.\n51:         isSection = isSection,\n52:     }\n53: end",
+    "resolvedCommit": "271ffc30d3265d9f77746b0e15224d918f0fafcb",
+    "sourceId": "ellesmereui",
+    "line": 22,
+    "product": "main"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "EnsureLoaded",
+    "path": "EllesmereUI.lua",
+    "excerpt": "5565: function EllesmereUI:EnsureLoaded()\n5566:     if self._deferredLoaded then return end\n5567:     -- Unlock core first (position/anchor engine), matching the pre-split order\n5568:     -- where UnlockMode's deferred body ran before Widgets'.\n5569:     self:EnsureUnlockCore()\n5570:     -- Load the options addon: its files append their deferred inits, which the\n5571:     -- loop below then runs. On failure keep _deferredLoaded false so a later\n5572:     -- open retries after the user re-enables the addon.\n5573:     if not EllesmereUI.EnsureOptionsLoaded() then return end\n5574:     self._deferredLoaded = true\n5575:     for i, fn in ipairs(self._deferredInits) do\n5576:         fn()\n5577:         self._deferredInits[i] = nil\n5578:     end\n5579: end",
+    "resolvedCommit": "271ffc30d3265d9f77746b0e15224d918f0fafcb",
+    "sourceId": "ellesmereui",
+    "line": 5565,
+    "product": "main"
+  },
+  {
+    "requestedRef": "latest",
+    "symbol": "NavigateToElementSettings",
+    "path": "EllesmereUI.lua",
+    "excerpt": "9316: function EllesmereUI:NavigateToElementSettings(moduleName, pageName, sectionName, preSelectFn, highlightText)\n9317:     -- For split rows (DualRow etc.), narrow a deep-link highlight to the half/slot whose own\n9318:     -- label matches instead of pulsing the whole row; returns that child region, or nil to fall\n9319:     -- back to the full row. Inline, not a file-scope local: the main chunk is at the 200-local cap.\n9320:     local function ResolveHighlightSlot(row, text)\n9321:         if not text or not row.GetChildren then return nil end\n9322:         local locText = EllesmereUI.L and EllesmereUI.L(text) or text\n9323:         for _, region in ipairs({ row:GetChildren() }) do\n9324:             local lbl = region._label\n9325:             if lbl and lbl.GetText then\n9326:                 local t = lbl:GetText()\n9327:                 if t and t ~= \"\" and (t:find(text, 1, true) or (locText ~= text and t:find(locText, 1, true))) then\n9328:                     return region\n9329:                 end\n9330:             end\n9331:         end\n9332:         return nil\n9333:     end\n9334: \n9335:     -- First-open split (see _SplitFirstOpen): Show() below returns without\n9336:     -- building the panel on the session's first open, so run the whole deep\n9337:     -- link next frame rather than navigating a panel that does not exist yet.\n9338:     if self:_SplitFirstOpen(function()\n9339:         EllesmereUI:NavigateToElementSettings(moduleName, pageName, sectionName, preSelectFn, highlightText)\n9340:     end) then return end\n9341: \n9342:     self:Show()\n9343:     self:SelectModule(moduleName)\n9344:     self:SelectPage(pageName)\n9345: \n9346:     -- Switch dropdown AFTER the page is loaded, then force a full rebuild.\n9347:     -- This mirrors exactly what the dropdown's own onChange handler does.\n9348:     if preSelectFn then\n9349:         preSelectFn()\n9350:         self:InvalidateContentHeaderCache()\n9351:         local config = modules[moduleName]\n9352:         if config and config.getHeaderBuilder then\n9353:             local hb = config.getHeaderBuilder(pageName)\n9354:             if hb then self:SetContentHeader(hb) end\n9355:         end\n9356:         self:RefreshPage(true)\n9357:     end\n9358: \n9359:     C_Timer.After(0.05, function()\n9360:         local cacheKey = moduleName .. \"::\" .. pageName\n9361:         local cached = _pageCache[cacheKey]\n9362:         if not cached or not cached.wrapper then return end\n9363: \n9364:         local sections = CollectAllChildren(cached.wrapper)\n9365:         for _, sec in ipairs(sections) do\n9366:             if sec.header._sectionName == sectionName then\n9367:                 -- Find the row to scroll to; narrow the highlight to the matching\n9368:                 -- slot (DualRow half) when possible, otherwise pulse the whole row.\n9369:                 local target = sec.header\n9370:                 local hlTarget = sec.header\n9371:                 if highlightText then\n9372:                     for _, m in ipairs(sec.members) do\n9373:                         if (m._labelText and m._labelText:find(highlightText, 1, true))\n9374:                            or (m._labelTextLoc and m._labelTextLoc:find(highlightText, 1, true)) then\n9375:                             target = m\n9376:                             hlTarget = ResolveHighlightSlot(m, highlightText) or m\n9377:                             break\n9378:                         end\n9379:                     end\n9380:                 end\n9381: \n9382:                 local a = target._origAnchor\n9383:                 if a then\n9384:                     local scrollPos = math.abs(a[5]) - 40\n9385:                     EllesmereUI.SmoothScrollTo(scrollPos)\n9386:                     C_Timer.After(0.15, function()\n9387:                         local hl = GetSearchHighlight()\n9388:                         PlaySearchHighlight(hl, hlTarget)\n9389:                     end)\n9390:                 end\n9391:                 return\n9392:             end\n9393:         end\n9394:     end)\n9395: end",
+    "resolvedCommit": "271ffc30d3265d9f77746b0e15224d918f0fafcb",
+    "sourceId": "ellesmereui",
+    "line": 9316,
+    "product": "main"
+  }
+]

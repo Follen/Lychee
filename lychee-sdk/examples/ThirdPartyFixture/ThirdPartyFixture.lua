@@ -1,6 +1,12 @@
 -- Public API 2.2 integration. Lychee is optional; no Host internals are accessed.
 local state = { committed=nil, enabled=false, diagnostics={}, opens=0, drags=0 }
 local waitingFrame, cachedPanel
+-- One reusable structure belongs to this Provider; each mount owns its binding.
+local function releasePanel(panel)
+    panel.active=false
+    panel.context=nil
+    if panel.frame then panel.frame:Hide() end
+end
 local function stopWaiting()
     if waitingFrame then waitingFrame:UnregisterAllEvents(); waitingFrame:SetScript("OnEvent", nil) end
 end
@@ -36,19 +42,32 @@ local function attach()
             if cachedPanel then return cachedPanel end
             local panel={}
             function panel:Mount(context, initialState)
-                self.context=context
                 if not self.frame then
                     self.frame=CreateFrame("Frame",nil,context.contentFrame)
-                    self.frame:SetAllPoints(context.contentFrame)
-                    self.text=self.frame:CreateFontString(nil,"ARTWORK","GameFontHighlight")
-                    self.text:SetPoint("TOPLEFT",16,-16)
                 end
+                if self.parent~=context.contentFrame then
+                    self.parent=nil -- Partial reparent/layout failure invalidates the old binding too.
+                    self.frame:SetParent(context.contentFrame)
+                    self.frame:ClearAllPoints()
+                    self.frame:SetAllPoints(context.contentFrame)
+                    self.parent=context.contentFrame -- Publish only after setters succeed.
+                end
+                if not self.text then
+                    self.text=self.frame:CreateFontString(nil,"ARTWORK","GameFontHighlight")
+                end
+                if not self.textReady then
+                    self.text:SetPoint("TOPLEFT",16,-16)
+                    self.textReady=true
+                end
+                self.context,self.active=context,true
                 self:Update(initialState)
                 self.frame:Show()
             end
-            function panel:Update(viewState) self.text:SetText(state.committed:Text("ITEM",viewState.itemID)) end
-            function panel:Unmount() if self.frame then self.frame:Hide() end; self.context=nil end
-            function panel:Dispose() self:Unmount() end
+            function panel:Update(viewState)
+                if self.active then self.text:SetText(state.committed:Text("ITEM",viewState.itemID)) end
+            end
+            function panel:Unmount() releasePanel(self) end
+            function panel:Dispose() releasePanel(self) end
             cachedPanel=panel
             return panel
         end}},

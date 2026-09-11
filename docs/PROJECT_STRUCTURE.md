@@ -20,6 +20,12 @@
 
 单文件功能用 `<功能>/Provider.lua`；复杂功能可以在自己的目录内拆分，不要求每个功能都具备相同数量的文件。技能别名在 `Builtin/PlayerSpells/Aliases.lua`，首领目录在 `Builtin/Bosses/JournalCatalog.lua`，不再混放到通用 Data 目录。
 
+首领目录由`tools/build_journal_catalog.py`从保存的源快照生成，内部encounters使用
+`encounterID, instanceID, canonicalName`连续三字段，`encounterCount`记录条数；
+`tests/journal_catalog.py`逐条验证源快照，禁止手工修改生成行。
+Elles的上游版本敏感访问放在`Builtin/Ellesmere/Adapter.lua`，Provider保留业务查询、排序和取消。
+面板会话由`UI/ViewHost.lua`维护，SDK样例的缓存与清理由Provider所有，见`lychee-sdk/VIEW_LIFECYCLE.md`。
+
 ## 新增或调整内置 Provider
 
 1. 在对应功能目录放置实现与 `Locales.lua`，继续独立注册该 Provider 的 i18n。

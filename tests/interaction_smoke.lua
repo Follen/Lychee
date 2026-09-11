@@ -970,6 +970,29 @@ assert(palette.viewHost:Update({ itemID=9 }))
 assertEq(fixturePanel.text:GetText(), "物品 9", "view Update receives state directly")
 palette:Hide("fixture-close")
 assert(not fixturePanel.frame:IsShown() and not palette.viewHost:IsActive(), "view teardown stops display")
+assert(not fixturePanel.context and not fixturePanel.active,"SDK sample releases its binding")
+do
+    local alternate=CreateFrame("Frame",nil,UIParent)
+    local originalFrame,originalText=fixturePanel.frame,fixturePanel.text
+    local factory=I.Providers.entries["third-party-fixture"].definition.views.detail
+    assert(palette.viewHost:Mount(factory,{contentFrame=alternate,extensionID="third-party-fixture"},{itemID=77}))
+    assert(fixturePanel.frame==originalFrame and fixturePanel.text==originalText and fixturePanel.parent==alternate,
+        "SDK sample reuses controls while changing parent")
+    assertEq(fixturePanel.text:GetText(),"物品 77","reused sample binds new business state")
+    palette.viewHost:Unmount("sample-reparent")
+    assert(not fixturePanel.context and not fixturePanel.active)
+    local setAllPoints=fixturePanel.frame.SetAllPoints
+    fixturePanel.frame.SetAllPoints=function() error("layout failed after parent changed") end
+    assert(not palette.viewHost:Mount(factory,{contentFrame=palette.viewHost:GetFrame()},{itemID=88}))
+    assert(not fixturePanel.parent and not fixturePanel.context and not fixturePanel.active,
+        "partial layout failure invalidates cached binding")
+    fixturePanel.frame.SetAllPoints=setAllPoints
+    assert(palette.viewHost:Mount(factory,{contentFrame=alternate},{itemID=99}))
+    assert(fixturePanel.frame==originalFrame and fixturePanel.frame:GetParent()==alternate
+        and fixturePanel.parent==alternate,"retry rebinds correctly without recreating controls")
+    assertEq(fixturePanel.text:GetText(),"物品 99","retry uses the new state")
+    palette.viewHost:Unmount("sample-retry")
+end
 assert(palette:Show())
 local fixtureTile = findEntry(palette.homeView.tiles, "fixture-item-12345")
 local menuEntries = {}

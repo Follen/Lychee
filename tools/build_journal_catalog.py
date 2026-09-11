@@ -1,4 +1,5 @@
 """Rebuild the frozen retail catalogue from the checked-in wowdata snapshots."""
+import argparse
 import json
 from pathlib import Path
 
@@ -19,9 +20,17 @@ for instance_id in sorted(used):
     row = by_id[instance_id]
     icon = row["ButtonSmallFileDataID"] or row["ButtonFileDataID"]
     lines.append(f'        [{instance_id}]={{{quote(row["Name_lang"])}, {icon if icon > 0 else "nil"}}},')
-lines.extend(["    },", "    encounters={"])
+lines.extend(["    },", f"    encounterCount={len(valid)},", "    -- Flat triples: encounter ID, instance ID, canonical name. No per-row tables.", "    encounters={"])
 for row in sorted(valid, key=lambda row: (row["JournalInstanceID"], row["OrderIndex"], row["ID"])):
-    lines.append(f'        {{{row["ID"]}, {row["JournalInstanceID"]}, {quote(row["Name_lang"])}}},')
+    lines.append(f'        {row["ID"]}, {row["JournalInstanceID"]}, {quote(row["Name_lang"])},')
 lines.extend(["    },", "}", ""])
-(ROOT / "package/Lychee/Builtin/Bosses/JournalCatalog.lua").write_text("\n".join(lines), encoding="utf-8", newline="\n")
+parser = argparse.ArgumentParser()
+parser.add_argument("--check", action="store_true")
+output = ROOT / "package/Lychee/Builtin/Bosses/JournalCatalog.lua"
+rendered = "\n".join(lines)
+if parser.parse_args().check:
+    if output.read_text(encoding="utf-8") != rendered:
+        raise SystemExit("Journal catalogue generation drift")
+else:
+    output.write_text(rendered, encoding="utf-8", newline="\n")
 print(f"Journal catalogue: {len(valid)} encounters, {len(used)} instances; {len(encounters)-len(valid)} rows without an available named instance omitted.")

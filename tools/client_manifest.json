@@ -459,7 +459,7 @@
       "id": "builtin.ellesmere",
       "module": "Ellesmere",
       "products": ["retail"],
-      "files": ["Builtin/Ellesmere/Provider.lua"],
+      "files": ["Builtin/Ellesmere/Adapter.lua", "Builtin/Ellesmere/Provider.lua"],
       "requires": [],
       "locales": "Builtin/Ellesmere/Locales.lua"
     },

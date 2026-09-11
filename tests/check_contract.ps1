@@ -63,6 +63,14 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Client TOC generation drift' }
     & python 'tests/client_manifest.py'
     if ($LASTEXITCODE -ne 0) { throw 'Client manifest checks failed' }
+    & python 'tools/build_journal_catalog.py' '--check'
+    if ($LASTEXITCODE -ne 0) { throw 'Journal catalogue generation drift' }
+    & python 'tests/journal_catalog.py'
+    if ($LASTEXITCODE -ne 0) { throw 'Journal catalogue equivalence failed' }
+    foreach ($test in @('performance_loading','view_lifecycle','ellesmere_adapter','ellesmere_equivalence')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
     foreach ($test in @('provider_locales','provider_locale_ownership','catalog_lifecycle','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }

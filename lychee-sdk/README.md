@@ -2,6 +2,10 @@
 
 Provider API 2.6 / revision 6 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
 
+自定义面板优先阅读[可复用视图与生命周期](VIEW_LIFECYCLE.md)：工厂每次调用、Provider显式缓存、
+关闭时Unmount→Dispose、部分失败恢复与回调重入规则。TOC加载代码、Provider初始化、索引构建和UI创建是不同阶段，
+“窗口按需创建”不代表对应Lua尚未加载。第三方适配契约见[适配与兼容性](ADAPTER_COMPATIBILITY.md)。
+
 新接入推荐 revision 6：`searchGlobal=true, searchPrefixes={"scope"}, searchKeywords={"openlist"}`，普通搜索与两类入口同时可用。检查 `Supports(2,6)` 并声明 `minApiRevision=6`；空词表移除对应入口，不与旧 searchMode 混用。旧 revision 1–5 声明保持原效果，用户可在管理页明确组合。详见 [SDK 接入](../docs/SDK.md)。
 
 revision 5 新增 `searchMode="keyword", searchKeywords={"quick","快捷"}`。检查 `Supports(2,5)`，声明 `minApiRevision=5`；Host 负责精确触发和来源隔离，query 收到空文本及本来源 sourceID，无需重复判断触发词。用户可在管理页修改触发词或切换模式。触发词和冒号前缀互不混用；保留旧独立查询兼容。完整示例、冲突与生命周期语义见 [SDK 接入](../docs/SDK.md)。

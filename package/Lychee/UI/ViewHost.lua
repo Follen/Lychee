@@ -5,10 +5,19 @@ Lychee.UI = Lychee.UI or {}
 local ViewHost = {}
 ViewHost.__index = ViewHost
 
-local function invoke(fn, ...)
-    if type(fn) ~= "function" then return true end
-    local args = { ... }
-    return xpcall(function() return fn(unpack(args)) end, geterrorhandler and geterrorhandler() or function(e) return e end)
+local function report(message)
+    if geterrorhandler then return geterrorhandler()(message) end
+    return message
+end
+local function invoke(panel, key, first, second)
+    -- Lookup is part of the third-party boundary too. No per-call argument table.
+    return xpcall(function()
+        local instance = panel.instance
+        local fn = panel.factory[key] or instance[key]
+        if type(fn) ~= "function" then return end
+        if key == "Unmount" or key == "Dispose" then return fn(instance, first) end
+        return fn(instance, first, second)
+    end, report)
 end
 
 function ViewHost:Create(parent)
@@ -18,46 +27,81 @@ function ViewHost:Create(parent)
     return setmetatable({ frame = frame, panel = nil, generation = 0, active = false }, ViewHost)
 end
 
-function ViewHost:Unmount(reason)
+local function release(self, reason)
     local panel = self.panel
     self.panel, self.active = nil, false
     self.generation = self.generation + 1
     if panel then
-        local instance = panel.instance
-        invoke(panel.factory and panel.factory.Unmount or instance and instance.Unmount, instance, reason or "unmount")
-        invoke(panel.factory and panel.factory.Dispose or instance and instance.Dispose, instance, reason or "unmount")
+        invoke(panel, "Unmount", reason)
+        invoke(panel, "Dispose", reason)
     end
     self.frame:Hide()
 end
 
+local function finish(self, ok, err)
+    if self.cancelReason or not ok then
+        local reason = self.cancelReason or "panel-error"
+        if ok then ok, err = false, "PANEL_CANCELLED" end
+        self.cancelReason = nil
+        release(self, reason)
+    end
+    self.cancelReason, self.pendingOwner, self.busy = nil, nil, false
+    return ok, err
+end
+
+function ViewHost:Unmount(reason)
+    reason = reason or "unmount"
+    if self.busy then
+        self.active = false
+        self.cancelReason = self.cancelReason or reason
+        return
+    end
+    self.busy = true
+    release(self, reason)
+    self.cancelReason, self.busy = nil, false
+end
+
 function ViewHost:Mount(factory, context, state)
-    self:Unmount("replace")
-    if type(factory) ~= "table" or type(factory.create) ~= "function" then return false, "PANEL_ERROR" end
+    if self.busy then return false, "PANEL_BUSY" end
+    self.busy = true
+    release(self, "replace")
+    if self.cancelReason then return finish(self, true) end
+    if type(factory) ~= "table" then return finish(self, false, "PANEL_ERROR") end
     context = context or {}
     if context.contentFrame == nil then context.contentFrame = self.frame end
     if context.width == nil then context.width = self.frame:GetWidth() end
     if context.height == nil then context.height = self.frame:GetHeight() end
     -- Lua callbacks may ignore the second argument, so legacy create(context) factories remain valid.
-    local ok, instance = invoke(factory.create, context, state)
-    if not ok or not instance then return false, "PANEL_ERROR" end
+    local owner = context.extensionID
+    self.pendingOwner = owner
+    local ok, instance = xpcall(function()
+        if type(factory.create) == "function" then return factory.create(context, state) end
+    end, report)
+    if not ok or (type(instance) ~= "table" and type(instance) ~= "userdata") then return finish(self, false, "PANEL_ERROR") end
     self.generation = self.generation + 1
-    self.panel = { factory = factory, instance = instance, context = context }
+    self.panel = { factory = factory, instance = instance, context = context, owner = owner }
+    if self.cancelReason then return finish(self, true) end
     self.active = true
     self.frame:Show()
-    local mounted = invoke(factory.Mount or instance.Mount, instance, context, state)
-    if not mounted then self:Unmount("panel-error"); return false, "PANEL_ERROR" end
-    return true
+    if self.cancelReason then return finish(self, true) end
+    local mounted = invoke(self.panel, "Mount", context, state)
+    return finish(self, mounted, not mounted and "PANEL_ERROR" or nil)
 end
 
 function ViewHost:Update(state)
+    if self.busy then return false, "PANEL_BUSY" end
     if not self.active or not self.panel then return false, "INVALID_STATE" end
     local panel = self.panel
-    local ok = invoke(panel.factory.Update or panel.instance.Update, panel.instance, state, panel.context)
-    if not ok then self:Unmount("panel-error"); return false, "PANEL_ERROR" end
-    return true
+    self.busy = true
+    local ok = invoke(panel, "Update", state, panel.context)
+    return finish(self, ok, not ok and "PANEL_ERROR" or nil)
 end
 
 function ViewHost:IsActive() return self.active end
+function ViewHost:IsOwnedBy(owner)
+    return owner ~= nil and ((self.busy and self.pendingOwner == owner)
+        or (self.active and self.panel ~= nil and self.panel.owner == owner))
+end
 function ViewHost:GetFrame() return self.frame end
 
 Lychee.UI.ViewHost = ViewHost

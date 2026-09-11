@@ -5,21 +5,22 @@ local function build(self,put,checkpoint)
     local data=I.Builtin.JournalCatalog
     -- One localized name per bounded instance catalogue, reused across encounters.
     local instances={}
-    for _,encounter in ipairs(data.encounters) do
-        local instance=data.instances[encounter[2]]
-        local name=instances[encounter[2]]
+    for offset=1,#data.encounters,3 do
+        local encounterID,instanceID,canonical=data.encounters[offset],data.encounters[offset+1],data.encounters[offset+2]
+        local instance=data.instances[instanceID]
+        local name=instances[instanceID]
         if not name then
-            name=EJ_GetInstanceInfo and EJ_GetInstanceInfo(encounter[2])
+            name=EJ_GetInstanceInfo and EJ_GetInstanceInfo(instanceID)
             if not name then self.hasFallback=true end
-            name=name or (I.Locale:IsChinese() and instance[1]) or L:Format("副本 %d",encounter[2])
-            instances[encounter[2]]=name
+            name=name or (I.Locale:IsChinese() and instance[1]) or L:Format("副本 %d",instanceID)
+            instances[instanceID]=name
         end
-        local title=EJ_GetEncounterInfo and EJ_GetEncounterInfo(encounter[1])
+        local title=EJ_GetEncounterInfo and EJ_GetEncounterInfo(encounterID)
         if not title then self.hasFallback=true end
-        title=title or (I.Locale:IsChinese() and encounter[3]) or L:Format("首领 %d",encounter[1])
-        local record={id="boss-"..encounter[1],title=title,subtitle=name,kindTitle=L["首领"],
-            icon=instance[2],aliases={name},keywords={"首领","boss",tostring(encounter[1])},
-            payload={encounterID=encounter[1],instanceID=encounter[2]},actions={"open"}}
+        title=title or (I.Locale:IsChinese() and canonical) or L:Format("首领 %d",encounterID)
+        local record={id="boss-"..encounterID,title=title,subtitle=name,kindTitle=L["首领"],
+            icon=instance[2],aliases={name},keywords={"首领","boss",tostring(encounterID)},
+            payload={encounterID=encounterID,instanceID=instanceID},actions={"open"}}
         put(record,title.."\0"..name)
         checkpoint()
     end
@@ -44,11 +45,12 @@ if I.Locale:IsChinese() then
     function M:Init()
         if self.handle then return true end
         local data,records=I.Builtin.JournalCatalog,{}
-        for _,encounter in ipairs(data.encounters) do
-            local instance=data.instances[encounter[2]]
-            records[#records+1]={id="boss-"..encounter[1],title=encounter[3],subtitle=instance[1],
+        for offset=1,#data.encounters,3 do
+            local encounterID,instanceID,canonical=data.encounters[offset],data.encounters[offset+1],data.encounters[offset+2]
+            local instance=data.instances[instanceID]
+            records[#records+1]={id="boss-"..encounterID,title=canonical,subtitle=instance[1],
                 kindTitle=L["首领"],icon=instance[2],aliases={instance[1]},keywords={"首领","boss"},
-                payload={encounterID=encounter[1],instanceID=encounter[2]},actions={"open"}}
+                payload={encounterID=encounterID,instanceID=instanceID},actions={"open"}}
         end
         local handle,err=Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=2,version="1.0.0",
             title=L["首领"],i18n=L.resources,scope=I.Builtin.Support:Scope("builtin.bosses"),entries=records,actions=self.actions,

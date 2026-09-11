@@ -49,8 +49,8 @@ for _,file in ipairs({"Bootstrap.lua","Builtin/Definitions.lua","Builtin/Shared/
     "Builtin/Shared/InterfaceActions.lua","Builtin/Bosses/JournalCatalog.lua"}) do dofile("package/Lychee/"..file) end
 local I=LycheeInternal
 local data=I.Builtin.JournalCatalog
-local subset={};for i=1,65 do subset[i]=data.encounters[i] end;data.encounters=subset
-local firstID,firstInstance=subset[1][1],subset[1][2]
+local subset={};for i=1,65*3 do subset[i]=data.encounters[i] end;data.encounters=subset;data.encounterCount=65
+local firstID,firstInstance=subset[1],subset[2]
 dofile("package/Lychee/Builtin/Bosses/Provider.lua")
 local m=I.Builtin.Bosses
 local baseFrames=#frames

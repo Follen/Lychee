@@ -940,7 +940,7 @@ end
 function Palette:InvalidateExtension(extensionID)
     if not extensionID then return false end
     if InCombatLockdown and InCombatLockdown() then self.homeDirty = true; return false end
-    if self.viewHost and self.viewHost.panel and self.viewHost.panel.context and self.viewHost.panel.context.extensionID == extensionID then
+    if self.viewHost and self.viewHost:IsOwnedBy(extensionID) then
         self.viewHost:Unmount("extension-disabled")
     end
     if not self.list then return true end
