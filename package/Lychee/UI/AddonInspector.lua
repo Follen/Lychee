@@ -85,11 +85,10 @@ function UI.CreateAddonInspector(owner)
     function view:Update(target,data)
         self.hasTarget=data~=nil
         self.hasDiagnostic=owner.pick and (owner.pick.preferred~=nil or owner.pick.checked>0) or false
-        self.pickPending=owner.pick and owner.pick.pending
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
-        self.heading:SetText(data and data.title or self.hasDiagnostic and L["正在检查界面"] or L["插件识别"])
+        self.heading:SetText(data and data.title or L["插件识别"])
         self.confidence:SetText(data and data.confidence or self.hasDiagnostic and
-            (self.pickPending and L["正在检查剩余控件"] or L["未找到可确认的可见内容"]) or L["指向界面，查看来自哪个插件"])
+            L["暂未识别此处界面"] or L["指向界面，查看来自哪个插件"])
         self.name:SetText(data and data.name or self.hasDiagnostic and L["按住 Shift 可复制检查信息"] or L["无需点击 · Esc 退出"])
         local location=data and data.location or ""
         self.details:SetText(location)

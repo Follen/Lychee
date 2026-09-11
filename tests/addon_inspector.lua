@@ -204,6 +204,32 @@ assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native s
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
+local rotatingWidget=frame(UIParent,"LayeredAuraOrResource")
+local overlayA=frame(rotatingWidget,"OverlayA")
+local overlayB=frame(rotatingWidget,"OverlayB")
+local visibleChild=frame(rotatingWidget,"ActualVisibleChild")
+local visiblePaint=frame(visibleChild);visiblePaint.kind="Texture";visiblePaint.texture="icon"
+visibleChild.visualRegions={visiblePaint};rotatingWidget.children={overlayA,overlayB,visibleChild}
+local rotatingClock=0
+debugprofilestop=function() rotatingClock=rotatingClock+0.8;return rotatingClock end
+scene({rotatingWidget})
+for i=1,20 do nativeTarget=i%2==0 and overlayA or overlayB;M:Poll() end
+assert(M.target==visibleChild,"changing native overlay at the same pointer must not restart and starve the sweep")
+for i=1,30 do M:Poll();assert(M.target==visibleChild,"a validated descendant must survive new sweep seeding") end
+visiblePaint:Hide();M:Poll();assert(not M.target,"stability must not retain hidden content")
+nativeTarget=nil;debugprofilestop=function() return 0 end
+local emptySweep={}
+for i=1,10 do emptySweep[i]=frame(UIParent,"EmptySweep"..i) end
+scene(emptySweep)
+local sweepClock=0
+debugprofilestop=function() sweepClock=sweepClock+0.8;return sweepClock end
+M:Poll()
+local stableHint=v.confidence:GetText()
+for i=1,30 do
+    M:Poll()
+    assert(v.confidence:GetText()==stableHint,"pending and complete sweeps must not alternate the visible empty-state hint")
+end
+debugprofilestop=function() return 0 end
 local budgetList={}
 for i=1,20 do budgetList[i]=frame(UIParent,"EmptyBudgetCarrier"..i) end
 budgetList[21]=cdmIcon

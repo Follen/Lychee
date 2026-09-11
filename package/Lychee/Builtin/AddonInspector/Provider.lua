@@ -139,6 +139,8 @@ local strataOrder={BACKGROUND=1,LOW=2,MEDIUM=3,HIGH=4,DIALOG=5,FULLSCREEN=6,FULL
 local layerOrder={BACKGROUND=1,BORDER=2,ARTWORK=3,OVERLAY=4,HIGHLIGHT=5}
 function M:ResetVisual()
     self.visualBest,self.visualBestFrame,self.visualX,self.visualY=nil,nil,nil,nil
+    self.visualProvisional=nil
+    self.visualFromPrevious=nil
 end
 function M:Reject(reason)
     self.pickReason=reason
@@ -201,8 +203,10 @@ local function inspectRegions(owner,target,frame,scale,strata,level,ok,...)
             if not owner.visualBest or strata>owner.visualStrata
                 or (strata==owner.visualStrata and (level>owner.visualLevel
                 or (level==owner.visualLevel and (layer>owner.visualLayer
-                or (layer==owner.visualLayer and area<owner.visualArea))))) then
+                or (layer==owner.visualLayer and (area<owner.visualArea or (area==owner.visualArea and owner.visualProvisional))))))) then
                 owner.visualBest,owner.visualBestFrame=target,frame
+                owner.visualProvisional=nil
+                owner.visualFromPrevious=nil
                 owner.visualStrata,owner.visualLevel,owner.visualLayer,owner.visualArea=strata,level,layer,area
             end
         end
@@ -243,6 +247,16 @@ function M:ResetPicking()
     self.pick,self.lastPick,self.lastPickX,self.lastPickY=nil,nil,nil,nil
     self:ResetVisual()
 end
+local function belongsToSweep(owner,pick,object)
+    -- Descendants discovered in the previous sweep may not be queued yet in the
+    -- new one. An admitted ancestor establishes membership, never visibility.
+    for i=1,16 do
+        if not object or object==UIParent or object==WorldFrame then return false end
+        if pick.seen[object] then return true end
+        object=owner:Read(object,"GetParent")
+    end
+    return false
+end
 function M:StackFocus(objects,preferred)
     self:ResetVisual()
     local ok,x,y=pcall(GetCursorPosition)
@@ -256,7 +270,10 @@ function M:StackFocus(objects,preferred)
     end
     local rawReason=preferred and self.pickReason or nil
     local pick=self.pick
-    if not pick or not pick.pending or pick.x~=x or pick.y~=y or pick.preferred~=preferred then
+    -- Native highlight can alternate between empty overlays at one position.
+    -- Finish the bounded sweep there; refresh its native seeds on the next sweep.
+    if not pick or not pick.pending or pick.x~=x or pick.y~=y
+        or (preferred and preferred~=pick.preferred and not belongsToSweep(self,pick,preferred)) then
         if not pick then pick={queue={},seen={},reasons={}};self.pick=pick end
         for key in pairs(pick.queue) do pick.queue[key]=nil end
         for key in pairs(pick.seen) do pick.seen[key]=nil end
@@ -278,15 +295,20 @@ function M:StackFocus(objects,preferred)
             for i=1,math.min(#snapshot,512) do enqueue(pick,clean(snapshot[i])) end
             if #snapshot>512 then pick.capped=true end
         end
+        pick.seedTail=pick.tail
     end
     -- Publish progressively without flicker, but revalidate on every poll so a
     -- hidden, faded, clipped or moved winner cannot linger between sweep batches.
-    if self.lastPickX==x and self.lastPickY==y and self.lastPick and pick.seen[self.lastPick] then considerObject(self,self.lastPick) end
+    if self.lastPickX==x and self.lastPickY==y and self.lastPick and belongsToSweep(self,pick,self.lastPick) then
+        considerObject(self,self.lastPick)
+        self.visualFromPrevious=self.visualBest~=nil
+    end
     local started=debugprofilestop and debugprofilestop() or 0
     for i=1,128 do
         local object=pick.queue[pick.head]
         if not object then break end
         pick.head=pick.head+1;pick.checked=pick.checked+1
+        self.visualProvisional=self.visualFromPrevious and pick.head-1<=pick.seedTail
         considerObject(self,object)
         local reason=self.pickReason
         if reason then pick.reasons[reason]=(pick.reasons[reason] or 0)+1 end
@@ -376,8 +398,7 @@ function M:Poll()
     if not self.running or (self.view.paused and (self.target or self.view.hasDiagnostic)) or self.view.copying then return end
     local target,own=self:Focus()
     if own then self.view:Place(self.target);return end
-    if target~=self.target or (not target and self.view.pickPending~=(self.pick and self.pick.pending))
-        or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false)) then
+    if target~=self.target or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false)) then
         self.target=target;self.data=target and self:Analyze(target) or nil
         self.view:Update(target,self.data)
     end
