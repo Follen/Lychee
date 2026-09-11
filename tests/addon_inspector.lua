@@ -49,6 +49,7 @@ function methods:GetEffectiveAlpha() return self.alpha*(self.parent and self.par
 function methods:IsVisible() return self:IsShown() end
 function methods:GetRect() return self.left or 0,self.bottom or 0,self.width,self.height end
 function methods:GetRegions() if self.visualRegions then return unpack(self.visualRegions) end end
+function methods:GetChildren() if self.children then return unpack(self.children) end end
 function methods:GetTexture() return self.texture end
 function methods:GetVertexColor() return 1,1,1,self.colorAlpha or 1 end
 function methods:GetTextColor() return 1,1,1,self.colorAlpha or 1 end
@@ -203,6 +204,43 @@ assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native s
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
+local engineIcon=frame(UIParent,"EssentialCooldownViewer.Item")
+engineIcon.location="Interface/AddOns/Blizzard_CooldownViewer/CooldownViewer.lua:1"
+local engineTexture=frame(engineIcon);engineTexture.kind="Texture";engineTexture.texture="spell"
+engineTexture.location=engineIcon.location;engineIcon.visualRegions={engineTexture}
+local addonOverlay=frame(engineIcon);addonOverlay.location="Interface/AddOns/EllesmereUICooldownManager/EllesmereUICdmHooks.lua:3096"
+engineIcon.children={addonOverlay};nativeTarget=engineIcon;scene({engineIcon});M:Poll()
+assert(M.target==engineIcon and M.data.title=="EllesmereUICooldownManager" and M.data.confidence=="关联插件 · 内部控件来源",
+    "engine cooldown frame must expose the addon-created overlay without claiming addon ownership")
+local auraButton=frame(UIParent,"EngineAuraButton");auraButton.location=engineIcon.location
+local auraPaint=frame(auraButton);auraPaint.kind="Texture";auraPaint.texture="aura"
+auraPaint.location="Interface/AddOns/EllesmereUI/EllesmereUI_AuraKit.lua:1006"
+auraButton.visualRegions={auraPaint};nativeTarget=auraButton;scene({auraButton});M:Poll()
+assert(M.data.title=="EllesmereUI" and M.data.relatedSources[1].location==auraPaint.location,
+    "engine aura button must expose its dynamically created addon artwork")
+assert(M.data.location==auraButton.location,"associated artwork must not overwrite the selected object's creation source")
+assert(M:Report():find(auraPaint.location,1,true),"copy report retains the concrete related source evidence")
+local relatedReads=sourceReads;M:Poll();assert(sourceReads==relatedReads,"unchanged target does not rescan associated controls")
+local hiddenDecoration=frame(engineIcon);hiddenDecoration.location="Interface/AddOns/HiddenAddon/Art.lua:1";hiddenDecoration:Hide()
+engineIcon.children={addonOverlay,hiddenDecoration}
+local related=M:RelatedSources(engineIcon)
+assert(#related==1 and related[1].folder=="EllesmereUICooldownManager","hidden decoration is not an associated visible source")
+hiddenDecoration:Show();hiddenDecoration.alpha=0
+assert(#M:RelatedSources(engineIcon)==1,"transparent decoration does not add another associated addon")
+hiddenDecoration.alpha=1
+related=M:RelatedSources(engineIcon);assert(#related==2,"multiple related addons are retained rather than inventing a unique owner")
+local originalLocation=engineIcon.location;engineIcon.location="Interface/AddOns/ActualCreator/Frame.lua:1"
+local actual=M:Analyze(engineIcon);assert(actual.title=="ActualCreator" and not actual.relatedSources,"direct creation source wins over internal decoration")
+engineIcon.location=originalLocation;engineIcon.children={addonOverlay}
+local beforeRootReads=sourceReads;assert(not M:RelatedSources(UIParent) and sourceReads==beforeRootReads,"never scan the global UI root")
+local bounded=frame(UIParent,"BoundedEngineWidget");bounded.children={}
+for i=1,32 do
+    local internal=frame(bounded);internal.visualRegions={};bounded.children[i]=internal
+    for j=1,32 do internal.visualRegions[j]=frame(internal) end
+end
+local beforeRelated=sourceReads;local _,relatedTruncated=M:RelatedSources(bounded)
+assert(sourceReads-beforeRelated<=64 and relatedTruncated,"internal evidence traversal has a strict object bound")
+nativeTarget=nil
 local hoverArt=frame(GameTooltip);hoverArt.kind="Texture";hoverArt.texture="tooltip-background"
 GameTooltip.visualRegions={hoverArt};GameTooltip.shown=true
 nativeTarget=hoverArt;scene({GameTooltip,hoverArt,cdmIcon});M:Poll()

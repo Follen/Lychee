@@ -36,9 +36,54 @@ function M:Source(location)
     end
     if path:find("FrameXML/",1,true) then return L["暴雪创建代码"],"Blizzard UI",true end
 end
+local scanRelated
+local function scanRelatedList(owner,state,depth,ok,...)
+    if not ok then return end
+    if select("#",...)>32 then state.truncated=true end
+    for i=1,math.min(select("#",...),32) do
+        scanRelated(owner,clean(select(i,...)),depth,state)
+        if state.remaining<=0 or state.expired then state.truncated=true;break end
+    end
+end
+scanRelated=function(owner,object,depth,state)
+    if not object or secret(object) or state.visited[object] then return end
+    if state.remaining<=0 or (debugprofilestop and debugprofilestop()-state.started>=1) then
+        state.truncated=true;state.expired=true;return
+    end
+    state.remaining=state.remaining-1;state.visited[object]=true
+    if owner:Read(object,"IsForbidden") or owner:Read(object,"IsVisible")~=true then return end
+    local kind=owner:Read(object,"GetObjectType")
+    local isRegion=kind=="Texture" or kind=="FontString"
+    local alpha=owner:Read(object,isRegion and "GetAlpha" or "GetEffectiveAlpha")
+    if type(alpha)~="number" or alpha<=0 then return end
+    local location=owner:Read(object,"GetSourceLocation")
+    local title,folder,native=owner:Source(location)
+    if title and not native and not state.folders[folder] then
+        state.folders[folder]=true
+        if #state.results<3 then
+            state.results[#state.results+1]={title=title,folder=folder,location=text(location),
+                name=text(owner:Read(object,"GetDebugName"))}
+        else state.truncated=true end
+    end
+    if not isRegion and depth<2 then
+        scanRelatedList(owner,state,depth+1,pcall(method(object,"GetRegions"),object))
+        if state.remaining>0 and not state.expired then
+            scanRelatedList(owner,state,depth+1,pcall(method(object,"GetChildren"),object))
+        end
+    end
+end
+function M:RelatedSources(object)
+    local kind=self:Read(object,"GetObjectType")
+    if kind=="Texture" or kind=="FontString" then object=self:Read(object,"GetParent") end
+    if not self:CheckFocus(object) then return end
+    local state={remaining=64,started=debugprofilestop and debugprofilestop() or 0,visited={},folders={},results={}}
+    scanRelated(self,object,0,state)
+    return #state.results>0 and state.results or nil,state.truncated
+end
 function M:Analyze(frame)
     local location=self:Read(frame,"GetSourceLocation")
     local title,folder,native=self:Source(location)
+    local resolved=title and not native
     local name=text(self:Read(frame,"GetName"),text(self:Read(frame,"GetDebugName"),L["未命名框体"]))
     local data={name=name,title=native and L["归属未确定"] or title or L["暂未识别"],confidence=native and L["创建位置来自暴雪代码"] or title and L["创建来源"] or L["来源未确定"],
         location=text(location,L["未提供创建位置"]),parents={},kind=text(self:Read(frame,"GetObjectType"))}
@@ -57,11 +102,20 @@ function M:Analyze(frame)
         data.parents[#data.parents+1]=text(self:Read(parent,"GetName"),L["未命名父级"])..(parentTitle and " · "..parentTitle or "")
         if (not title or native) and parentTitle and not parentNative and data.confidence~=L["可能来自 · 根据父级来源"] then
             data.title=parentTitle;data.confidence=L["可能来自 · 根据父级来源"]
+            resolved=true
         end
         parent=self:Read(parent,"GetParent")
         if debugprofilestop and debugprofilestop()-started>=1 then data.truncated=true;break end
     end
     if parent and parent~=UIParent and parent~=WorldFrame then data.truncated=true end
+    if not resolved then
+        data.relatedSources,data.relatedTruncated=self:RelatedSources(frame)
+        if data.relatedSources then
+            local names={}
+            for i,source in ipairs(data.relatedSources) do names[i]=source.title end
+            data.title=table.concat(names," / ");data.confidence=L["关联插件 · 内部控件来源"]
+        end
+    end
     local width,height=self:Read(frame,"GetWidth"),self:Read(frame,"GetHeight")
     data.size=type(width)=="number" and type(height)=="number" and string.format("%.0f × %.0f",width,height) or "—"
     data.level=self:Read(frame,"GetFrameLevel")
@@ -297,6 +351,11 @@ function M:Report()
         L["尺寸："]..data.size,L["层级："]..data.strata.." / "..tostring(data.level or "—"),L["创建位置："]..data.location,L["父级关联（不代表修改来源）："]}
     for _,parent in ipairs(data.parents) do lines[#lines+1]=parent end
     if data.truncated then lines[#lines+1]=L["父级信息已截断"] end
+    if data.relatedSources then
+        lines[#lines+1]=L["内部控件来源（不代表整个框体归属）："]
+        for _,source in ipairs(data.relatedSources) do lines[#lines+1]=source.title.." · "..source.name.." · "..source.location end
+    end
+    if data.relatedTruncated then lines[#lines+1]=L["关联信息已截断"] end
     return table.concat(lines,"\n"):sub(1,8192)
 end
 function M:SourceSetting()
