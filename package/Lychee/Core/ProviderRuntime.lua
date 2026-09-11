@@ -5,6 +5,7 @@ I.Providers = P
 -- may resolve the same entry independently. UI/action references keep it alive.
 local weakRecords = { __mode = "k" }
 local function resolvedRecords() return setmetatable({}, weakRecords) end
+local localizedRecordFields = {"title","kindTitle","subtitle","subtext","description","aliases","keywords"}
 
 local function copy(value)
     if type(value) ~= "table" then return value end
@@ -72,7 +73,7 @@ local function records(entry, input, limit)
             ok, err = array(record.actions, 16, "entry.actions"); if not ok then return nil, err end
         end
         if entry.localizer then
-            for _,field in ipairs({"title","kindTitle","subtitle","subtext","description","aliases","keywords"}) do
+            for _,field in ipairs(localizedRecordFields) do
                 local value=record[field]
                 if type(value)=="table" and value.key then
                     record[field],err=entry.localizer:Resolve(value)
@@ -281,7 +282,8 @@ function P:Register(definition)
         onHostAttached = adoptRecords, onEnabled = start, onDisabled = stop }, { public = true })
     if not draft then return nil, err end
     ok, err = draft:RegisterSearchSource({ id = "records", title = definition.title, version = 2, revision = 1,
-        priority = 0, scope = definition.scope or {}, searchable=definition.searchable, snapshot = function() return entry.records end })
+        priority = 0, scope = definition.scope or {}, searchable=definition.searchable,
+        snapshot = function() return I.Registry:_OwnRecords(entry.records, entry.id) end })
     if not ok then draft:Abort(); return nil, err end
     for id, view in pairs(definition.views or {}) do
         ok, err = draft:RegisterPanelFactory({ id = id, create = view.create, stateSchema = view.stateSchema })
@@ -309,7 +311,7 @@ function P:Register(definition)
             local nextList, nextMap = records(entry, delta.replace)
             if not nextList then return nil, nextMap end
             entry.updating = true
-            local committed, commitError, _, changed = source:CommitSnapshot(nextList)
+            local committed, commitError, _, changed = source:CommitSnapshot(I.Registry:_OwnRecords(nextList, entry.id))
             entry.updating = nil
             if not committed then return nil, commitError end
             if not changed then return true end
@@ -329,7 +331,7 @@ function P:Register(definition)
             for _, record in ipairs(additions) do if not entry.recordMap[record.id] then count = count + 1 end end
             if count > P.entryLimit then return failure("RESULT_LIMIT", "update") end
             entry.updating = true
-            local committed, commitError, _, changed = source:ApplyDelta(additions, delta.remove or {})
+            local committed, commitError, _, changed = source:ApplyDelta(I.Registry:_OwnRecords(additions, entry.id), delta.remove or {})
             entry.updating = nil
             if not committed then return nil, commitError end
             if not changed then return true end

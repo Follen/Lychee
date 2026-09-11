@@ -19,7 +19,13 @@ local function mutation(o, name)
 end
 local function object(kind, parent)
     local o = { kind = kind, parent = parent, shown = true, width = 800, height = 600, scripts = {}, attrs = {} }
-    function o:SetAllPoints() mutation(self, "SetAllPoints") end
+    function o:SetMaxBytes(value) self.maxBytes=value end
+    function o:GetScript(event) return self.scripts[event] end
+    function o:SetJustifyV(value) self.justifyV=value end
+    function o:SetWordWrap(value) self.wordWrap=value end
+    function o:SetMaxLines(value) self.maxLines=value end
+    function o:SetAllPoints(target) mutation(self, "SetAllPoints");self.allPoints=target or self.parent end
+    function o:SetClipsChildren(value) self.clipsChildren=value end
     function o:SetPoint(...) mutation(self, "SetPoint"); self.point = { ... }; homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
     function o:ClearAllPoints() mutation(self, "ClearAllPoints"); homeGeometryCalls.ClearAllPoints = homeGeometryCalls.ClearAllPoints + 1 end
     function o:SetSize(w, h) mutation(self, "SetSize"); self.width, self.height = w, h end
@@ -114,7 +120,7 @@ local files = {
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Core/UserPreferences.lua","Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua","UI/TextHighlight.lua", "UI/Motion.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua","UI/ProviderSettings.lua","UI/SettingsView.lua", "UI/Palette.lua",
+    "UI/FocusController.lua", "UI/Theme.lua","UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua","UI/ProviderSettings.lua","UI/SettingsView.lua", "UI/Palette.lua",
 }
 for i = 1, #files do
     local before = createdFrames
@@ -1166,6 +1172,9 @@ LycheeDB.palette.reduceMotion=false
 palette:Show();palette.input:ClearFocus()
 for tick=1,8 do
     motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
+    assert(palette.frame.scale==palette._scale,"presence must keep the whole text and hit-test tree at its final scale")
+    assert(palette.presenceContent.allPoints==palette.frame and palette.presenceContent.parent==palette.presenceViewport,"content anchors remain on final root geometry under an independent clipping parent")
+    assert(palette.presenceViewport.clipsChildren and palette.presenceViewport.width==palette.presenceSurface.width and palette.presenceViewport.height==palette.presenceSurface.height,"text cannot render outside the animated shell")
     assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001,"search text must keep its effective font scale during opening")
     assert(math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"placeholder must share the stable cursor/text scale")
 end
@@ -1193,22 +1202,6 @@ assert(not palette.visible and not motion.presence and not motion.presenceDriver
 _G.__combat=false
 palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen restores Escape after combat cleanup")
 palette:Hide("animation-test");finishPresence()
-local oldParentScale=UIParent.GetEffectiveScale
-UIParent.GetEffectiveScale=function() return 0.75 end
-local inputContainer=palette.input.container
-local inputSetScale=inputContainer.SetScale
-local scaleWrites=0
-inputContainer.SetScale=function(self,value) scaleWrites=scaleWrites+1;inputSetScale(self,value) end
-palette.input:SetDisplayScale(0.8)
-assert(math.abs(palette.input.frame:GetEffectiveScale()-0.6)<0.000001,"stable text includes both UIParent scale and bounded palette scale")
-palette.input:SetDisplayScale(0.8)
-assert(scaleWrites==1,"unchanged display scale does not repeat native setters")
-_G.__combat=true
-assert(not palette.input:SetDisplayScale(0.5) and scaleWrites==1,"combat cannot mutate protected input scale")
-_G.__combat=false
-inputContainer.SetScale=inputSetScale
-UIParent.GetEffectiveScale=oldParentScale
-palette.input:SetDisplayScale(1)
 palette.frame.CreateAnimationGroup=oldAnimation
 palette.frame.SetScale=oldScale
 LycheeDB.palette.reduceMotion=reduced

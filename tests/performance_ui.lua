@@ -65,7 +65,7 @@ local frameFactory=CreateFrame
 CreateFrame=nil
 dofile(root.."Bootstrap.lua")
 CreateFrame=frameFactory
-for _, name in ipairs({"Theme","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
+for _, name in ipairs({"Theme","Runtime","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
 for i=1,1000 do
     local id=string.format("external.%04d",i)
     I.Providers.entries[id]={definition={title=id,version="1"}}

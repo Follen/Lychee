@@ -89,7 +89,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Mounts/vault smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/default_binding_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Default binding smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/interaction_smoke.lua'
+    & $lua.Source 'tests/ui_library_integration.lua'
     if ($LASTEXITCODE -ne 0) { throw "Interaction smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/result_list_ui_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Result list UI smoke failed with exit code $LASTEXITCODE" }
@@ -109,6 +109,10 @@ try {
     }
     & $lua.Source 'tests/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
+    foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','ui_runtime')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
     & $lua.Source 'tests/performance_memory.lua' '--check'
     if ($LASTEXITCODE -ne 0) { throw "Memory budget failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/performance_search.lua'

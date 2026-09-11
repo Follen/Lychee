@@ -1,3 +1,4 @@
+local EMPTY_UI_PROPS = {}
 local I,UI=_G.LycheeInternal,_G.Lychee.UI
 local L=I.Locale
 local CLIENTS={retail="正式服",classic="经典怀旧服",titan="泰坦重铸",anniversary="周年纪念服"}
@@ -81,9 +82,31 @@ function P:Create(parent,controller,onBack)
     view.fields={}
     for _,kind in ipairs({"prefix","keyword"}) do
         local field={};view.fields[kind]=field
-        field.label=label(L[kind=="prefix" and "搜索前缀" or "快捷关键词"],8,0,valueX-24)
-        UI.Theme:SetTextColor(field.label,"text")
-        field.hint=label("",valueX,0,valueWidth,"meta");field.hint:SetHeight(28)
+        local function action(key,fn)
+            return {OnMouseDown=function() field[key.."Press"]=view.generation end,
+                click=function()
+                    local pressed=field[key.."Press"];field[key.."Press"]=nil
+                    if current() and (pressed==nil or pressed==view.generation) then fn() end
+                end}
+        end
+        field.ui=UI:Create(frame,{type="Fragment",children={
+            {type="Text",key="label",props={text=L[kind=="prefix" and "搜索前缀" or "快捷关键词"],role="body",color="text",width=valueX-24,height=22,point={"TOPLEFT",frame,"TOPLEFT",8,0}}},
+            {type="Text",key="hint",props={role="meta",color="textMuted",width=valueWidth,height=28,point={"TOPLEFT",frame,"TOPLEFT",valueX,0}}},
+            {type="Button",key="edit",props={text=L["编辑"],role="body",width=140,height=28,point={"TOPLEFT",frame,"TOPLEFT",valueX,0}},on=action("edit",function() view:BeginEdit(kind) end)},
+            {type="Input",key="input",props={role="body",color="text",width=valueWidth,height=32,maxBytes=400,textInsets={10,10,0,0}},on={
+                OnTextChanged=function(_,_,_,_,userInput) if userInput and current() and view.editing==kind then field.inputStyle:SetInvalid(false);view.error:SetText("");view:Layout() end end,
+                OnEnterPressed=function() if view.editing==kind then view:Save() end end,
+                OnEscapePressed=function() if current() and view.editing==kind then view:CancelEdit() end end,
+            }},
+            {type="Text",key="example",props={text=L["多个词用逗号分隔；清空可移除此入口"],role="meta",color="textMuted",width=valueWidth,height=36,point={"TOPLEFT",frame,"TOPLEFT",valueX,0}}},
+            {type="Button",key="save",props={text=L["保存"],role="body",width=64,height=28,primary=true,point={"TOPLEFT",frame,"TOPLEFT",0,0}},on=action("save",function() if view.editing==kind then view:Save() end end)},
+            {type="Button",key="cancel",props={text=L["取消"],role="body",width=64,height=28,point={"TOPLEFT",frame,"TOPLEFT",0,0}},on=action("cancel",function() if view.editing==kind then view:CancelEdit() end end)},
+        }})
+        assert(field.ui:Update(EMPTY_UI_PROPS))
+        field.label,field.hint=field.ui:Get("label"),field.ui:Get("hint")
+        field.input,field.example=field.ui:Get("input"),field.ui:Get("example")
+        field.edit,field.save,field.cancel=field.ui:GetComponent("edit"),field.ui:GetComponent("save"),field.ui:GetComponent("cancel")
+        field.inputStyle=field.input._lycheeField
         field.tokens={}
         for index=1,8 do
             local chip=CreateFrame("Frame",nil,frame)
@@ -94,19 +117,6 @@ function P:Create(parent,controller,onBack)
             text:SetPoint("LEFT",chip,"LEFT",0,0);text:SetJustifyH("LEFT")
             field.tokens[index]={frame=chip,label=text};chip:Hide()
         end
-        field.edit=button(L["编辑"],valueX,0,140,function() view:BeginEdit(kind) end,nil,28,true)
-        local input=CreateFrame("EditBox",nil,frame);field.input=input
-        input:SetSize(valueWidth,32);input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0)
-        UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text");if input.SetMaxBytes then input:SetMaxBytes(400) end
-        field.inputStyle=UI.Components:StyleEditBox(input)
-        field.example=label(L["多个词用逗号分隔；清空可移除此入口"],valueX,0,valueWidth,"meta");field.example:SetHeight(36)
-        field.save=button(L["保存"],0,0,64,function() if view.editing==kind then view:Save() end end,nil,28,true,true)
-        field.cancel=button(L["取消"],0,0,64,function() if view.editing==kind then view:CancelEdit() end end,nil,28,true)
-        input:SetScript("OnTextChanged",function(_,userInput) if userInput and current() and view.editing==kind then
-            field.inputStyle:SetInvalid(false);view.error:SetText("");view:Layout()
-        end end)
-        input:SetScript("OnEnterPressed",function() if view.editing==kind then view:Save() end end)
-        input:SetScript("OnEscapePressed",function() if current() and view.editing==kind then view:CancelEdit() end end)
     end
     view.prefixInput=view.fields.prefix.input;view.keywordInput=view.fields.keyword.input
     view.help=label(L["独立查询入口，由功能自身决定触发词"],8,-68,width-16);view.help:SetHeight(44)
@@ -255,13 +265,16 @@ function P:Create(parent,controller,onBack)
         local first=self.entry.records and self.entry.records[1]
         self.sample=first and type(first.title)=="string" and #first.title<=42 and not first.title:find("|",1,true) and first.title or L["名称"]
         self.aboutOpen=false
-        self.generation=self.generation+1;outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
+        self.generation=self.generation+1
+        for _,field in pairs(self.fields) do field.ui:Update(EMPTY_UI_PROPS) end
+        outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
         self.icon:SetTexture(icon);self.title:SetText(self.entry.definition.title);self.detail:SetText(description or "");self:Refresh()
         controller:SetStatusText(L["更改即时生效"])
     end
     outer:SetScript("OnHide",function()
         view:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
         view.generation=view.generation+1;view.id,view.entry=nil,nil
+        for _,field in pairs(view.fields) do field.editPress,field.savePress,field.cancelPress=nil,nil,nil;field.ui:Release("hide") end
     end)
     return view
 end

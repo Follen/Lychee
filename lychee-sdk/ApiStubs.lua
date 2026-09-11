@@ -1,4 +1,22 @@
 ---@meta
+---@class LycheeUIView
+---@field Update fun(self:LycheeUIView,props:table):boolean,string?
+---@field SetState fun(self:LycheeUIView,key:string,value:any):boolean,string?
+---@field Get fun(self:LycheeUIView,key:string):any
+---@field GetComponent fun(self:LycheeUIView,key:string):any
+---@field Release fun(self:LycheeUIView,reason?:string):boolean,string?
+---@field Own fun(self:LycheeUIView,key:string,cancel:fun(reason:string)):boolean,string?
+
+---@class LycheeUIDefinition
+---@field type 'Fragment'|'Surface'|'Text'|'Icon'|'Button'|'Toggle'|'Input'|'Native'
+---@field key? string
+---@field props? table Static properties; definition is immutable after Create.
+---@field bind? table<string,string|fun(props:table,state:table):any>
+---@field on? table<string,fun(props:table,state:table,view:LycheeUIView,frame:any,...)>
+---@field children? LycheeUIDefinition[]
+---@field create? fun(parent:any):table Native adapter factory.
+---@field update? fun(props:table,state:table,view:LycheeUIView)
+---@field release? fun(reason:string,view:LycheeUIView)
 -- Editor-only API 2.2 declarations. Do not list this file in an AddOn TOC.
 
 ---@class LycheeError
@@ -195,6 +213,7 @@
 ---@field Cancel fun(self:LycheeReadySubscription):boolean
 
 ---@class LycheeFacade
+---@field UI LycheeUIRuntime
 ---@field API_VERSION 2
 ---@field API_REVISION 6
 ---@field Supports fun(self:LycheeFacade,apiVersion:integer,minRevision?:integer):boolean
@@ -204,3 +223,8 @@
 
 ---@type LycheeFacade
 Lychee = {}
+
+---@class LycheeUIRuntime
+---@field RuntimeVersion 1
+---@field Create fun(self:LycheeUIRuntime,parent:any,definition:LycheeUIDefinition):LycheeUIView?,string?
+---@field AsView fun(self:LycheeUIRuntime,definition:LycheeUIDefinition,stateSchema?:table):table

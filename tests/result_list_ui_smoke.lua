@@ -101,6 +101,7 @@ CreateFrame=nil
 dofile("package/Lychee/Bootstrap.lua")
 CreateFrame=frameFactory
 dofile("package/Lychee/UI/Theme.lua")
+dofile("package/Lychee/UI/Runtime.lua")
 dofile("package/Lychee/UI/Components.lua")
 dofile("package/Lychee/UI/ResultList.lua")
 
@@ -321,6 +322,7 @@ end
 assert(#created==createdBeforeTypes, "type labels reuse existing rows and regions")
 list:Clear()
 
+dofile("package/Lychee/UI/Runtime.lua")
 dofile("package/Lychee/UI/Components.lua")
 local menuOwner = {}
 Lychee.UI.Components:StyleActionMenuOwner(menuOwner)

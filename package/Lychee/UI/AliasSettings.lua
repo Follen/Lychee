@@ -1,3 +1,4 @@
+local EMPTY_UI_PROPS = {}
 local I,UI=_G.LycheeInternal,_G.Lychee.UI
 local L=I.Locale
 local A={}
@@ -43,18 +44,8 @@ function A:Create(parent,controller,onBack)
     scroll:SetScript("OnSizeChanged",function() if active() and not view.editing then view:Render() end end)
     view.empty=label(content,L["还没有别名。右键搜索结果，选择设置别名。"],8,-8,width-16)
     local editor=CreateFrame("Frame",nil,frame);view.editor=editor;editor:SetAllPoints(scroll);editor:Hide()
-    view.target=label(editor,"",8,-8,width-16)
-    label(editor,L["输入别名，留空可删除"],8,-40,width-16,"meta")
-    local input=CreateFrame("EditBox",nil,editor);view.input=input
-    input:SetSize(width-16,36);input:SetPoint("TOPLEFT",editor,"TOPLEFT",8,-70)
-    input:SetAutoFocus(false);input:SetTextInsets(10,10,0,0);UI.Theme:SetFont(input,"body")
-    UI.Theme:SetTextColor(input,"text")
-    if input.SetMaxBytes then input:SetMaxBytes(192) end
-    local inputStyle=UI.Components:StyleEditBox(input);view.inputStyle=inputStyle
-    UI.Theme:SetTextColor(view.target,"text")
-    view.error=label(editor,"",8,-150,width-16,"meta")
-    view.error:SetHeight(44)
-    UI.Theme:SetTextColor(view.error,"warning")
+    local input,inputStyle
+    local formProps={}
     local function cancel() if active() then input:ClearFocus();view:ShowList() end end
     local function save()
         if not active() or not view.editing then return end
@@ -65,13 +56,27 @@ function A:Create(parent,controller,onBack)
         end
         input:ClearFocus();controller:SetStatusText(L["别名已保存"]);view:ShowList()
     end
-    view.save=button(editor,L["保存"],64,width-72,-114,save,true)
-    view.cancel=button(editor,L["取消"],64,width-144,-114,cancel)
-    input:SetScript("OnEnterPressed",save);input:SetScript("OnEscapePressed",cancel)
-    input:SetScript("OnTextChanged",function(_,userInput) if userInput then inputStyle:SetInvalid(false);view.error:SetText("") end end)
+    local form=UI:Create(editor,{type="Fragment",children={
+        {type="Text",key="target",props={role="body",color="text",width=width-16,height=22,point={"TOPLEFT",editor,"TOPLEFT",8,-8}},bind={text="title"}},
+        {type="Text",key="help",props={text=L["输入别名，留空可删除"],role="meta",color="textMuted",width=width-16,height=22,point={"TOPLEFT",editor,"TOPLEFT",8,-40}}},
+        {type="Input",key="input",props={role="body",color="text",width=width-16,height=36,maxBytes=192,textInsets={10,10,0,0},point={"TOPLEFT",editor,"TOPLEFT",8,-70}},on={
+            OnEnterPressed=function() save() end,OnEscapePressed=function() cancel() end,
+            OnTextChanged=function(_,_,_,_,userInput) if userInput then inputStyle:SetInvalid(false);view.error:SetText("") end end,
+        }},
+        {type="Text",key="error",props={role="meta",color="warning",width=width-16,height=44,point={"TOPLEFT",editor,"TOPLEFT",8,-150}}},
+        {type="Button",key="save",props={text=L["保存"],role="body",width=64,height=28,primary=true,point={"TOPLEFT",editor,"TOPLEFT",width-72,-114}},on={click=function() save() end}},
+        {type="Button",key="cancel",props={text=L["取消"],role="body",width=64,height=28,point={"TOPLEFT",editor,"TOPLEFT",width-144,-114}},on={click=function() cancel() end}},
+    }})
+    assert(form:Update(EMPTY_UI_PROPS));view.form=form
+    input,inputStyle=form:Get("input"),form:Get("input")._lycheeField
+    view.input,view.inputStyle=input,inputStyle
+    view.target,view.error=form:Get("target"),form:Get("error")
+    view.save,view.cancel=form:GetComponent("save"),form:GetComponent("cancel")
     frame:SetScript("OnHide",function()
         input:ClearFocus();view.ref,view.title,view.data,view.editing=nil,nil,nil,nil
         view.bar:StopDrag()
+        form:Release("hide")
+        formProps.identity,formProps.title=nil,nil
         for _,row in ipairs(view.rows) do row.record=nil;row.edit.frame.press=false;row.remove.frame.press=false end
     end)
     function view:Fit(height)
@@ -82,8 +87,10 @@ function A:Create(parent,controller,onBack)
     function view:Edit(ref,title)
         if not active() then return end
         self.ref={providerID=ref.providerID,entryID=ref.entryID};self.title=title;self.editing=true
+        formProps.identity,formProps.title=self.ref,title or ref.entryID
+        assert(form:Update(formProps))
         inputStyle:SetInvalid(false)
-        scroll:Hide();editor:Show();self.target:SetText(title or ref.entryID);self.error:SetText("")
+        scroll:Hide();editor:Show();self.error:SetText("")
         local row=I.Search.Personalization:Find(ref)
         input:SetText(row and row.alias or "");input:SetFocus()
         if input.HighlightText then input:HighlightText() end
@@ -140,7 +147,7 @@ function A:Create(parent,controller,onBack)
         for index=math.max(0,count)+1,#self.rows do self.rows[index].record=nil;self.rows[index]:Hide() end
     end
     function view:ShowList()
-        input:ClearFocus();self.editing=false;self.ref=nil;editor:Hide();scroll:Show()
+        input:ClearFocus();self.editing=false;self.ref=nil;form:Release("list");formProps.identity,formProps.title=nil,nil;editor:Hide();scroll:Show()
         local current=I.Search.RuntimeIdentity:Current().product
         self.data={}
         for _,row in ipairs(I.Search.Personalization:Aliases()) do if row.product==current then self.data[#self.data+1]=row end end
@@ -148,6 +155,7 @@ function A:Create(parent,controller,onBack)
     end
     function view:Show(ref,title)
         self.fittedHeight,self.rectHeight=nil,nil
+        form:Update(EMPTY_UI_PROPS)
         frame:Show()
         if self.offset~=0 then self.offset=0;scroll:SetVerticalScroll(0) end
         if ref then self:Edit(ref,title) else self:ShowList() end

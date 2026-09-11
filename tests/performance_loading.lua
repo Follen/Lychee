@@ -31,7 +31,9 @@ collectgarbage("restart");collectgarbage("collect")
 local retained=collectgarbage("count")-base
 assert(not (LycheeInternal.Host and LycheeInternal.Host.PaletteController),"TOC execution must not create the search UI")
 assert(frames<=2 and events<=3,"TOC execution adds no eager feature UI or subscriptions")
-if not measureOnly then assert(retained<1282 and elapsed<46,"loading stays below the declared memory/time budgets") end
+-- Retained component definitions + presence channel may add at most 64 KiB to
+-- the previous 1282 KiB ceiling; startup allocation savings are measured apart.
+if not measureOnly then assert(retained<1346 and elapsed<46,"loading stays below the declared memory/time budgets") end
 table.sort(measurements,function(a,b) return a.kib>b.kib end)
 print(string.format("TOC loading files=%d cpu_ms=%.2f allocated_KiB=%.1f retained_KiB=%.1f frames=%d events=%d",#paths,elapsed,allocated,retained,frames,events))
 for i=1,math.min(8,#measurements) do print(string.format("  %.1f KiB %s",measurements[i].kib,measurements[i].path)) end

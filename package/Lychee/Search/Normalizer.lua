@@ -209,27 +209,45 @@ function N:ScoreCompiled(query,fields,terms,allowFuzzy)
     end
     return best,matchedField,matchedText,kind,distance
 end
-local function recordField(self,fields,field,value,scope)
-    if value==nil then return end
+-- Compile directly into caller-owned triples. Localized remains the public
+-- materializing helper; indexing and dynamic matching do not need its copies.
+local emptyScope = {}
+local function appendField(self,fields,field,raw,locale,entryScope,scope)
+    if not self:LocaleRank(locale) then return end
     local identity=I.Search.RuntimeIdentity
-    if type(value)=="string" then
-        if identity and not identity:MatchesScope(scope) then return end
-        local text=self:Normalize(value)
-        if text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=field,value,text end
-        return
+    if identity then
+        if not identity:MatchesScope(scope or emptyScope,emptyScope) then return end
+        if entryScope and entryScope~=scope and not identity:MatchesScope(entryScope,emptyScope) then return end
     end
-    for _,entry in ipairs(self:Localized(value,scope)) do
-        if self:LocaleRank(entry.locale) and (not identity or identity:MatchesScope(scope,entry)) then
-            local text=self:Normalize(entry.text)
-            if text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=field,entry.text,text end
+    local text=self:Normalize(raw)
+    if text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=field,raw,text end
+end
+function N:AppendFields(fields,field,value,scope)
+    if type(value)=="string" then
+        appendField(self,fields,field,value,"default",scope,scope)
+    elseif type(value)=="table" then
+        if value.text or value.title then
+            appendField(self,fields,field,self:AliasText(value),value.locale or "default",value.scope or scope,scope)
+        elseif value.default or value.zhCN or value.zhTW or value.enUS or value.enGB then
+            for locale,raw in pairs(value) do
+                if type(raw)=="string" then appendField(self,fields,field,raw,locale,scope,scope) end
+            end
+        else
+            for index=1,#value do
+                local entry=value[index]
+                if type(entry)=="string" then appendField(self,fields,field,entry,"default",scope,scope)
+                elseif type(entry)=="table" and self:AliasText(entry) then
+                    appendField(self,fields,field,self:AliasText(entry),entry.locale or "default",entry.scope or scope,scope)
+                end
+            end
         end
     end
 end
 function N:MatchRecord(query,record,scope)
     local normalized=self:Normalize(query);local fields={};scope=record.scope or scope
-    recordField(self,fields,"title",record.title,scope);recordField(self,fields,"alias",record.aliases,scope)
-    recordField(self,fields,"keyword",record.keywords,scope);recordField(self,fields,"description",record.description,scope)
-    local category=record.category;recordField(self,fields,"category",type(category)=="table" and (category.title or category.id) or category,scope)
+    self:AppendFields(fields,"title",record.title,scope);self:AppendFields(fields,"alias",record.aliases,scope)
+    self:AppendFields(fields,"keyword",record.keywords,scope);self:AppendFields(fields,"description",record.description,scope)
+    local category=record.category;self:AppendFields(fields,"category",type(category)=="table" and (category.title or category.id) or category,scope)
     local confidence,field,text,kind=self:ScoreCompiled(normalized,fields,self:Terms(normalized),false)
     if confidence then return {confidence=confidence,matchedField=field,matchedText=text,matchType=kind} end
 end

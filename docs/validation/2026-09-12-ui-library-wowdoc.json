@@ -1,0 +1,121 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetSize",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "line": 163,
+        "excerpt": "163: \t\t\tName = \"SetSize\",\n164: \t\t\tType = \"Function\",\n165: \t\t\tIsProtectedFunction = true,\n166: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n167: \n168: \t\t\tArguments =\n169: \t\t\t{\n170: \t\t\t\t{ Name = \"x\", Type = \"uiUnit\", Nilable = false },\n171: \t\t\t\t{ Name = \"y\", Type = \"uiUnit\", Nilable = false },\n172: \t\t\t},\n173: \t\t},"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_PersonalResourceDisplay/Blizzard_PersonalResourceDisplay.lua",
+        "line": 594,
+        "excerpt": "594: function PersonalResourceDisplayMixin:SetSize(size)\n595: \tself:SetScale(size / 100);\n596: end"
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetPoint",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "line": 135,
+        "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+        "line": 446,
+        "excerpt": "446: function HANDLE:SetPoint(point, relframe, relpoint, xofs, yofs)\n447: \tif (type(relpoint) == \"number\") then\n448: \t\trelpoint, xofs, yofs = nil, relpoint, xofs;\n449: \tend\n450: \tif (relpoint == nil) then\n451: \t\trelpoint = point;\n452: \tend\n453: \tif ((xofs == nil) and (yofs == nil)) then\n454: \t\txofs, yofs = 0, 0;\n455: \telse\n456: \t\txofs, yofs = tonumber(xofs), tonumber(yofs);\n457: \tend\n458: \tif (not _set_points[point]) then\n459: \t\terror(\"Invalid point '\" .. tostring(point) .. \"'\");\n460: \t\treturn;\n461: \tend\n462: \tif (not _set_points[relpoint]) then\n463: \t\terror(\"Invalid relative point '\" .. tostring(relpoint) .. \"'\");\n464: \t\treturn;\n465: \tend\n466: \tif (not (xofs and yofs)) then\n467: \t\terror(\"Invalid offset\");\n468: \t\treturn\n469: \tend\n470: \n471: \tlocal frame = GetHandleFrame(self);\n472: \n473: \tlocal realrelframe = nil;\n474: \tif (type(relframe) == \"userdata\") then\n475: \t\t-- **MUST** be protected\n476: \t\trealrelframe = GetFrameHandleFrame(relframe, true, true);\n477: \t\tif (not realrelframe) then\n478: \t\t\terror(\"Invalid relative frame handle\");\n479: \t\t\treturn;\n480: \t\tend\n481: \telseif ((relframe == nil) or (relframe == \"$screen\")) then\n482: \t\trealrelframe = nil;\n483: \telseif (relframe == \"$cursor\") then\n484: \t\tlocal cx, cy = GetCursorPosition();\n485: \t\tlocal eff = LOCAL_CHECK_Frame.GetEffectiveScale(frame);\n486: \t\txofs = xofs + (cx / eff);\n487: \t\tyofs = yofs + (cy / eff);\n488: \t\trelpoint = \"BOTTOMLEFT\";\n489: \t\trealrelframe = nil;\n490: \telseif (relframe == \"$parent\") then\n491: \t\trealrelframe = LOCAL_CHECK_Frame.GetParent(frame);\n492: \telse\n493: \t\terror(\"Invalid relative frame id '\" .. tostring(relframe) .. \"'\");\n494: \t\treturn;\n495: \tend\n496: \n497: \tLOCAL_CHECK_Frame.SetPoint(frame, point, realrelframe, relpoint, xofs, yofs);\n498: end"
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetAlpha",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontAPIDocumentation.lua",
+        "line": 189,
+        "excerpt": "189: \t\t\tName = \"SetAlpha\",\n190: \t\t\tType = \"Function\",\n191: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n192: \n193: \t\t\tArguments =\n194: \t\t\t{\n195: \t\t\t\t{ Name = \"alpha\", Type = \"SingleColorValue\", Nilable = false },\n196: \t\t\t},\n197: \t\t},"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "line": 1133,
+        "excerpt": "1133: \t\t\tName = \"SetAlpha\",\n1134: \t\t\tType = \"Function\",\n1135: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n1136: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n1137: \n1138: \t\t\tArguments =\n1139: \t\t\t{\n1140: \t\t\t\t{ Name = \"alpha\", Type = \"SingleColorValue\", Nilable = false },\n1141: \t\t\t},\n1142: \t\t},"
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "GetTimePreciseSec",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/OsDocumentation.lua",
+        "line": 27,
+        "excerpt": "27: \t\t\tName = \"GetTimePreciseSec\",\n28: \t\t\tType = \"Function\",\n29: \n30: \t\t\tReturns =\n31: \t\t\t{\n32: \t\t\t\t{ Name = \"time\", Type = \"number\", Nilable = false },\n33: \t\t\t},\n34: \t\t},"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/OsDocumentation.lua",
+        "line": 27,
+        "excerpt": "24: \t\t\t},\n25: \t\t},\n26: \t\t{\n27: \t\t\tName = \"GetTimePreciseSec\",\n28: \t\t\tType = \"Function\",\n29: \n30: \t\t\tReturns ="
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetScript",
+    "results": [
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "line": 354,
+        "excerpt": "354: \t\t\tName = \"SetScript\",\n355: \t\t\tType = \"Function\",\n356: \t\t\tRequiresAssignableScript = true,\n357: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n358: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n359: \n360: \t\t\tArguments =\n361: \t\t\t{\n362: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n363: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n364: \t\t\t},\n365: \t\t},"
+      },
+      {
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "line": 327,
+        "excerpt": "327: \t\t\tName = \"SetScript\",\n328: \t\t\tType = \"Function\",\n329: \t\t\tRequiresAssignableScript = true,\n330: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n331: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n332: \n333: \t\t\tArguments =\n334: \t\t\t{\n335: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n336: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n337: \t\t\t},\n338: \t\t},"
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetClipsChildren",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetClipsChildren",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "1217: \t\t\tName = \"SetClipsChildren\",\n1218: \t\t\tType = \"Function\",\n1219: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1220: \n1221: \t\t\tArguments =\n1222: \t\t\t{\n1223: \t\t\t\t{ Name = \"clipsChildren\", Type = \"bool\", Nilable = false },\n1224: \t\t\t},\n1225: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 1217,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

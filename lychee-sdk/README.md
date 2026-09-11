@@ -2,6 +2,9 @@
 
 Provider API 2.6 / revision 6 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
 
+统一控件、受控状态和懒创建面板参见 [UI 库](UI_LIBRARY.md)。UI Runtime 1 独立版本化，
+可通过 AsView 接入既有 Provider 面板生命周期，不更改 Provider API 2.6 的业务协议。
+
 自定义面板优先阅读[可复用视图与生命周期](VIEW_LIFECYCLE.md)：工厂每次调用、Provider显式缓存、
 关闭时Unmount→Dispose、部分失败恢复与回调重入规则。TOC加载代码、Provider初始化、索引构建和UI创建是不同阶段，
 “窗口按需创建”不代表对应Lua尚未加载。第三方适配契约见[适配与兼容性](ADAPTER_COMPATIBILITY.md)。
@@ -45,3 +48,5 @@ API 2 不保留旧 Extension/Command 多角色接入流程，也不迁移旧数�
 ## 同一 Provider 的版本差异
 
 允许不同客户端／build 使用不同业务实现。同一业务保持一个 Provider ID，由 Provider 在注册前选择唯一适配器，再向 Host 提交该实现的完整 scope、i18n 和回调。支持范围不等于实现相同；不能同时注册多个同 ID 分支。目录结构、选择规则、身份／缓存和验收要求见 [客户端与 build 差异约定](CLIENT_VARIANTS.md)。
+
+动效接口与分层规范见 [MOTION.md](MOTION.md)；完整可安装示例见 [ComponentPanel](examples/ComponentPanel/ComponentPanel.lua)，仅供 SDK 开发使用，不随 Lychee 运行时同步。

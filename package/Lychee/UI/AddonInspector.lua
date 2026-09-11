@@ -9,23 +9,25 @@ function UI.CreateAddonInspector(owner)
     view.frame=frame;frame:Hide();frame:SetSize(320,120);frame:SetFrameStrata("TOOLTIP");frame:SetFrameLevel(10000)
     frame:SetClampedToScreen(true);frame:EnableMouse(true)
     T:CreateRoundedSurface(frame,"window",10)
-    local function label(role,color,x,y,width,height)
-        local value=frame:CreateFontString(nil,"OVERLAY","GameFontHighlight")
-        value:SetPoint("TOPLEFT",x,y);value:SetSize(width,height);value:SetJustifyH("LEFT");value:SetJustifyV("TOP")
-        T:SetFont(value,role);T:SetTextColor(value,color);return value
+    local function textNode(key,role,color,y,width,height,text)
+        return {type="Text",key=key,props={role=role,color=color,text=text,width=width,height=height,justifyH="LEFT",justifyV="TOP",point={"TOPLEFT",frame,"TOPLEFT",16,y}}}
     end
-    view.heading=label("title","text",16,-18,250,24)
-    view.confidence=label("body","textMuted",16,-50,288,32)
-    view.name=label("body","text",16,-94,368,32)
-    view.detailMeta=label("meta","textDim",16,-134,368,18)
-    view.sourceLabel=label("meta","textDim",16,-168,368,16);view.sourceLabel:SetText(L["创建位置"])
-    view.details=label("body","textMuted",16,-190,368,40)
-    view.parentLabel=label("meta","textDim",16,-246,368,16);view.parentLabel:SetText(L["父级关联"])
-    view.parents=label("body","textMuted",16,-268,368,32)
+    view.display=UI:Create(frame,{type="Fragment",children={
+        textNode("heading","title","text",-18,250,24),
+        textNode("confidence","body","textMuted",-50,288,32),
+        textNode("name","body","text",-94,368,32),
+        textNode("detailMeta","meta","textDim",-134,368,18),
+        textNode("sourceLabel","meta","textDim",-168,368,16,L["创建位置"]),
+        textNode("details","body","textMuted",-190,368,40),
+        textNode("parentLabel","meta","textDim",-246,368,16,L["父级关联"]),
+        textNode("parents","body","textMuted",-268,368,32),
+        textNode("footer","meta","textDim",-96,368,16),
+    }})
+    assert(view.display:Update({}))
+    for _,key in ipairs({"heading","confidence","name","detailMeta","sourceLabel","details","parentLabel","parents","footer"}) do view[key]=view.display:Get(key) end
     view.divider=frame:CreateTexture(nil,"BACKGROUND")
     view.divider:SetHeight(1);view.divider:SetPoint("TOPLEFT",16,-84);view.divider:SetPoint("TOPRIGHT",-16,-84)
     T:SetColorTexture(view.divider,"border")
-    view.footer=label("meta","textDim",16,-96,368,16)
     view.heading:SetMaxLines(1);view.heading:SetWordWrap(false)
     view.name:SetMaxLines(2);view.details:SetMaxLines(3);view.parents:SetMaxLines(2)
     local function button(title,x,y,width,action,rounded)

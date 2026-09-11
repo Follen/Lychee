@@ -1,0 +1,5 @@
+## Interface: 120100
+## Title: Lychee Component Panel Example
+## Dependencies: Lychee
+## Version: 1.0.0
+ComponentPanel.lua

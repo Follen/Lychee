@@ -28,6 +28,21 @@ local function copyValue(value)
     for key, child in pairs(value) do copy[key] = copyValue(child) end
     return copy
 end
+
+-- Host-private, one-shot ownership transfer. Public descriptors cannot opt in
+-- with a field: only ProviderRuntime's already isolated lists enter this map.
+-- Weak keys do not retain a list abandoned by a failed registration/update.
+local ownedRecordLists = setmetatable({}, {__mode="k"})
+function Registry:_OwnRecords(records, owner)
+    ownedRecordLists[records] = owner
+    return records
+end
+local function takeRecords(records, owner)
+    local owned = ownedRecordLists[records]
+    ownedRecordLists[records] = nil
+    if owned == owner then return records end
+    return copyValue(records)
+end
 local function validID(value)
     return type(value)=="string" and #value<=64 and value:match("^[a-z0-9][a-z0-9%.%-]*$")~=nil
 end
@@ -275,7 +290,7 @@ function Registry:_Publish(entry)
             end
             local recordsOK, recordsErr = validateSearchRecords(records, "searchSource." .. source.id .. ".records")
             if not recordsOK then self:_Rollback(entry); return nil, recordsErr end
-            records = copyValue(records)
+            records = takeRecords(records, entry.id)
             for recordIndex = 1, #records do
                 local categoryOK, categoryErr = validateCategoryOwnership(records[recordIndex], entry.id, "searchSource." .. source.id .. ".records[" .. recordIndex .. "]")
                 if not categoryOK then self:_Rollback(entry); return nil, categoryErr end
@@ -443,7 +458,7 @@ function Registry:_Handle(entry)
                     if records ~= nil then
                         local valid, why = validateSearchRecords(records, "searchSource." .. source.id .. ".records")
                         if not valid then return nil, why end
-                        records = copyValue(records)
+                        records = takeRecords(records, entry.id)
                         for i = 1, #records do
                             local categoryOK, categoryErr = validateCategoryOwnership(records[i], entry.id, "searchSource." .. source.id .. ".records[" .. i .. "]")
                             if not categoryOK then return nil, categoryErr end
@@ -472,7 +487,7 @@ function Registry:_Handle(entry)
                         count, seen[id] = count + 1, true
                     end
                     if count ~= #removedIDs then return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id) end
-                    records = copyValue(records)
+                    records = takeRecords(records, entry.id)
                     for index = 1, #records do
                         if seen[records[index].id] then return nil, failure("INVALID_SCHEMA", "searchSource.delta", entry.id) end
                         local categoryOK, categoryErr = validateCategoryOwnership(records[index], entry.id, "searchSource.delta")

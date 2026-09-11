@@ -44,6 +44,8 @@ UI/FocusController.lua
 UI/Theme.lua
 UI/TextHighlight.lua
 UI/Motion.lua
+UI/Presence.lua
+UI/Runtime.lua
 UI/Components.lua
 UI/Input.lua
 UI/ResultList.lua

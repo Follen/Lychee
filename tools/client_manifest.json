@@ -284,6 +284,14 @@
       ]
     },
     {
+      "path": "UI/Presence.lua",
+      "products": ["retail", "classic", "titan", "anniversary"]
+    },
+    {
+      "path": "UI/Runtime.lua",
+      "products": ["retail", "classic", "titan", "anniversary"]
+    },
+    {
       "path": "UI/Components.lua",
       "products": [
         "retail",

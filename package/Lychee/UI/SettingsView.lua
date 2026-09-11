@@ -1,3 +1,4 @@
+local EMPTY_UI_PROPS = {}
 local L = _G.LycheeInternal.Locale
 local I, Lychee = _G.LycheeInternal, _G.Lychee
 local Settings = {}
@@ -150,9 +151,12 @@ function Settings:Create(parent, controller)
         if self.rows[index] then return self.rows[index] end
         local row=CreateFrame("Button",nil,content);row:SetSize(rowWidth,metrics.rowHeight)
         row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(metrics.iconSize,metrics.iconSize);row.icon:SetPoint("LEFT",row,"LEFT",metrics.listIconInset,0)
-        row.name=label(row,"body");row.name:SetPoint("TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7);row.name:SetPoint("RIGHT",row,"RIGHT",-188,0);row.name:SetHeight(17)
-        row.detail=label(row,"meta","textMuted");row.detail:SetPoint("TOPLEFT",row.name,"BOTTOMLEFT",0,-3);row.detail:SetPoint("RIGHT",row,"RIGHT",-180,0);row.detail:SetHeight(14)
-        row.state=label(row,"meta","textMuted");row.state:SetPoint("RIGHT",row,"RIGHT",-54,0);row.state:SetWidth(118);row.state:SetJustifyH("RIGHT")
+        row.ui=Lychee.UI:Create(row,{type="Fragment",children={
+            {type="Text",key="name",props={role="body",color="text",height=17,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7},{"RIGHT",row,"RIGHT",-188,0}}}},
+            {type="Text",key="detail",props={role="meta",color="textMuted",height=14,points={{"TOPLEFT","name","BOTTOMLEFT",0,-3},{"RIGHT",row,"RIGHT",-180,0}}}},
+            {type="Text",key="state",props={role="meta",color="textMuted",width=118,justifyH="RIGHT",point={"RIGHT",row,"RIGHT",-54,0}}},
+        }})
+        assert(row.ui:Update(EMPTY_UI_PROPS));row.name,row.detail,row.state=row.ui:Get("name"),row.ui:Get("detail"),row.ui:Get("state")
         row.toggle=Lychee.UI.Components:CreateToggle(row);row.toggle:SetPoint("RIGHT",row,"RIGHT",-metrics.listIconInset,0)
         row.manage=button(row,L["点击管理"],54,function()
             if currentClick(row.manage.frame,row) then self:OpenProvider(row.providerID,row._icon) end

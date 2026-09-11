@@ -99,32 +99,8 @@ local function categoryOrder(record)
     return type(record and record.category) == "table" and tonumber(record.category.order) or 0
 end
 
-local function localizedEntries(value, scope)
-    local entries = I.Search.Normalizer:Localized(value, scope)
-    local identity = I.Search.RuntimeIdentity
-    local out = {}
-    for index = 1, #entries do
-        local entry = entries[index]
-        if I.Search.Normalizer:LocaleRank(entry.locale)
-            and (not identity or identity:MatchesScope(scope, entry)) then
-            out[#out + 1] = entry
-        end
-    end
-    return out
-end
-
 local function addText(entry, field, value, scope)
-    local values = localizedEntries(value, scope)
-    for index = 1, #values do
-        local raw = values[index].text
-        local normalized = I.Search.Normalizer:Normalize(raw)
-        if normalized ~= "" then
-            -- Flat triples avoid a hash table per compiled field. Host-private;
-            -- public records and match evidence retain their named fields.
-            local fields, offset = entry.fields, #entry.fields
-            fields[offset + 1], fields[offset + 2], fields[offset + 3] = field, raw, normalized
-        end
-    end
+    I.Search.Normalizer:AppendFields(entry.fields, field, value, scope)
 end
 
 local function buildEntry(source, record)
@@ -150,16 +126,21 @@ local function buildEntry(source, record)
 end
 
 local function updateMemberships(self, entry, updateSet)
-    -- The posting sets already deduplicate keys. Do not retain a second hash
-    -- and a tiny table for every prefix/gram of every record. Reconstruct only
-    -- this entry's memberships when it is changed or removed (not on query).
-    local seen = {}
+    -- Stream codepoint boundaries into memberships. Posting operations are
+    -- idempotent, so duplicate characters/fields need no temporary seen set.
+    -- Keep the former malformed UTF-8 handling: leading continuation bytes
+    -- are skipped, later continuation bytes belong to the preceding start.
     for index = 1, #entry.fields, 3 do
-        local identity = entry.fields[index] .. "\0" .. entry.fields[index + 2]
-        if not seen[identity] then
-            seen[identity] = true
-            local gramValues = grams(entry.fields[index + 2])
-            for gramIndex = 1, #gramValues do updateSet(self.grams, gramValues[gramIndex], entry.key) end
+        local text, first = entry.fields[index + 2], nil
+        for offset = 1, #text + 1 do
+            local byte = text:byte(offset)
+            if not byte or byte < 128 or byte >= 192 then
+                if first then
+                    local gram = text:sub(first, offset - 1)
+                    if gram ~= " " then updateSet(self.grams, gram, entry.key) end
+                end
+                first = offset
+            end
         end
     end
     if entry.categoryID then updateSet(self.categories, I.Search.Normalizer:Normalize(entry.categoryID), entry.key) end

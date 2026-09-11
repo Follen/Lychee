@@ -3,7 +3,9 @@ Lychee={UI={}};LycheeDB={palette={}}
 local frames,groups,combat=0,0,false
 function InCombatLockdown() return combat end
 local methods={}
-local function region() return setmetatable({alphaValue=1,height=200,shown=true,scripts={}},{__index=methods}) end
+local function region() return setmetatable({alphaValue=1,width=640,height=200,shown=true,scripts={}},{__index=methods}) end
+function methods:GetWidth() return self.width end
+function methods:SetSize(w,h) assert(not combat);self.width,self.height=w,h;if self.onSize then self.onSize(w,h) end end
 function methods:SetScale(v) assert(not combat);self.scale=v end
 function methods:SetAlpha(v) assert(not combat);self.alphaValue=v end
 function methods:GetAlpha() return self.alphaValue end
@@ -37,6 +39,7 @@ function methods:CreateAnimationGroup()
     return g
 end
 dofile("package/Lychee/UI/Motion.lua")
+dofile("package/Lychee/UI/Presence.lua")
 local M=Lychee.UI.Motion
 assert(frames==0 and groups==0,"cold motion has zero engine objects")
 local knob,parent=region(),region()
@@ -147,7 +150,7 @@ function input:Hide() end
 local p=setmetatable({frame=r,input=input,visible=true,list={Clear=function() end},
     focus={Restore=function() end,Clear=function() end},settingsTitle=region(),settingsBack={frame=region()}},Lychee.UI.Palette)
 function p:Create() end
-function p:ApplyBoundedScale() end
+function p:ApplyBoundedScale() self.frame:SetScale(self._scale);self.frame:SetPoint("TOP",UIParent,"TOP",0,-self._topInset/self._scale) end
 function p:ResizeForMode() end
 function p:RefreshHomeSections() end
 function p:SetQueryMode() end
@@ -155,6 +158,9 @@ local function advance(seconds)
     if M.presenceDriver and M.presenceDriver.scripts.OnUpdate then M.presenceDriver.scripts.OnUpdate(M.presenceDriver,seconds) end
 end
 p._scale,p._topInset=0.8,24
+local shell,content,viewport=region(),region(),region()
+M:ConfigurePresence(p,shell,{content},nil,viewport)
+p:ApplyBoundedScale()
 r:Show();r:SetAlpha(1)
 p:Hide("close")
 assert(not p.visible and not input.enabled and p._motionClosing and r:IsShown(),"exit invalidates interaction before motion")
@@ -168,14 +174,15 @@ assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening l
 assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
 p:Hide("close");advance(0.16)
 assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>0.5,"exit midpoint must retain a visible moving panel")
-assert(math.abs(M.presence.position-0.5)<0.000001 and math.abs(r.scale/p._scale-0.92)<0.000001,"close uses its full duration and half its spatial distance at midpoint")
+assert(math.abs(M.presence.position-0.5)<0.000001 and r.scale==p._scale and math.abs(shell.width/r.width-0.95)<0.000001,"close uses half its shell distance without rescaling text")
+assert(viewport.width==shell.width and viewport.height==shell.height and viewport.y==shell.y,"content clipping follows the shell instead of exposing fixed children outside it")
 advance(0.159)
 assert(M.presence and M.presence.position<0.0001 and r:GetAlpha()<0.0001,"close reaches the invisible endpoint continuously before hiding")
 advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
-assert(math.abs(r.scale-0.672)<0.0001 and r:GetAlpha()==0,"every fresh opening begins at 84 percent")
-assert(math.abs(r.y*r.scale+48)<0.001,"opening starts 24 units below its final anchor")
+assert(r.scale==p._scale and math.abs(shell.width/r.width-0.90)<0.0001 and r:GetAlpha()==0,"fresh opening expands only the empty shell")
+assert(math.abs(r.y*r.scale+24)<0.001 and shell.y==-24,"root anchor stays fixed while shell starts below it")
 advance(0.10)
 assert(r:GetAlpha()==1 and M.presence.position<1,"opacity resolves early while geometry continues settling")
 x,v=M.presence.position,M.presence.velocity
@@ -189,6 +196,7 @@ M:SetReduced(true)
 assert(not p.visible and not r:IsShown() and not M.presence and not p._motionClosing,"reduced motion completes close")
 p:Show()
 assert(p.visible and r:GetAlpha()==1 and r.scale==0.8 and not M.presence,"reduced opening is immediate")
+assert(viewport.width==r.width and viewport.height==r.height and viewport.y==0,"reduced motion restores the complete content viewport")
 p:Hide("close");M:SetReduced(false)
 -- Closed form must give the same geometry at 30 and 120 Hz.
 p:Show();for i=1,3 do advance(1/30) end
@@ -208,9 +216,8 @@ combat=false;p:Hide("cleanup")
 M:Presence(r,false,nil,1,0,p)
 local staleFinished=0
 M.presence.finished=function() staleFinished=staleFinished+1 end
-local originalScale=methods.SetScale
-r.SetScale=function(self,value)
-    originalScale(self,value);r.SetScale=originalScale
+shell.onSize=function()
+    shell.onSize=nil
     M:Presence(r,true,nil,0,0,p)
 end
 M:StopPresence(true,true)
@@ -230,7 +237,7 @@ do
     now=now+10
     p:Show();now=now+0.016;advance(10.016)
     assert(M.presence and math.abs(M.presence.position-cold)<0.000001,"warm opening must not consume time spent hidden")
-    local samples={0.016,0.06,0.12,0.20,0.30,0.40}
+    local samples={0.016,0.06,0.12,0.20,0.30,0.45}
     local baseline={}
     for cycle=1,12 do
         p:Hide("repeat-close");now=now+1;advance(1)
@@ -258,7 +265,7 @@ local paletteBase=collectgarbage("count")
 local started=os.clock()
 for i=1,1000 do
     p:Show();advance(0.05);p:Hide("toggle")
-    advance(0.03);p:Show();for tick=1,46 do advance(1/120) end
+    advance(0.03);p:Show();for tick=1,54 do advance(1/120) end
     p:Hide("escape");for tick=1,39 do advance(1/120) end
 end
 local paletteCPU=(os.clock()-started)*1000
@@ -277,6 +284,7 @@ function methods:SetTexture() end
 function methods:SetColorTexture() end
 function methods:SetVertexColor() end
 dofile("package/Lychee/UI/Theme.lua")
+dofile("package/Lychee/UI/Runtime.lua")
 dofile("package/Lychee/UI/Components.lua")
 local toggle=Lychee.UI.Components:CreateToggle(parent)
 toggle:SetChecked(false,true)

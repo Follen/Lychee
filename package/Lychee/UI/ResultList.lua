@@ -1,3 +1,4 @@
+local EMPTY_UI_PROPS = {}
 local L = _G.LycheeInternal.Locale
 local Lychee = _G.Lychee or {}
 _G.Lychee = Lychee
@@ -307,9 +308,14 @@ local function clearRow(row)
     row.item, row.index, row.session, row.generation, row.extensionID, row.stableID = nil, nil, nil, nil, nil, nil
     row.primaryAction, row.secondaryAction, row.dragDescriptor = nil, nil, nil
     row._hovered, row._dragHovered, row._selected, row._pressed = false, false, false, false
-    cachedText(row, "title", row.title, "")
-    cachedText(row, "subtext", row.subtext, "")
-    cachedText(row, "category", row.category, "")
+    if row.textProps then
+        row.textProps.title,row.textProps.subtext,row.textProps.category=nil,nil,nil
+        if row.ui.active then row.ui:Update(EMPTY_UI_PROPS);row.ui:Release("unbind") end
+    else
+        -- Home tiles share action invalidation with results but keep their own
+        -- native layout and do not own a result-text binding view.
+        cachedText(row,"title",row.title,"");cachedText(row,"subtext",row.subtext,"");cachedText(row,"category",row.category,"")
+    end
     cachedText(row, "primaryHint", row.primaryHint, "")
     if row._icon ~= nil and row.icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
     row._icon = nil
@@ -404,13 +410,14 @@ function ResultList:Create(parent, controller)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
-        row.category = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.category:SetPoint("RIGHT", row, "RIGHT", -12, 0); row._categoryInset = 12; row.category:SetWidth(80); row.category:SetJustifyH("RIGHT"); singleLine(row.category)
-        setTextColor(row.category, "dim")
-        row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal"); row.title:SetPoint("TOPLEFT", row, "TOPLEFT", metrics.listTitleInset or 48, -6); row.title:SetPoint("RIGHT", row, "RIGHT", -112, 0); row.title:SetHeight(18); row.title:SetJustifyH("LEFT"); singleLine(row.title); setTextColor(row.title, "text")
-        if theme then theme:SetFont(row.title, "body"); theme:SetFont(row.category, "meta") end
-        row.subtext = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); row.subtext:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -2); row.subtext:SetPoint("RIGHT", row, "RIGHT", -112, 0); row.subtext:SetHeight(14); row.subtext:SetJustifyH("LEFT"); singleLine(row.subtext); setTextColor(row.subtext, "muted")
+        row.ui=Lychee.UI:Create(row,{type="Fragment",children={
+            {type="Text",key="category",props={role="meta",color="textDim",width=80,justifyH="RIGHT",maxLines=1,wordWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
+            {type="Text",key="title",props={role="body",color="text",height=18,maxLines=1,wordWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset or 48,-6},{"RIGHT",row,"RIGHT",-112,0}}},bind={text="title"}},
+            {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT",row,"RIGHT",-112,0}}},bind={text="subtext"}},
+        }})
+        row.textProps={}
+        assert(row.ui:Update(EMPTY_UI_PROPS));row.category,row.title,row.subtext=row.ui:Get("category"),row.ui:Get("title"),row.ui:Get("subtext");row._categoryInset=12
         row.description = row.subtext
-        if theme then theme:SetFont(row.subtext, "body") end
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
 
         row.secondary = CreateFrame("Button", nil, row); row.secondary:SetSize(24, 24); row.secondary:SetPoint("RIGHT", row, "RIGHT", -9, 0); row.secondary:RegisterForClicks("LeftButtonUp")
@@ -488,8 +495,8 @@ function ResultList:SetItems(items, session, generation, offset)
             end
             title,subtitle=row._matchRenderedTitle,row._matchRenderedSubtitle
         end
-        cachedText(row, "title", row.title, title)
-        cachedText(row, "subtext", row.subtext, subtitle)
+        row.textProps.title,row.textProps.subtext,row.textProps.category=title,subtitle,kindText(item)
+        row.ui:Update(row.textProps)
         local single=row.subtext:GetText()==""
         if row._singleTitle~=single then
             row.title:ClearAllPoints()
@@ -497,7 +504,6 @@ function ResultList:SetItems(items, session, generation, offset)
             row.title:SetPoint("RIGHT",row,"RIGHT",-112,0)
             row._singleTitle=single
         end
-        cachedText(row, "category", row.category, kindText(item))
         local icon = item.icon
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); cropIcon(row.icon); row._icon = icon end
         setShown(row.icon, icon ~= nil)

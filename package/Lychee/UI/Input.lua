@@ -5,6 +5,7 @@ Lychee.UI = Lychee.UI or {}
 
 local Input = {}
 Input.__index = Input
+local EMPTY_UI_PROPS = {}
 
 local function setShown(region, shown)
     shown = shown == true
@@ -12,24 +13,6 @@ local function setShown(region, shown)
 end
 
 local function localizedPlaceholder() return L["搜索技能、插件、命令…"] end
-
--- Keep glyphs and the caret at their resting pixel size while the surrounding
--- palette scales. Anchors and inherited alpha still follow the moving panel.
-function Input:SetDisplayScale(baseScale)
-    if InCombatLockdown and InCombatLockdown() then return false end
-    local container=self.container
-    if not container or not container.SetIgnoreParentScale or not container.SetScale then return false end
-    local parentScale=UIParent and UIParent.GetEffectiveScale and UIParent:GetEffectiveScale() or 1
-    local effective=(baseScale or 1)*parentScale
-    if not self._independentScale then
-        container:SetIgnoreParentScale(true)
-        self._independentScale=true
-    end
-    if self._displayScale==effective then return false end
-    container:SetScale(effective)
-    self._displayScale=effective
-    return true
-end
 
 function Input:_ApplyVisualState()
     local theme = Lychee.UI.Theme
@@ -64,30 +47,14 @@ function Input:Create(parent, focusController)
     container:EnableMouse(true)
     if theme then theme:CreateSurface(container, "input", "border") end
 
-    local edit = CreateFrame("EditBox", nil, container)
-    edit:SetAutoFocus(false)
-    if edit.SetTextInsets then edit:SetTextInsets(40, 20, 0, 0) end
-    edit:SetAllPoints(container)
-    if edit.SetFontObject then edit:SetFontObject("GameFontHighlight") end
-    if theme then theme:SetFont(edit, "input") end
-    if edit.SetJustifyV then edit:SetJustifyV("MIDDLE") end
-
-    local searchIcon = container:CreateTexture(nil, "ARTWORK")
-    searchIcon:SetSize(16, 16)
-    searchIcon:SetPoint("LEFT", container, "LEFT", 14, 0)
-    searchIcon:SetTexture("Interface\\AddOns\\Lychee\\Media\\MenuIcons\\search.tga")
-
-    local placeholder = container:CreateFontString(nil, "OVERLAY", "GameFontDisable")
-    placeholder:SetPoint("LEFT", container, "LEFT", 40, 0)
-    placeholder:SetPoint("RIGHT", container, "RIGHT", -20, 0)
-    placeholder:SetJustifyH("LEFT")
-    placeholder:SetHeight(height)
-    if placeholder.SetJustifyV then placeholder:SetJustifyV("MIDDLE") end
-    placeholder:SetText(localizedPlaceholder())
-    if theme then theme:SetFont(placeholder, "input") end
-
-    local hint = container:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    hint:Hide()
+    local elements=Lychee.UI:Create(container,{type="Fragment",children={
+        {type="Input",key="edit",props={variant="search",role="input",autoFocus=false,allPoints=true,textInsets={40,20,0,0},justifyV="MIDDLE"}},
+        {type="Icon",key="icon",props={width=16,height=16,texture="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\search.tga",point={"LEFT",container,"LEFT",14,0}}},
+        {type="Text",key="placeholder",props={role="input",text=localizedPlaceholder(),height=height,justifyH="LEFT",justifyV="MIDDLE",points={{"LEFT",container,"LEFT",40,0},{"RIGHT",container,"RIGHT",-20,0}}}},
+        {type="Text",key="hint",props={role="meta",visible=false}},
+    }})
+    assert(elements:Update(EMPTY_UI_PROPS))
+    local edit,searchIcon,placeholder,hint=elements:Get("edit"),elements:Get("icon"),elements:Get("placeholder"),elements:Get("hint")
 
     local self = setmetatable({
         frame = edit,
@@ -95,6 +62,7 @@ function Input:Create(parent, focusController)
         searchIcon = searchIcon,
         placeholder = placeholder,
         hint = hint,
+        elements = elements,
         focus = focusController,
         enabled = true,
         focused = false,
@@ -104,6 +72,7 @@ function Input:Create(parent, focusController)
         onMove = nil,
     }, Input)
     edit:SetScript("OnTextChanged", function(box, userInput)
+        if not elements.active then return end
         setShown(placeholder, (box:GetText() or "") == "")
         if self.onChanged then self.onChanged(box:GetText() or "", userInput == true) end
     end)
@@ -136,7 +105,6 @@ function Input:Create(parent, focusController)
     container:SetScript("OnMouseDown", function(_, button)
         if button == "LeftButton" and self.enabled then self:Focus() end
     end)
-    self:SetDisplayScale(1)
     self:_ApplyVisualState()
     return self
 end
@@ -163,7 +131,7 @@ function Input:SetEnabled(enabled)
     return true
 end
 function Input:IsEnabled() return self.enabled end
-function Input:Show() self.container:Show() end
-function Input:Hide() self.container:Hide() end
+function Input:Show() self.elements:Update(EMPTY_UI_PROPS);setShown(self.placeholder,self:GetText()=="");self.container:Show() end
+function Input:Hide() self.elements:Release("hide");self.container:Hide() end
 
 Lychee.UI.Input = Input

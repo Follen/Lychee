@@ -147,13 +147,15 @@ function Components:CreateBrand(parent, options)
     local component = { frame = frame, icon = icon, label = label, _texture = asset, _label = options.label }
     function component:SetTexture(asset)
         if self._texture == asset then return false end
+        local changed = setTexture(self.icon, asset)
         self._texture = asset
-        return setTexture(self.icon, asset)
+        return changed
     end
     function component:SetLabel(value)
         if self._label == value then return false end
+        local changed = setText(self.label, value)
         self._label = value
-        return setText(self.label, value)
+        return changed
     end
     function component:SetShown(shown) setShown(self.frame, shown) end
     return component
@@ -176,10 +178,10 @@ function Components:CreateButton(parent, options)
     if label.SetJustifyH then label:SetJustifyH("CENTER") end
     local component = { frame = frame, bg = bg, label = label, _state = nil, _text = nil }
     local function applyState(self, state)
+        if InCombatLockdown and InCombatLockdown() then return false end
         state = state or "normal"
         if self.enabled == false then state = "disabled" end
         if self._state == state then return false end
-        self._state = state
         if Lychee.UI.Motion then Lychee.UI.Motion:Alpha(self.label,state=="pressed" and 0.70 or 1,Lychee.UI.Motion.durations.feedback) end
         local token = options.colors and options.colors[state]
         if not token then token = options.colors and options.colors.normal end
@@ -192,6 +194,7 @@ function Components:CreateButton(parent, options)
         if self.strokes and textToken then
             for index = 1, #self.strokes do setColorTexture(self.strokes[index], textToken) end
         end
+        self._state = state
         return true
     end
     function component:SetState(state) return applyState(self, state) end
@@ -202,15 +205,16 @@ function Components:CreateButton(parent, options)
     end
     function component:SetText(value)
         if self._text == value then return false end
+        local changed = setText(self.label, value)
         self._text = value
-        return setText(self.label, value)
+        return changed
     end
     function component:SetEnabled(enabled)
         enabled = enabled ~= false
         if self.enabled ~= enabled then
-            self.enabled = enabled
             if enabled and type(frame.Enable) == "function" then frame:Enable()
             elseif not enabled and type(frame.Disable) == "function" then frame:Disable() end
+            self.enabled = enabled
         end
         return self:RefreshPointerState()
     end
@@ -357,8 +361,9 @@ function Components:CreateStatus(parent, options)
     local component = { frame = label, label = label, _text = nil }
     function component:SetText(value)
         if self._text == value then return false end
+        local changed = setText(self.label, value)
         self._text = value
-        return setText(self.label, value)
+        return changed
     end
     component:SetText(options.text or "")
     return component
