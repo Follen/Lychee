@@ -218,6 +218,29 @@ collectgarbage("restart")
 assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native selection has no fallback list allocation")
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
+-- Client reports: engine-managed AuraContainer has a readable shell and source,
+-- but its pooled aura children deny content reads. A plain empty Frame is different.
+local auraShell=frame(UIParent,"EngineAuraShell")
+auraShell.location="Interface/AddOns/EllesmereUI/EllesmereUI_AuraKit.lua:1321"
+auraShell.SetAuraProcessingPolicy=function() end
+local restrictedAura=frame(auraShell);restrictedAura.IsVisible=function() error("restricted") end
+auraShell.children={restrictedAura};nativeTarget=auraShell;scene({auraShell,restrictedAura});M:Poll()
+assert(M.target==auraShell and M.data.contentUnverified and not v.outline:IsShown(),"native engine container shows source without claiming verified paint")
+local resourceOwner=frame(UIParent,"ResourceOwner")
+local secretText=frame(resourceOwner,"NativeResourceText");secretText.kind="FontString"
+secretText.GetText=function() return {secret=true} end
+secretText.location="Interface/AddOns/EllesmereUIResourceBars/EllesmereUIResourceBars.lua:1869"
+nativeTarget=secretText;scene({secretText});M:Poll()
+assert(M.target==secretText and M.data.contentUnverified and not v.outline:IsShown(),"native restricted text is source evidence, not an empty region")
+local secretRect=secretText.GetRect;secretText.GetRect=function() return {secret=true},0,100,100 end
+M:Poll();assert(M.target==secretText and M.data.contentUnverified and not v.outline:IsShown(),"native unreadable geometry permits only source information")
+secretText.GetRect=secretRect
+secretText.GetText=function() return "100" end;M:Poll()
+assert(M.target==secretText and not M.data.contentUnverified and v.outline:IsShown(),"same object gains outline when visible content becomes readable")
+local emptySourceFrame=frame(UIParent,"EmptySourceAnchor");emptySourceFrame.location=auraShell.location
+nativeTarget=emptySourceFrame;scene({emptySourceFrame});M:Poll()
+assert(not M.target,"source metadata alone must not admit empty anchors")
+nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
 local textButton=frame(UIParent,"TextOnlyButton");textButton.kind="Button"
 textButton.IsMouseClickEnabled=function() return true end
@@ -232,7 +255,7 @@ buttonClip.scale=2;textButton.scale=0.5;buttonClip.width=30;M:Poll();assert(not 
 buttonClip.width=38;M:Poll();assert(M.target==textButton,"scaled partial clip retains visible content")
 textButton.parent=UIParent;textButton.scale=1
 local textRect=buttonText.GetRect;buttonText.GetRect=function() return nil end
-M:Poll();assert(not M.target,"unreadable button content bounds cannot prove visibility")
+M:Poll();assert(M.data and M.data.contentUnverified and not v.outline:IsShown(),"unreadable button content bounds cannot prove visibility")
 buttonText.GetRect=textRect
 buttonText:Hide();M:Poll();assert(not M.target,"an empty invisible button must still be excluded")
 buttonText:Show();textButton.kind="Frame";M:Poll();assert(not M.target,"noninteractive empty overlay cannot borrow off-pointer text")
@@ -259,7 +282,7 @@ assert(M.target==hoverButton,"text protruding beyond button height still proves 
 hoverText.left=300;M:Poll();assert(not M.target,"fully detached paint cannot support button padding")
 hoverText.left=212/1.2-9
 hoverText.GetEffectiveScale=function() return {secret=true} end
-M:Poll();assert(not M.target,"secret region scale must not fall back to the parent's scale")
+M:Poll();assert(M.data and M.data.contentUnverified and not v.outline:IsShown(),"secret region scale must not borrow parent geometry for a visible selection")
 hoverText.GetEffectiveScale=nil;hoverText:Hide();M:Poll();assert(not M.target,"scaled hidden paint is still rejected")
 nativeTarget=nil;cursorX,cursorY=50,50
 local solidOwner=frame(UIParent,"ResourceBackgroundOwner")
@@ -269,19 +292,27 @@ local hiddenCountOverlay=frame(solidOwner);hiddenCountOverlay:Hide();nativeTarge
 M:Poll();assert(M.target==solidOwner,"solid-color resource background without file or atlas remains visible")
 solidPaint:SetColorTexture(0,0,0,0);M:Poll();assert(not M.target,"fully transparent solid fill is filtered")
 solidPaint.solid=false;solidPaint.colorAlpha=1;M:Poll();assert(not M.target,"unset texture is not confused with a solid fill")
-local oldSolidEvidence,oldSolidProbe=M.solidTextureEvidence,M.solidTextureProbe
-local ambiguousRoot=frame()
-ambiguousRoot.CreateTexture=function(self)
-    local probe=frame(self);probe.IsObjectLoaded=function() return true end;return probe
-end
-M:ProbeSolidTextures(ambiguousRoot)
-assert(not M.solidTextureEvidence,"loaded state is not evidence when an empty probe also reports loaded")
-solidPaint.solid=true;M:Poll();assert(not M.target,"ambiguous client probe must preserve empty-texture rejection")
-assert(M:PickReport():find("solidTextureProbe=enabled=false",1,true),"unsupported solid evidence is reported explicitly")
-M.solidTextureEvidence,M.solidTextureProbe=oldSolidEvidence,oldSolidProbe
-solidPaint.solid=true;solidPaint.IsObjectLoaded=function() return {secret=true} end
-M:Poll();assert(not M.target,"unreadable loaded state is not paint evidence")
+solidPaint.solid=true;solidPaint.IsObjectLoaded=function() return true end
+M:Poll();assert(M.target==solidOwner and M.data.contentUnverified and not v.outline:IsShown(),"ambiguous non-file texture provides native source evidence without a visible outline")
+solidPaint.IsObjectLoaded=function() return {secret=true} end
+M:Poll();assert(M.target==solidOwner and M.data.contentUnverified,"unreadable texture metadata must not become confirmed paint")
 nativeTarget=nil
+local verifiedOwner=frame(UIParent,"VerifiedUnderlay")
+local verifiedPaint=frame(verifiedOwner);verifiedPaint.kind="Texture";verifiedPaint.texture="visible"
+verifiedOwner.visualRegions={verifiedPaint}
+nativeTarget=solidOwner;scene({solidOwner,verifiedOwner});M:Poll()
+assert(M.target==verifiedOwner and not M.data.contentUnverified,"confirmed visible candidate wins over native unknown content")
+verifiedPaint:Hide();solidOwner:Hide();M:Poll();assert(not M.target,"hidden verified and unknown targets are both rejected")
+solidOwner:Show();nativeTarget=nil
+local delayed={secretText};secretText.GetText=function() return {secret=true} end
+for i=1,20 do delayed[#delayed+1]=frame(UIParent,"EmptyPending"..i) end
+verifiedPaint:Show();delayed[#delayed+1]=verifiedPaint
+nativeTarget=secretText;scene(delayed)
+local evidenceClock=0;debugprofilestop=function() evidenceClock=evidenceClock+0.8;return evidenceClock end
+M:Stop();M:Start();assert(not M.target and M.pick.pending,"unknown content must wait while verified candidates remain unchecked")
+for i=1,55 do M:Poll() end
+assert(M.target==verifiedPaint and not M.data.contentUnverified,"resumed sweep reaches confirmed paint after an unknown native hit")
+nativeTarget=nil;debugprofilestop=function() return 0 end
 local rotatingWidget=frame(UIParent,"LayeredAuraOrResource")
 local overlayA=frame(rotatingWidget,"OverlayA")
 local overlayB=frame(rotatingWidget,"OverlayB")
@@ -441,7 +472,7 @@ aura.parent=clip;scene({aura});M:Poll();assert(not M.target,"regions outside anc
 aura.parent=UIParent
 local oldRect=auraIcon.GetRect
 auraIcon.GetRect=function() return {secret=true},0,100,100 end
-scene({aura});M:Poll();assert(not M.target,"secret geometry is not compared")
+scene({aura});M:Poll();assert(M.data and M.data.contentUnverified and not v.outline:IsShown(),"secret geometry is not compared or drawn")
 auraIcon.GetRect=oldRect
 local ownIcon=frame(v.frame);ownIcon.kind="Texture";ownIcon.texture="own"
 v.frame.visualRegions={ownIcon};scene({v.frame});M:Poll();assert(not M.target,"fallback cannot pick inspector artwork")

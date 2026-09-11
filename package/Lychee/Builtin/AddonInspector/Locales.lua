@@ -17,6 +17,7 @@ do
         ["开始识别"] = "Start inspecting",
         ["归属未确定"] = "Owner undetermined",
         ["指向界面，查看来自哪个插件"] = "Point at a frame to identify its addon",
+        ["原生命中 · 内容无法验证"] = "Native hit · content unverified",
         ["插件识别"] = "Addon inspector",
         ["暂未识别"] = "Not identified",
         ["暴雪创建代码"] = "Blizzard creation code",

@@ -2,6 +2,7 @@ local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
     ["编辑"] = "Edit",
+    ["原生命中 · 内容无法验证"] = "Native hit · content unverified",
     ["插件识别"] = "Addon Inspector",
     ["暂未识别此处界面"] = "No addon identified here yet",
     ["按住 Shift 可复制检查信息"] = "Hold Shift to copy inspection details",

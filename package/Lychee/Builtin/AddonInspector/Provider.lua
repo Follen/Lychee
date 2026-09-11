@@ -137,25 +137,26 @@ function M:CheckFocus(frame)
 end
 local strataOrder={BACKGROUND=1,LOW=2,MEDIUM=3,HIGH=4,DIALOG=5,FULLSCREEN=6,FULLSCREEN_DIALOG=7,TOOLTIP=8}
 local layerOrder={BACKGROUND=1,BORDER=2,ARTWORK=3,OVERLAY=4,HIGHLIGHT=5}
+local Evidence={}
 function M:ResetVisual()
     self.visualBest,self.visualBestFrame,self.visualX,self.visualY=nil,nil,nil,nil
     self.visualProvisional=nil
     self.visualFromPrevious=nil
+    self.visualUnknown,self.unknownReason=nil,nil
 end
 function M:Reject(reason)
     self.pickReason=reason
 end
 function M:HitRect(object,scale)
-    local ok,left,bottom,width,height=pcall(method(object,"GetRect"),object)
-    if not ok or secret(left) or secret(bottom) or secret(width) or secret(height) then return self:Reject("geometry-unreadable") end
-    if type(left)~="number" or type(bottom)~="number" or type(width)~="number" or type(height)~="number"
-        or type(scale)~="number" or scale<=0 or width<=0 or height<=0 then return self:Reject("geometry-empty") end
-    local x,y=self.visualX/scale,self.visualY/scale
-    if x>=left and x<=left+width and y>=bottom and y<=bottom+height then return width*height*scale*scale end
+    local l,b,r,t=Evidence.rect(self,object,scale)
+    if not l then return self:Reject(b) end
+    local x,y=self.visualX,self.visualY
+    if x>=l and x<=r and y>=b and y<=t then return (r-l)*(t-b) end
     return self:Reject("outside-pointer")
 end
 function M:VisualFrame(frame)
-    if self:Read(frame,"IsVisible")~=true then return self:Reject("hidden-or-unreadable") end
+    local shown=self:Read(frame,"IsVisible")
+    if shown~=true then return self:Reject(shown==false and "hidden" or "visibility-unreadable") end
     local alpha=self:Read(frame,"GetEffectiveAlpha")
     if type(alpha)~="number" then return self:Reject("alpha-unreadable") end
     if alpha<=0 then return self:Reject("transparent") end
@@ -169,95 +170,110 @@ function M:VisualFrame(frame)
     end
     return self:Read(frame,"GetEffectiveScale")
 end
-function M:VisualRegion(region,scale,button)
-    if self:Read(region,"IsVisible")~=true then return self:Reject("hidden-or-unreadable") end
-    local alpha=self:Read(region,"GetAlpha")
-    if type(alpha)~="number" then return self:Reject("alpha-unreadable") end
-    if alpha<=0 then return self:Reject("transparent") end
-    local kind=self:Read(region,"GetObjectType")
-    local colorMethod
-    if kind=="Texture" then
-        local texture=self:Read(region,"GetTexture") or self:Read(region,"GetAtlas")
-        if not texture or texture=="" then
-            if not self.solidTextureEvidence or self:Read(region,"IsObjectLoaded")~=true then return self:Reject("texture-empty-or-unreadable") end
-        end
-        colorMethod="GetVertexColor"
-    elseif kind=="FontString" then
-        local value=self:Read(region,"GetText")
-        if type(value)~="string" then return self:Reject("text-unreadable") end
-        if not value:find("%S") then return self:Reject("text-empty") end
-        colorMethod="GetTextColor"
-    else return end
-    local ok,_,_,_,colorAlpha=pcall(method(region,colorMethod),region)
-    if not ok or secret(colorAlpha) or type(colorAlpha)~="number" then return self:Reject("color-unreadable") end
-    if colorAlpha<=0 then return self:Reject("transparent-color") end
-    -- Region scaling is independent of its owning Frame (e.g. hover text zoom).
-    local regionScale=self:Read(region,"GetEffectiveScale")
-    if type(regionScale)~="number" or regionScale<=0 then return self:Reject("region-scale-unreadable") end
-    local area=self:HitRect(region,regionScale)
-    if area or not button then return area end
-    -- A text-only button's click target includes its padding. Require visible
-    -- paint within the button, not the pointer sitting directly on that paint.
-    local ok,l,b,w,h=pcall(method(region,"GetRect"),region)
-    local fok,fl,fb,fw,fh=pcall(method(button,"GetRect"),button)
-    if not ok or not fok then return end
-    if secret(l) or secret(b) or secret(w) or secret(h) or secret(fl) or secret(fb) or secret(fw) or secret(fh)
+-- Rendering evidence is separate from source attribution. Unknown content is
+-- never painted as a confirmed selection, nor treated as a proven empty region.
+function Evidence.rect(owner,object,scale)
+    scale=scale or owner:Read(object,"GetEffectiveScale")
+    local ok,l,b,w,h=pcall(method(object,"GetRect"),object)
+    if not ok or secret(l) or secret(b) or secret(w) or secret(h)
         or type(l)~="number" or type(b)~="number" or type(w)~="number" or type(h)~="number"
-        or type(fl)~="number" or type(fb)~="number" or type(fw)~="number" or type(fh)~="number" then return end
-    if w>0 and h>0 and fw>0 and fh>0 then
-        -- Text may extend past a short button. Only its visible overlap proves
-        -- that the button's otherwise empty click padding represents content.
-        local left,bottom=math.max(l*regionScale,fl*scale),math.max(b*regionScale,fb*scale)
-        local right,top=math.min((l+w)*regionScale,(fl+fw)*scale),math.min((b+h)*regionScale,(fb+fh)*scale)
-        if right<=left or top<=bottom then return self:Reject("button-content-outside") end
-        local ancestor=button
-        for depth=1,16 do
-            if not ancestor then break end
-            if self:Read(ancestor,"DoesClipChildren")==true then
-                local clipScale=self:Read(ancestor,"GetEffectiveScale")
-                local cok,cl,cb,cw,ch=pcall(method(ancestor,"GetRect"),ancestor)
-                if not cok or secret(cl) or secret(cb) or secret(cw) or secret(ch)
-                    or type(cl)~="number" or type(cb)~="number" or type(cw)~="number" or type(ch)~="number"
-                    or type(clipScale)~="number" or clipScale<=0 or cw<=0 or ch<=0 then return self:Reject("clipped-or-unreadable") end
-                left=math.max(left,cl*clipScale);bottom=math.max(bottom,cb*clipScale)
-                right=math.min(right,(cl+cw)*clipScale);top=math.min(top,(cb+ch)*clipScale)
-                if right<=left or top<=bottom then return self:Reject("clipped-content") end
-            end
-            ancestor=self:Read(ancestor,"GetParent")
+        or type(scale)~="number" then return nil,"geometry-unreadable" end
+    if scale<=0 or w<=0 or h<=0 then return nil,"geometry-empty" end
+    return l*scale,b*scale,(l+w)*scale,(b+h)*scale
+end
+function Evidence.clip(owner,frame,l,b,r,t)
+    for depth=1,16 do
+        if not frame then break end
+        local clipping=owner:Read(frame,"DoesClipChildren")
+        if clipping==nil then return nil,"clip-unreadable" end
+        if clipping then
+            local cl,cb,cr,ct=Evidence.rect(owner,frame)
+            if not cl then return nil,"clipped-or-unreadable" end
+            l,b,r,t=math.max(l,cl),math.max(b,cb),math.min(r,cr),math.min(t,ct)
+            if r<=l or t<=b then return nil,"clipped-content" end
         end
-        return (right-left)*(top-bottom)
+        frame=owner:Read(frame,"GetParent")
+    end
+    return l,b,r,t
+end
+function Evidence.region(owner,region,frame,button)
+    local shown=owner:Read(region,"IsVisible")
+    if shown~=true then return nil,shown==false and "hidden" or "visibility-unreadable" end
+    local alpha=owner:Read(region,"GetAlpha")
+    if type(alpha)~="number" then return nil,"alpha-unreadable" end
+    if alpha<=0 then return nil,"transparent" end
+    local kind=owner:Read(region,"GetObjectType")
+    local grade,reason=2
+    if kind=="Texture" then
+        local texture=owner:Read(region,"GetTexture") or owner:Read(region,"GetAtlas")
+        if not texture or texture=="" then
+            if owner:Read(region,"IsObjectLoaded")==false then return nil,"texture-empty" end
+            grade,reason=1,"texture-content-unavailable"
+        end
+    elseif kind=="FontString" then
+        local value=owner:Read(region,"GetText")
+        if type(value)~="string" then grade,reason=1,"text-unreadable"
+        elseif not value:find("%S") then return nil,"text-empty" end
+    else return nil,"unsupported-region" end
+    local ok,_,_,_,a=pcall(method(region,kind=="Texture" and "GetVertexColor" or "GetTextColor"),region)
+    a=clean(a)
+    if not ok or type(a)~="number" then grade,reason=1,"color-unreadable"
+    elseif a<=0 then return nil,"transparent-color" end
+    local l,b,r,t=Evidence.rect(owner,region)
+    if not l then
+        if b=="geometry-unreadable" then return math.huge,1,b end
+        return nil,b
+    end
+    local x,y=owner.visualX,owner.visualY
+    if not (x>=l and x<=r and y>=b and y<=t) then
+        if not button then return nil,"outside-pointer" end
+        local fl,fb,fr,ft=Evidence.rect(owner,button)
+        if not fl then return nil,fb end
+        l,b,r,t=math.max(l,fl),math.max(b,fb),math.min(r,fr),math.min(t,ft)
+        if r<=l or t<=b then return nil,"button-content-outside" end
+    end
+    l,b,r,t=Evidence.clip(owner,frame,l,b,r,t)
+    if not l then return nil,b end
+    return (r-l)*(t-b),grade,reason
+end
+local function above(strata,level,layer,area,bs,bl,bd,ba,tie)
+    return strata>bs or (strata==bs and (level>bl or (level==bl and
+        (layer>bd or (layer==bd and (area<ba or (area==ba and tie)))))))
+end
+function Evidence.publish(owner,target,frame,area,grade,reason,strata,level,layer,native)
+    if grade==1 then
+        if not native then return end
+        if not owner.visualUnknown or above(strata,level,layer,area,owner.unknownStrata,owner.unknownLevel,owner.unknownLayer,owner.unknownArea,false) then
+            owner.visualUnknown,owner.unknownReason=target,reason
+            owner.unknownStrata,owner.unknownLevel,owner.unknownLayer,owner.unknownArea=strata,level,layer,area
+        end
+    elseif not owner.visualBest or above(strata,level,layer,area,owner.visualStrata,owner.visualLevel,owner.visualLayer,owner.visualArea,owner.visualProvisional) then
+        owner.visualBest,owner.visualBestFrame=target,frame
+        owner.visualProvisional,owner.visualFromPrevious=nil,nil
+        owner.visualStrata,owner.visualLevel,owner.visualLayer,owner.visualArea=strata,level,layer,area
     end
 end
-local function inspectRegions(owner,target,frame,scale,strata,level,ok,...)
-    if not ok then return owner:Reject("regions-unreadable") end
-    local found
+function Evidence.regions(owner,target,frame,scale,strata,level,native,ok,...)
+    if not ok then return 0,"regions-unreadable" end
     local kind=owner:Read(target,"GetObjectType")
     local button=(kind=="Button" or kind=="CheckButton") and owner:Read(target,"IsMouseClickEnabled")==true
         and owner:HitRect(frame,scale) and frame or nil
+    local best,bestReason=0,"no-visible-content"
     for i=1,math.min(select("#",...),32) do
         local region=clean(select(i,...))
-        local area=owner:VisualRegion(region,scale,button)
+        local area,grade,reason=Evidence.region(owner,region,frame,button)
         if area then
-            found=true
-            local layer=layerOrder[owner:Read(region,"GetDrawLayer")] or 0
-            if not owner.visualBest or strata>owner.visualStrata
-                or (strata==owner.visualStrata and (level>owner.visualLevel
-                or (level==owner.visualLevel and (layer>owner.visualLayer
-                or (layer==owner.visualLayer and (area<owner.visualArea or (area==owner.visualArea and owner.visualProvisional))))))) then
-                owner.visualBest,owner.visualBestFrame=target,frame
-                owner.visualProvisional=nil
-                owner.visualFromPrevious=nil
-                owner.visualStrata,owner.visualLevel,owner.visualLayer,owner.visualArea=strata,level,layer,area
-            end
-        end
+            if grade>best then best,bestReason=grade,reason end
+            Evidence.publish(owner,target,frame,area,grade,reason,strata,level,layerOrder[owner:Read(region,"GetDrawLayer")] or 0,native)
+        elseif best==0 then bestReason=grade end
     end
-    return found
+    return best,bestReason
 end
-local function considerObject(owner,object)
+local function considerObject(owner,object,native)
     owner.pickReason="no-visible-content"
     object=owner:CheckFocus(object)
     if not object then return owner:Reject("excluded") end
-    local kind=object and owner:Read(object,"GetObjectType")
+    local kind=owner:Read(object,"GetObjectType")
     local isRegion=kind=="Texture" or kind=="FontString"
     local frame=isRegion and owner:Read(object,"GetParent") or object
     local scale=frame and owner:VisualFrame(frame)
@@ -265,11 +281,19 @@ local function considerObject(owner,object)
     local strata=strataOrder[owner:Read(frame,"GetFrameStrata")] or 0
     local level=owner:Read(frame,"GetFrameLevel")
     if type(level)~="number" then return owner:Reject("level-unreadable") end
-    -- Regions prove visibility, but must not replace the native object's identity.
-    local found
-    if isRegion then found=inspectRegions(owner,object,frame,scale,strata,level,true,object)
-    else found=inspectRegions(owner,object,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
-    if found then owner.pickReason=nil end
+    local grade,reason
+    if isRegion then grade,reason=Evidence.regions(owner,object,frame,scale,strata,level,native,true,object)
+    else grade,reason=Evidence.regions(owner,object,frame,scale,strata,level,native,pcall(method(frame,"GetRegions"),frame)) end
+    -- Native engine-managed containers cannot expose all drawn children to addons.
+    -- Presence of their public protocol is evidence of managed content, not pixels.
+    if grade==0 and native and method(object,"SetAuraProcessingPolicy") then
+        local area=owner:HitRect(frame,scale)
+        if area then
+            grade,reason=1,"engine-content-unavailable"
+            Evidence.publish(owner,object,frame,area,grade,reason,strata,level,0,true)
+        end
+    end
+    owner.pickReason=grade==2 and nil or reason
 end
 -- One sweep owns all fallback candidates. Budget exhaustion yields the cursor,
 -- not the answer: later objects must eventually be considered at a stationary pointer.
@@ -285,6 +309,7 @@ local function enqueueList(pick,ok,...)
 end
 function M:ResetPicking()
     self.pick,self.lastPick,self.lastPickX,self.lastPickY=nil,nil,nil,nil
+    self.selectionEvidence,self.selectionReason=nil,nil
     self:ResetVisual()
 end
 local function belongsToSweep(owner,pick,object)
@@ -304,10 +329,10 @@ function M:StackFocus(objects,preferred,frozen)
     else ok,x,y=pcall(GetCursorPosition) end
     if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then self:ResetPicking();return end
     self.visualX,self.visualY=x,y
-    if preferred then considerObject(self,preferred) end
+    if preferred then considerObject(self,preferred,true) end
     if self.visualBest then
         local target=self.visualBest
-        self.pick=nil;self.lastPick,self.lastPickX,self.lastPickY=target,x,y
+        self.pick=nil;self.selectionEvidence,self.selectionReason=2,nil;self.lastPick,self.lastPickX,self.lastPickY=target,x,y
         self:ResetVisual();return target,nil,true
     end
     local rawReason=preferred and self.pickReason or nil
@@ -316,10 +341,12 @@ function M:StackFocus(objects,preferred,frozen)
     -- Finish the bounded sweep there; refresh its native seeds on the next sweep.
     if not pick or not pick.pending or pick.x~=x or pick.y~=y
         or (preferred and preferred~=pick.preferred and not belongsToSweep(self,pick,preferred)) then
-        if not pick then pick={queue={},seen={},reasons={}};self.pick=pick end
+        if not pick then pick={queue={},seen={},reasons={},native={}};self.pick=pick end
         for key in pairs(pick.queue) do pick.queue[key]=nil end
         for key in pairs(pick.seen) do pick.seen[key]=nil end
         for key in pairs(pick.reasons) do pick.reasons[key]=nil end
+        for key in pairs(pick.native) do pick.native[key]=nil end
+        pick.unverified=nil
         pick.x,pick.y,pick.preferred=x,y,preferred
         pick.head,pick.tail,pick.checked=1,0,0
         pick.capped,pick.unreadable=false,false
@@ -332,10 +359,14 @@ function M:StackFocus(objects,preferred,frozen)
             if not scope or not self:CheckFocus(scope) then break end
             enqueue(pick,scope);scope=self:Read(scope,"GetParent")
         end
+        if preferred and pick.seen[preferred] then pick.native[preferred]=true end
         local snapshot=type(objects)=="function" and call(objects) or objects
         pick.supported=type(snapshot)=="table"
         if pick.supported then
-            for i=1,math.min(#snapshot,512) do enqueue(pick,clean(snapshot[i])) end
+            for i=1,math.min(#snapshot,512) do
+                local item=clean(snapshot[i]);enqueue(pick,item)
+                if item and pick.seen[item] then pick.native[item]=true end
+            end
             if #snapshot>512 then pick.capped=true end
         end
         pick.seedTail=pick.tail
@@ -343,16 +374,17 @@ function M:StackFocus(objects,preferred,frozen)
     -- Publish progressively without flicker, but revalidate on every poll so a
     -- hidden, faded, clipped or moved winner cannot linger between sweep batches.
     if self.lastPickX==x and self.lastPickY==y and self.lastPick and belongsToSweep(self,pick,self.lastPick) then
-        considerObject(self,self.lastPick)
+        considerObject(self,self.lastPick,pick.native[self.lastPick])
         self.visualFromPrevious=self.visualBest~=nil
     end
+    if pick.unverified then considerObject(self,pick.unverified,pick.native[pick.unverified]) end
     local started=debugprofilestop and debugprofilestop() or 0
     for i=1,128 do
         local object=pick.queue[pick.head]
         if not object then break end
         pick.head=pick.head+1;pick.checked=pick.checked+1
         self.visualProvisional=self.visualFromPrevious and pick.head-1<=pick.seedTail
-        considerObject(self,object)
+        considerObject(self,object,pick.native[object])
         local reason=self.pickReason
         if reason then pick.reasons[reason]=(pick.reasons[reason] or 0)+1 end
         if pick.details and #pick.details<512 then
@@ -370,7 +402,11 @@ function M:StackFocus(objects,preferred,frozen)
         if debugprofilestop and debugprofilestop()-started>=0.75 then break end
     end
     pick.pending=pick.head<=pick.tail
+    pick.unverified=self.visualUnknown
     local target=self.visualBest
+    local grade,reason=target and 2,nil
+    if not target and (not pick.pending or self.lastPick==self.visualUnknown) then target,grade,reason=self.visualUnknown,1,self.unknownReason end
+    self.selectionEvidence,self.selectionReason=target and grade or nil,reason
     self.lastPick,self.lastPickX,self.lastPickY=target,x,y
     -- Keep only this bounded snapshot until the next sweep or Stop, so Shift
     -- can explain a just-completed miss without resampling over the popup.
@@ -383,7 +419,8 @@ function M:PickReport()
     local lines={"Picker: "..(pick.pending and "pending" or "complete"),
         "checked="..pick.checked.." queued="..pick.tail.." capped="..tostring(pick.capped),
         "native="..text(self:Read(pick.preferred,"GetDebugName")),"nativeFilter="..tostring(pick.rawReason)}
-    lines[#lines+1]="solidTextureProbe="..(self.solidTextureProbe or "not-run")
+    lines[#lines+1]="evidence="..(self.selectionEvidence==2 and "verified" or self.selectionEvidence==1 and "unverified" or "none")
+    if self.selectionReason then lines[#lines+1]="evidenceReason="..self.selectionReason end
     for reason,count in pairs(pick.reasons) do lines[#lines+1]=reason.."="..count end
     if pick.unreadable then lines[#lines+1]="Some child/region lists could not be read" end
     if pick.details then
@@ -394,30 +431,6 @@ function M:PickReport()
     end
     return table.concat(lines,"\n")
 end
--- Calibrate the engine's non-file texture evidence, never infer a solid fill
--- from default vertex color alone. Both probes remain under the hidden sampler.
-function M:ProbeSolidTextures(root)
-    self.solidTextureEvidence=false;self.solidTextureProbe="unavailable"
-    local empty=call(method(root,"CreateTexture"),root)
-    local filled=call(method(root,"CreateTexture"),root)
-    if not empty or not filled then return end
-    call(method(empty,"SetSize"),empty,1,1);call(method(filled,"SetSize"),filled,1,1)
-    local emptyLoaded=self:Read(empty,"IsObjectLoaded")
-    local painted=pcall(method(filled,"SetColorTexture"),filled,0,0,0,1)
-    local filledLoaded=self:Read(filled,"IsObjectLoaded")
-    local alpha=self:Read(filled,"GetAlpha")
-    local ok,_,_,_,colorAlpha=pcall(method(filled,"GetVertexColor"),filled)
-    colorAlpha=clean(colorAlpha)
-    local opaque=ok and type(alpha)=="number" and alpha>0 and type(colorAlpha)=="number" and colorAlpha>0
-    local cleared=pcall(method(filled,"SetColorTexture"),filled,0,0,0,0)
-    local zeroAlpha=self:Read(filled,"GetAlpha")
-    local zok,_,_,_,zeroColorAlpha=pcall(method(filled,"GetVertexColor"),filled)
-    zeroColorAlpha=clean(zeroColorAlpha)
-    local transparent=zeroAlpha==0 or (zok and zeroColorAlpha==0)
-    self.solidTextureEvidence=painted and cleared and emptyLoaded==false and filledLoaded==true and opaque and transparent or false
-    self.solidTextureProbe="enabled="..tostring(self.solidTextureEvidence).." empty="..tostring(emptyLoaded)
-        .." filled="..tostring(filledLoaded).." transparent="..tostring(transparent)
-end
 local function sampleNative(tooltip,root)
     tooltip:SetOwner(root,"ANCHOR_NONE")
     tooltip:SetParent(root)
@@ -427,7 +440,6 @@ function M:NativeFocus()
     if not self.stackRoot then
         self.stackRoot=CreateFrame("Frame",nil,UIParent)
         self.stackRoot:Hide();self.stackRoot:EnableMouse(false)
-        self:ProbeSolidTextures(self.stackRoot)
         self.stackTooltip=call(CreateFrame,"GameTooltip",nil,self.stackRoot,"SharedTooltipTemplate")
         if self.stackTooltip then self.stackTooltip:EnableMouse(false);self.stackTooltip:Hide() end
     end
@@ -485,10 +497,14 @@ function M:Poll()
         target=self:StackFocus(nil,pick.preferred,true)
     else target,own=self:Focus() end
     if own then self.view:Place(self.target);return end
-    if target~=self.target or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false))
+    if target~=self.target or (target and self.data and (self.data.contentUnverified~=(self.selectionEvidence==1) or self.data.evidenceReason~=self.selectionReason)) or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false))
         or (not target and self.view.diagnosticPending~=(self.pick and self.pick.pending or false))
         or (not target and self.view.diagnosticReady~=(self.pick and self.pick.details~=nil and not self.pick.pending or false)) then
         self.target=target;self.data=target and self:Analyze(target) or nil
+        if self.data then
+            self.data.contentUnverified=self.selectionEvidence==1
+            self.data.evidenceReason=self.selectionReason
+        end
         self.view:Update(target,self.data)
     end
     self.view:Place(target)
@@ -541,7 +557,10 @@ function M:Parent()
     if InCombatLockdown and InCombatLockdown() then self:Stop();return end
     local parent=self:Read(self.target,"GetParent")
     if not parent or parent==UIParent or parent==WorldFrame or self:Read(parent,"IsForbidden") then return end
-    self.target=parent;self.data=self:Analyze(parent);self.view:Update(parent,self.data)
+    local unverified=self.data and self.data.contentUnverified
+    self.target=parent;self.data=self:Analyze(parent)
+    self.data.contentUnverified=unverified;self.data.evidenceReason=unverified and "parent-source-only" or nil
+    self.view:Update(parent,self.data)
 end
 function M:Report()
     local data=self.data
@@ -555,6 +574,7 @@ function M:Report()
         for _,source in ipairs(data.relatedSources) do lines[#lines+1]=source.title.." · "..source.name.." · "..source.location end
     end
     if data.relatedTruncated then lines[#lines+1]=L["关联信息已截断"] end
+    if data.contentUnverified then lines[#lines+1]=L["原生命中 · 内容无法验证"].." ("..tostring(data.evidenceReason)..")" end
     lines[#lines+1]=self:PickReport()
     return table.concat(lines,"\n"):sub(1,196608)
 end

@@ -123,7 +123,7 @@ function UI.CreateAddonInspector(owner)
         self.diagnosticReady=owner.pick and owner.pick.details~=nil and not owner.pick.pending or false
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
         self.heading:SetText(data and data.title or L["插件识别"])
-        self.confidence:SetText(data and data.confidence or self.hasDiagnostic and
+        self.confidence:SetText(data and (data.contentUnverified and L["原生命中 · 内容无法验证"] or data.confidence) or self.hasDiagnostic and
             L["暂未识别此处界面"] or L["指向界面，查看来自哪个插件"])
         self.name:SetText(data and data.name or self.hasDiagnostic and L["按住 Shift 可复制检查信息"] or L["无需点击 · Esc 退出"])
         local location=data and data.location or ""
@@ -134,7 +134,7 @@ function UI.CreateAddonInspector(owner)
         local parent=target and owner:Read(target,"GetParent")
         self.parent:SetEnabled(parent~=nil and parent~=UIParent and parent~=WorldFrame)
         self.outline:Hide();self.outline:ClearAllPoints()
-        if target then
+        if target and not data.contentUnverified then
             local ok=pcall(self.outline.SetAllPoints,self.outline,target)
             if ok then self.outline:Show() end
         end
