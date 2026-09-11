@@ -229,7 +229,25 @@ for i=1,30 do
     M:Poll()
     assert(v.confidence:GetText()==stableHint,"pending and complete sweeps must not alternate the visible empty-state hint")
 end
+-- Shift during a failed pending sweep must finish at its original point, not
+-- freeze forever or start inspecting the copy button when the pointer moves.
+M:Stop();M:Start()
+assert(M.pick.pending)
+shift=true;M:Poll()
+local frozenNativeReads=nativeReads
+cursorX,cursorY=1500,900
+for i=1,30 do M:Poll() end
+assert(not M.pick.pending and M.pick.x==50 and M.pick.y==50 and nativeReads==frozenNativeReads,
+    "diagnostic sweep must finish at the frozen pointer without native resampling")
+assert(M:PickReport():find("Candidate | filter | creation source",1,true) and #M.pick.details==10,
+    "completed diagnostic includes per-object failures instead of just aggregates")
+shift=false;cursorX,cursorY=50,50;M:Poll()
+assert(not M.pick.details,"normal sweeps must stop detailed diagnostic recording")
 debugprofilestop=function() return 0 end
+M:Poll();assert(not M.pick.pending and not M.pick.details)
+shift=true;M:Poll()
+assert(not M.pick.pending and M.pick.details and #M.pick.details==10,"Shift must also explain an already-completed snapshot")
+shift=false;M:Poll()
 local budgetList={}
 for i=1,20 do budgetList[i]=frame(UIParent,"EmptyBudgetCarrier"..i) end
 budgetList[21]=cdmIcon

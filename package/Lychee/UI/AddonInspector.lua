@@ -38,6 +38,7 @@ function UI.CreateAddonInspector(owner)
     view.close=button("Esc",266,-6,40,function() owner:Stop() end)
     view.copy=button(L["复制信息"],16,-302,140,function()
         if not owner.data and not view.hasDiagnostic then return end
+        if not owner.data and owner.pick and (owner.pick.pending or not owner.pick.details) then return end
         view.copying=not view.copying;view:Layout()
         if view.copying then
             view.report=owner:Report();view.edit:SetText(view.report);view.edit:Show();view.edit:SetFocus();view.edit:HighlightText()
@@ -85,6 +86,7 @@ function UI.CreateAddonInspector(owner)
     function view:Update(target,data)
         self.hasTarget=data~=nil
         self.hasDiagnostic=owner.pick and (owner.pick.preferred~=nil or owner.pick.checked>0) or false
+        self.diagnosticPending=owner.pick and owner.pick.pending or false
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
         self.heading:SetText(data and data.title or L["插件识别"])
         self.confidence:SetText(data and data.confidence or self.hasDiagnostic and
@@ -94,7 +96,7 @@ function UI.CreateAddonInspector(owner)
         self.details:SetText(location)
         self.detailMeta:SetText(data and (data.kind.."  ·  "..data.size.."  ·  "..data.strata) or "")
         self.parents:SetText(data and (#data.parents>0 and table.concat(data.parents,"\n",1,math.min(2,#data.parents)) or L["未发现可确认的父级来源"]) or "")
-        self.copy:SetEnabled(data~=nil or self.hasDiagnostic)
+        self.copy:SetEnabled(data~=nil or (self.hasDiagnostic and not self.diagnosticPending and owner.pick.details~=nil))
         local parent=target and owner:Read(target,"GetParent")
         self.parent:SetEnabled(parent~=nil and parent~=UIParent and parent~=WorldFrame)
         self.outline:Hide();self.outline:ClearAllPoints()

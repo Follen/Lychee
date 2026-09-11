@@ -257,9 +257,11 @@ local function belongsToSweep(owner,pick,object)
     end
     return false
 end
-function M:StackFocus(objects,preferred)
+function M:StackFocus(objects,preferred,frozen)
     self:ResetVisual()
-    local ok,x,y=pcall(GetCursorPosition)
+    local ok,x,y
+    if frozen and self.pick then ok,x,y=true,self.pick.x,self.pick.y
+    else ok,x,y=pcall(GetCursorPosition) end
     if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then self:ResetPicking();return end
     self.visualX,self.visualY=x,y
     if preferred then considerObject(self,preferred) end
@@ -281,6 +283,7 @@ function M:StackFocus(objects,preferred)
         pick.x,pick.y,pick.preferred=x,y,preferred
         pick.head,pick.tail,pick.checked=1,0,0
         pick.capped,pick.unreadable=false,false
+        pick.details,pick.detailsCapped=nil,nil
         pick.rawReason=rawReason
         -- Seed native identity and its ancestors, never the global roots. Children
         -- and regions are ordinary work items, not another depth-limited algorithm.
@@ -312,6 +315,10 @@ function M:StackFocus(objects,preferred)
         considerObject(self,object)
         local reason=self.pickReason
         if reason then pick.reasons[reason]=(pick.reasons[reason] or 0)+1 end
+        if pick.details and #pick.details<512 then
+            pick.details[#pick.details+1]=text(self:Read(object,"GetDebugName")):sub(1,120).." | "..(reason or "visible")
+                .." | "..text(self:Read(object,"GetSourceLocation")):sub(1,160)
+        elseif pick.details then pick.detailsCapped=true end
         local kind=self:Read(object,"GetObjectType")
         if kind~="Texture" and kind~="FontString" and self:CheckFocus(object) then
             local scale=self:VisualFrame(object)
@@ -325,11 +332,8 @@ function M:StackFocus(objects,preferred)
     pick.pending=pick.head<=pick.tail
     local target=self.visualBest
     self.lastPick,self.lastPickX,self.lastPickY=target,x,y
-    if not pick.pending then
-        -- Keep scalar diagnostics, release object references at the end of a sweep.
-        for key in pairs(pick.queue) do pick.queue[key]=nil end
-        for key in pairs(pick.seen) do pick.seen[key]=nil end
-    end
+    -- Keep only this bounded snapshot until the next sweep or Stop, so Shift
+    -- can explain a just-completed miss without resampling over the popup.
     self:ResetVisual()
     return target,nil,pick.supported or preferred~=nil
 end
@@ -341,6 +345,12 @@ function M:PickReport()
         "native="..text(self:Read(pick.preferred,"GetDebugName")),"nativeFilter="..tostring(pick.rawReason)}
     for reason,count in pairs(pick.reasons) do lines[#lines+1]=reason.."="..count end
     if pick.unreadable then lines[#lines+1]="Some child/region lists could not be read" end
+    if pick.details then
+        lines[#lines+1]="Frozen pointer: "..pick.x..", "..pick.y
+        lines[#lines+1]="Candidate | filter | creation source"
+        for _,detail in ipairs(pick.details) do lines[#lines+1]=detail end
+        if pick.detailsCapped then lines[#lines+1]="Candidate details truncated at 512 entries" end
+    end
     return table.concat(lines,"\n")
 end
 local function sampleNative(tooltip,root)
@@ -395,10 +405,22 @@ function M:Poll()
     if not self.running then return end
     if InCombatLockdown and InCombatLockdown() then self:Stop();return end
     self:UpdatePointer()
-    if not self.running or (self.view.paused and (self.target or self.view.hasDiagnostic)) or self.view.copying then return end
-    local target,own=self:Focus()
+    if not self.running or self.view.copying then return end
+    local target,own
+    if self.view.paused and (self.target or self.view.hasDiagnostic) then
+        if self.target or not self.pick or (self.pick.details and not self.pick.pending) then return end
+        local pick=self.pick
+        if not pick.details then
+            -- Explicit diagnostic request: replay this bounded snapshot, including
+            -- already-checked objects, while the user moves onto the copy button.
+            pick.details={};pick.head=1;pick.checked=0;pick.pending=true
+            for key in pairs(pick.reasons) do pick.reasons[key]=nil end
+        end
+        target=self:StackFocus(nil,pick.preferred,true)
+    else target,own=self:Focus() end
     if own then self.view:Place(self.target);return end
-    if target~=self.target or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false)) then
+    if target~=self.target or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false))
+        or (not target and self.view.diagnosticPending~=(self.pick and self.pick.pending or false)) then
         self.target=target;self.data=target and self:Analyze(target) or nil
         self.view:Update(target,self.data)
     end
@@ -467,7 +489,7 @@ function M:Report()
     end
     if data.relatedTruncated then lines[#lines+1]=L["关联信息已截断"] end
     lines[#lines+1]=self:PickReport()
-    return table.concat(lines,"\n"):sub(1,8192)
+    return table.concat(lines,"\n"):sub(1,196608)
 end
 function M:SourceSetting()
     return call(C_CVar and C_CVar.GetCVar,"enableSourceLocationLookup")
