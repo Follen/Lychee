@@ -4,12 +4,13 @@ local cursorX,cursorY,shift=960,540,false
 function GetCursorPosition() return cursorX,cursorY end
 function IsShiftKeyDown() return shift end
 local timers={}
+local nativeTarget,nativeReads=nil,0
 local methods={}
 local function frame(parent,name)
     return setmetatable({parent=parent,name=name,shown=true,scripts={},width=100,height=100,alpha=1,scale=1,events={}},{__index=methods})
 end
-function CreateFrame(kind,name,parent)
-    assert(kind~="GameTooltip","inspector must not create a tooltip or enter third-party tooltip skinning")
+function CreateFrame(kind,name,parent,template)
+    if kind=="GameTooltip" then assert(not name and not parent:IsVisible() and template=="SharedTooltipTemplate","sampler must be isolated under a hidden parent") end
     frames=frames+1;return frame(parent,name)
 end
 function methods:CreateTexture() regions=regions+1;return frame(self) end
@@ -72,6 +73,16 @@ function methods:SetFocus() self.focused=true end
 function methods:ClearFocus() self.focused=false end
 function methods:HighlightText() self.highlighted=true end
 function methods:GetParent() return self.parent end
+function methods:SetParent(parent) self.parent=parent end
+function methods:SetOwner(owner,anchor) self.parent=owner;self.owner=owner;assert(anchor=="ANCHOR_NONE") end
+function methods:ClearLines() end
+function methods:SetFrameStack(hidden,regions,index)
+    nativeReads=nativeReads+1
+    assert(hidden==false and regions==true and index==0,"preserve original fstack selection arguments")
+    self:Show();self:SetAlpha(1)
+    assert(not self:IsVisible(),"even a shown/skinned sampler must remain invisible")
+    return nativeTarget
+end
 function methods:GetName() return self.name end
 function methods:GetDebugName() return "debug-frame" end
 function methods:GetObjectType() return self.kind or "Frame" end
@@ -147,16 +158,41 @@ debugprofilestop=function() return 0 end -- Ordering tests use a fixed clock; re
 local cdm=frame(UIParent,"EssentialCooldownViewer.GeneratedItem")
 local cdmIcon=frame(cdm);cdmIcon.kind="Texture";cdmIcon.texture="spell-icon"
 cdmIcon.location="Interface/AddOns/EllesmereUICooldownManager/EllesmereUICdmHooks.lua:3081"
-cdm.visualRegions={cdmIcon}
+cdm.visualRegions={cdmIcon};cdm.location=cdmIcon.location
 C_System={GetFrameStack=nativeStack}
 cursorX,cursorY=50,50;foci={};scene({cdm});M:Poll()
-assert(M.target==cdmIcon and M.data.title=="EllesmereUICooldownManager","zero input foci must still identify a visible cooldown icon")
+assert(M.target==cdm and M.data.title=="EllesmereUICooldownManager","zero input foci must still identify a visible cooldown icon")
 scene({cdmIcon});local directReads=stackReads;M:Poll()
 assert(stackReads==directReads+1 and M.target==cdmIcon,"native frame-stack objects must be used without a sampling tooltip")
+local namedOwner=frame(UIParent,"Example_Surface")
+local anonymousPaint=frame(namedOwner);anonymousPaint.kind="Texture";anonymousPaint.texture="paint"
+namedOwner.visualRegions={anonymousPaint}
+nativeTarget=namedOwner;scene({namedOwner});M:Poll()
+assert(M.target==namedOwner and M.data.title=="示例插件",
+    "native highlighted frame identity and its addon-name evidence must survive visual filtering")
+local selectedReads=stackReads
+M:Poll();assert(stackReads==selectedReads,"valid native selection must not be replaced by list ranking")
+M.stackTooltip:Show();M.stackTooltip:SetAlpha(1)
+assert(not M.stackTooltip:IsVisible() and not M.stackRoot:IsShown(),"deferred tooltip skinning cannot expose the sampler")
+nativeTarget=anonymousPaint;M:Poll();assert(M.target==anonymousPaint,"native region identity is preserved too")
+local sampleMethod=M.stackTooltip.SetFrameStack
+M.stackTooltip.SetFrameStack=function(self) self:Show();error("native sample interrupted") end
+scene({namedOwner});M:Poll()
+assert(M.target==namedOwner and not M.stackTooltip:IsVisible() and v.outline:IsShown(),"sample failure cleans up the sampler and restores the outline")
+M.stackTooltip.SetFrameStack=sampleMethod
+nativeTarget=namedOwner;scene({namedOwner})
+collectgarbage("collect");local selectedBase=collectgarbage("count");collectgarbage("stop")
+local selectedStart=os.clock();local selectedListReads=stackReads
+for i=1,100 do M:Poll() end
+local selectedMs=(os.clock()-selectedStart)*1000;local selectedAllocation=collectgarbage("count")-selectedBase
+collectgarbage("restart")
+assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native selection has no fallback list allocation")
+print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
+nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
 local auraIcon=frame(aura);auraIcon.kind="Texture";auraIcon.texture="aura-icon";aura.visualRegions={auraIcon}
 scene({aura});M:Poll()
-assert(M.target==auraIcon and M.data.title=="AnotherAuraAddon","Buff/Debuff icon ownership is discovered without an addon-name mapping")
+assert(M.target==aura and M.data.title=="AnotherAuraAddon","Buff/Debuff icon ownership is discovered without an addon-name mapping")
 local emptyAnchor=frame(UIParent,"ExBoss_DungeonExtras_Anchor")
 local cursorAnchor=frame(UIParent,"EllesmereUI_TooltipCursorAnchor");cursorAnchor:SetSize(1,1)
 local invisible=frame(UIParent,"HiddenIconOwner");invisible:Hide();invisible.visualRegions={cdmIcon}
@@ -177,24 +213,26 @@ auraIcon.GetRect=oldRect
 local ownIcon=frame(v.frame);ownIcon.kind="Texture";ownIcon.texture="own"
 v.frame.visualRegions={ownIcon};scene({v.frame});M:Poll();assert(not M.target,"fallback cannot pick inspector artwork")
 v.frame.visualRegions=nil
-aura.level=10;scene({aura,cdm});M:Poll();assert(M.target==auraIcon,"higher frame level wins independently of enumeration order")
-cdm.strata="DIALOG";scene({aura,cdm});M:Poll();assert(M.target==cdmIcon,"frame strata precedes frame level")
+aura.level=10;scene({aura,cdm});M:Poll();assert(M.target==aura,"higher frame level wins independently of enumeration order")
+cdm.strata="DIALOG";scene({aura,cdm});M:Poll();assert(M.target==cdm,"frame strata precedes frame level")
 cdm.strata=nil
 cursorX,cursorY=500,500;M:Poll();assert(not M.target,"moving away never keeps an old result")
 aura.scale=2;auraIcon.left=100;auraIcon.bottom=100;cursorX,cursorY=250,250
-scene({aura});M:Poll();assert(M.target==auraIcon,"region geometry is converted using the owning frame scale")
+scene({aura});M:Poll();assert(M.target==aura,"region geometry is converted using the owning frame scale")
 aura.scale=1;auraIcon.left=0;auraIcon.bottom=0;cursorX,cursorY=50,50
 -- Real regressions: the empty high-strata anchor must not obscure lower artwork.
 emptyAnchor.strata="TOOLTIP";cursorAnchor.strata="TOOLTIP"
 scene({emptyAnchor,cursorAnchor,cdmIcon});M:Poll();assert(M.target==cdmIcon,"empty top anchors cannot cover a visible cooldown icon")
+nativeTarget=emptyAnchor;M:Poll();assert(M.target==cdmIcon,"empty native highlight is filtered before using the visible fallback")
+nativeTarget=nil
 cdm:Hide();M:Poll();assert(not M.target,"native lists containing hidden regions are filtered")
 cdm:Show();cdm.alpha=0;M:Poll();assert(not M.target,"zero-alpha ancestors filter direct regions")
 cdm.alpha=1
 scene({v.frame,v.outline,ownIcon,cdmIcon});M:Poll();assert(M.target==cdmIcon,"our outline and UI cannot trap native picking")
 scene({});foci={a};M:Poll();assert(not M.target,"an authoritative empty native list must not resurrect an input focus")
 foci={};scene({cdmIcon});M:Poll()
-shift=true;local frozenReads=stackReads;M:Poll()
-assert(stackReads==frozenReads and M.target==cdmIcon,"Shift performs no native sampling")
+shift=true;local frozenReads,frozenNative=stackReads,nativeReads;M:Poll()
+assert(stackReads==frozenReads and nativeReads==frozenNative and M.target==cdmIcon,"Shift performs no native sampling")
 shift=false
 local many={}
 for i=1,127 do many[i]=emptyAnchor end
@@ -211,7 +249,8 @@ assert(scanAllocated<1024 and frames==warmFrames and regions==warmRegions and en
 M:Stop();collectgarbage("restart");collectgarbage("collect")
 local scanGrowth=collectgarbage("count")-scanBase
 assert(scanGrowth<64 and not M.visualBest and not M.visualBestFrame,"stop releases native candidates")
-local stoppedReads=stackReads;M:Poll();M:UpdatePointer();assert(stackReads==stoppedReads,"stopped inspector does not sample")
+local stoppedReads,stoppedNative=stackReads,nativeReads;M:Poll();M:UpdatePointer();assert(stackReads==stoppedReads and nativeReads==stoppedNative,"stopped inspector does not sample")
+M.stackTooltip:Show();assert(not M.stackTooltip:IsVisible(),"late Show after stop stays hidden")
 print(string.format("NativeStack128 samples=%d cpu_ms=%.2f max_sample_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f new_frames=0",samples,scanMs,maxBatch,scanAllocated,math.max(0,scanGrowth)))
 debugprofilestop=function() return 0 end
 -- Budgeted filtering never inspects more than 128 native objects.

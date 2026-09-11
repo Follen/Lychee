@@ -73,6 +73,7 @@ function M:CheckFocus(frame)
     if not frame or frame==UIParent or frame==WorldFrame or self:Read(frame,"IsForbidden") then return end
     local current=frame
     for depth=1,16 do
+        if current==self.stackRoot or current==self.stackTooltip then return nil,true end
         if self.view and (current==self.view.frame or current==self.view.outline) then return nil,true end
         if current==UIParent or current==WorldFrame or not current then break end
         current=self:Read(current,"GetParent")
@@ -125,7 +126,7 @@ function M:VisualRegion(region,scale)
     if not ok or secret(colorAlpha) or type(colorAlpha)~="number" or colorAlpha<=0 then return end
     return self:HitRect(region,scale)
 end
-local function inspectRegions(owner,frame,scale,strata,level,ok,...)
+local function inspectRegions(owner,target,frame,scale,strata,level,ok,...)
     if not ok then return end
     for i=1,math.min(select("#",...),32) do
         local region=clean(select(i,...))
@@ -136,36 +137,63 @@ local function inspectRegions(owner,frame,scale,strata,level,ok,...)
                 or (strata==owner.visualStrata and (level>owner.visualLevel
                 or (level==owner.visualLevel and (layer>owner.visualLayer
                 or (layer==owner.visualLayer and area<owner.visualArea))))) then
-                owner.visualBest,owner.visualBestFrame=region,frame
+                owner.visualBest,owner.visualBestFrame=target,frame
                 owner.visualStrata,owner.visualLevel,owner.visualLayer,owner.visualArea=strata,level,layer,area
             end
         end
     end
 end
-function M:StackFocus(objects)
+local function considerObject(owner,object)
+    object=owner:CheckFocus(object)
+    local kind=object and owner:Read(object,"GetObjectType")
+    local isRegion=kind=="Texture" or kind=="FontString"
+    local frame=isRegion and owner:Read(object,"GetParent") or object
+    local scale=frame and owner:VisualFrame(frame)
+    if not scale then return end
+    local strata=strataOrder[owner:Read(frame,"GetFrameStrata")] or 0
+    local level=owner:Read(frame,"GetFrameLevel")
+    if type(level)~="number" then return end
+    -- Regions prove visibility, but must not replace the native object's identity.
+    if isRegion then inspectRegions(owner,object,frame,scale,strata,level,true,object)
+    else inspectRegions(owner,object,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
+end
+function M:StackFocus(objects,preferred)
     self:ResetVisual()
     local ok,x,y=pcall(GetCursorPosition)
     if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then return end
     self.visualX,self.visualY=x,y
+    if preferred then considerObject(self,preferred) end
     local started=debugprofilestop and debugprofilestop() or 0
-    for i=1,math.min(#objects,128) do
-        local object=self:CheckFocus(objects[i])
-        local kind=object and self:Read(object,"GetObjectType")
-        local isRegion=kind=="Texture" or kind=="FontString"
-        local frame=isRegion and self:Read(object,"GetParent") or object
-        local scale=frame and self:VisualFrame(frame)
-        if scale then
-            local strata=strataOrder[self:Read(frame,"GetFrameStrata")] or 0
-            local level=self:Read(frame,"GetFrameLevel")
-            if type(level)=="number" then
-                if isRegion then inspectRegions(self,frame,scale,strata,level,true,object)
-                else inspectRegions(self,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
-            end
-        end
+    for i=1,math.min(objects and #objects or 0,128) do
+        considerObject(self,objects[i])
         if debugprofilestop and debugprofilestop()-started>=0.75 then break end
     end
     local target=self.visualBest
     self:ResetVisual() -- Do not retain the native list or a previous pointer's candidates.
+    return target
+end
+local function sampleNative(tooltip,root)
+    tooltip:SetOwner(root,"ANCHOR_NONE")
+    tooltip:SetParent(root)
+    return tooltip:SetFrameStack(false,true,0)
+end
+function M:NativeFocus()
+    if not self.stackRoot then
+        self.stackRoot=CreateFrame("Frame",nil,UIParent)
+        self.stackRoot:Hide();self.stackRoot:EnableMouse(false)
+        self.stackTooltip=call(CreateFrame,"GameTooltip",nil,self.stackRoot,"SharedTooltipTemplate")
+        if self.stackTooltip then self.stackTooltip:EnableMouse(false);self.stackTooltip:Hide() end
+    end
+    local tooltip=self.stackTooltip
+    if not tooltip or not method(tooltip,"SetFrameStack") then return end
+    -- A hidden parent also contains deferred third-party skinning or Show calls.
+    -- Never use the player's GameTooltip/FrameStackTooltip or change their CVars.
+    local outline=self.view and self.view.outline
+    local restoreOutline=outline and self:Read(outline,"IsShown")
+    if restoreOutline then outline:Hide() end
+    local target=call(sampleNative,tooltip,self.stackRoot)
+    tooltip:Hide();tooltip:ClearLines()
+    if restoreOutline then outline:Show() end
     return target
 end
 function M:Focus()
@@ -182,8 +210,12 @@ function M:Focus()
             end
         end
     end
-    -- The native stack API returns objects directly: no GameTooltip, debug UI,
-    -- global CVar changes, or EnumerateFrames scan is needed.
+    local preferred=self:NativeFocus()
+    if preferred then
+        local target=self:StackFocus(nil,preferred)
+        if target then return target end
+    end
+    -- Only use the list to recover from an empty/hidden native highlight.
     local objects=call(C_System and C_System.GetFrameStack)
     if type(objects)=="table" then return self:StackFocus(objects) end
     return fallback -- Older clients without the native API retain input-focus picking.
@@ -220,6 +252,7 @@ function M:Stop()
     if self.timer then self.timer:Cancel();self.timer=nil end
     self.target,self.data=nil,nil
     self:ResetVisual()
+    if self.stackTooltip then self.stackTooltip:Hide();self.stackTooltip:ClearLines() end
     if self.view then self.view:Hide() end
 end
 function M:Start()
