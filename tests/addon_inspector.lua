@@ -73,7 +73,8 @@ function methods:GetFrameStrata() return self.strata or "MEDIUM" end
 function methods:GetFrameLevel() return self.level or 2 end
 function methods:SetFrameLevel(value) self.level=value end
 function methods:SetClampedToScreen(...) end
-function methods:EnableMouse(...) end
+function methods:EnableMouse(value) self.mouseEnabled=value end
+function methods:IsMouseEnabled() return self.mouseEnabled==true end
 function methods:EnableKeyboard(v) self.keyboard=v end
 function methods:SetPropagateKeyboardInput(v) self.propagate=v end
 function methods:Enable() self.disabled=false end
@@ -722,4 +723,33 @@ local growth=collectgarbage("count")-warmBase
 assert(allocated<1024 and growth<64 and frames==warmFrames and regions==warmRegions)
 assert(not M.timer and not M.target and next(v.frame.events)==nil and not v.frame.keyboard)
 assert(GameTooltip.hookCount==1,"repeated inspection must not accumulate tooltip hooks")
+do
+    local savedSystem=C_System
+    C_System={GetFrameStack=nativeStack}
+    local ring=frame(UIParent,"PointerDecoration")
+    ring:SetSize(50,50);ring:SetFrameStrata("TOOLTIP");ring:EnableMouse(false)
+    ring.location="Interface/AddOns/PointerDecoration/Core.lua:205"
+    ring:SetScript("OnUpdate",function() error("foreign update script must never run") end)
+    local queried=0
+    ring.GetScript=function(self,key)
+        assert(key=="OnUpdate","script reader must forward the script name")
+        queried=queried+1;return self.scripts[key]
+    end
+    local ringPaint=frame(ring);ringPaint.kind="Texture";ringPaint.texture="ring"
+    ringPaint:SetSize(50,50);ring.visualRegions={ringPaint}
+    local target=frame(UIParent);target.kind="Texture";target.texture="underlying-icon"
+    target.location="Interface/AddOns/Example/Main.lua:1"
+    local function move(x,y)
+        cursorX,cursorY=x,y
+        ring.left,ring.bottom=x-25,y-25;ringPaint.left,ringPaint.bottom=x-25,y-25
+    end
+    foci={};nativeTarget=ring;scene({ring,ringPaint,target});move(30,30);M:Start();M:Poll()
+    assert(M.target==ring,"first static observation still identifies the cursor plugin")
+    move(40,35);M:Poll();move(60,45);nativeTarget=ringPaint;M:Poll()
+    assert(M.target==target and M.data.title=="示例插件" and queried>0,"provider identifies the addon underneath moving cursor decoration")
+    M:Stop()
+    assert(not next(M.picker.followers),"provider stop releases cursor observations")
+    M:Start();assert(M.target==ringPaint,"new inspection does not inherit the prior exclusion")
+    M:Stop();C_System=savedSystem;nativeTarget=nil;scene({})
+end
 print(string.format("Addon inspector PASS exact/guess/parent/secret/avoidance/copy/Esc/combat/stale/disabled frames=%d regions=%d retained_KiB=%.1f cycles100_ms=%.2f allocated_KiB=%.1f growth_KiB=%.1f idle_work=0",frames-beforeFrames,regions-beforeRegions,retained,elapsed,allocated,math.max(0,growth)))

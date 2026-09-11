@@ -10,16 +10,16 @@ local function returned(ok,...)
     if not ok then return "error" end
     return "known",...
 end
-local function nativeRead(object,key)
+local function nativeRead(object,key,...)
     if not object or secret(object) then return "unavailable" end
     local ok,fn=pcall(lookup,object,key)
     if not ok then return "error" end
     if secret(fn) then return "secret" end
     if type(fn)~="function" then return "unsupported" end
-    return returned(pcall(fn,object))
+    return returned(pcall(fn,object,...))
 end
-local function value(p,object,key)
-    local status,v=p.read(object,key)
+local function value(p,object,key,...)
+    local status,v=p.read(object,key,...)
     if status~="known" or secret(v) then return nil end
     return v
 end
@@ -33,6 +33,45 @@ local function rect(p,object)
     return l*scale,b*scale,(l+w)*scale,(b+h)*scale
 end
 local function inside(p,l,b,r,t) return p.x>=l and p.x<=r and p.y>=b and p.y<=t end
+-- Mouse input pass-through does not imply FrameStack pass-through. Observe
+-- actual screen-space motion, never addon names, scripts' code or child trees.
+local function follower(p,object,record)
+    if p.frozen or (record and record.sample==p.sample) then return record and record.following end
+    local eligible=value(p,object,"GetFrameStrata")=="TOOLTIP"
+        and value(p,object,"IsMouseEnabled")==false
+        and type(value(p,object,"GetScript","OnUpdate"))=="function"
+        and value(p,object,"IsVisible")==true and p.allowed(object)
+    local l,b,r,t
+    if eligible then l,b,r,t=rect(p,object) end
+    if not l or math.abs((l+r)*0.5-p.x)>2 or math.abs((b+t)*0.5-p.y)>2 then
+        if record then record.x,record.following,record.matches,record.sample=nil,false,0,p.sample end
+        return false
+    end
+    if not record then
+        local slot=p.followerNext or 1
+        record=p.followerSlots[slot]
+        if record then p.followers[record.object]=nil
+        else record={};p.followerSlots[slot]=record end
+        record.object,record.x,record.following,record.matches=object,nil,false,0
+        p.followers[object]=record;p.followerNext=slot%8+1
+    end
+    record.sample=p.sample
+    local w,h=r-l,t-b
+    if record.x then
+        local dx,dy=p.x-record.x,p.y-record.y
+        if math.abs(w-record.w)>2 or math.abs(h-record.h)>2
+            or math.abs(l-record.l-dx)>2 or math.abs(b-record.b-dy)>2 then
+            record.x,record.following,record.matches=nil,false,0
+        elseif dx*dx+dy*dy<16 then
+            return record.following -- Keep the baseline so slow motion accumulates.
+        else
+            record.matches=math.min(record.matches+1,2)
+            record.following=record.matches==2
+        end
+    end
+    record.x,record.y,record.l,record.b,record.w,record.h=p.x,p.y,l,b,w,h
+    return record.following
+end
 -- All probes return rejected (0), unavailable (1), or verified (2).
 -- A missing/secret value is never converted into a negative observation.
 local function guard(p,object)
@@ -43,6 +82,8 @@ local function guard(p,object)
     local ignoreParentAlpha=isRegion and value(p,object,"IsIgnoringParentAlpha")
     for depth=1,16 do
         if not current then break end
+        local tracked=p.followers[current]
+        if (tracked or not (isRegion and depth==1)) and follower(p,current,tracked) then return 0,"cursor-follower" end
         local shown=value(p,current,"IsVisible")
         if shown==false then return 0,"hidden" end
         if shown~=true then grade,reason=1,"visibility-unreadable" end
@@ -159,11 +200,13 @@ end
 local function wipe(t) for key in pairs(t) do t[key]=nil end end
 function Picker.New(allowed,reader,clock)
     return setmetatable({allowed=allowed,read=reader or nativeRead,clock=clock or function() return debugprofilestop and debugprofilestop() or 0 end,
-        result={},queue={},seen={},reasons={}},Picker)
+        result={},queue={},seen={},reasons={},followers={},followerSlots={}},Picker)
 end
 function Picker:State() return self.result end
 function Picker:Reset()
     wipe(self.result);wipe(self.queue);wipe(self.seen);wipe(self.reasons)
+    wipe(self.followers);wipe(self.followerSlots)
+    self.followerNext,self.sample,self.frozen=nil,nil,nil
     self.preferred,self.best,self.bestOutline,self.details=nil,nil,nil,nil
     self.x,self.y,self.head,self.tail,self.rawReason=nil,nil,nil,nil,nil
 end
@@ -212,6 +255,7 @@ end
 -- native snapshot. No derived object is ever promoted into a native candidate.
 function Picker:Step(preferred,snapshot,x,y,frozen)
     local r=self.result
+    self.frozen=frozen
     if frozen then
         if r.object or r.ready then return r end
         if not self.details then
@@ -221,6 +265,9 @@ function Picker:Step(preferred,snapshot,x,y,frozen)
         if secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then self:Reset();return r end
         local moved=self.x~=x or self.y~=y
         self.x,self.y=x,y;r.x,r.y=x,y
+        self.sample=(self.sample or 0)+1
+        -- Revalidate even when the native highlight switches to something else.
+        for _,tracked in ipairs(self.followerSlots) do follower(self,tracked.object,tracked) end
         if moved then commit(self,nil);self.head=nil end
         local g,reason,outline=evaluate(self,preferred)
         if preferred and g>0 then
