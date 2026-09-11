@@ -4,7 +4,7 @@ function UI.CreateAddonInspector(owner)
     local T,C=UI.Theme,UI.Components
     local view={owner=owner,expanded=false,copying=false}
     local frame=CreateFrame("Frame",nil,UIParent)
-    view.frame=frame;frame:Hide();frame:SetSize(320,120);frame:SetFrameStrata("TOOLTIP")
+    view.frame=frame;frame:Hide();frame:SetSize(320,120);frame:SetFrameStrata("TOOLTIP");frame:SetFrameLevel(1)
     frame:SetClampedToScreen(true);frame:EnableMouse(true)
     T:CreateRoundedSurface(frame,"window",10)
     local function label(role,color,x,y,width,height)
@@ -79,7 +79,8 @@ function UI.CreateAddonInspector(owner)
         view:SyncReport()
     end)
     local outline=CreateFrame("Frame",nil,UIParent);view.outline=outline
-    outline:SetFrameStrata("TOOLTIP");outline:EnableMouse(false);outline:Hide()
+    -- Keep the marker below the panel even when it is shown after the panel.
+    outline:SetFrameStrata("TOOLTIP");outline:SetFrameLevel(0);outline:EnableMouse(false);outline:Hide()
     for _,edge in ipairs({"TOP","BOTTOM","LEFT","RIGHT"}) do
         local texture=outline:CreateTexture(nil,"OVERLAY")
         T:SetColorTexture(texture,"accent")

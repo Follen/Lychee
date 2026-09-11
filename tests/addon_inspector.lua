@@ -69,6 +69,7 @@ function methods:SetJustifyV(...) end
 function methods:SetFrameStrata(v) self.strata=v end
 function methods:GetFrameStrata() return self.strata or "MEDIUM" end
 function methods:GetFrameLevel() return self.level or 2 end
+function methods:SetFrameLevel(value) self.level=value end
 function methods:SetClampedToScreen(...) end
 function methods:EnableMouse(...) end
 function methods:EnableKeyboard(v) self.keyboard=v end
@@ -171,6 +172,11 @@ assert(not GameTooltip:IsVisible(),"hover tooltip must not reappear over active 
 local v=M.view
 assert(v.heading:GetText()=="示例插件" and v.confidence:GetText()=="创建来源" and v.anchorX==cursorX+20,"live exact source and avoidance")
 assert(v.outline:IsShown() and v.outline.anchor==a)
+local function assertOutlineBehindPanel()
+    assert(v.outline:GetFrameStrata()==v.frame:GetFrameStrata() and v.outline:GetFrameLevel()<v.frame:GetFrameLevel(),
+        "selection outline must render behind the inspector panel at overlapping screen coordinates")
+end
+assertOutlineBehindPanel()
 assert(not v.copy.frame:IsShown() and not v.parent.frame:IsShown(),"follow summary has no unreachable action buttons")
 collectgarbage("collect");local retained=collectgarbage("count")-baseline
 assert(retained<512 and frames-beforeFrames<=16 and regions-beforeRegions<=48,"bounded initial objects")
@@ -521,6 +527,7 @@ local oldX,oldTop=v.anchorX,v.anchorTop
 shift=true;v.frame.scripts.OnUpdate()
 assert(v.expanded and v.details:IsShown() and v.anchorX==oldX and v.anchorTop==oldTop,"Shift freezes top edge and expands details")
 assert(v.copy.frame:IsShown() and v.parent.frame:IsShown(),"detail actions become reachable while frozen")
+assertOutlineBehindPanel()
 v.copy.frame.scripts.OnEnter();assert(v.copy._state=="hover")
 v.copy.frame.scripts.OnLeave();assert(v.copy._state=="normal")
 v.parent:SetEnabled(false);v.parent.frame.scripts.OnEnter();assert(v.parent._state=="disabled","disabled parent cannot highlight")
@@ -538,6 +545,7 @@ shift=true;v.frame.scripts.OnUpdate()
 foci={v.copy.frame};M:Poll();assert(M.target==child,"paused panel preserves target")
 v.copy.frame.scripts.OnClick(v.copy.frame)
 assert(v.copying and v.edit.focused and v.edit.highlighted and v.report:find("父级关联",1,true))
+v.outline:Hide();v.outline:Show();assertOutlineBehindPanel()
 assert(v.reportScroll.scrollChild==v.edit and v.edit:GetParent()==v.reportScroll,"report text belongs to a native clipping scroll child")
 assert(v.reportHost:IsShown() and not v.confidence:IsShown() and not v.sourceLabel:IsShown() and not v.parent.frame:IsShown(),"report is a separate page")
 -- Supply native measured content height; the production UI must use its scroll range,
