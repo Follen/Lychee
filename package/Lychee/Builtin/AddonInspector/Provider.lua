@@ -154,7 +154,7 @@ function M:VisualFrame(frame)
     if type(alpha)~="number" or alpha<=0 then return end
     local valid=self:CheckFocus(frame)
     if not valid then return end
-    local parent=self:Read(frame,"GetParent")
+    local parent=frame -- Its own regions are clipped here too (chat FontStringContainer).
     for depth=1,16 do
         if not parent then break end
         if self:Read(parent,"DoesClipChildren")==true and not self:HitRect(parent,self:Read(parent,"GetEffectiveScale")) then return end
@@ -212,12 +212,48 @@ local function considerObject(owner,object)
     if isRegion then inspectRegions(owner,object,frame,scale,strata,level,true,object)
     else inspectRegions(owner,object,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
 end
+local scanLocal
+local function scanLocalChildren(owner,depth,skip,ok,...)
+    if not ok then return end
+    for i=1,math.min(select("#",...),32) do
+        local child=clean(select(i,...))
+        if child and child~=skip then scanLocal(owner,child,depth,nil) end
+        if owner.localRemaining<=0 then break end
+    end
+end
+scanLocal=function(owner,object,depth,skip)
+    if owner.localRemaining<=0 then return end
+    if debugprofilestop and debugprofilestop()-owner.localStarted>=0.75 then owner.localRemaining=0;return end
+    owner.localRemaining=owner.localRemaining-1
+    local scale=owner:VisualFrame(object)
+    if not scale then return end
+    considerObject(owner,object)
+    -- Stay inside the hit widget. Never enumerate the UI root or unrelated branches.
+    if depth<3 and owner:HitRect(object,scale) then
+        scanLocalChildren(owner,depth+1,skip,pcall(method(object,"GetChildren"),object))
+    end
+end
+local function recoverLocal(owner,preferred)
+    if not owner:CheckFocus(preferred) then return end
+    local kind=owner:Read(preferred,"GetObjectType")
+    local scope=(kind=="Texture" or kind=="FontString") and owner:Read(preferred,"GetParent") or preferred
+    owner.localRemaining=64;owner.localStarted=debugprofilestop and debugprofilestop() or 0
+    local skip
+    for i=1,3 do
+        if not scope or not owner:CheckFocus(scope) then break end
+        scanLocal(owner,scope,0,skip)
+        if owner.visualBest or owner.localRemaining<=0 then break end
+        skip=scope;scope=owner:Read(scope,"GetParent")
+    end
+    owner.localRemaining,owner.localStarted=nil,nil
+end
 function M:StackFocus(objects,preferred)
     self:ResetVisual()
     local ok,x,y=pcall(GetCursorPosition)
     if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then return end
     self.visualX,self.visualY=x,y
     if preferred then considerObject(self,preferred) end
+    if preferred and not self.visualBest then recoverLocal(self,preferred) end
     local started=debugprofilestop and debugprofilestop() or 0
     for i=1,math.min(objects and #objects or 0,128) do
         considerObject(self,objects[i])

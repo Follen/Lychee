@@ -204,6 +204,38 @@ assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native s
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
+-- Real reported native targets are full-size carriers with no paint under the
+-- pointer: raidMarkerHolder / countTextOverlay / AuraKit text and border hosts.
+local widget=frame(UIParent,"VisibleWidget")
+local carrier=frame(widget,"EmptyOverlay");carrier.level=25
+local bar=frame(widget,"VisibleBar");bar.location="Interface/AddOns/Example/Bar.lua:1"
+local barPaint=frame(bar);barPaint.kind="Texture";barPaint.texture="bar"
+bar.visualRegions={barPaint};widget.children={carrier,bar}
+nativeTarget=carrier;scene({carrier});M:Poll()
+assert(M.target==bar,"empty native overlay must recover the visible sibling beneath it")
+barPaint:Hide();M:Poll();assert(not M.target,"local recovery must not accept an empty or hidden widget")
+barPaint:Show();widget:Hide();M:Poll();assert(not M.target,"hidden parent cannot be recovered")
+widget:Show()
+local localBaseReads=stackReads
+collectgarbage("collect");local localBase=collectgarbage("count");collectgarbage("stop")
+local localStart=os.clock()
+for i=1,100 do M:Poll();assert(M.target==bar) end
+local localMs=(os.clock()-localStart)*1000;local localAllocation=collectgarbage("count")-localBase
+collectgarbage("restart")
+assert(localAllocation<1024 and stackReads==localBaseReads,"local widget recovery must avoid the fallback list")
+print(string.format("LocalRecovery100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",localMs,localAllocation))
+local realChildren=bar.GetChildren
+local localVisits=0
+bar.GetChildren=function(self) localVisits=localVisits+1;return self,self,self,self end
+barPaint:Hide();M:Poll();assert(not M.target and localVisits<=64,"cyclic child providers remain bounded")
+bar.GetChildren=realChildren;barPaint:Show()
+local chatClip=frame(UIParent,"FontStringContainer");chatClip.clips=true;chatClip.left=500
+local clippedLine=frame(chatClip);clippedLine.kind="FontString";clippedLine.text="offscreen pooled chat line"
+nativeTarget=clippedLine;scene({clippedLine});M:Poll()
+assert(not M.target,"a region's direct parent clip must reject offscreen chat text")
+chatClip.left=0;M:Poll();assert(M.target==clippedLine,"visible text inside the clip remains inspectable")
+clippedLine.alpha=0;M:Poll();assert(not M.target,"fully faded chat text remains excluded")
+nativeTarget=nil
 local engineIcon=frame(UIParent,"EssentialCooldownViewer.Item")
 engineIcon.location="Interface/AddOns/Blizzard_CooldownViewer/CooldownViewer.lua:1"
 local engineTexture=frame(engineIcon);engineTexture.kind="Texture";engineTexture.texture="spell"
