@@ -77,6 +77,14 @@ local function object(kind, parent)
     return o
 end
 UISpecialFrames = {}
+function SecureHandlerSetFrameRef(frame,key,child)
+    frame.refs=frame.refs or {};frame.refs[key]=child
+    frame.GetFrameRef=function(self,name) return self.refs[name] end
+end
+function RunPaletteCombatSnippet(frame)
+    local callback=assert(loadstring("return function(self,newstate) "..frame:GetAttribute("_onstate-combat").." end"))()
+    _G.__secureSnippet=true;callback(frame,"hide");_G.__secureSnippet=false
+end
 function CreateFrame(kind, name, parent, template)
     createdFrames = createdFrames + 1
     local frame = object(kind, parent or UIParent)
@@ -251,10 +259,8 @@ palette.RefreshHomeSections = originalRefreshHomeSections
 assert(palette.frame.scripts.OnEvent, "palette combat event handler")
 _G.__combat = true
 -- The engine evaluates this snippet securely; the Lua event only stops work.
-assertEq(palette.frame:GetAttribute("_onstate-combat"), 'if newstate == "hide" then self:Hide() end', "combat secure hide snippet")
-_G.__secureSnippet = true
-palette.frame:Hide()
-_G.__secureSnippet = false
+RunPaletteCombatSnippet(palette.frame)
+assert(not palette.escapeFrame:IsShown(),"secure combat hide also releases the Escape receiver")
 palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_DISABLED")
 assertEq(palette.visible, false, "combat event closes palette")
 assertEq(palette.frame:IsShown(), false, "combat event hides palette frame")
@@ -1138,8 +1144,54 @@ assert(closedByEscape and not palette.frame:IsShown() and not palette.visible, "
 assert(not palette.frame.events.GLOBAL_MOUSE_DOWN, "Escape closure cleans up outside-click event")
 assert(palette:Create() == palette)
 local registrations = 0
-for _, name in ipairs(UISpecialFrames) do if name == "LycheePalette" then registrations = registrations + 1 end end
+for _, name in ipairs(UISpecialFrames) do if name == "LycheePaletteEscape" then registrations = registrations + 1 end end
 assert(registrations == 1, "Escape registration is not duplicated")
+-- Repeat the native dispatcher with animation support: it must hide only the
+-- escape receiver, leaving the rendered hierarchy alive until exit completes.
+local oldAnimation=palette.frame.CreateAnimationGroup
+palette.frame.CreateAnimationGroup=function()
+    local group={scripts={}}
+    function group:SetScript(key,fn) self.scripts[key]=fn end
+    function group:Play() self.playing=true;self.animation.progress=0 end
+    function group:Stop() self.playing=false end
+    function group:IsPlaying() return self.playing end
+    function group:CreateAnimation()
+        local animation={progress=0}
+        function animation:SetSmoothing(value) self.smoothing=value end
+        function animation:SetFromAlpha(value) self.from=value end
+        function animation:SetToAlpha(value) self.to=value end
+        function animation:SetDuration(value) self.duration=value end
+        function animation:GetSmoothProgress() return self.progress end
+        self.animation=animation;return animation
+    end
+    return group
+end
+local reduced=LycheeDB.palette.reduceMotion
+LycheeDB.palette.reduceMotion=false
+palette:Show();palette.input:ClearFocus()
+local motion=palette.frame._lycheeMotion
+motion.group.scripts.OnFinished()
+for _,name in pairs(UISpecialFrames) do
+    local receiver=_G[name]
+    if receiver and receiver:IsShown() then
+        receiver:Hide()
+        if receiver.scripts.OnHide then receiver.scripts.OnHide(receiver) end
+    end
+end
+assert(not palette.visible and palette.frame:IsShown() and palette._motionClosing,"unfocused Escape preserves exit animation")
+assert(not palette.input.frame.focused and not palette.input:IsEnabled() and not palette.escapeFrame:IsShown(),"exit releases input and Escape receiver immediately")
+motion.group.scripts.OnFinished()
+assert(not palette.frame:IsShown() and not palette._motionClosing,"native Escape eventually hides the rendered window")
+palette:Show()
+_G.__combat=true
+RunPaletteCombatSnippet(palette.frame);palette.frame.scripts.OnHide(palette.frame)
+assert(not palette.escapeFrame:IsShown(),"combat exit cannot consume a later native Escape")
+assert(not palette.visible and not motion.playing and motion.finished==nil,"secure combat hide cancels entrance without delayed work")
+_G.__combat=false
+palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen restores Escape after combat cleanup")
+palette:Hide("animation-test");motion.group.scripts.OnFinished()
+palette.frame.CreateAnimationGroup=oldAnimation
+LycheeDB.palette.reduceMotion=reduced
 local calls, originals = 0, {}
 for index, button in ipairs(secureBroker.buttons) do
     originals[index] = button.SetAttribute

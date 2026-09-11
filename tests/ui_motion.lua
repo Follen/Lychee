@@ -153,12 +153,41 @@ function p:SetQueryMode() end
 r:Show();r:SetAlpha(1)
 p:Hide("close")
 assert(not p.visible and not input.enabled and p._motionClosing and r:IsShown(),"exit invalidates interaction before fading")
+s.alpha.progress=0.4
+local reopeningAlpha=s.from+(s.to-s.from)*0.4
 p:Show()
 assert(p.visible and input.enabled and not p._motionClosing,"reopen cancels old exit")
+assert(math.abs(s.from-reopeningAlpha)<0.001,"reopen must continue from displayed exit alpha")
 s.group.scripts.OnFinished()
 assert(p.visible and r:IsShown(),"old exit cannot hide new open")
 p:Hide("close");s.group.scripts.OnFinished()
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
+p:Show()
+assert(s.from==0 and s.alpha.duration==0.22,"fresh entrance is a perceptible full fade")
+s.alpha.progress=0.5
+p:Hide("escape")
+assert(s.from==0.5 and s.alpha.smoothing=="IN","close reverses the entrance without flashing")
+s.alpha.progress=0.3
+p:Hide("escape")
+assert(s.alpha.progress==0.3,"repeated close must not restart the exit")
+M:SetReduced(true)
+assert(not p.visible and not r:IsShown() and not p._motionClosing,"reduced motion must complete pending close")
+p:Show()
+assert(p.visible and r:GetAlpha()==1 and not s.playing,"reduced motion opens immediately")
+p:Hide("close")
+M:SetReduced(false)
+local paletteGroups=groups
+collectgarbage("collect");collectgarbage("stop")
+local paletteBase=collectgarbage("count")
+for i=1,1000 do
+    p:Show();s.alpha.progress=0.5;p:Hide("toggle")
+    s.alpha.progress=0.5;p:Show();s.group.scripts.OnFinished()
+    p:Hide("escape");s.group.scripts.OnFinished()
+end
+local paletteAllocated=collectgarbage("count")-paletteBase
+collectgarbage("restart")
+assert(groups==paletteGroups and paletteAllocated<512 and not s.playing and s.finished==nil,"warm palette cycles stay bounded and idle")
+print(string.format("Palette motion cycles1000_KiB=%.2f group_growth=0 idle_animation=false",paletteAllocated))
 print("Palette animated close/reopen PASS")
 -- Exercise the actual reusable switch, not just the motion primitive.
 function methods:CreateTexture() return region() end

@@ -471,17 +471,23 @@ function Palette:Create()
     frame:Hide()
     -- Only the secure snippet hides a protected hierarchy during combat. The
     -- non-combat state deliberately does nothing, so leaving combat never opens it.
-    frame:SetAttribute("_onstate-combat", [[if newstate == "hide" then self:Hide() end]])
+    frame:SetAttribute("_onstate-combat", [[if newstate == "hide" then local escape=self:GetFrameRef("escape"); if escape then escape:Hide() end; self:Hide() end]])
     if RegisterStateDriver then RegisterStateDriver(frame, "combat", "[combat] hide; idle") end
     frame:SetScript("OnHide", function()
         if Lychee.UI.Motion then Lychee.UI.Motion:StopAll() end
         if self.visible then self:Hide("external")
         elseif InCombatLockdown and InCombatLockdown() then self.combatCleanupPending=true end
     end)
-    -- Let the native Escape dispatcher close the window when the EditBox has
-    -- lost focus. OnHide above runs the same cleanup as the close button.
-    -- Create is idempotent, so this registers once without a keyboard handler.
-    if UISpecialFrames then table.insert(UISpecialFrames, "LycheePalette") end
+    -- CloseSpecialWindows hides registered frames synchronously. Give it a
+    -- non-rendering child so lost-focus Escape follows the same animated close
+    -- as the EditBox, without replacing native dispatch or watching every key.
+    self.escapeFrame=CreateFrame("Frame","LycheePaletteEscape",frame)
+    self.escapeFrame:Hide()
+    if SecureHandlerSetFrameRef then SecureHandlerSetFrameRef(frame,"escape",self.escapeFrame) end
+    self.escapeFrame:SetScript("OnHide",function()
+        if self.visible and frame:IsShown() and not (InCombatLockdown and InCombatLockdown()) then self:Hide("escape") end
+    end)
+    if UISpecialFrames then table.insert(UISpecialFrames, "LycheePaletteEscape") end
     self.frame = frame
     self.session, self.generation, self.visible = 0, 0, false
     local components = Lychee.UI.Components
@@ -983,11 +989,16 @@ function Palette:Show()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if self.visible then return true end
     self:Create()
-    self.input:SetEnabled(true)
+    local motion,initial=Lychee.UI.Motion,0
+    if self._motionClosing and motion then
+        motion:Cancel(self.frame,false)
+        initial=self.frame:GetAlpha()
+    end
     if self._motionClosing then self:FinishHide("reopen") end
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll();self.frame:SetAlpha(1) end
     self._motionClosing=nil
     if self.combatCleanupPending then self:FinishHide("combat") end
+    self.input:SetEnabled(true)
     self.input:SetText("")
     self:ApplyBoundedScale()
     self.visible = true
@@ -997,7 +1008,8 @@ function Palette:Show()
     if searchSession then searchSession:Start() end
     if I.Search.Normalizer:IsBlank(self.input:GetText()) and not self.activeFilter then self:RefreshHomeSections(true) end
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
-    if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.frame,"enter") end
+    if self.escapeFrame then self.escapeFrame:Show() end
+    if motion then motion:Alpha(self.frame,1,motion.durations.enter*(1-initial),nil,initial) end
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
     -- the same input dispatch; focusing synchronously would swallow it as query text.
@@ -1012,6 +1024,7 @@ function Palette:Show()
     return true
 end
 function Palette:Hide(reason)
+    if self._motionClosing and not self.visible and not (InCombatLockdown and InCombatLockdown()) then return true end
     Lychee.UI.ResultList:HideTooltip()
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
     -- Invalidate the session only after marking the UI inactive; a synchronous
@@ -1031,12 +1044,13 @@ function Palette:Hide(reason)
         self.combatCleanupPending = true
         return true
     end
+    if self.escapeFrame then self.escapeFrame:Hide() end
     local motion=Lychee.UI.Motion
     if motion and self.frame:IsShown() and not motion:IsReduced() and self.frame.CreateAnimationGroup then
         self._motionClosing=true
         motion:Alpha(self.frame,0,motion.durations.exit,function()
             if self._motionClosing and not self.visible then self._motionClosing=nil;self:FinishHide(reason) end
-        end)
+        end,nil,"IN")
         return true
     end
     return self:FinishHide(reason)

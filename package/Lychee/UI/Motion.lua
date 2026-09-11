@@ -1,5 +1,5 @@
 local UI = _G.Lychee.UI
-local Motion = {groups={}, limit=96, durations={enter=0.16, exit=0.10, page=0.14, feedback=0.10, resize=0.22}}
+local Motion = {groups={}, limit=96, durations={enter=0.22, exit=0.14, page=0.14, feedback=0.10, resize=0.22}}
 UI.Motion=Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 function Motion:IsReduced()
@@ -46,7 +46,7 @@ function Motion:Slide(region,parent,target,instant)
     state.alpha:SetOffset(target-current,0);state.alpha:SetDuration(0.18)
     state.playing=true;state.group:Play()
 end
-function Motion:Alpha(region,target,duration,finished,initial)
+function Motion:Alpha(region,target,duration,finished,initial,smoothing)
     if not region or not region.SetAlpha then if finished then finished() end;return false end
     local state=region._lycheeMotion
     if state and state.playing and state.group.IsPlaying and not state.group:IsPlaying() then
@@ -88,12 +88,13 @@ function Motion:Alpha(region,target,duration,finished,initial)
     state.from,state.to,state.finished=current,target,finished
     if math.abs(current-target)<0.001 then region:SetAlpha(target);if finished then finished() end;return false end
     region:SetAlpha(1)
+    state.alpha:SetSmoothing(smoothing or "OUT")
     state.alpha:SetFromAlpha(current);state.alpha:SetToAlpha(target);state.alpha:SetDuration(duration or self.durations.feedback)
     state.playing=true;state.group:Play()
     return true
 end
 function Motion:Reveal(region,kind)
-    return self:Alpha(region,1,self.durations[kind or "page"],nil,kind=="enter" and 0.72 or 0.90)
+    return self:Alpha(region,1,self.durations[kind or "page"],nil,kind=="enter" and 0 or 0.90)
 end
 function Motion:Selection(region,selected)
     if not region or not region.SetAlpha then return end
@@ -144,5 +145,11 @@ function Motion:SetReduced(reduced)
     LycheeDB.palette=LycheeDB.palette or {}
     LycheeDB.palette.reduceMotion=reduced==true
     self:StopHeight(true)
-    self:StopAll()
+    -- Settling an exit must also release its window. Ordinary cancellation
+    -- intentionally drops callbacks; changing this preference completes them.
+    for _,state in ipairs(self.groups) do
+        local finished=state.finished
+        self:Cancel(state.region,true)
+        if finished then finished() end
+    end
 end

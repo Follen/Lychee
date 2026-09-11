@@ -1,0 +1,207 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetFromAlpha",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "38: \t\t\tName = \"SetFromAlpha\",\n39: \t\t\tType = \"Function\",\n40: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"normalizedAlpha\", Type = \"number\", Nilable = false },\n46: \t\t\t},\n47: \t\t},",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 38,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetToAlpha",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "49: \t\t\tName = \"SetToAlpha\",\n50: \t\t\tType = \"Function\",\n51: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n52: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n53: \n54: \t\t\tArguments =\n55: \t\t\t{\n56: \t\t\t\t{ Name = \"normalizedAlpha\", Type = \"number\", Nilable = false },\n57: \t\t\t},\n58: \t\t},",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 49,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetSmoothing",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "377: \t\t\tName = \"SetSmoothing\",\n378: \t\t\tType = \"Function\",\n379: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n380: \n381: \t\t\tArguments =\n382: \t\t\t{\n383: \t\t\t\t{ Name = \"weights\", Type = \"SmoothingType\", Nilable = false },\n384: \t\t\t},\n385: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 377,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "GetSmoothProgress",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "107: \t\t\tName = \"GetSmoothProgress\",\n108: \t\t\tType = \"Function\",\n109: \n110: \t\t\tArguments =\n111: \t\t\t{\n112: \t\t\t},\n113: \n114: \t\t\tReturns =\n115: \t\t\t{\n116: \t\t\t\t{ Name = \"progress\", Type = \"number\", Nilable = false },\n117: \t\t\t},\n118: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 107,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "CloseSpecialWindows",
+        "path": "Interface/AddOns/Blizzard_UIParentPanelManager/Shared/UIParentPanelManager.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "1038: function CloseSpecialWindows()\n1039: \tlocal found;\n1040: \tfor index, value in pairs(UISpecialFrames) do\n1041: \t\tlocal frame = _G[value];\n1042: \t\tif ( frame and frame:IsShown() ) then\n1043: \t\t\tframe:Hide();\n1044: \t\t\tfound = 1;\n1045: \t\tend\n1046: \tend\n1047: \treturn found;\n1048: end",
+        "contentHash": "3987ca8721c3ee9fda39f75a3606efdcb7db5d5ed12d848979a882a6e4727cac",
+        "line": 1038,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_PingSecure.CreateFrame",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/PingManagerSecureDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "16: \t\t\tName = \"CreateFrame\",\n17: \t\t\tType = \"Function\",\n18: \t\t\tHasRestrictions = true,\n19: \t\t},",
+        "contentHash": "18d8d0bff4b8c839a34bcb1245587cbae7441b21263261b5cdf89f76f144620e",
+        "line": 16,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetScript",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "354: \t\t\tName = \"SetScript\",\n355: \t\t\tType = \"Function\",\n356: \t\t\tRequiresAssignableScript = true,\n357: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n358: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n359: \n360: \t\t\tArguments =\n361: \t\t\t{\n362: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n363: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n364: \t\t\t},\n365: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 354,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "function",
+        "name": "HANDLE:GetFrameRef",
+        "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/RestrictedFrames.lua",
+        "matchedBy": "exact_symbol",
+        "role": "project",
+        "excerpt": "205: function HANDLE:GetFrameRef(label)\n206: \tif (type(label) ~= \"string\") then\n207: \t\treturn;\n208: \tend\n209: \tlocal val = LOCAL_CHECK_Frame.GetAttribute(GetHandleFrame(self), \"frameref-\" .. label);\n210: \tlocal tv = type(val);\n211: \tif (tv == \"userdata\" and IsFrameHandle(val)) then\n212: \t\treturn val;\n213: \tend\n214: \treturn nil;\n215: end",
+        "contentHash": "d934a9ff9bcad70b754047498eb0a130a210ac7d4eacec67f321f04dcdfd7bb3",
+        "line": 205,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": {
+      "kind": "function",
+      "name": "SecureHandlerSetFrameRef",
+      "path": "Interface/AddOns/Blizzard_RestrictedAddOnEnvironment/SecureHandlers.lua",
+      "matchedBy": "exact_symbol",
+      "role": "project",
+      "excerpt": "702: function SecureHandlerSetFrameRef(frame, label, refFrame)\n703: \tif (not IsValidFrame(frame)) then\n704: \t\terror(\"Invalid frame\");\n705: \t\treturn;\n706: \tend\n707: \tif (CheckForbidden(frame)) then\n708: \t\terror(\"Cannot use SecureHandlers API on forbidden frames\");\n709: \t\treturn;\n710: \tend\n711: \tif (type(label) ~= \"string\") then\n712: \t\terror(\"Invalid body\");\n713: \t\treturn;\n714: \tend\n715: \tif (not IsValidFrame(refFrame)) then\n716: \t\terror(\"Invalid reference frame\");\n717: \t\treturn;\n718: \tend\n719: \tif (CheckForbidden(refFrame)) then\n720: \t\terror(\"Cannot use SecureHandlers API on forbidden frames\");\n721: \t\treturn;\n722: \tend\n723: \tLOCAL_API_Frame:SetAttribute(\"_apiframe\", frame);\n724: \tLOCAL_API_Frame:SetAttribute(\"_frame-\" .. label, refFrame);\n725: end",
+      "contentHash": "d8b691f2c7e0bee2673c06fe57e854b1d205814e305eae53b72be69d7f549548",
+      "line": 702,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  }
+]
