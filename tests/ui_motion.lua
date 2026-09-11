@@ -166,11 +166,16 @@ assert(M.presence.position==x and M.presence.velocity==v,"reversal preserves pos
 advance(1)
 assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening lands precisely")
 assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
-p:Hide("close");advance(1)
+p:Hide("close");advance(0.14)
+assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>0.5,"exit midpoint must retain a visible moving panel")
+assert(math.abs(M.presence.position-0.5)<0.000001 and math.abs(r.scale/p._scale-0.96)<0.000001,"close uses its full duration and half its spatial distance at midpoint")
+advance(0.139)
+assert(M.presence and M.presence.position<0.0001 and r:GetAlpha()<0.0001,"close reaches the invisible endpoint continuously before hiding")
+advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
-assert(math.abs(r.scale-0.768)<0.0001 and r:GetAlpha()==0,"fresh opening begins at 96 percent")
-advance(0.06)
+assert(math.abs(r.scale-0.736)<0.0001 and r:GetAlpha()==0,"fresh opening begins at 92 percent")
+advance(0.10)
 assert(r:GetAlpha()==1 and M.presence.position<1,"opacity resolves early while geometry continues settling")
 x,v=M.presence.position,M.presence.velocity
 p:Hide("escape")
@@ -190,6 +195,12 @@ local at30=M.presence.position
 M:StopPresence(false);M:Presence(r,true,nil,0,0,p)
 for i=1,12 do advance(1/120) end
 assert(math.abs(M.presence.position-at30)<0.000001,"motion is frame-rate independent")
+M:StopPresence(false);M:Presence(r,false,nil,1,0,p)
+for i=1,3 do advance(1/30) end
+local exit30=M.presence.position
+M:StopPresence(false);M:Presence(r,false,nil,1,0,p)
+for i=1,12 do advance(1/120) end
+assert(math.abs(M.presence.position-exit30)<0.000001,"dismissal is frame-rate independent too")
 combat=true;advance(0.01)
 assert(not M.presence and not M.presenceDriver.scripts.OnUpdate,"combat stops before protected setters")
 combat=false;p:Hide("cleanup")
@@ -211,7 +222,7 @@ local started=os.clock()
 for i=1,1000 do
     p:Show();advance(0.05);p:Hide("toggle")
     advance(0.03);p:Show();for tick=1,36 do advance(1/120) end
-    p:Hide("escape");for tick=1,22 do advance(1/120) end
+    p:Hide("escape");for tick=1,34 do advance(1/120) end
 end
 local paletteCPU=(os.clock()-started)*1000
 local paletteAllocated=collectgarbage("count")-paletteBase

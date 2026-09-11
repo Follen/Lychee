@@ -1,5 +1,5 @@
 local UI = _G.Lychee.UI
-local Motion = {groups={}, limit=96, durations={enter=0.30, exit=0.18, page=0.14, feedback=0.10, resize=0.22}}
+local Motion = {groups={}, limit=96, durations={enter=0.30, exit=0.28, page=0.14, feedback=0.10, resize=0.22}}
 UI.Motion=Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 function Motion:IsReduced()
@@ -142,8 +142,9 @@ end
 local function applyPresence(job)
     local revision=Motion.presenceRevision
     local region,layout=job.region,job.layout
-    local scale=(layout and layout._scale or 1)*(0.96+0.04*job.position)
-    local alpha=math.min(1,job.position/0.30)
+    local scale=(layout and layout._scale or 1)*(0.92+0.08*job.position)
+    local opacity=math.min(1,job.position/0.70)
+    local alpha=opacity*opacity*(3-2*opacity)
     if job.lastScale~=scale then
         region:SetScale(scale)
         if Motion.presenceRevision~=revision then return false end
@@ -184,14 +185,22 @@ local function presenceTick(_,elapsed)
     if not job then return end
     if combat() or not job.region:IsShown() then Motion:StopPresence(false);return end
     job.elapsed=math.min(job.duration,job.elapsed+elapsed)
-    -- Closed-form critically damped response: independent of frame rate, with
-    -- velocity carried into reversals instead of replaying a fresh ease curve.
+    -- Arrival settles with damping; dismissal uses the full time window rather
+    -- than spending most of it almost invisible. Both carry reversal velocity.
     local t,w=job.elapsed,job.omega
-    local displacement=job.from-job.target
-    local c=job.fromVelocity+w*displacement
-    local decay=math.exp(-w*t)
-    job.position=job.target+(displacement+c*t)*decay
-    job.velocity=(job.fromVelocity-w*c*t)*decay
+    if job.target==0 then
+        local u=t/job.duration
+        local u2,u3=u*u,u*u*u
+        local delta=job.target-job.from
+        job.position=job.from+delta*(3*u2-2*u3)+job.fromVelocity*job.duration*(u3-2*u2+u)
+        job.velocity=delta*(6*u-6*u2)/job.duration+job.fromVelocity*(3*u2-4*u+1)
+    else
+        local displacement=job.from-job.target
+        local c=job.fromVelocity+w*displacement
+        local decay=math.exp(-w*t)
+        job.position=job.target+(displacement+c*t)*decay
+        job.velocity=(job.fromVelocity-w*c*t)*decay
+    end
     if job.position<0 or job.position>1 then
         job.position=math.max(0,math.min(1,job.position));job.velocity=0
     end
@@ -216,7 +225,7 @@ function Motion:Presence(region,shown,finished,initial,velocity,layout)
     self.presenceRevision=(self.presenceRevision or 0)+1
     job.region,job.layout,job.finished=region,layout,finished
     job.position,job.velocity,job.from,job.fromVelocity=position,velocity or 0,position,velocity or 0
-    job.target,job.elapsed,job.omega=target,0,shown and 30 or 40
+    job.target,job.elapsed,job.omega=target,0,26
     job.duration=shown and self.durations.enter or self.durations.exit
     job.lastScale,job.lastOffset,job.lastAlpha=nil,nil,nil
     if not applyPresence(job) then return false end
