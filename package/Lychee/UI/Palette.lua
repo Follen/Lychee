@@ -451,6 +451,7 @@ function Palette:ApplyBoundedScale()
     if not parentWidth or not parentHeight or parentWidth <= 0 or parentHeight <= 0 then return end
     local scale = math.min(1, (parentWidth - 48) / WIDTH, (parentHeight - 48) / 600)
     if self._scale ~= scale then self.frame:SetScale(scale); self._scale = scale end
+    if self.input then self.input:SetDisplayScale(scale) end
     local inset = math.max(24, (parentHeight - 600 * scale) / 2)
     if self._topInset ~= inset then
         self.frame:ClearAllPoints()

@@ -13,6 +13,24 @@ end
 
 local function localizedPlaceholder() return L["搜索技能、插件、命令…"] end
 
+-- Keep glyphs and the caret at their resting pixel size while the surrounding
+-- palette scales. Anchors and inherited alpha still follow the moving panel.
+function Input:SetDisplayScale(baseScale)
+    if InCombatLockdown and InCombatLockdown() then return false end
+    local container=self.container
+    if not container or not container.SetIgnoreParentScale or not container.SetScale then return false end
+    local parentScale=UIParent and UIParent.GetEffectiveScale and UIParent:GetEffectiveScale() or 1
+    local effective=(baseScale or 1)*parentScale
+    if not self._independentScale then
+        container:SetIgnoreParentScale(true)
+        self._independentScale=true
+    end
+    if self._displayScale==effective then return false end
+    container:SetScale(effective)
+    self._displayScale=effective
+    return true
+end
+
 function Input:_ApplyVisualState()
     local theme = Lychee.UI.Theme
     if not theme or not self.container then return false end
@@ -118,6 +136,7 @@ function Input:Create(parent, focusController)
     container:SetScript("OnMouseDown", function(_, button)
         if button == "LeftButton" and self.enabled then self:Focus() end
     end)
+    self:SetDisplayScale(1)
     self:_ApplyVisualState()
     return self
 end

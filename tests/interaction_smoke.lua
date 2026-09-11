@@ -29,6 +29,11 @@ local function object(kind, parent)
     function o:GetHeight() return self.height end
     function o:UpdateScrollChildRect() mutation(self,"UpdateScrollChildRect");self.rectUpdates=(self.rectUpdates or 0)+1 end
     function o:SetAlpha(value) mutation(self,"SetAlpha");self.alpha=value end
+    function o:SetScale(value) mutation(self,"SetScale");self.scale=value end
+    function o:SetIgnoreParentScale(value) mutation(self,"SetIgnoreParentScale");self.ignoreParentScale=value end
+    function o:GetEffectiveScale()
+        return (self.scale or 1)*(not self.ignoreParentScale and self.parent and self.parent.GetEffectiveScale and self.parent:GetEffectiveScale() or 1)
+    end
     function o:GetAlpha() return self.alpha or 1 end
     function o:GetStringHeight() return 15 end
     function o:SetClampedToScreen(enabled) self.clamped = enabled end
@@ -1159,6 +1164,11 @@ end
 local reduced=LycheeDB.palette.reduceMotion
 LycheeDB.palette.reduceMotion=false
 palette:Show();palette.input:ClearFocus()
+for tick=1,8 do
+    motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
+    assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001,"search text must keep its effective font scale during opening")
+    assert(math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"placeholder must share the stable cursor/text scale")
+end
 finishPresence()
 for _,name in pairs(UISpecialFrames) do
     local receiver=_G[name]
@@ -1169,6 +1179,10 @@ for _,name in pairs(UISpecialFrames) do
 end
 assert(not palette.visible and palette.frame:IsShown() and palette._motionClosing,"unfocused Escape preserves exit animation")
 assert(not palette.input.frame.focused and not palette.input:IsEnabled() and not palette.escapeFrame:IsShown(),"exit releases input and Escape receiver immediately")
+for tick=1,8 do
+    motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
+    assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001 and math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"closing must not rescale the search glyphs or caret")
+end
 finishPresence()
 assert(not palette.frame:IsShown() and not palette._motionClosing,"native Escape eventually hides the rendered window")
 palette:Show()
@@ -1179,6 +1193,22 @@ assert(not palette.visible and not motion.presence and not motion.presenceDriver
 _G.__combat=false
 palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen restores Escape after combat cleanup")
 palette:Hide("animation-test");finishPresence()
+local oldParentScale=UIParent.GetEffectiveScale
+UIParent.GetEffectiveScale=function() return 0.75 end
+local inputContainer=palette.input.container
+local inputSetScale=inputContainer.SetScale
+local scaleWrites=0
+inputContainer.SetScale=function(self,value) scaleWrites=scaleWrites+1;inputSetScale(self,value) end
+palette.input:SetDisplayScale(0.8)
+assert(math.abs(palette.input.frame:GetEffectiveScale()-0.6)<0.000001,"stable text includes both UIParent scale and bounded palette scale")
+palette.input:SetDisplayScale(0.8)
+assert(scaleWrites==1,"unchanged display scale does not repeat native setters")
+_G.__combat=true
+assert(not palette.input:SetDisplayScale(0.5) and scaleWrites==1,"combat cannot mutate protected input scale")
+_G.__combat=false
+inputContainer.SetScale=inputSetScale
+UIParent.GetEffectiveScale=oldParentScale
+palette.input:SetDisplayScale(1)
 palette.frame.CreateAnimationGroup=oldAnimation
 palette.frame.SetScale=oldScale
 LycheeDB.palette.reduceMotion=reduced
