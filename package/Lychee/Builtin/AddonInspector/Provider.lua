@@ -10,10 +10,14 @@ local function call(fn,...)
     local ok,value=pcall(fn,...)
     if ok then return clean(value) end
 end
-function M:Read(object,method)
+local function index(object,key) return object[key] end
+local function method(object,key)
     if secret(object) or object==nil then return end
-    local ok,fn=pcall(function() return object[method] end)
-    if ok and not secret(fn) then return call(fn,object) end
+    local ok,fn=pcall(index,object,key)
+    if ok and not secret(fn) and type(fn)=="function" then return fn end
+end
+function M:Read(object,key)
+    return call(method(object,key),object)
 end
 local function text(value,fallback)
     if type(value)~="string" then return fallback or "—" end
@@ -75,13 +79,107 @@ function M:CheckFocus(frame)
     end
     return frame
 end
+local strataOrder={BACKGROUND=1,LOW=2,MEDIUM=3,HIGH=4,DIALOG=5,FULLSCREEN=6,FULLSCREEN_DIALOG=7,TOOLTIP=8}
+local layerOrder={BACKGROUND=1,BORDER=2,ARTWORK=3,OVERLAY=4,HIGHLIGHT=5}
+function M:ResetVisual()
+    self.visualCursor,self.visualBest,self.visualBestFrame,self.visualResult,self.visualResultFrame=nil,nil,nil,nil,nil
+    self.visualX,self.visualY,self.visualPending=nil,nil,false
+end
+function M:HitRect(object,scale)
+    local ok,left,bottom,width,height=pcall(method(object,"GetRect"),object)
+    if not ok or secret(left) or secret(bottom) or secret(width) or secret(height) then return end
+    if type(left)~="number" or type(bottom)~="number" or type(width)~="number" or type(height)~="number"
+        or type(scale)~="number" or scale<=0 or width<=0 or height<=0 then return end
+    local x,y=self.visualX/scale,self.visualY/scale
+    if x>=left and x<=left+width and y>=bottom and y<=bottom+height then return width*height*scale*scale end
+end
+function M:VisualFrame(frame)
+    if self:Read(frame,"IsVisible")~=true then return end
+    local alpha=self:Read(frame,"GetEffectiveAlpha")
+    if type(alpha)~="number" or alpha<=0 then return end
+    local valid=self:CheckFocus(frame)
+    if not valid then return end
+    local parent=self:Read(frame,"GetParent")
+    for depth=1,16 do
+        if not parent then break end
+        if self:Read(parent,"DoesClipChildren")==true and not self:HitRect(parent,self:Read(parent,"GetEffectiveScale")) then return end
+        parent=self:Read(parent,"GetParent")
+    end
+    return self:Read(frame,"GetEffectiveScale")
+end
+function M:VisualRegion(region,scale)
+    if self:Read(region,"IsVisible")~=true then return end
+    local alpha=self:Read(region,"GetAlpha")
+    if type(alpha)~="number" or alpha<=0 then return end
+    local kind=self:Read(region,"GetObjectType")
+    local colorMethod
+    if kind=="Texture" then
+        local texture=self:Read(region,"GetTexture") or self:Read(region,"GetAtlas")
+        if not texture or texture=="" then return end
+        colorMethod="GetVertexColor"
+    elseif kind=="FontString" then
+        local value=self:Read(region,"GetText")
+        if type(value)~="string" or not value:find("%S") then return end
+        colorMethod="GetTextColor"
+    else return end
+    local ok,_,_,_,colorAlpha=pcall(method(region,colorMethod),region)
+    if not ok or secret(colorAlpha) or type(colorAlpha)~="number" or colorAlpha<=0 then return end
+    return self:HitRect(region,scale)
+end
+local function inspectRegions(owner,frame,scale,strata,level,ok,...)
+    if not ok then return end
+    for i=1,math.min(select("#",...),32) do
+        local region=clean(select(i,...))
+        local area=owner:VisualRegion(region,scale)
+        if area then
+            local layer=layerOrder[owner:Read(region,"GetDrawLayer")] or 0
+            if not owner.visualBest or strata>owner.visualStrata
+                or (strata==owner.visualStrata and (level>owner.visualLevel
+                or (level==owner.visualLevel and (layer>owner.visualLayer
+                or (layer==owner.visualLayer and area<owner.visualArea))))) then
+                owner.visualBest,owner.visualBestFrame=region,frame
+                owner.visualStrata,owner.visualLevel,owner.visualLayer,owner.visualArea=strata,level,layer,area
+            end
+        end
+    end
+end
+function M:VisualFocus()
+    if type(EnumerateFrames)~="function" then return end
+    local ok,x,y=pcall(GetCursorPosition)
+    if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then self:ResetVisual();return end
+    if x~=self.visualX or y~=self.visualY then self:ResetVisual();self.visualX,self.visualY=x,y end
+    if not self.visualPending then self.visualBest,self.visualBestFrame=nil,nil;self.visualPending=true end
+    local started=debugprofilestop and debugprofilestop() or 0
+    for i=1,128 do
+        local frame=call(EnumerateFrames,self.visualCursor)
+        if not frame or frame==self.visualCursor then
+            self.visualResult,self.visualResultFrame=self.visualBest,self.visualBestFrame
+            self.visualCursor,self.visualBest,self.visualBestFrame,self.visualPending=nil,nil,nil,false
+            break
+        end
+        self.visualCursor=frame
+        local scale=self:VisualFrame(frame)
+        if scale then
+            local strata=strataOrder[self:Read(frame,"GetFrameStrata")] or 0
+            local level=self:Read(frame,"GetFrameLevel")
+            if type(level)=="number" then inspectRegions(self,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
+        end
+        if debugprofilestop and debugprofilestop()-started>=0.75 then break end
+    end
+    -- Revalidate the retained result at the current pointer; never publish a
+    -- previous position or a now-hidden icon while the next batch is pending.
+    local scale=self.visualResultFrame and self:VisualFrame(self.visualResultFrame)
+    if scale and self:VisualRegion(self.visualResult,scale) then return self.visualResult end
+    self.visualResult,self.visualResultFrame=nil,nil
+end
 function M:Focus()
     local foci=call(GetMouseFoci)
     if type(foci)~="table" then return end
     for index=1,math.min(#foci,32) do
         local frame,own=self:CheckFocus(foci[index])
-        if frame or own then return frame,own end
+        if frame or own then self:ResetVisual();return frame,own end
     end
+    return self:VisualFocus()
 end
 function M:UpdatePointer()
     if not self.running then return end
@@ -104,7 +202,8 @@ function M:Poll()
 end
 function M:Schedule()
     local epoch=self.epoch
-    self.timer=C_Timer.NewTimer(0.1,function()
+    local frozen=self.view and ((self.view.paused and self.target) or self.view.copying)
+    self.timer=C_Timer.NewTimer(self.visualPending and not frozen and 0.01 or 0.1,function()
         if not self.running or epoch~=self.epoch then return end
         self.timer=nil;self:Poll()
         if self.running and epoch==self.epoch then self:Schedule() end
@@ -114,6 +213,7 @@ function M:Stop()
     self.running=false;self.epoch=self.epoch+1
     if self.timer then self.timer:Cancel();self.timer=nil end
     self.target,self.data=nil,nil
+    self:ResetVisual()
     if self.view then self.view:Hide() end
 end
 function M:Start()
