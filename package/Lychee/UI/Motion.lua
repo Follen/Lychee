@@ -1,5 +1,5 @@
 local UI = _G.Lychee.UI
-local Motion = {groups={}, limit=96, durations={enter=0.30, exit=0.28, page=0.14, feedback=0.10, resize=0.22}}
+local Motion = {groups={}, limit=96, durations={enter=0.38, exit=0.32, page=0.14, feedback=0.10, resize=0.22}}
 UI.Motion=Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 function Motion:IsReduced()
@@ -142,8 +142,8 @@ end
 local function applyPresence(job)
     local revision=Motion.presenceRevision
     local region,layout=job.region,job.layout
-    local scale=(layout and layout._scale or 1)*(0.92+0.08*job.position)
-    local opacity=math.min(1,job.position/0.70)
+    local scale=(layout and layout._scale or 1)*(0.84+0.16*job.position)
+    local opacity=math.min(1,job.position/0.35)
     local alpha=opacity*opacity*(3-2*opacity)
     if job.lastScale~=scale then
         region:SetScale(scale)
@@ -151,7 +151,7 @@ local function applyPresence(job)
         job.lastScale=scale
     end
     if layout and layout._topInset then
-        local offset=-layout._topInset/scale
+        local offset=-(layout._topInset+24*(1-job.position))/scale
         if job.lastOffset~=offset then
             region:SetPoint("TOP",UIParent,"TOP",0,offset)
             if Motion.presenceRevision~=revision then return false end
@@ -176,7 +176,7 @@ function Motion:StopPresence(settle,complete)
     local finished=complete and job.finished
     if settle and not combat() then job.position,job.velocity=job.target,0;applyPresence(job) end
     if self.presenceRevision~=revision then return position,velocity end
-    job.region,job.layout,job.finished=nil,nil,nil
+    job.region,job.layout,job.finished,job.clock=nil,nil,nil,nil
     if finished then finished() end
     return position,velocity
 end
@@ -184,23 +184,16 @@ local function presenceTick(_,elapsed)
     local job=Motion.presence
     if not job then return end
     if combat() or not job.region:IsShown() then Motion:StopPresence(false);return end
-    job.elapsed=math.min(job.duration,job.elapsed+elapsed)
-    -- Arrival settles with damping; dismissal uses the full time window rather
-    -- than spending most of it almost invisible. Both carry reversal velocity.
-    local t,w=job.elapsed,job.omega
-    if job.target==0 then
-        local u=t/job.duration
-        local u2,u3=u*u,u*u*u
-        local delta=job.target-job.from
-        job.position=job.from+delta*(3*u2-2*u3)+job.fromVelocity*job.duration*(u3-2*u2+u)
-        job.velocity=delta*(6*u-6*u2)/job.duration+job.fromVelocity*(3*u2-4*u+1)
-    else
-        local displacement=job.from-job.target
-        local c=job.fromVelocity+w*displacement
-        local decay=math.exp(-w*t)
-        job.position=job.target+(displacement+c*t)*decay
-        job.velocity=(job.fromVelocity-w*c*t)*decay
-    end
+    -- Each playback owns its epoch. A resumed driver's elapsed value must not
+    -- charge hidden time to a new entrance; fallback supports minimal adapters.
+    job.elapsed=math.min(job.duration,job.clock and math.max(0,job.clock()-job.started) or job.elapsed+elapsed)
+    local t=job.elapsed
+    -- Full-duration Hermite motion, with velocity preserved through reversal.
+    local u=t/job.duration
+    local u2,u3=u*u,u*u*u
+    local delta=job.target-job.from
+    job.position=job.from+delta*(3*u2-2*u3)+job.fromVelocity*job.duration*(u3-2*u2+u)
+    job.velocity=delta*(6*u-6*u2)/job.duration+job.fromVelocity*(3*u2-4*u+1)
     if job.position<0 or job.position>1 then
         job.position=math.max(0,math.min(1,job.position));job.velocity=0
     end
@@ -224,9 +217,12 @@ function Motion:Presence(region,shown,finished,initial,velocity,layout)
     local job=self.presenceState;self.presence=job
     self.presenceRevision=(self.presenceRevision or 0)+1
     job.region,job.layout,job.finished=region,layout,finished
+    local duration=shown and self.durations.enter or self.durations.exit
+    if shown and position==0 and (velocity or 0)==0 then velocity=2/duration end
     job.position,job.velocity,job.from,job.fromVelocity=position,velocity or 0,position,velocity or 0
-    job.target,job.elapsed,job.omega=target,0,26
-    job.duration=shown and self.durations.enter or self.durations.exit
+    job.target,job.elapsed,job.duration=target,0,duration
+    job.clock=type(GetTimePreciseSec)=="function" and GetTimePreciseSec or nil
+    job.started=job.clock and job.clock() or 0
     job.lastScale,job.lastOffset,job.lastAlpha=nil,nil,nil
     if not applyPresence(job) then return false end
     self.presenceDriver:SetScript("OnUpdate",presenceTick);self.presenceDriver:Show()

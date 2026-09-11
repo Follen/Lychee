@@ -1,0 +1,23 @@
+{
+  "sourceId": "wow-ui-source",
+  "product": "retail",
+  "requestedRef": "latest",
+  "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+  "results": [
+    {
+      "kind": "api-function",
+      "name": "Os.GetTimePreciseSec",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/OsDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "27: \t\t\tName = \"GetTimePreciseSec\",\n28: \t\t\tType = \"Function\",\n29: \n30: \t\t\tReturns =\n31: \t\t\t{\n32: \t\t\t\t{ Name = \"time\", Type = \"number\", Nilable = false },\n33: \t\t\t},\n34: \t\t},",
+      "contentHash": "fe53117b85bb87784288b1f9854266b19b6967207e949d55c254029a9a9f4679",
+      "line": 27,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  ]
+}

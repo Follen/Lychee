@@ -166,15 +166,16 @@ assert(M.presence.position==x and M.presence.velocity==v,"reversal preserves pos
 advance(1)
 assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening lands precisely")
 assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
-p:Hide("close");advance(0.14)
+p:Hide("close");advance(0.16)
 assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>0.5,"exit midpoint must retain a visible moving panel")
-assert(math.abs(M.presence.position-0.5)<0.000001 and math.abs(r.scale/p._scale-0.96)<0.000001,"close uses its full duration and half its spatial distance at midpoint")
-advance(0.139)
+assert(math.abs(M.presence.position-0.5)<0.000001 and math.abs(r.scale/p._scale-0.92)<0.000001,"close uses its full duration and half its spatial distance at midpoint")
+advance(0.159)
 assert(M.presence and M.presence.position<0.0001 and r:GetAlpha()<0.0001,"close reaches the invisible endpoint continuously before hiding")
 advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
-assert(math.abs(r.scale-0.736)<0.0001 and r:GetAlpha()==0,"fresh opening begins at 92 percent")
+assert(math.abs(r.scale-0.672)<0.0001 and r:GetAlpha()==0,"every fresh opening begins at 84 percent")
+assert(math.abs(r.y*r.scale+48)<0.001,"opening starts 24 units below its final anchor")
 advance(0.10)
 assert(r:GetAlpha()==1 and M.presence.position<1,"opacity resolves early while geometry continues settling")
 x,v=M.presence.position,M.presence.velocity
@@ -216,13 +217,49 @@ M:StopPresence(true,true)
 assert(M.presence and M.presence.target==1 and staleFinished==0,"settling layout reentry cannot erase a new animation or fire stale completion")
 advance(1)
 local paletteGroups,paletteFrames=groups,frames
+-- A resumed driver's elapsed value must not advance a newly opened panel by
+-- time spent hidden. Compare fresh and warm openings on an independent clock.
+do
+    local now=100
+    GetTimePreciseSec=function() return now end
+    p:Hide("clock-reset");now=now+1;advance(1)
+    p:Show();now=now+0.016;advance(0.016)
+    local cold=M.presence and M.presence.position
+    assert(cold and cold<0.5)
+    p:Hide("clock-close");now=now+1;advance(1)
+    now=now+10
+    p:Show();now=now+0.016;advance(10.016)
+    assert(M.presence and math.abs(M.presence.position-cold)<0.000001,"warm opening must not consume time spent hidden")
+    local samples={0.016,0.06,0.12,0.20,0.30,0.40}
+    local baseline={}
+    for cycle=1,12 do
+        p:Hide("repeat-close");now=now+1;advance(1)
+        now=now+cycle
+        p:Show()
+        local epoch=now
+        for index,time in ipairs(samples) do
+            now=epoch+time
+            advance(index==1 and cycle*10 or 0)
+            local top=r.y*r.scale
+            if cycle==1 then baseline[index]={r.scale,r:GetAlpha(),top}
+            else
+                local expected=baseline[index]
+                assert(math.abs(r.scale-expected[1])<0.000001 and math.abs(r:GetAlpha()-expected[2])<0.000001 and math.abs(top-expected[3])<0.000001,"each fully closed reopening must reproduce the complete cold entrance trajectory")
+            end
+        end
+        assert(not M.presence and r:GetAlpha()==1 and r.scale==p._scale,"every entrance finishes at its exact baseline")
+    end
+    p:Hide("clock-done");now=now+1;advance(1)
+    GetTimePreciseSec=nil
+    print("Palette cold/warm openings PASS 12 cycles x 6 samples; hidden elapsed ignored")
+end
 collectgarbage("collect");collectgarbage("stop")
 local paletteBase=collectgarbage("count")
 local started=os.clock()
 for i=1,1000 do
     p:Show();advance(0.05);p:Hide("toggle")
-    advance(0.03);p:Show();for tick=1,36 do advance(1/120) end
-    p:Hide("escape");for tick=1,34 do advance(1/120) end
+    advance(0.03);p:Show();for tick=1,46 do advance(1/120) end
+    p:Hide("escape");for tick=1,39 do advance(1/120) end
 end
 local paletteCPU=(os.clock()-started)*1000
 local paletteAllocated=collectgarbage("count")-paletteBase
