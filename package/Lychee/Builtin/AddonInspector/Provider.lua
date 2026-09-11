@@ -169,7 +169,7 @@ function M:VisualFrame(frame)
     end
     return self:Read(frame,"GetEffectiveScale")
 end
-function M:VisualRegion(region,scale)
+function M:VisualRegion(region,scale,button)
     if self:Read(region,"IsVisible")~=true then return self:Reject("hidden-or-unreadable") end
     local alpha=self:Read(region,"GetAlpha")
     if type(alpha)~="number" then return self:Reject("alpha-unreadable") end
@@ -189,14 +189,45 @@ function M:VisualRegion(region,scale)
     local ok,_,_,_,colorAlpha=pcall(method(region,colorMethod),region)
     if not ok or secret(colorAlpha) or type(colorAlpha)~="number" then return self:Reject("color-unreadable") end
     if colorAlpha<=0 then return self:Reject("transparent-color") end
-    return self:HitRect(region,scale)
+    local area=self:HitRect(region,scale)
+    if area or not button then return area end
+    -- A text-only button's click target includes its padding. Require visible
+    -- paint within the button, not the pointer sitting directly on that paint.
+    local ok,l,b,w,h=pcall(method(region,"GetRect"),region)
+    local fok,fl,fb,fw,fh=pcall(method(button,"GetRect"),button)
+    if not ok or not fok then return end
+    if secret(l) or secret(b) or secret(w) or secret(h) or secret(fl) or secret(fb) or secret(fw) or secret(fh)
+        or type(l)~="number" or type(b)~="number" or type(w)~="number" or type(h)~="number"
+        or type(fl)~="number" or type(fb)~="number" or type(fw)~="number" or type(fh)~="number" then return end
+    if w>0 and h>0 and l>=fl and b>=fb and l+w<=fl+fw and b+h<=fb+fh then
+        local left,bottom,right,top=l*scale,b*scale,(l+w)*scale,(b+h)*scale
+        local ancestor=button
+        for depth=1,16 do
+            if not ancestor then break end
+            if self:Read(ancestor,"DoesClipChildren")==true then
+                local clipScale=self:Read(ancestor,"GetEffectiveScale")
+                local cok,cl,cb,cw,ch=pcall(method(ancestor,"GetRect"),ancestor)
+                if not cok or secret(cl) or secret(cb) or secret(cw) or secret(ch)
+                    or type(cl)~="number" or type(cb)~="number" or type(cw)~="number" or type(ch)~="number"
+                    or type(clipScale)~="number" or clipScale<=0 or cw<=0 or ch<=0 then return self:Reject("clipped-or-unreadable") end
+                left=math.max(left,cl*clipScale);bottom=math.max(bottom,cb*clipScale)
+                right=math.min(right,(cl+cw)*clipScale);top=math.min(top,(cb+ch)*clipScale)
+                if right<=left or top<=bottom then return self:Reject("clipped-content") end
+            end
+            ancestor=self:Read(ancestor,"GetParent")
+        end
+        return (right-left)*(top-bottom)
+    end
 end
 local function inspectRegions(owner,target,frame,scale,strata,level,ok,...)
     if not ok then return owner:Reject("regions-unreadable") end
     local found
+    local kind=owner:Read(target,"GetObjectType")
+    local button=(kind=="Button" or kind=="CheckButton") and owner:Read(target,"IsMouseClickEnabled")==true
+        and owner:HitRect(frame,scale) and frame or nil
     for i=1,math.min(select("#",...),32) do
         local region=clean(select(i,...))
-        local area=owner:VisualRegion(region,scale)
+        local area=owner:VisualRegion(region,scale,button)
         if area then
             found=true
             local layer=layerOrder[owner:Read(region,"GetDrawLayer")] or 0
@@ -420,7 +451,8 @@ function M:Poll()
     else target,own=self:Focus() end
     if own then self.view:Place(self.target);return end
     if target~=self.target or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false))
-        or (not target and self.view.diagnosticPending~=(self.pick and self.pick.pending or false)) then
+        or (not target and self.view.diagnosticPending~=(self.pick and self.pick.pending or false))
+        or (not target and self.view.diagnosticReady~=(self.pick and self.pick.details~=nil and not self.pick.pending or false)) then
         self.target=target;self.data=target and self:Analyze(target) or nil
         self.view:Update(target,self.data)
     end

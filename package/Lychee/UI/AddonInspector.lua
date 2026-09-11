@@ -4,7 +4,7 @@ function UI.CreateAddonInspector(owner)
     local T,C=UI.Theme,UI.Components
     local view={owner=owner,expanded=false,copying=false}
     local frame=CreateFrame("Frame",nil,UIParent)
-    view.frame=frame;frame:Hide();frame:SetSize(320,140);frame:SetFrameStrata("TOOLTIP")
+    view.frame=frame;frame:Hide();frame:SetSize(320,120);frame:SetFrameStrata("TOOLTIP")
     frame:SetClampedToScreen(true);frame:EnableMouse(true)
     T:CreateRoundedSurface(frame,"window",10)
     local function label(role,color,x,y,width,height)
@@ -12,25 +12,20 @@ function UI.CreateAddonInspector(owner)
         value:SetPoint("TOPLEFT",x,y);value:SetSize(width,height);value:SetJustifyH("LEFT");value:SetJustifyV("TOP")
         T:SetFont(value,role);T:SetTextColor(value,color);return value
     end
-    view.kicker=label("meta","textDim",16,-12,220,16)
-    view.kicker:SetText(L["插件识别"])
-    view.heading=label("title","text",16,-34,288,22)
-    view.confidence=label("meta","textMuted",16,-60,288,18)
-    view.name=label("body","textMuted",16,-84,288,18)
-    view.detailMeta=label("meta","textMuted",16,-124,288,18)
-    view.sourceLabel=label("meta","textDim",16,-150,288,16);view.sourceLabel:SetText(L["创建位置"])
-    view.details=label("body","textMuted",16,-170,288,48)
-    view.parentLabel=label("meta","textDim",16,-226,288,16);view.parentLabel:SetText(L["父级关联"])
-    view.parents=label("body","textMuted",16,-246,288,42)
+    view.heading=label("title","text",16,-18,250,24)
+    view.confidence=label("body","textMuted",16,-50,288,32)
+    view.name=label("body","text",16,-94,368,32)
+    view.detailMeta=label("meta","textDim",16,-134,368,18)
+    view.sourceLabel=label("meta","textDim",16,-168,368,16);view.sourceLabel:SetText(L["创建位置"])
+    view.details=label("body","textMuted",16,-190,368,40)
+    view.parentLabel=label("meta","textDim",16,-246,368,16);view.parentLabel:SetText(L["父级关联"])
+    view.parents=label("body","textMuted",16,-268,368,32)
     view.divider=frame:CreateTexture(nil,"BACKGROUND")
-    view.divider:SetHeight(1);view.divider:SetPoint("TOPLEFT",16,-112);view.divider:SetPoint("TOPRIGHT",-16,-112)
+    view.divider:SetHeight(1);view.divider:SetPoint("TOPLEFT",16,-84);view.divider:SetPoint("TOPRIGHT",-16,-84)
     T:SetColorTexture(view.divider,"border")
-    view.footer=label("meta","textDim",16,-116,288,16)
-    for _,region in ipairs({view.heading,view.confidence,view.name}) do
-        if region.SetMaxLines then region:SetMaxLines(1) end
-        if region.SetWordWrap then region:SetWordWrap(false) end
-    end
-    if view.details.SetMaxLines then view.details:SetMaxLines(3);view.parents:SetMaxLines(3) end
+    view.footer=label("meta","textDim",16,-96,368,16)
+    view.heading:SetMaxLines(1);view.heading:SetWordWrap(false)
+    view.name:SetMaxLines(2);view.details:SetMaxLines(3);view.parents:SetMaxLines(2)
     local function button(title,x,y,width,action,rounded)
         local b=C:CreateNavigationButton(frame,{text=title,width=width,height=30,point="TOPLEFT",x=x,y=y,onClick=action})
         T:SetFont(b.label,"body");return b
@@ -41,20 +36,47 @@ function UI.CreateAddonInspector(owner)
         if not owner.data and owner.pick and (owner.pick.pending or not owner.pick.details) then return end
         view.copying=not view.copying;view:Layout()
         if view.copying then
-            view.report=owner:Report();view.edit:SetText(view.report);view.edit:Show();view.edit:SetFocus();view.edit:HighlightText()
+            view.report=owner:Report();view.edit:SetText(view.report);view.edit:Show();view:SyncReport();view.edit:SetFocus();view.edit:HighlightText();view:ScrollTo(0)
         else view.edit:ClearFocus();view.edit:Hide() end
     end,true)
     view.parent=button(L["上一级"],164,-302,140,function() owner:Parent() end,true)
     view.setup=button(L["启用来源记录并重载"],16,-338,288,function()
         if owner:EnableSource()==false then view.footer:SetText(L["无法启用来源记录，请稍后重试"]) end
     end)
-    local edit=CreateFrame("EditBox",nil,frame);view.edit=edit
-    edit:SetPoint("TOPLEFT",16,-60);edit:SetSize(288,230);edit:SetMultiLine(true);edit:SetAutoFocus(false)
+    local reportHost=CreateFrame("Frame",nil,frame);view.reportHost=reportHost;reportHost:Hide()
+    reportHost:SetPoint("TOPLEFT",16,-60);reportHost:SetSize(448,280)
+    T:CreateRoundedSurface(reportHost,"field",6)
+    local scroll=CreateFrame("ScrollFrame",nil,reportHost);view.reportScroll=scroll
+    scroll:SetPoint("TOPLEFT",10,-10);scroll:SetSize(414,260)
+    local edit=CreateFrame("EditBox",nil,scroll);view.edit=edit
+    edit:SetPoint("TOPLEFT");edit:SetSize(414,260);edit:SetMultiLine(true);edit:SetAutoFocus(false)
     T:SetFont(edit,"body");T:SetTextColor(edit,"text");edit:Hide()
-    edit:SetTextInsets(10,10,8,8);C:StyleEditBox(edit)
+    edit:SetTextInsets(0,0,0,0);scroll:SetScrollChild(edit)
+    view.reportBar=C:CreateScrollbar(reportHost,function(value) view:ScrollTo(value) end)
+    view.reportBar.frame:ClearAllPoints();view.reportBar.frame:SetPoint("TOPRIGHT",-2,-10);view.reportBar.frame:SetHeight(260)
+    function view:ScrollTo(value)
+        local maximum=math.max(0,scroll:GetVerticalScrollRange())
+        self.reportOffset=math.max(0,math.min(maximum,value or 0))
+        scroll:SetVerticalScroll(self.reportOffset)
+        self.reportBar:SetRange(scroll:GetHeight()+maximum,scroll:GetHeight(),self.reportOffset)
+    end
+    function view:SyncReport()
+        if not self.copying then return end
+        scroll:UpdateScrollChildRect();self:ScrollTo(self.reportOffset)
+    end
+    scroll:EnableMouseWheel(true)
+    scroll:SetScript("OnMouseWheel",function(_,delta) if view.copying then view:ScrollTo((view.reportOffset or 0)-delta*36) end end)
     edit:SetScript("OnEscapePressed",function() owner:Stop() end)
+    edit:SetScript("OnSizeChanged",function() view:SyncReport() end)
+    edit:SetScript("OnCursorChanged",function(_,x,y,w,h)
+        if not view.copying then return end
+        local offset=view.reportOffset or 0;local top=-y
+        if top<offset then view:ScrollTo(top)
+        elseif top+h>offset+scroll:GetHeight() then view:ScrollTo(top+h-scroll:GetHeight()) end
+    end)
     edit:SetScript("OnTextChanged",function(_,userInput)
         if userInput and view.report then edit:SetText(view.report);edit:HighlightText() end
+        view:SyncReport()
     end)
     local outline=CreateFrame("Frame",nil,UIParent);view.outline=outline
     outline:SetFrameStrata("TOOLTIP");outline:EnableMouse(false);outline:Hide()
@@ -68,25 +90,36 @@ function UI.CreateAddonInspector(owner)
     function view:Layout()
         local expanded=(self.expanded and (self.hasTarget or self.hasDiagnostic)) or self.copying
         local sourceSetting=owner:SourceSetting()
-        local setup=expanded and not self.copying and sourceSetting~=nil and sourceSetting~="1"
-        frame:SetHeight(expanded and (setup and 402 or 366) or 140)
-        for _,region in ipairs({self.details,self.detailMeta,self.sourceLabel,self.parentLabel,self.parents,self.divider}) do
-            region:SetShown(expanded and not self.copying)
+        local setup=expanded and self.hasTarget and not self.copying and sourceSetting~=nil and sourceSetting~="1"
+        self.width=self.copying and 480 or (expanded and (self.hasTarget and 400 or 360) or 320)
+        local height=self.copying and 420 or (expanded and (self.hasTarget and (setup and 414 or 378) or 174) or 120)
+        frame:SetSize(self.width,height)
+        self.heading:SetWidth(self.width-86);self.confidence:SetWidth(self.width-32)
+        self.close.frame:ClearAllPoints();self.close.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-10)
+        self.heading:SetText(self.copying and L["检查报告"] or (owner.data and owner.data.title or L["插件识别"]))
+        for _,region in ipairs({self.name,self.details,self.detailMeta,self.sourceLabel,self.parentLabel,self.parents,self.divider}) do
+            region:SetShown(expanded and self.hasTarget and not self.copying)
         end
-        self.name:SetShown(not self.copying)
         self.confidence:SetShown(not self.copying)
         self.copy:SetText(self.copying and L["返回信息"] or L["复制信息"])
-        self.copy.frame:SetShown(expanded);self.parent.frame:SetShown(expanded and not self.copying)
+        self.copy.frame:SetShown(expanded);self.parent.frame:SetShown(expanded and self.hasTarget and not self.copying)
+        self.copy.frame:ClearAllPoints();self.copy.frame:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",16,38)
+        self.parent.frame:ClearAllPoints();self.parent.frame:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-16,38)
         self.setup.frame:SetShown(setup)
-        self.footer:ClearAllPoints();self.footer:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",16,12)
-        self.footer:SetText(self.copying and L["Ctrl+C 复制 · Esc 退出"] or (expanded and L["松开 Shift 继续识别 · Esc 退出"] or L["按住 Shift 查看详情 · Esc 退出"]))
-        if not self.copying then self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("") end
+        self.setup.frame:ClearAllPoints();self.setup.frame:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",16,74)
+        self.footer:SetWidth(self.width-32);self.footer:ClearAllPoints();self.footer:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",16,12)
+        self.footer:SetText(self.copying and L["Ctrl+C 复制 · 滚轮浏览 · Esc 退出"] or (expanded and L["松开 Shift 继续识别 · Esc 退出"] or L["按住 Shift 查看详情 · Esc 退出"]))
+        reportHost:SetShown(self.copying)
+        if not self.copying then
+            self.report=nil;self.reportOffset=0;self.reportBar:StopDrag();edit:ClearFocus();edit:Hide();edit:SetText("");scroll:SetVerticalScroll(0)
+        end
         self:Place(owner.target,true)
     end
     function view:Update(target,data)
         self.hasTarget=data~=nil
         self.hasDiagnostic=owner.pick and (owner.pick.preferred~=nil or owner.pick.checked>0) or false
         self.diagnosticPending=owner.pick and owner.pick.pending or false
+        self.diagnosticReady=owner.pick and owner.pick.details~=nil and not owner.pick.pending or false
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
         self.heading:SetText(data and data.title or L["插件识别"])
         self.confidence:SetText(data and data.confidence or self.hasDiagnostic and
@@ -96,7 +129,7 @@ function UI.CreateAddonInspector(owner)
         self.details:SetText(location)
         self.detailMeta:SetText(data and (data.kind.."  ·  "..data.size.."  ·  "..data.strata) or "")
         self.parents:SetText(data and (#data.parents>0 and table.concat(data.parents,"\n",1,math.min(2,#data.parents)) or L["未发现可确认的父级来源"]) or "")
-        self.copy:SetEnabled(data~=nil or (self.hasDiagnostic and not self.diagnosticPending and owner.pick.details~=nil))
+        self.copy:SetEnabled(data~=nil or (self.hasDiagnostic and self.diagnosticReady))
         local parent=target and owner:Read(target,"GetParent")
         self.parent:SetEnabled(parent~=nil and parent~=UIParent and parent~=WorldFrame)
         self.outline:Hide();self.outline:ClearAllPoints()
@@ -114,9 +147,10 @@ function UI.CreateAddonInspector(owner)
     function view:Place(target,force)
         local width,height=UIParent:GetWidth(),UIParent:GetHeight()
         if type(width)~="number" or type(height)~="number" or width<=32 or height<=32 then return end
-        local scale=math.min(1,(width-32)/320,(height-32)/402)
+        local panelWidth=self.width or 320
+        local scale=math.min(1,(width-32)/panelWidth,(height-32)/frame:GetHeight())
         if self.scale~=scale then frame:SetScale(scale);self.scale=scale;force=true end
-        local w,h=320*scale,frame:GetHeight()*scale
+        local w,h=panelWidth*scale,frame:GetHeight()*scale
         local x,top=self.anchorX,self.anchorTop
         if not ((self.paused or self.copying) and x and top) then
             if not GetCursorPosition then return end
@@ -151,7 +185,7 @@ function UI.CreateAddonInspector(owner)
         frame:SetScript("OnUpdate",nil)
         frame:UnregisterAllEvents();pcall(frame.EnableKeyboard,frame,false)
         if UI.Motion then UI.Motion:Cancel(frame,true) end
-        frame:Hide();outline:Hide();outline:ClearAllPoints();edit:ClearFocus();edit:Hide();edit:SetText("")
+        frame:Hide();outline:Hide();outline:ClearAllPoints();self.reportBar:StopDrag();reportHost:Hide();edit:ClearFocus();edit:Hide();edit:SetText("")
         self.report=nil;self.copying=false
     end
     frame:SetScript("OnKeyDown",function(self,key)

@@ -76,7 +76,15 @@ function methods:SetPropagateKeyboardInput(v) self.propagate=v end
 function methods:Enable() self.disabled=false end
 function methods:Disable() self.disabled=true end
 function methods:IsMouseOver() return false end
-function methods:SetMultiLine(...) end
+function methods:SetMultiLine(value) self.multiLine=value end
+function methods:SetMaxLines(...) end
+function methods:SetWordWrap(...) end
+function methods:EnableMouseWheel(...) end
+function methods:SetScrollChild(child) self.scrollChild=child end
+function methods:GetVerticalScrollRange() return math.max(0,self.scrollChild:GetHeight()-self:GetHeight()) end
+function methods:SetVerticalScroll(value) self.scrollOffset=value end
+function methods:GetVerticalScroll() return self.scrollOffset or 0 end
+function methods:UpdateScrollChildRect() end
 function methods:SetAutoFocus(...) end
 function methods:SetTextInsets(...) self.insets={...} end
 function methods:SetFocus() self.focused=true end
@@ -204,6 +212,24 @@ assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native s
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
+local textButton=frame(UIParent,"TextOnlyButton");textButton.kind="Button"
+textButton.IsMouseClickEnabled=function() return true end
+local buttonText=frame(textButton);buttonText.kind="FontString";buttonText.text="RS"
+buttonText.left=65;buttonText.bottom=40;buttonText.width=20;buttonText.height=20
+textButton.visualRegions={buttonText};nativeTarget=textButton;scene({textButton});M:Poll()
+assert(M.target==textButton,"visible text button padding belongs to the clickable button, not just its glyph bounds")
+local buttonClip=frame(UIParent);buttonClip.clips=true;buttonClip.width=60;textButton.parent=buttonClip
+M:Poll();assert(not M.target,"button padding cannot borrow text fully outside an ancestor clip")
+buttonClip.width=75;M:Poll();assert(M.target==textButton,"partly visible button text still supports its click padding")
+buttonClip.scale=2;buttonClip.width=30;M:Poll();assert(not M.target,"ancestor clipping uses its own effective scale")
+buttonClip.width=38;M:Poll();assert(M.target==textButton,"scaled partial clip retains visible content")
+textButton.parent=UIParent
+local textRect=buttonText.GetRect;buttonText.GetRect=function() return nil end
+M:Poll();assert(not M.target,"unreadable button content bounds cannot prove visibility")
+buttonText.GetRect=textRect
+buttonText:Hide();M:Poll();assert(not M.target,"an empty invisible button must still be excluded")
+buttonText:Show();textButton.kind="Frame";M:Poll();assert(not M.target,"noninteractive empty overlay cannot borrow off-pointer text")
+nativeTarget=nil
 local rotatingWidget=frame(UIParent,"LayeredAuraOrResource")
 local overlayA=frame(rotatingWidget,"OverlayA")
 local overlayB=frame(rotatingWidget,"OverlayB")
@@ -424,6 +450,8 @@ nativeTarget=emptyAnchor;scene({emptyAnchor});M:Poll()
 assert(not M.target and v.hasDiagnostic and M:Report():find("nativeFilter=",1,true),"failed selection has a copyable filter report")
 shift=true;M:Poll()
 assert(v.copy.frame:IsShown(),"Shift exposes report copying even without a selected target")
+assert(M.pick.details and not M.pick.pending and not v.copy.frame.disabled,"single-poll completed diagnostics must enable Copy")
+assert(not v.sourceLabel:IsShown() and not v.parentLabel:IsShown(),"missing target has no empty detail groups")
 shift=false;nativeTarget=nil;M:Poll()
 local savedNative=C_System.GetFrameStack
 C_System.GetFrameStack=function() error("native access unavailable") end
@@ -438,7 +466,7 @@ local forbidden=frame(UIParent,"Forbidden");forbidden.forbidden=true
 foci={WorldFrame,forbidden,a};M:Poll()
 assert(M.target==a,"invalid first mouse focus must not hide later valid targets")
 M:Stop();shift=true;foci={WorldFrame};M:Start()
-assert(not M.target and v.frame:GetHeight()==140 and not v.details:IsShown(),"Shift without a target must not expand empty details")
+assert(not M.target and v.frame:GetHeight()==120 and not v.details:IsShown(),"Shift without a target must not expand empty details")
 foci={a};M:Poll()
 assert(M.target==a and v.details:IsShown(),"Shift must acquire a first mouse target before freezing")
 foci={b};M:Poll();assert(M.target==a,"Shift freezes an existing target")
@@ -469,7 +497,7 @@ assert(M.data.title=="归属未确定" and M.data.confidence=="创建位置来�
 local cyclic=frame(nil,"Loop");cyclic.parent=cyclic
 local cycleBefore=sourceReads
 foci={cyclic};M:Poll();assert(sourceReads-cycleBefore<=2,"cyclic parent walk is bounded")
-UIParent:SetSize(400,220);M:Poll();assert(v.scale>0 and v.scale<1,"small viewport scales popup")
+UIParent:SetSize(400,220);M:Poll();assert(v.scale>0 and v.frame:GetWidth()*v.scale<=368 and v.frame:GetHeight()*v.scale<=188,"small viewport fits popup")
 UIParent:SetSize(1920,1080)
 local child=frame(a)
 foci={child};M:Poll()
@@ -510,6 +538,20 @@ shift=true;v.frame.scripts.OnUpdate()
 foci={v.copy.frame};M:Poll();assert(M.target==child,"paused panel preserves target")
 v.copy.frame.scripts.OnClick(v.copy.frame)
 assert(v.copying and v.edit.focused and v.edit.highlighted and v.report:find("父级关联",1,true))
+assert(v.reportScroll.scrollChild==v.edit and v.edit:GetParent()==v.reportScroll,"report text belongs to a native clipping scroll child")
+assert(v.reportHost:IsShown() and not v.confidence:IsShown() and not v.sourceLabel:IsShown() and not v.parent.frame:IsShown(),"report is a separate page")
+-- Supply native measured content height; the production UI must use its scroll range,
+-- not report byte length (which differs with fonts, locales and wrapping).
+v.edit:SetHeight(2400);v.edit.scripts.OnSizeChanged(v.edit)
+assert(v.reportBar.frame:IsShown() and v.reportOffset==0)
+v.reportScroll.scripts.OnMouseWheel(v.reportScroll,-1);assert(v.reportOffset==36)
+v:ScrollTo(99999);assert(v.reportOffset==2140 and v.reportScroll:GetVerticalScroll()==2140)
+v:ScrollTo(-999);assert(v.reportOffset==0)
+v.edit.scripts.OnCursorChanged(v.edit,0,-2000,8,16);assert(v.reportOffset==1756,"keyboard selection scrolls into view")
+assert(60+v.reportHost:GetHeight()<v.frame:GetHeight()-68,"long report viewport cannot reach action row")
+UIParent:SetSize(400,220);v:Place(nil,true)
+assert(v.scale<1 and v.anchorTop-v.frame:GetHeight()*v.scale>=16,"expanded report fits small viewport")
+UIParent:SetSize(1920,1080)
 M:Poll();assert(v.copying)
 v.edit.scripts.OnEscapePressed();shift=false;cursorX,cursorY=960,540
 assert(not M.running and not M.timer and not v.frame:IsShown() and not v.outline:IsShown() and not v.report)

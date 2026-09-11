@@ -7,6 +7,8 @@ L:Add({
     ["按住 Shift 可复制检查信息"] = "Hold Shift to copy inspection details",
     ["创建位置"] = "Created at",
     ["父级关联"] = "Parent sources",
+    ["检查报告"] = "Inspection report",
+    ["Ctrl+C 复制 · 滚轮浏览 · Esc 退出"] = "Ctrl+C to copy · Scroll to browse · Esc to exit",
     ["复制信息"] = "Copy info",
     ["上一级"] = "Parent",
     ["启用来源记录并重载"] = "Enable source tracking and reload",
