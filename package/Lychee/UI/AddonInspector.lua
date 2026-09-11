@@ -37,7 +37,7 @@ function UI.CreateAddonInspector(owner)
     end
     view.close=button("Esc",266,-6,40,function() owner:Stop() end)
     view.copy=button(L["复制信息"],16,-302,140,function()
-        if not owner.data then return end
+        if not owner.data and not view.hasDiagnostic then return end
         view.copying=not view.copying;view:Layout()
         if view.copying then
             view.report=owner:Report();view.edit:SetText(view.report);view.edit:Show();view.edit:SetFocus();view.edit:HighlightText()
@@ -65,7 +65,7 @@ function UI.CreateAddonInspector(owner)
         else texture:SetWidth(1);texture:SetPoint("TOP"..edge);texture:SetPoint("BOTTOM"..edge) end
     end
     function view:Layout()
-        local expanded=(self.expanded and self.hasTarget) or self.copying
+        local expanded=(self.expanded and (self.hasTarget or self.hasDiagnostic)) or self.copying
         local sourceSetting=owner:SourceSetting()
         local setup=expanded and not self.copying and sourceSetting~=nil and sourceSetting~="1"
         frame:SetHeight(expanded and (setup and 402 or 366) or 140)
@@ -84,15 +84,18 @@ function UI.CreateAddonInspector(owner)
     end
     function view:Update(target,data)
         self.hasTarget=data~=nil
+        self.hasDiagnostic=owner.pick and (owner.pick.preferred~=nil or owner.pick.checked>0) or false
+        self.pickPending=owner.pick and owner.pick.pending
         self.copying=false;self.report=nil;edit:ClearFocus();edit:Hide();edit:SetText("")
-        self.heading:SetText(data and data.title or L["插件识别"])
-        self.confidence:SetText(data and data.confidence or L["指向界面，查看来自哪个插件"])
-        self.name:SetText(data and data.name or L["无需点击 · Esc 退出"])
+        self.heading:SetText(data and data.title or self.hasDiagnostic and L["正在检查界面"] or L["插件识别"])
+        self.confidence:SetText(data and data.confidence or self.hasDiagnostic and
+            (self.pickPending and L["正在检查剩余控件"] or L["未找到可确认的可见内容"]) or L["指向界面，查看来自哪个插件"])
+        self.name:SetText(data and data.name or self.hasDiagnostic and L["按住 Shift 可复制检查信息"] or L["无需点击 · Esc 退出"])
         local location=data and data.location or ""
         self.details:SetText(location)
         self.detailMeta:SetText(data and (data.kind.."  ·  "..data.size.."  ·  "..data.strata) or "")
         self.parents:SetText(data and (#data.parents>0 and table.concat(data.parents,"\n",1,math.min(2,#data.parents)) or L["未发现可确认的父级来源"]) or "")
-        self.copy:SetEnabled(data~=nil)
+        self.copy:SetEnabled(data~=nil or self.hasDiagnostic)
         local parent=target and owner:Read(target,"GetParent")
         self.parent:SetEnabled(parent~=nil and parent~=UIParent and parent~=WorldFrame)
         self.outline:Hide();self.outline:ClearAllPoints()

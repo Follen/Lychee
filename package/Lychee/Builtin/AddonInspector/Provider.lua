@@ -140,53 +140,63 @@ local layerOrder={BACKGROUND=1,BORDER=2,ARTWORK=3,OVERLAY=4,HIGHLIGHT=5}
 function M:ResetVisual()
     self.visualBest,self.visualBestFrame,self.visualX,self.visualY=nil,nil,nil,nil
 end
+function M:Reject(reason)
+    self.pickReason=reason
+end
 function M:HitRect(object,scale)
     local ok,left,bottom,width,height=pcall(method(object,"GetRect"),object)
-    if not ok or secret(left) or secret(bottom) or secret(width) or secret(height) then return end
+    if not ok or secret(left) or secret(bottom) or secret(width) or secret(height) then return self:Reject("geometry-unreadable") end
     if type(left)~="number" or type(bottom)~="number" or type(width)~="number" or type(height)~="number"
-        or type(scale)~="number" or scale<=0 or width<=0 or height<=0 then return end
+        or type(scale)~="number" or scale<=0 or width<=0 or height<=0 then return self:Reject("geometry-empty") end
     local x,y=self.visualX/scale,self.visualY/scale
     if x>=left and x<=left+width and y>=bottom and y<=bottom+height then return width*height*scale*scale end
+    return self:Reject("outside-pointer")
 end
 function M:VisualFrame(frame)
-    if self:Read(frame,"IsVisible")~=true then return end
+    if self:Read(frame,"IsVisible")~=true then return self:Reject("hidden-or-unreadable") end
     local alpha=self:Read(frame,"GetEffectiveAlpha")
-    if type(alpha)~="number" or alpha<=0 then return end
+    if type(alpha)~="number" then return self:Reject("alpha-unreadable") end
+    if alpha<=0 then return self:Reject("transparent") end
     local valid=self:CheckFocus(frame)
-    if not valid then return end
+    if not valid then return self:Reject("excluded") end
     local parent=frame -- Its own regions are clipped here too (chat FontStringContainer).
     for depth=1,16 do
         if not parent then break end
-        if self:Read(parent,"DoesClipChildren")==true and not self:HitRect(parent,self:Read(parent,"GetEffectiveScale")) then return end
+        if self:Read(parent,"DoesClipChildren")==true and not self:HitRect(parent,self:Read(parent,"GetEffectiveScale")) then return self:Reject("clipped-or-unreadable") end
         parent=self:Read(parent,"GetParent")
     end
     return self:Read(frame,"GetEffectiveScale")
 end
 function M:VisualRegion(region,scale)
-    if self:Read(region,"IsVisible")~=true then return end
+    if self:Read(region,"IsVisible")~=true then return self:Reject("hidden-or-unreadable") end
     local alpha=self:Read(region,"GetAlpha")
-    if type(alpha)~="number" or alpha<=0 then return end
+    if type(alpha)~="number" then return self:Reject("alpha-unreadable") end
+    if alpha<=0 then return self:Reject("transparent") end
     local kind=self:Read(region,"GetObjectType")
     local colorMethod
     if kind=="Texture" then
         local texture=self:Read(region,"GetTexture") or self:Read(region,"GetAtlas")
-        if not texture or texture=="" then return end
+        if not texture or texture=="" then return self:Reject("texture-empty-or-unreadable") end
         colorMethod="GetVertexColor"
     elseif kind=="FontString" then
         local value=self:Read(region,"GetText")
-        if type(value)~="string" or not value:find("%S") then return end
+        if type(value)~="string" then return self:Reject("text-unreadable") end
+        if not value:find("%S") then return self:Reject("text-empty") end
         colorMethod="GetTextColor"
     else return end
     local ok,_,_,_,colorAlpha=pcall(method(region,colorMethod),region)
-    if not ok or secret(colorAlpha) or type(colorAlpha)~="number" or colorAlpha<=0 then return end
+    if not ok or secret(colorAlpha) or type(colorAlpha)~="number" then return self:Reject("color-unreadable") end
+    if colorAlpha<=0 then return self:Reject("transparent-color") end
     return self:HitRect(region,scale)
 end
 local function inspectRegions(owner,target,frame,scale,strata,level,ok,...)
-    if not ok then return end
+    if not ok then return owner:Reject("regions-unreadable") end
+    local found
     for i=1,math.min(select("#",...),32) do
         local region=clean(select(i,...))
         local area=owner:VisualRegion(region,scale)
         if area then
+            found=true
             local layer=layerOrder[owner:Read(region,"GetDrawLayer")] or 0
             if not owner.visualBest or strata>owner.visualStrata
                 or (strata==owner.visualStrata and (level>owner.visualLevel
@@ -197,9 +207,12 @@ local function inspectRegions(owner,target,frame,scale,strata,level,ok,...)
             end
         end
     end
+    return found
 end
 local function considerObject(owner,object)
+    owner.pickReason="no-visible-content"
     object=owner:CheckFocus(object)
+    if not object then return owner:Reject("excluded") end
     local kind=object and owner:Read(object,"GetObjectType")
     local isRegion=kind=="Texture" or kind=="FontString"
     local frame=isRegion and owner:Read(object,"GetParent") or object
@@ -207,61 +220,106 @@ local function considerObject(owner,object)
     if not scale then return end
     local strata=strataOrder[owner:Read(frame,"GetFrameStrata")] or 0
     local level=owner:Read(frame,"GetFrameLevel")
-    if type(level)~="number" then return end
+    if type(level)~="number" then return owner:Reject("level-unreadable") end
     -- Regions prove visibility, but must not replace the native object's identity.
-    if isRegion then inspectRegions(owner,object,frame,scale,strata,level,true,object)
-    else inspectRegions(owner,object,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
+    local found
+    if isRegion then found=inspectRegions(owner,object,frame,scale,strata,level,true,object)
+    else found=inspectRegions(owner,object,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
+    if found then owner.pickReason=nil end
 end
-local scanLocal
-local function scanLocalChildren(owner,depth,skip,ok,...)
-    if not ok then return end
-    for i=1,math.min(select("#",...),32) do
-        local child=clean(select(i,...))
-        if child and child~=skip then scanLocal(owner,child,depth,nil) end
-        if owner.localRemaining<=0 then break end
-    end
+-- One sweep owns all fallback candidates. Budget exhaustion yields the cursor,
+-- not the answer: later objects must eventually be considered at a stationary pointer.
+local function enqueue(pick,object)
+    if not object or secret(object) or object==UIParent or object==WorldFrame or pick.seen[object] then return end
+    if pick.tail>=512 then pick.capped=true;return end
+    pick.seen[object]=true;pick.tail=pick.tail+1;pick.queue[pick.tail]=object
 end
-scanLocal=function(owner,object,depth,skip)
-    if owner.localRemaining<=0 then return end
-    if debugprofilestop and debugprofilestop()-owner.localStarted>=0.75 then owner.localRemaining=0;return end
-    owner.localRemaining=owner.localRemaining-1
-    local scale=owner:VisualFrame(object)
-    if not scale then return end
-    considerObject(owner,object)
-    -- Stay inside the hit widget. Never enumerate the UI root or unrelated branches.
-    if depth<3 and owner:HitRect(object,scale) then
-        scanLocalChildren(owner,depth+1,skip,pcall(method(object,"GetChildren"),object))
-    end
+local function enqueueList(pick,ok,...)
+    if not ok then pick.unreadable=true;return end
+    for i=1,math.min(select("#",...),512) do enqueue(pick,clean(select(i,...))) end
+    if select("#",...)>512 then pick.capped=true end
 end
-local function recoverLocal(owner,preferred)
-    if not owner:CheckFocus(preferred) then return end
-    local kind=owner:Read(preferred,"GetObjectType")
-    local scope=(kind=="Texture" or kind=="FontString") and owner:Read(preferred,"GetParent") or preferred
-    owner.localRemaining=64;owner.localStarted=debugprofilestop and debugprofilestop() or 0
-    local skip
-    for i=1,3 do
-        if not scope or not owner:CheckFocus(scope) then break end
-        scanLocal(owner,scope,0,skip)
-        if owner.visualBest or owner.localRemaining<=0 then break end
-        skip=scope;scope=owner:Read(scope,"GetParent")
-    end
-    owner.localRemaining,owner.localStarted=nil,nil
+function M:ResetPicking()
+    self.pick,self.lastPick,self.lastPickX,self.lastPickY=nil,nil,nil,nil
+    self:ResetVisual()
 end
 function M:StackFocus(objects,preferred)
     self:ResetVisual()
     local ok,x,y=pcall(GetCursorPosition)
-    if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then return end
+    if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then self:ResetPicking();return end
     self.visualX,self.visualY=x,y
     if preferred then considerObject(self,preferred) end
-    if preferred and not self.visualBest then recoverLocal(self,preferred) end
+    if self.visualBest then
+        local target=self.visualBest
+        self.pick=nil;self.lastPick,self.lastPickX,self.lastPickY=target,x,y
+        self:ResetVisual();return target,nil,true
+    end
+    local rawReason=preferred and self.pickReason or nil
+    local pick=self.pick
+    if not pick or not pick.pending or pick.x~=x or pick.y~=y or pick.preferred~=preferred then
+        if not pick then pick={queue={},seen={},reasons={}};self.pick=pick end
+        for key in pairs(pick.queue) do pick.queue[key]=nil end
+        for key in pairs(pick.seen) do pick.seen[key]=nil end
+        for key in pairs(pick.reasons) do pick.reasons[key]=nil end
+        pick.x,pick.y,pick.preferred=x,y,preferred
+        pick.head,pick.tail,pick.checked=1,0,0
+        pick.capped,pick.unreadable=false,false
+        pick.rawReason=rawReason
+        -- Seed native identity and its ancestors, never the global roots. Children
+        -- and regions are ordinary work items, not another depth-limited algorithm.
+        local scope=preferred
+        for i=1,16 do
+            if not scope or not self:CheckFocus(scope) then break end
+            enqueue(pick,scope);scope=self:Read(scope,"GetParent")
+        end
+        local snapshot=type(objects)=="function" and call(objects) or objects
+        pick.supported=type(snapshot)=="table"
+        if pick.supported then
+            for i=1,math.min(#snapshot,512) do enqueue(pick,clean(snapshot[i])) end
+            if #snapshot>512 then pick.capped=true end
+        end
+    end
+    -- Publish progressively without flicker, but revalidate on every poll so a
+    -- hidden, faded, clipped or moved winner cannot linger between sweep batches.
+    if self.lastPickX==x and self.lastPickY==y and self.lastPick and pick.seen[self.lastPick] then considerObject(self,self.lastPick) end
     local started=debugprofilestop and debugprofilestop() or 0
-    for i=1,math.min(objects and #objects or 0,128) do
-        considerObject(self,objects[i])
+    for i=1,128 do
+        local object=pick.queue[pick.head]
+        if not object then break end
+        pick.head=pick.head+1;pick.checked=pick.checked+1
+        considerObject(self,object)
+        local reason=self.pickReason
+        if reason then pick.reasons[reason]=(pick.reasons[reason] or 0)+1 end
+        local kind=self:Read(object,"GetObjectType")
+        if kind~="Texture" and kind~="FontString" and self:CheckFocus(object) then
+            local scale=self:VisualFrame(object)
+            if scale and self:HitRect(object,scale) then
+                enqueueList(pick,pcall(method(object,"GetRegions"),object))
+                enqueueList(pick,pcall(method(object,"GetChildren"),object))
+            end
+        end
         if debugprofilestop and debugprofilestop()-started>=0.75 then break end
     end
+    pick.pending=pick.head<=pick.tail
     local target=self.visualBest
-    self:ResetVisual() -- Do not retain the native list or a previous pointer's candidates.
-    return target
+    self.lastPick,self.lastPickX,self.lastPickY=target,x,y
+    if not pick.pending then
+        -- Keep scalar diagnostics, release object references at the end of a sweep.
+        for key in pairs(pick.queue) do pick.queue[key]=nil end
+        for key in pairs(pick.seen) do pick.seen[key]=nil end
+    end
+    self:ResetVisual()
+    return target,nil,pick.supported or preferred~=nil
+end
+function M:PickReport()
+    local pick=self.pick
+    if not pick then return "Picker: native selection passed" end
+    local lines={"Picker: "..(pick.pending and "pending" or "complete"),
+        "checked="..pick.checked.." queued="..pick.tail.." capped="..tostring(pick.capped),
+        "native="..text(self:Read(pick.preferred,"GetDebugName")),"nativeFilter="..tostring(pick.rawReason)}
+    for reason,count in pairs(pick.reasons) do lines[#lines+1]=reason.."="..count end
+    if pick.unreadable then lines[#lines+1]="Some child/region lists could not be read" end
+    return table.concat(lines,"\n")
 end
 local function sampleNative(tooltip,root)
     tooltip:SetOwner(root,"ANCHOR_NONE")
@@ -301,15 +359,9 @@ function M:Focus()
             end
         end
     end
-    local preferred=self:NativeFocus()
-    if preferred then
-        local target=self:StackFocus(nil,preferred)
-        if target then return target end
-    end
-    -- Only use the list to recover from an empty/hidden native highlight.
-    local objects=call(C_System and C_System.GetFrameStack)
-    if type(objects)=="table" then return self:StackFocus(objects) end
-    return fallback -- Older clients without the native API retain input-focus picking.
+    local target,own,supported=self:StackFocus(C_System and C_System.GetFrameStack,self:NativeFocus())
+    if target or supported then return target,own end
+    return fallback -- Legacy input-focus compatibility when native APIs are unavailable.
 end
 function M:UpdatePointer()
     if not self.running then return end
@@ -321,10 +373,11 @@ function M:Poll()
     if not self.running then return end
     if InCombatLockdown and InCombatLockdown() then self:Stop();return end
     self:UpdatePointer()
-    if not self.running or (self.view.paused and self.target) or self.view.copying then return end
+    if not self.running or (self.view.paused and (self.target or self.view.hasDiagnostic)) or self.view.copying then return end
     local target,own=self:Focus()
     if own then self.view:Place(self.target);return end
-    if target~=self.target then
+    if target~=self.target or (not target and self.view.pickPending~=(self.pick and self.pick.pending))
+        or (not target and self.view.hasDiagnostic~=(self.pick and (self.pick.preferred~=nil or self.pick.checked>0) or false)) then
         self.target=target;self.data=target and self:Analyze(target) or nil
         self.view:Update(target,self.data)
     end
@@ -342,7 +395,7 @@ function M:Stop()
     self.running=false;self.epoch=self.epoch+1
     if self.timer then self.timer:Cancel();self.timer=nil end
     self.target,self.data=nil,nil
-    self:ResetVisual()
+    self:ResetPicking()
     if self.stackTooltip then self.stackTooltip:Hide();self.stackTooltip:ClearLines() end
     if self.view then self.view:Hide() end
 end
@@ -382,7 +435,7 @@ function M:Parent()
 end
 function M:Report()
     local data=self.data
-    if not data then return L["尚未选择框体"] end
+    if not data then return self:PickReport() end
     local lines={L["插件识别"],data.confidence.."："..data.title,L["框体："]..data.name,L["类型："]..data.kind,
         L["尺寸："]..data.size,L["层级："]..data.strata.." / "..tostring(data.level or "—"),L["创建位置："]..data.location,L["父级关联（不代表修改来源）："]}
     for _,parent in ipairs(data.parents) do lines[#lines+1]=parent end
@@ -392,6 +445,7 @@ function M:Report()
         for _,source in ipairs(data.relatedSources) do lines[#lines+1]=source.title.." · "..source.name.." · "..source.location end
     end
     if data.relatedTruncated then lines[#lines+1]=L["关联信息已截断"] end
+    lines[#lines+1]=self:PickReport()
     return table.concat(lines,"\n"):sub(1,8192)
 end
 function M:SourceSetting()

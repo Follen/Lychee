@@ -3,6 +3,10 @@ if L:IsChinese() then return end
 L:Add({
     ["编辑"] = "Edit",
     ["插件识别"] = "Addon Inspector",
+    ["正在检查界面"] = "Inspecting UI",
+    ["正在检查剩余控件"] = "Checking remaining widgets",
+    ["未找到可确认的可见内容"] = "No confirmed visible content",
+    ["按住 Shift 可复制检查信息"] = "Hold Shift to copy inspection details",
     ["创建位置"] = "Created at",
     ["父级关联"] = "Parent sources",
     ["复制信息"] = "Copy info",

@@ -204,6 +204,29 @@ assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native s
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
+local budgetList={}
+for i=1,20 do budgetList[i]=frame(UIParent,"EmptyBudgetCarrier"..i) end
+budgetList[21]=cdmIcon
+local budgetClock=0
+debugprofilestop=function() budgetClock=budgetClock+0.8;return budgetClock end
+scene(budgetList)
+for i=1,40 do M:Poll() end
+assert(M.target==cdmIcon,"budget exhaustion must resume rather than starve the end of the native stack")
+cursorX,cursorY=1000,1000;M:Poll()
+assert(not M.target,"moving the pointer must discard the previous sweep winner")
+cursorX,cursorY=50,50;debugprofilestop=function() return 0 end
+local longRegions=frame(UIParent,"PooledTextContainer");longRegions.visualRegions={}
+for i=1,40 do
+    local region=frame(longRegions);region.kind="FontString";region.text=""
+    longRegions.visualRegions[i]=region
+end
+longRegions.visualRegions[40].text="visible menu entry"
+nativeTarget=longRegions;scene({longRegions});M:Poll()
+assert(M.target==longRegions.visualRegions[40],"paint beyond the first 32 regions must enter the same resumable queue")
+longRegions.visualRegions[40].GetText=function() return {secret=true} end
+M:Poll()
+assert(not M.target and M:PickReport():find("text-unreadable",1,true),"unreadable text must be reported distinctly from empty text")
+nativeTarget=nil
 -- Real reported native targets are full-size carriers with no paint under the
 -- pointer: raidMarkerHolder / countTextOverlay / AuraKit text and border hosts.
 local widget=frame(UIParent,"VisibleWidget")
@@ -222,8 +245,8 @@ local localStart=os.clock()
 for i=1,100 do M:Poll();assert(M.target==bar) end
 local localMs=(os.clock()-localStart)*1000;local localAllocation=collectgarbage("count")-localBase
 collectgarbage("restart")
-assert(localAllocation<1024 and stackReads==localBaseReads,"local widget recovery must avoid the fallback list")
-print(string.format("LocalRecovery100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",localMs,localAllocation))
+assert(localAllocation<1024 and stackReads-localBaseReads<=100,"unified recovery reads at most one native snapshot per poll")
+print(string.format("UnifiedRecovery100 cpu_ms=%.2f allocated_KiB=%.1f",localMs,localAllocation))
 local realChildren=bar.GetChildren
 local localVisits=0
 bar.GetChildren=function(self) localVisits=localVisits+1;return self,self,self,self end
@@ -342,12 +365,22 @@ GameTooltip:Show();assert(GameTooltip:IsVisible(),"normal hover returns after in
 M.stackTooltip:Show();assert(not M.stackTooltip:IsVisible(),"late Show after stop stays hidden")
 print(string.format("NativeStack128 samples=%d cpu_ms=%.2f max_sample_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f new_frames=0",samples,scanMs,maxBatch,scanAllocated,math.max(0,scanGrowth)))
 debugprofilestop=function() return 0 end
--- Budgeted filtering never inspects more than 128 native objects.
+-- Per-poll limits yield; only the total 512-object cap truncates a sweep.
 local overflow=frame(UIParent,"BeyondCandidateBudget")
 local overflowReads=0
 overflow.IsVisible=function() overflowReads=overflowReads+1;return true end
-many[129]=overflow;scene(many);M:Start();assert(M.timer.delay==0.1 and M.target==auraIcon)
+many={}
+for i=1,511 do many[i]=frame(UIParent,"BoundedCandidate"..i) end
+many[512]=auraIcon;many[513]=overflow
+scene(many);M:Start();assert(M.timer.delay==0.1 and M.pick.pending)
+for i=1,5 do M:Poll() end
+assert(M.target==auraIcon and M.pick.capped,"capped sweep still reaches its last admitted candidate")
 assert(overflowReads==0 and tooltipTouches==0,"candidate cap and isolation from global tooltips")
+nativeTarget=emptyAnchor;scene({emptyAnchor});M:Poll()
+assert(not M.target and v.hasDiagnostic and M:Report():find("nativeFilter=",1,true),"failed selection has a copyable filter report")
+shift=true;M:Poll()
+assert(v.copy.frame:IsShown(),"Shift exposes report copying even without a selected target")
+shift=false;nativeTarget=nil;M:Poll()
 local savedNative=C_System.GetFrameStack
 C_System.GetFrameStack=function() error("native access unavailable") end
 foci={a};M:Poll();assert(M.target==a,"native API failure retains guarded input-focus compatibility")
