@@ -127,8 +127,14 @@ function M:CheckFocus(frame)
     if not frame or frame==UIParent or frame==WorldFrame or self:Read(frame,"IsForbidden") then return end
     local current=frame
     local auraTooltip=clean(_G.AuraButtonTooltip)
+    -- Explicit user exclusion: Rurutia_SimpleCursor's roots and descendants.
+    local cursorRoot=clean(_G.SC_CursorFrame)
+    local cursorSettings=clean(_G.RSC_SettingsPanel)
+    local cursorEvents=clean(_G.SC_EventFrame)
     for depth=1,16 do
         if not current then break end
+        if (cursorRoot and current==cursorRoot) or (cursorSettings and current==cursorSettings)
+            or (cursorEvents and current==cursorEvents) then return end
         if current==GameTooltip or (auraTooltip and current==auraTooltip) then return end
         if current==self.stackRoot or current==self.stackTooltip then return nil,true end
         if self.view and (current==self.view.frame or current==self.view.outline) then return nil,true end

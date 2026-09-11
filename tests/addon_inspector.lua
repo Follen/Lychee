@@ -73,8 +73,7 @@ function methods:GetFrameStrata() return self.strata or "MEDIUM" end
 function methods:GetFrameLevel() return self.level or 2 end
 function methods:SetFrameLevel(value) self.level=value end
 function methods:SetClampedToScreen(...) end
-function methods:EnableMouse(value) self.mouseEnabled=value end
-function methods:IsMouseEnabled() return self.mouseEnabled==true end
+function methods:EnableMouse(...) end
 function methods:EnableKeyboard(v) self.keyboard=v end
 function methods:SetPropagateKeyboardInput(v) self.propagate=v end
 function methods:Enable() self.disabled=false end
@@ -726,30 +725,32 @@ assert(GameTooltip.hookCount==1,"repeated inspection must not accumulate tooltip
 do
     local savedSystem=C_System
     C_System={GetFrameStack=nativeStack}
-    local ring=frame(UIParent,"PointerDecoration")
-    ring:SetSize(50,50);ring:SetFrameStrata("TOOLTIP");ring:EnableMouse(false)
-    ring.location="Interface/AddOns/PointerDecoration/Core.lua:205"
-    ring:SetScript("OnUpdate",function() error("foreign update script must never run") end)
-    local queried=0
-    ring.GetScript=function(self,key)
-        assert(key=="OnUpdate","script reader must forward the script name")
-        queried=queried+1;return self.scripts[key]
-    end
-    local ringPaint=frame(ring);ringPaint.kind="Texture";ringPaint.texture="ring"
-    ringPaint:SetSize(50,50);ring.visualRegions={ringPaint}
-    local target=frame(UIParent);target.kind="Texture";target.texture="underlying-icon"
+    local ring=frame(UIParent,"SC_CursorFrame")
+    local paint=frame(ring);paint.kind="Texture";paint.texture="ring"
+    ring.visualRegions={paint}
+    local gcd=frame(ring,"SC_GCDFrame")
+    local swipe=frame(gcd);swipe.kind="Texture";swipe.texture="swipe";gcd.visualRegions={swipe}
+    local target=frame(UIParent);target.kind="Texture";target.texture="icon"
     target.location="Interface/AddOns/Example/Main.lua:1"
-    local function move(x,y)
-        cursorX,cursorY=x,y
-        ring.left,ring.bottom=x-25,y-25;ringPaint.left,ringPaint.bottom=x-25,y-25
-    end
-    foci={};nativeTarget=ring;scene({ring,ringPaint,target});move(30,30);M:Start();M:Poll()
-    assert(M.target==ring,"first static observation still identifies the cursor plugin")
-    move(40,35);M:Poll();move(60,45);nativeTarget=ringPaint;M:Poll()
-    assert(M.target==target and M.data.title=="示例插件" and queried>0,"provider identifies the addon underneath moving cursor decoration")
-    M:Stop()
-    assert(not next(M.picker.followers),"provider stop releases cursor observations")
-    M:Start();assert(M.target==ringPaint,"new inspection does not inherit the prior exclusion")
-    M:Stop();C_System=savedSystem;nativeTarget=nil;scene({})
+    SC_CursorFrame=ring
+    foci={};cursorX,cursorY=50,50;nativeTarget=ring;scene({ring,paint,gcd,swipe,target})
+    M:Start()
+    assert(M.target==target,"cursor addon is excluded on the first stationary sample without creation-source records")
+    nativeTarget=swipe;M:Poll()
+    assert(M.target==target,"anonymous cooldown descendants cannot reclaim the hit")
+    scene({ring,paint,gcd,swipe});M:Poll()
+    assert(not M.target,"excluded cursor over blank world gives no target")
+    RSC_SettingsPanel=frame(UIParent,"RSC_SettingsPanel")
+    local setting=frame(RSC_SettingsPanel);setting.kind="Texture";setting.texture="setting"
+    assert(not M:CheckFocus(setting),"the explicitly excluded plugin's settings descendants are excluded too")
+    SC_EventFrame=frame(nil,"SC_EventFrame")
+    assert(not M:CheckFocus(SC_EventFrame),"the plugin's event root is excluded")
+    SC_CursorFrame=nil;RSC_SettingsPanel=nil;SC_EventFrame=nil
+    assert(M:CheckFocus(ring)==ring,"missing addon globals do not blacklist unrelated objects by name")
+    scene({ring,paint,target});nativeTarget=ring;M:Poll()
+    assert(M.target==ring,"other cursor overlays keep the ordinary picker behavior")
+    SC_CursorFrame=ring;M:Poll()
+    assert(M.target==target,"late-created addon root takes effect without restarting inspection")
+    M:Stop();C_System=savedSystem;nativeTarget=nil;SC_CursorFrame=nil;scene({})
 end
 print(string.format("Addon inspector PASS exact/guess/parent/secret/avoidance/copy/Esc/combat/stale/disabled frames=%d regions=%d retained_KiB=%.1f cycles100_ms=%.2f allocated_KiB=%.1f growth_KiB=%.1f idle_work=0",frames-beforeFrames,regions-beforeRegions,retained,elapsed,allocated,math.max(0,growth)))
