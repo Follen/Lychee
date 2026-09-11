@@ -45,6 +45,7 @@ function methods:SetText(v) self.text=v end
 function methods:GetText() return self.text end
 function methods:SetAlpha(v) self.alpha=v end
 function methods:GetAlpha() return self.alpha end
+function methods:IsIgnoringParentAlpha() return self.ignoreParentAlpha==true end
 function methods:GetEffectiveAlpha() return self.alpha*(self.parent and self.parent:GetEffectiveAlpha() or 1) end
 function methods:IsVisible() return self:IsShown() end
 function methods:GetRect() return self.left or 0,self.bottom or 0,self.width,self.height end
@@ -150,7 +151,7 @@ end}
 for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
-    "UI/Theme.lua","UI/Components.lua","UI/AddonInspector.lua","Builtin/AddonInspector/Provider.lua"}) do dofile("package/Lychee/"..file) end
+    "UI/Theme.lua","UI/Components.lua","UI/AddonInspector.lua","Builtin/AddonInspector/Picker.lua","Builtin/AddonInspector/Provider.lua"}) do dofile("package/Lychee/"..file) end
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.AddonInspector
@@ -222,10 +223,32 @@ nativeTarget=nil
 -- but its pooled aura children deny content reads. A plain empty Frame is different.
 local auraShell=frame(UIParent,"EngineAuraShell")
 auraShell.location="Interface/AddOns/EllesmereUI/EllesmereUI_AuraKit.lua:1321"
-auraShell.SetAuraProcessingPolicy=function() end
 local restrictedAura=frame(auraShell);restrictedAura.IsVisible=function() error("restricted") end
 auraShell.children={restrictedAura};nativeTarget=auraShell;scene({auraShell,restrictedAura});M:Poll()
 assert(M.target==auraShell and M.data.contentUnverified and not v.outline:IsShown(),"native engine container shows source without claiming verified paint")
+auraShell:SetSize(1,1);M:Poll()
+assert(M.target==auraShell and M.data.contentUnverified,"native restricted child can extend beyond the public container rect")
+local shellRect=auraShell.GetRect;auraShell.GetRect=function() error("restricted geometry") end;M:Poll()
+assert(M.target==auraShell and M.data.contentUnverified,"native child evidence survives unreadable public container geometry")
+auraShell.GetRect=shellRect;scene({auraShell});M:Poll()
+assert(M.target==auraShell and M.data.contentUnverified,"native container remains source-only when private descendant bounds cannot be verified")
+auraShell:SetSize(100,100);restrictedAura.IsVisible=function() return false end
+scene({auraShell,restrictedAura});M:Poll()
+assert(not M.target,"known hidden pooled children do not turn an empty container into unknown content")
+restrictedAura.IsVisible=function() error("restricted") end;M:Poll()
+assert(M.target==auraShell,"restricted native child evidence recovers after the next snapshot")
+auraShell:Hide();M:Poll();assert(not M.target,"known hidden container remains excluded despite native child evidence")
+auraShell:Show()
+local shellChildren=auraShell.GetChildren
+auraShell.GetChildren=function() return {secret=true} end
+auraShell.GetRect=function() error("restricted geometry") end
+scene({auraShell});M:Poll()
+assert(M.target==auraShell and M.data.contentUnverified,"unreadable hierarchy and geometry remain unknown, not proven empty")
+local shellReport=M:Report()
+assert(shellReport:find("nativeType=Frame",1,true) and shellReport:find("nativeRect=geometry-unreadable",1,true),"report preserves native type and geometry failure")
+auraShell.GetRect=shellRect;auraShell.left=200;M:Poll()
+assert(M.target==auraShell and M.data.contentUnverified,"parent rect is not a clipping rect for unverified child content")
+auraShell.left=nil;auraShell.GetChildren=shellChildren
 local resourceOwner=frame(UIParent,"ResourceOwner")
 local secretText=frame(resourceOwner,"NativeResourceText");secretText.kind="FontString"
 secretText.GetText=function() return {secret=true} end
@@ -301,7 +324,7 @@ local verifiedOwner=frame(UIParent,"VerifiedUnderlay")
 local verifiedPaint=frame(verifiedOwner);verifiedPaint.kind="Texture";verifiedPaint.texture="visible"
 verifiedOwner.visualRegions={verifiedPaint}
 nativeTarget=solidOwner;scene({solidOwner,verifiedOwner});M:Poll()
-assert(M.target==verifiedOwner and not M.data.contentUnverified,"confirmed visible candidate wins over native unknown content")
+assert(M.target==solidOwner and M.data.contentUnverified,"readable underlay must not replace an unrefuted native highlight")
 verifiedPaint:Hide();solidOwner:Hide();M:Poll();assert(not M.target,"hidden verified and unknown targets are both rejected")
 solidOwner:Show();nativeTarget=nil
 local delayed={secretText};secretText.GetText=function() return {secret=true} end
@@ -309,9 +332,9 @@ for i=1,20 do delayed[#delayed+1]=frame(UIParent,"EmptyPending"..i) end
 verifiedPaint:Show();delayed[#delayed+1]=verifiedPaint
 nativeTarget=secretText;scene(delayed)
 local evidenceClock=0;debugprofilestop=function() evidenceClock=evidenceClock+0.8;return evidenceClock end
-M:Stop();M:Start();assert(not M.target and M.pick.pending,"unknown content must wait while verified candidates remain unchecked")
+M:Stop();M:Start();assert(M.target==secretText and not M:SelectionState().pending,"restricted native hit returns immediately without scanning a readable underlay")
 for i=1,55 do M:Poll() end
-assert(M.target==verifiedPaint and not M.data.contentUnverified,"resumed sweep reaches confirmed paint after an unknown native hit")
+assert(M.target==secretText and M.data.contentUnverified,"native restricted source stays stable without waiting for fallback")
 nativeTarget=nil;debugprofilestop=function() return 0 end
 local rotatingWidget=frame(UIParent,"LayeredAuraOrResource")
 local overlayA=frame(rotatingWidget,"OverlayA")
@@ -321,7 +344,7 @@ local visiblePaint=frame(visibleChild);visiblePaint.kind="Texture";visiblePaint.
 visibleChild.visualRegions={visiblePaint};rotatingWidget.children={overlayA,overlayB,visibleChild}
 local rotatingClock=0
 debugprofilestop=function() rotatingClock=rotatingClock+0.8;return rotatingClock end
-scene({rotatingWidget})
+scene({overlayA,overlayB,visibleChild})
 for i=1,20 do nativeTarget=i%2==0 and overlayA or overlayB;M:Poll() end
 assert(M.target==visibleChild,"changing native overlay at the same pointer must not restart and starve the sweep")
 for i=1,30 do M:Poll();assert(M.target==visibleChild,"a validated descendant must survive new sweep seeding") end
@@ -341,21 +364,21 @@ end
 -- Shift during a failed pending sweep must finish at its original point, not
 -- freeze forever or start inspecting the copy button when the pointer moves.
 M:Stop();M:Start()
-assert(M.pick.pending)
+assert(M:SelectionState().pending)
 shift=true;M:Poll()
 local frozenNativeReads=nativeReads
 cursorX,cursorY=1500,900
 for i=1,30 do M:Poll() end
-assert(not M.pick.pending and M.pick.x==50 and M.pick.y==50 and nativeReads==frozenNativeReads,
+assert(not M:SelectionState().pending and M:SelectionState().x==50 and M:SelectionState().y==50 and nativeReads==frozenNativeReads,
     "diagnostic sweep must finish at the frozen pointer without native resampling")
-assert(M:PickReport():find("Candidate | filter | creation source",1,true) and #M.pick.details==10,
+assert(M:PickReport():find("Candidate | filter | creation source",1,true) and M:SelectionState().detailsCount==10,
     "completed diagnostic includes per-object failures instead of just aggregates")
 shift=false;cursorX,cursorY=50,50;M:Poll()
-assert(not M.pick.details,"normal sweeps must stop detailed diagnostic recording")
+assert(not M:SelectionState().ready,"normal sweeps must stop detailed diagnostic recording")
 debugprofilestop=function() return 0 end
-M:Poll();assert(not M.pick.pending and not M.pick.details)
+M:Poll();assert(not M:SelectionState().pending and not M:SelectionState().ready)
 shift=true;M:Poll()
-assert(not M.pick.pending and M.pick.details and #M.pick.details==10,"Shift must also explain an already-completed snapshot")
+assert(not M:SelectionState().pending and M:SelectionState().ready and M:SelectionState().detailsCount==10,"Shift must also explain an already-completed snapshot")
 shift=false;M:Poll()
 local budgetList={}
 for i=1,20 do budgetList[i]=frame(UIParent,"EmptyBudgetCarrier"..i) end
@@ -375,10 +398,12 @@ for i=1,40 do
 end
 longRegions.visualRegions[40].text="visible menu entry"
 nativeTarget=longRegions;scene({longRegions});M:Poll()
-assert(M.target==longRegions.visualRegions[40],"paint beyond the first 32 regions must enter the same resumable queue")
+assert(M.target==longRegions and M.data.contentUnverified,"bounded self-content read keeps native container source without expanding regions")
 longRegions.visualRegions[40].GetText=function() return {secret=true} end
 M:Poll()
-assert(not M.target and M:PickReport():find("text-unreadable",1,true),"unreadable text must be reported distinctly from empty text")
+assert(M.target==longRegions and M.data.contentUnverified,"unreadable later region does not remove native container source")
+scene({longRegions.visualRegions[40]});nativeTarget=longRegions.visualRegions[40];M:Poll()
+assert(M.target==nativeTarget and M:PickReport():find("text-unreadable",1,true),"direct native restricted text has its own diagnostic evidence")
 nativeTarget=nil
 -- Real reported native targets are full-size carriers with no paint under the
 -- pointer: raidMarkerHolder / countTextOverlay / AuraKit text and border hosts.
@@ -387,7 +412,7 @@ local carrier=frame(widget,"EmptyOverlay");carrier.level=25
 local bar=frame(widget,"VisibleBar");bar.location="Interface/AddOns/Example/Bar.lua:1"
 local barPaint=frame(bar);barPaint.kind="Texture";barPaint.texture="bar"
 bar.visualRegions={barPaint};widget.children={carrier,bar}
-nativeTarget=carrier;scene({carrier});M:Poll()
+nativeTarget=carrier;scene({carrier,bar});M:Poll()
 assert(M.target==bar,"empty native overlay must recover the visible sibling beneath it")
 barPaint:Hide();M:Poll();assert(not M.target,"local recovery must not accept an empty or hidden widget")
 barPaint:Show();widget:Hide();M:Poll();assert(not M.target,"hidden parent cannot be recovered")
@@ -512,7 +537,7 @@ local scanMs=(os.clock()-scanStart)*1000;local scanAllocated=collectgarbage("cou
 assert(scanAllocated<1024 and frames==warmFrames and regions==warmRegions and enumerations==0,"native sampling stays bounded and creates no UI")
 M:Stop();collectgarbage("restart");collectgarbage("collect")
 local scanGrowth=collectgarbage("count")-scanBase
-assert(scanGrowth<64 and not M.visualBest and not M.visualBestFrame,"stop releases native candidates")
+assert(scanGrowth<64 and not M:SelectionState().object,"stop releases native candidates")
 local stoppedReads,stoppedNative=stackReads,nativeReads;M:Poll();M:UpdatePointer();assert(stackReads==stoppedReads and nativeReads==stoppedNative,"stopped inspector does not sample")
 GameTooltip:Show();assert(GameTooltip:IsVisible(),"normal hover returns after inspection stops")
 M.stackTooltip:Show();assert(not M.stackTooltip:IsVisible(),"late Show after stop stays hidden")
@@ -525,15 +550,15 @@ overflow.IsVisible=function() overflowReads=overflowReads+1;return true end
 many={}
 for i=1,511 do many[i]=frame(UIParent,"BoundedCandidate"..i) end
 many[512]=auraIcon;many[513]=overflow
-scene(many);M:Start();assert(M.timer.delay==0.1 and M.pick.pending)
+scene(many);M:Start();assert(M.timer.delay==0.1 and M:SelectionState().pending)
 for i=1,5 do M:Poll() end
-assert(M.target==auraIcon and M.pick.capped,"capped sweep still reaches its last admitted candidate")
+assert(M.target==auraIcon and M:SelectionState().capped,"capped sweep still reaches its last admitted candidate")
 assert(overflowReads==0 and tooltipTouches==0,"candidate cap and isolation from global tooltips")
 nativeTarget=emptyAnchor;scene({emptyAnchor});M:Poll()
 assert(not M.target and v.hasDiagnostic and M:Report():find("nativeFilter=",1,true),"failed selection has a copyable filter report")
 shift=true;M:Poll()
 assert(v.copy.frame:IsShown(),"Shift exposes report copying even without a selected target")
-assert(M.pick.details and not M.pick.pending and not v.copy.frame.disabled,"single-poll completed diagnostics must enable Copy")
+assert(M:SelectionState().ready and not M:SelectionState().pending and not v.copy.frame.disabled,"single-poll completed diagnostics must enable Copy")
 assert(not v.sourceLabel:IsShown() and not v.parentLabel:IsShown(),"missing target has no empty detail groups")
 shift=false;nativeTarget=nil;M:Poll()
 local savedNative=C_System.GetFrameStack

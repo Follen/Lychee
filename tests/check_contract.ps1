@@ -71,6 +71,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Provider SDK smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/framework_sdk_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Registry boundary smoke failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/addon_inspector_picker.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Addon inspector picker failed' }
     & $lua.Source 'tests/smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Built-in/SDK integration smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/builtin_providers_smoke.lua'

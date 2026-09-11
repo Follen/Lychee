@@ -81,6 +81,7 @@ Builtin/EquipmentSets/Provider.lua
 Builtin/BlizzardSettings/Provider.lua
 Builtin/Keystones/Provider.lua
 Builtin/Achievements/Provider.lua
+Builtin/AddonInspector/Picker.lua
 Builtin/AddonInspector/Provider.lua
 Builtin/Ellesmere/Provider.lua
 Builtin/Exwind/Provider.lua

@@ -68,5 +68,6 @@ Builtin/Bags/Provider.lua
 Builtin/EquipmentSets/Provider.lua
 Builtin/BlizzardSettings/Provider.lua
 Builtin/Achievements/Provider.lua
+Builtin/AddonInspector/Picker.lua
 Builtin/AddonInspector/Provider.lua
 Builtin/Init.lua

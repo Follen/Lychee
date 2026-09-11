@@ -62,5 +62,6 @@ Builtin/PlayerSpells/Init.lua
 Builtin/GameMenus/Provider.lua
 Builtin/Bags/Provider.lua
 Builtin/BlizzardSettings/Provider.lua
+Builtin/AddonInspector/Picker.lua
 Builtin/AddonInspector/Provider.lua
 Builtin/Init.lua
