@@ -73,6 +73,7 @@ function M:CheckFocus(frame)
     if not frame or frame==UIParent or frame==WorldFrame or self:Read(frame,"IsForbidden") then return end
     local current=frame
     for depth=1,16 do
+        if current==GameTooltip then return end
         if current==self.stackRoot or current==self.stackTooltip then return nil,true end
         if self.view and (current==self.view.frame or current==self.view.outline) then return nil,true end
         if current==UIParent or current==WorldFrame or not current then break end
@@ -255,12 +256,30 @@ function M:Stop()
     if self.stackTooltip then self.stackTooltip:Hide();self.stackTooltip:ClearLines() end
     if self.view then self.view:Hide() end
 end
+function M:SuppressHoverTooltip(tooltip)
+    if not self.running or (InCombatLockdown and InCombatLockdown()) then return end
+    if self:Read(tooltip,"IsForbidden") then return end
+    call(method(tooltip,"Hide"),tooltip)
+end
+function M:BeginTooltipSuppression()
+    local tooltip=GameTooltip
+    if not tooltip or self:Read(tooltip,"IsForbidden") then return end
+    if self.hoverTooltip~=tooltip then
+        self.hoverHideCallback=self.hoverHideCallback or function(shown) self:SuppressHoverTooltip(shown) end
+        local ok,installed=pcall(method(tooltip,"HookScript"),tooltip,"OnShow",self.hoverHideCallback)
+        if ok and installed~=false then self.hoverTooltip=tooltip end
+    end
+    -- Existing hover content is stale for inspection. Future real hover events
+    -- rebuild it normally after Stop; never re-show old tooltip contents here.
+    self:SuppressHoverTooltip(tooltip)
+end
 function M:Start()
     if not self.enabled then return {ok=false,message=L["请先启用插件识别来源"]} end
     if InCombatLockdown and InCombatLockdown() then return {ok=false,message=L["请在脱离战斗后识别插件"]} end
     self:Stop()
     self.view=self.view or _G.Lychee.UI.CreateAddonInspector(self)
     self.running=true
+    self:BeginTooltipSuppression()
     self.view:Show();self:Poll();self:Schedule()
     return {ok=true,close=true}
 end

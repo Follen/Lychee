@@ -20,7 +20,16 @@ function methods:GetScript(k) return self.scripts[k] end
 function methods:RegisterEvent(e) self.events[e]=true end
 function methods:UnregisterEvent(e) self.events[e]=nil end
 function methods:UnregisterAllEvents() self.events={} end
-function methods:Show() self.shown=true end
+function methods:Show()
+    local visible=self:IsVisible();self.shown=true
+    if not visible and self:IsVisible() and self.scripts.OnShow then self.scripts.OnShow(self) end
+end
+function methods:HookScript(key,fn)
+    self.hookCount=(self.hookCount or 0)+1
+    local old=self.scripts[key]
+    self.scripts[key]=function(...) if old then old(...) end;fn(...) end
+    return true
+end
 function methods:Hide() local shown=self.shown;self.shown=false;if shown and self.scripts.OnHide then self.scripts.OnHide(self) end end
 function methods:IsShown() return self.shown and (not self.parent or self.parent:IsShown()) end
 function methods:SetShown(v) if v then self:Show() else self:Hide() end end
@@ -106,7 +115,8 @@ local stackObjects,stackReads,enumerations={},0,0
 local tooltipTouches=0
 local tooltipGuard={__index=function() tooltipTouches=tooltipTouches+1;error("tooltip read") end,
     __newindex=function() tooltipTouches=tooltipTouches+1;error("tooltip write") end}
-GameTooltip=setmetatable({},tooltipGuard);FrameStackTooltip=setmetatable({},tooltipGuard)
+GameTooltip=frame(UIParent,"GameTooltip");GameTooltip:SetText("normal hover")
+FrameStackTooltip=setmetatable({},tooltipGuard)
 local function scene(list) stackObjects=list end
 function EnumerateFrames()
     enumerations=enumerations+1
@@ -146,6 +156,9 @@ local b=frame(UIParent,"ElvUI_Frame")
 foci={a}
 collectgarbage("collect");local baseline=collectgarbage("count")
 assert(M:Start().ok and M.running and M.timer)
+assert(not GameTooltip:IsVisible(),"starting inspection must dismiss the extra hover tooltip")
+GameTooltip:Show()
+assert(not GameTooltip:IsVisible(),"hover tooltip must not reappear over active inspection")
 local v=M.view
 assert(v.heading:GetText()=="示例插件" and v.confidence:GetText()=="创建来源" and v.anchorX==cursorX+20,"live exact source and avoidance")
 assert(v.outline:IsShown() and v.outline.anchor==a)
@@ -190,6 +203,11 @@ assert(selectedAllocation<1024 and stackReads==selectedListReads,"valid native s
 print(string.format("NativePreferred100 cpu_ms=%.2f allocated_KiB=%.1f fallback_reads=0",selectedMs,selectedAllocation))
 nativeTarget=nil
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
+local hoverArt=frame(GameTooltip);hoverArt.kind="Texture";hoverArt.texture="tooltip-background"
+GameTooltip.visualRegions={hoverArt};GameTooltip.shown=true
+nativeTarget=hoverArt;scene({GameTooltip,hoverArt,cdmIcon});M:Poll()
+assert(M.target==cdmIcon,"GameTooltip artwork cannot become the inspected addon even when present in a native snapshot")
+GameTooltip:Hide();nativeTarget=nil
 local auraIcon=frame(aura);auraIcon.kind="Texture";auraIcon.texture="aura-icon";aura.visualRegions={auraIcon}
 scene({aura});M:Poll()
 assert(M.target==aura and M.data.title=="AnotherAuraAddon","Buff/Debuff icon ownership is discovered without an addon-name mapping")
@@ -250,6 +268,7 @@ M:Stop();collectgarbage("restart");collectgarbage("collect")
 local scanGrowth=collectgarbage("count")-scanBase
 assert(scanGrowth<64 and not M.visualBest and not M.visualBestFrame,"stop releases native candidates")
 local stoppedReads,stoppedNative=stackReads,nativeReads;M:Poll();M:UpdatePointer();assert(stackReads==stoppedReads and nativeReads==stoppedNative,"stopped inspector does not sample")
+GameTooltip:Show();assert(GameTooltip:IsVisible(),"normal hover returns after inspection stops")
 M.stackTooltip:Show();assert(not M.stackTooltip:IsVisible(),"late Show after stop stays hidden")
 print(string.format("NativeStack128 samples=%d cpu_ms=%.2f max_sample_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f new_frames=0",samples,scanMs,maxBatch,scanAllocated,math.max(0,scanGrowth)))
 debugprofilestop=function() return 0 end
@@ -360,7 +379,8 @@ local native=frame(a,"Native");native.location="Interface/AddOns/Blizzard_Test/M
 foci={native};M:Poll();assert(M.data.title=="示例插件" and M.data.confidence=="可能来自 · 根据父级来源")
 foci={child};M:Poll();foci={v.parent.frame};v.parent.frame.scripts.OnClick()
 assert(M.target==a and M.data.confidence=="创建来源")
-combat=true;v.frame.scripts.OnEvent(v.frame,"PLAYER_REGEN_DISABLED")
+combat=true;GameTooltip:Show();assert(GameTooltip:IsVisible(),"tooltip suppression does no protected work on combat entry")
+v.frame.scripts.OnEvent(v.frame,"PLAYER_REGEN_DISABLED")
 assert(not M.running and not M.timer and not v.frame:IsShown())
 assert(not M:Start().ok);combat=false
 assert(not M.running,"leaving combat never restarts")
@@ -390,4 +410,5 @@ collectgarbage("restart");collectgarbage("collect")
 local growth=collectgarbage("count")-warmBase
 assert(allocated<1024 and growth<64 and frames==warmFrames and regions==warmRegions)
 assert(not M.timer and not M.target and next(v.frame.events)==nil and not v.frame.keyboard)
+assert(GameTooltip.hookCount==1,"repeated inspection must not accumulate tooltip hooks")
 print(string.format("Addon inspector PASS exact/guess/parent/secret/avoidance/copy/Esc/combat/stale/disabled frames=%d regions=%d retained_KiB=%.1f cycles100_ms=%.2f allocated_KiB=%.1f growth_KiB=%.1f idle_work=0",frames-beforeFrames,regions-beforeRegions,retained,elapsed,allocated,math.max(0,growth)))
