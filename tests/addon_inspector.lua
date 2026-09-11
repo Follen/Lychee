@@ -91,14 +91,21 @@ function GetBuildInfo() return "12.1.0","69587","fixture",120100 end
 function debugprofilestop() return os.clock()*1000 end
 local foci={}
 function GetMouseFoci() return foci end
-local visualFrames,visualIndexes,enumerations={},{},0
-local function scene(list)
-    visualFrames=list;visualIndexes={}
-    for i,f in ipairs(list) do visualIndexes[f]=i end
-end
-function EnumerateFrames(previous)
+local stackObjects,stackReads,enumerations={},0,0
+local tooltipTouches=0
+local tooltipGuard={__index=function() tooltipTouches=tooltipTouches+1;error("tooltip read") end,
+    __newindex=function() tooltipTouches=tooltipTouches+1;error("tooltip write") end}
+GameTooltip=setmetatable({},tooltipGuard);FrameStackTooltip=setmetatable({},tooltipGuard)
+local function scene(list) stackObjects=list end
+function EnumerateFrames()
     enumerations=enumerations+1
-    return visualFrames[previous and ((visualIndexes[previous] or #visualFrames)+1) or 1]
+    error("native stack picking must not enumerate all frames")
+end
+local function nativeStack()
+    stackReads=stackReads+1
+    local result={}
+    for i,object in ipairs(stackObjects) do result[i]=object end
+    return result
 end
 local setting="0"
 C_CVar={GetCVar=function() return setting end,SetCVar=function(_,v) setting=v end}
@@ -141,8 +148,11 @@ local cdm=frame(UIParent,"EssentialCooldownViewer.GeneratedItem")
 local cdmIcon=frame(cdm);cdmIcon.kind="Texture";cdmIcon.texture="spell-icon"
 cdmIcon.location="Interface/AddOns/EllesmereUICooldownManager/EllesmereUICdmHooks.lua:3081"
 cdm.visualRegions={cdmIcon}
+C_System={GetFrameStack=nativeStack}
 cursorX,cursorY=50,50;foci={};scene({cdm});M:Poll()
 assert(M.target==cdmIcon and M.data.title=="EllesmereUICooldownManager","zero input foci must still identify a visible cooldown icon")
+scene({cdmIcon});local directReads=stackReads;M:Poll()
+assert(stackReads==directReads+1 and M.target==cdmIcon,"native frame-stack objects must be used without a sampling tooltip")
 local aura=frame(UIParent,"GeneratedAura");aura.location="Interface/AddOns/AnotherAuraAddon/Icons.lua:9"
 local auraIcon=frame(aura);auraIcon.kind="Texture";auraIcon.texture="aura-icon";aura.visualRegions={auraIcon}
 scene({aura});M:Poll()
@@ -174,52 +184,49 @@ cursorX,cursorY=500,500;M:Poll();assert(not M.target,"moving away never keeps an
 aura.scale=2;auraIcon.left=100;auraIcon.bottom=100;cursorX,cursorY=250,250
 scene({aura});M:Poll();assert(M.target==auraIcon,"region geometry is converted using the owning frame scale")
 aura.scale=1;auraIcon.left=0;auraIcon.bottom=0;cursorX,cursorY=50,50
+-- Real regressions: the empty high-strata anchor must not obscure lower artwork.
+emptyAnchor.strata="TOOLTIP";cursorAnchor.strata="TOOLTIP"
+scene({emptyAnchor,cursorAnchor,cdmIcon});M:Poll();assert(M.target==cdmIcon,"empty top anchors cannot cover a visible cooldown icon")
+cdm:Hide();M:Poll();assert(not M.target,"native lists containing hidden regions are filtered")
+cdm:Show();cdm.alpha=0;M:Poll();assert(not M.target,"zero-alpha ancestors filter direct regions")
+cdm.alpha=1
+scene({v.frame,v.outline,ownIcon,cdmIcon});M:Poll();assert(M.target==cdmIcon,"our outline and UI cannot trap native picking")
+scene({});foci={a};M:Poll();assert(not M.target,"an authoritative empty native list must not resurrect an input focus")
+foci={};scene({cdmIcon});M:Poll()
+shift=true;local frozenReads=stackReads;M:Poll()
+assert(stackReads==frozenReads and M.target==cdmIcon,"Shift performs no native sampling")
+shift=false
 local many={}
-for i=1,4095 do many[i]=frame(UIParent,"FarFrame");many[i].left=1000;many[i].bottom=1000 end
--- Real client: running=true, visualPending=true, visualBest=<object>, target=nil.
--- A large frame directory must not withhold an already discovered visible icon.
-local firstFar=many[1]
-many[1]=cdm;many[4096]=aura;scene(many);M:ResetVisual();M:Poll()
-assert(M.visualPending and M.visualBest==cdmIcon and M.target==cdmIcon,
-    "a discovered icon must display before the full frame scan completes")
-local partialReads=sourceReads
-M:Poll();assert(M.target==cdmIcon and sourceReads==partialReads,"unchanged partial result does not repeat source analysis")
-cdm:Hide();M:Poll();assert(not M.target,"hidden partial candidate is removed immediately")
-cdm:Show();M:ResetVisual();M:Poll();cursorX=500;M:Poll()
-assert(not M.target,"moving away clears a displayed partial candidate")
-cursorX=50;M:ResetVisual();M:Poll()
-local progressiveBatches=1
-while M.visualPending do M:Poll();progressiveBatches=progressiveBatches+1;assert(progressiveBatches<100) end
-assert(M.target==auraIcon,"later higher-layer candidate replaces the first displayed icon")
-many[1]=firstFar
-many[4096]=aura;scene(many);M:ResetVisual()
-local beforeBatch=enumerations;M:Poll()
-assert(enumerations-beforeBatch<=128 and M.visualPending and not M.target,"one batch has a fixed frame bound and does not publish a stale result")
-local oldMouseX=cursorX;cursorX=500;M:Poll();assert(not M.target,"mouse movement invalidates a partial pass")
-cursorX=oldMouseX;M:ResetVisual()
+for i=1,127 do many[i]=emptyAnchor end
+many[128]=auraIcon;scene(many);M:Poll();assert(M.target==auraIcon,"visible region is found after empty native candidates")
+-- Rank wins over native list order, without requesting a second native snapshot.
+scene({auraIcon,cdmIcon});M:Poll();assert(M.target==auraIcon,"higher frame level wins for native region lists")
+scene(many)
 debugprofilestop=realProfileClock
 collectgarbage("collect");local scanBase=collectgarbage("count");collectgarbage("stop")
-local scanStart=os.clock();local batches,maxBatch=0,0
-repeat
-    local t=os.clock();local before=enumerations;M:Poll()
-    maxBatch=math.max(maxBatch,(os.clock()-t)*1000);batches=batches+1
-    assert(enumerations-before<=128 and batches<1000,"scan must make bounded progress")
-until not M.visualPending
+local scanStart=os.clock();local maxBatch=0;local samples=100
+for i=1,samples do local t=os.clock();M:Poll();maxBatch=math.max(maxBatch,(os.clock()-t)*1000) end
 local scanMs=(os.clock()-scanStart)*1000;local scanAllocated=collectgarbage("count")-scanBase
-assert(M.target==auraIcon and scanAllocated<1024 and frames==warmFrames and regions==warmRegions,"large fallback scan finds the aura without new UI objects or unbounded allocation")
+assert(scanAllocated<1024 and frames==warmFrames and regions==warmRegions and enumerations==0,"native sampling stays bounded and creates no UI")
 M:Stop();collectgarbage("restart");collectgarbage("collect")
 local scanGrowth=collectgarbage("count")-scanBase
-assert(scanGrowth<64 and not M.visualCursor and not M.visualResult and not M.visualBest,"stop releases fallback references")
-local stoppedEnumerations=enumerations;M:Poll();M:UpdatePointer();assert(enumerations==stoppedEnumerations,"stopped fallback performs no enumeration")
-print(string.format("VisualFallback4096 batches=%d cpu_ms=%.2f max_batch_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f new_frames=0",batches,scanMs,maxBatch,scanAllocated,scanGrowth))
+assert(scanGrowth<64 and not M.visualBest and not M.visualBestFrame,"stop releases native candidates")
+local stoppedReads=stackReads;M:Poll();M:UpdatePointer();assert(stackReads==stoppedReads,"stopped inspector does not sample")
+print(string.format("NativeStack128 samples=%d cpu_ms=%.2f max_sample_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f new_frames=0",samples,scanMs,maxBatch,scanAllocated,math.max(0,scanGrowth)))
 debugprofilestop=function() return 0 end
-M:Start();assert(M.visualPending and M.timer.delay==0.01,"incomplete fallback uses the existing timer for small batches")
-local timerBatches=0
-while M.visualPending do timerBatches=timerBatches+1;assert(timerBatches<100);M.timer.fn() end
-assert(M.target==auraIcon and M.timer.delay==0.1,"completed fallback returns to normal inspection cadence")
-shift=true;local frozenEnumerations=enumerations;M.timer.fn()
-assert(enumerations==frozenEnumerations and M.target==auraIcon,"Shift freezes the fallback result without enumeration")
-shift=false;M:Stop();debugprofilestop=realProfileClock
+-- Budgeted filtering never inspects more than 128 native objects.
+local overflow=frame(UIParent,"BeyondCandidateBudget")
+local overflowReads=0
+overflow.IsVisible=function() overflowReads=overflowReads+1;return true end
+many[129]=overflow;scene(many);M:Start();assert(M.timer.delay==0.1 and M.target==auraIcon)
+assert(overflowReads==0 and tooltipTouches==0,"candidate cap and isolation from global tooltips")
+local savedNative=C_System.GetFrameStack
+C_System.GetFrameStack=function() error("native access unavailable") end
+foci={a};M:Poll();assert(M.target==a,"native API failure retains guarded input-focus compatibility")
+a:Hide();M:Poll();assert(not M.target,"compatibility path excludes hidden mouse foci")
+a:Show();a.alpha=0;M:Poll();assert(not M.target,"compatibility path excludes transparent mouse foci")
+a.alpha=1;C_System.GetFrameStack=savedNative
+M:Stop();C_System=nil;debugprofilestop=realProfileClock
 scene({});foci={a};M:Start()
 scene({});cursorX,cursorY=960,540;foci={a};M:Poll()
 local forbidden=frame(UIParent,"Forbidden");forbidden.forbidden=true

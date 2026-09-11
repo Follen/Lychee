@@ -82,8 +82,7 @@ end
 local strataOrder={BACKGROUND=1,LOW=2,MEDIUM=3,HIGH=4,DIALOG=5,FULLSCREEN=6,FULLSCREEN_DIALOG=7,TOOLTIP=8}
 local layerOrder={BACKGROUND=1,BORDER=2,ARTWORK=3,OVERLAY=4,HIGHLIGHT=5}
 function M:ResetVisual()
-    self.visualCursor,self.visualBest,self.visualBestFrame,self.visualResult,self.visualResultFrame=nil,nil,nil,nil,nil
-    self.visualX,self.visualY,self.visualPending=nil,nil,false
+    self.visualBest,self.visualBestFrame,self.visualX,self.visualY=nil,nil,nil,nil
 end
 function M:HitRect(object,scale)
     local ok,left,bottom,width,height=pcall(method(object,"GetRect"),object)
@@ -143,48 +142,51 @@ local function inspectRegions(owner,frame,scale,strata,level,ok,...)
         end
     end
 end
-function M:VisualFocus()
-    if type(EnumerateFrames)~="function" then return end
+function M:StackFocus(objects)
+    self:ResetVisual()
     local ok,x,y=pcall(GetCursorPosition)
-    if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then self:ResetVisual();return end
-    if x~=self.visualX or y~=self.visualY then self:ResetVisual();self.visualX,self.visualY=x,y end
-    if not self.visualPending then self.visualBest,self.visualBestFrame=nil,nil;self.visualPending=true end
+    if not ok or secret(x) or secret(y) or type(x)~="number" or type(y)~="number" then return end
+    self.visualX,self.visualY=x,y
     local started=debugprofilestop and debugprofilestop() or 0
-    for i=1,128 do
-        local frame=call(EnumerateFrames,self.visualCursor)
-        if not frame or frame==self.visualCursor then
-            self.visualResult,self.visualResultFrame=self.visualBest,self.visualBestFrame
-            self.visualCursor,self.visualBest,self.visualBestFrame,self.visualPending=nil,nil,nil,false
-            break
-        end
-        self.visualCursor=frame
-        local scale=self:VisualFrame(frame)
+    for i=1,math.min(#objects,128) do
+        local object=self:CheckFocus(objects[i])
+        local kind=object and self:Read(object,"GetObjectType")
+        local isRegion=kind=="Texture" or kind=="FontString"
+        local frame=isRegion and self:Read(object,"GetParent") or object
+        local scale=frame and self:VisualFrame(frame)
         if scale then
             local strata=strataOrder[self:Read(frame,"GetFrameStrata")] or 0
             local level=self:Read(frame,"GetFrameLevel")
-            if type(level)=="number" then inspectRegions(self,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
+            if type(level)=="number" then
+                if isRegion then inspectRegions(self,frame,scale,strata,level,true,object)
+                else inspectRegions(self,frame,scale,strata,level,pcall(method(frame,"GetRegions"),frame)) end
+            end
         end
         if debugprofilestop and debugprofilestop()-started>=0.75 then break end
     end
-    -- Publish a discovered candidate at each batch boundary. Large frame trees
-    -- must not hold the UI empty until enumeration reaches its final frame.
-    local candidateScale=self.visualBestFrame and self:VisualFrame(self.visualBestFrame)
-    if candidateScale and self:VisualRegion(self.visualBest,candidateScale) then return self.visualBest end
-    self.visualBest,self.visualBestFrame=nil,nil
-    -- Revalidate the retained result at the current pointer; never publish a
-    -- previous position or a now-hidden icon while the next batch is pending.
-    local scale=self.visualResultFrame and self:VisualFrame(self.visualResultFrame)
-    if scale and self:VisualRegion(self.visualResult,scale) then return self.visualResult end
-    self.visualResult,self.visualResultFrame=nil,nil
+    local target=self.visualBest
+    self:ResetVisual() -- Do not retain the native list or a previous pointer's candidates.
+    return target
 end
 function M:Focus()
     local foci=call(GetMouseFoci)
-    if type(foci)~="table" then return end
-    for index=1,math.min(#foci,32) do
-        local frame,own=self:CheckFocus(foci[index])
-        if frame or own then self:ResetVisual();return frame,own end
+    -- Hovering our controls must not replace the inspected target with our UI.
+    local fallback
+    if type(foci)=="table" then
+        for index=1,math.min(#foci,32) do
+            local frame,own=self:CheckFocus(foci[index])
+            if own then return nil,true end
+            if not fallback and frame and self:Read(frame,"IsVisible")==true then
+                local alpha=self:Read(frame,"GetEffectiveAlpha")
+                if type(alpha)=="number" and alpha>0 then fallback=frame end
+            end
+        end
     end
-    return self:VisualFocus()
+    -- The native stack API returns objects directly: no GameTooltip, debug UI,
+    -- global CVar changes, or EnumerateFrames scan is needed.
+    local objects=call(C_System and C_System.GetFrameStack)
+    if type(objects)=="table" then return self:StackFocus(objects) end
+    return fallback -- Older clients without the native API retain input-focus picking.
 end
 function M:UpdatePointer()
     if not self.running then return end
@@ -207,8 +209,7 @@ function M:Poll()
 end
 function M:Schedule()
     local epoch=self.epoch
-    local frozen=self.view and ((self.view.paused and self.target) or self.view.copying)
-    self.timer=C_Timer.NewTimer(self.visualPending and not frozen and 0.01 or 0.1,function()
+    self.timer=C_Timer.NewTimer(0.1,function()
         if not self.running or epoch~=self.epoch then return end
         self.timer=nil;self:Poll()
         if self.running and epoch==self.epoch then self:Schedule() end
