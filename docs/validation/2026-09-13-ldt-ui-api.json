@@ -1,0 +1,74 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_SharedXML/Mainline/ModelFrames.lua",
+    "line": 1,
+    "excerpt": "1: MODELFRAME_DRAG_ROTATION_CONSTANT = 0.010;\n2: MODELFRAME_MAX_ZOOM = 0.7;\n3: MODELFRAME_MIN_ZOOM = 0.0;\n4: MODELFRAME_ZOOM_STEP = 0.15;\n5: MODELFRAME_DEFAULT_ROTATION = 0.61;\n6: ROTATIONS_PER_SECOND = .5;\n7: MODELFRAME_MAX_PLAYER_ZOOM = 0.8;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_ChatFrameBase/Mainline/ChatFrameUtilOverrides.lua",
+    "line": 14,
+    "excerpt": "14: function ChatFrameUtil.InsertLink(text)\n15: \tif ( not text ) then\n16: \t\treturn false;\n17: \tend\n18: \n19: \tif ( MacroFrameText and MacroFrameText:HasFocus() ) then\n20: \t\tlocal item;\n21: \t\tif ( strfind(text, \"item:\", 1, true) ) then\n22: \t\t\titem = C_Item.GetItemInfo(text);\n23: \t\tend\n24: \t\tlocal cursorPosition = MacroFrameText:GetCursorPosition();\n25: \t\tif (cursorPosition == 0 or strsub(MacroFrameText:GetText(), cursorPosition, cursorPosition) == \"\\n\" ) then\n26: \t\t\tif ( item ) then\n27: \t\t\t\tif ( C_Item.GetItemSpell(text) ) then\n28: \t\t\t\t\tMacroFrameText:Insert(SLASH_USE1..\" \"..item..\"\\n\");\n29: \t\t\t\telse\n30: \t\t\t\t\tMacroFrameText:Insert(SLASH_EQUIP1..\" \"..item..\"\\n\");\n31: \t\t\t\tend\n32: \t\t\telse\n33: \t\t\t\tMacroFrameText:Insert(SLASH_CAST1..\" \"..text..\"\\n\");\n34: \t\t\tend\n35: \t\telse\n36: \t\t\tMacroFrameText:Insert(item or text);\n37: \t\tend\n38: \t\treturn true;\n39: \tend\n40: \n41: \tif ( ProfessionsFrame and ProfessionsFrame.CraftingPage.RecipeList.SearchBox:HasFocus() )  then\n42: \t\tlocal item;\n43: \t\tif ( strfind(text, \"item:\", 1, true) ) then\n44: \t\t\titem = C_Item.GetItemInfo(text);\n45: \t\tend\n46: \t\tif ( item ) then\n47: \t\t\tProfessionsFrame.CraftingPage.RecipeList.SearchBox:SetText(item);\n48: \t\t\treturn true;\n49: \t\tend\n50: \tend\n51: \tif ( CommunitiesFrame and CommunitiesFrame.ChatEditBox:HasFocus() ) then\n52: \t\tCommunitiesFrame.ChatEditBox:Insert(text);\n53: \t\treturn true;\n54: \tend\n55: \n56: \tlocal activeWindow = ChatFrameUtil.GetActiveWindow();\n57: \tif ( activeWindow ) then\n58: \t\tactiveWindow:Insert(text);\n59: \t\tactiveWindow:SetFocus();\n60: \t\treturn true;\n61: \tend\n62: \tif ( AuctionHouseFrame and AuctionHouseFrame:IsVisible() ) then\n63: \t\tlocal item;\n64: \t\tif ( strfind(text, \"battlepet:\") ) then\n65: \t\t\tlocal petName = strmatch(text, \"%[(.+)%]\");\n66: \t\t\titem = petName;\n67: \t\telseif ( strfind(text, \"item:\", 1, true) ) then\n68: \t\t\titem = C_Item.GetItemInfo(text);\n69: \t\tend\n70: \t\tif ( item ) then\n71: \t\t\tif ( AuctionHouseFrame:SetSearchText(item) ) then\n72: \t\t\t\treturn true;\n73: \t\t\tend\n74: \t\tend\n75: \tend\n76: \n77: \treturn false;\n78: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+    "line": 366,
+    "excerpt": "366: function ChatFrameUtil.OpenChat(text, chatFrame, desiredCursorPosition)\n367: \tif chatFrame == nil and CHAT_FOCUS_OVERRIDE ~= nil then\n368: \t\tif CHAT_FOCUS_OVERRIDE.supportsSlashCommands or not text or strsub(text, 0, 1) ~= \"/\" then\n369: \t\t\tCHAT_FOCUS_OVERRIDE:SetFocus();\n370: \t\t\tif text then\n371: \t\t\t\tCHAT_FOCUS_OVERRIDE:SetText(text);\n372: \t\t\tend\n373: \t\t\treturn;\n374: \t\tend\n375: \tend\n376: \n377: \tlocal editBox = ChatFrameUtil.ChooseBoxForSend(chatFrame);\n378: \n379: \t-- GAME RULES TODO:: This should be an explicit game rule.\n380: \tif C_GameRules.GetActiveGameMode() == Enum.GameMode.Plunderstorm then\n381: \t\tif not hasInitializedDefaultChatChannel then\n382: \t\t\thasInitializedDefaultChatChannel = true;\n383: \n384: \t\t\t-- Don't default chat type if we already have a specific type (i.e. BN_WHISPER)\n385: \t\t\tif editBox:GetChatType() == \"SAY\" then\n386: \t\t\t\tlocal isInGroup;\n387: \t\t\t\tif IsInGroup(LE_PARTY_CATEGORY_HOME) then\n388: \t\t\t\t\tlocal groupCount = GetNumGroupMembers();\n389: \t\t\t\t\tif groupCount > 1 then\n390: \t\t\t\t\t\tisInGroup = true;\n391: \t\t\t\t\tend\n392: \t\t\t\tend\n393: \n394: \t\t\t\tlocal chatType = \"SAY\";\n395: \t\t\t\tif C_Glue.IsOnGlueScreen() then\n396: \t\t\t\t\tchatType = \"PARTY\";\n397: \t\t\t\telseif isInGroup then\n398: \t\t\t\t\tchatType = \"INSTANCE_CHAT\";\n399: \t\t\t\tend\n400: \n401: \t\t\t\teditBox:SetChatType(chatType);\n402: \t\t\t\teditBox:SetStickyType(chatType);\n403: \t\t\tend\n404: \t\tend\n405: \tend\n406: \n407: \tChatFrameUtil.ActivateChat(editBox);\n408: \teditBox.desiredCursorPosition = desiredCursorPosition;\n409: \n410: \tif text then\n411: \t\teditBox.text = text;\n412: \t\teditBox.setText = 1;\n413: \tend\n414: \n415: \tlocal stickyType = editBox:GetStickyType();\n416: \tif editBox:GetChatType() == stickyType then\n417: \t\tif ((stickyType == \"PARTY\") and (not IsInGroup(LE_PARTY_CATEGORY_HOME)) or\n418: \t\t\t(stickyType == \"RAID\") and (not IsInRaid(LE_PARTY_CATEGORY_HOME)) or\n419: \t\t\t(stickyType == \"INSTANCE_CHAT\") and (not IsInGroup(LE_PARTY_CATEGORY_INSTANCE))) then\n420: \n421: \t\t\teditBox:SetChatType(\"SAY\");\n422: \t\tend\n423: \tend\n424: \n425: \teditBox:UpdateHeader();\n426: \treturn editBox;\n427: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 408,
+    "excerpt": "408: \t\t\tName = \"GetSpellLink\",\n409: \t\t\tType = \"Function\",\n410: \t\t\tMayReturnNothing = true,\n411: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n412: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n413: \n414: \t\t\tArguments =\n415: \t\t\t{\n416: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n417: \t\t\t\t{ Name = \"glyphID\", Type = \"number\", Nilable = true, NeverSecret = true },\n418: \t\t\t},\n419: \n420: \t\t\tReturns =\n421: \t\t\t{\n422: \t\t\t\t{ Name = \"spellLink\", Type = \"string\", Nilable = false },\n423: \t\t\t},\n424: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+    "line": 429,
+    "excerpt": "429: function ChatFrameUtil.GetActiveWindow()\n430: \treturn ACTIVE_CHAT_EDIT_BOX;\n431: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_SharedXML/Mainline/ModelFrames.lua",
+    "line": 41,
+    "excerpt": "41: function Model_OnMouseWheel(self, delta, maxZoom, minZoom)\n42: \tmaxZoom = maxZoom or self.maxZoom;\n43: \tminZoom = minZoom or self.minZoom;\n44: \tlocal zoomLevel = self.zoomLevel or minZoom;\n45: \tzoomLevel = zoomLevel + delta * MODELFRAME_ZOOM_STEP;\n46: \tzoomLevel = min(zoomLevel, maxZoom);\n47: \tzoomLevel = max(zoomLevel, minZoom);\n48: \tself:SetPortraitZoom(zoomLevel);\n49: \tself.zoomLevel = zoomLevel;\n50: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+    "line": 325,
+    "excerpt": "325: \t\t\tName = \"GetStringHeight\",\n326: \t\t\tType = \"Function\",\n327: \t\t\tSecretWhenAnchoringSecret = true,\n328: \n329: \t\t\tArguments =\n330: \t\t\t{\n331: \t\t\t},\n332: \n333: \t\t\tReturns =\n334: \t\t\t{\n335: \t\t\t\t{ Name = \"height\", Type = \"uiUnit\", Nilable = false },\n336: \t\t\t},\n337: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScrollFrameAPIDocumentation.lua",
+    "line": 91,
+    "excerpt": "91: \t\t\tName = \"SetScrollChild\",\n92: \t\t\tType = \"Function\",\n93: \t\t\tIsProtectedFunction = true,\n94: \t\t\tCheckAllowChangeParent = true,\n95: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n96: \n97: \t\t\tArguments =\n98: \t\t\t{\n99: \t\t\t\t{ Name = \"scrollChild\", Type = \"SimpleFrame\", Nilable = false },\n100: \t\t\t},\n101: \t\t},"
+  }
+]

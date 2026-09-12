@@ -1,5 +1,5 @@
 -- Creature reference extends the existing Lychee surface: one model, six rows,
--- warm text and sparse red selection. No per-model update loop or window copy.
+-- warm text and sparse red selection. Updates only while dragging; no separate window.
 local I=_G.LycheeInternal
 local M=I.Builtin.LDT
 local L=I.ProviderLocales:Builtin(M.id)
@@ -22,154 +22,274 @@ local function text(parent,role,color)
     region:SetJustifyH("LEFT");region:SetJustifyV("TOP")
     return region
 end
-local function button(parent,label,width,fn)
-    return _G.Lychee.UI.Components:CreateNavigationButton(parent,{text=L[label],width=width,height=24,onClick=fn})
-end
 function M:CreateView()
     if self.panel then return self.panel end
-    local panel={rows={},page=1,facing=0}
+    local panel={rows={},page=1,facing=0,zoom=0}
+    local Theme=_G.Lychee.UI.Theme
+    local Components=_G.Lychee.UI.Components
+    local function label(parent,role,color,x,y,width,height)
+        local f=text(parent,role,color);f:SetPoint("TOPLEFT",x,y);f:SetWidth(width);f:SetHeight(height);return f
+    end
+    local function nav(parent,caption,width,fn,direction)
+        return Components:CreateNavigationButton(parent,{text=caption,width=width,height=24,onClick=fn,direction=direction})
+    end
+    function panel:StopDrag()
+        self.dragX=nil
+        if self.model then self.model:SetScript("OnUpdate",nil) end
+    end
     function panel:ShowTraits()
         if not self.active or not GameTooltip then return end
         local enemy=self.enemy
         local affected={}
         for _,item in ipairs(controls) do if enemy.characteristics and enemy.characteristics[item[1]] then affected[#affected+1]=L[item[2]] end end
-        GameTooltip:SetOwner(self.traits.frame,"ANCHOR_RIGHT")
-        GameTooltip:ClearLines()
+        GameTooltip:SetOwner(self.traits.frame,"ANCHOR_LEFT");GameTooltip:ClearLines()
         GameTooltip:AddLine(M:Name(enemy),1,1,1)
         GameTooltip:AddLine(L["可受控制"].."："..(#affected>0 and table.concat(affected," / ") or L["未记录"]),0.85,0.85,0.85,true)
+        GameTooltip:AddLine(L["基础生命"].." "..(enemy.health or "—").."  ·  "..L["基础进度"].." "..(enemy.count or "—"),0.85,0.85,0.85,true)
         if enemy.stealth then GameTooltip:AddLine(L["隐形"],0.85,0.85,0.85) end
         if enemy.stealthDetect then GameTooltip:AddLine(L["侦测隐形"],0.85,0.85,0.85) end
-        GameTooltip:AddLine(L["基础资料，随难度和变体变化"],0.7,0.7,0.7,true)
-        GameTooltip:Show()
+        GameTooltip:AddLine(L["基础资料，随难度和变体变化"],0.7,0.7,0.7,true);GameTooltip:Show()
     end
     function panel:Request(id)
         if self.pending[id]~=nil or not C_Spell or not C_Spell.RequestLoadSpellData then return end
         self.pending[id]=true
-        local ok=pcall(C_Spell.RequestLoadSpellData,id)
-        if not ok then self.pending[id]=false end
+        if not pcall(C_Spell.RequestLoadSpellData,id) then self.pending[id]=false end
+    end
+    function panel:Flatten(reveal)
+        local flat=self.flat or {};for i=#flat,1,-1 do flat[i]=nil end;self.flat=flat
+        local selectedIndex
+        for _,group in ipairs(self.groups) do
+            flat[#flat+1]=group.heading
+            if group.ids[self.selected] then selectedIndex=#flat end
+            if self.expanded[group.key] then
+                for _,entry in ipairs(group.entries) do
+                    flat[#flat+1]=entry
+                    if entry.spellID==self.selected then selectedIndex=#flat end
+                end
+            end
+        end
+        if reveal and selectedIndex then self.page=math.ceil(selectedIndex/PER_PAGE) end
+        self.page=math.max(1,math.min(self.page,math.max(1,math.ceil(#flat/PER_PAGE))))
+    end
+    function panel:BuildGroups(reveal)
+        local anchor=self.flat and self.flat[(self.page-1)*PER_PAGE+1]
+        local anchorID=anchor and anchor.spellID
+        for _,row in ipairs(self.rows) do if row.spellID==self.selected and row.frame:IsShown() then reveal=true;break end end
+        local groups,byName={},{}
+        for _,spell in ipairs(self.enemy.spells) do
+            local name=M:SpellName(spell.id)
+            local key=name or spell.id -- Unknown names must never collapse together.
+            local group=byName[key]
+            if not group then
+                group={key=key,name=name,entries={},ids={}}
+                group.heading={group=group,spellID=spell.id};byName[key]=group;groups[#groups+1]=group
+            end
+            group.entries[#group.entries+1]={group=group,spellID=spell.id,child=true}
+            group.ids[spell.id]=true
+            if not name then self:Request(spell.id) end
+        end
+        self.groups=groups
+        -- Search may target a non-leading member. Keep that exact ID visible.
+        if reveal then for _,group in ipairs(groups) do
+            if group.ids[self.selected] and group.heading.spellID~=self.selected then self.expanded[group.key]=true end
+        end end
+        self:Flatten(reveal)
+        if not reveal and anchorID then
+            local fallback
+            for index,entry in ipairs(self.flat) do
+                if entry.spellID==anchorID and entry.child==anchor.child then self.page=math.ceil(index/PER_PAGE);return end
+                if not entry.child and entry.group.ids[anchorID] then fallback=index end
+            end
+            if fallback then self.page=math.ceil(fallback/PER_PAGE) end
+        end
+    end
+    function panel:UpdateDescriptionSize()
+        if not self.descriptionScroll then return end
+        local width=math.max(1,self.descriptionScroll:GetWidth()-14)
+        self.descriptionBody:SetWidth(width);self.description:SetWidth(width)
+        local height=math.max(self.descriptionScroll:GetHeight(),self.description:GetStringHeight())
+        self.descriptionBody:SetHeight(height)
+        local value=math.min(self.descriptionScroll:GetVerticalScroll(),math.max(0,height-self.descriptionScroll:GetHeight()))
+        self.descriptionScroll:SetVerticalScroll(value)
+        self.descriptionBar:SetRange(height,self.descriptionScroll:GetHeight(),value)
     end
     function panel:Describe()
         if not self.active then return end
         local id=self.selected
+        local spell
+        for _,entry in ipairs(self.enemy.spells) do if entry.id==id then spell=entry;break end end
+        self.detailTitle:SetText(id and (M:SpellName(id) or (L["技能"].." "..id)) or L["暂无技能资料"])
+        self.detailMeta:SetText(id and ("ID "..id..(spell and tags(spell)~="" and "  ·  "..tags(spell) or "")) or "")
         local description=id and C_Spell and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(id)
-        self.description:SetText(description or (id and L["技能资料暂未加载"] or L["暂无技能资料"]))
+        self.description:SetText(description or (id and L["技能资料暂未加载"] or ""))
+        self.descriptionScroll:SetVerticalScroll(0);self:UpdateDescriptionSize()
         if id and not description then self:Request(id) end
+    end
+    function panel:LinkSpell(id)
+        if not self.active or (InCombatLockdown and InCombatLockdown()) then return end
+        local link=C_Spell and C_Spell.GetSpellLink and C_Spell.GetSpellLink(id)
+        if not link then self.hint:SetText(L["链接暂不可用，请稍后重试"]);self:Request(id);return end
+        local chat=ChatFrameUtil
+        if not chat then return end
+        local controller=I.Host and I.Host.PaletteController
+        if controller and controller.input then controller.input:ClearFocus() end
+        local edit=chat.GetActiveWindow and chat.GetActiveWindow()
+        if edit then edit:Insert(link);edit:SetFocus()
+        elseif chat.OpenChat then chat.OpenChat(link) end
     end
     function panel:RenderSkills()
         if not self.active then return end
-        local spells=self.enemy.spells
-        local pages=math.max(1,math.ceil(#spells/PER_PAGE))
+        local pages=math.max(1,math.ceil(#self.flat/PER_PAGE))
         self.page=math.max(1,math.min(self.page,pages))
         for i,row in ipairs(self.rows) do
-            row.spellID=nil
+            row.frame:Hide();row.spellID=nil;row.group=nil
             row.binding=(row.binding or 0)+1
-            local spell=spells[(self.page-1)*PER_PAGE+i]
-            row.frame:Hide() -- resets pressed/hover state before rebinding
-            if spell then
-                row.spellID=spell.id
-                local name=M:SpellName(spell.id)
-                row.label:SetText(name or (L["技能"].." "..spell.id))
-                local texture=C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(spell.id)
-                row.icon:SetTexture(texture or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\spellbook.tga")
-                row.tags:SetText(tags(spell))
-                row.mark:SetShown(self.selected==spell.id)
+            local entry=self.flat[(self.page-1)*PER_PAGE+i]
+            if entry then
+                local group=entry.group
+                local expanded=self.expanded[group.key]
+                local id=not entry.child and not expanded and group.ids[self.selected] and self.selected or entry.spellID
+                row.spellID,row.group=id,group
+                row.label:SetText(group.name or (L["技能"].." "..id))
+                row.label:ClearAllPoints();row.label:SetPoint("LEFT",entry.child and 46 or 34,0)
+                row.label:SetPoint("RIGHT",-70,0);row.label:SetHeight(18)
+                row.icon:SetTexture(C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(id) or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\spellbook.tga")
+                row.icon:ClearAllPoints();row.icon:SetPoint("LEFT",entry.child and 20 or 8,0)
+                row.meta:SetText(entry.child and tostring(id) or "")
+                local multiple=not entry.child and #group.entries>1
+                row.expand.frame:SetShown(multiple)
+                if multiple then row.expand:SetText(tostring(#group.entries));row.expand:SetDirection(expanded and "down" or "right") end
+                local selected=id==self.selected and (entry.child or not expanded)
+                row.mark:SetShown(selected);row.bg:SetShown(selected)
                 row.frame:Show()
-                if not name then self:Request(spell.id) end
             end
         end
         self.pageLabel:SetText(self.page.." / "..pages)
         self.previous:SetEnabled(self.page>1);self.next:SetEnabled(self.page<pages)
+        self.abilities:SetText(L["技能"].."  ·  "..#self.groups)
         self:Describe()
     end
     function panel:Create(parent)
-        self.frame=CreateFrame("Frame",nil,parent);self.frame:SetAllPoints(parent)
-        self.frame:Hide()
-        self.back=button(self.frame,"返回搜索",86,function()
+        self.frame=CreateFrame("Frame",nil,parent);self.frame:SetAllPoints(parent);self.frame:Hide()
+        self.title=label(self.frame,"input","text",16,-4,400,22);self.title:SetPoint("RIGHT",-178,0)
+        self.subtitle=label(self.frame,"meta","textMuted",16,-30,584,16);self.subtitle:SetPoint("RIGHT",-16,0)
+        self.back=nav(self.frame,L["返回搜索"],94,function()
             if not self.active then return end
-            local controller=I.Host and I.Host.PaletteController
-            if controller and controller.viewHost and controller.viewHost:IsOwnedBy(M.id) then controller:CloseView("reference-back") end
-        end)
-        self.back.frame:SetPoint("TOPLEFT",16,-4)
-        self.title=text(self.frame,"title","text");self.title:SetPoint("TOPLEFT",16,-34);self.title:SetPoint("RIGHT",-16,0);self.title:SetHeight(20)
-        self.subtitle=text(self.frame,"meta","textMuted");self.subtitle:SetPoint("TOPLEFT",16,-56);self.subtitle:SetPoint("RIGHT",-16,0);self.subtitle:SetHeight(16)
-        self.model=CreateFrame("PlayerModel",nil,self.frame)
-        self.model:SetPoint("TOPLEFT",16,-80);self.model:SetSize(224,178)
-        self.modelMessage=text(self.frame,"body","textMuted");self.modelMessage:SetPoint("TOPLEFT",24,-154);self.modelMessage:SetWidth(208)
-        self.turnLeft=button(self.frame,"左转",50,function() if self.active then self.facing=self.facing-0.4;self.model:SetFacing(self.facing) end end)
-        self.turnRight=button(self.frame,"右转",50,function() if self.active then self.facing=self.facing+0.4;self.model:SetFacing(self.facing) end end)
-        self.reset=button(self.frame,"重置",50,function() if self.active then self.facing=0;self.model:SetFacing(0) end end)
-        self.turnLeft.frame:SetPoint("TOPLEFT",30,-260);self.reset.frame:SetPoint("TOPLEFT",102,-260);self.turnRight.frame:SetPoint("TOPLEFT",174,-260)
-        self.stats=text(self.frame,"meta","textMuted");self.stats:SetPoint("TOPLEFT",16,-290);self.stats:SetWidth(230);self.stats:SetHeight(42)
-        self.traits=button(self.frame,"查看特性",100,function() self:ShowTraits() end)
-        self.traits.frame:SetPoint("BOTTOMLEFT",16,2)
-        self.traits.frame:HookScript("OnEnter",function() self:ShowTraits() end)
+            local c=I.Host and I.Host.PaletteController
+            if c and c.viewHost and c.viewHost:IsOwnedBy(M.id) then c:CloseView("reference-back") end
+        end,"left");self.back.frame:SetPoint("TOPRIGHT",-12,-2)
+        self.traits=nav(self.frame,L["特性"],48,function() self:ShowTraits() end);self.traits.frame:SetPoint("TOPRIGHT",-118,-2)
         self.traits.frame:HookScript("OnLeave",function() if GameTooltip and GameTooltip:GetOwner()==self.traits.frame then GameTooltip:Hide() end end)
-        self.abilities=text(self.frame,"body","text");self.abilities:SetPoint("TOPLEFT",264,-78);self.abilities:SetText(L["技能"])
+        local function line(y)
+            local f=self.frame:CreateTexture(nil,"BORDER");f:SetPoint("TOPLEFT",16,y);f:SetPoint("RIGHT",-16,0);f:SetHeight(1);Theme:SetColorTexture(f,"border")
+        end
+        line(-52);line(-250)
+        self.model=CreateFrame("PlayerModel",nil,self.frame);self.model:SetPoint("TOPLEFT",16,-62);self.model:SetSize(214,168)
+        self.model:EnableMouse(true);self.model:EnableMouseWheel(true)
+        local function drag()
+            if not self.active or (InCombatLockdown and InCombatLockdown()) or not IsMouseButtonDown("LeftButton") then self:StopDrag();return end
+            local x=GetCursorPosition()/self.model:GetEffectiveScale()
+            if x~=self.dragX then self.facing=(self.facing+(x-self.dragX)*0.012)%(2*math.pi);self.dragX=x;self.model:SetFacing(self.facing) end
+        end
+        self.model:SetScript("OnMouseDown",function(_,mouse)
+            if mouse=="LeftButton" and self.active and not (InCombatLockdown and InCombatLockdown()) then self.dragX=GetCursorPosition()/self.model:GetEffectiveScale();self.model:SetScript("OnUpdate",drag) end
+        end)
+        self.model:SetScript("OnMouseUp",function() self:StopDrag() end)
+        self.model:SetScript("OnHide",function() self:StopDrag() end)
+        self.model:SetScript("OnMouseWheel",function(_,delta)
+            if not self.active or (InCombatLockdown and InCombatLockdown()) then return end
+            local zoom=math.max(0,math.min(0.7,self.zoom+delta*0.15))
+            if zoom~=self.zoom then self.zoom=zoom;self.model:SetPortraitZoom(zoom) end
+        end)
+        self.modelMessage=label(self.frame,"body","textMuted",32,-142,180,32)
+        self.dragHint=label(self.frame,"meta","textMuted",16,-233,170,16);self.dragHint:SetText(L["拖动旋转 · 滚轮缩放"])
+        self.reset=nav(self.frame,L["复位"],40,function() if self.active then self:StopDrag();self.facing,self.zoom=0,0;self.model:SetFacing(0);self.model:SetPortraitZoom(0) end end)
+        self.reset.frame:SetPoint("TOPLEFT",192,-225)
+        self.abilities=label(self.frame,"body","text",252,-64,160,18)
+        self.previous=nav(self.frame,"",20,function() if self.active then self.page=self.page-1;self:RenderSkills() end end,"left")
+        self.next=nav(self.frame,"",20,function() if self.active then self.page=self.page+1;self:RenderSkills() end end,"right")
+        self.next.frame:SetPoint("TOPRIGHT",-16,-60);self.previous.frame:SetPoint("TOPRIGHT",-90,-60)
+        self.pageLabel=label(self.frame,"meta","textMuted",0,0,52,18);self.pageLabel:ClearAllPoints();self.pageLabel:SetPoint("RIGHT",self.next.frame,"LEFT",-4,0);self.pageLabel:SetJustifyH("CENTER")
         for i=1,PER_PAGE do
             local row
-            row=button(self.frame,"技能",320,function()
+            row=nav(self.frame,"",320,function()
                 if not self.active or not row.spellID or row.pressed~=row.binding then return end
                 row.pressed=nil
+                if IsShiftKeyDown and IsShiftKeyDown() then self:LinkSpell(row.spellID);return end
                 self.selected=row.spellID;self:RenderSkills()
             end)
-            row.frame:SetPoint("TOPLEFT",264,-98-(i-1)*30);row.frame:SetPoint("RIGHT",self.frame,"RIGHT",-16,0);row.frame:SetHeight(28)
-            row.label:ClearAllPoints();row.label:SetPoint("TOPLEFT",34,-1);row.label:SetPoint("RIGHT",-3,0);row.label:SetHeight(14);row.label:SetJustifyH("LEFT")
-            row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetSize(24,24);row.icon:SetPoint("LEFT",4,0)
-            row.tags=text(row.frame,"meta","textMuted");row.tags:SetPoint("TOPLEFT",34,-15);row.tags:SetPoint("RIGHT",-3,0);row.tags:SetHeight(12)
-            row.mark=row.frame:CreateTexture(nil,"ARTWORK");row.mark:SetColorTexture(unpack(_G.Lychee.UI.Theme.Colors.accent));row.mark:SetPoint("LEFT",0,0);row.mark:SetSize(2,22)
+            row.frame:SetPoint("TOPLEFT",244,-84-(i-1)*26);row.frame:SetPoint("RIGHT",-16,0);row.frame:SetHeight(26)
+            row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetSize(20,20)
+            row.meta=text(row.frame,"meta","textDim");row.meta:SetPoint("RIGHT",-6,0);row.meta:SetWidth(68);row.meta:SetHeight(16);row.meta:SetJustifyH("RIGHT")
+            row.mark=row.frame:CreateTexture(nil,"ARTWORK");Theme:SetColorTexture(row.mark,"accent");row.mark:SetPoint("LEFT",0,0);row.mark:SetSize(2,22)
+            row.bg=row.frame:CreateTexture(nil,"BACKGROUND");Theme:SetColorTexture(row.bg,"surfaceSelected");row.bg:SetPoint("TOPLEFT",0,-2);row.bg:SetPoint("BOTTOMRIGHT",0,2)
+            row.expand=nav(row.frame,"",44,function()
+                if not self.active or row.expandPressed~=row.binding or not row.group then return end
+                row.expandPressed=nil
+                local key=row.group.key;self.expanded[key]=not self.expanded[key];self:Flatten(false);self:RenderSkills()
+            end,"right");row.expand.frame:SetPoint("RIGHT",0,0)
+            row.expand.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" then row.expandPressed=row.binding end end)
+            row.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" and self.active then row.pressed=row.binding end end)
             row.frame:HookScript("OnEnter",function()
-                if self.active and row.spellID and GameTooltip and GameTooltip.SetSpellByID then
-                    GameTooltip:SetOwner(row.frame,"ANCHOR_RIGHT");GameTooltip:SetSpellByID(row.spellID);GameTooltip:Show()
-                end
+                if not self.active or not row.spellID or not GameTooltip then return end
+                GameTooltip:SetOwner(row.frame,"ANCHOR_LEFT");GameTooltip:ClearLines()
+                GameTooltip:AddLine(M:SpellName(row.spellID) or (L["技能"].." "..row.spellID),1,1,1,true)
+                GameTooltip:AddLine("ID "..row.spellID,0.71,0.705,0.69)
+                GameTooltip:AddLine(L["Shift + 左键：贴入聊天框"],0.71,0.705,0.69);GameTooltip:Show()
             end)
             row.frame:HookScript("OnLeave",function() if GameTooltip and GameTooltip:GetOwner()==row.frame then GameTooltip:Hide() end end)
-            row.frame:HookScript("OnMouseDown",function(_,mouseButton) if mouseButton=="LeftButton" and self.active then row.pressed=row.binding end end)
             row.frame:HookScript("OnHide",function()
-                row.pressed=nil
+                row.pressed=nil;row.expandPressed=nil
                 if GameTooltip and GameTooltip:GetOwner()==row.frame then GameTooltip:Hide() end
             end)
             self.rows[i]=row
         end
-        self.description=text(self.frame,"meta","textMuted");self.description:SetPoint("TOPLEFT",264,-282);self.description:SetPoint("RIGHT",-16,0);self.description:SetHeight(32)
-        self.previous=button(self.frame,"上一页",70,function() if self.active then self.page=self.page-1;self:RenderSkills() end end)
-        self.next=button(self.frame,"下一页",70,function() if self.active then self.page=self.page+1;self:RenderSkills() end end)
-        self.previous.frame:SetPoint("BOTTOMLEFT",264,2);self.next.frame:SetPoint("BOTTOMRIGHT",-16,2)
-        self.pageLabel=text(self.frame,"meta","textMuted");self.pageLabel:SetPoint("BOTTOM",self.frame,"BOTTOMRIGHT",-176,8);self.pageLabel:SetWidth(64);self.pageLabel:SetJustifyH("CENTER")
+        self.detailTitle=label(self.frame,"body","text",16,-262,250,18)
+        self.detailMeta=label(self.frame,"meta","textMuted",280,-263,320,16);self.detailMeta:SetPoint("RIGHT",-16,0);self.detailMeta:SetJustifyH("RIGHT")
+        self.descriptionScroll=CreateFrame("ScrollFrame",nil,self.frame);self.descriptionScroll:SetPoint("TOPLEFT",16,-288);self.descriptionScroll:SetPoint("RIGHT",-16,0);self.descriptionScroll:SetHeight(52)
+        self.descriptionBody=CreateFrame("Frame",nil,self.descriptionScroll);self.descriptionBody:SetSize(570,52)
+        self.description=text(self.descriptionBody,"body","textMuted");self.description:SetPoint("TOPLEFT");self.description:SetWidth(570)
+        self.descriptionScroll:SetScrollChild(self.descriptionBody);self.descriptionScroll:EnableMouseWheel(true)
+        self.descriptionBar=Components:CreateScrollbar(self.descriptionScroll,function(value) self.descriptionScroll:SetVerticalScroll(value);self:UpdateDescriptionSize() end)
+        self.descriptionScroll:SetScript("OnMouseWheel",function(_,delta) self.descriptionBar:SetValue(self.descriptionScroll:GetVerticalScroll()-delta*24) end)
+        self.descriptionScroll:SetScript("OnSizeChanged",function() if self.active then self:UpdateDescriptionSize() end end)
+        self.hint=label(self.frame,"meta","textMuted",252,-352,348,16);self.hint:ClearAllPoints();self.hint:SetPoint("BOTTOMRIGHT",-16,0);self.hint:SetJustifyH("RIGHT")
     end
     function panel:Mount(context,state)
-        local enemy,dungeon=M:Find(state.dungeonID,state.npcID,state.spellID)
-        assert(enemy,L["资料暂不可用"])
+        local enemy,dungeon=M:Find(state.dungeonID,state.npcID,state.spellID);assert(enemy,L["资料暂不可用"])
         if not self.frame then self:Create(context.contentFrame) end
         if self.parent~=context.contentFrame then self.frame:SetParent(context.contentFrame);self.frame:ClearAllPoints();self.frame:SetAllPoints(context.contentFrame);self.parent=context.contentFrame end
-        self.active,self.enemy,self.dungeon,self.pending=true,enemy,dungeon,{}
+        self.active,self.enemy,self.dungeon,self.pending,self.expanded=true,enemy,dungeon,{},{}
+        self.resources=context.resources
         self.selected=state.spellID~=0 and state.spellID or enemy.spells[1] and enemy.spells[1].id
-        self.page=1;self.facing=0
-        for index,spell in ipairs(enemy.spells) do if spell.id==self.selected then self.page=math.ceil(index/PER_PAGE);break end end
+        self.page,self.facing,self.zoom=1,0,0
         self.title:SetText(M:Name(enemy))
-        self.subtitle:SetText(M:Name(dungeon).." · "..L[enemy.isBoss and "首领" or "小怪"].." · NPC "..enemy.id)
-        local summary=(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or L["未记录"]).." · "..L["等级"].." "..(enemy.level or "—")
-        summary=summary.."\n"..L["基础生命"].." "..(enemy.health or "—").." · "..L["基础进度"].." "..(enemy.count or "—")
-        self.stats:SetText(summary)
+        self.subtitle:SetText(M:Name(dungeon).."  ·  "..L[enemy.isBoss and "首领" or "小怪"].."  ·  "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or "").."  ·  NPC "..enemy.id)
+        self.hint:SetText(L["Shift + 左键：贴入聊天框"])
         self.event=context.resources:OnEvent("SPELL_DATA_LOAD_RESULT",function(_,id)
-            if self.active and self.pending[id]==true then self.pending[id]=false;self:RenderSkills() end
+            if self.active and self.pending[id]==true then
+                self.pending[id]=false
+                if not self.refreshToken then self.refreshToken=self.resources:After("ldt-view-refresh",0,function()
+                    self.refreshToken=nil
+                    if self.active then self:BuildGroups(false);self:RenderSkills() end
+                end) end
+            end
         end)
         self.frame:Show();self.model:Show()
         local ok=pcall(function() self.model:ClearModel();self.model:SetDisplayInfo(enemy.displayId);self.model:SetPortraitZoom(0);self.model:SetCamDistanceScale(1);self.model:SetFacing(0) end)
         self.modelMessage:SetText(ok and "" or L["模型暂不可用"])
-        self:RenderSkills()
+        self:BuildGroups(true);self:RenderSkills()
     end
     function panel:Unmount()
-        self.active=false
+        self.active=false;self:StopDrag()
         if self.event then self.event:Cancel();self.event=nil end
-        for _,row in ipairs(self.rows) do
-            if GameTooltip and GameTooltip:GetOwner()==row.frame then GameTooltip:Hide() end
-            row.spellID=nil;row.frame:Hide();row.label:SetText("");row.tags:SetText("");row.icon:SetTexture(nil)
-        end
-        self.enemy,self.dungeon,self.pending,self.selected=nil,nil,nil,nil
+        if self.refreshToken then self.refreshToken:Cancel();self.refreshToken=nil end
+        for _,row in ipairs(self.rows) do row.spellID=nil;row.group=nil;row.frame:Hide();row.label:SetText("");row.meta:SetText("");row.icon:SetTexture(nil) end
+        self.enemy,self.dungeon,self.pending,self.selected,self.groups,self.flat,self.expanded,self.resources=nil,nil,nil,nil,nil,nil,nil,nil
         if self.frame then
             if GameTooltip and GameTooltip:GetOwner()==self.traits.frame then GameTooltip:Hide() end
-            self.title:SetText("");self.subtitle:SetText("");self.stats:SetText("");self.description:SetText("")
-            self.model:Hide();pcall(self.model.ClearModel,self.model);self.frame:Hide()
+            self.title:SetText("");self.subtitle:SetText("");self.detailTitle:SetText("");self.detailMeta:SetText("");self.description:SetText("")
+            self.descriptionBar:StopDrag();self.model:Hide();pcall(self.model.ClearModel,self.model);self.frame:Hide()
         end
     end
     function panel:Dispose() self:Unmount() end

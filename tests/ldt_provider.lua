@@ -45,6 +45,18 @@ function GameTooltip:AddLine(line) self.lines[#self.lines+1]=line end
 function GameTooltip:SetSpellByID(id) self.spellID=id end
 function GameTooltip:Show() self.shown=true end
 function GameTooltip:Hide() self.shown=false;self.owner=nil end
+local mouseHeld,shiftHeld,cursorX=false,false,0
+function GetCursorPosition() return cursorX,0 end
+function IsMouseButtonDown() return mouseHeld end
+function IsShiftKeyDown() return shiftHeld end
+function methods:GetEffectiveScale() return 1 end
+function methods:GetStringHeight() return math.max(14,#(self.text or "")/8) end
+function methods:SetScrollChild(value) self.child=value end
+function methods:SetVerticalScroll(value) self.scroll=value end
+function methods:GetVerticalScroll() return self.scroll or 0 end
+function methods:EnableMouseWheel() end
+local activeChat,opened,linked
+ChatFrameUtil={GetActiveWindow=function() return activeChat end,OpenChat=function(value) opened=value end}
 local missing,failed,synchronous,forbidSpellReads={},false,false,false
 local function fire(event,...)
     for _,frame in ipairs(frames) do if frame.events[event] and frame.scripts.OnEvent then frame.scripts.OnEvent(frame,event,...) end end
@@ -63,7 +75,7 @@ local function drain()
         if not t.cancelled then clock=t.due;local start=os.clock();t.fn();maxBatch=math.max(maxBatch,(os.clock()-start)*1000) end
     end
 end
-C_Spell={GetSpellName=function(id)
+C_Spell={GetSpellLink=function(id) return not missing[id] and ("|Hspell:"..id.."|h[Ability]|h") or nil end,GetSpellName=function(id)
     assert(not forbidSpellReads,"exact creature lookup must not touch unrelated spell data")
     spellCalls=spellCalls+1
     if missing[id] then return nil end
@@ -192,7 +204,85 @@ row.frame.scripts.OnMouseDown(row.frame,"LeftButton");view.page=2;view:RenderSki
 local selected=view.selected;row.frame.scripts.OnClick(row.frame);assert(view.selected==selected,"stale press after rebind ignored")
 view:Unmount();assert(not view.enemy and not view.selected and not view.model.displayID and not view.active)
 assert(not GameTooltip.shown,"owned traits tooltip closes with view")
+-- Duplicate spell names collapse without losing any IDs; unrelated unknown names stay separate.
+mount()
+local originalName=C_Spell.GetSpellName
+local first,second,third=view.enemy.spells[1].id,view.enemy.spells[2].id,view.enemy.spells[3].id
+C_Spell.GetSpellName=function(id) if id==first or id==second then return "同名触发技能" end;return originalName(id) end
+view.selected=first;view:BuildGroups(true);view:RenderSkills()
+local group=view.groups[1]
+assert(#group.entries==2 and #view.groups==#view.enemy.spells-1 and not view.expanded[group.key])
+local groupRow=view.rows[1]
+groupRow.expand.frame.scripts.OnMouseDown(groupRow.expand.frame,"LeftButton");groupRow.expand.frame.scripts.OnClick(groupRow.expand.frame)
+assert(view.expanded[group.key] and view.flat[2].spellID==first and view.flat[3].spellID==second)
+local child=view.rows[3]
+shiftHeld=true
+child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
+assert(opened==C_Spell.GetSpellLink(second) and view.selected==first,"shift click links exact child ID without selection")
+activeChat={Insert=function(_,value) linked=value end,SetFocus=function(self) self.focused=true end}
+child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
+assert(linked==C_Spell.GetSpellLink(second) and activeChat.focused,"existing chat receives link")
+linked=nil;child.frame.scripts.OnMouseDown(child.frame,"LeftButton");view:RenderSkills();child.frame.scripts.OnClick(child.frame)
+assert(not linked,"rebound row cannot insert a stale link")
+missing[second]=true
+child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
+assert(not linked and view.hint:GetText()=="链接暂不可用，请稍后重试")
+drain();assert(not linked,"late spell load never inserts a link automatically")
+shiftHeld=false;activeChat=nil
+view.selected=second;view:BuildGroups(true);view:RenderSkills()
+assert(view.expanded[group.key] and view.selected==second,"deep-linked member is revealed")
+C_Spell.GetSpellName=function(id) if id==first or id==third then return nil end;return originalName(id) end
+view:BuildGroups(false);assert(#view.groups==#view.enemy.spells,"unknown names remain separate")
+C_Spell.GetSpellName=originalName;drain()
+-- Async name regrouping keeps a visible selection visible; deliberate paging keeps its anchor.
+local actualEnemy=view.enemy
+local regrouped=false
+view.enemy={spells={}}
+for i=1,12 do view.enemy.spells[i]={id=900000+i} end
+C_Spell.GetSpellName=function(id)
+    if id>900000 and id<=900012 then return regrouped and id<=900006 and "合并技能" or ("技能 "..id) end
+    return originalName(id)
+end
+view.expanded={};view.selected=900008;view:BuildGroups(true);view:RenderSkills()
+assert(view.page==2 and view.rows[2].spellID==900008)
+regrouped=true;view:BuildGroups(false);view:RenderSkills()
+assert(view.page==1 and view.rows[3].spellID==900008,"async regroup must keep the previously visible selection visible")
+regrouped=false;view.selected=900002;view:BuildGroups(true);view:RenderSkills()
+view.page=2;view:RenderSkills()
+regrouped=true;view:BuildGroups(false);view:RenderSkills()
+assert(view.page==1 and view.rows[2].spellID==900007 and not view.expanded["合并技能"],"async regroup preserves manual page anchor without revealing an off-page selection")
+-- Expanded group headers cannot steal an exact child anchor on a later page.
+C_Spell.GetSpellName=function(id) if id>900001 and id<=900012 then return "展开分组" end;return "技能 "..id end
+view.expanded={["展开分组"]=true};view.selected=900001;view:BuildGroups(true);view:RenderSkills()
+view.page=2;view:RenderSkills()
+local anchoredID=view.rows[1].spellID
+view:BuildGroups(false);view:RenderSkills()
+assert(view.page==2 and view.rows[1].spellID==anchoredID,"an unchanged expanded child page must not jump to its group header")
+C_Spell.GetSpellName=function(id) return "技能 "..id end
+view.expanded={};view.selected=900008;view:BuildGroups(true);view:RenderSkills()
+local tooltipRow=view.rows[2]
+tooltipRow.frame.scripts.OnEnter(tooltipRow.frame)
+assert(GameTooltip.shown and GameTooltip.lines[1]=="技能 900008" and GameTooltip.lines[2]=="ID 900008")
+view:RenderSkills();assert(not GameTooltip.shown,"rebind closes the old skill tooltip")
+view.description:SetText(string.rep("long description ",200));view:UpdateDescriptionSize()
+view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
+assert(view.descriptionScroll:GetVerticalScroll()>0,"long descriptions remain readable by scrolling")
+view:Describe();assert(view.descriptionScroll:GetVerticalScroll()==0,"selection description starts at the top")
+C_Spell.GetSpellName=originalName;view.enemy=actualEnemy
+-- Drag has one active update script; release outside, combat, hide and unmount stop it.
+mouseHeld=true;cursorX=10;view.model.scripts.OnMouseDown(view.model,"LeftButton")
+assert(view.model.scripts.OnUpdate)
+local facing=view.facing;cursorX=50;view.model.scripts.OnUpdate();assert(view.facing~=facing)
+mouseHeld=false;view.model.scripts.OnUpdate();assert(not view.model.scripts.OnUpdate)
+mouseHeld=true;view.model.scripts.OnMouseDown(view.model,"LeftButton");combat=true;view.model.scripts.OnUpdate()
+assert(not view.model.scripts.OnUpdate);combat=false
+view.model.scripts.OnMouseWheel(view.model,100);assert(view.zoom==0.7)
+view.model.scripts.OnMouseWheel(view.model,-100);assert(view.zoom==0)
+view.model.scripts.OnMouseDown(view.model,"LeftButton");view:Unmount()
+assert(not view.model.scripts.OnUpdate and not view.groups and not view.flat and not view.expanded and not view.resources)
+mouseHeld=false
 local high=#frames
+
 for _=1,20 do mount();view:Unmount() end
 assert(#frames==high,"views reuse frames and model")
 I.Resources:Close(resources,"done");assert(I.Registry:SetUserEnabled(M.id,false));drain()
