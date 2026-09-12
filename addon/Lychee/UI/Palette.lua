@@ -85,6 +85,12 @@ local function cropIcon(texture)
 end
 
 local function createHomeView(parent, controller)
+    local function sizeCategory(tile)
+        local label=tile.category
+        local measured=label.GetUnboundedStringWidth and label:GetUnboundedStringWidth() or label:GetStringWidth()
+        local width=math.min(160,math.max(80,math.ceil(measured)+2))
+        if label:GetWidth()~=width then label:SetWidth(width) end
+    end
     local frame = CreateFrame("ScrollFrame", nil, parent)
     frame:SetScript("OnHide", function() Lychee.UI.ResultList:HideTooltip() end)
     frame:SetAllPoints(parent)
@@ -181,7 +187,13 @@ local function createHomeView(parent, controller)
         self.scrollbar:SetRange(content:GetHeight(), viewport, self.scroll)
     end
     frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll);view:RefreshScrollRect() end)
-    frame:SetScript("OnShow",function() view._scrollRectDirty=true;view:RefreshScrollRect() end)
+    frame:SetScript("OnShow",function()
+        view._scrollRectDirty=true;view:RefreshScrollRect()
+        -- Native text metrics can be unavailable while the root is hidden.
+        for _,tile in ipairs(view.tiles) do
+            if tile._recentLayout and tile.category:IsShown() then sizeCategory(tile) end
+        end
+    end)
     if frame.SetVerticalScroll then
         frame:SetScript("OnMouseWheel", function(_, delta)
             view:SetScroll(view.scroll - delta * 42)
@@ -385,9 +397,7 @@ local function createHomeView(parent, controller)
             local title = homeLabel(section.title or section.text, "Lychee")
             setText(tile.category, homeLabel(section.meta, ""))
             if recent then
-                local measured=tile.category.GetUnboundedStringWidth and tile.category:GetUnboundedStringWidth() or tile.category:GetStringWidth()
-                local width=math.min(160,math.max(80,math.ceil(measured)+2))
-                if tile.category:GetWidth()~=width then tile.category:SetWidth(width) end
+                sizeCategory(tile)
             end
             tint(tile.title, color(section.enabled == false and "muted" or "text"))
             if tile._title ~= title or tile._titleLayoutDirty then

@@ -87,5 +87,12 @@ do
     assert(not tile.category:IsShown(),"pinned grid hides source label")
     recent.groupID="recent";view:SetSections({recent},true)
     assert(tile.category:IsShown() and tile.title.point[2]==tile.category,"reused recent row restores category anchor")
+    local measurable=false
+    label.GetUnboundedStringWidth=function(self) return measurable and #self:GetText()*6 or 0 end
+    label.GetStringWidth=function() return 0 end
+    recent.meta="荔枝大米助手 · 小怪";view:SetSections({recent},true)
+    assert(label:GetWidth()==80,"hidden native text may not have metrics yet")
+    measurable=true;view.frame.scripts.OnShow(view.frame)
+    assert(label:GetWidth()==160,"native show boundary remeasures text prepared while hidden")
 end
 print("Recent source label layout PASS")
