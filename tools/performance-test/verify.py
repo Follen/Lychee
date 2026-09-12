@@ -7,6 +7,8 @@ import sys
 root=Path(__file__).resolve().parents[2]
 out=root/'analyze/performance-test-package'
 subprocess.run([sys.executable,'tools/performance-test/build.py'],cwd=root,check=True)
+subprocess.run(['lua','tools/performance-test/test-native-calls.lua'],cwd=root,check=True)
+subprocess.run(['lua','tools/performance-test/test-coverage.lua'],cwd=root,check=True)
 run=subprocess.run(['lua','tools/performance-test/test.lua'],cwd=root,check=True,capture_output=True,text=True,encoding='utf-8')
 (out/'test-output.txt').write_text(run.stdout,encoding='utf-8')
 for path in (out/'Lychee Performance Test').rglob('*.lua'):

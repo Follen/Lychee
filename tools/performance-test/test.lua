@@ -49,6 +49,12 @@ ExwindTools={UnifiedPanel={Providers={tools={title="工具",ApplyRoute=external}
 local realI,realIndex=LycheeInternal,LycheeInternal.Search.StaticIndex
 local originalGetMounts=C_MountJournal.GetMountIDs
 local originalInfo=C_MountJournal.GetMountInfoByID
+ColorMixin={}
+C_ClassColor={GetClassColor=function() return {r=1,g=0.5,b=0.25} end}
+C_ChallengeMode=C_ChallengeMode or {}
+C_ChallengeMode.GetDungeonScoreRarityColor=function() return {r=1,g=0.5,b=0.25} end
+C_ChallengeMode.GetSpecificDungeonScoreRarityColor=function() return {r=0.5,g=1,b=0.25} end
+local nativeClassColor=C_ClassColor.GetClassColor
 local carrier={}
 local packagePath="analyze/performance-test-package/Lychee Performance Test/"
 for line in io.lines(packagePath.."Lychee Performance Test.toc") do
@@ -221,7 +227,7 @@ local function prepareRun(which)
 end
 returned=prepareRun("normal");drainReal()
 report=LycheePerformanceTestDB.reports[returned.studyID]
-assert(report.status=="complete" and report.carrierRevision=="0.2.1-center-status")
+assert(report.status=="complete" and report.carrierRevision=="0.2.2-baseline-gate")
 assert(report.ellesmerePreparation.status=="complete" and report.ellesmerePreparation.loadedBefore==false)
 assert(report.ellesmerePreparation.loadedAfter and report.ellesmerePreparation.shown and report.ellesmerePreparation.closed)
 assert(report.ellesmerePreparation.optionsCaptured==1 and report.ellesmerePreparation.registrationRestored)
@@ -259,3 +265,7 @@ print("Lychee first-controller creation uses normal Toggle and completes three o
 assert(overlayFrames==1 and overlayFonts==2,"status overlay grew across repeated runs")
 assert(carrier.statusFrame.title.text=="执行完毕，可落盘" and #tasks==0)
 print("Center status: no load-time UI / running+complete+cancel+timeout+blocked / reuse / no extra timers PASS")
+
+assert(C_ClassColor.GetClassColor==nativeClassColor,"native color namespace changed")
+assert(report.nativeCalls.status=="verified" and #report.nativeCalls.failures==0)
+assert(report.baseline and report.baseline.status=="incomplete","fixture missing coverage silently passed")

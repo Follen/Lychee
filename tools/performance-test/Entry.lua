@@ -1,6 +1,6 @@
 local _, carrier = ...
 local API = {}
-API.Revision = "0.2.1-center-status"
+API.Revision = "0.2.2-baseline-gate"
 assert(_G.LycheePerformanceTest == nil, "Lychee Performance Test global already exists")
 _G.LycheePerformanceTest = API
 local initialized = false
@@ -29,6 +29,10 @@ local function showStatus(status, report)
         title, detail = "正在执行中…", "请暂勿 /reload · 最长 10 分钟 · /lypt cancel 可取消"
     elseif status == "complete" then
         title, detail = "执行完毕，可落盘", "输入 /reload 保存报告"
+        if report and report.baseline then
+            detail = report.baseline.status == "passed" and "本轮基准全部通过 · 输入 /reload 保存报告"
+                or "基准有未通过项 · 输入 /reload 保存报告"
+        end
         for _, round in ipairs(report and report.rounds or {}) do
             for _, provider in pairs(round.providers or {}) do
                 if provider.providerError or provider.error then detail = "部分项目有异常 · 输入 /reload 保存报告" end

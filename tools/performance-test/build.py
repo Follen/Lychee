@@ -27,11 +27,11 @@ for i, path in enumerate(paths, 1):
     sources[path] = hashlib.sha256(source.encode()).hexdigest()
 for name in ['Engine.lua', 'Entry.lua']:
     data=(HERE / name).read_bytes()
-    if name=='Engine.lua': data=(HERE/'Ellesmere.lua').read_bytes()+b'\n'+data
+    if name=='Engine.lua': data=b'\n'.join((HERE/helper).read_bytes() for helper in ['Ellesmere.lua','NativeCalls.lua','Coverage.lua'])+b'\n'+data
     (TARGET / name).write_bytes(data)
     files.append(name)
 toc_name = NAME + '.toc'
-(TARGET / toc_name).write_text('## Interface: 120100\n## Title: Lychee Performance Test\n## Notes: Explicit, bounded lifecycle diagnostics. No automatic test.\n## Version: 0.2.1\n## LoadOnDemand: 1\n## Dependencies: Lychee\n## SavedVariables: LycheePerformanceTestDB\n' + '\n'.join(files) + '\n', encoding='utf-8')
+(TARGET / toc_name).write_text('## Interface: 120100\n## Title: Lychee Performance Test\n## Notes: Explicit, bounded lifecycle diagnostics. No automatic test.\n## Version: 0.2.2\n## LoadOnDemand: 1\n## Dependencies: Lychee\n## SavedVariables: LycheePerformanceTestDB\n' + '\n'.join(files) + '\n', encoding='utf-8')
 files.append(toc_name)
 actual = {p.relative_to(TARGET).as_posix() for p in TARGET.rglob('*') if p.is_file()}
 assert actual == set(files), 'Unexpected stale files; inspect manually before packaging'

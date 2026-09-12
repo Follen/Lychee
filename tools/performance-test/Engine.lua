@@ -31,8 +31,9 @@ local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCo
         "Private fake-frame memory is not native UI memory; private heap deltas are not addon-accounted total residency",
         "SDK 3, compact representation and final dormant architecture do not exist yet; this is baseline feasibility evidence"}}
 store[id]=report
-report.carrierRevision="0.2.1-center-status"
+report.carrierRevision="0.2.2-baseline-gate"
 report.wallLimitSeconds=wallLimitSeconds
+report.scheduler={requestedWaitMs=0,actualWaitMs=0,maxOvershootMs=0,wakeups=0,resumeMs=0}
 report.diagnosticStatusUI={frames=1,fontStrings=2,scope="Reusable inert overlay created before baseline; included in diagnostic addon counters"}
 local control={report=report};G.LycheePerformanceTestControl=control
 local E,I,roots,queue,ownedUI,uiController
@@ -154,6 +155,7 @@ finish=function(status,err)
     E,I,roots,queue,bundle=nil,nil,nil,nil,nil
     upstreamOptions=nil
     G.LycheePerformanceTestControl=nil
+    report.baseline=carrier.CheckBaseline(report)
     carrier.UpdateStatus(report.status, report)
     local euiCheck=report.rounds[1] and report.rounds[1].ellesmereOptionCheck
     print("Lychee Performance Test "..report.carrierRevision.." "..report.status..": "..id.."; EUI="..(euiCheck and euiCheck.status or "not_tested").."; /reload to save")
@@ -271,6 +273,12 @@ local routine=coroutine.create(function()
         E[namespace]=rawget(E,namespace) or shallow(G[namespace])
         for key,value in pairs(E[namespace]) do if type(value)=="function" and (key:match("^Get") or key:match("^Is")) then wrap(E[namespace],key,"gameGetters") end end
     end
+    currentPhase="native_color_preflight"
+    assert(carrier.PrepareNativeCalls(E,report),"Native color API preflight failed; see nativeCalls")
+    for _,spec in ipairs({{"C_ClassColor","GetClassColor"},{"C_ChallengeMode","GetDungeonScoreRarityColor"},{"C_ChallengeMode","GetSpecificDungeonScoreRarityColor"}}) do
+        wrap(E[spec[1]],spec[2],"gameGetters")
+    end
+    currentPhase="private_module_initialize"
     for _,name in ipairs({"GetCategoryList","GetCategoryNumAchievements","GetAchievementInfo","GetAchievementCategory","GetAchievementNumCriteria","GetAchievementCriteriaInfo"}) do
         E[name]=G[name];wrap(E,name,"gameGetters")
     end
@@ -494,17 +502,29 @@ end)
 local function step()
     control.timer=nil
     if control.finished then return end
+    local scheduling=report.scheduler
+    if control.scheduledAt then
+        local waited=math.max(0,clock()-control.scheduledAt)
+        scheduling.actualWaitMs=scheduling.actualWaitMs+waited
+        scheduling.maxOvershootMs=math.max(scheduling.maxOvershootMs,waited-control.requestedDelayMs)
+        scheduling.wakeups=scheduling.wakeups+1
+    end
     if InCombatLockdown() then finish("aborted","Combat began; no protected operations attempted");return end
     if clock()-start>wallLimitSeconds*1000 then finish("aborted",tostring(wallLimitSeconds).." second wall limit");return end
     local begin=clock();local ok,delay=coroutine.resume(routine);local elapsed=clock()-begin
+    scheduling.resumeMs=scheduling.resumeMs+elapsed
     report.lastPhase=currentPhase
     report.maxResumeMs=math.max(report.maxResumeMs or 0,elapsed)
     if not ok then finish("aborted",delay);return end
     if not control.finished and coroutine.status(routine)~="dead" then
-        local scheduled,timer=pcall(C_Timer.NewTimer,math.max(0.001,tonumber(delay) or 0.01),step)
+        delay=math.max(0.001,tonumber(delay) or 0.01)
+        control.scheduledAt=clock();control.requestedDelayMs=delay*1000
+        scheduling.requestedWaitMs=scheduling.requestedWaitMs+control.requestedDelayMs
+        local scheduled,timer=pcall(C_Timer.NewTimer,delay,step)
         if scheduled then control.timer=timer else finish("aborted","Timer scheduling failed: "..tostring(timer)) end
     end
 end
+control.scheduledAt=clock();control.requestedDelayMs=100;report.scheduler.requestedWaitMs=100
 local scheduled,timer=pcall(C_Timer.NewTimer,0.1,step)
 if not scheduled then finish("aborted","Timer scheduling failed: "..tostring(timer));return report end
 control.timer=timer

@@ -2,7 +2,7 @@
 
 独立、手动启动的诊断插件，调查 Lychee 生命周期与内存/CPU；不实施产品 SDK 或低内存重构。目录、TOC、Title 均为 `Lychee Performance Test`。仅依赖 `Lychee`，不依赖 Lychee Dev；原长文本粘贴入口已撤回。
 
-当前修订 `0.2.1-center-status`。整轮墙钟上限按用户要求从 180 秒延长到 600 秒，报告记录 `wallLimitSeconds=600`；这是诊断等待上限，不改变产品性能预算。中央大字、开始/结束聊天和报告 `carrierRevision` 均显示该值。覆盖修复：显式启动后正常初始化 Ellesmere 设置、打开一个现有/默认模块页面、记录真实选项登记并关闭，再测 SDK 选项查询/Resolve；不再仅测试未就绪状态。旧报告仍保留。
+当前修订 `0.2.2-baseline-gate`。整轮墙钟上限按用户要求从 180 秒延长到 600 秒，报告记录 `wallLimitSeconds=600`；这是诊断等待上限，不改变产品性能预算。开始/结束聊天和报告 `carrierRevision` 显示修订，中央大字显示运行状态。覆盖修复：显式启动后正常初始化 Ellesmere 设置、打开一个现有/默认模块页面、记录真实选项登记并关闭，再测 SDK 选项查询/Resolve；不再仅测试未就绪状态。旧报告仍保留。
 
 ## 构建与安装
 
@@ -24,7 +24,7 @@ TOC 使用 LoadOnDemand，默认不加载；加载时只建立模块工厂和入
 /run local t=debugprofilestop();local ok,e=C_AddOns.LoadAddOn("Lychee Performance Test");if ok then LycheePerformanceTest.Start(debugprofilestop()-t) else print(e) end
 ```
 
-该入口为 167 个 ASCII 字节；不需要 Lychee Dev、剪贴板源代码或编辑器。此命令加载插件并开始测试，加载的毫秒单列为 `nativeLoadMs`；再次启动不能当成首次原生加载。已取得三份真实客户端报告，其中：0.2 真实 EUI 准备和前三轮选项解析已验证，第四轮超时，不能报告整套通过。
+该入口为 167 个 ASCII 字节；不需要 Lychee Dev、剪贴板源代码或编辑器。此命令加载插件并开始测试，加载的毫秒单列为 `nativeLoadMs`；再次启动不能当成首次原生加载。0.2.1 的实际报告 `LYCHEE-PERF-1789202681` 在 68.402 秒完成四轮、EUI 选项和三次 UI 开关，但钥石四轮均报 ColorMixin，不能作为全部通过的基准。
 
 启动后屏幕中央以透明底、42 号红色描边大字显示“正在执行中…”。流程完成后显示“执行完毕，可落盘”，下方提示 `/reload`；取消或中止分别显示实际结果，部分来源异常在副标题注明。提示一直保留至重载，点击穿透，不捕获键盘；仅状态变化更新，复用 1 Frame + 2 FontString，无额外 timer/OnUpdate。它在基线前创建，成本计入诊断插件，不能混入产品收益。
 
@@ -37,6 +37,8 @@ WTF/Account/<account>/SavedVariables/Lychee Performance Test.lua
 LycheePerformanceTestDB.reports["LYCHEE-PERF-..."]
 ```
 
+0.2.2 新增独立 `baseline.status=passed|incomplete` 与有限失败清单。覆盖三轮采集、四轮全部 15 个来源的无错误注册、钥石实际记录/搜索、全部查询、EUI 真实选项、EX Resolve、取消、等价、分阶段内存、最终清理、角色状态与三次真实面板显示。副标题只有通过这套检查才显示“本轮基准全部通过”；这仍不是未执行的战斗/硬件按键/全页面业务验收。离线读盘检查入口：`lua tools/performance-test/check-baseline.lua <SavedVariables路径> [报告ID]`，缺项返回非零退出码。
+
 不需要再复制结果或执行导出脚本。报告包含 client/build、基线源码提交、阶段时间、逐来源状态、查询对照、内存及清理结果；不会存整份业务目录。最多保留 8 份，达到上限拒绝新运行，不自动删除。上次运行在退出时仍为 running，下次访问入口标记 interrupted，不能假称清理成功。保留旧报告直到新报告产生。
 
 ## 场景与边界
@@ -48,6 +50,7 @@ LycheePerformanceTestDB.reports["LYCHEE-PERF-..."]
 - 记录 `ellesmerePreparation` 的 loadedBefore/After（设置初始化标志）、core/options 原生加载状态、初始化同步耗时、可见/关闭状态、实际模块/页面及新采集/可用选项数量。每轮 `ellesmereOptionCheck.status=verified` 才表示真实选项查询并 Resolve 成功；一条 status 结果或 registered=true 不算。Exwind 继续读取真实已有模块/静态布局。
 - 正常设置初始化会保留上游加载代码、原生 UI、上游自身初始化/回调及已有 Lychee 被动捕获数据；Hide 不是卸载，也不承诺完全恢复未打开前内存。只覆盖实际正常访问页面与已有元数据，未访问的变体/全部设置不伪称覆盖。准备阶段在四轮私有构建前，后续数据是上游预热条件。
 - 钥匙通信与刷新、技能描述下载被抑制，只测当前游戏缓存。暴雪设置只读已存在的分类/布局。Inspector 不运行真实拾取，Crests 不打开自定义页。
+- 0.2.2 先对三个真实原生颜色接口做原环境、继承隔离环境、显式 mixin、原环境桥接的同参数对照，保存 `nativeCalls.samples`；桥接结果须与原环境 RGB 一致，否则提前中止。仅对私有命名空间的三个 getter 使用真实环境调用桥接，保持多返回值/nil，不复制或硬编码颜色，不修改实际全局命名空间。错误保留 API 名、有限错误文本与可用调用栈。离线测试只模拟原生 raw lookup 行为，不能冒充游戏引擎根因已证实；须读取新的实机对照。
 - 实际 Lychee 控制器三次开关、快速重开、alpha/几何/行池检查单列；原生 UI 的视觉质量、硬件快捷键、所有页高水位、战斗和真实首次登录不在自动等价声明内。
 
 外层计时器逐阶段推进，600 秒墙钟上限，取消/战斗/错误会停止调度、注销私有来源并断开临时环境。单个生产同步函数或原生 API 无法被 Lua 时间预算抢占；报告 `maxCallMs` 和 `maxResumeMs`，不承诺测试完全无停顿。私有计时器队列上限 8,000、单次 drain 6,000 步；指纹深度 14、节点 300,000，Ellesmere 重放最多 4,096 条。
@@ -57,6 +60,8 @@ LycheePerformanceTestDB.reports["LYCHEE-PERF-..."]
 `memory` 分别记录全客户端 GC 前后、全局 GC 毫秒、内存统计刷新毫秒、Lychee 与诊断插件各自的 AddOn counter。诊断插件包含私有实例，不能把它的内存移走后声称 Lychee 达到 1 MiB。私有堆差含诊断及后台噪声；原生 Frame/纹理成本未被 Lua 堆穷尽。完整 GC 是用户启动的一次诊断干预，不是产品关闭策略。
 
 `phases.activeMs` 为受测调用，`maxResumeMs` 包括诊断哈希、采样、GC 等；总墙钟还包含等待。第 4 轮插桩数字不能当成正常时延或与前三轮直接相减估算优化收益。加载/代码初始化、数据/API、SDK/index、查询、释放、UI 分开解释。观测高水位在同步调用结束时采样，不是精确峰值，也不是累计分配；本次实机流程不暂停 GC，累计分配仍由独立离线实验提供有限证据。
+
+0.2.2 的 `scheduler` 记录请求等待总量、实际唤醒等待总量、最大超期、唤醒次数和协程执行合计。后者包含诊断本身，不是产品独占 CPU；失败/取消可能留下未执行请求的等待预算，不用请求总量当实际耗时。颜色前置对照、三处 getter 桥接、最终覆盖检查和中央提示均是诊断新增成本，不用于宣称生产性能收益。
 
 诊断源文件在 `tools/performance-test`；生产 `package/Lychee` 与 SDK 不改变。完成取证后可禁用诊断插件并重载；如需删除安装目录或报告，另行定向确认，不自动清理。
 
@@ -78,3 +83,5 @@ Ellesmere 版本依据：wowdoc `sourceId=ellesmereui, product=main, requestedRe
 - 同版本 SettingsPanel.lua:737、FrameScriptDocumentation.lua:509、MountJournalDocumentation.lua:273 的读取/计时证据见统一调查记录。
 
 0.2.1 验证依据：同上 wow-ui-source/retail/latest、resolvedCommit `8ea15b61e45c0ed4eba01439c90757f86eb78d34`，`FrameScriptDocumentation.lua:509` 的 debugprofilestop 返回 elapsedMilliseconds；超时显式秒转毫秒。状态 UI 精确 API 查询证据保存在本机 `analyze/performance-test-package/status-api-evidence.json`，对应官方 SimpleFrame/SimpleFont 文档的 CreateFontString、SetFrameStrata、EnableMouse、SetFont、SetTextColor。用户允许将诊断墙钟上限延长至 600 秒，单批/队列/取消与产品性能预算保持原值；旧 180 秒报告继续保留为历史。
+
+0.2.2 颜色证据同 source/product/ref/commit：`Interface/AddOns/Blizzard_APIDocumentationGenerated/ClassColorDocumentation.lua:11` 的 GetClassColor 在 :23 返回 `Mixin="ColorMixin"`；`ChallengeModeInfoDocumentation.lua:92` 的 GetDungeonScoreRarityColor 在 :104 返回同 mixin；该文件 :239 的 GetSpecificDungeonScoreRarityColor 在 :251 返回同 mixin。它们证明返回对象契约，不公开引擎如何查找 mixin。`Interface/AddOns/Blizzard_ScriptErrors/Blizzard_ScriptErrors.lua:59` 调用 `debugstack(debugStackLevel)`；仅在诊断失败时采集并截断到 2400 字符，最多 16 条。精确查询保存在 `analyze/performance-test-package/color-api-evidence.json`。
