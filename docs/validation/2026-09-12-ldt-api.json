@@ -1,0 +1,311 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "ClearModel",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "ClearModel",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPIModelSceneFrameActorBaseDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "10: \t\t\tName = \"ClearModel\",\n11: \t\t\tType = \"Function\",\n12: \n13: \t\t\tArguments =\n14: \t\t\t{\n15: \t\t\t},\n16: \t\t},",
+        "contentHash": "f163e0296e0eb07c071b57b4688c52be21b9c0ade4cf9292dc3fc0bee22d00c6",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetPortraitZoom",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetPortraitZoom",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICharacterModelBaseDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "219: \t\t\tName = \"SetPortraitZoom\",\n220: \t\t\tType = \"Function\",\n221: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n222: \n223: \t\t\tArguments =\n224: \t\t\t{\n225: \t\t\t\t{ Name = \"zoom\", Type = \"number\", Nilable = false },\n226: \t\t\t},\n227: \t\t},",
+        "contentHash": "5fb3a2cf1ee30312881d67f378f4ed687fa9422026b9e3719981c9c57ecc33e6",
+        "line": 219,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetCamDistanceScale",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetCamDistanceScale",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICharacterModelBaseDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "143: \t\t\tName = \"SetCamDistanceScale\",\n144: \t\t\tType = \"Function\",\n145: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n146: \n147: \t\t\tArguments =\n148: \t\t\t{\n149: \t\t\t\t{ Name = \"scale\", Type = \"number\", Nilable = false },\n150: \t\t\t},\n151: \t\t},",
+        "contentHash": "5fb3a2cf1ee30312881d67f378f4ed687fa9422026b9e3719981c9c57ecc33e6",
+        "line": 143,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetFacing",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetFacing",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleModelAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "497: \t\t\tName = \"SetFacing\",\n498: \t\t\tType = \"Function\",\n499: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n500: \n501: \t\t\tArguments =\n502: \t\t\t{\n503: \t\t\t\t{ Name = \"facing\", Type = \"number\", Nilable = false },\n504: \t\t\t},\n505: \t\t},",
+        "contentHash": "9b19df3d8d94d46f0b85b47aac721fc530cc32a8f37be7aa50d9f21a4e5330bd",
+        "line": 497,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "C_Spell.GetSpellTexture",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.GetSpellTexture",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "554: \t\t\tName = \"GetSpellTexture\",\n555: \t\t\tType = \"Function\",\n556: \t\t\tMayReturnNothing = true,\n557: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n558: \t\t\tDocumentation = { \"Returns nothing if spell is not found\" },\n559: \n560: \t\t\tArguments =\n561: \t\t\t{\n562: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n563: \t\t\t},\n564: \n565: \t\t\tReturns =\n566: \t\t\t{\n567: \t\t\t\t{ Name = \"iconID\", Type = \"fileID\", Nilable = false },\n568: \t\t\t\t{ Name = \"originalIconID\", Type = \"fileID\", Nilable = false },\n569: \t\t\t\t{ Name = \"conditionalIconID\", Type = \"fileID\", Nilable = true },\n570: \t\t\t},\n571: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 554,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "C_Spell.GetSpellDescription",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.GetSpellDescription",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "304: \t\t\tName = \"GetSpellDescription\",\n305: \t\t\tType = \"Function\",\n306: \t\t\tMayReturnNothing = true,\n307: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n308: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n309: \n310: \t\t\tArguments =\n311: \t\t\t{\n312: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n313: \t\t\t},\n314: \n315: \t\t\tReturns =\n316: \t\t\t{\n317: \t\t\t\t{ Name = \"description\", Type = \"string\", Nilable = false, Documentation = { \"May be empty if spell's data isn't loaded yet; Listen for SPELL_TEXT_UPDATE event, or use SpellMixin to load asynchronously\" } },\n318: \t\t\t},\n319: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 304,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetDisplayInfo",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICharacterModelBaseDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "164: \t\t\tName = \"SetDisplayInfo\",\n165: \t\t\tType = \"Function\",\n166: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n167: \n168: \t\t\tArguments =\n169: \t\t\t{\n170: \t\t\t\t{ Name = \"displayID\", Type = \"number\", Nilable = false },\n171: \t\t\t\t{ Name = \"mountDisplayID\", Type = \"number\", Nilable = true },\n172: \t\t\t},\n173: \t\t},",
+        "contentHash": "5fb3a2cf1ee30312881d67f378f4ed687fa9422026b9e3719981c9c57ecc33e6",
+        "line": 164,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICharacterModelBaseDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "161: \t\t\t},\n162: \t\t},\n163: \t\t{\n164: \t\t\tName = \"SetDisplayInfo\",\n165: \t\t\tType = \"Function\",\n166: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n167: ",
+        "contentHash": "5fb3a2cf1ee30312881d67f378f4ed687fa9422026b9e3719981c9c57ecc33e6",
+        "line": 164,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.GetSpellName",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "477: \t\t\tName = \"GetSpellName\",\n478: \t\t\tType = \"Function\",\n479: \t\t\tMayReturnNothing = true,\n480: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n481: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n482: \n483: \t\t\tArguments =\n484: \t\t\t{\n485: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n486: \t\t\t},\n487: \n488: \t\t\tReturns =\n489: \t\t\t{\n490: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n491: \t\t\t},\n492: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 477,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "C_Spell.RequestLoadSpellData",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "938: \t\t\tName = \"RequestLoadSpellData\",\n939: \t\t\tType = \"Function\",\n940: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n941: \t\t\tDocumentation = { \"Requests data for the spell be loaded; Listen for SPELL_DATA_LOAD_RESULT to be notified when load is finished\" },\n942: \n943: \t\t\tArguments =\n944: \t\t\t{\n945: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n946: \t\t\t},\n947: \t\t},",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 938,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "938: \t\t\tName = \"RequestLoadSpellData\",\n939: \t\t\tType = \"Function\",\n940: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n941: \t\t\tDocumentation = { \"Requests data for the spell be loaded; Listen for SPELL_DATA_LOAD_RESULT to be notified when load is finished\" },\n942: \n943: \t\t\tArguments =\n944: \t\t\t{",
+        "contentHash": "fbedb3cf4b82d623b49a7fa170c982de2e4b005d2bcd5db3068bfb6211e51007",
+        "line": 941,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_SharedXMLGame/Tooltip/TooltipDataHandler.lua",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "557: \t\tSetLootCurrency = \"GetLootCurrency\",\n558: \t\tSetQuestCurrency = \"GetQuestCurrency\",\n559: \t\tSetQuestLogCurrency = \"GetQuestLogCurrency\",\n560: \t\tSetSpellByID = \"GetSpellByID\",\n561: \t\tSetArtifactPowerByID = \"GetArtifactPowerByID\",\n562: \t\tSetShapeshift = \"GetShapeshift\",\n563: \t\tSetAzeritePower = \"GetAzeritePower\",",
+        "contentHash": "05a86b963b518a589cfebf22dec825507a5b1f564f66eb64fd7caead919f0642",
+        "line": 560,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "ModelWithControlsTemplate",
+    "results": [
+      {
+        "kind": "PlayerModel",
+        "name": "ModelWithControlsTemplate",
+        "path": "Interface/AddOns/Blizzard_SharedXML/ModelFrameTemplates.xml",
+        "matchedBy": "exact_fact",
+        "role": "project",
+        "excerpt": "62: \t\t</Scripts>\n63: \t</PlayerModel>\n64: \n65: \t<PlayerModel name=\"ModelWithControlsTemplate\"  mixin=\"ModelFrameMixin\" virtual=\"true\">\n66: \t\t<Frames>\n67: \t\t\t<Frame name=\"$parentControlFrame\" parentKey=\"controlFrame\" mixin=\"ModelControlFrameMixin\" alpha=\"0.5\" hidden=\"true\">\n68: \t\t\t\t<Size x=\"112\" y=\"23\"/>",
+        "contentHash": "7da445dadfae5030b4eec9550441bd168618ee89d74cbd748c51e1a91f548b90",
+        "line": 65,
+        "score": 90,
+        "scoreParts": {
+          "match": 90,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_InspectUI/Mainline/InspectPaperDollFrame.xml",
+        "matchedBy": "fts5",
+        "role": "project",
+        "excerpt": "109: \t\t\t\t\t<OnClick function=\"InspectPaperDollViewButton_OnClick\"/>\n110: \t\t\t\t</Scripts>\n111: \t\t\t</Button>\n112: \t\t\t<PlayerModel name=\"InspectModelFrame\" inherits=\"ModelWithControlsTemplate\">\n113: \t\t\t\t<Size x=\"231\" y=\"320\"/>\n114: \t\t\t\t<Anchors>\n115: \t\t\t\t\t<Anchor point=\"TOPLEFT\" x=\"52\" y=\"-66\"/>",
+        "contentHash": "87ce1840362e3f234c578c8f1c5793407f0c899788187acda662b49731d7d177",
+        "line": 112,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

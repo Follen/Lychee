@@ -9,9 +9,9 @@ function N:IsBlank(value)
     return not tostring(value or ""):find("%S")
 end
 
-function N:Normalize(value)
+function N:Normalize(value, cache)
     local raw = lower(value)
-    local cacheable = #raw <= self.cacheTextLimit
+    local cacheable = cache ~= false and #raw <= self.cacheTextLimit
     local cached = cacheable and self.cache[raw]
     if cached then return cached end
     -- Lua 5.1's locale-aware %p can classify UTF-8 bytes as punctuation.

@@ -32,6 +32,7 @@ Builtin/BlizzardSettings/Locales.lua
 Builtin/Keystones/Locales.lua
 Builtin/Achievements/Locales.lua
 Builtin/AddonInspector/Locales.lua
+Builtin/LDT/Locales.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua
@@ -93,4 +94,8 @@ Builtin/AddonInspector/Provider.lua
 Builtin/Ellesmere/Adapter.lua
 Builtin/Ellesmere/Provider.lua
 Builtin/Exwind/Provider.lua
+Builtin/LDT/Data.lua
+Builtin/LDT/Catalog.lua
+Builtin/LDT/View.lua
+Builtin/LDT/Provider.lua
 Builtin/Init.lua

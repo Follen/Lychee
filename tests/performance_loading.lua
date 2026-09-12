@@ -2,6 +2,7 @@
 local product=arg[1] or "Mainline"
 local runtimeRoot=arg[2] or "addon/Lychee"
 local measureOnly=arg[3]=="--measure"
+local baselineOnly=arg[3]=="--baseline"
 local frames,events=0,0
 local methods={}
 function methods:RegisterEvent() events=events+1 end
@@ -15,7 +16,7 @@ WOW_PROJECT_ID=1
 local paths={}
 for line in io.lines(runtimeRoot.."/Lychee_"..product..".toc") do
     line=line:gsub("\r$","")
-    if line~="" and line:sub(1,1)~="#" then paths[#paths+1]=line end
+    if line~="" and line:sub(1,1)~="#" and not (baselineOnly and line:find("Builtin/LDT/",1,true)) then paths[#paths+1]=line end
 end
 collectgarbage("collect");local base=collectgarbage("count");collectgarbage("stop")
 local started=os.clock()
@@ -33,7 +34,10 @@ assert(not (LycheeInternal.Host and LycheeInternal.Host.PaletteController),"TOC 
 assert(frames<=2 and events<=3,"TOC execution adds no eager feature UI or subscriptions")
 -- Retained component definitions + presence channel may add at most 64 KiB to
 -- the previous 1282 KiB ceiling; startup allocation savings are measured apart.
-if not measureOnly then assert(retained<1346 and elapsed<46,"loading stays below the declared memory/time budgets") end
+local creature=LycheeInternal.Builtin.LDT~=nil
+if not measureOnly then
+    assert(retained<(creature and 1858 or 1346) and elapsed<(creature and 61 or 46),"loading stays below the declared memory/time budgets")
+end
 table.sort(measurements,function(a,b) return a.kib>b.kib end)
 print(string.format("TOC loading files=%d cpu_ms=%.2f allocated_KiB=%.1f retained_KiB=%.1f frames=%d events=%d",#paths,elapsed,allocated,retained,frames,events))
 for i=1,math.min(8,#measurements) do print(string.format("  %.1f KiB %s",measurements[i].kib,measurements[i].path)) end

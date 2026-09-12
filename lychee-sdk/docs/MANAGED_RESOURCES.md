@@ -54,3 +54,11 @@
 - 诊断按需读取，不扫描第三方内存，不承诺能控制未登记资源或抢占第三方同步代码。游戏实测使用项目的显式诊断流程，SDK 不附带独立性能测试插件。
 
 示例：[ManagedProvider.lua](../examples/ManagedProvider.lua)。测试覆盖见 [SDK 托管测试](https://github.com/Follen/Lychee/blob/main/tests/sdk_resources.lua)、[测试装配与门禁](https://github.com/Follen/Lychee/blob/main/tests/README.md)。
+
+## ID 驱动的资料查询
+
+Provider 可以只保存稳定ID与关系，在 query 中读取客户端名称完成匹配，在 view 中读取正文或加载模型；并非所有数据都需要 Cache。无缓存方案应分别测量重复读取、累计分配与常驻内存，不能只报告关闭后的堆大小。
+
+分批扫描使用 query 的 `resources:Run`，等待客户端数据使用同一 query 的 `OnEvent` 和有界 `After`。先订阅再请求数据，兼容同步事件；完成只回复一次，换词/关闭使旧结果失效。精确实体查询可有明确的快速路径，其他路径的匹配完整性和加载等待另行测试。
+
+页面仅在 Mount 创建需要的原生控件并复用；Unmount/Dispose 释放当前记录、模型和技能绑定，原生Frame本身不当作可GC对象。复用行要校验按下与松开期间的绑定身份。这些均使用现有 API 2 revision 7，无需给宿主增加具体游戏业务。

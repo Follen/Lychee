@@ -20,3 +20,5 @@ dofile("tests/support/runtime.lua").Load("provider", {"Search/SearchSession.lua"
 本目录和 SDK 开发文件不进入游戏运行时目录。离线通过不等于客户端战斗、taint 或视觉验证通过。
 
 目录与交付：`repository_delivery.py`覆盖断链、SDK外层依赖、漏文件、夹带文件、越界路径和可重复ZIP；`sdk_delivery.py`覆盖版本、清单、helper兼容下限与性能规范副本漂移。两者接入完整入口；预算唯一源是[PERFORMANCE.md](../PERFORMANCE.md)。
+
+`ldt_provider.lua` 使用真实TOC/SDK装配，验证全局/前缀、Boss简称、NPC/技能ID、当前语言技能名称、同步/异步加载、取消、启停、分页身份、模型复用及独立增量预算。`ldt_data.py` 验证事实规模、关键Boss顺序、技能关系、生成器输入及正式服隔离。原加载预算另外执行 `lua tests/performance_loading.lua Mainline addon/Lychee --baseline`。

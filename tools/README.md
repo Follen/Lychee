@@ -15,6 +15,7 @@
 | `build_client_tocs.py` | 生成主插件和 SDK 示例的四客户端 TOC；`--check` 只校验 | Python 标准库、`client_manifest.json` |
 | `client_manifest.json` | 客户端 Interface 与有序加载清单 | 由 TOC 工具读取 |
 | `build_journal_catalog.py` | 从已保存的数据快照生成首领目录 | Python 标准库、`docs/architecture` 下对应 JSON |
+| `build_enemy_catalog.py` | 从具名事实快照生成 LDT 数据；`--check` 检查漂移 | `assets/data/enemies.json`；普通构建不依赖分析目录或游戏 |
 | `build_flat_menu_icons.cjs` | 当前扁平菜单图集导出 TGA 与预览 | Node.js、sharp、`assets/menu-icons/flat-atlas.png` |
 | `build_provider_icons.py` | reload、冷却管理器、钥匙通用图标导出 | Python、CairoSVG、Pillow、`assets/provider-icons` |
 | `build_addon_inspector_icon.py` | 插件识别图标导出与预览 | Python、CairoSVG、Pillow |

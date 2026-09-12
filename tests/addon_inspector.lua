@@ -721,6 +721,8 @@ assert(not M.timer and not M.target and next(v.frame.events)==nil and not v.fram
 assert(GameTooltip.hookCount==1,"repeated inspection must not accumulate tooltip hooks")
 do
     local savedSystem=C_System
+    local savedClock=debugprofilestop
+    debugprofilestop=function() return 0 end -- Functional scene swaps complete synchronously; real budgets are tested above.
     C_System={GetFrameStack=nativeStack}
     local ring=frame(UIParent,"SC_CursorFrame")
     local paint=frame(ring);paint.kind="Texture";paint.texture="ring"
@@ -749,5 +751,6 @@ do
     SC_CursorFrame=ring;M:Poll()
     assert(M.target==target,"late-created addon root takes effect without restarting inspection")
     M:Stop();C_System=savedSystem;nativeTarget=nil;SC_CursorFrame=nil;scene({})
+    debugprofilestop=savedClock
 end
 print(string.format("Addon inspector PASS exact/guess/parent/secret/avoidance/copy/Esc/combat/stale/disabled frames=%d regions=%d retained_KiB=%.1f cycles100_ms=%.2f allocated_KiB=%.1f growth_KiB=%.1f idle_work=0",frames-beforeFrames,regions-beforeRegions,retained,elapsed,allocated,math.max(0,growth)))

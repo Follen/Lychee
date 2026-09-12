@@ -96,6 +96,12 @@ The catalog comes from the installed addon's registered data. Settings that have
 
 **Wondering which addon owns a frame?** Search `Addon inspector`. Point at a frame to see its source, or a best guess, in a floating panel that follows the cursor. Hold <kbd>Shift</kbd> for details; press <kbd>Esc</kbd> to leave.
 
+## LDT creature reference (Retail only)
+
+Search creature names, boss names, ability names, or NPC/ability IDs directly. Open a result to inspect its in-game model, base statistics and abilities inside Lychee. Ability matches select the corresponding ability. Global search is enabled by default; `ldt:` is an optional prefix.
+
+The built-in catalogue covers 462 creature records across 16 dungeons and needs no additional addon. Ability text and icons are resolved in the client language; uncached game data may take time to load. Base health and forces are not live difficulty-scaled values. Other clients do not load LDT.
+
 <a id="install"></a>
 
 ## Install

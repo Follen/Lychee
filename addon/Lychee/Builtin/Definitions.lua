@@ -17,4 +17,5 @@ I.Builtin.Definitions = {
     {id="builtin.keystones",module="Keystones",scope={products={"retail"}},requires={}},
     {id="builtin.achievements",module="Achievements",scope={products={"retail","classic","titan"}},requires={"GetCategoryList","GetAchievementInfo","GetAchievementCriteriaInfo","GetAchievementNumCriteria","GetAchievementLink"}},
     {id="builtin.addon-inspector",module="AddonInspector",scope={products={"retail","classic","titan","anniversary"}},requires={"GetMouseFoci"}},
+    {id="builtin.ldt",module="LDT",scope={products={"retail"}},requires={"C_Spell.GetSpellName"}},
 }

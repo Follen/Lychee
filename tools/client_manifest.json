@@ -491,6 +491,9 @@
       "provider": "builtin.exwind"
     },
     {
+      "provider": "builtin.ldt"
+    },
+    {
       "path": "Builtin/Init.lua",
       "products": [
         "retail",
@@ -724,6 +727,23 @@
         "GetMouseFoci"
       ],
       "locales": "Builtin/AddonInspector/Locales.lua"
+    },
+    {
+      "id": "builtin.ldt",
+      "module": "LDT",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/LDT/Data.lua",
+        "Builtin/LDT/Catalog.lua",
+        "Builtin/LDT/View.lua",
+        "Builtin/LDT/Provider.lua"
+      ],
+      "requires": [
+        "C_Spell.GetSpellName"
+      ],
+      "locales": "Builtin/LDT/Locales.lua"
     }
   ]
 }

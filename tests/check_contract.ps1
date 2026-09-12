@@ -61,6 +61,14 @@ Push-Location $root
 try {
     & python 'tools/check_repository.py'
     if ($LASTEXITCODE -ne 0) { throw 'Repository documentation/layout checks failed' }
+    & python 'tools/build_enemy_catalog.py' '--check'
+    if ($LASTEXITCODE -ne 0) { throw 'LDT catalogue generation drift' }
+    & python 'tests/ldt_data.py'
+    if ($LASTEXITCODE -ne 0) { throw 'LDT factual data/client scope checks failed' }
+    & $lua.Source 'tests/performance_loading.lua' 'Mainline' 'addon/Lychee' '--baseline'
+    if ($LASTEXITCODE -ne 0) { throw 'Original runtime loading budget failed' }
+    & $lua.Source 'tests/ldt_provider.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'LDT Provider lifecycle/performance checks failed' }
     & python 'tools/build_release.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Release archive checks failed' }
     & python 'tests/repository_delivery.py'
