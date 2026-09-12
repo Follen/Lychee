@@ -209,8 +209,16 @@ function Motion:StopHeight(settle)
     if self.driver then self.driver:SetScript("OnUpdate",nil);self.driver:Hide() end
     if settle and region and not combat() then region:SetHeight(target) end
 end
-function Motion:Height(region,target)
+function Motion:Height(region,target,growOnly)
     if combat() then return end
+    if not self.height and math.abs(region:GetHeight()-target)<0.1 then return end
+    -- Partial content may reveal more space, but cannot reverse a larger target
+    -- while another source is still producing results.
+    if growOnly then
+        local currentTarget=self.height and self.height.region==region and self.height.to or region:GetHeight()
+        if target<=currentTarget then return end
+        target=math.max(region:GetHeight(),target)
+    end
     if self.height and self.height.region==region and self.height.to==target then return end
     if self:IsReduced() or not region.CreateAnimationGroup or not region:IsShown() then
         self:StopHeight(false);region:SetHeight(target);return

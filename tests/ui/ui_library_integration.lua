@@ -96,3 +96,44 @@ do
     assert(label:GetWidth()==160,"native show boundary remeasures text prepared while hidden")
 end
 print("Recent source label layout PASS")
+
+do
+    local p,m=UI.Palette,UI.Motion
+    p.frame:Show()
+    -- Height uses this capability check; no native animation group is created.
+    p.frame.CreateAnimationGroup=function() error("height must use its existing driver") end
+    p.frame:SetHeight(164)
+    p.searchPending=true
+    p:ResizeForMode("search",0)
+    assert(p.frame:GetHeight()==164 and not m.height,"empty pending search preserves geometry")
+    p:ResizeForMode("search",4)
+    assert(m.height and m.height.to>164,"partial results must expand before all providers finish")
+    local target=m.height.to
+    m.driver.scripts.OnUpdate(m.driver,0.06)
+    local elapsed=m.height.elapsed
+    p:ResizeForMode("search",4)
+    assert(m.height.elapsed==elapsed,"same result size must not restart motion")
+    p:ResizeForMode("search",1)
+    assert(m.height.to==target,"partial results must not reverse an active expansion")
+    p:ResizeForMode("search",8)
+    assert(m.height.to>target,"later results may grow the existing target")
+    m:StopHeight(true)
+    p.searchPending=false
+    p:ResizeForMode("search",1)
+    assert(m.height and m.height.to<m.height.from,"completed shorter results may contract")
+    local before=p.frame:GetHeight()
+    p.searchPending=true
+    p:ResizeForMode("search",4)
+    assert(not m.height and p.frame:GetHeight()==before,"new partial content stops contraction before it clips results")
+    p.searchPending=false
+    p:ResizeForMode("search",1)
+    m:StopHeight(true)
+    p.frame.CreateAnimationGroup=nil
+    local original=p.frame.SetHeight
+    local writes=0
+    p.frame.SetHeight=function(self,value) writes=writes+1;return original(self,value) end
+    p:ResizeForMode("search",1)
+    assert(writes==0,"unchanged settled height must not write native geometry")
+    p.frame.SetHeight=original
+end
+print("Progressive search height PASS")

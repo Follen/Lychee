@@ -242,7 +242,7 @@ Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用同�
 | 操作反馈 | 按下文字透明度趋向 0.70，释放/取消恢复；按钮尺寸不变 |
 | 悬浮提示 | 首次显示 100 ms 轻过渡，离开立即隐藏并清理，重复悬浮复用 |
 
-待查询时保留当前窗口高度，不先缩为空列表；隐藏“没有结果”提示，显示搜索中状态。结果确认后再改变尺寸。内容区裁切子内容，伸缩期间不让内容溢出面板；独立提示层不受裁切。
+查询尚无结果时保留当前窗口高度，不先缩为空列表；隐藏“没有结果”提示，显示搜索中状态。首批非空结果到达即开始按内容展开，不等其他来源全部完成；等待期间仅允许增大高度目标，不因较少的中间结果反向收缩。相同高度目标不重启动画；最终结果确认后允许收缩，清空输入返回首页时立即按首页内容收敛。内容区裁切子内容，伸缩期间不让内容溢出面板；独立提示层不受裁切。
 
 主面板开关以同一路径正放、倒放为统一节奏：Alt+Space、输入框 Esc、失去输入焦点后的原生 Esc、关闭按钮走同一生命周期。失焦 Esc 由一个不绘制内容的子框接收原生关闭，不直接隐藏正在退场的主面板；不拦截全局键盘或修改暴雪函数。
 
@@ -258,7 +258,7 @@ Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用同�
 
 滚动视口参与伸缩时，必须在首次显示、视口尺寸变化及内容几何变化后同步原生滚动内容边界（UpdateScrollChildRect），不能只更新自绘滑块。无变化通知跳过；隐藏或战斗中保留待刷新状态，下次安全显示时完成。通过尺寸事件更新，不新增空闲轮询，也不以反复隐藏条目强制重绘。
 
-统一使用 `Lychee.UI.Motion`：`Reveal(region, kind)`、`Selection(region, selected)`、`Alpha(region, target, duration, callback, initial)`、`Height(frame, target)`、`Cancel(region, settle)`、`StopAll(except)`。控件透明度由原生AnimationGroup驱动；高度变化和主面板各使用一个复用短时OnUpdate驱动，零任务时移除回调并隐藏；主面板通过ConfigurePresence绑定静止锚点/预设，使用Presence / StopPresence。每个普通控件目标一个可复用原生组，最多96组，超出时即时应用；不无限缓存内容身份。
+统一使用 `Lychee.UI.Motion`：`Reveal(region, kind)`、`Selection(region, selected)`、`Alpha(region, target, duration, callback, initial)`、`Height(frame, target, growOnly?)`、`Cancel(region, settle)`、`StopAll(except)`。控件透明度由原生AnimationGroup驱动；高度变化和主面板各使用一个复用短时OnUpdate驱动，零任务时移除回调并隐藏；主面板通过ConfigurePresence绑定静止锚点/预设，使用Presence / StopPresence。每个普通控件目标一个可复用原生组，最多96组，超出时即时应用；不无限缓存内容身份。Height 的可选 growOnly 用于中间内容到达：保留更大的活动目标，必要时停止会裁掉新内容的旧收缩；最终内容仍调用普通模式。
 
 设置页以“功能来源 / 已固定 / 综合设置”分组。“动态效果”放在综合设置中，行右侧使用公共圆角开关并显示“开启／关闭”，禁止用无边界状态文字充当隐藏操作入口，不得放在顶部标签栏。综合设置首次访问才创建，后续复用。减少模式立即应用状态并停止空间过渡；保留颜色和选择反馈。快速关闭重开清理旧退场，禁止迟到回调关闭新窗口。所有动效必须覆盖隐藏、重绑、反向、战斗中断和停止后零活动检查。游戏实机帧时间与观感须单独验证，不以离线替身通过代替。
 

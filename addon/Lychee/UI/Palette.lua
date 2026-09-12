@@ -864,7 +864,7 @@ function Palette:SetStatus(mode, count)
 end
 
 function Palette:ResizeForMode(mode, count)
-    if mode=="search" and self.searchPending then return true end
+    if mode=="search" and self.searchPending and (tonumber(count) or 0)==0 then return true end
     if not self.frame or not self.frame.SetHeight then return false end
     if InCombatLockdown and InCombatLockdown() then return false end
     local theme = Lychee.UI and Lychee.UI.Theme
@@ -889,8 +889,11 @@ function Palette:ResizeForMode(mode, count)
     if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
-    if self.frame:GetHeight() ~= desired then
-        if Lychee.UI.Motion then Lychee.UI.Motion:Height(self.frame,desired) else self.frame:SetHeight(desired) end
+    local growOnly=mode=="search" and self.searchPending
+    if Lychee.UI.Motion then
+        Lychee.UI.Motion:Height(self.frame,desired,growOnly)
+    elseif self.frame:GetHeight()~=desired and (not growOnly or desired>self.frame:GetHeight()) then
+        self.frame:SetHeight(desired)
     end
     self:ApplyBoundedScale()
     return true
