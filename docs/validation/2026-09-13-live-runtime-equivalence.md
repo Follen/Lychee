@@ -17,6 +17,7 @@
 | LYCHEE-20260913-064956-0024 | 矩阵 v2 | 探针摘要错误：把本地化表当字符串；未完成后续场景 |
 | LYCHEE-20260913-065158-0025 | 矩阵 v3 | 56.111 秒，130 个断言通过，完整执行 |
 | LYCHEE-20260913-065300-0026 | 最近20条错误 | 返回34条存量中的20条，均早于本轮；内层有 `encode:binary_string` 不完整标记，不能宣称完整错误审计 |
+| LYCHEE-20260913-071825-0031 | 最终提交矩阵 v4 | 56.198 秒，130 个断言通过，完整执行，已确认接收 |
 
 原始报告、探针、校验脚本、接口证据和截图保留在本地 `analyze/runtime-equivalence-20260913/`；Dev 原始接收文件在 `%LOCALAPPDATA%/LycheeDev/automation/received/<Ticket>/`。失败轮次不删除，传输 succeeded 与业务断言通过分开解释。准备探针曾检查不存在的 Exwind 全局，该字段不能判断依赖缺失；v3 已按实际 ExwindTools 入口核实。
 
@@ -31,6 +32,8 @@
 
 ## 实测成本
 
+以下为初轮 v3；最终修复后的 v4 结果见下节，二者不混作同一次测量。
+
 | 阶段（GC后） | 五包 KiB | MiB |
 | --- | ---: | ---: |
 | 首次开面板前 | 11030.891 | 10.772 |
@@ -44,6 +47,21 @@
 
 每个完整GC约123–139ms、全局插件内存刷新约51–58ms。这是诊断对整个客户端的干预，未计入 Show/Hide 方法耗时，不能归因为 Lychee 的独占CPU，也不能加入生产关闭逻辑。
 
+## 最终版本复核
+
+矩阵 v4 的源提交为 `70c817dab961d148205bc1b4d45b76d8783348e1`，请求 `req-lychee-matrix-0913-04`。CLI 验证完整接收61713字节，SHA256为 `1b37b7771a33de9d120036891d2e3b8ac229758ccd6759e4d356a3a4eb71feda`。该轮不连续采集截图；17组搜索各两轮、设置、LDT详情与60次开关重新执行，130个断言全部通过，两轮查询摘要一致，两批几何失败均为0，关闭后各项托管资源清理正常。
+
+| 阶段（GC后，五包合计） | KiB | MiB |
+| --- | ---: | ---: |
+| 首次开面板前 | 11032.716 | 10.774 |
+| 搜索与设置/LDT访问后 | 12253.037 | 11.966 |
+| 第一批30次开关后 | 11590.233 | 11.319 |
+| 第二批30次开关后 | 11590.280 | 11.319 |
+
+后30次仍只增加48字节。首次 Show 同步调用5.456ms，两批温 Show 最大1.719/1.689ms，Hide 最大2.031/2.622ms；不能用这些数字表示动画全程帧耗时。多数普通查询的首结果观察延迟50–104ms，“同步毒液”410/463ms，LDT前缀408/410ms，EUI首次206ms、第二轮50ms。查询最终收尾约50–464ms。此次全局GC约120–135ms，刷新插件内存约52–56ms，仍单列为观察成本。
+
+最终冷启动真实 Alt+Space 截图 `analyze/runtime-equivalence-20260913/keyboard-show-final-crop.png` 已确认“荔枝大米助手 · 小怪”完整单行显示，随后真实 Esc 关闭。178个交付文件与正式服哈希一致，同步根目录为 `D:\Game\World of Warcraft\_retail_\Interface\AddOns` 下的五个 Lychee 包。测试完成后删除本轮 Dev 按需任务，任务清单为空，已发送 reload 清除已加载探针；不更改用户保存设置或清除证据。
+
 ## 实机发现与修复
 
 真实 Alt+Space 截图发现首页最近使用的“荔枝大米助手 · 小怪”仍拆行。搜索列表已有有界测宽和单行规则，首页却固定90宽，标题固定留112；修正仅覆盖搜索行，遗漏首页复用卡片。
@@ -56,7 +74,7 @@
 
 早期执行完整 interaction 用例时，旧峰值门禁出现5.000ms失败，早于新增布局断言；原始日志保留，不放宽预算。布局回归移至已有独立 UI 集成用例，完整验证结果另记收尾。
 
-修复后 `python tests/run.py --report analyze/runtime-equivalence-20260913/full-tests.json` 全量89/89通过；`wowdoc validate` Host共43个Lua文件有效、无诊断；`git diff --check`通过。
+最终修复后全量89/89通过，报告为 `analyze/runtime-equivalence-20260913/full-show-final.json`；`wowdoc validate` Host共43个Lua文件有效、无诊断（`wowdoc-show-final.json`）；`git diff --check`通过。前两次修复的全量报告也保留，不覆盖失败证据。
 
 接口证据：`sourceId=wow-ui-source`、`product=retail`、`requestedRef=12.1.0`、`resolvedCommit=8ea15b61e45c0ed4eba01439c90757f86eb78d34`。`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua`：339行 `GetStringWidth` 返回 uiUnit；580行 `SetMaxLines(maxLines:number)`；590行 `SetNonSpaceWrap(wrap:bool)`；720行 `SetWordWrap(wrap:bool)`。测量接口同版本 `PerformanceDocumentation.lua` 94行 `UpdateAddOnMemoryUsage`；`Blizzard_AddOnList/AddonList.lua` 761–770行明确注明刷新昂贵且不可放 OnUpdate。完整摘录见本地对应JSON证据。
 
