@@ -300,7 +300,6 @@ function Settings:Create(parent, controller)
             for index=#data,count+1,-1 do data[index]=nil end
             table.sort(data,function(a,b) if a.order~=b.order then return a.order<b.order end;return a.id<b.id end)
         else
-            I.UserPreferences:MigratePins()
             for index,pin in ipairs(I.UserPreferences:GetPins()) do
                 count=count+1
                 local record=data[count] or {};data[count]=record

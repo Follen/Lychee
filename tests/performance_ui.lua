@@ -50,7 +50,6 @@ for i=1,30 do pins[i]={entryID=tostring(i),title="Pin "..i} end
 LycheeInternal={Providers={entries={}},Registry={entries={}},UserPreferences={}}
 local I=LycheeInternal
 local mutations=0
-function I.UserPreferences:MigratePins() end
 function I.UserPreferences:GetPins() return pins end
 function I.UserPreferences:Resolve(pin) resolves=resolves+1;return {text=pin.title,icon=1,sourceTitle="Source"} end
 function I.UserPreferences:Move(from,to)

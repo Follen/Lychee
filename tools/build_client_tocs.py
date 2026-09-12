@@ -89,6 +89,7 @@ def render(manifest, product):
         '## Author: Lychee',
         f'## Version: {manifest["version"]}',
         '## SavedVariables: LycheeDB',
+        '## SavedVariablesPerCharacter: LycheeCharacterDB',
         '## Bindings: Bindings.xml',
         '',
     ]

@@ -501,7 +501,7 @@ assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()
 assert(LycheeDB and LycheeDB.palette and LycheeDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
-assert(LycheeDB.palette.pinned[1].entryID == actionItem.id and LycheeDB.palette.pinned[1].providerID == actionItem.ref.providerID, "pinned stores qualified stable ref")
+assert(LycheeCharacterDB.pinned[1].entryID == actionItem.id and LycheeCharacterDB.pinned[1].providerID == actionItem.ref.providerID, "pinned stores qualified stable ref")
 local hasRecent = false
 for sectionIndex = 1, #(palette.homeView.sections or {}) do
     local section = palette.homeView.sections[sectionIndex]
@@ -1223,7 +1223,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     local savedTimers=C_Timer; C_Timer=nil
     local controller=Lychee.UI.Palette
     local prefs=I.UserPreferences
-    LycheeDB.palette.pinned={};LycheeDB.palette.recent={}
+    LycheeCharacterDB.pinned={};LycheeDB.palette.recent={}
     local source=assert(Lychee:RegisterProvider({id="settings.fixture",apiVersion=2,version="1.0.0",title="设置测试来源",
         entries={{id="a",title="设置固定甲",icon=123,actions={"open"}},{id="b",title="设置固定乙",icon=456,actions={"open"}}},
         actions={open={title="打开",run=function() return {ok=true} end}}}))
@@ -1348,7 +1348,7 @@ do
         entries={record("static")},
         query=function(_,reply) reply({record("first"),record("last")}) end,
         resolve=function(id) return record(id) end}))
-    LycheeDB.palette.pinned={}
+    LycheeCharacterDB.pinned={}
     LycheeDB.palette.recent={
         {providerID="recent.dynamic",entryID="first"},
         {providerID="recent.dynamic",entryID="static"},
@@ -1356,7 +1356,7 @@ do
     }
     controller.input:SetText("");assert(controller:Show())
     local function assertHome(label)
-        local expected=3+#LycheeDB.palette.pinned
+        local expected=3+#LycheeCharacterDB.pinned
         assert(#controller.homeView.sections==expected,label..": expected all saved entries")
         for i=1,expected do
             local tile=controller.homeView.tiles[i]
@@ -1374,7 +1374,7 @@ do
     local first=assert(I.Providers:Resolve(ref))
     local second=assert(I.Providers:Resolve(ref))
     assert(I.Providers:IsCurrent(first) and I.Providers:IsCurrent(second),"resolving one ID must not invalidate another live snapshot")
-    LycheeDB.palette.pinned={ref}
+    LycheeCharacterDB.pinned={ref}
     controller:MarkHomeDirty();assertHome("pin and recent share identity")
     collectgarbage("collect");assertHome("GC keeps visible identities")
     local frames=createdFrames

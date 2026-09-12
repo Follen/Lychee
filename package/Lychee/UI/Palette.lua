@@ -764,7 +764,6 @@ function Palette:RefreshHomeSections(allowExpand)
     local query = internal and internal.Search and internal.Search.Query
     local preferences = I.UserPreferences
     if preferences then
-        preferences:MigratePins()
         for index, pin in ipairs(preferences:GetPins()) do
             local item = preferences:Resolve(pin)
             local title = type(pin) == "table" and (pin.title or pin.entryID) or tostring(pin)

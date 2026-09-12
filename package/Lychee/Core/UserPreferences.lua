@@ -3,9 +3,13 @@ local Preferences = {}
 I.UserPreferences = Preferences
 
 local function db()
-    LycheeDB = LycheeDB or {}
-    LycheeDB.palette = type(LycheeDB.palette) == "table" and LycheeDB.palette or {}
-    local saved = LycheeDB.palette
+    -- Legacy pins have no character owner. Discard them rather than importing
+    -- another class's actions into whichever character logs in first.
+    if type(LycheeDB)=="table" and type(LycheeDB.palette)=="table" then
+        LycheeDB.palette.pinned=nil
+    end
+    LycheeCharacterDB = type(LycheeCharacterDB)=="table" and LycheeCharacterDB or {}
+    local saved = LycheeCharacterDB
     saved.pinned = type(saved.pinned) == "table" and saved.pinned or {}
     return saved
 end
@@ -13,6 +17,7 @@ local function matches(left, right)
     return type(left) == "table" and type(right) == "table"
         and left.providerID == right.providerID and left.entryID == right.entryID
 end
+function Preferences:Initialize() db() end
 function Preferences:GetPins() return db().pinned end
 function Preferences:CanPin(item)
     return item and item.ref and item.ref.providerID ~= "lychee.settings"
@@ -53,23 +58,4 @@ end
 function Preferences:Resolve(pin)
     if type(pin) ~= "table" then return nil end
     return I.Providers and I.Providers:Resolve(pin, I.Context and I.Context:Snapshot() or {})
-end
-
--- Old experimental pins only stored an unqualified record ID. Migrate only
--- unambiguous matches, preserving unresolved values for removal in settings.
-function Preferences:MigratePins()
-    local pins = self:GetPins()
-    for index, pin in ipairs(pins) do
-        if type(pin) == "string" then
-            local candidate, ambiguous
-            for providerID, provider in pairs(I.Providers and I.Providers.entries or {}) do
-                local record = provider.recordMap and provider.recordMap[pin]
-                if record then
-                    if candidate then ambiguous = true; break end
-                    candidate = {providerID=providerID, entryID=pin, title=record.title, icon=record.icon}
-                end
-            end
-            if candidate and not ambiguous then pins[index] = candidate end
-        end
-    end
 end

@@ -8,6 +8,7 @@
 ## Author: Lychee
 ## Version: 0.2.0
 ## SavedVariables: LycheeDB
+## SavedVariablesPerCharacter: LycheeCharacterDB
 ## Bindings: Bindings.xml
 
 Bootstrap.lua

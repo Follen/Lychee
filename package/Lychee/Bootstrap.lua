@@ -56,6 +56,7 @@ local function wireRegistryLifecycle()
 end
 
 local function onLogin()
+    if I.UserPreferences then I.UserPreferences:Initialize() end
     if type(GetBindingKey)=="function" and type(GetBindingAction)=="function" and type(SetBinding)=="function" and type(SaveBindings)=="function" and type(GetCurrentBindingSet)=="function" and not LycheeDB.defaultBindingAttempted and not (InCombatLockdown and InCombatLockdown()) then
         LycheeDB.defaultBindingAttempted = true
         local existingAction = GetBindingAction("ALT-SPACE")

@@ -59,6 +59,8 @@ $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
+    & $lua.Source 'tests/character_pins.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Character pin isolation checks failed' }
     & python 'tools/build_client_tocs.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Client TOC generation drift' }
     & python 'tests/client_manifest.py'

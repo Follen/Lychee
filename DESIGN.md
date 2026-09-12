@@ -189,6 +189,8 @@ Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用同�
 
 定义和业务状态分开。页面持有实例，卸载先使旧代次失效；组件清理幂等且允许重新挂载。不宣称 Hide/Release 能销毁 WoW Frame。SDK 自定义面板的 create→Mount→Update→Unmount→Dispose 顺序保留，缓存归 Provider 所有。完整接口、属性和示例见 `lychee-sdk/UI_LIBRARY.md`。
 
+固定项按角色独立保存：每个角色拥有自己的列表、顺序和删除／撤销状态，上限64项。使用游戏原生角色保存库；旧账号共用固定数据直接清空，不迁移到当前角色。
+
 ## 交互动效
 
 **打开和关闭都必须有明显、连续的空间运动感。** 整个圆角面板被唤起、停稳和收回：背景、输入框、正文和底栏共用运动根节点，始终保持相对位置。文字随面板平移，但不缩放、不单独挪动，不用逐行排队动画。曲线和参数集中在 `UI/Presence.lua` 的 `Motion.Presets.palette`，由统一开关通道消费。

@@ -110,7 +110,7 @@ onEnable(handle) 可返回清理函数；禁用/注销调用一次。SDK 还提�
 
 不新增 OnUpdate 或空闲轮询。查询等待时才有 deadline timer，来源变化时才有一次合并刷新 timer。静态目录最多 4096 条，动态回复最多 256 条，最终列表最多 20 条；每条最多 16 个动作。同步业务回调应快速返回，重工作由集成方使用游戏事件或异步完成。
 
-SavedVariables schema 2 保存来源开关、最小身份历史和固定项的展示占位。搜索索引、动作 payload、回调和 frame 不持久化。旧 schema 不采用；schema 2 内早期实验性字符串固定 ID 仅在来源归属唯一时转为 provider/entry 引用，否则保留为可移除的占位。
+账号级SavedVariables `LycheeDB` schema 2保存来源开关和最小身份历史。固定项单独存放在游戏原生SavedVariablesPerCharacter `LycheeCharacterDB.pinned`，每角色最多64项；身份、排序、移除和撤销都只作用于当前角色。首次加载直接丢弃无角色归属的旧`LycheeDB.palette.pinned`，不迁移或猜测所属角色。搜索索引、动作payload、回调和frame不持久化。
 
 `UserPreferences` 管理固定引用和顺序，`SettingsView` 复用来源/固定行。设置页打开时暂停搜索会话并释放安全覆盖层；返回恢复搜索。用户开关与 Provider 自身开关由 Registry 合并为有效启用状态，保留原有启动/停止生命周期。来源关闭不删除固定记录，首页刷新时重新解析当前引用。
 

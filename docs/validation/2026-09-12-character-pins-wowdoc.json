@@ -1,0 +1,53 @@
+{
+  "sourceId": "wow-ui-source",
+  "product": "retail",
+  "requestedRef": "latest",
+  "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+  "results": [
+    {
+      "kind": "toc",
+      "name": "SavedVariablesPerCharacter",
+      "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Blizzard_AuctionHouseUI_Classic.toc",
+      "matchedBy": "exact_fact",
+      "role": "project",
+      "excerpt": "3: ## Secure: 1\n4: ## LoadOnDemand: 1\n5: ## SavedVariables: g_auctionHouseSortsBySearchContext\n6: ## SavedVariablesPerCharacter: g_auctionHouseFilters\n7: ## SavedVariablesPerCharacter: g_activeBidAuctionIDs\n8: ## Dependencies: Blizzard_HelpPlate\n9: ## AllowLoad: game",
+      "contentHash": "50768d5b6c1784fd7debf00b81f70919d069fe13dd983694cfe2aa99ff887095",
+      "line": 6,
+      "score": 90,
+      "scoreParts": {
+        "match": 90,
+        "rolePenalty": 0
+      }
+    },
+    {
+      "kind": "toc",
+      "name": "SavedVariablesPerCharacter",
+      "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Blizzard_AuctionHouseUI_Classic.toc",
+      "matchedBy": "exact_fact",
+      "role": "project",
+      "excerpt": "4: ## LoadOnDemand: 1\n5: ## SavedVariables: g_auctionHouseSortsBySearchContext\n6: ## SavedVariablesPerCharacter: g_auctionHouseFilters\n7: ## SavedVariablesPerCharacter: g_activeBidAuctionIDs\n8: ## Dependencies: Blizzard_HelpPlate\n9: ## AllowLoad: game\n10: ## AllowLoadGameType: cata, mists",
+      "contentHash": "50768d5b6c1784fd7debf00b81f70919d069fe13dd983694cfe2aa99ff887095",
+      "line": 7,
+      "score": 90,
+      "scoreParts": {
+        "match": 90,
+        "rolePenalty": 0
+      }
+    },
+    {
+      "kind": "toc",
+      "name": "SavedVariablesPerCharacter",
+      "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Blizzard_AuctionHouseUI_Mainline.toc",
+      "matchedBy": "exact_fact",
+      "role": "project",
+      "excerpt": "3: ## Secure: 1\n4: ## LoadOnDemand: 1\n5: ## SavedVariables: g_auctionHouseSortsBySearchContext\n6: ## SavedVariablesPerCharacter: g_auctionHouseFilters\n7: ## SavedVariablesPerCharacter: g_activeBidAuctionIDs\n8: ## Dependencies: Blizzard_Colors, Blizzard_HelpPlate, Blizzard_ManagedFrameSystem\n9: ## AllowLoad: game",
+      "contentHash": "d2dca32bd33a4714b8272f1940bae06bf35b05f2947d195ea0ad6e8667aa53c2",
+      "line": 6,
+      "score": 90,
+      "scoreParts": {
+        "match": 90,
+        "rolePenalty": 0
+      }
+    }
+  ]
+}
