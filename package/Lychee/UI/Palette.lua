@@ -58,9 +58,7 @@ local function tint(fontString, value)
 end
 
 local function paletteDB()
-    LycheeDB = LycheeDB or {}
-    LycheeDB.palette = LycheeDB.palette or {}
-    local db = LycheeDB.palette
+    local db = I.CharacterStore:Palette()
     db.recent = type(db.recent) == "table" and db.recent or {}
     db.pinned = type(db.pinned) == "table" and db.pinned or {}
     return db
@@ -437,6 +435,16 @@ local function createHomeView(parent, controller)
         end
         for index = 1, #self.tiles do self:RenderTileState(self.tiles[index]) end
         self:RefreshScrollRect()
+    end
+
+    function view:ReleaseBindings()
+        self.sections = {}
+        local executor = I.ResultActionExecutor
+        for _,tile in ipairs(self.tiles) do
+            tile.section,tile.item,tile.index,tile._hovered=nil,nil,nil,nil
+            tile.session,tile.generation,tile.extensionID=nil,nil,nil
+            if executor then executor:ConfigureDragTarget(tile,nil) end
+        end
     end
 
     view:EnsureCapacity(HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE)
@@ -1079,6 +1087,7 @@ function Palette:FinishHide(reason)
     if reason == "combat" then self.focus:Clear(); self.focus.previous = nil else self.focus:Restore() end
     self.input:ClearFocus(); self.input:Hide()
     self.frame:Hide()
+    if self.homeView then self.homeView:ReleaseBindings(); self.homeDirty=true end
     return true
 end
 function Palette:Toggle()

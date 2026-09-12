@@ -98,7 +98,7 @@ GameTooltip = tooltip
 
 local frameFactory=CreateFrame
 CreateFrame=nil
-dofile("package/Lychee/Bootstrap.lua")
+dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
 CreateFrame=frameFactory
 dofile("package/Lychee/UI/Theme.lua")
 dofile("package/Lychee/UI/Runtime.lua")

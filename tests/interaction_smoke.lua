@@ -116,7 +116,7 @@ end
 
 local root = "package/Lychee/"
 local files = {
-    "Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua","Search/ProviderPolicy.lua", "Search/StaticIndex.lua",
+    "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua","Search/ProviderPolicy.lua", "Search/StaticIndex.lua",
     "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
     "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
     "Core/UserPreferences.lua","Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
@@ -500,7 +500,7 @@ assertEq(actionRow.primaryHint:GetText(), "", "primary action title stays in too
 assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()
-assert(LycheeDB and LycheeDB.palette and LycheeDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
+assert(LycheeDB and LycheeCharacterDB.palette and LycheeCharacterDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
 assert(LycheeCharacterDB.pinned[1].entryID == actionItem.id and LycheeCharacterDB.pinned[1].providerID == actionItem.ref.providerID, "pinned stores qualified stable ref")
 local hasRecent = false
 for sectionIndex = 1, #(palette.homeView.sections or {}) do
@@ -839,7 +839,7 @@ assert(palette.visible and launcherButton.busy and launcherButton:IsShown(), "fa
 launcherButton.scripts.PreClick(launcherButton)
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED", 31884))
 assert(not palette.visible and not palette.frame:IsShown(), "successful spell closes launcher")
-assertEq(LycheeDB.palette.recent[1].entryID, clickedID, "successful spell records stable recent ID")
+assertEq(LycheeCharacterDB.palette.recent[1].entryID, clickedID, "successful spell records stable recent ID")
 assert(palette:Show())
 assertEq(palette.input:GetText(), "", "reopening clears previous query")
 assert(palette:IsHomeVisible(), "reopening returns to recent homepage")
@@ -940,7 +940,7 @@ palette.list:ShowTooltip(panelRow)
 local panelTooltip = tooltipText()
 assert(panelTooltip:find("打开面板", 1, true) and panelTooltip:find("拖动", 1, true), "tooltip describes provider primary and drag")
 local mixedItems = { castRow.item, panelRow.item, commandRow.item }
-LycheeDB.palette.recent = {}
+LycheeCharacterDB.palette.recent = {}
 for index = 1, #mixedItems do palette:TouchRecent(mixedItems[index]) end
 typeQuery("")
 assertEq(#palette.homeView.sections, 3, "recent mixes spells, panels and commands")
@@ -970,7 +970,7 @@ palette:CloseView("mixed-panel")
 local commandTile = findEntry(palette.homeView.tiles, "mixed:command")
 commandTile.scripts.OnClick(commandTile)
 assertEq(mixedRuns, 1, "recent click runs the provider command")
-assertEq(LycheeDB.palette.recent[1].entryID, "mixed:command", "successful ordinary action updates recency")
+assertEq(LycheeCharacterDB.palette.recent[1].entryID, "mixed:command", "successful ordinary action updates recency")
 assert(mixedHandle:Unregister())
 -- The distributable API 2 fixture must work through real Host rendering/view code.
 dofile("lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua")
@@ -1056,7 +1056,7 @@ secureMenuButton.scripts.OnMouseDown(secureMenuButton, "RightButton")
 assertEq(#menuEntries, 5, "secure overlay exposes the same actions, alias and pin")
 assert(not secureMenuButton.pendingCast, "right-button menu does not initiate a protected cast")
 assert(menuEntries[2].callback() and menuRan==1)
-LycheeDB.palette.recent={}
+LycheeCharacterDB.palette.recent={}
 local preparedSecondary=(function()
     local original, calls = IsPlayerSpell, 0
     IsPlayerSpell = function(id) calls = calls + 1; return original(id) end
@@ -1066,14 +1066,14 @@ local preparedSecondary=(function()
     assert(calls == 1, "secondary preparation checks spell availability once")
     return result
 end)()
-assert(preparedSecondary.awaitingHardwareClick and #LycheeDB.palette.recent==0, "arming a secure action is not successful execution")
+assert(preparedSecondary.awaitingHardwareClick and #LycheeCharacterDB.palette.recent==0, "arming a secure action is not successful execution")
 assert(secureMenuButton:GetParent()==secureMenuRow and secureMenuButton.armedSecondary, "secondary secure action covers the correct row")
 assert(palette.status:GetText():find("次要施放",1,true), "status names the prepared action")
 secureMenuButton.scripts.OnEnter(secureMenuButton)
 assert(Lychee.UI.ResultList.tooltip.labels[1]:GetText():find("次要施放",1,true), "armed tooltip describes the actual next action")
 secureMenuButton.scripts.PreClick(secureMenuButton)
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",31884))
-assertEq(LycheeDB.palette.recent[1].entryID,"secure-menu","successful cast records recency")
+assertEq(LycheeCharacterDB.palette.recent[1].entryID,"secure-menu","successful cast records recency")
 assertEq(#secureBroker.active,0,"released secure buttons leave no active references")
 palette:Hide("menu-done")
 assert(secureMenuProvider:Unregister())
@@ -1112,18 +1112,18 @@ mountButton.scripts.PostClick(mountButton, "LeftButton")
 assertEq(mountSummoned,77,"mount click invokes the native collection summon API")
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_FAILED",90077) and palette.visible, "failed summon keeps search open")
 ;(function()
-    local summon, recentCount = C_MountJournal.SummonByID, #LycheeDB.palette.recent
+    local summon, recentCount = C_MountJournal.SummonByID, #LycheeCharacterDB.palette.recent
     C_MountJournal.SummonByID = function() error("summon rejected") end
     mountButton.scripts.PreClick(mountButton)
     mountButton.scripts.PostClick(mountButton, "LeftButton")
     assert(not mountButton.pendingCast and palette.visible, "summon API failure clears pending state without closing")
-    assert(#LycheeDB.palette.recent == recentCount, "rejected summon is not recorded as success")
+    assert(#LycheeCharacterDB.palette.recent == recentCount, "rejected summon is not recorded as success")
     C_MountJournal.SummonByID = summon
 end)()
 mountButton.scripts.PreClick(mountButton)
 mountButton.scripts.PostClick(mountButton, "LeftButton")
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",90077))
-assert(not palette.visible and LycheeDB.palette.recent[1].entryID=="mount:77")
+assert(not palette.visible and LycheeCharacterDB.palette.recent[1].entryID=="mount:77")
 assert(palette:Show())
 local mountTile=findEntry(palette.homeView.tiles,"mount:77")
 mountPicked=nil
@@ -1181,8 +1181,8 @@ local motion=Lychee.UI.Motion
 local function finishPresence()
     if motion.presence then motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,1) end
 end
-local reduced=LycheeDB.palette.reduceMotion
-LycheeDB.palette.reduceMotion=false
+local reduced=LycheeCharacterDB.palette.reduceMotion
+LycheeCharacterDB.palette.reduceMotion=false
 palette:Show();palette.input:ClearFocus()
 for tick=1,8 do
     motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
@@ -1232,7 +1232,7 @@ palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen 
 palette:Hide("animation-test");finishPresence()
 palette.frame.CreateAnimationGroup=oldAnimation
 palette.frame.SetScale=oldScale
-LycheeDB.palette.reduceMotion=reduced
+LycheeCharacterDB.palette.reduceMotion=reduced
 local calls, originals = 0, {}
 for index, button in ipairs(secureBroker.buttons) do
     originals[index] = button.SetAttribute
@@ -1249,7 +1249,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     local savedTimers=C_Timer; C_Timer=nil
     local controller=Lychee.UI.Palette
     local prefs=I.UserPreferences
-    LycheeCharacterDB.pinned={};LycheeDB.palette.recent={}
+    LycheeCharacterDB.pinned={};LycheeCharacterDB.palette.recent={}
     local source=assert(Lychee:RegisterProvider({id="settings.fixture",apiVersion=2,version="1.0.0",title="设置测试来源",
         entries={{id="a",title="设置固定甲",icon=123,actions={"open"}},{id="b",title="设置固定乙",icon=456,actions={"open"}}},
         actions={open={title="打开",run=function() return {ok=true} end}}}))
@@ -1375,7 +1375,7 @@ do
         query=function(_,reply) reply({record("first"),record("last")}) end,
         resolve=function(id) return record(id) end}))
     LycheeCharacterDB.pinned={}
-    LycheeDB.palette.recent={
+    LycheeCharacterDB.palette.recent={
         {providerID="recent.dynamic",entryID="first"},
         {providerID="recent.dynamic",entryID="static"},
         {providerID="recent.dynamic",entryID="last"},
@@ -1396,7 +1396,7 @@ do
         controller.input.frame.scripts.OnTextChanged(controller.input.frame,true)
     end
     assertHome("backspace to empty")
-    local ref=LycheeDB.palette.recent[1]
+    local ref=LycheeCharacterDB.palette.recent[1]
     local first=assert(I.Providers:Resolve(ref))
     local second=assert(I.Providers:Resolve(ref))
     assert(I.Providers:IsCurrent(first) and I.Providers:IsCurrent(second),"resolving one ID must not invalidate another live snapshot")
@@ -1617,5 +1617,13 @@ do
     for index=1,100 do input.scripts.OnEditFocusGained();input.scripts.OnEditFocusLost() end
     assert(createdFrames==count and not input.scripts.OnUpdate,"field focus has no new frames or driver")
     print("Form field lifecycle PASS: focus, invalid, correction, hide, reuse")
+    local p=I.Host.PaletteController
+    p:Show();p:Hide("release-test");p:FinishHide("release-test")
+    assert(#p.homeView.sections==0 and p.homeDirty,"closed home releases resolved sections")
+    for _,tile in ipairs(p.homeView.tiles) do assert(tile.item==nil and tile.section==nil and tile.extensionID==nil,"hidden tile releases business identity") end
+    local framesBefore=createdFrames
+    p:Show();p:Hide("release-test");p:FinishHide("release-test")
+    assert(createdFrames==framesBefore,"reopening after release reuses native structures")
+    print("Home binding release PASS: no retained section/item identity, native pool reused")
 end
 end)()

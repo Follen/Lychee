@@ -1,0 +1,7 @@
+provider run=1 directory=500 single_updates=100 ms=4.000 allocated_kib=299.285
+provider run=2 directory=500 single_updates=100 ms=4.000 allocated_kib=274.873
+provider run=3 directory=500 single_updates=100 ms=4.000 allocated_kib=272.998
+provider run=4 directory=500 single_updates=100 ms=4.000 allocated_kib=272.998
+provider run=5 directory=500 single_updates=100 ms=3.000 allocated_kib=272.998
+provider pending jobs after 200 searches=1
+perf_core_provider regression passed

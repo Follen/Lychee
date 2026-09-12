@@ -23,8 +23,7 @@ local function safeTitle(value,fallback)
     return value:sub(1,boundary-1)
 end
 function P:Data()
-    LycheeDB=LycheeDB or {};LycheeDB.palette=type(LycheeDB.palette)=="table" and LycheeDB.palette or {}
-    local saved=LycheeDB.palette
+    local saved=I.CharacterStore:Palette()
     if self.owner==saved then return self.data end
     local old=type(saved.searchPersonalization)=="table" and saved.searchPersonalization or {}
     local clean={aliases={},choices={}}

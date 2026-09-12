@@ -3,7 +3,9 @@ local Motion = {groups={}, limit=96, durations={enter=0.44, exit=0.32, page=0.14
 UI.Motion=Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 function Motion:IsReduced()
-    return LycheeDB and LycheeDB.palette and LycheeDB.palette.reduceMotion==true
+    local store = _G.LycheeInternal and _G.LycheeInternal.CharacterStore
+    if store then return store:Palette().reduceMotion==true end
+    return self.reduced==true
 end
 function Motion:Cancel(region,settle)
     if self.brandState and self.brandState.region==region then self:StopBrand() end
@@ -228,8 +230,8 @@ function Motion:StopAll(except)
     for _,state in ipairs(self.groups) do if state.region~=except then self:Cancel(state.region,true) end end
 end
 function Motion:SetReduced(reduced)
-    LycheeDB.palette=LycheeDB.palette or {}
-    LycheeDB.palette.reduceMotion=reduced==true
+    local store = _G.LycheeInternal and _G.LycheeInternal.CharacterStore
+    if store then store:Palette().reduceMotion=reduced==true else self.reduced=reduced==true end
     self:StopBrand()
     self:StopHeight(true)
     self:StopPresence(true,true)

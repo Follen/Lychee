@@ -1,5 +1,7 @@
 # Lychee 通用搜索框架
 
+运行时低内存重构另见 [角色存储与生命周期设计](architecture/2026-09-12-runtime-lifecycle.md)。它覆盖插件、SDK、构建和验收；以下描述已实现架构；保留紧凑目录，不包含全量休眠或伴随包。
+
 当前契约：Provider API 2.6 / revision 6。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
 
 Provider 可声明 `searchable=false` 保留目录与引用能力，同时退出通用搜索索引；独立 query 控制触发范围。该策略由 Host 通用协议处理，查询引擎不判断具体 Provider ID。省略声明保持旧行为。
@@ -110,7 +112,7 @@ onEnable(handle) 可返回清理函数；禁用/注销调用一次。SDK 还提�
 
 不新增 OnUpdate 或空闲轮询。查询等待时才有 deadline timer，来源变化时才有一次合并刷新 timer。静态目录最多 4096 条，动态回复最多 256 条，最终列表最多 20 条；每条最多 16 个动作。同步业务回调应快速返回，重工作由集成方使用游戏事件或异步完成。
 
-账号级SavedVariables `LycheeDB` schema 2保存来源开关和最小身份历史。固定项单独存放在游戏原生SavedVariablesPerCharacter `LycheeCharacterDB.pinned`，每角色最多64项；身份、排序、移除和撤销都只作用于当前角色。首次加载直接丢弃无角色归属的旧`LycheeDB.palette.pinned`，不迁移或猜测所属角色。搜索索引、动作payload、回调和frame不持久化。
+游戏原生 SavedVariablesPerCharacter `LycheeCharacterDB` 保存所有当前角色设置：palette、来源开关、固定、历史、别名、搜索偏好及紧凑成就缓存；统一由 Core/CharacterStore 访问。旧账号面板设置只转移到升级角色一次，原有角色字段优先；账号自动禁用不作为角色默认。固定最多64项。搜索索引、动作payload、回调和Frame不持久化。
 
 `UserPreferences` 管理固定引用和顺序，`SettingsView` 复用来源/固定行。设置页打开时暂停搜索会话并释放安全覆盖层；返回恢复搜索。用户开关与 Provider 自身开关由 Registry 合并为有效启用状态，保留原有启动/停止生命周期。来源关闭不删除固定记录，首页刷新时重新解析当前引用。
 

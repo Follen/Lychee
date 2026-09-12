@@ -56,9 +56,11 @@ local function wireRegistryLifecycle()
 end
 
 local function onLogin()
+    I.CharacterStore:Initialize()
     if I.UserPreferences then I.UserPreferences:Initialize() end
-    if type(GetBindingKey)=="function" and type(GetBindingAction)=="function" and type(SetBinding)=="function" and type(SaveBindings)=="function" and type(GetCurrentBindingSet)=="function" and not LycheeDB.defaultBindingAttempted and not (InCombatLockdown and InCombatLockdown()) then
-        LycheeDB.defaultBindingAttempted = true
+    local settings = I.CharacterStore:Data()
+    if type(GetBindingKey)=="function" and type(GetBindingAction)=="function" and type(SetBinding)=="function" and type(SaveBindings)=="function" and type(GetCurrentBindingSet)=="function" and not settings.defaultBindingAttempted and not (InCombatLockdown and InCombatLockdown()) then
+        settings.defaultBindingAttempted = true
         local existingAction = GetBindingAction("ALT-SPACE")
         if not GetBindingKey("TOGGLELYCHEE") and (existingAction == nil or existingAction == "") then
             SetBinding("ALT-SPACE", "TOGGLELYCHEE")

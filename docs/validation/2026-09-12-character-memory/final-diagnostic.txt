@@ -1,0 +1,5 @@
+D:\Code\wow\addons\Lychee\analyze\performance-test-package\Lychee Performance Test: 61 files, 509345 bytes; entry 167 ASCII bytes. NOT INSTALLED.
+Native bridge: inherited raw lookup fails / real-environment bridge succeeds / return values and globals preserved / bounded errors PASS (simulation; client comparison pending)
+Baseline gate: complete fixture passes; provider/error/empty-key/missing-round/query/option/UI/cleanup/memory/equivalence/native/abort failures rejected PASS
+Center status: no load-time UI / running+complete+cancel+timeout+blocked / reuse / no extra timers PASS
+60 Lua syntax checks + independent saved report JSON reader + manifest PASS

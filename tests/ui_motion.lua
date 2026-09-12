@@ -1,5 +1,6 @@
 -- Native animation boundary simulator: engine interpolation is not a game FPS test.
-Lychee={UI={}};LycheeDB={palette={}}
+Lychee={UI={}};LycheeCharacterDB={palette={}}
+LycheeInternal={};dofile("package/Lychee/Core/CharacterStore.lua")
 local frames,groups,combat=0,0,false
 function InCombatLockdown() return combat end
 local methods={}
@@ -135,7 +136,7 @@ Lychee.UI.ResultList={HideTooltip=function() end}
 dofile("package/Lychee/Search/Normalizer.lua")
 local createFrameForMotion=CreateFrame
 CreateFrame=nil
-dofile("package/Lychee/Bootstrap.lua")
+dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
 CreateFrame=createFrameForMotion
 dofile("package/Lychee/UI/Palette.lua")
 function methods:RegisterEvent() end

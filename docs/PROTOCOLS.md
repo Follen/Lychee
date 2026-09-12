@@ -1,5 +1,7 @@
 # Provider API 2 协议参考
 
+本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](../lychee-sdk/RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+
 Host 版本：API_VERSION=2，API_REVISION=6。SDK helper 和 LuaLS 类型均使用本协议。兼容 API 2 revision 1/2/3/4/5；SavedVariables schema 本次不变。
 
 ## 公共 facade

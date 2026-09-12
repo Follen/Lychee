@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $toc = Join-Path $root 'package/Lychee/Lychee.toc'
 $tocLines = Get-Content $toc | Where-Object { $_ -and $_ -notmatch '^##' }
@@ -59,6 +59,8 @@ $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
+    & $lua.Source 'tests/character_settings.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Character settings/defaults checks failed' }
     & $lua.Source 'tests/character_pins.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character pin isolation checks failed' }
     & python 'tools/build_client_tocs.py' '--check'
@@ -111,7 +113,7 @@ try {
     }
     & $lua.Source 'tests/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
-    foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','ui_runtime')) {
+    foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','provider_ingestion','ui_runtime')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
@@ -129,6 +131,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Built-in lifecycle budget failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/perf_builtin_secure_events.lua'
     if ($LASTEXITCODE -ne 0) { throw "Secure event lifecycle failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/provider_expansion.lua' '--defaults'
+    if ($LASTEXITCODE -ne 0) { throw 'Provider default activation failed' }
     & $lua.Source 'tests/provider_expansion.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/presence_geometry.lua'

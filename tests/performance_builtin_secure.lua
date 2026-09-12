@@ -41,7 +41,7 @@ function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Exclude the shared bootstrap frame from this isolated feature cost fixture.
 local featureCreateFrame=CreateFrame
 CreateFrame=nil
-dofile(root.."/".."Bootstrap.lua")
+dofile(root.."/".."Bootstrap.lua");dofile(root.."/Core/CharacterStore.lua")
 CreateFrame=featureCreateFrame
 dofile(root.."/".."Builtin/Definitions.lua")
 dofile(root.."/".."Builtin/Shared/Support.lua")

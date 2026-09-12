@@ -148,7 +148,7 @@ C_Timer={NewTimer=function(delay,fn)
     local t={fn=fn,delay=delay};function t:Cancel() self.cancelled=true end
     timers[#timers+1]=t;return t
 end}
-for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "UI/Theme.lua","UI/Runtime.lua","UI/Components.lua","UI/AddonInspector.lua","Builtin/AddonInspector/Picker.lua","Builtin/AddonInspector/Provider.lua"}) do dofile("package/Lychee/"..file) end
@@ -159,7 +159,7 @@ local parentless=frame(nil,"ParentUnavailable")
 assert(M:CheckFocus(parentless)==parentless,"absent AuraButtonTooltip global must not exclude objects with no readable parent")
 local beforeFrames,beforeRegions=frames,regions
 M:Init()
-assert(not M.enabled and not M.view and frames==beforeFrames and regions==beforeRegions and sourceReads==0)
+assert(M.enabled and not M.view and frames==beforeFrames and regions==beforeRegions and sourceReads==0,"default enabled without constructing picker")
 assert(I.Registry:SetUserEnabled(M.id,true))
 assert(M.enabled and not M.view and not M.timer and sourceReads==0,"enabled idle creates no picker")
 local _,results=I.Search.Query:Query("插件识别",{visible=true})

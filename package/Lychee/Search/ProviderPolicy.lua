@@ -17,8 +17,7 @@ local function prefixes(input,exact,allowEmpty)
     return out
 end
 function P:Data()
-    LycheeDB=LycheeDB or {};LycheeDB.palette=type(LycheeDB.palette)=="table" and LycheeDB.palette or {}
-    local owner=LycheeDB.palette
+    local owner=I.CharacterStore:Palette()
     if self.owner~=owner then
         local old=type(owner.providerSearch)=="table" and owner.providerSearch or {}
         local clean,seen={},{}

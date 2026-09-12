@@ -1,7 +1,7 @@
 local function runCase(existingKey, existingAction)
     _G = _G or {}
     _G.LycheeInternal = nil
-    LycheeDB = nil
+    LycheeDB = nil; LycheeCharacterDB = nil
 
     local setCalls = 0
     local saveCalls = 0
@@ -33,7 +33,7 @@ local function runCase(existingKey, existingAction)
         }
     end
 
-    dofile("package/Lychee/Bootstrap.lua")
+    dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
     _G.LycheeInternal.OnLogin()
 
     return setCalls, saveCalls

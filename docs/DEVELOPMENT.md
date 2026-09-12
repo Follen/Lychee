@@ -1,6 +1,8 @@
 # 开发与验证
 
-当前版本为 Lychee 0.2.0，Provider API 2 / revision 2。运行时唯一来源是 `package/Lychee`；第三方接入见 [SDK](SDK.md)，精确字段见 [协议](PROTOCOLS.md)。
+当前版本为 Lychee 0.2.0，Provider API 2 / revision 6。运行时唯一来源是 `package/Lychee`；第三方接入见 [SDK](SDK.md)，精确字段见 [协议](PROTOCOLS.md)。
+
+当前 [生命周期实施设计](architecture/2026-09-12-runtime-lifecycle.md) 与 [测试框架升级设计](../tests/LIFECYCLE_ACCEPTANCE.md) 定义本轮角色存储、接收校验和资源释放门禁。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
 
 ## 环境与目录
 

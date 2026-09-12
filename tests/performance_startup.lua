@@ -28,7 +28,7 @@ C_MountJournal = {
     GetMountIDs=function() local ids={}; for n=1,1500 do ids[n]=n end; return ids end,
     GetMountInfoByID=function(n) return mountNames[(n-1)%#mountNames+1]..n,100000+n,123456,false,true,1,false,false,nil,false,true,n end,
 }
-for _, path in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua", "Builtin/Shared/Support.lua", "Core/ProviderLocales.lua",
+for _, path in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua", "Builtin/Shared/Support.lua", "Core/ProviderLocales.lua",
     "Builtin/Crests/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Mounts/Locales.lua",
     "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
     "Search/ProviderPolicy.lua", "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",

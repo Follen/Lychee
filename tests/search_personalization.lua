@@ -4,7 +4,7 @@ function GetBuildInfo() return "12.1.0","12345","fixture",120100 end
 function InCombatLockdown() return false end
 function CreateFrame() return {RegisterEvent=function() end,SetScript=function() end,Hide=function() end,Show=function() end} end
 UIParent={}
-for _,file in ipairs({"Bootstrap.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
     "Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/ProviderPolicy.lua","Search/StaticIndex.lua",
     "Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
@@ -37,8 +37,8 @@ assert(#query("Common")==2,"alias and normal match are deduplicated")
 assert(P:SetAlias(rows[1].ref,"回家","Common Beta"))
 assert(handle:SetEnabled(false));assert(#query("回家")==0,"disabled provider not resurrected")
 assert(handle:SetEnabled(true));assert(#query("回家")==1)
-local saved=LycheeDB.palette.searchPersonalization
-LycheeDB={palette={searchPersonalization=saved}}
+local saved=LycheeCharacterDB.palette.searchPersonalization
+LycheeCharacterDB={palette={searchPersonalization=saved}}
 assert(#query("回家")==1,"reload migration retains valid aliases")
 local product=I.Search.RuntimeIdentity.Current
 I.Search.RuntimeIdentity.Current=function() return {product="other"} end
@@ -62,7 +62,7 @@ assert(H:Format("Hello","")=="Hello")
 assert(H:Format("|cff00ff00Mage|r","Mage")=="|cff00ff00Mage|r","preserve semantic colors")
 assert(handle:Unregister())
 -- Worst bounded overlay: 128 valid aliases share the same query, 20 resolves.
-LycheeDB={palette={}}
+LycheeCharacterDB={palette={}}
 local entries={}
 for index=1,128 do entries[index]={id=tostring(index),title="Performance "..index} end
 local perf=assert(Lychee:RegisterProvider({id="personal.perf",apiVersion=2,version="1.0.0",title="Perf",entries=entries}))
@@ -134,12 +134,12 @@ do
     assert(policy:SetConfiguration("combined.test",false,{"within"},{"showlist"}))
     assert(#query("Unique target")==0 and #query("inside:target")==0 and #query("openlist")==0)
     assert(#query("within:target")==1 and #query("showlist")==1)
-    local saved=LycheeDB.palette;LycheeDB={palette=saved};policy.owner=nil
+    local saved=LycheeCharacterDB.palette;LycheeCharacterDB={palette=saved};policy.owner=nil
     assert(not policy:Configuration("combined.test",definition("combined.test")) and #query("showlist")==1,"false survives saved migration")
     assert(not policy:SetConfiguration("combined.test",false,{},{}))
     assert(policy:SetConfiguration("combined.test",true,{},{}))
     assert(#query("Unique target")==1 and #query("within:target")==0 and #query("showlist")==0,"empty tables remove shortcuts")
-    LycheeDB={palette=LycheeDB.palette};policy.owner=nil;assert(#query("within:target")==0,"empty tables survive reload")
+    LycheeCharacterDB={palette=LycheeCharacterDB.palette};policy.owner=nil;assert(#query("within:target")==0,"empty tables survive reload")
     assert(policy:Set("combined.test",nil,nil,nil));assert(#query("inside:target")==1 and #query("openlist")==1)
     assert(handle:SetEnabled(false));assert(#query("openlist")==0)
     assert(handle:SetEnabled(true));assert(#query("openlist")==1)
@@ -173,7 +173,7 @@ do
     assert(#query("限定目标")==0 and #query("newprefix:目标")==1 and #query("scope:目标")==0)
     assert(not policy:Set("prefix.test","prefix",{"key"}))
     assert(policy:Set("prefix.test",nil,nil));assert(#query("scope:目标")==1)
-    local saved=LycheeDB.palette;LycheeDB={palette=saved};policy.owner=nil
+    local saved=LycheeCharacterDB.palette;LycheeCharacterDB={palette=saved};policy.owner=nil
     assert(#query("scope:目标")==1,"reload normalization retains declaration")
     assert(handle:SetEnabled(false));assert(#query("scope:目标")==0)
     assert(handle:SetEnabled(true));assert(#query("scope:目标")==1)
@@ -213,7 +213,7 @@ do
     end
     assert(policy:Set("keyword.test","keyword",nil,{"新的"}))
     assert(#query("触发")==0 and #query("新的")==2,"override replaces declaration trigger")
-    local saved=LycheeDB.palette;LycheeDB={palette=saved};policy.owner=nil
+    local saved=LycheeCharacterDB.palette;LycheeCharacterDB={palette=saved};policy.owner=nil
     assert(#query("新的")==2,"keyword overrides survive reload")
     assert(handle:SetEnabled(false));assert(#query("新的")==0)
     assert(handle:SetEnabled(true));assert(#query("新的")==2)
@@ -222,7 +222,7 @@ do
     assert(policy:Set("keyword.test","prefix",{"scoped"},nil));assert(#query("scoped:Changed")>=1 and #query("触发")==0)
     assert(policy:Set("keyword.test",nil,nil,nil));assert(#query("触发")==2 and #query("Changed dungeon")==0)
     assert(handle:Unregister());assert(#query("触发")==0)
-    LycheeDB={palette={providerSearch={{id="keyword.corrupt",mode="keyword",keywords={"bad:word"}}}}};policy.owner=nil
+    LycheeCharacterDB={palette={providerSearch={{id="keyword.corrupt",mode="keyword",keywords={"bad:word"}}}}};policy.owner=nil
     assert(#policy:Data()==0,"raw saved trigger input is revalidated")
     print("Keyword policy PASS: exact routing, no global work, revision, conflict, override, mode switch, reload, lifecycle")
 end

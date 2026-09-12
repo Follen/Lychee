@@ -3,13 +3,7 @@ local Preferences = {}
 I.UserPreferences = Preferences
 
 local function db()
-    -- Legacy pins have no character owner. Discard them rather than importing
-    -- another class's actions into whichever character logs in first.
-    if type(LycheeDB)=="table" and type(LycheeDB.palette)=="table" then
-        LycheeDB.palette.pinned=nil
-    end
-    LycheeCharacterDB = type(LycheeCharacterDB)=="table" and LycheeCharacterDB or {}
-    local saved = LycheeCharacterDB
+    local saved = I.CharacterStore:Data()
     saved.pinned = type(saved.pinned) == "table" and saved.pinned or {}
     return saved
 end

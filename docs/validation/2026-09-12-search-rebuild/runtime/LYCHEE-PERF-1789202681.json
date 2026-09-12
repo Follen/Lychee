@@ -1,0 +1,2303 @@
+{
+  "acquisition": {
+    "rounds": [
+      {
+        "acquireAndCaptureMs": 7.1614998579025,
+        "collectedVisible": 287,
+        "constructRecordsMs": 0.93189999461174,
+        "enumerated": 1672,
+        "listMs": 0.042899996042252,
+        "maxBatchMs": 0.24720001220703,
+        "measuredStagesMs": 8.1362998485565,
+        "recordHash": 1847840715,
+        "records": 287,
+        "recordsEqualFirst": true
+      },
+      {
+        "acquireAndCaptureMs": 6.7239000499249,
+        "collectedVisible": 287,
+        "constructRecordsMs": 0.8982999920845,
+        "enumerated": 1672,
+        "listMs": 0.041500002145767,
+        "maxBatchMs": 0.16319999098778,
+        "measuredStagesMs": 7.6637000441551,
+        "recordHash": 1847840715,
+        "records": 287,
+        "recordsEqualFirst": true
+      },
+      {
+        "acquireAndCaptureMs": 6.7779000401497,
+        "collectedVisible": 287,
+        "constructRecordsMs": 0.84259995818138,
+        "enumerated": 1672,
+        "listMs": 0.037499994039536,
+        "maxBatchMs": 0.17989999055862,
+        "measuredStagesMs": 7.6579999923706,
+        "recordHash": 1847840715,
+        "records": 287,
+        "recordsEqualFirst": true
+      }
+    ],
+    "scope": "Real mount API and temporary record construction; batches <=32 records, cooperative 4ms target. This warms mount API caches before Provider rounds."
+  },
+  "activity": {
+    "activeMs": 14593.563201219,
+    "calls": 10429,
+    "maxCallMs": 282.41800001264
+  },
+  "carrierRevision": "0.2.1-center-status",
+  "cleanupOK": true,
+  "client": {
+    "build": "69587",
+    "buildDate": "Aug 27 2026",
+    "interface": 120100,
+    "locale": "zhCN",
+    "version": "12.1.0"
+  },
+  "coverage": {
+    "builtin.achievements": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 0,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    },
+    "builtin.addon-inspector": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 1,
+      "mode": "SDK declaration and cleanup only; live frame picker interaction not run",
+      "privateMeasured": true
+    },
+    "builtin.bags": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 54,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    },
+    "builtin.blizzard-settings": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 325,
+      "mode": "fresh read of existing Blizzard category/layout declarations; no settings UI construction",
+      "privateMeasured": true
+    },
+    "builtin.bosses": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 1154,
+      "mode": "fresh expansion from shipped Chinese static catalog; no game API acquisition required",
+      "privateMeasured": true
+    },
+    "builtin.crests": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 1,
+      "mode": "SDK declaration only; native custom settings view not opened",
+      "privateMeasured": true
+    },
+    "builtin.ellesmere": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 0,
+      "mode": "normal upstream preparation reported separately; real emitted/existing option metadata replay; per-round option query/resolve verdict; unvisited pages not covered",
+      "privateMeasured": true
+    },
+    "builtin.equipment-sets": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 0,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    },
+    "builtin.exwind": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 0,
+      "mode": "fresh read of existing upstream declarations and static layouts; no build/action",
+      "privateMeasured": true
+    },
+    "builtin.game-menus": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 34,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    },
+    "builtin.great-vault": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 1,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    },
+    "builtin.keystones": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 1,
+      "mode": "current game API cache only; communication and refresh suppressed; no fresh peer replies",
+      "privateMeasured": true,
+      "providerError": "unable to find mixin or metatable (ColorMixin)"
+    },
+    "builtin.mounts": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 287,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    },
+    "builtin.player-spells": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 121,
+      "mode": "fresh spellbook read; missing description download requests suppressed",
+      "privateMeasured": true
+    },
+    "builtin.talent-loadouts": {
+      "dependencyAvailable": true,
+      "initializationOK": true,
+      "liveRecords": 1,
+      "mode": "fresh source function execution against current game APIs; native events simulated",
+      "privateMeasured": true
+    }
+  },
+  "dependencies": {
+    "blizzardSettingsDeclarations": true,
+    "ellesmereLoaded": true,
+    "ellesmerePresent": true,
+    "exwindPresent": true,
+    "exwindShell": true
+  },
+  "diagnosticStatusUI": {
+    "fontStrings": 2,
+    "frames": 1,
+    "scope": "Reusable inert overlay created before baseline; included in diagnostic addon counters"
+  },
+  "elapsedMs": 68401.528899997,
+  "ellesmerePreparation": {
+    "addonPresent": true,
+    "captureOverflow": false,
+    "closed": true,
+    "coreLoadedAfter": true,
+    "coreLoadedBefore": true,
+    "coreLoadedOrLoadingAfter": true,
+    "coreLoadedOrLoadingBefore": true,
+    "initializationMs": 91.920000016689,
+    "initializationRetained": true,
+    "loadedAfter": true,
+    "loadedBefore": false,
+    "newPermanentHook": false,
+    "optionsAvailable": 81,
+    "optionsCaptured": 81,
+    "optionsLoadedAfter": true,
+    "optionsLoadedBefore": false,
+    "optionsLoadedOrLoadingAfter": true,
+    "optionsLoadedOrLoadingBefore": false,
+    "page": "Main Frames",
+    "preparationWallMs": 897.42590001225,
+    "rect": [
+      274.00009155273,
+      -1.0000075101852,
+      1500,
+      1154
+    ],
+    "registrationRestored": true,
+    "scope": "Normal settings initialization and one existing/default page; no search prebuild, selectors, setters, installer or business actions",
+    "selectedModule": "EllesmereUIUnitFrames",
+    "showCallMs": 31.307399988174,
+    "shown": true,
+    "status": "complete",
+    "upstreamVersion": "9.1.8"
+  },
+  "geometryStable": true,
+  "id": "LYCHEE-PERF-1789202681",
+  "instructions": "Report in LycheePerformanceTestDB.reports[LYCHEE-PERF-1789202681]. /reload once after completion to flush. Independent SavedVariables; no Lychee Dev required.",
+  "integrationLimits": "Ellesmere normal settings initialization/page open measured separately; loaded code/native state retained; temporary registration observer restored; no global-search prebuild or business setters. Exwind reads existing declarations only.",
+  "lastPhase": "live_after_ui",
+  "liveAfter": {
+    "indexVersion": 53,
+    "providers": 16,
+    "records": 1981
+  },
+  "liveBefore": {
+    "indexVersion": 51,
+    "providers": 15,
+    "records": 1980
+  },
+  "liveBeforeUI": {
+    "indexVersion": 51,
+    "records": 1980,
+    "rootsUnchanged": true
+  },
+  "liveRootsUnchanged": true,
+  "maxResumeMs": 291.932099998,
+  "memory": {
+    "active_1": {
+      "accountingMs": 50.873400002718,
+      "afterGC": 363880.66992188,
+      "beforeGC": 391720.62597656,
+      "diagnosticAddonKiB": 14364.411132813,
+      "globalGCms": 122.32299998403,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "active_2": {
+      "accountingMs": 49.411300003529,
+      "afterGC": 364465.453125,
+      "beforeGC": 395037.77929688,
+      "diagnosticAddonKiB": 14401.401367188,
+      "globalGCms": 127.93659999967,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "active_3": {
+      "accountingMs": 52.533500015736,
+      "afterGC": 363821.42773438,
+      "beforeGC": 386268.13378906,
+      "diagnosticAddonKiB": 14129.659179688,
+      "globalGCms": 127.23610001802,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "active_4": {
+      "accountingMs": 47.947100013494,
+      "afterGC": 364650.6484375,
+      "beforeGC": 400958.79980469,
+      "diagnosticAddonKiB": 14472.48046875,
+      "globalGCms": 132.26700001955,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "after_ellesmere_preparation": {
+      "accountingMs": 45.793000012636,
+      "afterGC": 351386.92089844,
+      "beforeGC": 370746.33789063,
+      "diagnosticAddonKiB": 2107.5654296875,
+      "globalGCms": 111.40209999681,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "all_private_data_caches_released": {
+      "accountingMs": 48.604800015688,
+      "afterGC": 352608.31445313,
+      "beforeGC": 353214.73925781,
+      "diagnosticAddonKiB": 2498.0400390625,
+      "globalGCms": 114.07730001211,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "live_after_ui": {
+      "accountingMs": 53.111400008202,
+      "afterGC": 353213.80761719,
+      "beforeGC": 354657.25683594,
+      "diagnosticAddonKiB": 2503.0322265625,
+      "globalGCms": 122.89020001888,
+      "lycheeKiB": 14728.662109375,
+      "runtimeCompanionKiB": 0
+    },
+    "live_closed_baseline": {
+      "accountingMs": 43.709299981594,
+      "afterGC": 337708.05078125,
+      "beforeGC": 367272.77636719,
+      "diagnosticAddonKiB": 1542.8076171875,
+      "globalGCms": 113.87680000067,
+      "lycheeKiB": 14446.19140625,
+      "runtimeCompanionKiB": 0
+    },
+    "meaning": "GC operates on whole client; private heap deltas include diagnostic and background noise; observed high water is not exact allocation peak",
+    "private_code_only": {
+      "accountingMs": 50.634900003672,
+      "afterGC": 337947.61035156,
+      "beforeGC": 341696.74316406,
+      "diagnosticAddonKiB": 2045.7841796875,
+      "globalGCms": 112.52799999714,
+      "lycheeKiB": 14415.90234375,
+      "runtimeCompanionKiB": 0
+    },
+    "private_ready_after_upstream": {
+      "accountingMs": 47.030299991369,
+      "afterGC": 351360.33398438,
+      "beforeGC": 351393.69628906,
+      "diagnosticAddonKiB": 2112.2841796875,
+      "globalGCms": 110.58520001173,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "released_1": {
+      "accountingMs": 49.678000003099,
+      "afterGC": 352426.07324219,
+      "beforeGC": 363898.85742188,
+      "diagnosticAddonKiB": 2979.4326171875,
+      "globalGCms": 118.46919998527,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "released_2": {
+      "accountingMs": 48.155099987984,
+      "afterGC": 352945.06933594,
+      "beforeGC": 364482.546875,
+      "diagnosticAddonKiB": 3007.2041015625,
+      "globalGCms": 113.95219999552,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "released_3": {
+      "accountingMs": 50.127900004387,
+      "afterGC": 352980.52734375,
+      "beforeGC": 363841.56054688,
+      "diagnosticAddonKiB": 3037.1494140625,
+      "globalGCms": 117.32820001245,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    },
+    "released_4": {
+      "accountingMs": 51.383000016212,
+      "afterGC": 353194.90039063,
+      "beforeGC": 364667.7421875,
+      "diagnosticAddonKiB": 3085.7822265625,
+      "globalGCms": 115.94110000134,
+      "lycheeKiB": 14504.112304688,
+      "runtimeCompanionKiB": 0
+    }
+  },
+  "observedHeapHighKiB": 400958.38574219,
+  "phases": {
+    "build_1/builtin.achievements": {
+      "activeMs": 3732.2202992737,
+      "calls": 2365,
+      "maxCallMs": 2.5035000145435
+    },
+    "build_1/builtin.addon-inspector": {
+      "activeMs": 0.79440000653267,
+      "calls": 1,
+      "maxCallMs": 0.79440000653267
+    },
+    "build_1/builtin.bags": {
+      "activeMs": 17.968300014734,
+      "calls": 14,
+      "maxCallMs": 4.8682999908924
+    },
+    "build_1/builtin.blizzard-settings": {
+      "activeMs": 82.85419985652,
+      "calls": 49,
+      "maxCallMs": 4.2678999900818
+    },
+    "build_1/builtin.bosses": {
+      "activeMs": 278.73300001025,
+      "calls": 1,
+      "maxCallMs": 278.73300001025
+    },
+    "build_1/builtin.crests": {
+      "activeMs": 0.62809997797012,
+      "calls": 1,
+      "maxCallMs": 0.62809997797012
+    },
+    "build_1/builtin.ellesmere": {
+      "activeMs": 0.27969998121262,
+      "calls": 1,
+      "maxCallMs": 0.27969998121262
+    },
+    "build_1/builtin.equipment-sets": {
+      "activeMs": 0.27370002865791,
+      "calls": 3,
+      "maxCallMs": 0.24810001254082
+    },
+    "build_1/builtin.exwind": {
+      "activeMs": 0.40019997954369,
+      "calls": 1,
+      "maxCallMs": 0.40019997954369
+    },
+    "build_1/builtin.game-menus": {
+      "activeMs": 7.6987000107765,
+      "calls": 1,
+      "maxCallMs": 7.6987000107765
+    },
+    "build_1/builtin.great-vault": {
+      "activeMs": 0.5654000043869,
+      "calls": 1,
+      "maxCallMs": 0.5654000043869
+    },
+    "build_1/builtin.keystones": {
+      "activeMs": 0.74310001730919,
+      "calls": 2,
+      "maxCallMs": 0.52750000357628
+    },
+    "build_1/builtin.mounts": {
+      "activeMs": 74.780700027943,
+      "calls": 2,
+      "maxCallMs": 74.557500004768
+    },
+    "build_1/builtin.player-spells": {
+      "activeMs": 49.56400001049,
+      "calls": 1,
+      "maxCallMs": 49.56400001049
+    },
+    "build_1/builtin.talent-loadouts": {
+      "activeMs": 0.69309997558594,
+      "calls": 4,
+      "maxCallMs": 0.39350000023842
+    },
+    "build_2/builtin.achievements": {
+      "activeMs": 3792.8637010455,
+      "calls": 2442,
+      "maxCallMs": 2.4460999965668
+    },
+    "build_2/builtin.addon-inspector": {
+      "activeMs": 0.80719998478889,
+      "calls": 1,
+      "maxCallMs": 0.80719998478889
+    },
+    "build_2/builtin.bags": {
+      "activeMs": 17.972199946642,
+      "calls": 14,
+      "maxCallMs": 4.8032999932766
+    },
+    "build_2/builtin.blizzard-settings": {
+      "activeMs": 85.982400000095,
+      "calls": 49,
+      "maxCallMs": 6.0940999984741
+    },
+    "build_2/builtin.bosses": {
+      "activeMs": 278.3966999948,
+      "calls": 1,
+      "maxCallMs": 278.3966999948
+    },
+    "build_2/builtin.crests": {
+      "activeMs": 0.72040000557899,
+      "calls": 1,
+      "maxCallMs": 0.72040000557899
+    },
+    "build_2/builtin.ellesmere": {
+      "activeMs": 0.28380000591278,
+      "calls": 1,
+      "maxCallMs": 0.28380000591278
+    },
+    "build_2/builtin.equipment-sets": {
+      "activeMs": 0.26739999651909,
+      "calls": 3,
+      "maxCallMs": 0.24279999732971
+    },
+    "build_2/builtin.exwind": {
+      "activeMs": 0.42010000348091,
+      "calls": 1,
+      "maxCallMs": 0.42010000348091
+    },
+    "build_2/builtin.game-menus": {
+      "activeMs": 8.4809999763966,
+      "calls": 1,
+      "maxCallMs": 8.4809999763966
+    },
+    "build_2/builtin.great-vault": {
+      "activeMs": 0.57729998230934,
+      "calls": 1,
+      "maxCallMs": 0.57729998230934
+    },
+    "build_2/builtin.keystones": {
+      "activeMs": 0.74630004167557,
+      "calls": 2,
+      "maxCallMs": 0.52920001745224
+    },
+    "build_2/builtin.mounts": {
+      "activeMs": 77.662200003862,
+      "calls": 2,
+      "maxCallMs": 77.457800000906
+    },
+    "build_2/builtin.player-spells": {
+      "activeMs": 49.766699999571,
+      "calls": 1,
+      "maxCallMs": 49.766699999571
+    },
+    "build_2/builtin.talent-loadouts": {
+      "activeMs": 0.71630001068115,
+      "calls": 4,
+      "maxCallMs": 0.39390000700951
+    },
+    "build_3/builtin.achievements": {
+      "activeMs": 12.103700131178,
+      "calls": 25,
+      "maxCallMs": 1.023099988699
+    },
+    "build_3/builtin.addon-inspector": {
+      "activeMs": 0.82289999723434,
+      "calls": 1,
+      "maxCallMs": 0.82289999723434
+    },
+    "build_3/builtin.bags": {
+      "activeMs": 18.111599981785,
+      "calls": 14,
+      "maxCallMs": 4.9948999881744
+    },
+    "build_3/builtin.blizzard-settings": {
+      "activeMs": 84.393699944019,
+      "calls": 49,
+      "maxCallMs": 4.7587000131607
+    },
+    "build_3/builtin.bosses": {
+      "activeMs": 273.81600001454,
+      "calls": 1,
+      "maxCallMs": 273.81600001454
+    },
+    "build_3/builtin.crests": {
+      "activeMs": 0.64389997720718,
+      "calls": 1,
+      "maxCallMs": 0.64389997720718
+    },
+    "build_3/builtin.ellesmere": {
+      "activeMs": 0.28939998149872,
+      "calls": 1,
+      "maxCallMs": 0.28939998149872
+    },
+    "build_3/builtin.equipment-sets": {
+      "activeMs": 0.32259997725487,
+      "calls": 3,
+      "maxCallMs": 0.29449999332428
+    },
+    "build_3/builtin.exwind": {
+      "activeMs": 0.42960000038147,
+      "calls": 1,
+      "maxCallMs": 0.42960000038147
+    },
+    "build_3/builtin.game-menus": {
+      "activeMs": 7.5870999991894,
+      "calls": 1,
+      "maxCallMs": 7.5870999991894
+    },
+    "build_3/builtin.great-vault": {
+      "activeMs": 0.57300001382828,
+      "calls": 1,
+      "maxCallMs": 0.57300001382828
+    },
+    "build_3/builtin.keystones": {
+      "activeMs": 0.7674999833107,
+      "calls": 2,
+      "maxCallMs": 0.54159998893738
+    },
+    "build_3/builtin.mounts": {
+      "activeMs": 76.33370000124,
+      "calls": 2,
+      "maxCallMs": 76.0992000103
+    },
+    "build_3/builtin.player-spells": {
+      "activeMs": 51.060499995947,
+      "calls": 1,
+      "maxCallMs": 51.060499995947
+    },
+    "build_3/builtin.talent-loadouts": {
+      "activeMs": 0.73069998621941,
+      "calls": 4,
+      "maxCallMs": 0.41650000214577
+    },
+    "build_4/builtin.achievements": {
+      "activeMs": 3777.0440001786,
+      "calls": 2375,
+      "maxCallMs": 2.4110000133514
+    },
+    "build_4/builtin.addon-inspector": {
+      "activeMs": 0.86959999799728,
+      "calls": 1,
+      "maxCallMs": 0.86959999799728
+    },
+    "build_4/builtin.bags": {
+      "activeMs": 19.293200016022,
+      "calls": 14,
+      "maxCallMs": 5.1497000157833
+    },
+    "build_4/builtin.blizzard-settings": {
+      "activeMs": 87.234999984503,
+      "calls": 49,
+      "maxCallMs": 4.2893999814987
+    },
+    "build_4/builtin.bosses": {
+      "activeMs": 282.41800001264,
+      "calls": 1,
+      "maxCallMs": 282.41800001264
+    },
+    "build_4/builtin.crests": {
+      "activeMs": 0.795500010252,
+      "calls": 1,
+      "maxCallMs": 0.795500010252
+    },
+    "build_4/builtin.ellesmere": {
+      "activeMs": 0.30680000782013,
+      "calls": 1,
+      "maxCallMs": 0.30680000782013
+    },
+    "build_4/builtin.equipment-sets": {
+      "activeMs": 0.3167000412941,
+      "calls": 3,
+      "maxCallMs": 0.28590002655983
+    },
+    "build_4/builtin.exwind": {
+      "activeMs": 0.43290001153946,
+      "calls": 1,
+      "maxCallMs": 0.43290001153946
+    },
+    "build_4/builtin.game-menus": {
+      "activeMs": 7.7770999968052,
+      "calls": 1,
+      "maxCallMs": 7.7770999968052
+    },
+    "build_4/builtin.great-vault": {
+      "activeMs": 0.62009999155998,
+      "calls": 1,
+      "maxCallMs": 0.62009999155998
+    },
+    "build_4/builtin.keystones": {
+      "activeMs": 0.88059997558594,
+      "calls": 2,
+      "maxCallMs": 0.59319999814034
+    },
+    "build_4/builtin.mounts": {
+      "activeMs": 81.571900039911,
+      "calls": 2,
+      "maxCallMs": 81.336900025606
+    },
+    "build_4/builtin.player-spells": {
+      "activeMs": 52.356499999762,
+      "calls": 1,
+      "maxCallMs": 52.356499999762
+    },
+    "build_4/builtin.talent-loadouts": {
+      "activeMs": 0.81730002164841,
+      "calls": 4,
+      "maxCallMs": 0.44740000367165
+    },
+    "cancel_query_1": {
+      "activeMs": 0.094600021839142,
+      "calls": 2,
+      "maxCallMs": 0.090200006961823
+    },
+    "cancel_query_2": {
+      "activeMs": 0.11460003256798,
+      "calls": 2,
+      "maxCallMs": 0.10960000753403
+    },
+    "cancel_query_3": {
+      "activeMs": 0.12289997935295,
+      "calls": 2,
+      "maxCallMs": 0.11309999227524
+    },
+    "cancel_query_4": {
+      "activeMs": 0.098499983549118,
+      "calls": 2,
+      "maxCallMs": 0.094099998474121
+    },
+    "ellesmere_prepare": {
+      "activeMs": 123.21899998188,
+      "calls": 2,
+      "maxCallMs": 91.915800005198
+    },
+    "index_only_1": {
+      "activeMs": 72.180500000715,
+      "calls": 1,
+      "maxCallMs": 72.180500000715
+    },
+    "index_only_2": {
+      "activeMs": 72.034999996424,
+      "calls": 1,
+      "maxCallMs": 72.034999996424
+    },
+    "index_only_3": {
+      "activeMs": 73.56890001893,
+      "calls": 1,
+      "maxCallMs": 73.56890001893
+    },
+    "index_only_4": {
+      "activeMs": 71.252599984407,
+      "calls": 1,
+      "maxCallMs": 71.252599984407
+    },
+    "mount_acquisition_1": {
+      "activeMs": 7.0599001049995,
+      "calls": 54,
+      "maxCallMs": 0.24459999799728
+    },
+    "mount_acquisition_2": {
+      "activeMs": 6.619500041008,
+      "calls": 54,
+      "maxCallMs": 0.16040000319481
+    },
+    "mount_acquisition_3": {
+      "activeMs": 6.6719999611378,
+      "calls": 54,
+      "maxCallMs": 0.17659997940063
+    },
+    "mount_construction_1": {
+      "activeMs": 0.90570005774498,
+      "calls": 9,
+      "maxCallMs": 0.1089999973774
+    },
+    "mount_construction_2": {
+      "activeMs": 0.87410005927086,
+      "calls": 9,
+      "maxCallMs": 0.11100000143051
+    },
+    "mount_construction_3": {
+      "activeMs": 0.81750005483627,
+      "calls": 9,
+      "maxCallMs": 0.10719999670982
+    },
+    "private_module_initialize": {
+      "activeMs": 1.585500061512,
+      "calls": 56,
+      "maxCallMs": 0.17609998583794
+    },
+    "queries_1": {
+      "activeMs": 74.378500163555,
+      "calls": 200,
+      "maxCallMs": 3.9472999870777
+    },
+    "queries_2": {
+      "activeMs": 69.424499899149,
+      "calls": 200,
+      "maxCallMs": 3.1279999911785
+    },
+    "queries_3": {
+      "activeMs": 71.949000000954,
+      "calls": 201,
+      "maxCallMs": 3.1958999931812
+    },
+    "queries_4": {
+      "activeMs": 70.927199810743,
+      "calls": 200,
+      "maxCallMs": 3.2452000081539
+    },
+    "real_ui": {
+      "activeMs": 14.686999976635,
+      "calls": 6,
+      "maxCallMs": 5.9902999997139
+    },
+    "release_1": {
+      "activeMs": 17.177399992943,
+      "calls": 1,
+      "maxCallMs": 17.177399992943
+    },
+    "release_2": {
+      "activeMs": 16.324099987745,
+      "calls": 1,
+      "maxCallMs": 16.324099987745
+    },
+    "release_3": {
+      "activeMs": 17.154000014067,
+      "calls": 1,
+      "maxCallMs": 17.154000014067
+    },
+    "release_4": {
+      "activeMs": 17.206299990416,
+      "calls": 1,
+      "maxCallMs": 17.206299990416
+    },
+    "warm_queries_1": {
+      "activeMs": 97.84240052104,
+      "calls": 456,
+      "maxCallMs": 1.4428000152111
+    },
+    "warm_queries_2": {
+      "activeMs": 93.384899646044,
+      "calls": 456,
+      "maxCallMs": 0.88300001621246
+    },
+    "warm_queries_3": {
+      "activeMs": 97.533300310373,
+      "calls": 456,
+      "maxCallMs": 1.1096999943256
+    },
+    "warm_queries_4": {
+      "activeMs": 93.772100120783,
+      "calls": 456,
+      "maxCallMs": 0.90049999952316
+    }
+  },
+  "profile": {
+    "build_4/builtin.achievements": {
+      "gameGetters": {
+        "calls": 6895,
+        "exclusiveMs": 3319.0508999825,
+        "maxInclusiveMs": 1.5254999995232
+      },
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.0073000192642212,
+        "maxInclusiveMs": 0.003900021314621
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.17559996247292,
+        "maxInclusiveMs": 0.34180000424385
+      },
+      "validation": {
+        "calls": 8,
+        "exclusiveMs": 0.15890002250671,
+        "maxInclusiveMs": 0.092900007963181
+      }
+    },
+    "build_4/builtin.addon-inspector": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.21909999847412,
+        "maxInclusiveMs": 0.21450001001358
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.20479995012283,
+        "maxInclusiveMs": 0.85330000519753
+      },
+      "validation": {
+        "calls": 14,
+        "exclusiveMs": 0.42940005660057,
+        "maxInclusiveMs": 0.17590001225471
+      }
+    },
+    "build_4/builtin.bags": {
+      "gameGetters": {
+        "calls": 178,
+        "exclusiveMs": 0.95670008659363,
+        "maxInclusiveMs": 0.035100013017654
+      },
+      "index": {
+        "calls": 6,
+        "exclusiveMs": 3.7625999450684,
+        "maxInclusiveMs": 1.1238999962807
+      },
+      "sdk": {
+        "calls": 5,
+        "exclusiveMs": 1.0180000662804,
+        "maxInclusiveMs": 5.1226000189781
+      },
+      "validation": {
+        "calls": 456,
+        "exclusiveMs": 12.720200002193,
+        "maxInclusiveMs": 0.58709999918938
+      }
+    },
+    "build_4/builtin.blizzard-settings": {
+      "index": {
+        "calls": 23,
+        "exclusiveMs": 12.95949998498,
+        "maxInclusiveMs": 0.93240001797676
+      },
+      "sdk": {
+        "calls": 22,
+        "exclusiveMs": 5.6353000402451,
+        "maxInclusiveMs": 4.2621000111103
+      },
+      "validation": {
+        "calls": 2096,
+        "exclusiveMs": 65.101799994707,
+        "maxInclusiveMs": 0.63379999995232
+      }
+    },
+    "build_4/builtin.bosses": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 33.558200001717,
+        "maxInclusiveMs": 33.553700000048
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 15.589799910784,
+        "maxInclusiveMs": 279.52110001445
+      },
+      "validation": {
+        "calls": 6932,
+        "exclusiveMs": 230.37310010195,
+        "maxInclusiveMs": 41.327600002289
+      }
+    },
+    "build_4/builtin.crests": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.087799996137619,
+        "maxInclusiveMs": 0.08270001411438
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.18370005488396,
+        "maxInclusiveMs": 0.78000000119209
+      },
+      "validation": {
+        "calls": 16,
+        "exclusiveMs": 0.50849995017052,
+        "maxInclusiveMs": 0.15059998631477
+      }
+    },
+    "build_4/builtin.ellesmere": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.0058000087738037,
+        "maxInclusiveMs": 0.0031999945640564
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.15159994363785,
+        "maxInclusiveMs": 0.2979000210762
+      },
+      "validation": {
+        "calls": 8,
+        "exclusiveMs": 0.14050006866455,
+        "maxInclusiveMs": 0.08270001411438
+      }
+    },
+    "build_4/builtin.equipment-sets": {
+      "gameGetters": {
+        "calls": 1,
+        "exclusiveMs": 0.0045000016689301,
+        "maxInclusiveMs": 0.0045000016689301
+      },
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.0081000030040741,
+        "maxInclusiveMs": 0.0047000050544739
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.13550001382828,
+        "maxInclusiveMs": 0.27410000562668
+      },
+      "validation": {
+        "calls": 8,
+        "exclusiveMs": 0.13049998879433,
+        "maxInclusiveMs": 0.064699977636337
+      }
+    },
+    "build_4/builtin.exwind": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.0078999996185303,
+        "maxInclusiveMs": 0.0045000016689301
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.25470000505447,
+        "maxInclusiveMs": 0.41960000991821
+      },
+      "validation": {
+        "calls": 8,
+        "exclusiveMs": 0.15700000524521,
+        "maxInclusiveMs": 0.095299988985062
+      }
+    },
+    "build_4/builtin.game-menus": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.76289999485016,
+        "maxInclusiveMs": 0.75949999690056
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.63659998774529,
+        "maxInclusiveMs": 7.6463000178337
+      },
+      "validation": {
+        "calls": 212,
+        "exclusiveMs": 6.2468000352383,
+        "maxInclusiveMs": 1.0746999979019
+      }
+    },
+    "build_4/builtin.great-vault": {
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.16279998421669,
+        "maxInclusiveMs": 0.158999979496
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.12420004606247,
+        "maxInclusiveMs": 0.6085000038147
+      },
+      "validation": {
+        "calls": 14,
+        "exclusiveMs": 0.32149997353554,
+        "maxInclusiveMs": 0.083700001239777
+      }
+    },
+    "build_4/builtin.keystones": {
+      "gameGetters": {
+        "calls": 28,
+        "exclusiveMs": 0.1603000164032,
+        "maxInclusiveMs": 0.018600016832352
+      },
+      "index": {
+        "calls": 2,
+        "exclusiveMs": 0.0076999962329865,
+        "maxInclusiveMs": 0.0040999948978424
+      },
+      "sdk": {
+        "calls": 1,
+        "exclusiveMs": 0.41320005059242,
+        "maxInclusiveMs": 0.57980000972748
+      },
+      "validation": {
+        "calls": 8,
+        "exclusiveMs": 0.15889996290207,
+        "maxInclusiveMs": 0.097499996423721
+      }
+    },
+    "build_4/builtin.mounts": {
+      "gameGetters": {
+        "calls": 1673,
+        "exclusiveMs": 6.2970005273819,
+        "maxInclusiveMs": 0.035899996757507
+      },
+      "index": {
+        "calls": 3,
+        "exclusiveMs": 2.3606000244617,
+        "maxInclusiveMs": 2.3533000051975
+      },
+      "sdk": {
+        "calls": 2,
+        "exclusiveMs": 4.238999992609,
+        "maxInclusiveMs": 70.926600009203
+      },
+      "validation": {
+        "calls": 2308,
+        "exclusiveMs": 64.553900003433,
+        "maxInclusiveMs": 10.080900013447
+      }
+    },
+    "build_4/builtin.player-spells": {
+      "gameGetters": {
+        "calls": 414,
+        "exclusiveMs": 1.7054999470711,
+        "maxInclusiveMs": 0.043099999427795
+      },
+      "index": {
+        "calls": 3,
+        "exclusiveMs": 4.1523999869823,
+        "maxInclusiveMs": 4.1460999846458
+      },
+      "sdk": {
+        "calls": 2,
+        "exclusiveMs": 3.9477002322674,
+        "maxInclusiveMs": 52.348199993372
+      },
+      "validation": {
+        "calls": 988,
+        "exclusiveMs": 42.542599827051,
+        "maxInclusiveMs": 7.272000014782
+      }
+    },
+    "build_4/builtin.talent-loadouts": {
+      "gameGetters": {
+        "calls": 3,
+        "exclusiveMs": 0.018500000238419,
+        "maxInclusiveMs": 0.0081999897956848
+      },
+      "index": {
+        "calls": 3,
+        "exclusiveMs": 0.14820003509521,
+        "maxInclusiveMs": 0.13930001854897
+      },
+      "sdk": {
+        "calls": 2,
+        "exclusiveMs": 0.19109991192818,
+        "maxInclusiveMs": 0.43340000510216
+      },
+      "validation": {
+        "calls": 18,
+        "exclusiveMs": 0.3685000538826,
+        "maxInclusiveMs": 0.066399991512299
+      }
+    },
+    "queries_4": {
+      "gameGetters": {
+        "calls": 196,
+        "exclusiveMs": 0.62780010700226,
+        "maxInclusiveMs": 0.016699999570847
+      },
+      "validation": {
+        "calls": 297,
+        "exclusiveMs": 6.7703998982906,
+        "maxInclusiveMs": 0.58370000123978
+      }
+    },
+    "warm_queries_4": {
+      "gameGetters": {
+        "calls": 72,
+        "exclusiveMs": 0.24709996581078,
+        "maxInclusiveMs": 0.0085999965667725
+      },
+      "validation": {
+        "calls": 240,
+        "exclusiveMs": 5.1699000597,
+        "maxInclusiveMs": 0.08840000629425
+      }
+    }
+  },
+  "rounds": [
+    {
+      "buildActiveMs": 4248.1968991756,
+      "buildWallMs": 10969.268400013,
+      "cancelledQueryNoLateReply": true,
+      "ellesmereOptionCheck": {
+        "captured": 81,
+        "query": {
+          "count": 1,
+          "hash": 1146732478,
+          "wallMs": 15.588200002909
+        },
+        "resolved": 1,
+        "status": "verified"
+      },
+      "fakeFrameRoots": 10,
+      "indexOnlyMs": 72.185499995947,
+      "instrumented": false,
+      "privatePersistedCacheRetained": false,
+      "privatePersistedCacheStillPresent": true,
+      "providers": {
+        "builtin.achievements": {
+          "activeMs": 3732.2202992737,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 9676.8213999867
+        },
+        "builtin.addon-inspector": {
+          "activeMs": 0.79440000653267,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.79929998517036
+        },
+        "builtin.bags": {
+          "activeMs": 17.968300014734,
+          "available": true,
+          "initializationOK": true,
+          "records": 54,
+          "registered": true,
+          "wallMs": 171.25920000672
+        },
+        "builtin.blizzard-settings": {
+          "activeMs": 82.85419985652,
+          "available": true,
+          "initializationOK": true,
+          "records": 334,
+          "registered": true,
+          "wallMs": 624.13490000367
+        },
+        "builtin.bosses": {
+          "activeMs": 278.73300001025,
+          "available": true,
+          "initializationOK": true,
+          "records": 1154,
+          "registered": true,
+          "wallMs": 278.73980000615
+        },
+        "builtin.crests": {
+          "activeMs": 0.62809997797012,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.6347000002861
+        },
+        "builtin.ellesmere": {
+          "activeMs": 0.27969998121262,
+          "available": true,
+          "capturedOptionsReplayed": 81,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.28229999542236
+        },
+        "builtin.equipment-sets": {
+          "activeMs": 0.27370002865791,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 24.419600009918
+        },
+        "builtin.exwind": {
+          "activeMs": 0.40019997954369,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.40610000491142
+        },
+        "builtin.game-menus": {
+          "activeMs": 7.6987000107765,
+          "available": true,
+          "initializationOK": true,
+          "records": 34,
+          "registered": true,
+          "wallMs": 7.7030999958515
+        },
+        "builtin.great-vault": {
+          "activeMs": 0.5654000043869,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.5688000023365
+        },
+        "builtin.keystones": {
+          "activeMs": 0.74310001730919,
+          "available": true,
+          "initializationOK": true,
+          "providerError": "unable to find mixin or metatable (ColorMixin)",
+          "records": 0,
+          "registered": true,
+          "wallMs": 14.795100003481
+        },
+        "builtin.mounts": {
+          "activeMs": 74.780700027943,
+          "available": true,
+          "initializationOK": true,
+          "records": 287,
+          "registered": true,
+          "wallMs": 79.635000020266
+        },
+        "builtin.player-spells": {
+          "activeMs": 49.56400001049,
+          "available": true,
+          "initializationOK": true,
+          "records": 121,
+          "registered": true,
+          "wallMs": 49.569499999285
+        },
+        "builtin.talent-loadouts": {
+          "activeMs": 0.69309997558594,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 38.717600017786
+        }
+      },
+      "queries": {
+        "eui:": {
+          "count": 20,
+          "hash": 276795264,
+          "resolveMs": 0.13780000805855,
+          "resolved": true,
+          "wallMs": 20.961600005627
+        },
+        "eui:冷却": {
+          "count": 4,
+          "hash": 1188150073,
+          "wallMs": 17.86519998312
+        },
+        "ex:": {
+          "count": 20,
+          "hash": 669560234,
+          "resolveMs": 0.39939999580383,
+          "resolved": true,
+          "wallMs": 10.655999988317
+        },
+        "ex:冷却": {
+          "count": 2,
+          "hash": 679942614,
+          "wallMs": 30.338799983263
+        },
+        "key": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 13.869599997997
+        },
+        "not-found": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 65.339899986982
+        },
+        "坐骑": {
+          "count": 20,
+          "hash": 2106097818,
+          "wallMs": 88.155199974775
+        },
+        "成就": {
+          "count": 20,
+          "hash": 2040050604,
+          "wallMs": 86.433500021696
+        },
+        "技能": {
+          "count": 20,
+          "hash": 1949433771,
+          "wallMs": 88.41660001874
+        },
+        "死亡矿井": {
+          "count": 20,
+          "hash": 344619003,
+          "wallMs": 89.36470001936
+        },
+        "设置": {
+          "count": 20,
+          "hash": 137685326,
+          "wallMs": 87.03100001812
+        }
+      },
+      "records": {
+        "builtin.achievements": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.addon-inspector": {
+          "count": 1,
+          "hash": 720509195
+        },
+        "builtin.bags": {
+          "count": 54,
+          "hash": 450417916
+        },
+        "builtin.blizzard-settings": {
+          "count": 334,
+          "hash": 413171432
+        },
+        "builtin.bosses": {
+          "count": 1154,
+          "hash": 1831327586
+        },
+        "builtin.crests": {
+          "count": 1,
+          "hash": 1549776652
+        },
+        "builtin.ellesmere": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.equipment-sets": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.exwind": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.game-menus": {
+          "count": 34,
+          "hash": 204506268
+        },
+        "builtin.great-vault": {
+          "count": 1,
+          "hash": 548128909
+        },
+        "builtin.keystones": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.mounts": {
+          "count": 287,
+          "hash": 396097084
+        },
+        "builtin.player-spells": {
+          "count": 121,
+          "hash": 391729503
+        },
+        "builtin.talent-loadouts": {
+          "count": 1,
+          "hash": 250384307
+        }
+      },
+      "releaseMs": 17.182199984789,
+      "released": true,
+      "round": 1,
+      "warm24ActiveMs": 97.84240052104,
+      "warm24WallMs": 1025.3849000037
+    },
+    {
+      "buildActiveMs": 4315.6637009978,
+      "buildWallMs": 28723.405499995,
+      "cancelledQueryNoLateReply": true,
+      "ellesmereOptionCheck": {
+        "captured": 81,
+        "query": {
+          "count": 1,
+          "hash": 1146732478,
+          "wallMs": 15.971900016069
+        },
+        "resolved": 1,
+        "status": "verified"
+      },
+      "fakeFrameRoots": 10,
+      "indexOnlyMs": 72.040299981833,
+      "instrumented": false,
+      "privatePersistedCacheRetained": false,
+      "privatePersistedCacheStillPresent": true,
+      "providers": {
+        "builtin.achievements": {
+          "activeMs": 3792.8637010455,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 27442.325399995
+        },
+        "builtin.addon-inspector": {
+          "activeMs": 0.80719998478889,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.8120000064373
+        },
+        "builtin.bags": {
+          "activeMs": 17.972199946642,
+          "available": true,
+          "initializationOK": true,
+          "records": 54,
+          "registered": true,
+          "wallMs": 170.25840002298
+        },
+        "builtin.blizzard-settings": {
+          "activeMs": 85.982400000095,
+          "available": true,
+          "initializationOK": true,
+          "records": 334,
+          "registered": true,
+          "wallMs": 611.96410000324
+        },
+        "builtin.bosses": {
+          "activeMs": 278.3966999948,
+          "available": true,
+          "initializationOK": true,
+          "records": 1154,
+          "registered": true,
+          "wallMs": 278.40500000119
+        },
+        "builtin.crests": {
+          "activeMs": 0.72040000557899,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.72959998250008
+        },
+        "builtin.ellesmere": {
+          "activeMs": 0.28380000591278,
+          "available": true,
+          "capturedOptionsReplayed": 81,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.28679999709129
+        },
+        "builtin.equipment-sets": {
+          "activeMs": 0.26739999651909,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 24.651600003242
+        },
+        "builtin.exwind": {
+          "activeMs": 0.42010000348091,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.42599999904633
+        },
+        "builtin.game-menus": {
+          "activeMs": 8.4809999763966,
+          "available": true,
+          "initializationOK": true,
+          "records": 34,
+          "registered": true,
+          "wallMs": 8.4853000044823
+        },
+        "builtin.great-vault": {
+          "activeMs": 0.57729998230934,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.58070001006126
+        },
+        "builtin.keystones": {
+          "activeMs": 0.74630004167557,
+          "available": true,
+          "initializationOK": true,
+          "providerError": "unable to find mixin or metatable (ColorMixin)",
+          "records": 0,
+          "registered": true,
+          "wallMs": 14.886400014162
+        },
+        "builtin.mounts": {
+          "activeMs": 77.662200003862,
+          "available": true,
+          "initializationOK": true,
+          "records": 287,
+          "registered": true,
+          "wallMs": 83.862599998713
+        },
+        "builtin.player-spells": {
+          "activeMs": 49.766699999571,
+          "available": true,
+          "initializationOK": true,
+          "records": 121,
+          "registered": true,
+          "wallMs": 49.773099988699
+        },
+        "builtin.talent-loadouts": {
+          "activeMs": 0.71630001068115,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 35.139699995518
+        }
+      },
+      "queries": {
+        "eui:": {
+          "count": 20,
+          "hash": 276795264,
+          "resolveMs": 0.13379999995232,
+          "resolved": true,
+          "wallMs": 19.469399988651
+        },
+        "eui:冷却": {
+          "count": 4,
+          "hash": 1188150073,
+          "wallMs": 19.195199996233
+        },
+        "ex:": {
+          "count": 20,
+          "hash": 669560234,
+          "resolveMs": 0.35890001058578,
+          "resolved": true,
+          "wallMs": 10.404200017452
+        },
+        "ex:冷却": {
+          "count": 2,
+          "hash": 679942614,
+          "wallMs": 30.402100026608
+        },
+        "key": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 15.469199985266
+        },
+        "not-found": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 65.312899976969
+        },
+        "坐骑": {
+          "count": 20,
+          "hash": 2106097818,
+          "wallMs": 88.087400019169
+        },
+        "成就": {
+          "count": 20,
+          "hash": 2040050604,
+          "wallMs": 89.106900006533
+        },
+        "技能": {
+          "count": 20,
+          "hash": 1949433771,
+          "wallMs": 88.750100016594
+        },
+        "死亡矿井": {
+          "count": 20,
+          "hash": 344619003,
+          "wallMs": 86.988799989223
+        },
+        "设置": {
+          "count": 20,
+          "hash": 137685326,
+          "wallMs": 87.006199985743
+        }
+      },
+      "queryOrderEqual": true,
+      "records": {
+        "builtin.achievements": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.addon-inspector": {
+          "count": 1,
+          "hash": 720509195
+        },
+        "builtin.bags": {
+          "count": 54,
+          "hash": 450417916
+        },
+        "builtin.blizzard-settings": {
+          "count": 334,
+          "hash": 413171432
+        },
+        "builtin.bosses": {
+          "count": 1154,
+          "hash": 1831327586
+        },
+        "builtin.crests": {
+          "count": 1,
+          "hash": 1549776652
+        },
+        "builtin.ellesmere": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.equipment-sets": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.exwind": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.game-menus": {
+          "count": 34,
+          "hash": 204506268
+        },
+        "builtin.great-vault": {
+          "count": 1,
+          "hash": 548128909
+        },
+        "builtin.keystones": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.mounts": {
+          "count": 287,
+          "hash": 396097084
+        },
+        "builtin.player-spells": {
+          "count": 121,
+          "hash": 391729503
+        },
+        "builtin.talent-loadouts": {
+          "count": 1,
+          "hash": 250384307
+        }
+      },
+      "recordsEqual": true,
+      "releaseMs": 16.328900009394,
+      "released": true,
+      "round": 2,
+      "warm24ActiveMs": 93.384899646044,
+      "warm24WallMs": 1033.3823000193
+    },
+    {
+      "buildActiveMs": 527.98589998484,
+      "buildWallMs": 1353.9126000106,
+      "cancelledQueryNoLateReply": true,
+      "ellesmereOptionCheck": {
+        "captured": 81,
+        "query": {
+          "count": 1,
+          "hash": 1146732478,
+          "wallMs": 17.818599998951
+        },
+        "resolved": 1,
+        "status": "verified"
+      },
+      "fakeFrameRoots": 10,
+      "indexOnlyMs": 73.574399977922,
+      "instrumented": false,
+      "privatePersistedCacheRetained": true,
+      "privatePersistedCacheStillPresent": true,
+      "providers": {
+        "builtin.achievements": {
+          "activeMs": 12.103700131178,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 63.701400011778
+        },
+        "builtin.addon-inspector": {
+          "activeMs": 0.82289999723434,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.82770001888275
+        },
+        "builtin.bags": {
+          "activeMs": 18.111599981785,
+          "available": true,
+          "initializationOK": true,
+          "records": 54,
+          "registered": true,
+          "wallMs": 171.68930000067
+        },
+        "builtin.blizzard-settings": {
+          "activeMs": 84.393699944019,
+          "available": true,
+          "initializationOK": true,
+          "records": 334,
+          "registered": true,
+          "wallMs": 622.52610000968
+        },
+        "builtin.bosses": {
+          "activeMs": 273.81600001454,
+          "available": true,
+          "initializationOK": true,
+          "records": 1154,
+          "registered": true,
+          "wallMs": 273.82360002398
+        },
+        "builtin.crests": {
+          "activeMs": 0.64389997720718,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.64969998598099
+        },
+        "builtin.ellesmere": {
+          "activeMs": 0.28939998149872,
+          "available": true,
+          "capturedOptionsReplayed": 81,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.29270002245903
+        },
+        "builtin.equipment-sets": {
+          "activeMs": 0.32259997725487,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 25.144300013781
+        },
+        "builtin.exwind": {
+          "activeMs": 0.42960000038147,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.43529999256134
+        },
+        "builtin.game-menus": {
+          "activeMs": 7.5870999991894,
+          "available": true,
+          "initializationOK": true,
+          "records": 34,
+          "registered": true,
+          "wallMs": 7.5913999974728
+        },
+        "builtin.great-vault": {
+          "activeMs": 0.57300001382828,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.57660001516342
+        },
+        "builtin.keystones": {
+          "activeMs": 0.7674999833107,
+          "available": true,
+          "initializationOK": true,
+          "providerError": "unable to find mixin or metatable (ColorMixin)",
+          "records": 0,
+          "registered": true,
+          "wallMs": 13.497200012207
+        },
+        "builtin.mounts": {
+          "activeMs": 76.33370000124,
+          "available": true,
+          "initializationOK": true,
+          "records": 287,
+          "registered": true,
+          "wallMs": 85.077499985695
+        },
+        "builtin.player-spells": {
+          "activeMs": 51.060499995947,
+          "available": true,
+          "initializationOK": true,
+          "records": 121,
+          "registered": true,
+          "wallMs": 51.073199987411
+        },
+        "builtin.talent-loadouts": {
+          "activeMs": 0.73069998621941,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 36.156399995089
+        }
+      },
+      "queries": {
+        "eui:": {
+          "count": 20,
+          "hash": 276795264,
+          "resolveMs": 0.14269998669624,
+          "resolved": true,
+          "wallMs": 20.711800009012
+        },
+        "eui:冷却": {
+          "count": 4,
+          "hash": 1188150073,
+          "wallMs": 24.267899990082
+        },
+        "ex:": {
+          "count": 20,
+          "hash": 669560234,
+          "resolveMs": 0.38870000839233,
+          "resolved": true,
+          "wallMs": 11.215800017118
+        },
+        "ex:冷却": {
+          "count": 2,
+          "hash": 679942614,
+          "wallMs": 36.006200015545
+        },
+        "key": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 15.932200014591
+        },
+        "not-found": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 73.002700001001
+        },
+        "坐骑": {
+          "count": 20,
+          "hash": 2106097818,
+          "wallMs": 90.199799984694
+        },
+        "成就": {
+          "count": 20,
+          "hash": 2040050604,
+          "wallMs": 89.156200021505
+        },
+        "技能": {
+          "count": 20,
+          "hash": 1949433771,
+          "wallMs": 89.668999999762
+        },
+        "死亡矿井": {
+          "count": 20,
+          "hash": 344619003,
+          "wallMs": 88.888099998236
+        },
+        "设置": {
+          "count": 20,
+          "hash": 137685326,
+          "wallMs": 91.778699994087
+        }
+      },
+      "queryOrderEqual": true,
+      "records": {
+        "builtin.achievements": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.addon-inspector": {
+          "count": 1,
+          "hash": 720509195
+        },
+        "builtin.bags": {
+          "count": 54,
+          "hash": 450417916
+        },
+        "builtin.blizzard-settings": {
+          "count": 334,
+          "hash": 413171432
+        },
+        "builtin.bosses": {
+          "count": 1154,
+          "hash": 1831327586
+        },
+        "builtin.crests": {
+          "count": 1,
+          "hash": 1549776652
+        },
+        "builtin.ellesmere": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.equipment-sets": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.exwind": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.game-menus": {
+          "count": 34,
+          "hash": 204506268
+        },
+        "builtin.great-vault": {
+          "count": 1,
+          "hash": 548128909
+        },
+        "builtin.keystones": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.mounts": {
+          "count": 287,
+          "hash": 396097084
+        },
+        "builtin.player-spells": {
+          "count": 121,
+          "hash": 391729503
+        },
+        "builtin.talent-loadouts": {
+          "count": 1,
+          "hash": 250384307
+        }
+      },
+      "recordsEqual": true,
+      "releaseMs": 17.158699989319,
+      "released": true,
+      "round": 3,
+      "warm24ActiveMs": 97.533300310373,
+      "warm24WallMs": 1094.1802000105
+    },
+    {
+      "buildActiveMs": 4312.7352002859,
+      "buildWallMs": 10214.219399989,
+      "cancelledQueryNoLateReply": true,
+      "ellesmereOptionCheck": {
+        "captured": 81,
+        "query": {
+          "count": 1,
+          "hash": 1146732478,
+          "wallMs": 15.021400004625
+        },
+        "resolved": 1,
+        "status": "verified"
+      },
+      "fakeFrameRoots": 10,
+      "indexOnlyMs": 71.256999999285,
+      "instrumented": true,
+      "privatePersistedCacheRetained": false,
+      "privatePersistedCacheStillPresent": true,
+      "providers": {
+        "builtin.achievements": {
+          "activeMs": 3777.0440001786,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 8909.5483999848
+        },
+        "builtin.addon-inspector": {
+          "activeMs": 0.86959999799728,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.87419998645782
+        },
+        "builtin.bags": {
+          "activeMs": 19.293200016022,
+          "available": true,
+          "initializationOK": true,
+          "records": 54,
+          "registered": true,
+          "wallMs": 169.64319998026
+        },
+        "builtin.blizzard-settings": {
+          "activeMs": 87.234999984503,
+          "available": true,
+          "initializationOK": true,
+          "records": 334,
+          "registered": true,
+          "wallMs": 623.3205999732
+        },
+        "builtin.bosses": {
+          "activeMs": 282.41800001264,
+          "available": true,
+          "initializationOK": true,
+          "records": 1154,
+          "registered": true,
+          "wallMs": 282.4239000082
+        },
+        "builtin.crests": {
+          "activeMs": 0.795500010252,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.80020001530647
+        },
+        "builtin.ellesmere": {
+          "activeMs": 0.30680000782013,
+          "available": true,
+          "capturedOptionsReplayed": 81,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.30990001559258
+        },
+        "builtin.equipment-sets": {
+          "activeMs": 0.3167000412941,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 25.561800003052
+        },
+        "builtin.exwind": {
+          "activeMs": 0.43290001153946,
+          "available": true,
+          "initializationOK": true,
+          "records": 0,
+          "registered": true,
+          "wallMs": 0.43809998035431
+        },
+        "builtin.game-menus": {
+          "activeMs": 7.7770999968052,
+          "available": true,
+          "initializationOK": true,
+          "records": 34,
+          "registered": true,
+          "wallMs": 7.7808000147343
+        },
+        "builtin.great-vault": {
+          "activeMs": 0.62009999155998,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 0.62369999289513
+        },
+        "builtin.keystones": {
+          "activeMs": 0.88059997558594,
+          "available": true,
+          "initializationOK": true,
+          "providerError": "unable to find mixin or metatable (ColorMixin)",
+          "records": 0,
+          "registered": true,
+          "wallMs": 13.902500003576
+        },
+        "builtin.mounts": {
+          "activeMs": 81.571900039911,
+          "available": true,
+          "initializationOK": true,
+          "records": 287,
+          "registered": true,
+          "wallMs": 87.232299983501
+        },
+        "builtin.player-spells": {
+          "activeMs": 52.356499999762,
+          "available": true,
+          "initializationOK": true,
+          "records": 121,
+          "registered": true,
+          "wallMs": 52.371499985456
+        },
+        "builtin.talent-loadouts": {
+          "activeMs": 0.81730002164841,
+          "available": true,
+          "initializationOK": true,
+          "records": 1,
+          "registered": true,
+          "wallMs": 38.562200009823
+        }
+      },
+      "queries": {
+        "eui:": {
+          "count": 20,
+          "hash": 276795264,
+          "resolveMs": 0.14329999685287,
+          "resolved": true,
+          "wallMs": 20.864300012589
+        },
+        "eui:冷却": {
+          "count": 4,
+          "hash": 1188150073,
+          "wallMs": 18.70300000906
+        },
+        "ex:": {
+          "count": 20,
+          "hash": 669560234,
+          "resolveMs": 0.47639998793602,
+          "resolved": true,
+          "wallMs": 11.628499984741
+        },
+        "ex:冷却": {
+          "count": 2,
+          "hash": 679942614,
+          "wallMs": 31.149300009012
+        },
+        "key": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 14.835799992085
+        },
+        "not-found": {
+          "count": 0,
+          "hash": 110115790,
+          "wallMs": 67.371300011873
+        },
+        "坐骑": {
+          "count": 20,
+          "hash": 2106097818,
+          "wallMs": 88.768399983644
+        },
+        "成就": {
+          "count": 20,
+          "hash": 2040050604,
+          "wallMs": 86.305099993944
+        },
+        "技能": {
+          "count": 20,
+          "hash": 1949433771,
+          "wallMs": 88.126699984074
+        },
+        "死亡矿井": {
+          "count": 20,
+          "hash": 344619003,
+          "wallMs": 86.790000021458
+        },
+        "设置": {
+          "count": 20,
+          "hash": 137685326,
+          "wallMs": 86.968899995089
+        }
+      },
+      "queryOrderEqual": true,
+      "records": {
+        "builtin.achievements": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.addon-inspector": {
+          "count": 1,
+          "hash": 720509195
+        },
+        "builtin.bags": {
+          "count": 54,
+          "hash": 450417916
+        },
+        "builtin.blizzard-settings": {
+          "count": 334,
+          "hash": 413171432
+        },
+        "builtin.bosses": {
+          "count": 1154,
+          "hash": 1831327586
+        },
+        "builtin.crests": {
+          "count": 1,
+          "hash": 1549776652
+        },
+        "builtin.ellesmere": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.equipment-sets": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.exwind": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.game-menus": {
+          "count": 34,
+          "hash": 204506268
+        },
+        "builtin.great-vault": {
+          "count": 1,
+          "hash": 548128909
+        },
+        "builtin.keystones": {
+          "count": 0,
+          "hash": 110115790
+        },
+        "builtin.mounts": {
+          "count": 287,
+          "hash": 396097084
+        },
+        "builtin.player-spells": {
+          "count": 121,
+          "hash": 391729503
+        },
+        "builtin.talent-loadouts": {
+          "count": 1,
+          "hash": 250384307
+        }
+      },
+      "recordsEqual": true,
+      "releaseMs": 17.211299985647,
+      "released": true,
+      "round": 4,
+      "warm24ActiveMs": 93.772100120783,
+      "warm24WallMs": 1016.5652999878
+    }
+  ],
+  "schema": "lychee.lifecycle-study.v1",
+  "sourceCommit": "ccd1c6a59dc3f431d33a90d7ece044b146545058",
+  "sourceFiles": 56,
+  "status": "complete",
+  "suppressed": {
+    "addonPrefix": 4,
+    "ellesmerePermanentHook": 32,
+    "mapInfoRequest": 4
+  },
+  "ui": {
+    "closed": true,
+    "initialOpenCallMs": 5.9938000142574,
+    "initiallyCreated": false,
+    "method": "real controller Show/Hide; not hardware shortcuts",
+    "samples": [
+      {
+        "contentAlpha": 1,
+        "headerAlpha": 1,
+        "hideCallMs": 1.8176000118256,
+        "rect": [
+          640.00006103516,
+          450.00006103516,
+          640.00006103516,
+          390
+        ],
+        "rows": 8,
+        "showCallMs": 5.9938000142574,
+        "shown": true
+      },
+      {
+        "contentAlpha": 1,
+        "headerAlpha": 1,
+        "hideCallMs": 1.05759999156,
+        "rect": [
+          640.00006103516,
+          450.00006103516,
+          640.00006103516,
+          390
+        ],
+        "rows": 8,
+        "showCallMs": 3.2495999932289,
+        "shown": true
+      },
+      {
+        "contentAlpha": 1,
+        "headerAlpha": 1,
+        "hideCallMs": 1.377799987793,
+        "rect": [
+          640.00006103516,
+          450.00006103516,
+          640.00006103516,
+          390
+        ],
+        "rows": 8,
+        "showCallMs": 1.2186000049114,
+        "shown": true
+      }
+    ]
+  },
+  "uncovered": [
+    "Client restart / truly unloaded first open cannot be recreated in this loaded session",
+    "Game-internal API caches are not flushed; first sample is first probe sample only",
+    "Combat, hardware Alt+Space/Esc dispatch, visual smoothness and every upstream settings page require separate interaction",
+    "Network refresh, new permanent diagnostic hooks and business actions are suppressed; normal Ellesmere settings preparation is separately recorded",
+    "Private fake-frame memory is not native UI memory; private heap deltas are not addon-accounted total residency",
+    "SDK 3, compact representation and final dormant architecture do not exist yet; this is baseline feasibility evidence"
+  ],
+  "upstreamCleanupOK": true,
+  "userCharacterStateUnchanged": true,
+  "userStateAfter": {
+    "character": 383982695
+  },
+  "userStateBefore": {
+    "character": 383982695
+  },
+  "userStateBeforeUI": {
+    "character": 383982695
+  },
+  "wallLimitSeconds": 600
+}

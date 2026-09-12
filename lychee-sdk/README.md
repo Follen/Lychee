@@ -1,5 +1,7 @@
 # lychee-sdk
 
+本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+
 Provider API 2.6 / revision 6 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
 
 统一控件、受控状态和懒创建面板参见 [UI 库](UI_LIBRARY.md)。UI Runtime 1 独立版本化，

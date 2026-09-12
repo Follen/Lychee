@@ -40,7 +40,10 @@ end
 local function takeRecords(records, owner)
     local owned = ownedRecordLists[records]
     ownedRecordLists[records] = nil
-    if owned == owner then return records end
+    if owned == owner then
+        I.Boundary:_ConsumeRecordReceipt(records)
+        return records
+    end
     return copyValue(records)
 end
 local function validID(value)
@@ -127,7 +130,8 @@ local function validateSearchSource(source, public)
     return true
 end
 
-local function validateSearchRecords(records, field)
+local function validateSearchRecords(records, field, owner)
+    if owner and ownedRecordLists[records] == owner and I.Boundary:_HasRecordReceipt(records) then return true end
     if type(records) ~= "table" then return nil, failure("INVALID_SCHEMA", field) end
     if #records > 4096 then return nil, failure("RESULT_LIMIT", field) end
     local boundaryOK, boundaryErr = I.Boundary:Validate(records, field, { maxFields = 4096, maxDepth = I.Boundary.MAX_DEPTH + 1 })
@@ -238,7 +242,7 @@ function Registry:Begin(desc, options)
         if #draft.commands+#draft.providers+#draft.handlers+#draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
         local panels={}; for i=1,#draft.panels do panels[draft.panels[i].id]=true end
         for i=1,#draft.commands do local c=draft.commands[i]; if c.presentation=="custom-panel" and not panels[c.panel] then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("COMMAND_NOT_FOUND","panel",desc.id) end end
-        local disabled = LycheeDB and LycheeDB.disabledProviders
+        local disabled = I.CharacterStore:DisabledProviders()
         local userEnabled = desc.id == "lychee.settings" or not (type(disabled) == "table" and disabled[desc.id])
         local entry={id=desc.id,descriptor=desc,commands=draft.commands,providers=draft.providers,handlers=draft.handlers,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
@@ -273,7 +277,7 @@ end
 function Registry:_Publish(entry)
     if entry.state~="pending" then return nil,failure("INVALID_STATE",nil,entry.id) end
     -- Pending providers may register before WoW restores SavedVariables.
-    local disabled = _G.LycheeDB and _G.LycheeDB.disabledProviders
+    local disabled = I.CharacterStore:DisabledProviders()
     entry.userEnabled = entry.id == "lychee.settings" or not (type(disabled) == "table" and disabled[entry.id])
     if I.Search and I.Search.StaticIndex and entry.sources then
         for i=1,#entry.sources do
@@ -288,7 +292,7 @@ function Registry:_Publish(entry)
                 if not snapshotOK or type(snapshot)~="table" then self:_Rollback(entry); return nil,failure("CALLBACK_ERROR","searchSource",entry.id) end
                 records=snapshot
             end
-            local recordsOK, recordsErr = validateSearchRecords(records, "searchSource." .. source.id .. ".records")
+            local recordsOK, recordsErr = validateSearchRecords(records, "searchSource." .. source.id .. ".records", entry.id)
             if not recordsOK then self:_Rollback(entry); return nil, recordsErr end
             records = takeRecords(records, entry.id)
             for recordIndex = 1, #records do
@@ -347,9 +351,8 @@ function Registry:SetUserEnabled(id, enabled)
     local entry = self.entries[id]
     if not entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("INVALID_STATE", nil, id) end
     if type(enabled) ~= "boolean" then return nil, failure("INVALID_SCHEMA", "enabled", id) end
-    LycheeDB = LycheeDB or {}
-    LycheeDB.disabledProviders = type(LycheeDB.disabledProviders) == "table" and LycheeDB.disabledProviders or {}
-    if enabled then LycheeDB.disabledProviders[id] = nil else LycheeDB.disabledProviders[id] = true end
+    local disabled = I.CharacterStore:DisabledProviders()
+    if enabled then disabled[id] = nil else disabled[id] = true end
     entry.userEnabled = enabled
     return self:_ApplyEnabled(entry, "user")
 end
@@ -456,7 +459,7 @@ function Registry:_Handle(entry)
                     if revision ~= nil and (not integer(revision) or revision < 0) then return nil, failure("INVALID_SCHEMA", "revision", entry.id) end
                     if generation == nil and autoGeneration then generation = autoGeneration end
                     if records ~= nil then
-                        local valid, why = validateSearchRecords(records, "searchSource." .. source.id .. ".records")
+                        local valid, why = validateSearchRecords(records, "searchSource." .. source.id .. ".records", entry.id)
                         if not valid then return nil, why end
                         records = takeRecords(records, entry.id)
                         for i = 1, #records do
@@ -474,7 +477,7 @@ function Registry:_Handle(entry)
                 end
                 function token:ApplyDelta(records, removedIDs)
                     local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-                    local valid, why = validateSearchRecords(records, "searchSource.delta")
+                    local valid, why = validateSearchRecords(records, "searchSource.delta", entry.id)
                     if not valid then return nil, why end
                     local removeOK, removeErr = I.Boundary:Validate(removedIDs, "searchSource.remove", { maxFields = 4096 })
                     if not removeOK then return nil, removeErr end

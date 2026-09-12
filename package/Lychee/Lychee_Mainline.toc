@@ -12,6 +12,7 @@
 ## Bindings: Bindings.xml
 
 Bootstrap.lua
+Core/CharacterStore.lua
 Builtin/Definitions.lua
 Builtin/Shared/Support.lua
 Core/ProviderLocales.lua

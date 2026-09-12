@@ -1,0 +1,566 @@
+{
+  "environment": {
+    "lua": "Lua 5.1",
+    "bits": 64,
+    "timer": "Python time.perf_counter via Lupa",
+    "game": false
+  },
+  "datasets": [
+    {
+      "mounts": 287,
+      "normal": {
+        "1": {
+          "build_ms": 101.8468,
+          "build_max_sync_ms": 101.8468,
+          "first_query_ms": 0.4267,
+          "build_plus_first_ms": 102.2735,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 5286.169922,
+          "active_delta_KiB": 6395.920898,
+          "hot_120_ms": 27.2177,
+          "hot_query_mean_ms": 0.226814,
+          "index_only_rebuild_ms": 27.4592,
+          "release_ms": 6.4641,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "2": {
+          "build_ms": 103.1502,
+          "build_max_sync_ms": 103.1502,
+          "first_query_ms": 0.4256,
+          "build_plus_first_ms": 103.5758,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 24.0345,
+          "hot_query_mean_ms": 0.200288,
+          "index_only_rebuild_ms": 28.6957,
+          "release_ms": 6.5132,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "3": {
+          "build_ms": 122.8862,
+          "build_max_sync_ms": 122.8862,
+          "first_query_ms": 0.357,
+          "build_plus_first_ms": 123.2432,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 26.4351,
+          "hot_query_mean_ms": 0.220293,
+          "index_only_rebuild_ms": 27.2761,
+          "release_ms": 5.4632,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "4": {
+          "build_ms": 101.5679,
+          "build_max_sync_ms": 101.5679,
+          "first_query_ms": 0.3769,
+          "build_plus_first_ms": 101.9448,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 24.5388,
+          "hot_query_mean_ms": 0.20449,
+          "index_only_rebuild_ms": 28.3192,
+          "release_ms": 6.9958,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "5": {
+          "build_ms": 103.3967,
+          "build_max_sync_ms": 103.3967,
+          "first_query_ms": 0.3003,
+          "build_plus_first_ms": 103.697,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 26.325,
+          "hot_query_mean_ms": 0.219375,
+          "index_only_rebuild_ms": 26.8208,
+          "release_ms": 5.6924,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "6": {
+          "build_ms": 106.2425,
+          "build_max_sync_ms": 106.2425,
+          "first_query_ms": 0.2509,
+          "build_plus_first_ms": 106.4934,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 26.6816,
+          "hot_query_mean_ms": 0.222347,
+          "index_only_rebuild_ms": 28.5322,
+          "release_ms": 5.2971,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "7": {
+          "build_ms": 99.1804,
+          "build_max_sync_ms": 99.1804,
+          "first_query_ms": 0.265,
+          "build_plus_first_ms": 99.4454,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 25.3648,
+          "hot_query_mean_ms": 0.211373,
+          "index_only_rebuild_ms": 29.8785,
+          "release_ms": 6.583,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "8": {
+          "build_ms": 105.3064,
+          "build_max_sync_ms": 105.3064,
+          "first_query_ms": 0.2491,
+          "build_plus_first_ms": 105.5555,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 28.7807,
+          "hot_query_mean_ms": 0.239839,
+          "index_only_rebuild_ms": 28.9698,
+          "release_ms": 6.0212,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "9": {
+          "build_ms": 102.7099,
+          "build_max_sync_ms": 102.7099,
+          "first_query_ms": 0.4352,
+          "build_plus_first_ms": 103.1451,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 26.8346,
+          "hot_query_mean_ms": 0.223622,
+          "index_only_rebuild_ms": 28.1475,
+          "release_ms": 5.9751,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "10": {
+          "build_ms": 111.2441,
+          "build_max_sync_ms": 111.2441,
+          "first_query_ms": 0.4959,
+          "build_plus_first_ms": 111.74,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 31.2177,
+          "hot_query_mean_ms": 0.260148,
+          "index_only_rebuild_ms": 32.9239,
+          "release_ms": 6.7264,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        },
+        "11": {
+          "build_ms": 117.1207,
+          "build_max_sync_ms": 117.1207,
+          "first_query_ms": 0.4015,
+          "build_plus_first_ms": 117.5222,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 4943.142578,
+          "active_delta_KiB": 4989.660156,
+          "hot_120_ms": 27.2266,
+          "hot_query_mean_ms": 0.226888,
+          "index_only_rebuild_ms": 31.2539,
+          "release_ms": 5.9655,
+          "released_delta_from_initial_KiB": 1468.753906,
+          "native_pool": 2.0
+        }
+      },
+      "load": {
+        "fixture_code_ms": 9.7807,
+        "files": 30.0,
+        "max_file_ms": 1.2756
+      },
+      "memory": {
+        "build_allocation_GC_stopped_KiB": 10009.851562,
+        "build_retained_KiB": 5050.258789,
+        "after_release_delta_KiB": 63.647461
+      },
+      "profile": {
+        "build_ms": 112.7599,
+        "allocation_KiB": 12205.799805,
+        "retained_KiB": 5053.648438,
+        "mock_api_exclusive_ms": 0.3189,
+        "mock_api_calls": 288.0,
+        "mock_api_max_call_ms": 0.0078,
+        "index_exclusive_ms": 25.8329,
+        "index_calls": 9.0,
+        "index_max_call_ms": 23.3778,
+        "validation_exclusive_ms": 72.368799,
+        "validation_calls": 9468.0,
+        "validation_max_call_ms": 7.1446,
+        "collection_exclusive_ms": 2.0293,
+        "collection_calls": 5.0,
+        "collection_max_call_ms": 90.7488,
+        "sdk_exclusive_ms": 12.097801,
+        "sdk_calls": 5.0,
+        "sdk_max_call_ms": 89.4887,
+        "locales_exclusive_ms": 0.094,
+        "locales_calls": 4.0,
+        "locales_max_call_ms": 0.0425
+      },
+      "meta": {
+        "records": 1476.0,
+        "mounts": 287.0,
+        "rounds": 11.0
+      },
+      "checks": [
+        "CHECK complete records, query business fields/order, empty registry/index, dead old records: PASS"
+      ],
+      "summary_rebuild_10": {
+        "build_ms": {
+          "min": 99.1804,
+          "median": 104.35155,
+          "max": 122.8862
+        },
+        "build_max_sync_ms": {
+          "min": 99.1804,
+          "median": 104.35155,
+          "max": 122.8862
+        },
+        "first_query_ms": {
+          "min": 0.2491,
+          "median": 0.36695,
+          "max": 0.4959
+        },
+        "build_plus_first_ms": {
+          "min": 99.4454,
+          "median": 104.62625,
+          "max": 123.2432
+        },
+        "first_count": {
+          "min": 18.0,
+          "median": 18.0,
+          "max": 18.0
+        },
+        "build_retained_before_verification_KiB": {
+          "min": 4943.142578,
+          "median": 4943.142578,
+          "max": 4943.142578
+        },
+        "active_delta_KiB": {
+          "min": 4989.660156,
+          "median": 4989.660156,
+          "max": 4989.660156
+        },
+        "hot_120_ms": {
+          "min": 24.0345,
+          "median": 26.558349999999997,
+          "max": 31.2177
+        },
+        "hot_query_mean_ms": {
+          "min": 0.200288,
+          "median": 0.22132,
+          "max": 0.260148
+        },
+        "index_only_rebuild_ms": {
+          "min": 26.8208,
+          "median": 28.61395,
+          "max": 32.9239
+        },
+        "release_ms": {
+          "min": 5.2971,
+          "median": 5.998150000000001,
+          "max": 6.9958
+        },
+        "released_delta_from_initial_KiB": {
+          "min": 1468.753906,
+          "median": 1468.753906,
+          "max": 1468.753906
+        },
+        "native_pool": {
+          "min": 2.0,
+          "median": 2.0,
+          "max": 2.0
+        }
+      }
+    },
+    {
+      "mounts": 1500,
+      "normal": {
+        "1": {
+          "build_ms": 203.0117,
+          "build_max_sync_ms": 203.0117,
+          "first_query_ms": 0.3097,
+          "build_plus_first_ms": 203.3214,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8686.123047,
+          "active_delta_KiB": 10837.080078,
+          "hot_120_ms": 39.3378,
+          "hot_query_mean_ms": 0.327815,
+          "index_only_rebuild_ms": 47.3621,
+          "release_ms": 10.8516,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "2": {
+          "build_ms": 189.4792,
+          "build_max_sync_ms": 189.4792,
+          "first_query_ms": 0.371,
+          "build_plus_first_ms": 189.8502,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 45.8012,
+          "hot_query_mean_ms": 0.381677,
+          "index_only_rebuild_ms": 58.4013,
+          "release_ms": 8.3294,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "3": {
+          "build_ms": 195.6197,
+          "build_max_sync_ms": 195.6197,
+          "first_query_ms": 0.2732,
+          "build_plus_first_ms": 195.8929,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 48.6257,
+          "hot_query_mean_ms": 0.405214,
+          "index_only_rebuild_ms": 47.6835,
+          "release_ms": 10.704,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "4": {
+          "build_ms": 258.1101,
+          "build_max_sync_ms": 258.1101,
+          "first_query_ms": 0.3453,
+          "build_plus_first_ms": 258.4554,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 46.3414,
+          "hot_query_mean_ms": 0.386178,
+          "index_only_rebuild_ms": 52.2893,
+          "release_ms": 9.4518,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "5": {
+          "build_ms": 193.2591,
+          "build_max_sync_ms": 193.2591,
+          "first_query_ms": 0.3257,
+          "build_plus_first_ms": 193.5848,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 44.1418,
+          "hot_query_mean_ms": 0.367848,
+          "index_only_rebuild_ms": 46.6644,
+          "release_ms": 8.4184,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "6": {
+          "build_ms": 190.8892,
+          "build_max_sync_ms": 190.8892,
+          "first_query_ms": 0.2801,
+          "build_plus_first_ms": 191.1693,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 42.7415,
+          "hot_query_mean_ms": 0.356179,
+          "index_only_rebuild_ms": 46.7708,
+          "release_ms": 9.5585,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "7": {
+          "build_ms": 185.2976,
+          "build_max_sync_ms": 185.2976,
+          "first_query_ms": 0.2809,
+          "build_plus_first_ms": 185.5785,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 41.258,
+          "hot_query_mean_ms": 0.343817,
+          "index_only_rebuild_ms": 49.7466,
+          "release_ms": 10.4617,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "8": {
+          "build_ms": 193.6564,
+          "build_max_sync_ms": 193.6564,
+          "first_query_ms": 0.2937,
+          "build_plus_first_ms": 193.9501,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 38.2299,
+          "hot_query_mean_ms": 0.318582,
+          "index_only_rebuild_ms": 45.0209,
+          "release_ms": 8.9258,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "9": {
+          "build_ms": 228.5045,
+          "build_max_sync_ms": 228.5045,
+          "first_query_ms": 0.3072,
+          "build_plus_first_ms": 228.8117,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 49.5499,
+          "hot_query_mean_ms": 0.412916,
+          "index_only_rebuild_ms": 55.1707,
+          "release_ms": 11.7667,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "10": {
+          "build_ms": 214.2631,
+          "build_max_sync_ms": 214.2631,
+          "first_query_ms": 0.2828,
+          "build_plus_first_ms": 214.5459,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 42.3795,
+          "hot_query_mean_ms": 0.353162,
+          "index_only_rebuild_ms": 49.5498,
+          "release_ms": 11.6641,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        },
+        "11": {
+          "build_ms": 193.9567,
+          "build_max_sync_ms": 193.9567,
+          "first_query_ms": 0.3964,
+          "build_plus_first_ms": 194.3531,
+          "first_count": 18.0,
+          "build_retained_before_verification_KiB": 8323.083984,
+          "active_delta_KiB": 8373.890625,
+          "hot_120_ms": 38.662,
+          "hot_query_mean_ms": 0.322183,
+          "index_only_rebuild_ms": 44.1855,
+          "release_ms": 7.9036,
+          "released_delta_from_initial_KiB": 2525.69043,
+          "native_pool": 2.0
+        }
+      },
+      "load": {
+        "fixture_code_ms": 11.7908,
+        "files": 30.0,
+        "max_file_ms": 1.346
+      },
+      "memory": {
+        "build_allocation_GC_stopped_KiB": 17175.358398,
+        "build_retained_KiB": 8306.209961,
+        "after_release_delta_KiB": -0.354492
+      },
+      "profile": {
+        "build_ms": 213.117,
+        "allocation_KiB": 22031.728516,
+        "retained_KiB": 8373.601562,
+        "mock_api_exclusive_ms": 1.312201,
+        "mock_api_calls": 1501.0,
+        "mock_api_max_call_ms": 0.0248,
+        "index_exclusive_ms": 46.7724,
+        "index_calls": 9.0,
+        "index_max_call_ms": 28.6184,
+        "validation_exclusive_ms": 138.094001,
+        "validation_calls": 19172.0,
+        "validation_max_call_ms": 11.0116,
+        "collection_exclusive_ms": 4.847699,
+        "collection_calls": 5.0,
+        "collection_max_call_ms": 112.6401,
+        "sdk_exclusive_ms": 21.958199,
+        "sdk_calls": 5.0,
+        "sdk_max_call_ms": 112.6325,
+        "locales_exclusive_ms": 0.109,
+        "locales_calls": 4.0,
+        "locales_max_call_ms": 0.0468
+      },
+      "meta": {
+        "records": 2689.0,
+        "mounts": 1500.0,
+        "rounds": 11.0
+      },
+      "checks": [
+        "CHECK complete records, query business fields/order, empty registry/index, dead old records: PASS"
+      ],
+      "summary_rebuild_10": {
+        "build_ms": {
+          "min": 185.2976,
+          "median": 193.80655000000002,
+          "max": 258.1101
+        },
+        "build_max_sync_ms": {
+          "min": 185.2976,
+          "median": 193.80655000000002,
+          "max": 258.1101
+        },
+        "first_query_ms": {
+          "min": 0.2732,
+          "median": 0.30045,
+          "max": 0.3964
+        },
+        "build_plus_first_ms": {
+          "min": 185.5785,
+          "median": 194.1516,
+          "max": 258.4554
+        },
+        "first_count": {
+          "min": 18.0,
+          "median": 18.0,
+          "max": 18.0
+        },
+        "build_retained_before_verification_KiB": {
+          "min": 8323.083984,
+          "median": 8323.083984,
+          "max": 8323.083984
+        },
+        "active_delta_KiB": {
+          "min": 8373.890625,
+          "median": 8373.890625,
+          "max": 8373.890625
+        },
+        "hot_120_ms": {
+          "min": 38.2299,
+          "median": 43.44165,
+          "max": 49.5499
+        },
+        "hot_query_mean_ms": {
+          "min": 0.318582,
+          "median": 0.3620135,
+          "max": 0.412916
+        },
+        "index_only_rebuild_ms": {
+          "min": 44.1855,
+          "median": 48.61665,
+          "max": 58.4013
+        },
+        "release_ms": {
+          "min": 7.9036,
+          "median": 9.50515,
+          "max": 11.7667
+        },
+        "released_delta_from_initial_KiB": {
+          "min": 2525.69043,
+          "median": 2525.69043,
+          "max": 2525.69043
+        },
+        "native_pool": {
+          "min": 2.0,
+          "median": 2.0,
+          "max": 2.0
+        }
+      }
+    }
+  ]
+}

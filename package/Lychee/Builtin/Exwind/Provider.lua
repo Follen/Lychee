@@ -232,9 +232,6 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    LycheeDB.optionalProviderDefaults=LycheeDB.optionalProviderDefaults or {}
-    LycheeDB.disabledProviders=LycheeDB.disabledProviders or {}
-    if not LycheeDB.optionalProviderDefaults[self.id] then LycheeDB.optionalProviderDefaults[self.id]=true;LycheeDB.disabledProviders[self.id]=true end
     self.handle=_G.Lychee:RegisterProvider({id=self.id,title="Exwind",version="1.0.0",apiVersion=2,minApiRevision=6,
         scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},entries={},actions=actions,
         query=function(request,reply) return self:Query(request,reply) end,resolve=function(id) return self:Resolve(id) end,

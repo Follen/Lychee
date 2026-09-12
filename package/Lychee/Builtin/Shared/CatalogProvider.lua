@@ -127,12 +127,6 @@ function C:Init()
         if self.handle:GetState() then return true end
         self.handle=nil
     end
-    LycheeDB.optionalProviderDefaults=type(LycheeDB.optionalProviderDefaults)=="table" and LycheeDB.optionalProviderDefaults or {}
-    LycheeDB.disabledProviders=type(LycheeDB.disabledProviders)=="table" and LycheeDB.disabledProviders or {}
-    if not self.defaultEnabled and not LycheeDB.optionalProviderDefaults[self.id] then
-        LycheeDB.optionalProviderDefaults[self.id]=true
-        LycheeDB.disabledProviders[self.id]=true
-    end
     local m=self
     self.handle=self.handle or _G.Lychee:RegisterProvider({
         id=self.id,apiVersion=2,version="1.0.0",title=self.title,

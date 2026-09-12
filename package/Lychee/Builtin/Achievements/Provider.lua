@@ -12,10 +12,8 @@ local function identityKey()
     local domain=table.concat({"achievement-v3",r.product,r.build,r.locale},"|").."|"
     return domain..guid,domain
 end
--- Persistent base is immutable. Blocks are parallel ids/texts/categories arrays.
--- Role ops are {signedStart, length, ...}: positive references base, negative extra.
--- Updates store changed IDs in first-update order; new IDs append when materialized.
--- Never publish the mutable active arrays into SavedVariables.
+-- Storage validation is bounded; schema 3 readers are for one-time migration.
+-- Current schema 4 stores one character's parallel ids/texts/categories arrays.
 local function dense(array,limit,checkpoint)
     if type(array)~="table" or #array>limit then return false end
     local count,n=0,#array
@@ -71,119 +69,66 @@ local function validateRole(raw,base,domain,checkpoint)
     end
     return {key=raw.key,ops=raw.ops,extra=extra,updates=updates,counts=counts,builtAt=stamp}
 end
-local function trimStore(store)
-    local entries=store.entries
-    while #entries>10 do table.remove(entries) end
-    local count,bytes,ops=#store.base.ids,store.base.bytes,0
-    for _,role in ipairs(entries) do
-        count=count+#role.extra.ids+#role.updates.ids
-        bytes=bytes+role.extra.bytes+role.updates.bytes
-        ops=ops+#role.ops
-    end
-    while #entries>0 and (count>LIMIT*2 or bytes>4194304 or ops>LIMIT*2) do
-        local role=table.remove(entries)
-        count=count-#role.extra.ids-#role.updates.ids
-        bytes=bytes-role.extra.bytes-role.updates.bytes
-        ops=ops-#role.ops
-    end
+-- A character owns one compact authoritative catalogue. The active view uses
+-- those same arrays; only the ID lookup is derived. Public query results are
+-- freshly materialized records, never these mutable storage arrays.
+local function save(self,cache)
+    cache.schema=4
+    I.CharacterStore:Data().achievementCatalog=cache
 end
-local function promote(self,role)
-    local entries=self.store.entries
-    for index=#entries,1,-1 do if entries[index].key==role.key then table.remove(entries,index) end end
-    table.insert(entries,1,role)
-    trimStore(self.store)
-    LycheeDB.achievementCatalog=self.store
-end
-local function save(self,cache,checkpoint)
-    local base=self.store.base
-    if #base.ids==0 then
-        local ids,texts,categories,positions={},{},{},{}
-        for index,id in ipairs(cache.ids) do
-            ids[index],texts[index],categories[index],positions[id]=id,cache.texts[index],cache.categories[index],index
-            if index%16==0 then checkpoint() end
-        end
-        base=block(ids,texts,categories);base.bytes=cache.bytes
-        self.store.base,self.basePositions=base,positions
-    end
-    local role={key=cache.key,counts=cache.counts,builtAt=cache.builtAt,ops={},extra=block(),updates=block()}
-    local ops,extra=role.ops,role.extra
-    for index,id in ipairs(cache.ids) do
-        local position=self.basePositions[id]
-        local reference
-        if position and base.texts[position]==cache.texts[index] and base.categories[position]==cache.categories[index] then
-            reference=position
-        else
-            local at=#extra.ids+1
-            extra.ids[at],extra.texts[at],extra.categories[at]=id,cache.texts[index],cache.categories[index]
-            extra.bytes=extra.bytes+#cache.texts[index]
-            reference=-at
-        end
-        local n=#ops
-        if n>0 and ((reference>0 and ops[n-1]>0 and reference==ops[n-1]+ops[n])
-            or (reference<0 and ops[n-1]<0 and reference==ops[n-1]-ops[n])) then
-            ops[n]=ops[n]+1
-        else ops[n+1],ops[n+2]=reference,1 end
-        if index%16==0 then checkpoint() end
-    end
-    self.role,self.updatePositions=role,{}
-    promote(self,role)
-end
-local function updateRole(self,id,text,category)
-    local updates=self.role.updates
-    local position=self.updatePositions[id]
-    updates.bytes=updates.bytes-(position and #updates.texts[position] or 0)+#text
-    position=position or #updates.ids+1
-    updates.ids[position],updates.texts[position],updates.categories[position]=id,text,category
-    self.updatePositions[id]=position
-    trimStore(self.store)
-end
-local function restore(self,checkpoint)
-    local raw=LycheeDB.achievementCatalog
-    local store={schema=3,domain=self.cacheDomain,base=block(),entries={}}
-    local base,basePositions
-    if type(raw)=="table" and raw.schema==3 and raw.domain==self.cacheDomain then
-        base,basePositions=validateBlock(raw.base,checkpoint)
-        if base and dense(raw.entries,10,checkpoint) then
-            store.base=base
-            local keys={}
-            for _,candidate in ipairs(raw.entries) do
-                local role=validateRole(candidate,base,self.cacheDomain,checkpoint)
-                if role and not keys[role.key] then keys[role.key]=true;store.entries[#store.entries+1]=role end
-            end
-        else base,basePositions=nil,nil end
-    end
-    self.store,self.basePositions=store,basePositions or {}
-    trimStore(store);LycheeDB.achievementCatalog=store
+local function legacy(self,checkpoint)
+    local raw=type(LycheeDB)=="table" and LycheeDB.achievementCatalog
+    if type(raw)~="table" or raw.schema~=3 or raw.domain~=self.cacheDomain then return end
+    local base=validateBlock(raw.base,checkpoint)
+    if not base or not dense(raw.entries,10,checkpoint) then return end
     local role
-    for _,candidate in ipairs(store.entries) do if candidate.key==self.cacheKey then role=candidate;break end end
-    if not role or role.builtAt<GetServerTime()-604800 then return false end
-    local ids,texts,owners,positions={},{},{},{}
-    local bytes=0
+    for _,candidate in ipairs(raw.entries) do
+        if type(candidate)=="table" and candidate.key==self.cacheKey then
+            role=validateRole(candidate,base,self.cacheDomain,checkpoint);break
+        end
+    end
+    if not role then return end
+    local ids,texts,categories,positions={},{},{},{}
     for index=1,#role.ops,2 do
         local first,length=role.ops[index],role.ops[index+1]
         local source=first>0 and base or role.extra
         first=math.abs(first)
         for at=first,first+length-1 do
             local id=source.ids[at]
-            if positions[id] then return false end
+            if positions[id] then return end
             local n=#ids+1
-            ids[n],texts[n],owners[n],positions[id]=id,source.texts[at],source.categories[at],n
-            bytes=bytes+#texts[n]
+            ids[n],texts[n],categories[n],positions[id]=id,source.texts[at],source.categories[at],n
             if n%16==0 then checkpoint() end
         end
     end
-    local updatePositions={}
     for at,id in ipairs(role.updates.ids) do
         local index=positions[id] or #ids+1
-        if index>LIMIT then return false end
-        bytes=bytes-(texts[index] and #texts[index] or 0)+#role.updates.texts[at]
-        ids[index],texts[index],owners[index],positions[id]=id,role.updates.texts[at],role.updates.categories[at],index
-        updatePositions[id]=at
+        ids[index],texts[index],categories[index],positions[id]=id,role.updates.texts[at],role.updates.categories[at],index
         if at%16==0 then checkpoint() end
     end
-    if bytes>4194304 then return false end
-    for index,category in ipairs(owners) do
-        if role.counts[category]==nil then return false end
+    return {schema=4,key=self.cacheKey,ids=ids,texts=texts,categories=categories,
+        counts=role.counts,builtAt=role.builtAt}
+end
+local function restore(self,checkpoint)
+    local data=I.CharacterStore:Data()
+    local raw=data.achievementCatalog
+    if raw==nil then raw=legacy(self,checkpoint) end
+    -- Account multi-character caches are regenerable, not user settings. Once
+    -- the current role has been extracted, don't load every other role forever.
+    if type(LycheeDB)=="table" then LycheeDB.achievementCatalog=nil end
+    if type(raw)~="table" or raw.schema~=4 or raw.key~=self.cacheKey then return false end
+    local stamp=raw.builtAt
+    if type(stamp)~="number" or stamp~=stamp or stamp>GetServerTime() or stamp<GetServerTime()-604800 then return false end
+    local value,positions=validateBlock(raw,checkpoint)
+    if not value or type(raw.counts)~="table" then return false end
+    local count=0
+    for category,total in pairs(raw.counts) do
+        count=count+1
+        if count>512 or not integer(category) or type(total)~="number" or total<0 or total>LIMIT or total~=math.floor(total) then return false end
+        checkpoint()
+    end
+    for index,category in ipairs(raw.categories) do
+        if raw.counts[category]==nil then return false end
         if index%16==0 then checkpoint() end
     end
     local categories=GetCategoryList()
@@ -191,15 +136,14 @@ local function restore(self,checkpoint)
     local live,changed={},{}
     for _,category in ipairs(categories) do
         live[category]=true
-        if role.counts[category]~=(GetCategoryNumAchievements(category) or 0) then changed[category]=true end
+        if raw.counts[category]~=(GetCategoryNumAchievements(category) or 0) then changed[category]=true end
         checkpoint()
     end
-    for category in pairs(role.counts) do if not live[category] then changed[category]=true end end
-    self.ids,self.texts,self.positions=ids,texts,positions
-    self.cache={key=role.key,ids=ids,texts=texts,categories=owners,counts=role.counts,builtAt=role.builtAt,bytes=bytes}
-    self.role,self.updatePositions=role,updatePositions
+    for category in pairs(raw.counts) do if not live[category] then changed[category]=true end end
+    raw.bytes=value.bytes
+    self.ids,self.texts,self.positions,self.cache=raw.ids,raw.texts,positions,raw
     self.changedCategories=next(changed) and changed or nil
-    promote(self,role)
+    save(self,raw)
     return true
 end
 local function fullBuild(self,checkpoint,changed)
@@ -276,7 +220,6 @@ local function increment(self,checkpoint)
         self.cache.categories[index]=category
         if self.cache.counts[category]==nil then self.cache.counts[category]=GetCategoryNumAchievements(category) or 0 end
         self.cache.bytes=bytes
-        updateRole(self,id,text,category)
         checkpoint()
         return true
     end
@@ -379,8 +322,7 @@ function M:onStop()
     if self.cancelQuery then self.cancelQuery();self.cancelQuery=nil end
     self.ids,self.texts,self.positions,self.cache=nil,nil,nil,nil
     self.pendingIDs,self.pendingCount,self.needsWork=nil,0,false
-    self.store,self.changedCategories=nil,nil
-    self.basePositions,self.role,self.updatePositions=nil,nil,nil
+    self.changedCategories=nil
 end
 M.query=function(request,reply)
     if M.cancelQuery then M.cancelQuery() end

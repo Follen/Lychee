@@ -4,7 +4,7 @@ function GetBuildInfo() return "12.1.0","12345","fixture",120100 end
 function InCombatLockdown() return false end
 function CreateFrame() return {RegisterEvent=function() end,SetScript=function() end,Hide=function() end,Show=function() end} end
 UIParent={}
-for _,file in ipairs({"Bootstrap.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
     "Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/ProviderPolicy.lua","Search/StaticIndex.lua",
     "Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua",
     "Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
@@ -44,7 +44,7 @@ assert(handle:Unregister())
 
 -- Historical aliases may outlive their records. Missing matches do not spend
 -- the twenty-result budget, but nonmatching declarations are never resolved.
-LycheeDB={palette={}}
+LycheeCharacterDB={palette={}}
 handle=register("ranking.stale",{{id="999",title="Only live record"}})
 for index=1,20 do
     assert(P:SetAlias({providerID="ranking.stale",entryID=string.format("%03d",index)},"destination"))
@@ -57,7 +57,7 @@ assert(calls==21,"only matching declarations are resolved")
 assert(handle:Unregister())
 I.Providers.Resolve=resolve
 
-LycheeDB={palette={}}
+LycheeCharacterDB={palette={}}
 entries={}
 for index=101,120 do entries[#entries+1]={id=tostring(index),title="Common "..index} end
 handle=register("ranking.memory",entries)

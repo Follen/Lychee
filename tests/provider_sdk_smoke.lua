@@ -15,7 +15,7 @@ C_Timer = { NewTimer = function(seconds, callback)
     return timer
 end }
 local root = "package/Lychee/"
-for _, path in ipairs({ "Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
+for _, path in ipairs({ "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
     "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
     "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua",
     "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua", "Core/ResultActionExecutor.lua" }) do dofile(root .. path) end
@@ -245,7 +245,7 @@ print("Lychee Provider API 2 contract PASS")
 
 do
     local starts, stops = 0, 0
-    LycheeDB.disabledProviders = {["test.user-preference"]=true}
+    LycheeCharacterDB.disabledProviders = {["test.user-preference"]=true}
     local def = definition("test.user-preference", {{id="item",title="User preference fixture"}})
     def.onEnable = function() starts=starts+1; return function() stops=stops+1 end end
     local handle = assert(SDK:RegisterProvider(def))
@@ -266,7 +266,7 @@ do
     assert(restored:Unregister())
     I.Registry:SetReady(false)
     local pending=assert(SDK:RegisterProvider(definition("test.pending-preference",{{id="item",title="Pending preference"}})))
-    LycheeDB.disabledProviders["test.pending-preference"]=true
+    LycheeCharacterDB.disabledProviders["test.pending-preference"]=true
     I.Registry:SetReady(true)
     assert(not pending:GetState().enabled and not pending:GetState().userEnabled, "publication reads restored SavedVariables")
     assert(pending:Unregister())

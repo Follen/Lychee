@@ -3,10 +3,10 @@ LycheeInternal={Providers={CanRemember=function() return true end}}
 local legacy={providerID="spells",entryID="portal"}
 LycheeDB={palette={pinned={legacy},reduceMotion=true}}
 LycheeCharacterDB=nil
-dofile("package/Lychee/Core/UserPreferences.lua")
+dofile("package/Lychee/Core/CharacterStore.lua");dofile("package/Lychee/Core/UserPreferences.lua")
 local P=LycheeInternal.UserPreferences
 assert(#P:GetPins()==0,"new character must not inherit the account's mage portal pin")
-assert(LycheeDB.palette.pinned==nil,"old account-wide pins are discarded, not migrated")
+assert(#P:GetPins()==0,"account pins are never used")
 assert(LycheeDB.palette.reduceMotion==true,"clearing pins preserves other preferences")
 local function item(id) return {ref={providerID="spells",entryID=id},text=id} end
 assert(P:Pin(item("portal")))
@@ -28,13 +28,13 @@ assert(P:PinIndex(item("holy").ref)==nil)
 P:Remove(1)
 LycheeCharacterDB=paladin
 assert(P:GetPins()[1].entryID=="holy" and P:GetPins()[2].entryID=="shield")
-dofile("package/Lychee/Core/UserPreferences.lua")
+dofile("package/Lychee/Core/CharacterStore.lua");dofile("package/Lychee/Core/UserPreferences.lua")
 P=LycheeInternal.UserPreferences
 P:Initialize()
 assert(#P:GetPins()==2,"reload keeps this character's saved pins")
 LycheeDB.palette.pinned={legacy}
 P:Initialize()
-assert(LycheeDB.palette.pinned==nil and #P:GetPins()==2,"legacy cleanup never overwrites character pins")
+assert(#P:GetPins()==2,"legacy data never overwrites character pins")
 LycheeCharacterDB=false
 P:Initialize()
 assert(#P:GetPins()==0,"malformed character DB resets locally")

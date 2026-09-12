@@ -1,6 +1,7 @@
 -- Geometry boundary regression derived from 20260912-103056.mp4.
 -- Models the observed per-region Scale behavior, not a full WoW renderer.
-Lychee={UI={}};LycheeDB={palette={}}
+Lychee={UI={}};LycheeCharacterDB={palette={}}
+LycheeInternal={};dofile("package/Lychee/Core/CharacterStore.lua")
 local methods={}
 local function node(parent) return setmetatable({parent=parent,points={},width=640,height=508,alpha=1,shown=true,scripts={}},{__index=methods}) end
 local function fraction(point)

@@ -29,6 +29,15 @@
       ]
     },
     {
+      "path": "Core/CharacterStore.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Builtin/Definitions.lua",
       "products": [
         "retail",
@@ -285,11 +294,21 @@
     },
     {
       "path": "UI/Presence.lua",
-      "products": ["retail", "classic", "titan", "anniversary"]
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
     },
     {
       "path": "UI/Runtime.lua",
-      "products": ["retail", "classic", "titan", "anniversary"]
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
     },
     {
       "path": "UI/Components.lua",
@@ -458,16 +477,25 @@
     {
       "id": "builtin.exwind",
       "module": "Exwind",
-      "products": ["retail"],
-      "files": ["Builtin/Exwind/Provider.lua"],
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/Exwind/Provider.lua"
+      ],
       "requires": [],
       "locales": "Builtin/Exwind/Locales.lua"
     },
     {
       "id": "builtin.ellesmere",
       "module": "Ellesmere",
-      "products": ["retail"],
-      "files": ["Builtin/Ellesmere/Adapter.lua", "Builtin/Ellesmere/Provider.lua"],
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Builtin/Ellesmere/Adapter.lua",
+        "Builtin/Ellesmere/Provider.lua"
+      ],
       "requires": [],
       "locales": "Builtin/Ellesmere/Locales.lua"
     },

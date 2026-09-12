@@ -4,7 +4,7 @@ CreateFrame = nil
 for _, locale in ipairs({"zhCN", "zhTW", "enUS", "enGB", "deDE"}) do
     GetLocale = function() return locale end
     LycheeInternal = nil
-    dofile("package/Lychee/Bootstrap.lua")
+    dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
     dofile("package/Lychee/Locales/UI.enUS.lua")
     local L = LycheeInternal.Locale
     local chinese = locale == "zhCN" or locale == "zhTW"

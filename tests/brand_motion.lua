@@ -5,7 +5,7 @@ GetTimePreciseSec=nil
 dofile("tests/interaction_smoke.lua")
 local p=LycheeInternal.Host.PaletteController
 local motion=Lychee.UI.Motion
-LycheeDB.palette.reduceMotion=false
+LycheeCharacterDB.palette.reduceMotion=false
 p:Hide("brand-test");p:FinishHide("brand-test")
 assert(p:Show());local job=assert(motion.brand)
 assert(job.region==p.brandMark and job.parent==p.brandComponent.frame)

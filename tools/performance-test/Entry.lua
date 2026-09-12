@@ -1,6 +1,6 @@
 local _, carrier = ...
 local API = {}
-API.Revision = "0.2.2-baseline-gate"
+API.Revision = "0.3.0-character-storage"
 assert(_G.LycheePerformanceTest == nil, "Lychee Performance Test global already exists")
 _G.LycheePerformanceTest = API
 local initialized = false

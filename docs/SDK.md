@@ -1,5 +1,7 @@
 # Lychee SDK：Provider API 2.6
 
+本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](../lychee-sdk/RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+
 ## 普通搜索与快捷入口（revision 6，推荐）
 
 普通搜索与两种快捷入口可以组合。声明 `minApiRevision=6` 并检查 `Supports(2,6)`：

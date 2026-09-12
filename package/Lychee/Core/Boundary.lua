@@ -37,18 +37,18 @@ local function access(value, field)
     return true
 end
 
-local function visit(value, options, seen, depth, field, parentKey)
+local function visit(value, options, seen, depth, field, parentKey, copying)
     local ok, why = access(value, field)
     if not ok then return nil, why end
     local kind = type(value)
     if kind == "function" then
-        if options.callbacks and type(parentKey) == "string" and options.callbacks[parentKey] then return true end
+        if options.callbacks and type(parentKey) == "string" and options.callbacks[parentKey] then return true, nil, value end
         return failure("INVALID_SCHEMA", field)
     end
-    if kind == "nil" or kind == "boolean" or kind == "string" then return true end
+    if kind == "nil" or kind == "boolean" or kind == "string" then return true, nil, value end
     if kind == "number" then
         if value ~= value or value == math.huge or value == -math.huge then return failure("INVALID_SCHEMA", field) end
-        return true
+        return true, nil, value
     end
     if kind ~= "table" then return failure("INVALID_SCHEMA", field) end
     if type(canaccesstable) == "function" then
@@ -59,21 +59,66 @@ local function visit(value, options, seen, depth, field, parentKey)
         return failure("INVALID_SCHEMA", field)
     end
     seen[value] = true
+    local owned = copying and {} or nil
     local count = 0
     for key, child in next, value do
         count = count + 1
         if count > (options.maxFields or Boundary.MAX_FIELDS) then seen[value] = nil; return failure("INVALID_SCHEMA", field) end
         local keyOK, keyErr = visit(key, options, seen, depth + 1, field, nil)
         if not keyOK then seen[value] = nil; return nil, keyErr end
-        local childOK, childErr = visit(child, options, seen, depth + 1, field, key)
+        local childOK, childErr, childCopy = visit(child, options, seen, depth + 1, field, key, copying)
         if not childOK then seen[value] = nil; return nil, childErr end
+        if copying then owned[key] = childCopy end
     end
     seen[value] = nil
-    return true
+    return true, nil, owned
 end
 
 function Boundary:Validate(value, field, options)
-    return visit(value, options or DEFAULT_OPTIONS, {}, 0, field, nil)
+    local ok, why = visit(value, options or DEFAULT_OPTIONS, {}, 0, field, nil)
+    if not ok then return nil, why end
+    return true
+end
+
+-- An owned copy is produced during the safety walk, never by rereading an
+-- unchecked graph. Seen state is local to this invocation, including reentry.
+function Boundary:Copy(value, field, options)
+    local ok, why, owned = visit(value, options or DEFAULT_OPTIONS, {}, 0, field, nil, true)
+    if not ok then return nil, why end
+    return owned
+end
+
+-- Host-only receipt: no record field or public SDK option can create it.
+-- Failed, dynamic and abandoned batches disappear without retaining their graph.
+-- ReceiveRecords callbacks are Host transforms, never public Provider callbacks.
+local receivedRecords = setmetatable({}, { __mode = "k" })
+function Boundary:_HasRecordReceipt(records) return receivedRecords[records] == true end
+function Boundary:_ConsumeRecordReceipt(records) receivedRecords[records] = nil end
+
+function Boundary:ReceiveRecords(input, prepare, context, limit, share)
+    local list, why = self:Copy(input, "entries", { maxFields = limit, maxDepth = 10 })
+    if why then return nil, why end
+    if type(list) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
+    if #list > limit then return failure("RESULT_LIMIT", "entries") end
+    local count, map = 0, {}
+    for key in pairs(list) do
+        if type(key) ~= "number" or key < 1 or key > #list or key ~= math.floor(key) then return failure("INVALID_SCHEMA", "entries") end
+        count = count + 1
+    end
+    if count ~= #list then return failure("INVALID_SCHEMA", "entries") end
+    for index = 1, #list do
+        local record, err = prepare(context, list[index], index)
+        if not record then return nil, err end
+        -- Prepare may localize/expand actions, so validate the final owned form
+        -- with the stricter per-record limits before issuing a batch receipt.
+        local ok, invalid = self:ValidateSearchRecord(record, "entries[" .. index .. "]")
+        if not ok then return nil, invalid end
+        if map[record.id] then return nil, {code="DUPLICATE_ID",field="entry.id",providerID=context.id,retryable=false} end
+        if share then share(context, record) end
+        list[index], map[record.id] = record, record
+    end
+    receivedRecords[list] = true
+    return list, map
 end
 
 local function schemaValue(boundary, value, schema, field)
@@ -114,8 +159,12 @@ end
 
 local SCOPE_SCHEMA={product="string?",products="table?",locale="string?",minInterface="integer?",maxInterface="integer?",minBuild="integer?",maxBuild="integer?"}
 local PRODUCTS={retail=true,classic=true,titan=true,anniversary=true}
-function Boundary:ValidateScope(scope,field)
-    local ok,err=self:ValidateSchema(scope,SCOPE_SCHEMA,field)
+local function validateScope(scope,field,checked)
+    if not checked then
+        local ok,err=Boundary:Validate(scope,field)
+        if not ok then return nil,err end
+    end
+    local ok,err=schemaValue(Boundary,scope,SCOPE_SCHEMA,field)
     if not ok then return nil,err end
     if scope.product and scope.products then return failure("INVALID_SCHEMA",field) end
     if scope.products then
@@ -134,6 +183,8 @@ function Boundary:ValidateScope(scope,field)
     end
     return true
 end
+
+function Boundary:ValidateScope(scope,field) return validateScope(scope,field,false) end
 
 local function schemaFailure(field)
     return nil, { code = "INVALID_SCHEMA", field = field, retryable = false }
@@ -155,10 +206,12 @@ local function allowedKeys(value, keys, field)
     return true
 end
 
-local function validateIntent(value, field)
+local function validateIntent(value, field, checked)
     if type(value) ~= "table" then return schemaFailure(field) end
-    local ok, why = Boundary:Validate(value, field)
-    if not ok then return nil, why end
+    if not checked then
+        local ok, why = Boundary:Validate(value, field)
+        if not ok then return nil, why end
+    end
     if type(value.type) ~= "string" or value.type == "" or
         type(value.version) ~= "number" or value.version ~= math.floor(value.version) then
         return schemaFailure(field)
@@ -167,11 +220,13 @@ local function validateIntent(value, field)
     return true
 end
 
-function Boundary:ValidateSearchAction(action, field)
+local function validateSearchAction(action, field, checked)
     field = field or "action"
     if type(action) ~= "table" then return schemaFailure(field) end
-    local ok, why = self:Validate(action, field)
-    if not ok then return nil, why end
+    if not checked then
+        local ok, why = Boundary:Validate(action, field)
+        if not ok then return nil, why end
+    end
     local keyOK, keyErr = allowedKeys(action, ACTION_KEYS, field)
     if not keyOK then return nil, keyErr end
     if not stableID(action.id, 64) then return schemaFailure(field .. ".id") end
@@ -188,21 +243,21 @@ function Boundary:ValidateSearchAction(action, field)
     if kind == "open-panel" and not stableID(action.panel, 96) then return schemaFailure(field .. ".panel") end
     if kind == "open-panel" and action.state ~= nil then
         if type(action.state) ~= "table" then return schemaFailure(field .. ".state") end
-        local stateOK, stateErr = self:Validate(action.state, field .. ".state")
-        if not stateOK then return nil, stateErr end
     end
     if (kind == "secure-spell" or kind == "drag-spell") and not positiveInteger(action.spellID) then
         return schemaFailure(field .. ".spellID")
     end
     if kind == "secure-item" and not positiveInteger(action.itemID) then return schemaFailure(field .. ".itemID") end
     if action.intent ~= nil then
-        local intentOK, intentErr = validateIntent(action.intent, field .. ".intent")
+        local intentOK, intentErr = validateIntent(action.intent, field .. ".intent", true)
         if not intentOK then return nil, intentErr end
     end
     return true
 end
 
-local function validateTextField(value, field)
+function Boundary:ValidateSearchAction(action, field) return validateSearchAction(action,field,false) end
+
+local function validateTextField(value, field, checked)
     if value == nil or type(value) == "string" then return true end
     if type(value) ~= "table" then return schemaFailure(field) end
     for key, item in pairs(value) do
@@ -213,11 +268,13 @@ local function validateTextField(value, field)
             return schemaFailure(field .. "[" .. key .. "]")
         end
         if type(item) == "table" then
-            local ok, why = Boundary:Validate(item, field .. "[" .. key .. "]")
-            if not ok then return nil, why end
+            if not checked then
+                local ok, why = Boundary:Validate(item, field .. "[" .. key .. "]")
+                if not ok then return nil, why end
+            end
             if type(item.text) ~= "string" or item.text == "" then return schemaFailure(field .. "[" .. key .. "].text") end
             if item.scope ~= nil then
-                local scopeOK,scopeError=Boundary:ValidateScope(item.scope,field..".scope")
+                local scopeOK,scopeError=validateScope(item.scope,field..".scope",true)
                 if not scopeOK then return nil,scopeError end
             end
         end
@@ -255,7 +312,7 @@ function Boundary:ValidateSearchRecord(record, field)
         return schemaFailure(field .. ".content")
     end
     for _, name in ipairs(TEXT_FIELDS) do
-        local textOK, textErr = validateTextField(record[name], field .. "." .. name)
+        local textOK, textErr = validateTextField(record[name], field .. "." .. name, true)
         if not textOK then return nil, textErr end
     end
     if record.category ~= nil then
@@ -264,7 +321,7 @@ function Boundary:ValidateSearchRecord(record, field)
             local categoryKeysOK, categoryKeysErr = allowedKeys(record.category, CATEGORY_KEYS, field .. ".category")
             if not categoryKeysOK then return nil, categoryKeysErr end
             if record.category.id ~= nil and not stableID(record.category.id, 192) then return schemaFailure(field .. ".category.id") end
-            local titleOK, titleErr = validateTextField(record.category.title, field .. ".category.title")
+            local titleOK, titleErr = validateTextField(record.category.title, field .. ".category.title", true)
             if not titleOK then return nil, titleErr end
             if record.category.order ~= nil and (type(record.category.order) ~= "number" or record.category.order ~= math.floor(record.category.order)) then
                 return schemaFailure(field .. ".category.order")
@@ -278,7 +335,7 @@ function Boundary:ValidateSearchRecord(record, field)
         local seen = {}
         for index = 1, #record.actions do
             local action = record.actions[index]
-            local actionOK, actionErr = self:ValidateSearchAction(action, field .. ".actions[" .. index .. "]")
+            local actionOK, actionErr = validateSearchAction(action, field .. ".actions[" .. index .. "]", true)
             if not actionOK then return nil, actionErr end
             if seen[action.id] then return schemaFailure(field .. ".actions.id") end
             seen[action.id] = true
@@ -298,8 +355,6 @@ function Boundary:ValidateSearchRecord(record, field)
         if record.drag.type == "spell" and record.drag.handler ~= nil then return schemaFailure(field .. ".drag.handler") end
         if record.drag.type == "provider" and record.drag.spellID ~= nil then return schemaFailure(field .. ".drag.spellID") end
         if record.drag.title ~= nil and type(record.drag.title) ~= "string" then return schemaFailure(field .. ".drag.title") end
-        local dragOK, dragErr = self:Validate(record.drag, field .. ".drag")
-        if not dragOK then return nil, dragErr end
         for key in pairs(record.drag) do if key ~= "type" and key ~= "spellID" and key ~= "handler" and key ~= "title" then return schemaFailure(field .. ".drag." .. tostring(key)) end end
     end
     if record.availability ~= nil then

@@ -1,5 +1,7 @@
 # 保留式 UI 库
 
+本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+
 UI Runtime 1 位于 `Lychee.UI`，与 Provider API 2.6 的注册协议独立。先检查
 `Lychee.UI and Lychee.UI.RuntimeVersion == 1`。声明结构只创建一次并视为只读；
 `Create` 不创建 Frame，首次 `Update` 才创建，后续复用固定树。没有 VirtualDOM、

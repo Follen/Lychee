@@ -235,12 +235,6 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    LycheeDB.optionalProviderDefaults=LycheeDB.optionalProviderDefaults or {}
-    LycheeDB.disabledProviders=LycheeDB.disabledProviders or {}
-    if not LycheeDB.optionalProviderDefaults[self.id] then
-        LycheeDB.optionalProviderDefaults[self.id]=true
-        LycheeDB.disabledProviders[self.id]=true
-    end
     self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=6,version="1.0.0",title="Ellesmere UI",
         scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
         entries={},actions=actions,query=function(request,reply) return self:Query(request,reply) end,

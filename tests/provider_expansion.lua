@@ -109,7 +109,7 @@ function GetLFGDungeonInfo(id) return id==3102 and "地城1" or "其他" end
 C_SpellBook={IsSpellKnown=function(id) return id==1286801 end}
 C_ChatInfo={RegisterAddonMessagePrefix=function() return 0 end,SendAddonMessage=function(prefix,msg,channel)
     calls.messages=(calls.messages or 0)+1;assert(prefix=="LibKS" and channel=="PARTY");return 0 end}
-for _,file in ipairs({"Bootstrap.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/ProviderPolicy.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua",
     "Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
     "Core/ResultActionExecutor.lua","Builtin/Shared/CatalogProvider.lua","Builtin/Bags/Provider.lua","Builtin/TalentLoadouts/Provider.lua","Builtin/EquipmentSets/Provider.lua",
@@ -118,7 +118,22 @@ local I=LycheeInternal
 I.Registry:SetReady(true)
 local baseFrames=#frames
 collectgarbage("collect");local baseKB=collectgarbage("count")
+local ids={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
+local defaultScenario=arg and arg[1]=="--defaults"
+if not defaultScenario then
+    for _,id in ipairs(ids) do I.CharacterStore:DisabledProviders()[id]=true end
+end
 I.Builtin:Init()
+if defaultScenario then
+    drain()
+    for _,id in ipairs(ids) do
+        local entry=assert(I.Registry.entries[id])
+        assert(entry.userEnabled and I.Registry:IsEnabled(id),id.." must activate by default")
+    end
+    assert(next(I.CharacterStore:DisabledProviders())==nil)
+    print("Catalog defaults PASS all five real registration paths activate without user opt-in")
+    return
+end
 collectgarbage("collect");local disabledKB=collectgarbage("count")-baseKB
 assert(#frames==baseFrames and #timers==0,"disabled optional sources must not start work")
 assert(disabledKB<128,"disabled registration memory")

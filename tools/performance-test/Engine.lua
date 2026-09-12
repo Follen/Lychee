@@ -21,7 +21,7 @@ if type(store)~="table" or store[id] then return {status="blocked",reason="Study
 local stored=0;for _ in pairs(store) do stored=stored+1 end
 if stored>=8 then return {status="blocked",reason="Eight study reports retained; no automatic deletion"} end
 local version,build,buildDate,interface=GetBuildInfo()
-local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCommit="ccd1c6a59dc3f431d33a90d7ece044b146545058",nativeLoadMs=tonumber(nativeLoadMs),
+local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCommit=carrier.sourceCommit,sourceDirty=carrier.sourceDirty,sourceTreeHash=carrier.sourceTreeHash,nativeLoadMs=tonumber(nativeLoadMs),
     client={version=version,build=build,buildDate=buildDate,interface=interface,locale=GetLocale()},
     phases={},rounds={},coverage={},memory={},uncovered={
         "Client restart / truly unloaded first open cannot be recreated in this loaded session",
@@ -31,7 +31,7 @@ local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCo
         "Private fake-frame memory is not native UI memory; private heap deltas are not addon-accounted total residency",
         "SDK 3, compact representation and final dormant architecture do not exist yet; this is baseline feasibility evidence"}}
 store[id]=report
-report.carrierRevision="0.2.2-baseline-gate"
+report.carrierRevision="0.3.0-character-storage"
 report.wallLimitSeconds=wallLimitSeconds
 report.scheduler={requestedWaitMs=0,actualWaitMs=0,maxOvershootMs=0,wakeups=0,resumeMs=0}
 report.diagnosticStatusUI={frames=1,fontStrings=2,scope="Reusable inert overlay created before baseline; included in diagnostic addon counters"}
@@ -334,9 +334,9 @@ local routine=coroutine.create(function()
         local handle,err=originalRegister(self,definition);wrapHandle(handle);return handle,err
     end
     wrap(I.Providers,"Register","sdk")
-    for _,key in ipairs({"Validate","ValidateScope","ValidateSearchRecord","ValidateSchema"}) do wrap(I.Boundary,key,"validation") end
+    for _,key in ipairs({"Validate","Copy","ValidateScope","ValidateSearchRecord","ValidateSchema"}) do wrap(I.Boundary,key,"validation") end
     for _,key in ipairs({"RegisterSource","CommitSnapshot","ApplyDelta"}) do wrap(I.Search.StaticIndex,key,"index") end
-    for _,def in ipairs(I.Builtin.Definitions) do E.LycheeDB.optionalProviderDefaults[def.id]=true;E.LycheeDB.disabledProviders[def.id]=false end
+    for _,def in ipairs(I.Builtin.Definitions) do I.CharacterStore:DisabledProviders()[def.id]=nil end
     report.dependencies={ellesmerePresent=type(G.EllesmereUI)=="table",ellesmereLoaded=G.EllesmereUI and G.EllesmereUI._deferredLoaded==true,
         exwindPresent=type(G.ExwindTools)=="table",exwindShell=G.ExwindTools and type(G.ExwindTools.UnifiedPanel)=="table",
         blizzardSettingsDeclarations=G.SettingsPanel and type(G.SettingsPanel.GetAllCategories)=="function"}
@@ -350,6 +350,7 @@ local routine=coroutine.create(function()
         local begin=clock();local activeBefore=aggregate.activeMs
         -- Only round 3 intentionally retains private persisted cache; never use the real DB cache.
         if round~=3 then
+            E.LycheeCharacterDB.achievementCatalog=nil
             for key in pairs(E.LycheeDB) do if key~="schemaVersion" and key~="optionalProviderDefaults" and key~="disabledProviders" then E.LycheeDB[key]=nil end end
         end
         result.privatePersistedCacheRetained=round==3
@@ -430,7 +431,7 @@ local routine=coroutine.create(function()
         heapSample("active_"..round);pause()
         currentPhase="release_"..round
         begin=clock();timed(release);result.releaseMs=clock()-begin
-        result.released=true;result.privatePersistedCacheStillPresent=E.LycheeDB.achievementCatalog~=nil
+        result.released=true;result.privatePersistedCacheStillPresent=E.LycheeCharacterDB.achievementCatalog~=nil
         heapSample("released_"..round);pause()
     end
     profiling=false
@@ -453,6 +454,7 @@ local routine=coroutine.create(function()
         entry.mode=mode;entry.dependencyAvailable=sample and sample.available;entry.initializationOK=sample and sample.initializationOK
         entry.providerError=sample and sample.providerError
     end
+    E.LycheeCharacterDB.achievementCatalog=nil
     for key in pairs(E.LycheeDB) do if key~="schemaVersion" and key~="optionalProviderDefaults" and key~="disabledProviders" then E.LycheeDB[key]=nil end end
     heapSample("all_private_data_caches_released");pause()
     report.integrationLimits="Ellesmere normal settings initialization/page open measured separately; loaded code/native state retained; temporary registration observer restored; no global-search prebuild or business setters. Exwind reads existing declarations only."

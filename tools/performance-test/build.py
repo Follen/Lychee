@@ -3,6 +3,7 @@ from pathlib import Path
 import hashlib
 import json
 import zipfile
+import subprocess
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -16,7 +17,14 @@ paths = [s.strip() for s in (ROOT / 'package/Lychee/Lychee_Mainline.toc').read_t
          if s.strip().endswith('.lua') and not s.startswith(('UI/', 'Secure/', 'Locales/')) and s.strip() not in excluded]
 files = ['Bootstrap.lua']
 sources = {}
-(TARGET / files[0]).write_text('local _, carrier = ...\ncarrier.modules = {}\n', encoding='utf-8')
+commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+dirty = bool(subprocess.check_output(['git', 'status', '--porcelain', '--', 'package/Lychee'], cwd=ROOT, text=True).strip())
+tree = hashlib.sha256()
+for path in sorted((ROOT / 'package/Lychee').rglob('*')):
+    if path.is_file():
+        tree.update(path.relative_to(ROOT / 'package/Lychee').as_posix().encode() + b'\0' + path.read_bytes())
+(TARGET / files[0]).write_text('local _, carrier = ...\ncarrier.modules = {}\n'
+    + f'carrier.sourceCommit = "{commit}"\ncarrier.sourceDirty = {str(dirty).lower()}\ncarrier.sourceTreeHash = "{tree.hexdigest()}"\n', encoding='utf-8')
 for i, path in enumerate(paths, 1):
     source = (ROOT / 'package/Lychee' / path).read_text(encoding='utf-8')
     variable = '__lychee_performance_module_namespace'
@@ -31,7 +39,7 @@ for name in ['Engine.lua', 'Entry.lua']:
     (TARGET / name).write_bytes(data)
     files.append(name)
 toc_name = NAME + '.toc'
-(TARGET / toc_name).write_text('## Interface: 120100\n## Title: Lychee Performance Test\n## Notes: Explicit, bounded lifecycle diagnostics. No automatic test.\n## Version: 0.2.2\n## LoadOnDemand: 1\n## Dependencies: Lychee\n## SavedVariables: LycheePerformanceTestDB\n' + '\n'.join(files) + '\n', encoding='utf-8')
+(TARGET / toc_name).write_text('## Interface: 120100\n## Title: Lychee Performance Test\n## Notes: Explicit, bounded lifecycle diagnostics. No automatic test.\n## Version: 0.3.0\n## LoadOnDemand: 1\n## Dependencies: Lychee\n## SavedVariables: LycheePerformanceTestDB\n' + '\n'.join(files) + '\n', encoding='utf-8')
 files.append(toc_name)
 actual = {p.relative_to(TARGET).as_posix() for p in TARGET.rglob('*') if p.is_file()}
 assert actual == set(files), 'Unexpected stale files; inspect manually before packaging'

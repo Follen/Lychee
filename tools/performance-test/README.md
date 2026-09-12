@@ -1,3 +1,7 @@
+## 当前构建：0.3.0-character-storage
+
+当前副本包含角色存储模块，共 57 个产品模块、60 个 Lua 文件、61 个交付文件。构建自动记录真实 `sourceCommit`、运行时目录 `sourceDirty` 和 `sourceTreeHash`，不再沿用固定提交号。私有轮次按角色清理/保留成就缓存；真实产品仍只做只读采样。以下 0.2.2 基准与历史报告保留作为修改前证据，不能当作本轮实机验证。
+
 # Lychee Performance Test
 
 独立、手动启动的诊断插件，调查 Lychee 生命周期与内存/CPU；不实施产品 SDK 或低内存重构。目录、TOC、Title 均为 `Lychee Performance Test`。仅依赖 `Lychee`，不依赖 Lychee Dev；原长文本粘贴入口已撤回。

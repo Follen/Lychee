@@ -28,7 +28,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-for _,file in ipairs({"Bootstrap.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
+for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
     "Builtin/Ellesmere/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
     "Search/ProviderPolicy.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua",
     "Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua",
@@ -39,7 +39,7 @@ local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.Ellesmere
 M:Init()
-assert(not M.active and #timers==0,"default disabled without work")
+assert(M.active,"Ellesmere defaults enabled")
 assert(I.Registry:SetUserEnabled(M.id,true))
 assert(M.active and #timers==0,"enable without loading or polling")
 local definition=I.Providers.entries[M.id].definition
