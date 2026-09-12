@@ -132,6 +132,13 @@ local boss=query("毒牙老二")[1]
 assert(boss and boss.title=="扭缠盘蛇" and boss.payload.npcID==259446,"boss ordinal comes from journal order")
 assert(query("毒牙二号boss")[1].id==boss.id)
 assert(query("ldt:毒牙老2")[1].id==boss.id)
+assert(query("毒牙尾王")[1].payload.npcID==259447,"final boss alias resolves the actual last journal encounter")
+assert(query("毒牙尾王boss")[1].payload.npcID==259447,"final boss alias resolves the actual last journal encounter")
+assert(query("毒牙最终boss")[1].payload.npcID==259447,"final boss alias resolves the actual last journal encounter")
+assert(query("毒牙祭坛尾王")[1].payload.npcID==259447,"final boss alias resolves the actual last journal encounter")
+assert(query("Altar of Fangs final boss")[1].payload.npcID==259447,"final boss alias resolves the actual last journal encounter")
+assert(query("Altar of Fangs last boss")[1].payload.npcID==259447,"final boss alias resolves the actual last journal encounter")
+assert(#query("不存在副本尾王")==0)
 assert(query("259446")[1].payload.npcID==259446)
 forbidSpellReads=false
 local skill=query("缠绕测试")[1]
@@ -193,7 +200,7 @@ local view=M:CreateView()
 local parent=CreateFrame("Frame")
 local resources=assert(I.Resources:Create(function()return true end,nil,assert(M.handle:Resources())))
 local function mount() view:Mount({contentFrame=parent,resources=resources},{dungeonID=164,npcID=259446,spellID=1287798}) end
-mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==6)
+mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
 view.enemy.characteristics={Stun=true,["Shackle Undead"]=true,Fear=false}
 view:ShowTraits()
 assert(GameTooltip.lines[2]:find("昏迷",1,true) and GameTooltip.lines[2]:find("束缚亡灵",1,true) and not GameTooltip.lines[2]:find("恐惧",1,true))
@@ -254,10 +261,10 @@ assert(view.page==1 and view.rows[2].spellID==900007 and not view.expanded["合�
 -- Expanded group headers cannot steal an exact child anchor on a later page.
 C_Spell.GetSpellName=function(id) if id>900001 and id<=900012 then return "展开分组" end;return "技能 "..id end
 view.expanded={["展开分组"]=true};view.selected=900001;view:BuildGroups(true);view:RenderSkills()
-view.page=2;view:RenderSkills()
+view.rowOffset=4;view:RenderSkills()
 local anchoredID=view.rows[1].spellID
 view:BuildGroups(false);view:RenderSkills()
-assert(view.page==2 and view.rows[1].spellID==anchoredID,"an unchanged expanded child page must not jump to its group header")
+assert(view.page==1 and view.rows[1].spellID==anchoredID,"an unchanged expanded child viewport must not jump to its group header")
 C_Spell.GetSpellName=function(id) return "技能 "..id end
 view.expanded={};view.selected=900008;view:BuildGroups(true);view:RenderSkills()
 local tooltipRow=view.rows[2]
@@ -267,7 +274,39 @@ view:RenderSkills();assert(not GameTooltip.shown,"rebind closes the old skill to
 view.description:SetText(string.rep("long description ",200));view:UpdateDescriptionSize()
 view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
 assert(view.descriptionScroll:GetVerticalScroll()>0,"long descriptions remain readable by scrolling")
-view:Describe();assert(view.descriptionScroll:GetVerticalScroll()==0,"selection description starts at the top")
+view.selected=nil;view:Describe();assert(view.descriptionScroll:GetVerticalScroll()==0,"selection description starts at the top")
+-- The sixth group expands inline rather than pushing its children onto another page.
+view.enemy={spells={}};for i=1,9 do view.enemy.spells[i]={id=910000+i} end
+C_Spell.GetSpellName=function(id) return (id==910006 or id==910007) and "同步毒液" or ("技能 "..id) end
+view.expanded={};view.selected=910006;view:BuildGroups(true);view:RenderSkills()
+local oldSection=view.sectionEnd
+local sixth=view.rows[6]
+sixth.expand.frame.scripts.OnMouseDown(sixth.expand.frame,"LeftButton");sixth.expand.frame.scripts.OnClick(sixth.expand.frame)
+assert(view.page==1 and view.rows[7].spellID==910006 and view.rows[8].spellID==910007,"both children of the last group are immediately visible")
+assert(view.rows[7].frame:IsShown() and view.rows[8].frame:IsShown() and view.sectionEnd>oldSection)
+sixth.expand.frame.scripts.OnMouseDown(sixth.expand.frame,"LeftButton");sixth.expand.frame.scripts.OnClick(sixth.expand.frame)
+assert(view.sectionEnd==oldSection and not view.rows[7].frame:IsShown(),"collapse restores layout")
+C_Spell.GetSpellName=function(id) return "全部同名" end
+view.expanded={};view:BuildGroups(true);view:RenderSkills()
+view.expanded["全部同名"]=true;view:Flatten(false);view:RenderSkills()
+assert(view.skillBar.maximum>0)
+local originalDescription=C_Spell.GetSpellDescription
+C_Spell.GetSpellDescription=function() return string.rep("description 123 ",200) end
+view:Describe();view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
+local readingOffset=view.descriptionScroll:GetVerticalScroll()
+assert(readingOffset>0)
+view.skillArea.scripts.OnMouseWheel(view.skillArea,-1)
+assert(view.descriptionScroll:GetVerticalScroll()==readingOffset,"skill list scrolling preserves description reading position")
+C_Spell.GetSpellDescription=originalDescription
+
+view.skillArea.scripts.OnMouseWheel(view.skillArea,-100)
+assert(view.rows[8].spellID==910009 and #view.rows==8,"scroll reaches the final child without allocating more rows")
+local raw="对5码内造成29,647点伤害，在6秒内每2秒造成26,353点伤害，提高6.5%。"
+local highlighted=M:FormatDescription(raw)
+assert(highlighted:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")==raw,"numeric styling preserves the description text")
+for _,number in ipairs({"5","29,647","6","2","26,353","6.5%"}) do assert(highlighted:find(Lychee.UI.Theme.MatchColorCode..number.."|r",1,true)) end
+local markup="|cffff0000已有5秒|r |Hspell:123|h[技能2]|h |T123:16|t |Aatlas:16:16|a"
+assert(M:FormatDescription(markup)==markup,"native color, hyperlink and texture/atlas markup is preserved")
 C_Spell.GetSpellName=originalName;view.enemy=actualEnemy
 -- Drag has one active update script; release outside, combat, hide and unmount stop it.
 mouseHeld=true;cursorX=10;view.model.scripts.OnMouseDown(view.model,"LeftButton")

@@ -1,0 +1,20 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+    "line": 124,
+    "excerpt": "124: \t\t\tName = \"SetHeight\",\n125: \t\t\tType = \"Function\",\n126: \t\t\tIsProtectedFunction = true,\n127: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n128: \n129: \t\t\tArguments =\n130: \t\t\t{\n131: \t\t\t\t{ Name = \"height\", Type = \"uiUnit\", Nilable = false },\n132: \t\t\t},\n133: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua",
+    "line": 739,
+    "excerpt": "739: \t\t\tName = \"SetJustifyH\",\n740: \t\t\tType = \"Function\",\n741: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n742: \n743: \t\t\tArguments =\n744: \t\t\t{\n745: \t\t\t\t{ Name = \"justifyH\", Type = \"JustifyHorizontal\", Nilable = false },\n746: \t\t\t},\n747: \t\t},"
+  }
+]

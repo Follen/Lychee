@@ -125,3 +125,24 @@ local target=assert(overlay(),'replacement failure restores physical secure targ
 target.scripts.OnMouseDown(target,'LeftButton');target.scripts.PreClick(target)
 assert(target.pendingCast);broker:ReleaseAll();p:Hide('test-end')
 print('Navigation/binding PASS: rebind/normal/hidden/reopen/home/secondary, page create+Mount failure, focus and cancellation')
+
+-- View resize commits only for the current owner and cannot leak into a replacement.
+p:Show();p:SetQueryMode("")
+local heightMotion=Lychee.UI.Motion.Height
+Lychee.UI.Motion.Height=function(_,frame,height) frame:SetHeight(height) end
+local sized={Mount=function(self)
+    local before=p.frame:GetHeight()
+    assert(p:ResizeView(self,364));assert(p.frame:GetHeight()==before,"Mount cannot resize before presentation commits")
+end}
+assert(p:OpenView({create=function() return sized end},{},{}))
+assert(p.viewHost.panel.contentHeight==364 and p.frame:GetHeight()==452)
+assert(p:ResizeView(sized,416) and p.viewHost.panel.contentHeight==416 and p.frame:GetHeight()==504)
+assert(p:ResizeView(sized,1000) and p.frame:GetHeight()==518,"Host caps oversized view requests")
+assert(not p:ResizeView({},400) and not p:ResizeView(sized,0/0))
+p:CloseView("resize-close")
+assert(not p:ResizeView(sized,416),"unmounted view cannot resize home/search")
+assert(p:OpenView({create=function() return {} end},{},{}))
+assert(p.viewHost.panel.contentHeight==nil,"replacement keeps default height")
+p:CloseView("resize-done")
+Lychee.UI.Motion.Height=heightMotion
+print("View height ownership PASS")

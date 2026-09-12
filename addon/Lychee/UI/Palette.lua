@@ -864,7 +864,9 @@ function Palette:ResizeForMode(mode, count)
         listHeight = self.homeView and self.homeView.content:GetHeight() or 0
         padding = 0 -- Home content includes its own top and bottom spacing.
     end
-    if mode == "panel" then listHeight = 360 end
+    if mode == "panel" then
+        if count then listHeight=math.max(0,tonumber(count) or 0);padding=0 else listHeight=360 end
+    end
     if mode == "settings" then listHeight = metrics.resultTiles * rowHeight + (metrics.resultTiles - 1) * rowGap end
     if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
@@ -1163,6 +1165,17 @@ function Palette:BeginRowDrag(row)
     self:ReportActionResult(result, err)
     return result, err
 end
+-- Internal view layout requests are owned by the currently mounted instance.
+-- Store during Mount; commit presentation only after navigation succeeds.
+function Palette:ResizeView(instance, height)
+    local panel=self.viewHost and self.viewHost.panel
+    if not self.visible or not panel or panel.instance~=instance or not self.viewHost:IsActive() then return false end
+    if type(height)~="number" or height~=height or height<0 or height==math.huge then return false end
+    panel.contentHeight=height
+    if not self._openingView then return self:ResizeForMode("panel",height) end
+    return true
+end
+
 function Palette:OpenView(factory, context, state)
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if self._openingView then return false, "PANEL_BUSY" end
@@ -1186,7 +1199,7 @@ function Palette:OpenView(factory, context, state)
         if self.secureBroker then self.secureBroker:ReleaseAll(); self._searchActionsSuspended = true end
         setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)
         self._motionMode="panel"
-        self:ResizeForMode("panel"); self:SetStatus("panel")
+        self:ResizeForMode("panel",self.viewHost.panel and self.viewHost.panel.contentHeight); self:SetStatus("panel")
         if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.viewHost.frame,"page") end
     else
         -- A replaced custom instance has already been disposed. Recover the

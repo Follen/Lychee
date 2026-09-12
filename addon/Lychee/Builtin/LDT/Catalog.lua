@@ -59,6 +59,9 @@ function M:Query(request,reply,context)
     local resources=context.resources
     local query=request.normalized or ""
     if query=="" and not (request.filter and request.filter.sourceID) then reply({});return end
+    local finalDungeon=query:match("^(.-)尾王boss$") or query:match("^(.-)尾王$") or query:match("^(.-)最终boss$")
+        or query:match("^(.-)%s+final%s+boss$") or query:match("^(.-)%s+last%s+boss$")
+    if finalDungeon then finalDungeon=finalDungeon:match("^%s*(.-)%s*$");if finalDungeon=="" then finalDungeon=nil end end
     local terms=N:Terms(query)
     local numeric=tonumber(query)
     local exactEntity=false
@@ -111,7 +114,18 @@ function M:Query(request,reply,context)
             batch=batch+1
             if batch>=128 or now()-started>=1 then coroutine.yield();batch,started=0,now() end
         end
+        local finalEnemy,finalInfo,finalOrder
         local function visit(enemy,dungeon)
+            if finalDungeon then
+                if enemy.bossOrder and enemy.bossOrder>(finalOrder or 0)
+                    and (finalDungeon==N:Normalize(dungeon.shortZh,false) or finalDungeon==N:Normalize(dungeon.nameZh,false) or finalDungeon==N:Normalize(dungeon.name,false)) then
+                    finalEnemy=finalEnemy or {}
+                    finalEnemy.id,finalEnemy.name,finalEnemy.nameZh=enemy.id,enemy.name,enemy.nameZh
+                    finalEnemy.isBoss,finalEnemy.bossOrder=enemy.isBoss,enemy.bossOrder
+                    finalInfo,finalOrder=dungeon,enemy.bossOrder
+                end
+                checkpoint();return
+            end
             for i=#fields,1,-1 do fields[i]=nil end
             field("title",M:Name(enemy))
             for index,alias in ipairs(M:Aliases(enemy,dungeon,aliases)) do
@@ -140,7 +154,9 @@ function M:Query(request,reply,context)
             add(enemy,dungeon,best,bestSpell);checkpoint()
         end
         for _,id in ipairs(M.dungeonIDs) do
+            finalOrder,finalInfo=0,nil
             M:ScanDungeon(id,visit,scratch)
+            if finalInfo then add(finalEnemy,finalInfo,1000,nil) end
         end
     end
     run=function(scanSkills,requestMissing)
@@ -150,7 +166,7 @@ function M:Query(request,reply,context)
             complete=function()
                 scanning=false
                 if not scanSkills then
-                    if exactEntity or query=="" then finish() else run(true,true) end
+                    if finalDungeon or exactEntity or query=="" then finish() else run(true,true) end
                 elseif requestMissing and awaiting==0 and loadedDuringScan then run(true,false)
                 elseif not requestMissing or awaiting==0 then finish()
                 else
