@@ -167,6 +167,15 @@
       ]
     },
     {
+      "path": "Search/ResultSnapshot.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Search/QueryOrchestrator.lua",
       "products": [
         "retail",
@@ -194,6 +203,15 @@
       ]
     },
     {
+      "path": "Core/ProviderManagement.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Core/UserPreferences.lua",
       "products": [
         "retail",
@@ -213,6 +231,15 @@
     },
     {
       "path": "PublicAPI/SDK.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/InteractionBinding.lua",
       "products": [
         "retail",
         "classic",
@@ -393,6 +420,15 @@
     },
     {
       "path": "Builtin/Shared/InterfaceActions.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Builtin/Shared/CatalogLedger.lua",
       "products": [
         "retail",
         "classic",

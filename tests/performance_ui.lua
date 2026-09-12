@@ -64,10 +64,12 @@ local frameFactory=CreateFrame
 CreateFrame=nil
 dofile(root.."Bootstrap.lua")
 CreateFrame=frameFactory
+I.Search=I.Search or {}
+dofile(root.."Core/ProviderManagement.lua")
 for _, name in ipairs({"Theme","Runtime","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
 for i=1,1000 do
     local id=string.format("external.%04d",i)
-    I.Providers.entries[id]={definition={title=id,version="1"}}
+    I.Providers.entries[id]={instanceToken=i,definition={title=id,version="1"}}
     I.Registry.entries[id]={userEnabled=true}
 end
 local view=Lychee.UI.SettingsView:Create(object(),controller)
@@ -168,12 +170,12 @@ if check then
     view:SetTab("providers");control=view.rows[2].toggle
     local id=view.rows[2].providerID
     press(control)
-    I.Providers.entries[id]={definition={title=id,version="2"}}
+    I.Providers.entries[id]={instanceToken=2001,definition={title=id,version="2"}}
     view:Refresh();release(control)
     assert(mutations==before,"same source ID with new provider invalidates press")
     press(control);release(control)
     assert(mutations==before+1,"normal provider mouse sequence remains usable")
-    I.Providers.entries["builtin.mounts"]={definition={title="Mounts",version="1"}}
+    I.Providers.entries["builtin.mounts"]={instanceToken=2002,definition={title="Mounts",version="1"}}
     I.Registry.entries["builtin.mounts"]={userEnabled=true}
     view:SetTab("providers")
     assert(view.rows[1].providerID=="builtin.mounts","built-in ordering survives reuse")
@@ -182,7 +184,7 @@ if check then
     local added={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
     local icons={"toys.tga","talents.tga","character.tga","settings.tga","keystone.tga"}
     for _,id in ipairs(added) do
-        I.Providers.entries[id]={definition={title="新增功能",version="1.0.0"}}
+        I.Providers.entries[id]={instanceToken=3000,definition={title="新增功能",version="1.0.0"}}
         I.Registry.entries[id]={userEnabled=false}
     end
     view:SetTab("providers")

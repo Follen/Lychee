@@ -127,6 +127,7 @@ C_Item={GetItemCount=function() return present and 1 or 0 end}
 function IsPlayerSpell() return true end
 dofile('package/Lychee/Secure/Descriptor.lua')
 dofile('package/Lychee/Secure/Policy.lua')
+dofile('package/Lychee/Core/InteractionBinding.lua')
 dofile('package/Lychee/Secure/SecureActionBroker.lua')
 local broker=LycheeInternal.Host.SecureBroker
 local token={controller=palette,row={},item={},session=1,generation=1}
@@ -136,9 +137,9 @@ local button=assert(broker:Prepare(action,token))
 assert(button.attrs.type=='item' and button.attrs.item=='item:123' and not button.attrs.spell)
 local located=0;palette.ShowRowActions=function() located=located+1 end
 button.scripts.OnMouseDown(button,'RightButton');assert(located==1 and not button.itemClicked)
-button.scripts.PreClick(button);assert(button.itemClicked and not next(broker.eventFrame.events))
+button.scripts.OnMouseDown(button,"LeftButton");button.scripts.PreClick(button);assert(button.itemClicked and not next(broker.eventFrame.events))
 button.scripts.PostClick(button,'LeftButton');assert(not button.busy and not button.attrs.item)
-button=assert(broker:Prepare(action,token));valid=false;button.scripts.PreClick(button)
+button=assert(broker:Prepare(action,token));valid=false;button.scripts.OnMouseDown(button,"LeftButton");button.scripts.PreClick(button)
 assert(not button.attrs.type and not button.attrs.item and not button.pendingCast);valid=true
 button=assert(broker:Prepare({kind='secure-spell',spellID=1},token))
 assert(button.attrs.type=='spell' and button.attrs.spell==1 and not button.attrs.item)

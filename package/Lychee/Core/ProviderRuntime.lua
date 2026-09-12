@@ -1,5 +1,5 @@
 local I = _G.LycheeInternal
-local P = { entries = {}, jobs = {}, diagnostics = {}, queryEpoch = 0, entryLimit = 4096, queryLimit = 256 }
+local P = { entries = {}, jobs = {}, diagnostics = {}, queryEpoch = 0, instanceSequence = 0, entryLimit = 4096, queryLimit = 256 }
 I.Providers = P
 -- Membership follows each live resolved snapshot, not its ID: pins and recent
 -- may resolve the same entry independently. UI/action references keep it alive.
@@ -293,7 +293,8 @@ function P:Register(definition)
             end
         end
     end
-    local entry = { id = definition.id, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
+    self.instanceSequence = self.instanceSequence + 1
+    local entry = { id = definition.id, instanceToken = self.instanceSequence, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
     local initial, map = records(entry, inputEntries or {})
     if not initial then return nil, map end
     entry.records, entry.recordMap = initial, map
@@ -503,7 +504,7 @@ function P:IsCurrent(item)
         and (item._providerRecord == entry.recordMap[item.id] or item._providerRecord == entry.dynamic[item.id] or entry.resolved[item._providerRecord] == true)
 end
 local function materialize(entry, record)
-    local item = I.Search.Query:Materialize({ record = record, sourceID = entry.id .. ":records",
+    local item = I.Search.ResultSnapshot:Materialize({ record = record, sourceID = entry.id .. ":records",
         sourceExtensionID = entry.id, sourceTitle = entry.definition.title, confidence = 0.75,
         stableID = entry.id .. ":" .. record.id })
     P:Stamp(item, true)
@@ -522,8 +523,9 @@ function P:Resolve(ref, context)
         local indexed = type(ref.sourceID) == "string" and I.Search.StaticIndex.entries[ref.sourceID .. ":" .. ref.entryID]
         local source = indexed and indexed.source
         if not source or source.extensionID ~= ref.providerID or not I.Registry:IsEnabled(ref.providerID) or not source.enabled then return nil end
-        return I.Search.Query:Materialize({ record = indexed.record, sourceID = source.id, sourceExtensionID = ref.providerID,
+        local item = I.Search.ResultSnapshot:Materialize({ record = indexed.record, sourceID = source.id, sourceExtensionID = ref.providerID,
             sourceTitle = source.title or source.extensionTitle, sourceGeneration = source.generation, sourceRevision = source.revision, stableID = indexed.stableID })
+        return self:Stamp(item)
     end
     if not active(entry) then return nil end
     local record = entry.recordMap[ref.entryID]

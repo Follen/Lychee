@@ -4,6 +4,8 @@
 
 Provider API 2 / revision 7 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
 
+版本与文件交付由[构建期契约](DELIVERY.md)统一检查。helper 的 `API_REVISION=7` 表示当前能力，`MIN_API_REVISION=6` 保留省略参数时的旧兼容下限；使用 revision 7 功能必须显式检查 7。运行 `python tools/build_sdk.py --check` 可检查 Host、类型、helper 和交付清单是否同步。
+
 统一控件、受控状态和懒创建面板参见 [UI 库](UI_LIBRARY.md)。UI Runtime 1 独立版本化，
 可通过 AsView 接入既有 Provider 面板生命周期，不更改 Provider API 2.6 的业务协议。
 
@@ -28,6 +30,7 @@ revision 3 新增可选 `searchable:boolean`，默认 true。`searchable=false` 
 - `LycheeAPI.lua`：可选的 facade 检测、版本判断和 RegisterProvider 转发。
 - `examples/ThirdPartyFixture/`：可独立安装的演示 AddOn，覆盖普通动作、信息条目、拖动与托管视图。
 - `examples/DeferredProvider.lua`：可调用的延迟查询示例。
+- `examples/ManagedProvider.lua`：revision 7 托管资源、角色设置与缓存示例。
 
 实际插件只依赖 Host `_G.Lychee`。TOC 使用 `## OptionalDeps: Lychee`。先判断 `Supports(2,2)`，再调用一次 RegisterProvider；后续通过返回句柄更新或注销。
 

@@ -1,0 +1,15 @@
+C:\Program Files (x86)\Lua\5.1\lua.exe: tests/interaction_smoke.lua:1252: recent lifecycle budget
+stack traceback:
+	[C]: in function 'assert'
+	tests/interaction_smoke.lua:1252: in function <tests/interaction_smoke.lua:1077>
+	tests/interaction_smoke.lua:1458: in main chunk
+	[C]: ?
+Lazy Palette: 59 frame creations deferred until first open
+Recent scroll bounds lifecycle PASS
+Secondary secure action spell checks: 1
+Already released button attribute writes: 0
+Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)
+Lychee settings and pins interaction PASS
+General settings navigation PASS
+Bag right-click routing PASS
+Whitespace home view PASS

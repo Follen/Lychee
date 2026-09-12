@@ -183,7 +183,7 @@ for _,text in ipairs({"物品512","物品","设置256","冰","not-found"}) do
     local compact=I.Search.StaticIndex:Search(text,20,filter,true)
     assert(#full==#compact)
     for index=1,#full do
-        local a,z=I.Search.Query:Materialize(full[index]),I.Search.Query:Materialize(compact[index])
+        local a,z=I.Search.ResultSnapshot:Materialize(full[index]),I.Search.ResultSnapshot:Materialize(compact[index])
         for _,key in ipairs({"id","text","subtext","description","icon","sourceID","sourceTitle","sourceGeneration","sourceRevision","confidence","stableID","kindTitle"}) do
             assert(a[key]==z[key],"compact divergence "..key)
         end

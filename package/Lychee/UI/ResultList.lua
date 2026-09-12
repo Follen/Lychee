@@ -297,6 +297,7 @@ local function renderRowState(row)
 end
 
 local function clearRow(row)
+    _G.LycheeInternal.InteractionBinding:Bind(row, nil, nil, nil)
     row._matchTitle,row._matchSubtitle,row._matchQuery=nil,nil,nil
     row._matchRenderedTitle,row._matchRenderedSubtitle=nil,nil
     if Lychee.UI.Motion then
@@ -375,6 +376,8 @@ function ResultList:Create(parent, controller)
         local row = CreateFrame("Button", nil, frame)
         row:SetSize(tileWidth, rowHeight)
         row.ownerView = self
+        local binding = _G.LycheeInternal.InteractionBinding
+        binding:Attach(row, row)
         local column = (index - 1) % columns
         local gridRow = math.floor((index - 1) / columns)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
@@ -387,7 +390,9 @@ function ResultList:Create(parent, controller)
         row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", metrics.listIconInset or 12, 0)
         row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); setTextureColor(row.dragHighlight, "actionHover")
         row.dragger = CreateFrame("Button", nil, row); row.dragger:SetSize(iconSize + 6, iconSize + 6); row.dragger:SetPoint("CENTER", row.icon, "CENTER")
+        binding:Attach(row.dragger, row)
         row.dragger:SetScript("OnDragStart", function(button)
+            if not binding:Consume(button, button:GetParent(), "LeftButton") then return end
             if button:GetParent().dragDescriptor and self.controller then self.controller:BeginRowDrag(button:GetParent()) end
         end)
         row.dragger:SetScript("OnEnter", function(button)
@@ -400,7 +405,9 @@ function ResultList:Create(parent, controller)
 
         row.primaryTarget = CreateFrame("Button", nil, row)
         row.primaryTarget:SetAllPoints(row); row.primaryTarget:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        binding:Attach(row.primaryTarget, row)
         row.primaryTarget:SetScript("OnClick", function(button, mouseButton)
+            if not binding:Consume(button, button:GetParent(), mouseButton) then return end
             local owner = button:GetParent(); self:SelectRow(owner)
             if mouseButton == "RightButton" and self.controller and self.controller.ShowRowActions then self.controller:ShowRowActions(owner); return end
             if self.controller then self.controller:ActivateRow(owner) end
@@ -423,7 +430,9 @@ function ResultList:Create(parent, controller)
         row.secondary = CreateFrame("Button", nil, row); row.secondary:SetSize(24, 24); row.secondary:SetPoint("RIGHT", row, "RIGHT", -9, 0); row.secondary:RegisterForClicks("LeftButtonUp")
         row.secondary.bg = row.secondary:CreateTexture(nil, "BACKGROUND"); row.secondary.bg:SetAllPoints(); setTextureColor(row.secondary.bg, "action")
         row.secondary.label = row.secondary:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.secondary.label:SetAllPoints(); row.secondary.label:SetJustifyH("CENTER"); setText(row.secondary.label, "..."); setTextColor(row.secondary.label, "text")
+        binding:Attach(row.secondary, row)
         row.secondary:SetScript("OnClick", function(button)
+            if not binding:Consume(button, button:GetParent(), "LeftButton") then return end
             local owner = button:GetParent()
             local actions = owner.item and owner.item.interaction and owner.item.interaction.actions or {}
             if #actions > 2 and self.controller and self.controller.ShowRowActions then self.controller:ShowRowActions(owner); return end
@@ -434,8 +443,8 @@ function ResultList:Create(parent, controller)
         end)
         row.secondary:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); setTextureColor(button.bg, "action"); hideTooltip() end)
 
-        row:SetScript("OnClick", function(button) self:SelectRow(button); if self.controller then self.controller:ActivateRow(button) end end)
-        row:SetScript("OnMouseDown", function(button) button._pressed = true; renderRowState(button) end)
+        row:SetScript("OnClick", function(button) if not binding:Consume(button, button, "LeftButton") then return end; self:SelectRow(button); if self.controller then self.controller:ActivateRow(button) end end)
+        row:SetScript("OnMouseDown", function(button, mouseButton) binding:Press(button, button, mouseButton); button._pressed = true; renderRowState(button) end)
         row:SetScript("OnMouseUp", function(button) button._pressed = false; renderRowState(button) end)
         row:SetScript("OnEnter", function(button) self:SetHover(button, true) end)
         row:SetScript("OnLeave", function(button)
@@ -482,6 +491,7 @@ function ResultList:SetItems(items, session, generation, offset)
     for index = 1, count do
         local item, row = self.items[index + self.offset], self.rows[index]
         if type(item) == "table" then
+        _G.LycheeInternal.InteractionBinding:Bind(row, item, session, generation)
         row.item, row.index = item, index
         local changedIdentity=row.stableID~=stableItemID(item)
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)

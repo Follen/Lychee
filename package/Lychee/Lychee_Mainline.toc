@@ -42,12 +42,15 @@ Core/Resources.lua
 Core/ProviderData.lua
 Core/Scheduler.lua
 Core/ExtensionRegistry.lua
+Search/ResultSnapshot.lua
 Search/QueryOrchestrator.lua
 Search/SearchSession.lua
 Core/ProviderRuntime.lua
+Core/ProviderManagement.lua
 Core/UserPreferences.lua
 Search/Personalization.lua
 PublicAPI/SDK.lua
+Core/InteractionBinding.lua
 Secure/Descriptor.lua
 Secure/Policy.lua
 Secure/SecureActionBroker.lua
@@ -68,6 +71,7 @@ UI/SettingsView.lua
 UI/AddonInspector.lua
 UI/Palette.lua
 Builtin/Shared/InterfaceActions.lua
+Builtin/Shared/CatalogLedger.lua
 Builtin/Shared/CatalogProvider.lua
 Builtin/PlayerSpells/Aliases.lua
 Builtin/PlayerSpells/Provider.lua

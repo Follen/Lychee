@@ -152,3 +152,14 @@ revision 6 将普通搜索 searchGlobal 与两个快捷入口词表解耦。Prov
 Resources 统一管理 Provider/query/view 三种寿命的任务、普通事件及清理回调；ProviderData 管理角色设置与作用域缓存。EUI/EX 使用 query 作用域的 Run，保留各自枚举、结果和点击逻辑。SDK 不接管第三方同步 Lua 的抢占执行。详细 [设计](architecture/2026-09-12-managed-sdk.md)、[SDK 合同](../lychee-sdk/MANAGED_RESOURCES.md)。
 
 测试公共模块加载在 tests/support/runtime.lua 收敛，实际 TOC 决定顺序；游戏 API 替身、业务断言和参考算法仍相互独立。test_assembly 验证前置依赖和失败时不执行部分加载；client_manifest/client_toc_load 独立验证真实客户端装配。
+
+## 全局职责收敛
+
+- Core/InteractionBinding 管复用目标的按下身份；换绑、隐藏或释放使未完成点击失效，普通/附加/首页/安全目标共用，键盘执行仍走 Executor。安全按钮失败使用统一 Release；页面返回搜索时恢复安全覆盖层。
+- Palette 在 create/Mount 成功后提交展示切换，失败保留首页/搜索与焦点；回调中关闭或改变导航取消旧提交。被 Dispose 的旧自定义页不能复活，替换失败回到当前首页/搜索。
+- UserPreferences 在角色或原始表替换时校验存档，热读不复制。异常数据保留并显示错误，阻止活动列表遍历与覆盖写入；异常 SV 本身仍占内存。
+- CatalogLedger 管成功提交的账本、差异和取消，业务 adapter 管枚举及值比较；通用目录 16 条批次，技能/坐骑保持单次原子 delta。
+- ResultSnapshot 管展示字段；Query 和 ProviderRuntime 单向使用它，后者负责来源标记，不再回调 Query 恢复结果。业务字段和来源身份契约不变。
+- ProviderManagement 管管理状态与注册实例校验，设置页面只持有复用的展示记录，不读取内部注册表。管理权限没有加入公开 SDK。
+
+SDK 版本和文件清单以 tools/sdk_contract.json 为依据，build_sdk.py --check 与 sdk_delivery.py 阻止跨文件漂移。当前版本与 helper 最低兼容版本分开声明。完整成本、异常处理与诊断插件退役范围见 [全局收敛设计](architecture/2026-09-12-global-refinement.md)，领域见 [CONTEXT.md](../CONTEXT.md)。

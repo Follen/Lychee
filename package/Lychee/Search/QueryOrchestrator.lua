@@ -25,78 +25,6 @@ local function appendUnique(out, seen, item)
     return true
 end
 
-local function displayText(value)
-    return I.Search.Normalizer:Display(value)
-end
-
-local function displayActions(actions)
-    if type(actions) ~= "table" then return actions end
-    local localized=false
-    for index=1,#actions do
-        if type(actions[index])~="table" or type(actions[index].title)=="table" then localized=true;break end
-    end
-    -- Host result consumers treat descriptors as immutable. SDK execution
-    -- still obtains its own record copy at the Provider boundary.
-    if not localized then return actions end
-    local displayed = {}
-    for index = 1, #actions do
-        local action = actions[index]
-        if type(action) == "table" then
-            local copy = {}
-            for key, value in pairs(action) do copy[key] = value end
-            copy.title = displayText(action.title)
-            displayed[index] = copy
-        end
-    end
-    return displayed
-end
-
-local function searchRecordItem(hit)
-    local indexed=hit and hit.entry
-    local record = indexed and indexed.record or (hit and hit.record)
-    local source=indexed and indexed.source
-    local sourceID=source and source.id or (hit and hit.sourceID)
-    if not record or not sourceID or sourceID == "legacy" then return nil end
-    local item = {
-        id = record.id,
-        text = displayText(record.title),
-        kindTitle = displayText(record.kindTitle),
-        subtext = displayText(record.subtitle or record.subtext),
-        description = displayText(record.description),
-        payload = record.payload or record,
-        icon = record.icon,
-        category = displayText(record.category and record.category.title or record.category),
-        categoryColor = record.category and record.category.color,
-        source = sourceID,
-        sourceID = sourceID,
-        sourceTitle = displayText(source and (source.title or source.extensionTitle) or hit.sourceTitle),
-        sourceGeneration = source and source.generation or hit.sourceGeneration,
-        sourceRevision = source and source.revision or hit.sourceRevision,
-        _ext = record._extensionID or (source and source.extensionID) or hit.sourceExtensionID,
-        searchRecord = record,
-        confidence = hit.confidence,
-        evidence = hit.evidence,
-        sourcePriority = indexed and indexed.source.priority or hit.sourcePriority,
-        categoryOrder = indexed and indexed.categoryOrder or hit.categoryOrder,
-        stableID = indexed and indexed.stableID or hit.stableID,
-    }
-    if type(record.actions) == "table" then
-        item.interaction = {
-            primaryActionID = record.primaryActionID or (record.actions[1] and record.actions[1].id),
-            actions = displayActions(record.actions),
-            drag = record.drag,
-        }
-    elseif record.interaction then
-        local interaction = {}
-        for key, value in pairs(record.interaction) do interaction[key] = value end
-        interaction.actions = displayActions(record.interaction.actions)
-        item.interaction = interaction
-    end
-    return I.Providers and I.Providers:Stamp(item) or item
-end
-
-function Q:Materialize(hit) return searchRecordItem(hit) end
-
 function Q:_ResolveGeneration(externalGeneration, context)
     if type(externalGeneration) == "number" then return externalGeneration end
     if context and type(context.generation) == "number" then return context.generation end
@@ -172,7 +100,8 @@ function Q:_Execute(raw, context, generation, request)
         local preferredKey=preferred and (preferred.providerID..":records:"..preferred.entryID)
         local indexed = I.Search.StaticIndex:Search(request.normalized, self.limit, request.filter, true, preferredKey)
         for index = 1, #indexed do
-            local item = searchRecordItem(indexed[index])
+            local item = I.Search.ResultSnapshot:Materialize(indexed[index])
+            if item and I.Providers then I.Providers:Stamp(item) end
             if item then
                 if filtered then out[#out+1]=item -- index already guarantees unique static records
                 else appendUnique(out, seen, item) end

@@ -240,7 +240,10 @@ local function createHomeView(parent, controller)
         tile.category:SetJustifyH("RIGHT")
         Lychee.UI.Theme:SetFont(tile.category, "meta")
         tint(tile.category, color("muted"))
+        local binding = I.InteractionBinding
+        binding:Attach(tile, tile)
         tile:SetScript("OnClick", function(button, mouseButton)
+            if not binding:Consume(button, button, mouseButton) then return end
             if mouseButton == "RightButton" and controller and (button.item or button.section and button.section.pinnedRef) then
                 view:Select(button.index)
                 controller:ShowRowActions(button)
@@ -260,7 +263,7 @@ local function createHomeView(parent, controller)
             view:SetHover(button, false)
             Lychee.UI.ResultList:HideTooltip()
         end)
-        tile:SetScript("OnDragStart", function(button) controller:BeginRowDrag(button) end)
+        tile:SetScript("OnDragStart", function(button) if binding:Consume(button, button, "LeftButton") then controller:BeginRowDrag(button) end end)
         self.tiles[index] = tile
         return tile
     end
@@ -367,6 +370,7 @@ local function createHomeView(parent, controller)
                 local rows = math.max(1, math.ceil(column / columns))
                 cursorY = cursorY + rows * tileHeight + math.max(0, rows - 1) * HOME_ROW_GAP
             end
+            I.InteractionBinding:Bind(tile, section, controller.session, controller.generation)
             tile.section = section
             tile.index = index
             tile.item = section.item
@@ -407,6 +411,7 @@ local function createHomeView(parent, controller)
         for index = tileCount + 1, #self.tiles do
             local tile = self.tiles[index]
             if tile:IsShown() then self._scrollRectDirty=true end
+            I.InteractionBinding:Bind(tile, nil, nil, nil)
             tile.section, tile.index, tile._hovered = nil, nil, nil
             tile.item, tile.session, tile.generation, tile.extensionID = nil, nil, nil, nil
             setShown(tile.bg, false)
@@ -441,6 +446,7 @@ local function createHomeView(parent, controller)
         self.sections = {}
         local executor = I.ResultActionExecutor
         for _,tile in ipairs(self.tiles) do
+            I.InteractionBinding:Bind(tile, nil, nil, nil)
             tile.section,tile.item,tile.index,tile._hovered=nil,nil,nil,nil
             tile.session,tile.generation,tile.extensionID=nil,nil,nil
             if executor then executor:ConfigureDragTarget(tile,nil) end
@@ -683,7 +689,7 @@ function Palette:OpenSettings(tab)
     self.settingsOpen = true
     if I.Search.Session then I.Search.Session:Stop("settings") end
     Lychee.UI.ResultList:HideTooltip()
-    if self.secureBroker then self.secureBroker:ReleaseAll() end
+    if self.secureBroker then self.secureBroker:ReleaseAll(); self._searchActionsSuspended = true end
     if self.viewHost then self.viewHost:Unmount("settings") end
     self.input:ClearFocus(); self.input:Hide()
     setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
@@ -829,7 +835,9 @@ end
 
 function Palette:SetStatus(mode, count)
     local text
-    if mode == "home" then text = L["输入即搜索"]
+    if mode == "home" then
+        local preferences = I.UserPreferences
+        text = preferences and preferences:GetRecoveryError() and L["固定项数据异常，原始存档已保留"] or L["输入即搜索"]
     elseif mode == "panel" then text = L["详情"]
     elseif count and count > 0 then text = L["搜索结果："] .. tostring(count)
     else text = L["没有结果"] end
@@ -909,6 +917,8 @@ end
 function Palette:SetQueryMode(text)
     if self.settingsOpen then return false end
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
+    self._navigationRevision = (self._navigationRevision or 0) + 1
+    if self._openingView then self.viewHost:Unmount("query-navigation") end
     local empty = I.Search.Normalizer:IsBlank(text)
     local nextMode=empty and not self.activeFilter and "home" or "search"
     local changedMode=self._motionMode~=nextMode
@@ -927,6 +937,10 @@ function Palette:SetQueryMode(text)
         local hasItems = self.list.items and #self.list.items > 0
         setShown(self.list.frame, hasItems)
         setShown(self.emptyState, not hasItems and not self.searchPending)
+        if hasItems and self._searchActionsSuspended and I.ResultActionExecutor then
+            I.ResultActionExecutor:PrepareVisibleRows(self.list.rows)
+            self._searchActionsSuspended = nil
+        end
         if self.searchPending then self:SetStatusText(L["搜索中…"]) else self:SetStatus("search", hasItems and #self.list.items or 0) end
     end
     if changedMode and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(nextMode=="home" and self.homeView.frame or self.list.frame,"page") end
@@ -979,7 +993,9 @@ function Palette:ApplyResults(items, generation, session, offset)
     items = items or {}
     self.list:SetItems(items, self.session, self.generation, offset)
     local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
-    if executor then executor:PrepareVisibleRows(self.list.rows) end
+    if executor and not (self.viewHost and self.viewHost:IsActive()) then
+        executor:PrepareVisibleRows(self.list.rows); self._searchActionsSuspended = nil
+    else self._searchActionsSuspended = true end
     if self.viewHost and self.viewHost:IsActive() then
         setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
         setShown(self.viewHost.frame, true); self:SetStatus("panel")
@@ -1149,13 +1165,34 @@ function Palette:BeginRowDrag(row)
 end
 function Palette:OpenView(factory, context, state)
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
-    if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
-    setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)
+    if self._openingView then return false, "PANEL_BUSY" end
+    if not self.visible then return false, "PANEL_CANCELLED" end
+    local session, navigation, settings = self.session, self._navigationRevision, self.settingsOpen
+    local replacing = self.viewHost:IsActive()
+    local focused = self.input.frame.HasFocus and self.input.frame:HasFocus()
+    self._openingView = true
+    -- Keep the existing presentation until the external create/Mount succeeds.
+    -- ViewHost owns provisional resources; Palette owns the presentation commit.
     local mounted, err = self.viewHost:Mount(factory, context or {}, state)
+    self._openingView = nil
+    -- Catalogue refreshes advance search generation, not user navigation.
+    if not self.visible or session ~= self.session or navigation ~= self._navigationRevision or settings ~= self.settingsOpen then
+        if mounted then self.viewHost:Unmount("navigation-cancelled") end
+        if self.visible and not self.settingsOpen then self:SetQueryMode(self.input:GetText()) end
+        return false, "PANEL_CANCELLED"
+    end
     if mounted then
+        if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
+        if self.secureBroker then self.secureBroker:ReleaseAll(); self._searchActionsSuspended = true end
+        setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)
         self._motionMode="panel"
         self:ResizeForMode("panel"); self:SetStatus("panel")
         if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.viewHost.frame,"page") end
+    else
+        -- A replaced custom instance has already been disposed. Recover the
+        -- current home/search page instead of resurrecting disposed resources.
+        if replacing then self:SetQueryMode(self.input:GetText()) end
+        if focused then self.input:Focus() end
     end
     return mounted, err
 end

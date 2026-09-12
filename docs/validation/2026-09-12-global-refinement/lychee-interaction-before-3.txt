@@ -1,0 +1,15 @@
+Lazy Palette: 59 frame creations deferred until first open
+Recent scroll bounds lifecycle PASS
+Secondary secure action spell checks: 1
+Already released button attribute writes: 0
+Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)
+Lychee settings and pins interaction PASS
+General settings navigation PASS
+Bag right-click routing PASS
+Whitespace home view PASS
+Recent lifecycle: 100 cycles 119.000 ms total, 3.000 ms max, 5891.9 KiB allocated, 31.4 KiB retained growth, 0 new frames
+Dynamic recent query lifecycle PASS
+Alias UI PASS: menu, editor, search, settings, cancel, stale delete, reuse, hidden save
+Provider management UI PASS: detail, mode, prefix, reset, stale click, reuse, release
+Form field lifecycle PASS: focus, invalid, correction, hide, reuse
+Home binding release PASS: no retained section/item identity, native pool reused

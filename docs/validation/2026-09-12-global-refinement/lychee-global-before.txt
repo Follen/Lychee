@@ -1,0 +1,4 @@
+MEMORY entries=2689 builtins_KiB=3607.9 combined_KiB=6873.6 48_queries_alloc_KiB=1782.6 retained_growth_KiB=0.1 query_mean_ms=0.458
+providers=1000 rows=8 objects=356 cold_ms=4.000 retained_kib=505.5 refresh20_ms=23.000 refresh20_alloc_kib=37.4 pool_growth=0
+pins30_initial_resolves=8
+performance_ui: PASS (budgets enforced)

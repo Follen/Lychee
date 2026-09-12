@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 2,
+  "apiRevision": 7,
+  "helperMinimumRevision": 6,
+  "errorCodes": [
+    "INVALID_LOCALES", "INVALID_LOCALE_KEY", "INVALID_LOCALE_FORMAT", "LOCALE_LIMIT",
+    "SDK_UNAVAILABLE", "UNSUPPORTED_API", "INVALID_SCHEMA", "DUPLICATE_ID", "RESULT_LIMIT",
+    "UNKNOWN_ACTION", "UNKNOWN_VIEW", "UNKNOWN_DRAG", "STALE_HANDLE", "PROVIDER_DISABLED",
+    "STALE_REQUEST", "STALE_RESULT", "UPDATE_IN_PROGRESS", "CALLBACK_ERROR", "INVALID_CALLBACK",
+    "INVALID_RESULT", "QUERY_TIMEOUT", "ACTION_FAILED", "ACTION_UNAVAILABLE", "COMBAT_LOCKED",
+    "ACTION_REQUIRES_HARDWARE_CLICK", "MENU_UNAVAILABLE", "NO_ACTION",
+    "RESOURCE_CLOSED", "RESOURCE_REENTRANT", "RESOURCE_LIMIT", "RESOURCE_UNAVAILABLE",
+    "INVALID_EVENT", "INVALID_SETTINGS", "DATA_LIMIT", "SECRET_VALUE", "INACCESSIBLE_VALUE"
+  ],
+  "contents": [
+    "README.md",
+    "DELIVERY.md",
+    "CLIENT_VARIANTS.md",
+    "ADAPTER_COMPATIBILITY.md",
+    "RUNTIME_LIFECYCLE.md",
+    "VIEW_LIFECYCLE.md",
+    "UI_LIBRARY.md",
+    "MOTION.md",
+    "MANAGED_RESOURCES.md",
+    "LycheeAPI.lua",
+    "ApiStubs.lua",
+    "examples/ThirdPartyFixture/ThirdPartyFixture.toc",
+    "examples/ThirdPartyFixture/ThirdPartyFixture_Mainline.toc",
+    "examples/ThirdPartyFixture/ThirdPartyFixture_Mists.toc",
+    "examples/ThirdPartyFixture/ThirdPartyFixture_Wrath.toc",
+    "examples/ThirdPartyFixture/ThirdPartyFixture_TBC.toc",
+    "examples/ThirdPartyFixture/ThirdPartyFixture.lua",
+    "examples/DeferredProvider.lua",
+    "examples/ManagedProvider.lua",
+    "examples/ComponentPanel/ComponentPanel.toc",
+    "examples/ComponentPanel/ComponentPanel.lua"
+  ]
+}

@@ -10,6 +10,8 @@ assert(order["Core/Boundary.lua"]<order["Core/Resources.lua"])
 assert(order["Core/Resources.lua"]<order["Core/ProviderRuntime.lua"])
 assert(order["Core/ProviderData.lua"]<order["Core/ProviderRuntime.lua"])
 assert(order["Core/ProviderRuntime.lua"]<order["PublicAPI/SDK.lua"])
+assert(order["Search/ResultSnapshot.lua"]<order["Search/QueryOrchestrator.lua"])
+assert(order["Core/ProviderRuntime.lua"]<order["Core/ProviderManagement.lua"])
 assert(not order["UI/Palette.lua"] and not order["Core/CommandCatalog.lua"])
 local calls=0
 local ok=pcall(loader.Load,"provider",{"missing.lua"},{load=function() calls=calls+1 end})

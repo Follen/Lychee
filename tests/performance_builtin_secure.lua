@@ -60,6 +60,7 @@ dofile(root.."/".."Builtin/Mounts/Locales.lua")
 dofile(root.."/".."Builtin/PlayerSpells/Locales.lua")
 dofile(root.."/".."Builtin/TalentLoadouts/Locales.lua")
 dofile(root.."/".."Search/RuntimeIdentity.lua")
+dofile(root.."/Builtin/Shared/CatalogLedger.lua")
 dofile(root.."/Builtin/PlayerSpells/Provider.lua")
 dofile(root.."/Builtin/PlayerSpells/Init.lua")
 local module=LycheeInternal.Builtin.PlayerSpells

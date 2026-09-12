@@ -14,10 +14,14 @@ function M.Load(profile,extra,options)
     local selected={}
     if profile then for _,path in ipairs(assert(profiles[profile],"Unknown test profile")) do selected[path]=true end end
     for _,path in ipairs(extra or {}) do selected[path]=true end
+    if selected["UI/ResultList.lua"] or selected["Secure/SecureActionBroker.lua"] then selected["Core/InteractionBinding.lua"]=true end
     local loaded={}
     for line in io.lines(root..(options.toc or "Lychee_Mainline.toc")) do
         local path=line:gsub("\r$","")
         if profile=="provider" and (path=="Core/Resources.lua" or path=="Core/ProviderData.lua") then selected[path]=true end
+        if path=="Search/ResultSnapshot.lua" and selected["Search/QueryOrchestrator.lua"] then selected[path]=true end
+        if path=="Core/ProviderManagement.lua" and profile=="provider" then selected[path]=true end
+        if path=="Builtin/Shared/CatalogLedger.lua" and (selected["Builtin/Shared/CatalogProvider.lua"] or selected["Builtin/Mounts/Provider.lua"] or selected["Builtin/PlayerSpells/Provider.lua"]) then selected[path]=true end
         if selected[path] then
             selected[path]=nil;loaded[#loaded+1]=path
         end

@@ -72,6 +72,7 @@ local function object(kind, parent)
     function o:SetTextColor(...) self.textColor = { ... } end
     function o:SetText(v) self.text = v end
     function o:GetText() return self.text or "" end
+    function o:HasFocus() return self.focused == true end
     function o:ClearFocus() self.focused = false end
     function o:SetFocus() self.focused = true end
     function o:SetAttribute(k, v) mutation(self, "SetAttribute"); self.attrs[k] = v end
@@ -664,10 +665,12 @@ typeQuery("入口测试")
 launcherRow = palette.list.rows[1]
 launcherButton = assert(boundButton(launcherRow))
 local clickedID = launcherButton.token.item.id
+launcherButton.scripts.OnMouseDown(launcherButton, "LeftButton")
 launcherButton.scripts.PreClick(launcherButton)
 assert(launcherButton.pendingCast, "physical pre-click arms cast observation")
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_FAILED", 31884))
 assert(palette.visible and launcherButton.busy and launcherButton:IsShown(), "failed cast remains retryable")
+launcherButton.scripts.OnMouseDown(launcherButton, "LeftButton")
 launcherButton.scripts.PreClick(launcherButton)
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED", 31884))
 assert(not palette.visible and not palette.frame:IsShown(), "successful spell closes launcher")
@@ -690,6 +693,7 @@ assertEq(recentTile.selectionFill._lycheeColorToken,Lychee.UI.Theme.Colors.surfa
 assertEq(recentTile.title.wordWrap, false, "recent entry names use one line")
 assertEq(recentButton.token.item.id, clickedID, "recent button points to the saved record")
 local beforeDrag = _G.__pickup or 0
+recentButton.scripts.OnMouseDown(recentButton,"LeftButton")
 recentButton.scripts.OnDragStart(recentButton)
 assertEq(_G.__pickup, beforeDrag + 1, "recent spell keeps action-bar drag support")
 
@@ -763,6 +767,7 @@ assert(not dragOK and dragErr == "DRAG_UNSUPPORTED", "spell category does not im
 assertEq(_G.__pickup or 0, mixedPickups, "undeclared drag has no side effect")
 assert(not boundButton(panelRow), "spell category does not override the provider's primary panel action")
 assertEq(panelRow.dragger.dragButtons[1], "LeftButton", "ordinary result binds declared drag")
+panelRow.dragger.scripts.OnMouseDown(panelRow.dragger,"LeftButton")
 panelRow.dragger.scripts.OnDragStart(panelRow.dragger)
 assertEq(_G.__pickup, mixedPickups + 1, "ordinary result executes declared drag")
 palette.list:ShowTooltip(panelRow)
@@ -785,6 +790,7 @@ assertEq(tooltipText(), panelTooltip, "home and results share action tooltip")
 palette.homeView.frame.scripts.OnHide(palette.homeView.frame)
 assert(not Lychee.UI.ResultList.tooltip:IsShown() and Lychee.UI.ResultList.tooltip._owner == nil, "hiding recent view clears its root-owned tooltip")
 palette.homeView:ShowTooltip(panelTile)
+panelTile.scripts.OnMouseDown(panelTile,"LeftButton")
 panelTile.scripts.OnDragStart(panelTile)
 assertEq(_G.__pickup, mixedPickups + 2, "recent panel executes the same declared drag")
 palette.homeView.tiles[2].scripts.OnEnter(palette.homeView.tiles[2])
@@ -793,10 +799,12 @@ for index = 1, #palette.homeView.tiles do if palette.homeView.tiles[index].bg:Is
 assertEq(highlighted, 1, "recent has one highlighted icon")
 palette.homeView:Move(-1)
 assert(palette.homeView.tiles[1].bg:IsShown() and not palette.homeView.tiles[2].bg:IsShown(), "keyboard moves the shared recent selection")
+panelTile.scripts.OnMouseDown(panelTile, "LeftButton")
 panelTile.scripts.OnClick(panelTile)
 assertEq(mixedMounts, 1, "recent click opens the provider panel")
 palette:CloseView("mixed-panel")
 local commandTile = findEntry(palette.homeView.tiles, "mixed:command")
+commandTile.scripts.OnMouseDown(commandTile, "LeftButton")
 commandTile.scripts.OnClick(commandTile)
 assertEq(mixedRuns, 1, "recent click runs the provider command")
 assertEq(LycheeCharacterDB.palette.recent[1].entryID, "mixed:command", "successful ordinary action updates recency")
@@ -809,6 +817,7 @@ typeQuery("第三方示例条目")
 local fixtureRow = findEntry(palette.list.rows, "fixture-item-12345")
 assertEq(fixtureRow.primaryAction.kind, "provider", "ordinary Provider action reaches the shared renderer")
 assertEq(fixtureRow.dragger.dragButtons[1], "LeftButton", "custom Provider drag is registered")
+fixtureRow.primaryTarget.scripts.OnMouseDown(fixtureRow.primaryTarget, "LeftButton")
 fixtureRow.primaryTarget.scripts.OnClick(fixtureRow.primaryTarget, "LeftButton")
 local fixturePanel = assert(ThirdPartyFixture.GetPanel())
 assertEq(fixturePanel.text:GetText(), "物品 12345", "view Mount receives and renders initial state")
@@ -849,6 +858,7 @@ MenuUtil = { CreateContextMenu=function(_, generator)
         return {AddInitializer=function(_, initializer) entry.initializer = initializer end, SetOnEnter=function(_, fn) entry.onEnter=fn end, SetOnLeave=function(_, fn) entry.onLeave=fn end}
     end })
 end }
+fixtureTile.scripts.OnMouseDown(fixtureTile, "RightButton")
 fixtureTile.scripts.OnClick(fixtureTile, "RightButton")
 assertEq(#menuEntries, 4, "recent Provider entry exposes all actions, alias and pin")
 assert(fixtureTile.menuMixin and menuEntries[1].initializer, "recent action menu receives Lychee styling")
@@ -900,6 +910,7 @@ assert(secureMenuButton:GetParent()==secureMenuRow and secureMenuButton.armedSec
 assert(palette.status:GetText():find("次要施放",1,true), "status names the prepared action")
 secureMenuButton.scripts.OnEnter(secureMenuButton)
 assert(Lychee.UI.ResultList.tooltip.labels[1]:GetText():find("次要施放",1,true), "armed tooltip describes the actual next action")
+secureMenuButton.scripts.OnMouseDown(secureMenuButton, "LeftButton")
 secureMenuButton.scripts.PreClick(secureMenuButton)
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",31884))
 assertEq(LycheeCharacterDB.palette.recent[1].entryID,"secure-menu","successful cast records recency")
@@ -933,8 +944,10 @@ local mountButton=assert(boundButton(mountRow), "mount outside player spellbook 
 assertEq(mountButton:GetAttribute("type"),nil,"collection summon does not cast a spellbook spell")
 assertEq(mountButton:GetAttribute("spell"),90077)
 assertEq(mountButton.dragButtons[1],"LeftButton")
+mountButton.scripts.OnMouseDown(mountButton,"LeftButton")
 mountButton.scripts.OnDragStart(mountButton)
 assertEq(mountPicked,90077,"mount row drags the summoning spell")
+mountButton.scripts.OnMouseDown(mountButton, "LeftButton")
 mountButton.scripts.PreClick(mountButton)
 assert(mountButton.scripts.PostClick, "mount click has a collection summon handler")
 mountButton.scripts.PostClick(mountButton, "LeftButton")
@@ -943,12 +956,14 @@ assert(secureBroker:FinishCast("UNIT_SPELLCAST_FAILED",90077) and palette.visibl
 ;(function()
     local summon, recentCount = C_MountJournal.SummonByID, #LycheeCharacterDB.palette.recent
     C_MountJournal.SummonByID = function() error("summon rejected") end
+    mountButton.scripts.OnMouseDown(mountButton, "LeftButton")
     mountButton.scripts.PreClick(mountButton)
     mountButton.scripts.PostClick(mountButton, "LeftButton")
     assert(not mountButton.pendingCast and palette.visible, "summon API failure clears pending state without closing")
     assert(#LycheeCharacterDB.palette.recent == recentCount, "rejected summon is not recorded as success")
     C_MountJournal.SummonByID = summon
 end)()
+mountButton.scripts.OnMouseDown(mountButton, "LeftButton")
 mountButton.scripts.PreClick(mountButton)
 mountButton.scripts.PostClick(mountButton, "LeftButton")
 assert(secureBroker:FinishCast("UNIT_SPELLCAST_SUCCEEDED",90077))
@@ -956,6 +971,7 @@ assert(not palette.visible and LycheeCharacterDB.palette.recent[1].entryID=="mou
 assert(palette:Show())
 local mountTile=findEntry(palette.homeView.tiles,"mount:77")
 mountPicked=nil
+assert(boundButton(mountTile)).scripts.OnMouseDown(boundButton(mountTile),"LeftButton")
 assert(boundButton(mountTile)).scripts.OnDragStart(boundButton(mountTile))
 assertEq(mountPicked,90077,"recent mount supports the same action-bar drag")
 mountCollected=false
@@ -1249,7 +1265,7 @@ do
     collectgarbage("restart");collectgarbage("collect")
     local growth=collectgarbage("count")-retainedBefore
     assert(createdFrames==frames,"query/clear reuses existing frames")
-    assert(maxCycle<5 and growth<512,"recent lifecycle budget")
+    assert(maxCycle<5 and growth<512,string.format("recent lifecycle budget: max %.3f ms, growth %.1f KiB",maxCycle,growth))
     print(string.format("Recent lifecycle: 100 cycles %.3f ms total, %.3f ms max, %.1f KiB allocated, %.1f KiB retained growth, 0 new frames",elapsed,maxCycle,allocated,growth))
     -- Deterministic real scheduler: queue timer callbacks, including cancelled ones.
     local queue={}
@@ -1361,7 +1377,7 @@ do
     local page=assert(view.providerView)
     local policy=LycheeInternal.Search.ProviderPolicy
     local function edit(input,value) input:SetText(value);input.scripts.OnTextChanged(input,true) end
-    assert(page.entry==LycheeInternal.Providers.entries["manage.ui"])
+    assert(page.entry==nil and LycheeInternal.ProviderManagement:IsCurrent(page.id,page.instanceToken),"details use current management identity, not internal entries")
     assert(not view.tabs.providers.frame:IsShown() and page.save==nil and page.cancel==nil,"no second page-level confirmation")
     assert(not page.prefixInput:IsShown() and not page.keywordInput:IsShown() and not page.technical:IsShown())
     assert(page.fields.keyword.edit.frame:IsShown() and not page.fields.keyword.tokens[1].frame:IsShown(),"empty field offers add without placeholder state")
@@ -1394,8 +1410,8 @@ do
     assert(not page.fields.prefix.tokens[1].frame:IsShown() and page.fields.prefix.edit.frame:IsShown(),"clearing restores add action")
     assert(page.error:GetText()~="" and page.editing=="keyword" and #search("展现")==1,"invalid edit stays open without changing live search")
     page.keywordInput.scripts.OnEscapePressed();assert(page.editing==nil)
-    page.reset.frame.scripts.OnClick();assert(policy:Configuration("manage.ui",page.entry.definition),"reset applies immediately")
-    page.globalToggle.scripts.OnClick();assert(policy:Configuration("manage.ui",page.entry.definition) and page.error:GetText()~="","failed toggle leaves configuration on")
+    page.reset.frame.scripts.OnClick();assert(LycheeInternal.ProviderManagement:GetConfiguration(page.id,page.instanceToken),"reset applies immediately")
+    page.globalToggle.scripts.OnClick();assert(LycheeInternal.ProviderManagement:GetConfiguration(page.id,page.instanceToken) and page.error:GetText()~="","failed toggle leaves configuration on")
     local fullWords={}
     for index=1,8 do fullWords[index]="managementlongprefix"..index end
     save("prefix",table.concat(fullWords,", "))

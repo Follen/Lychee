@@ -1,0 +1,201 @@
+SDK contract PASS: Host/types/helper current version, compatibility floor and complete delivery inventory
+test_check_is_read_only (__main__.DeliveryContractTests.test_check_is_read_only) ... ok
+test_helper_default_behavior_drift (__main__.DeliveryContractTests.test_helper_default_behavior_drift) ... ok
+test_helper_error_code_drift (__main__.DeliveryContractTests.test_helper_error_code_drift) ... ok
+test_helper_floor_drift (__main__.DeliveryContractTests.test_helper_floor_drift) ... ok
+test_helper_only_drift (__main__.DeliveryContractTests.test_helper_only_drift) ... ok
+test_host_only_drift (__main__.DeliveryContractTests.test_host_only_drift) ... ok
+test_legal_floor_six_with_real_lua_helper (__main__.DeliveryContractTests.test_legal_floor_six_with_real_lua_helper) ... ok
+test_manifest_omission (__main__.DeliveryContractTests.test_manifest_omission) ... ok
+test_missing_required_docs_and_example (__main__.DeliveryContractTests.test_missing_required_docs_and_example) ... ok
+test_repository_matches_contract (__main__.DeliveryContractTests.test_repository_matches_contract) ... ok
+test_types_only_drift (__main__.DeliveryContractTests.test_types_only_drift) ... ok
+test_unlisted_added_file (__main__.DeliveryContractTests.test_unlisted_added_file) ... ok
+test_unsafe_contract_path (__main__.DeliveryContractTests.test_unsafe_contract_path) ... ok
+test_write_repairs_declarations_without_changing_other_host_code (__main__.DeliveryContractTests.test_write_repairs_declarations_without_changing_other_host_code) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.493s
+
+OK
+Pin restore PASS: bounded input, preserved raw data, stable undo, warm10000 0.00 KiB
+Lazy Palette: 59 frame creations deferred until first open
+Recent scroll bounds lifecycle PASS
+Secondary secure action spell checks: 1
+Already released button attribute writes: 0
+Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)
+Lychee settings and pins interaction PASS
+General settings navigation PASS
+Bag right-click routing PASS
+Whitespace home view PASS
+Recent lifecycle: 100 cycles 119.000 ms total, 3.000 ms max, 5798.2 KiB allocated, 31.4 KiB retained growth, 0 new frames
+Dynamic recent query lifecycle PASS
+Alias UI PASS: menu, editor, search, settings, cancel, stale delete, reuse, hidden save
+Provider management UI PASS: detail, mode, prefix, reset, stale click, reuse, release
+Form field lifecycle PASS: focus, invalid, correction, hide, reuse
+Home binding release PASS: no retained section/item identity, native pool reused
+Navigation/binding PASS: rebind/normal/hidden/reopen/home/secondary, page create+Mount failure, focus and cancellation
+Catalog ledger PASS real Host atomic failure/retry, partial 16-row commits, deletion first, registration isolation and named snapshots
+Result snapshot PASS: pure presentation, canonical sharing, localized actions, one stamp, static/dynamic/restore equivalence, stale lifetime
+Provider management PASS: private snapshots, 1000 warm fills 0.0 KiB, pending/effective/user/owner states, configuration, combat, stale and reentrant instances
+Character settings PASS isolation/restored-SV/one-time-transfer/default-on/explicit-opt-out; reads10000 0.80 KiB
+Pin reads10000 allocated_KiB=0.00
+Character pins PASS: isolation, empty legacy reset, reorder/remove/undo, reload, malformed DB, limit
+Client TOCs PASS: retail, classic, titan, anniversary + retail fallback
+Client manifest PASS: 4 clients, 13 owners, invalid rules rejected, support change propagated
+Journal catalogue: 1154 encounters, 214 instances; 6 rows without an available named instance omitted.
+Journal snapshot equivalence PASS: 1154 full rows, order, owners, names, icons
+TOC loading files=83 cpu_ms=23.00 allocated_KiB=3304.7 retained_KiB=1340.4 frames=2 events=3
+  362.3 KiB Builtin/Bosses/JournalCatalog.lua
+  222.0 KiB UI/Palette.lua
+  136.2 KiB Core/ProviderRuntime.lua
+  125.7 KiB Core/ExtensionRegistry.lua
+  120.7 KiB UI/ResultList.lua
+  118.0 KiB Search/StaticIndex.lua
+  100.0 KiB UI/SettingsView.lua
+  93.0 KiB UI/Components.lua
+ViewLifecycle1000 cpu_ms=2.00 allocated_KiB=921.9 retained_KiB=0.0 frames=1
+View lifecycle PASS legacy order/false returns/cached instance/reentry/cancellation/errors/owner isolation
+Ellesmere adapter PASS missing/drift/retry/live pages/legacy returns/exact navigation/combat
+Ellesmere transcript PASS: 44 queries, full records/resolution/action arguments 827088762:192411782
+Test assembly PASS: actual TOC order, independent prerequisites, fail-before-load, isolated profiles
+Managed lifecycle 1000 cycles: retained_growth_kib=6.012, new_frames=0, resources_after_disable=0
+SDK managed resources PASS: replace/late/reentry/event/query/view/disable/quota/settings/cache/identity
+Provider locale PASS; 16 selected dictionaries retained 8.3 KiB
+Provider locale ownership PASS: actual scans/actions isolated; 20000 cached calls, 0 compilations, 0.0 KiB retained growth
+Catalog lifecycle PASS private_registry=absent frames=1 idle_tasks=0 cycles=100 retained_growth_KiB=0.00
+Client/locale public registration matrix PASS 7 identities x 4 locales, updates/resolve/disable/namespace release
+Provider locale/error/lifecycle regressions PASS
+client builtins: locale isolation, legacy spells, four-client menus/settings and native boss names passed
+English bosses PASS records=65 batches=46 cpu_ms=10.000 max_batch_ms=1.000 allocated_KiB=813.9 retained_KiB=136.4 feature_frames=1 peak_timers=1 idle_timers=0
+Shipped TOC load order/capability dispatch PASS: 4 clients x 2 languages; no optional APIs
+UI locales PASS: zhCN, zhTW fallback, enUS, enGB, other-English fallback; maps, arrays, formats and brand
+Lychee Provider API 2 contract PASS
+Lychee persistent Provider preference PASS
+Resolved record lifetime PASS
+Lychee registry boundary smoke PASS
+Addon inspector picker PASS observed unknown/negative/native authority/no expansion + 600 reference comparisons
+Lychee smoke PASS
+Built-in providers PASS: 1154 bosses; init 73.00 ms / retained 2960.2 KiB; alternating query mean 0.170 ms (offline Lua only)
+Mounts/vault PASS: 1500 mounts; init 82.00 ms / retained 3318.5 KiB; alternating query mean 0.750 ms (offline Lua only)
+Lychee default binding smoke PASS
+Lazy Palette: 59 frame creations deferred until first open
+Recent scroll bounds lifecycle PASS
+Secondary secure action spell checks: 1
+Already released button attribute writes: 0
+Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)
+Lychee settings and pins interaction PASS
+General settings navigation PASS
+Bag right-click routing PASS
+Whitespace home view PASS
+Recent lifecycle: 100 cycles 102.000 ms total, 3.000 ms max, 5798.2 KiB allocated, 31.4 KiB retained growth, 0 new frames
+Dynamic recent query lifecycle PASS
+Alias UI PASS: menu, editor, search, settings, cancel, stale delete, reuse, hidden save
+Provider management UI PASS: detail, mode, prefix, reset, stale click, reuse, release
+Form field lifecycle PASS: focus, invalid, correction, hide, reuse
+Home binding release PASS: no retained section/item identity, native pool reused
+UI library integration PASS: production form save, release, remount, stale press, 100 warm cycles / 0 new frames
+SDK component example PASS: real registration, host mount, state, release, cached remount
+Lychee result list UI smoke PASS
+Alias capacity benchmark (200 queries, Lua 5.1): off mean=0.015 max=1.000 alloc=495.4 KiB; on mean=0.355 max=2.000 alloc=8327.4 KiB retained_delta=0.00 KiB
+Provider searchable contract PASS: declaration, update, filter, alias, resolve, disable, dynamic
+Search personalization PASS: real query, aliases, filtering, disable/reload, caps, literal highlight
+Combined search policy PASS: coexistence, exact route priority, revision, saved false/empty, reset, lifecycle
+Prefix policy PASS: global exclusion, routed search, dynamic guard, override, conflict, reset, lifecycle
+Keyword policy PASS: exact routing, no global work, revision, conflict, override, mode switch, reload, lifecycle
+Lychee search platform PASS
+Lychee search session smoke PASS
+Async pending state PASS
+Search quality PASS: lexical oracle, short words, phrase weights, highlight, incremental typing, scope TopK
+Search ranking regression passed: alias quality, stale references, route/lifecycle and remembered TopK
+Static/dynamic lexical score parity passed
+Search lifecycle PASS: operation reentry, invalid replies, sync/async completion, timeout and close
+Search memory regression PASS: 8,836 distance pairs, full-scan ranking, disable/re-enable, removal and bounded cache
+STARTUP entries=2689 alloc_KiB=10347.68 retained_KiB=6216.92 transient_KiB=4130.75 ms=174.00 frames=1
+REBUILD alloc_KiB=2828.60 retained_delta_KiB=0.13 ms=60.00
+performance_startup: PASS
+Search compile PASS: 280 locale/scope cases; all-byte UTF-8 membership, duplicate fields, removal and enable lifecycle
+Lychee Provider API 2 contract PASS
+Lychee persistent Provider preference PASS
+Resolved record lifetime PASS
+Provider record ownership PASS: register/replace/delta isolation, duplicate rollback, failed commit/retry, forged field and update reentry
+Lychee Provider API 2 contract PASS
+Lychee persistent Provider preference PASS
+Resolved record lifetime PASS
+Provider ingestion PASS: one canonical validation/batch member, external access/isolation, reentry, forged ownership, limits, atomic failures and bounded shared metadata
+UI runtime PASS lazy/reuse/props/state/events/identity/release/combat/errors/AsView; 1000 unchanged updates 0.00 KiB
+MEMORY entries=2689 builtins_KiB=3624.8 combined_KiB=6897.6 48_queries_alloc_KiB=1782.6 retained_growth_KiB=0.1 query_mean_ms=0.479
+SEARCH normalization_2048_KiB=626.1 normalization_ms=37.0 long_cache_retained_KiB=-21.5 invalidation_keys=1 candidates_before=1000 candidates_after_cancel=0
+Search allocation, byte-normalization and cancellation checks PASS
+providers=1000 rows=8 objects=356 cold_ms=4.000 retained_kib=753.5 refresh20_ms=27.000 refresh20_alloc_kib=0.4 pool_growth=0
+pins30_initial_resolves=8
+performance_ui: PASS (budgets enforced)
+boundary run=1 records=10000 ms=116.000 allocated_kib=1564.702
+boundary run=2 records=10000 ms=123.000 allocated_kib=1564.843
+boundary run=3 records=10000 ms=105.000 allocated_kib=1564.983
+boundary run=4 records=10000 ms=106.000 allocated_kib=1565.124
+boundary run=5 records=10000 ms=124.000 allocated_kib=1562.968
+scheduler subscribers=1 ticks=1000 ms=0.000 allocated_kib=0.000
+scheduler subscribers=16 ticks=1000 ms=3.000 allocated_kib=0.000
+scheduler subscribers=256 ticks=1000 ms=40.000 allocated_kib=0.000
+ready cancellations=2000 retained_kib=0.016 pending=0
+performance_core regression passed; scheduler frame count=1
+provider run=1 directory=500 single_updates=100 ms=4.000 allocated_kib=255.178
+provider run=2 directory=500 single_updates=100 ms=2.000 allocated_kib=230.766
+provider run=3 directory=500 single_updates=100 ms=2.000 allocated_kib=230.906
+provider run=4 directory=500 single_updates=100 ms=2.000 allocated_kib=231.047
+provider run=5 directory=500 single_updates=100 ms=1.000 allocated_kib=228.891
+provider pending jobs after 200 searches=1
+perf_core_provider regression passed
+builtin perf: disabled scans=0 unchanged commits=0 unrelated scans=0 frames after reenable=1 late scans=0; frames after 20 more toggles=1; 100 unchanged refresh 44.000ms 9233.9KiB allocated 0.0KiB retained growth
+Builtin lifecycle/incremental regression PASS
+secure idle: subscriptions=0 delivered callbacks=0 per 300 player events
+Secure event lifecycle PASS
+Catalog defaults PASS all five real registration paths activate without user opt-in
+COLD builtin.bags cpu_ms=43.00 peak_wall_ms=2.72 scheduled_seconds=0.83
+COLD builtin.keystones cpu_ms=0.00 peak_wall_ms=0.00 scheduled_seconds=0.03
+COLD builtin.equipment-sets cpu_ms=0.00 peak_wall_ms=0.51 scheduled_seconds=0.03
+COLD builtin.talent-loadouts cpu_ms=1.00 peak_wall_ms=1.02 scheduled_seconds=0.03
+COLD builtin.blizzard-settings cpu_ms=14.00 peak_wall_ms=1.05 scheduled_seconds=0.36
+MEASURE disabled=42.0 retained=2160.5 alloc=3961.7 growth=-0.1 max_batch=3.00 total=68.00
+EXPANSION PASS disabled_KiB=42.0 added_KiB=2160.5 alloc100_KiB=3961.7 growth_KiB=-0.1 query100_ms=33.00 batches=561 max_batch_ms=3.00 total_cpu_ms=140.00
+Presence geometry PASS: joined surface edges and content-relative position during both directions
+Height motion cycles2000_KiB=0.00 cpu_ms=2.00 idle_callback=nil
+UI motion PASS frames=1 groups=2 alpha2000_KiB=0.00 cpu_ms=2.00
+Palette cold/warm openings PASS 12 cycles x 6 samples; hidden elapsed ignored
+Palette reverse trajectory PASS 43 mirrored samples plus partial/zero-time reversal
+Palette motion cycles1000_KiB=179.69 cpu_ms=111.00 frame_growth=0 group_growth=0 idle_callback=nil
+Palette reverse close/reopen/direction/scale/reduced/combat PASS
+Switch PASS cycles2000_KiB=0.00 group_growth=0
+Brand geometry PASS: 2952 bounded poses; 1 driver / 0 animation groups; cold 1.43 KiB; 1000 plays 242.00 ms, allocated 0.00 KiB, retained 0.00 KiB (offline)
+Lazy Palette: 59 frame creations deferred until first open
+Recent scroll bounds lifecycle PASS
+Secondary secure action spell checks: 1
+Already released button attribute writes: 0
+Lychee interaction smoke PASS (launcher, secure combat, Provider views, menus, recent and scrolling)
+Lychee settings and pins interaction PASS
+General settings navigation PASS
+Bag right-click routing PASS
+Whitespace home view PASS
+Recent lifecycle: 100 cycles 106.000 ms total, 3.000 ms max, 5798.2 KiB allocated, 31.4 KiB retained growth, 0 new frames
+Dynamic recent query lifecycle PASS
+Alias UI PASS: menu, editor, search, settings, cancel, stale delete, reuse, hidden save
+Provider management UI PASS: detail, mode, prefix, reset, stale click, reuse, release
+Form field lifecycle PASS: focus, invalid, correction, hide, reuse
+Home binding release PASS: no retained section/item identity, native pool reused
+Brand palette integration PASS: local owner, fixed hit rect, open, hover, close, reopen, component hide, reduced motion
+Bag adapters PASS Blizzard / ElvUI / NDui / Ellesmere, no persistent name filter
+Bag highlight PASS frames=1 textures=5 locate100_ms=0.00 allocated_KiB=47.7 retained_growth_KiB=0.0 idle_work=0
+Bag secure action PASS right-click/no-use, stale identity, reuse, combat, missing item
+NativePreferred100 cpu_ms=3.00 allocated_KiB=0.4 fallback_reads=0
+UnifiedRecovery100 cpu_ms=10.00 allocated_KiB=8.5
+NativeStack128 samples=100 cpu_ms=10.00 max_sample_ms=1.00 allocated_KiB=203.1 retained_growth_KiB=0.0 new_frames=0
+Pointer10000 ms=8.00 allocated_KiB=0.0 source_reads=0 redundant_setters=0
+Addon inspector PASS exact/guess/parent/secret/avoidance/copy/Esc/combat/stale/disabled frames=12 regions=37 retained_KiB=56.3 cycles100_ms=5.00 allocated_KiB=330.7 growth_KiB=0.0 idle_work=0
+Achievement query20 allocated_KiB=153.1 retained_growth_KiB=0.0
+Achievement warm10 cpu_ms=48.00 allocated_KiB=1384.7 retained_growth_KiB=0.0 achievement_reads=0
+Achievement character authority PASS default-on/role-isolation/roundtrip/increment/legacy-migration/budget
+Achievements PASS records=6002 retained_KiB=824.1 peak_batch_ms=2.00 frames=2 disabled_work=0
+Ellesmere PASS cold_fixture_ms=0.000 warm_1000_pages_ms=10.000 allocation_20_queries_KiB=466.8 retained_KiB=-0.1
+Exwind PASS cold_1000_settings_ms=14.000 warm20_ms=496.000 alloc20_KiB=1620.2 retained_KiB=0.0 frames_added=0
+Lychee contract checks PASS

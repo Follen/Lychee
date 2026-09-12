@@ -62,7 +62,10 @@ function Broker:_Acquire()
     if InCombatLockdown and InCombatLockdown() then return nil end
     local button = CreateFrame("Button", "LycheeSecureActionButton" .. tostring(#self.buttons + 1), self.parent, "SecureActionButtonTemplate")
     button:RegisterForClicks("LeftButtonUp")
+    local binding = _G.LycheeInternal.InteractionBinding
+    binding:Attach(button, button)
     button:SetScript("OnMouseDown", function(current, mouseButton)
+        binding:Press(current, current, mouseButton)
         local token = current.token
         if mouseButton == "RightButton" and token and token.controller and token.controller.ShowRowActions then
             token.controller:ShowRowActions(token.row)
@@ -70,6 +73,7 @@ function Broker:_Acquire()
     end)
     button:SetAttribute("useOnKeyDown", false)
     button:SetScript("OnDragStart", function(current)
+        if not binding:Consume(current, current, "LeftButton") then return end
         local token = current.token
         if token and token.controller then token.controller:BeginRowDrag(token.row) end
     end)
@@ -95,6 +99,7 @@ function Broker:_Acquire()
     button:SetScript("PreClick", function(current)
         current.itemClicked=nil
         local valid, tokenErr = self:ValidateToken(current.token)
+        if not binding:Consume(current, current, "LeftButton") then valid, tokenErr = false, "STALE_GENERATION" end
         if valid and current.itemID then current.itemClicked=true; return end
         if valid then
             current.pendingCast = true
@@ -104,18 +109,7 @@ function Broker:_Acquire()
             return
         end
         self:Notify("failed", current.action, tokenErr)
-        if not (InCombatLockdown and InCombatLockdown()) then
-            current:SetAttribute("type", nil)
-            current:SetAttribute("spell", nil)
-            current:SetAttribute("item", nil)
-            current:Hide()
-        else
-            current.pendingRelease = true
-            self.dirty = true
-        end
-        current.busy, current.token, current.action, current.pendingCast = false, nil, nil, nil
-        if self.pendingButton == current then self.pendingButton = nil end
-        self:UpdateEventInterest()
+        self:Release(current)
     end)
     button:SetScript("PostClick", function(current, mouseButton)
         if mouseButton == "LeftButton" and current.itemID and current.itemClicked then
@@ -175,6 +169,7 @@ function Broker:Prepare(action, token)
     button:SetAttribute("spell", descriptor.spellID)
     button:SetAttribute("item", descriptor.itemID and ("item:"..descriptor.itemID) or nil)
     button.itemID,button.itemClicked=descriptor.itemID,nil
+    _G.LycheeInternal.InteractionBinding:Bind(button, token, token and token.session, token and token.generation)
     button.token = token
     button.action = action
     button.spellID = descriptor.spellID
@@ -223,6 +218,10 @@ function Broker:FinishCast(event, spellID, reason)
     return true
 end
 function Broker:Release(button)
+    if button then
+        _G.LycheeInternal.InteractionBinding:Bind(button, nil, nil, nil)
+        _G.LycheeInternal.InteractionBinding:Cancel(button)
+    end
     if not button or (not button.busy and not button.pendingRelease and not button.activeIndex) then return end
     if InCombatLockdown and InCombatLockdown() then
         button.pendingRelease = true

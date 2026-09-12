@@ -44,6 +44,7 @@ local function drain()
     end
 end
 LycheeInternal.Builtin.Support={Scope=function() return {products={"retail"}} end}
+dofile("package/Lychee/Builtin/Shared/CatalogLedger.lua")
 dofile("package/Lychee/Builtin/Shared/CatalogProvider.lua")
 local values={a="A",b="B"}
 local m=LycheeInternal.Builtin.CatalogProvider:New("fixture","Fixture",{"DATA_CHANGED"},

@@ -7,12 +7,15 @@ local function now() return debugprofilestop and debugprofilestop() or 0 end
 
 -- Only finite, flat scalar signatures survive a successful catalogue commit.
 function C:New(id, title, events, build, actions)
-    local m = {id=id, locale=I.ProviderLocales:Builtin(id),  title=title, events=events, build=build, actions=actions, epoch=0, signatures={}}
+    local ledger=I.Builtin.CatalogLedger:New()
+    local m = {id=id, locale=I.ProviderLocales:Builtin(id), title=title, events=events, build=build, actions=actions,
+        epoch=0,ledger=ledger,signatures=ledger.values}
     setmetatable(m, {__index=self})
     return m
 end
 function C:Cancel()
     self.epoch=self.epoch+1
+    self.ledger:Invalidate()
     if self.timer then self.timer:Cancel(); self.timer=nil end
     self.job=nil
 end
@@ -23,9 +26,10 @@ function C:Detach(reason)
     self.dirty=nil
     -- Keep only committed identities while disabled: Host retains its records.
     -- Their scalar signatures are invalidated, so re-enable revalidates all rows.
-    for id in pairs(self.signatures) do self.signatures[id]=false end
+    self.ledger:Invalidate(reason=="unregister",true)
+    self.signatures=self.ledger.values
     if wasActive and self.onStop then pcall(self.onStop,self) end
-    if reason=="unregister" then self.handle=nil;self.signatures={} end
+    if reason=="unregister" then self.handle=nil end
 end
 function C:MarkDirty()
     if not self.active then return end
@@ -70,48 +74,26 @@ function C:Step()
                 records[#records+1]=record; signatures[record.id]=signature
             end
             self.build(self, put, checkpoint)
-            local upsert,remove={},{}
             local epoch=self.epoch
-            local function flush()
-                if #upsert==0 and #remove==0 then return end
-                local handle,ledger=self.handle,self.signatures
-                local committed,err=handle:Update({upsert=upsert,remove=remove})
-                -- Update may synchronously disable or replace this registration.
-                -- Successful writes belong to its original identity ledger even
-                -- when paused; never copy them into a replacement registration.
-                if committed and self.handle==handle and self.signatures==ledger then
-                    local current=self.active and epoch==self.epoch
-                    for _,record in ipairs(upsert) do ledger[record.id]=current and signatures[record.id] or false end
-                    for _,id in ipairs(remove) do ledger[id]=nil end
+            local function current() return self.active and epoch==self.epoch end
+            local function changedRecords(changed)
+                local result={}
+                for index,record in ipairs(records) do
+                    if changed[record.id] then result[#result+1]=record end
+                    records[index]=false
                 end
-                if not self.active or epoch~=self.epoch then return false end
-                if not committed then error(err and err.code or "SOURCE_COMMIT_FAILED") end
-                upsert,remove={},{}
-                coroutine.yield(); count=0; started=now()
-                return true
+                return result
             end
             -- A native/Host call is not preemptible: cap the commit itself,
             -- not only the reads preceding it. Every chunk is atomic.
             coroutine.yield(); count=0; started=now()
-            -- Remove obsolete IDs before additions so a full-capacity catalogue
-            -- can replace identities without temporarily exceeding the Host cap.
-            for id in pairs(self.signatures) do
-                if not signatures[id] then
-                    remove[#remove+1]=id
-                    if #remove>=16 and flush()==false then return end
-                end
-            end
-            if flush()==false then return end
-            for index,record in ipairs(records) do
-                if self.signatures[record.id]~=signatures[record.id] then
-                    upsert[#upsert+1]=record
-                    if #upsert>=16 and flush()==false then return end
-                end
-                records[index]=false
-                checkpoint()
-            end
-            if flush()==false then return end
-            self.signatures,self.dirty,self.lastError=signatures,nil,nil
+            local committed,err=self.ledger:Reconcile(self.handle,signatures,changedRecords,{
+                full=true,batchSize=16,current=current,checkpoint=checkpoint,
+                afterCommit=function() coroutine.yield();count=0;started=now() end,
+            })
+            if not current() then return end
+            if not committed then error(err and err.code or "SOURCE_COMMIT_FAILED") end
+            self.dirty,self.lastError=nil,nil
         end)
     end
     local job,epoch=self.job,self.epoch

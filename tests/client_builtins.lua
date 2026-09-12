@@ -33,6 +33,7 @@ assert(spellLocale["玩家技能"]=="Player spells")
 I.Locale.code="zhCN"
 assert(I.ProviderLocales:Builtin("builtin.player-spells")["玩家技能"]=="玩家技能")
 I.Locale.code="enUS"
+load("Builtin/Shared/CatalogLedger.lua")
 load("Builtin/PlayerSpells/Provider.lua")
 local spells=I.Builtin.PlayerSpells.Provider
 assert(spells:RefreshFromSpellBook())

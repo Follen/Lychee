@@ -249,3 +249,13 @@ Mount/Update返回false不表示失败，抛错才触发清理。生命周期回
 ## 同一 Provider 在不同版本的业务逻辑
 
 `scope` 只过滤支持范围，不替 Provider 选择代码。Provider 可以为不同 product 或同一 product 的不同数值版本区间使用不同数据源、事件、动作和视图。保持同一业务 Provider ID，在注册前选择唯一实现，提交当前实现的范围和独立 i18n；未选中实现不得启动业务工作。推荐 TOC 分别加载适配模块，共享注册入口。完整示例和边界规则见 [客户端与 build 差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。这使用现有 API 2.2，不新增 variants 注册字段或 GetClient 公共接口。
+
+## 版本与交付门禁
+
+当前 SDK 为 API 2 / revision 7。helper 的 API_REVISION 表示当前能力，MIN_API_REVISION=6 保留默认兼容下限；使用托管资源仍须显式要求 revision 7。版本、错误码和完整文件清单由 tools/sdk_contract.json 统一约束；参见 [交付合同](../lychee-sdk/DELIVERY.md)。
+
+运行 python tools/build_sdk.py --check 与 python tests/sdk_delivery.py；它们已接入完整契约检查。ResultSnapshot、CatalogLedger、InteractionBinding 和 ProviderManagement 是 Host 私有职责，不新增第三方管理员权限或第二套 SDK。
+
+自定义页创建/挂载失败会保留当前首页或搜索内容和焦点。回调中关闭/换查询/进设置优先取消旧导航；替换已释放的自定义页失败时回到当前首页/搜索。固定项原始存档异常时保留原文并提示，暂停固定项写入，避免覆盖；有效存档的角色隔离、顺序、占位与撤销不变。
+
+独立 Lychee Performance Test 插件及工具已按用户要求退役。原历史报告保留用于解释测量，不再作为当前版本的验收证据；本体离线测试和性能预算继续执行。

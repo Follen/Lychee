@@ -32,6 +32,14 @@ local function sameMount(left, right)
         and left.spellID == right.payload.spellID
 end
 
+M.ledger=I.Builtin.CatalogLedger:New({
+    same=sameMount,
+    remember=function(record) return {title=record.title,icon=record.icon,spellID=record.payload.spellID} end,
+    recordID=function(id) return "mount:"..tostring(id) end,
+    key=function(record) return record.payload.mountID end,
+})
+M.items=M.ledger.values
+
 function M:Refresh()
     if not self.active or not self.handle then return false end
     if inCombat() then return false, "COMBAT_LOCKED" end
@@ -49,7 +57,7 @@ function M:Refresh()
     end
     if #ids == 0 and not self.fullDirty then return true end
 
-    local nextItems, upsert, remove = {}, {}, {}
+    local nextItems = {}
     for index = 1, #ids do
         local mountID = ids[index]
         local ok, record, err = pcall(readMount, mountID)
@@ -57,33 +65,17 @@ function M:Refresh()
             self.lastError=err or "MOUNT_DATA_UNAVAILABLE"; return false, self.lastError
         end
         nextItems[mountID] = record
-        local old = self.items[mountID]
-        if record then
-            if not sameMount(old, record) then upsert[#upsert+1]=record end
-        elseif old then remove[#remove+1]="mount:" .. tostring(mountID) end
     end
-    if self.fullDirty then
-        for mountID in pairs(self.items) do
-            if nextItems[mountID] == nil then remove[#remove+1]="mount:" .. tostring(mountID) end
-        end
-    end
-    if #upsert > 0 or #remove > 0 then
-        local committed, err = self.handle:Update({upsert=upsert, remove=remove})
-        if not committed then self.lastError=err and err.code or "SOURCE_COMMIT_FAILED"; return false, self.lastError end
-    end
-    -- Publish the local cache and clear dirty flags only after a successful
-    -- source commit. Transient API failures retain the last complete index.
-    if self.fullDirty then
-        for mountID in pairs(self.items) do if nextItems[mountID] == nil then self.items[mountID]=nil end end
-    end
-    for mountID, record in pairs(nextItems) do
-        if not record then self.items[mountID]=nil
-        elseif not sameMount(self.items[mountID], record) then
-            -- Only change detection lives here; the Provider owns action/drag
-            -- descriptors. Do not retain another full record per mount.
-            self.items[mountID]={title=record.title, icon=record.icon, spellID=record.payload.spellID}
-        end
-    end
+    local epoch=self.epoch
+    local committed,err=self.ledger:Reconcile(self.handle,nextItems,function(changed)
+        local records={}
+        for _,id in ipairs(ids) do if changed[id] then records[#records+1]=changed[id] end end
+        return records
+    end,{
+        full=self.fullDirty,current=function() return self.active and self.epoch==epoch end,
+    })
+    if not self.active or self.epoch~=epoch then return false,"CATALOG_CANCELLED" end
+    if not committed then self.lastError=err and err.code or "SOURCE_COMMIT_FAILED";return false,self.lastError end
     self.fullDirty, self.lastError = nil, nil
     for mountID in pairs(self.dirtyIDs) do self.dirtyIDs[mountID]=nil end
     return true
@@ -119,7 +111,9 @@ function M:Detach(reason)
     end
     self.fullDirty=nil
     for mountID in pairs(self.dirtyIDs) do self.dirtyIDs[mountID]=nil end
-    if reason == "unregister" then self.handle=nil; self.items={} end
+    self.ledger:Invalidate(reason=="unregister")
+    self.items=self.ledger.values
+    if reason == "unregister" then self.handle=nil end
 end
 
 function M:Init()

@@ -59,6 +59,14 @@ $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
+    & python 'tools/build_sdk.py' '--check'
+    if ($LASTEXITCODE -ne 0) { throw 'SDK delivery declaration drift' }
+    & python 'tests/sdk_delivery.py'
+    if ($LASTEXITCODE -ne 0) { throw 'SDK delivery mutation checks failed' }
+    foreach ($test in @('pin_restore','navigation_binding','catalog_ledger','result_snapshot','provider_management')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
     & $lua.Source 'tests/character_settings.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character settings/defaults checks failed' }
     & $lua.Source 'tests/character_pins.lua'

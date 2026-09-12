@@ -2,6 +2,7 @@ local EMPTY_UI_PROPS = {}
 local L = _G.LycheeInternal.Locale
 local I, Lychee = _G.LycheeInternal, _G.Lychee
 local Settings = {}
+local management=I.ProviderManagement
 local metrics=Lychee.UI.Theme.Metrics
 local rowWidth=metrics.resultTileWidth-metrics.listInset
 local rowStride=metrics.rowHeight+metrics.rowGap
@@ -143,7 +144,7 @@ function Settings:Create(parent, controller)
         control._pressGeneration=nil
         if generation~=nil and generation~=row._bindingGeneration then return false end
         if not frame:IsShown() or not row:IsShown() or (InCombatLockdown and InCombatLockdown()) then return false end
-        if row.providerID then return I.Providers.entries[row.providerID]==row._bindingIdentity end
+        if row.providerID then return management:IsCurrent(row.providerID,row._bindingIdentity) end
         return row.pinIndex~=nil and I.UserPreferences:GetPins()[row.pinIndex]==row._bindingIdentity
     end
 
@@ -170,9 +171,7 @@ function Settings:Create(parent, controller)
         row.toggle:SetScript("OnClick",function()
             if not currentClick(row.toggle,row) then return end
             if not row.providerID then return end
-            local source=I.Registry.entries[row.providerID]
-            if not source then return end
-            local ok,err=I.Registry:SetUserEnabled(row.providerID,not source.userEnabled)
+            local ok,err=management:ToggleUserEnabled(row.providerID,row._bindingIdentity)
             if not ok then controller:ReportActionResult(false,err);return end
             controller:MarkHomeDirty();self:Refresh();controller:SetStatusText(L["更改已保存，固定记录保留"])
         end)
@@ -229,7 +228,7 @@ function Settings:Create(parent, controller)
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
         if self.providerView and self.providerView.frame:IsShown() then
-            if I.Providers.entries[self.providerView.id]==self.providerView.entry then return end
+            if management:IsCurrent(self.providerView.id,self.providerView.instanceToken) then return end
             self.providerView.frame:Hide()
         end
         if self.aliasView and self.aliasView.frame:IsShown() then return end
@@ -286,25 +285,17 @@ function Settings:Create(parent, controller)
         if self.general then shown(self.general,false) end
         local data,count=self.data or {},0
         if self.tab=="providers" then
-            for id,provider in pairs(I.Providers.entries) do
-                local state=I.Registry.entries[id]
-                if id~="lychee.settings" and state then
-                    count=count+1
-                    local record=data[count] or {};data[count]=record
-                    if record.pinIndex~=nil then record.pin,record.pinIndex=nil,nil end
-                    record.id,record.state,record.provider=id,state,provider
-                    record.title,record.version=displayTitle(provider.definition.title,id),provider.definition.version
-                    record.builtin,record.order=builtinOrder[id]~=nil,builtinOrder[id] or 100
-                end
+            management:FillList(data)
+            for _,record in ipairs(data) do
+                record.builtin,record.order=builtinOrder[record.id]~=nil,builtinOrder[record.id] or 100
             end
-            for index=#data,count+1,-1 do data[index]=nil end
             table.sort(data,function(a,b) if a.order~=b.order then return a.order<b.order end;return a.id<b.id end)
         else
             for index,pin in ipairs(I.UserPreferences:GetPins()) do
                 count=count+1
                 local record=data[count] or {};data[count]=record
-                record.id,record.state,record.title,record.version,record.builtin,record.order=nil,nil,nil,nil,nil,nil
-                record.provider=nil
+                record.id,record.instanceToken,record.title,record.version,record.builtin,record.order=nil,nil,nil,nil,nil,nil
+                record.status,record.lifecycle,record.userEnabled,record.ownerEnabled,record.effectiveEnabled,record.searchable=nil,nil,nil,nil,nil,nil
                 record.pin,record.pinIndex=pin,index
             end
             for index=#data,count+1,-1 do data[index]=nil end
@@ -347,7 +338,7 @@ function Settings:Create(parent, controller)
             local row=self:Acquire(visible)
             local y=record.y
             if row._y~=y then row:ClearAllPoints();row:SetPoint("TOPLEFT",content,"TOPLEFT",0,-y);row._y=y end
-            local identity=self.tab=="pins" and record.pin or record.provider
+            local identity=self.tab=="pins" and record.pin or record.instanceToken
             local rebound=row.providerID~=record.id or row.pinIndex~=record.pinIndex or row._bindingIdentity~=identity
             if rebound then
                 row.hover:Hide();row.manage._hovered=false;row.manage:SetState("normal")
@@ -367,18 +358,16 @@ function Settings:Create(parent, controller)
             if row._icon~=icon and row.icon:SetTexture(icon)~=false then row._icon=icon end
             text(row.name,record.title)
             if self.tab=="providers" then
-                local state=record.state
-                if I.Search and I.Search.ProviderPolicy then
-                    local global,prefixes,keywords=I.Search.ProviderPolicy:Configuration(record.id,record.provider.definition)
-                    text(row.detail,(record.provider.definition.searchable==false and L["独立查询入口"]
-                        or not global and L["仅通过快捷入口"].." · "..(#keywords>0 and table.concat(keywords," / ") or (prefixes[1] or "").."：")
-                        or providerDescriptions[record.id] or L["全局搜索"]))
-                else text(row.detail,providerDescriptions[record.id] or L["内置功能"]) end
+                local global,prefixes,keywords=management:GetConfiguration(record.id,record.instanceToken)
+                text(row.detail,(not record.searchable and L["独立查询入口"]
+                    or global==false and L["仅通过快捷入口"].." · "..(#keywords>0 and table.concat(keywords," / ") or (prefixes[1] or "").."：")
+                    or providerDescriptions[record.id] or L["全局搜索"]))
                 text(row.state,"")
-                if state.incompatible or state.state=="pending" or state.userEnabled==false or state.ownerEnabled==false then
-                    text(row.detail,state.incompatible and L["版本不兼容"] or state.state=="pending" and L["尚未加载"] or state.userEnabled==false and L["已关闭"] or L["扩展自行停用"])
+                if record.status then
+                    text(row.detail,record.status=="incompatible" and L["版本不兼容"] or record.status=="pending" and L["尚未加载"]
+                        or record.status=="user-disabled" and L["已关闭"] or L["扩展自行停用"])
                 end
-                row.toggle:SetChecked(state.userEnabled,rebound)
+                row.toggle:SetChecked(record.userEnabled,rebound)
             else
                 text(row.detail,record.item and displayTitle(record.item.sourceTitle, "") or L["来源已关闭或条目暂不可用"])
                 text(row.state,"")
@@ -407,7 +396,7 @@ function Settings:Create(parent, controller)
         return true
     end
     function view:OpenProvider(id,icon)
-        if not frame:IsShown() or InCombatLockdown() or not I.Providers.entries[id] then return end
+        if not frame:IsShown() or InCombatLockdown() or not management:GetInstance(id) then return end
         if not self.providerView then self.providerView=Lychee.UI.ProviderSettings:Create(frame,controller,function() view:Refresh();controller:SetStatusText(L["更改即时生效"]) end) end
         if self.aliasView then self.aliasView.frame:Hide() end
         if self.general then self.general:Hide() end

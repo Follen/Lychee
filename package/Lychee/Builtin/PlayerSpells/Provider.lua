@@ -11,6 +11,15 @@ local P = {
 
 I.Builtin.PlayerSpells.Provider = P
 P.aliasDefinitions = (I.BuiltinData and I.BuiltinData.PlayerSpellAliases) or {}
+P.ledger=I.Builtin.CatalogLedger:New({
+    same=function(old,spell)
+        return old.name==spell.name and old.icon==spell.icon and old.subtext==spell.subtext
+            and old.description==spell.description and old.aliases==spell.aliases
+    end,
+    recordID=function(id) return "spell:"..tostring(id) end,
+    key=function(record) return record.payload.spellID end,
+})
+P.items=P.ledger.values
 
 local function addSpell(items, aliasDefinitions, spell)
     if type(spell.id) ~= "number" or type(spell.name) ~= "string" or spell.name == "" then return end
@@ -268,24 +277,14 @@ function P:Refresh()
     local previous = self.items
     local refreshed = self:RefreshFromSpellBook()
     if refreshed and self.providerHandle then
-        local changed, remove = {}, {}
-        for id, spell in pairs(self.items) do
-            local old = previous[id]
-            if not old or old.name ~= spell.name or old.icon ~= spell.icon or old.subtext ~= spell.subtext
-                or old.description ~= spell.description or old.aliases ~= spell.aliases then
-                changed[id] = spell
-            end
-        end
-        for id in pairs(previous) do
-            if not self.items[id] then remove[#remove + 1] = "spell:" .. tostring(id) end
-        end
-        if next(changed) or #remove > 0 then
-            local committed = self.providerHandle:Update({ upsert = self:BuildSearchRecords(changed), remove = remove })
-            if not committed then
-                self.items = previous
-                return refreshFailed(self, "SOURCE_COMMIT_FAILED")
-            end
-        end
+        local desired,epoch=self.items,self._epoch
+        self.items=previous
+        local committed,err=self.ledger:Reconcile(self.providerHandle,desired,
+            function(changed) return self:BuildSearchRecords(changed) end,
+            {full=true,current=function() return self._epoch==epoch end})
+        if self._epoch~=epoch then return false,"CATALOG_CANCELLED" end
+        self.items=self.ledger.values
+        if not committed then return refreshFailed(self,err and err.code or "SOURCE_COMMIT_FAILED") end
     end
     return refreshed
 end
@@ -300,5 +299,7 @@ function P:Detach(releaseSource)
     end
     self._eventFrame = nil
     for spellID in pairs(self.descriptionRequests) do self.descriptionRequests[spellID] = nil end
-    if releaseSource then self.providerHandle = nil; self.items = {} end
+    self.ledger:Invalidate(releaseSource)
+    self.items=self.ledger.values
+    if releaseSource then self.providerHandle = nil end
 end

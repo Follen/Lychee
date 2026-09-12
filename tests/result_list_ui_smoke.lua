@@ -103,6 +103,7 @@ CreateFrame=frameFactory
 dofile("package/Lychee/UI/Theme.lua")
 dofile("package/Lychee/UI/Runtime.lua")
 dofile("package/Lychee/UI/Components.lua")
+dofile("package/Lychee/Core/InteractionBinding.lua")
 dofile("package/Lychee/UI/ResultList.lua")
 
 local activatedRow, activatedAction, draggedRow
@@ -242,10 +243,14 @@ rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
 assert(tip:GetHeight() < expandedHeight, "tooltip shrinks again when measured content shortens")
 rowOne.primaryTarget.scripts.OnLeave(rowOne.primaryTarget)
 assert(not tip:IsShown() and tip._owner == nil, "leave hides tooltip and releases owner")
+list:Select(1)
+rowOne.secondary.scripts.OnMouseDown(rowOne.secondary,"LeftButton")
 rowOne.secondary.scripts.OnClick(rowOne.secondary)
 assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
+rowOne.dragger.scripts.OnMouseDown(rowOne.dragger,"LeftButton")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)
 assert(draggedRow == rowOne, "drag area delegates its owning row")
+rowOne.primaryTarget.scripts.OnMouseDown(rowOne.primaryTarget,"LeftButton")
 rowOne.primaryTarget.scripts.OnClick(rowOne.primaryTarget)
 assert(activatedRow == rowOne and list.selected == 1, "row click selects and delegates activation")
 

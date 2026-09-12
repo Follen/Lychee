@@ -1,6 +1,7 @@
 local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
+    ["固定项数据异常，原始存档已保留"] = "Saved pins need attention; original data preserved",
     ["编辑"] = "Edit",
     ["原生命中 · 内容无法验证"] = "Native hit · content unverified",
     ["插件识别"] = "Addon Inspector",

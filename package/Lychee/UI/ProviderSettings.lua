@@ -1,6 +1,7 @@
 local EMPTY_UI_PROPS = {}
 local I,UI=_G.LycheeInternal,_G.Lychee.UI
 local L=I.Locale
+local management=I.ProviderManagement
 local CLIENTS={retail="正式服",classic="经典怀旧服",titan="泰坦重铸",anniversary="周年纪念服"}
 local P={};UI.ProviderSettings=P
 function P:Create(parent,controller,onBack)
@@ -24,7 +25,7 @@ function P:Create(parent,controller,onBack)
     scroll:SetScript("OnMouseWheel",function(_,delta) if not InCombatLockdown() then bar:SetValue(bar.value-delta*52) end end)
     local function current()
         return outer:IsShown() and controller.visible and controller.settingsOpen and not InCombatLockdown()
-            and view.entry and I.Providers.entries[view.id]==view.entry
+            and management:IsCurrent(view.id,view.instanceToken)
     end
     local function label(value,x,y,w,style)
         local text=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
@@ -58,23 +59,25 @@ function P:Create(parent,controller,onBack)
     view.toggle:SetScript("OnClick",function()
         local pressed=view.toggle.press;view.toggle.press=nil
         if not current() or pressed~=nil and pressed~=view.generation then return end
-        local state=I.Registry.entries[view.id]
-        local ok,err=I.Registry:SetUserEnabled(view.id,not state.userEnabled)
-        if not ok then controller:ReportActionResult(false,err);return end
-        controller:MarkHomeDirty();view.toggle:SetChecked(state.userEnabled)
-        view.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
+        local ok,err=management:ToggleUserEnabled(view.id,view.instanceToken)
+        if not ok then
+            if not management:IsCurrent(view.id,view.instanceToken) then back() end
+            controller:ReportActionResult(false,err);return
+        end
+        management:Read(view.id,view.instanceToken,view.info)
+        controller:MarkHomeDirty();view.toggle:SetChecked(view.info.userEnabled)
+        view.state:SetText(L[view.info.userEnabled and "已启用" or "已关闭"])
     end)
     view.toggle:SetScript("OnMouseDown",function() view.toggle.press=view.generation end)
-    local policy=I.Search.ProviderPolicy
     view.globalLabel=label(L["普通搜索"],8,-60,120);UI.Theme:SetTextColor(view.globalLabel,"text")
     view.globalHint=label("",valueX,-60,valueWidth-50,"meta");view.globalHint:SetHeight(22)
     view.globalToggle=UI.Components:CreateToggle(frame);view.globalToggle:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-8,-62)
     view.globalToggle:SetScript("OnMouseDown",function() view.globalToggle.press=view.generation end)
     view.globalToggle:SetScript("OnClick",function()
         local pressed=view.globalToggle.press;view.globalToggle.press=nil
-        if not current() or view.entry.definition.searchable==false or pressed~=nil and pressed~=view.generation then return end
-        local global,prefixes,keywords=policy:Configuration(view.id,view.entry.definition)
-        local ok,err=policy:SetConfiguration(view.id,not global,prefixes,keywords)
+        if not current() or not view.info.searchable or pressed~=nil and pressed~=view.generation then return end
+        local global,prefixes,keywords=management:GetConfiguration(view.id,view.instanceToken)
+        local ok,err=management:SetConfiguration(view.id,view.instanceToken,not global,prefixes,keywords)
         if not ok then view:Failure(err);view.globalToggle:SetChecked(global);return end
         view.global=not global;view.globalToggle:SetChecked(view.global);view:UpdateExamples()
         view.error:SetText("");view:Layout();controller:SetStatusText(L["更改即时生效"])
@@ -129,8 +132,8 @@ function P:Create(parent,controller,onBack)
         self.error:SetText("");self:Layout();controller:SetStatusText(L["更改即时生效"])
     end
     function view:BeginEdit(kind)
-        if self.editing or self.entry.definition.searchable==false then return end
-        local _,prefixes,keywords=policy:Configuration(self.id,self.entry.definition)
+        if not current() or self.editing or not self.info.searchable then return end
+        local _,prefixes,keywords=management:GetConfiguration(self.id,self.instanceToken)
         self.editing=kind;self.generation=self.generation+1
         local field=self.fields[kind];field.before=table.concat(kind=="prefix" and prefixes or keywords,", ")
         field.input:SetText(field.before)
@@ -143,7 +146,8 @@ function P:Create(parent,controller,onBack)
         return word
     end
     function view:UpdateExamples()
-        local global,prefixes,keywords=policy:Configuration(self.id,self.entry.definition)
+        local global,prefixes,keywords=management:GetConfiguration(self.id,self.instanceToken)
+        if global==nil then return end
         self.global=global
         self.globalHint:SetText(L["在普通搜索结果中包含此功能"])
         for kind,field in pairs(self.fields) do
@@ -171,7 +175,8 @@ function P:Create(parent,controller,onBack)
         end
     end
     function view:Layout()
-        local independent=self.entry.definition.searchable==false
+        if not self.info then return end
+        local independent=not self.info.searchable
         local hasError=self.error:GetText()~=""
         local key=tostring(independent)..":"..tostring(self.editing)..":"..tostring(self.aboutOpen)..":"..tostring(hasError)
             ..":"..self.fields.prefix.wordsKey..":"..self.fields.keyword.wordsKey
@@ -222,25 +227,27 @@ function P:Create(parent,controller,onBack)
     end
 
     function view:Failure(err)
+        if not management:IsCurrent(self.id,self.instanceToken) then back();return end
+        local message=type(err)=="table" and (err.message or err.code) or err
         if self.editing then self.fields[self.editing].inputStyle:SetInvalid(true) end
-        self.error:SetText(L[err]);self:Layout();controller:SetStatusText(L[err])
+        self.error:SetText(L[message]);self:Layout();controller:SetStatusText(L[message])
     end
     function view:Save()
-        if not current() or not self.editing or self.entry.definition.searchable==false then return end
+        if not current() or not self.editing or not self.info.searchable then return end
         local kind=self.editing;local list={}
         if self.fields[kind].input:GetText()==self.fields[kind].before then self:CancelEdit();return end
         for value in self.fields[kind].input:GetText():gsub("，",","):gmatch("[^,]+") do
             if value:find("%S") then list[#list+1]=value end
         end
         -- Read committed siblings at save time: a toggle may have changed while editing.
-        local global,prefixes,keywords=policy:Configuration(self.id,self.entry.definition)
-        local ok,err=policy:SetConfiguration(self.id,global,kind=="prefix" and list or prefixes,kind=="keyword" and list or keywords)
+        local global,prefixes,keywords=management:GetConfiguration(self.id,self.instanceToken)
+        local ok,err=management:SetConfiguration(self.id,self.instanceToken,global,kind=="prefix" and list or prefixes,kind=="keyword" and list or keywords)
         if not ok then self:Failure(err);return end
         self:CancelEdit();self:UpdateExamples();self:Layout();controller:SetStatusText(L["搜索设置已保存"])
     end
     view.reset=button(L["恢复默认"],0,0,120,function()
-        if view.entry.definition.searchable==false then return end
-        local ok,err=policy:Set(view.id,nil,nil,nil)
+        if not view.info.searchable then return end
+        local ok,err=management:ResetConfiguration(view.id,view.instanceToken)
         if not ok then view:Failure(err);return end
         view.generation=view.generation+1;view:Refresh();controller:SetStatusText(L["已恢复默认搜索设置"])
     end,frame,30,true)
@@ -250,30 +257,33 @@ function P:Create(parent,controller,onBack)
     function view:Refresh()
         if not current() then return end
         self:ClearFocus();self.layoutKey=nil;self.editing=nil
-        local definition=self.entry.definition;local independent=definition.searchable==false
-        local state=I.Registry.entries[self.id];self.toggle:SetChecked(state.userEnabled,true)
-        self.state:SetText(L[state.userEnabled and "已启用" or "已关闭"])
+        management:Read(self.id,self.instanceToken,self.info)
+        local independent=not self.info.searchable
+        self.toggle:SetChecked(self.info.userEnabled,true)
+        self.state:SetText(L[self.info.userEnabled and "已启用" or "已关闭"])
         self:UpdateExamples();self.globalToggle:SetChecked(self.global,true);self.globalToggle:SetShown(not independent)
         self.globalLabel:SetShown(not independent);self.globalHint:SetShown(not independent);self.help:SetShown(independent)
         self.reset:SetEnabled(not independent);self.error:SetText("")
         local clients={}
-        for _,product in ipairs(definition.scope.products or {definition.scope.product or "retail"}) do clients[#clients+1]=L[CLIENTS[product] or product] end
-        self.technical:SetText(L["版本"].." "..tostring(definition.version).."  ·  "..table.concat(clients,", "));self:Layout()
+        for _,product in ipairs(self.info.products) do clients[#clients+1]=L[CLIENTS[product] or product] end
+        self.technical:SetText(L["版本"].." "..tostring(self.info.version).."  ·  "..table.concat(clients,", "));self:Layout()
     end
     function view:Show(id,icon,description)
-        self.id,self.entry=id,I.Providers.entries[id]
-        local first=self.entry.records and self.entry.records[1]
-        self.sample=first and type(first.title)=="string" and #first.title<=42 and not first.title:find("|",1,true) and first.title or L["名称"]
+        local info=management:Read(id,nil,self.info)
+        if not info then return false end
+        self.id,self.instanceToken,self.info=id,info.instanceToken,info
+        self.sample=info.sample or L["名称"]
         self.aboutOpen=false
         self.generation=self.generation+1
         for _,field in pairs(self.fields) do field.ui:Update(EMPTY_UI_PROPS) end
         outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
-        self.icon:SetTexture(icon);self.title:SetText(self.entry.definition.title);self.detail:SetText(description or "");self:Refresh()
+        self.icon:SetTexture(icon);self.title:SetText(self.info.title);self.detail:SetText(description or "");self:Refresh()
         controller:SetStatusText(L["更改即时生效"])
+        return true
     end
     outer:SetScript("OnHide",function()
         view:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
-        view.generation=view.generation+1;view.id,view.entry=nil,nil
+        view.generation=view.generation+1;view.id,view.instanceToken,view.info,view.sample=nil,nil,nil,nil
         for _,field in pairs(view.fields) do field.editPress,field.savePress,field.cancelPress=nil,nil,nil;field.ui:Release("hide") end
     end)
     return view
