@@ -19,25 +19,10 @@ function methods:SetScript(k,v) self.scripts[k]=v end
 function methods:ClearAllPoints() end
 function methods:SetPoint(_,_,_,x,y) self.x,self.y=x,y;if self.onPoint then self.onPoint(x,y) end end
 function CreateFrame() frames=frames+1;return region() end
+local nativeGroup=dofile("tests/native_animation.lua")
 function methods:CreateAnimationGroup()
     groups=groups+1
-    local g={scripts={},playing=false}
-    function g:SetScript(k,v) self.scripts[k]=v end
-    function g:Stop() self.playing=false end
-    function g:IsPlaying() return self.playing end
-    function g:Play() self.playing=true;self.a.progress=0 end
-    function g:CreateAnimation(kind)
-        assert(kind=="Alpha" or kind=="Translation")
-        local a={progress=0}
-        function a:SetSmoothing(s) self.smoothing=s end
-        function a:GetSmoothProgress() return self.progress end
-        function a:SetFromAlpha(v) self.from=v end
-        function a:SetToAlpha(v) self.to=v end
-        function a:SetDuration(v) self.duration=v end
-        function a:SetOffset(x,y) self.x,self.y=x,y end
-        self.a=a;return a
-    end
-    return g
+    return nativeGroup()
 end
 dofile("package/Lychee/UI/Motion.lua")
 dofile("package/Lychee/UI/Presence.lua")
@@ -144,6 +129,7 @@ local input={text="key"}
 function input:SetText(v) self.text=v end
 function input:GetText() return self.text end
 function input:SetEnabled(v) self.enabled=v end
+function input:SetVisualFrozen(v) self.visualFrozen=v end
 function input:ClearFocus() end
 function input:Focus() end
 function input:Show() end
@@ -160,118 +146,100 @@ function p:ResizeForMode() end
 function p:RefreshHomeSections() end
 function p:SetQueryMode() end
 local function advance(seconds)
-    if M.presenceDriver and M.presenceDriver.scripts.OnUpdate then
-        local width,height,scale=r.width,r.height,r.scale
-        M.presenceDriver.scripts.OnUpdate(M.presenceDriver,seconds)
-        assert(r.width==width and r.height==height and r.scale==scale,
-            "presence cannot resize or rescale the window while moving its input and background")
-        local pixels=(r.y-p._presenceSpec.y)*(r.scale or 1)
-        assert(math.abs(pixels-math.floor(pixels+0.5))<0.000001,
-            "translation preserves the resting font raster phase on physical pixels")
-    end
+    local width,height,scale,x,y=r.width,r.height,r.scale,r.x,r.y
+    if M.presence then M.presence.group:Advance(seconds) end
+    assert(r.width==width and r.height==height and r.scale==scale and r.x==x and r.y==y,
+        "native visual motion must never mutate the layout or font raster settings")
+end
+local function visual()
+    local j=M.presence
+    if not j then return 1,r:GetAlpha() end
+    return j.fromScale+(j.toScale-j.fromScale)*j.scale:GetSmoothProgress(),
+        j.fromAlpha+(j.toAlpha-j.fromAlpha)*j.alpha:GetSmoothProgress()
 end
 p._scale,p._topInset=0.8,24
 M:ConfigurePresence(p,{point="TOP",relative=UIParent,relativePoint="TOP",x=0,y=0})
 p:ApplyBoundedScale()
 r:Show();r:SetAlpha(1)
 p:Hide("close")
-assert(not p.visible and not input.enabled and p._motionClosing and r:IsShown(),"exit invalidates interaction before motion")
+assert(groups==objectCount+1 and frames==1 and #M.presenceState.group.animations==2,
+    "presence cold creation is bounded to one group and two tracks, no frame")
+assert(M.presenceState.scale.origin=="CENTER" and M.presenceState.group==M.presence.group)
+assert(not p.visible and not input.enabled and input.visualFrozen and p._motionClosing and r:IsShown(),"exit invalidates input but preserves its visual state")
 advance(0.05)
-local x,v=M.presence.position,M.presence.velocity
+local x,a=visual()
 p:Show()
-assert(p.visible and input.enabled and not p._motionClosing,"reopen cancels old exit")
-assert(M.presence.position==x and M.presence.velocity==v,"reversal preserves position AND velocity")
+assert(p.visible and input.enabled and not input.visualFrozen and not p._motionClosing,"reopen restores input")
+assert(M.presence.fromScale==x and M.presence.fromAlpha==a,"reversal samples both native tracks before Stop resets them")
 advance(1)
-assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening lands precisely")
-assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
-p:Hide("close");advance(0.16)
-assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>=0.5,"exit midpoint retains the complete moving panel")
-assert(math.abs(M.presence.position-0.5)<0.000001 and r.scale==p._scale and math.abs((r.y-p._presenceSpec.y)*r.scale+18)<0.000001,
-    "close translates the complete window by half its distance on physical pixels")
-advance(0.159)
-assert(M.presence and M.presence.position<0.0001 and r:GetAlpha()<0.0001,"close reaches the invisible endpoint continuously before hiding")
+assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1 and not M.presence,"opening lands precisely")
+p:Hide("close");advance(0.10)
+x,a=visual()
+assert(x<1 and x>0.90 and a>0.5 and r:IsShown(),"closing moves while the entire window remains visible")
 advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
-assert(r.scale==p._scale and r:GetAlpha()==0,"fresh opening never rescales the window")
-assert(math.abs((r.y-p._presenceSpec.y)*r.scale+35)<0.001,"the complete window starts below its resting anchor")
-advance(0.10)
-assert(r:GetAlpha()>0.4 and r:GetAlpha()<1 and M.presence.position<1,"arrival is visible and still in motion after 100 ms")
-x,v=M.presence.position,M.presence.velocity
+assert(M.presence.fromScale<0.95 and M.presence.fromAlpha==0 and r.scale==p._scale,"fresh opening starts visibly smaller without changing frame scale")
+advance(0.12)
+x,a=visual()
+assert(a==1 and x<0.97,"panel becomes opaque early enough to see the remaining expansion")
 p:Hide("escape")
-assert(M.presence.position==x and M.presence.velocity==v,"close preserves entrance momentum")
+assert(M.presence.fromScale==x and M.presence.fromAlpha==a,"closing samples the opening's current transform")
 advance(0.03)
-local elapsed=M.presence.elapsed
+local elapsed=M.presence.group.elapsed
 p:Hide("escape")
-assert(M.presence.elapsed==elapsed,"repeated close does not restart")
+assert(M.presence.group.elapsed==elapsed,"repeated close does not restart")
 M:SetReduced(true)
 assert(not p.visible and not r:IsShown() and not M.presence and not p._motionClosing,"reduced motion completes close")
 p:Show()
 assert(p.visible and r:GetAlpha()==1 and r.scale==0.8 and not M.presence,"reduced opening is immediate")
-assert(r.y==p._presenceSpec.y,"reduced motion restores the complete window to its resting anchor")
 p:Hide("close");M:SetReduced(false)
--- Closed form must give the same geometry at 30 and 120 Hz.
-p:Show();for i=1,3 do advance(1/30) end
-local at30=M.presence.position
-M:StopPresence(false);M:Presence(r,true,nil,0,0,p)
-for i=1,12 do advance(1/120) end
-assert(math.abs(M.presence.position-at30)<0.000001,"motion is frame-rate independent")
-M:StopPresence(false);M:Presence(r,false,nil,1,0,p)
-for i=1,3 do advance(1/30) end
-local exit30=M.presence.position
-M:StopPresence(false);M:Presence(r,false,nil,1,0,p)
-for i=1,12 do advance(1/120) end
-assert(math.abs(M.presence.position-exit30)<0.000001,"dismissal is frame-rate independent too")
-combat=true;advance(0.01)
-assert(not M.presence and not M.presenceDriver.scripts.OnUpdate,"combat stops before protected setters")
-combat=false;p:Hide("cleanup")
-M:Presence(r,false,nil,1,0,p)
+p:Show();combat=true;M:StopAll()
+assert(not M.presence and not M.presenceState.group:IsPlaying(),"combat cancellation has no protected setters")
+combat=false;p:Hide("cleanup");advance(1)
+-- Stop may invoke native hooks. A reentrant playback owns its own completion.
+p:Show()
 local staleFinished=0
 M.presence.finished=function() staleFinished=staleFinished+1 end
-r.onPoint=function()
-    r.onPoint=nil
-    M:Presence(r,true,nil,0,0,p)
+M.presence.group.onStop=function()
+    M.presenceState.group.onStop=nil
+    M:Presence(r,true,nil,nil,nil,p)
 end
 M:StopPresence(true,true)
-assert(M.presence and M.presence.target==1 and staleFinished==0,"settling layout reentry cannot erase a new animation or fire stale completion")
+assert(M.presence and M.presence.toAlpha==1 and staleFinished==0,"stop reentry cannot settle or complete the new animation")
 advance(1)
-local paletteGroups,paletteFrames=groups,frames
--- A resumed driver's elapsed value must not advance a newly opened panel by
--- time spent hidden. Compare fresh and warm openings on an independent clock.
-do
-    local now=100
-    GetTimePreciseSec=function() return now end
-    p:Hide("clock-reset");now=now+1;advance(1)
-    p:Show();now=now+0.016;advance(0.016)
-    local cold=M.presence and M.presence.position
-    assert(cold and cold<0.5)
-    p:Hide("clock-close");now=now+1;advance(1)
-    now=now+10
-    p:Show();now=now+0.016;advance(10.016)
-    assert(M.presence and math.abs(M.presence.position-cold)<0.000001,"warm opening must not consume time spent hidden")
-    local samples={0.016,0.06,0.12,0.20,0.30,0.45}
-    local baseline={}
-    for cycle=1,12 do
-        p:Hide("repeat-close");now=now+1;advance(1)
-        now=now+cycle
-        p:Show()
-        local epoch=now
-        for index,time in ipairs(samples) do
-            now=epoch+time
-            advance(index==1 and cycle*10 or 0)
-            local top=r.y*r.scale
-            if cycle==1 then baseline[index]={r.scale,r:GetAlpha(),top}
-            else
-                local expected=baseline[index]
-                assert(math.abs(r.scale-expected[1])<0.000001 and math.abs(r:GetAlpha()-expected[2])<0.000001 and math.abs(top-expected[3])<0.000001,"each fully closed reopening must reproduce the complete cold entrance trajectory")
-            end
-        end
-        assert(not M.presence and r:GetAlpha()==1 and r.scale==p._scale,"every entrance finishes at its exact baseline")
-    end
-    p:Hide("clock-done");now=now+1;advance(1)
-    GetTimePreciseSec=nil
-    print("Palette cold/warm openings PASS 12 cycles x 6 samples; hidden elapsed ignored")
+-- A setter can also trigger external code during settle.
+p:Hide("reentry");local setAlpha=methods.SetAlpha
+r.SetAlpha=function(self,value)
+    r.SetAlpha=nil
+    setAlpha(self,value)
+    M:Presence(r,true,nil,nil,nil,p)
 end
+M:StopPresence(true,true)
+assert(M.presence and M.presence.toAlpha==1 and r:IsShown(),"settle reentry cannot run a stale exit completion")
+advance(1);p._motionClosing=nil;p.visible=true
+local paletteGroups,paletteFrames=groups,frames
+local samples={0.016,0.06,0.12,0.20,0.30,0.45}
+local baseline={}
+for cycle=1,12 do
+    p:Hide("repeat-close");advance(1)
+    -- Idle time cannot affect playback: native Play resets both tracks.
+    M.presenceState.group:Advance(1000)
+    p:Show()
+    local previous=0
+    for index,time in ipairs(samples) do
+        advance(time-previous);previous=time
+        local scale,alpha=visual()
+        if cycle==1 then baseline[index]={scale,alpha}
+        else
+            assert(math.abs(scale-baseline[index][1])<0.000001 and math.abs(alpha-baseline[index][2])<0.000001,
+                "warm openings reproduce the full cold entrance after idle")
+        end
+    end
+    assert(not M.presence and r:GetAlpha()==1 and r.scale==p._scale)
+end
+p:Hide("clock-done");advance(1)
+print("Palette cold/warm openings PASS 12 cycles x 6 samples; native playback resets")
 collectgarbage("collect");collectgarbage("stop")
 local paletteBase=collectgarbage("count")
 local started=os.clock()
@@ -284,9 +252,9 @@ local paletteCPU=(os.clock()-started)*1000
 local paletteAllocated=collectgarbage("count")-paletteBase
 collectgarbage("restart")
 assert(groups==paletteGroups and frames==paletteFrames and paletteAllocated<512 and not M.presence,"warm cycles are bounded")
-assert(not M.presenceDriver.scripts.OnUpdate and not M.presenceDriver:IsShown() and not M.presenceState.region and not M.presenceState.finished,"idle retains no active job or callback")
+assert(not M.presenceDriver and not M.presenceState.group:IsPlaying() and not M.presenceState.region and not M.presenceState.finished,"idle retains no active job or callback")
 print(string.format("Palette motion cycles1000_KiB=%.2f cpu_ms=%.2f frame_growth=0 group_growth=0 idle_callback=nil",paletteAllocated,paletteCPU))
-print("Palette spring close/reopen/velocity/scale/reduced/combat PASS")
+print("Palette native scale/alpha/reversal/layout/reduced/combat PASS")
 -- Exercise the actual reusable switch, not just the motion primitive.
 function methods:CreateTexture() return region() end
 function methods:SetSize() end
@@ -315,6 +283,6 @@ assert(groups==switchGroups and switchAllocation<512)
 toggle:FinishMotion()
 print(string.format("Switch PASS cycles2000_KiB=%.2f group_growth=0",switchAllocation))
 for i=1,100 do M:Reveal(region()) end
-assert(groups==96 and #M.groups==96,"native groups have a hard capacity")
+assert(groups==97 and #M.groups==96,"native groups have a hard capacity")
 M:StopAll()
 for _,state in ipairs(M.groups) do assert(not state.playing and state.finished==nil) end

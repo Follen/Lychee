@@ -1,26 +1,35 @@
 # Motion 与窗口 Presence
 
-`Lychee.UI.Motion` 是共享动效入口。控件反馈与窗口出入分离：`UI/Motion.lua` 管原生 Alpha、滑块 Translation 和页面高度；`UI/Presence.lua` 管一个互斥的主窗口出入通道。不要每个结果行创建 Presence，也不要每帧调用组件 Update。
+`Lychee.UI.Motion` 是共享动效入口。`UI/Motion.lua` 管控件原生 Alpha、滑块 Translation 和页面高度；`UI/Presence.lua` 管主窗口出入。普通 Provider 页面使用宿主窗口，不给结果行创建 Presence，也不每帧调用组件 Update。
 
-## 整窗运动
+## 整窗原生变换
 
-背景、顶栏、正文和底栏属于同一个窗口根节点。开关只改变根节点位置与整体透明度，不缩放文字、不收缩背景、不使用全窗裁剪。子控件的布局和正文自己的滚动边界保持不变。普通页面使用宿主现成的主窗口通道。
+背景、顶栏、正文和底栏属于同一窗口根节点。原生 Scale / Alpha 对整窗做视觉变换；不调用 Frame:SetScale / SetPoint，不改字号、不重新布局、不新增全窗裁剪。正文自己的滚动边界保持不变。
 
-宿主创建时调用一次 `ConfigurePresence(layout, anchor, preset)`；anchor为 `{point="TOP", relative=UIParent, relativePoint="TOP", x=0, y=restingY}`。此表归宿主持有，在布局/缩放变化后、播放之前更新静止锚点。`Presence(root, shown, finished, initialPosition, initialVelocity, layout)` 启动；`StopPresence(settle, complete)` 停止并返回当前位置/速度。此通道只允许一个活动窗口，调用新目标替换旧任务；多个独立窗口不能共享此通道。
+宿主创建时调用一次 `ConfigurePresence(layout, anchor, preset)`。anchor 为宿主持有的 `{point="TOP", relative=UIParent, relativePoint="TOP", x=0, y=restingY}`，供正常静态布局更新；动画只取其中preset，不逐帧改锚点。
 
-`Motion.Presets.palette`：打开440ms、关闭320ms、垂直距离44界面单位。Hermite曲线完整开场速度为2.6/0.44，结尾速度为零；关闭从静止启动，中途反向保留速度和进度。根透明度为smoothstep(position)，背景和内容共享透明度。位移按有效缩放舍入为整屏幕像素，再加到静止锚点上，保留文字的原有像素相位；一次播放仅采样一次缩放，播放期间不改缩放。
+`Presence(root, shown, finished, initialScale, initialAlpha, layout)` 启动。初始参数省略时采用完整开场或关场起点；中途改变目标时自动采样正在运行的两个轨道。`StopPresence(settle, complete)` 停止并返回当前视觉缩放/透明度（无播放返回nil、nil）。这个内部宿主接口已替换旧的归一化位置/速度参数，不能传旧的0/0开场值。
 
-所有参数均为预设的稳定标量；不要在动画回调里生成新预设或组件树。调整参数须验证起止状态、固定宽高/缩放、整像素位移、30/120Hz轨迹、快速反向、冷/热重开及内容相对位置。
+`Motion.Presets.palette`：
 
-## 生命周期
+| 参数 | 值 | 用途 |
+|---|---|---|
+| enter | 0.42秒 | Scale从enterScale到1，OUT |
+| enterScale | 0.88 | 完整开场视觉尺寸 |
+| enterAlpha | 0.12秒 | Alpha从0到1，OUT；后段展开已经完全可见 |
+| exit | 0.24秒 | Scale和Alpha同时IN，前段保留可见主体 |
+| exitScale | 0.90 | 关场收拢到的视觉尺寸 |
 
-- 直接复用既有窗口层级，不额外创建背景、裁剪或内容容器；首次播放建立一个驱动，之后复用一个任务表。
-- 结束清空目标、布局、完成回调和时钟引用，移除OnUpdate并隐藏驱动。
+Scale以CENTER为原点，两个动画Order均为1并行播放。参数是稳定标量，不在回调里创建预设或组件树。反向在Stop之前读取各自GetSmoothProgress，保证尺寸/透明度接续；不保证原生IN/OUT曲线的反向速度连续。完整隐藏后的每次Play重置轨道，冷/热打开幅度相同。
+
+## 生命周期与成本
+
+- 主窗口通道只有一个原生组，首次播放懒建并保留在Motion.presenceState，拥有一个固定root。其他root调用即时应用，不能用本通道管理多个独立窗口。
+- 一组、两个动画对象，没有新Frame或Lua OnUpdate/计时器；持续插值由引擎执行。普通控件另有最多96组的上限。
+- 结束/停止先取消活动任务和回调，再停原生组，结束时清空region/layout/finished；仅保留原生组和所属root。结束后的setter/native hook重入不能完成旧退出。
 - `StopAll(except)` 清理控件动画；传主窗口可保留尚在反向的Presence。
-- 关闭时业务会话与安全动作先失效，视觉退出结束后才隐藏窗口。
-- 战斗中的隐藏仍由安全宿主负责。动效先停止，不能改受保护布局，也不能在脱战后自行重开。
-- 减少动态效果即时恢复静止位置与目标透明度；退出必须完成回调和隐藏。
+- 关闭立即失效业务会话和安全动作、清理焦点/禁用输入；Input:SetVisualFrozen(true)暂时冻结外观。退场结束再隐藏窗口，Input:Hide解除冻结。打开恢复启用状态和实时外观。
+- 战斗隐藏由安全宿主负责；停止动画不改保护布局，不在脱战后重开。
+- 减少动态效果直接设置终态；退出完成回调负责隐藏，不能留下透明活动窗口。
 
-帧驱动只计算标量，每帧最多根节点SetPoint和SetAlpha各一次；相同像素位移跳过SetPoint。不逐帧SetScale、不重设文字、不创建表/闭包/Frame、不添加强制GC。使用短时标量驱动以便反向保留速度，不另建原生动画组。
-
-验证：`tests/ui_motion.lua` 与 `tests/ui_library_integration.lua`。离线测试不代表已验证游戏中的字体像素、原生裁切、帧时间或观感，最终以客户端验证为准。
+验证：`tests/ui_motion.lua`、`tests/interaction_smoke.lua`、`tests/ui_library_integration.lua`。native_animation.lua仅模拟原生组生命周期和采样边界，其缓动计算不代表客户端实际曲线。离线测试能检查不改布局、取消/反向、输入冻结、对象复用；字体光栅、正文裁剪、运动中命中、战斗保护与实际帧率/观感必须在游戏验证。

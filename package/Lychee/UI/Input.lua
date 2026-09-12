@@ -15,6 +15,7 @@ end
 local function localizedPlaceholder() return L["搜索技能、插件、命令…"] end
 
 function Input:_ApplyVisualState()
+    if self.visualFrozen then return false end
     local theme = Lychee.UI.Theme
     if not theme or not self.container then return false end
     local background, border, text
@@ -131,7 +132,12 @@ function Input:SetEnabled(enabled)
     return true
 end
 function Input:IsEnabled() return self.enabled end
+-- Release keyboard ownership immediately while keeping the exit's appearance.
+function Input:SetVisualFrozen(frozen)
+    self.visualFrozen=frozen==true
+    if not self.visualFrozen then self:_ApplyVisualState() end
+end
 function Input:Show() self.elements:Update(EMPTY_UI_PROPS);setShown(self.placeholder,self:GetText()=="");self.container:Show() end
-function Input:Hide() self.elements:Release("hide");self.container:Hide() end
+function Input:Hide() self.elements:Release("hide");self.container:Hide();self:SetVisualFrozen(false) end
 
 Lychee.UI.Input = Input

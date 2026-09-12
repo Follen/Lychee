@@ -1162,16 +1162,16 @@ assert(registrations == 1, "Escape registration is not duplicated")
 local oldAnimation=palette.frame.CreateAnimationGroup
 local oldScale=palette.frame.SetScale
 palette.frame.SetScale=function(self,value) mutation(self,"SetScale");self.scale=value end
-palette.frame.CreateAnimationGroup=function() error("palette presence does not allocate native animation groups") end
+palette.frame.CreateAnimationGroup=dofile("tests/native_animation.lua")
 local motion=Lychee.UI.Motion
 local function finishPresence()
-    if motion.presence then motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,1) end
+    if motion.presence then motion.presence.group:Advance(1) end
 end
 local reduced=LycheeDB.palette.reduceMotion
 LycheeDB.palette.reduceMotion=false
 palette:Show();palette.input:ClearFocus()
 for tick=1,8 do
-    motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
+    motion.presence.group:Advance(0.02)
     assert(palette.frame.scale==palette._scale,"presence must keep the whole text and hit-test tree at its final scale")
     assert(palette.header:GetParent()==palette.frame and palette.content:GetParent()==palette.frame and palette.footer:GetParent()==palette.frame,
         "background, input and content must share one motion root without an outer clipping viewport")
@@ -1181,6 +1181,7 @@ for tick=1,8 do
     assert(math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"placeholder must share the stable cursor/text scale")
 end
 finishPresence()
+local exitStyle=palette.input._visualState
 for _,name in pairs(UISpecialFrames) do
     local receiver=_G[name]
     if receiver and receiver:IsShown() then
@@ -1189,18 +1190,29 @@ for _,name in pairs(UISpecialFrames) do
     end
 end
 assert(not palette.visible and palette.frame:IsShown() and palette._motionClosing,"unfocused Escape preserves exit animation")
+assert(palette.input.visualFrozen and palette.input._visualState==exitStyle,"closing must not flash the input disabled style before the complete window fades")
+palette.input.container.scripts.OnLeave()
+assert(palette.input._visualState==exitStyle,"hover changes during exit cannot repaint the frozen input")
 assert(not palette.input.frame.focused and not palette.input:IsEnabled() and not palette.escapeFrame:IsShown(),"exit releases input and Escape receiver immediately")
 for tick=1,8 do
-    motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
+    motion.presence.group:Advance(0.02)
     assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001 and math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"closing must not rescale the search glyphs or caret")
 end
 finishPresence()
 assert(not palette.frame:IsShown() and not palette._motionClosing,"native Escape eventually hides the rendered window")
+assert(not palette.input.visualFrozen,"hidden input releases its visual freeze")
+palette:Show();finishPresence();palette.input:Focus()
+local focusedStyle=palette.input._visualState
+palette.input.frame.scripts.OnEscapePressed()
+assert(palette.input.visualFrozen and palette.input._visualState==focusedStyle and not palette.input:IsEnabled(),
+    "focused EditBox Escape preserves styling while releasing input")
+finishPresence()
 palette:Show()
+assert(not palette.input.visualFrozen and palette.input:IsEnabled(),"reopening restores live input styling")
 _G.__combat=true
 RunPaletteCombatSnippet(palette.frame);palette.frame.scripts.OnHide(palette.frame)
 assert(not palette.escapeFrame:IsShown(),"combat exit cannot consume a later native Escape")
-assert(not palette.visible and not motion.presence and not motion.presenceDriver.scripts.OnUpdate,"secure combat hide cancels entrance without delayed work")
+assert(not palette.visible and not motion.presence and not motion.presenceDriver,"secure combat hide cancels entrance without delayed work")
 _G.__combat=false
 palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen restores Escape after combat cleanup")
 palette:Hide("animation-test");finishPresence()

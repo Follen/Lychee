@@ -1,0 +1,510 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetScaleFrom",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetScaleFrom",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "90: \t\t\tName = \"SetScaleFrom\",\n91: \t\t\tType = \"Function\",\n92: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n93: \n94: \t\t\tArguments =\n95: \t\t\t{\n96: \t\t\t\t{ Name = \"scaleX\", Type = \"number\", Nilable = false },\n97: \t\t\t\t{ Name = \"scaleY\", Type = \"number\", Nilable = false },\n98: \t\t\t},\n99: \t\t},",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 90,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "87: \t\t\t},\n88: \t\t},\n89: \t\t{\n90: \t\t\tName = \"SetScaleFrom\",\n91: \t\t\tType = \"Function\",\n92: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n93: ",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 90,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetScaleTo",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetScaleTo",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "101: \t\t\tName = \"SetScaleTo\",\n102: \t\t\tType = \"Function\",\n103: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n104: \n105: \t\t\tArguments =\n106: \t\t\t{\n107: \t\t\t\t{ Name = \"scaleX\", Type = \"number\", Nilable = false },\n108: \t\t\t\t{ Name = \"scaleY\", Type = \"number\", Nilable = false },\n109: \t\t\t},\n110: \t\t},",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 101,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "98: \t\t\t},\n99: \t\t},\n100: \t\t{\n101: \t\t\tName = \"SetScaleTo\",\n102: \t\t\tType = \"Function\",\n103: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n104: ",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 101,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetOrigin",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetOrigin",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimRotationAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "61: \t\t\tName = \"SetOrigin\",\n62: \t\t\tType = \"Function\",\n63: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n64: \n65: \t\t\tArguments =\n66: \t\t\t{\n67: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n68: \t\t\t\t{ Name = \"originX\", Type = \"number\", Nilable = false },\n69: \t\t\t\t{ Name = \"originY\", Type = \"number\", Nilable = false },\n70: \t\t\t},\n71: \t\t},",
+        "contentHash": "36c66c54ae8d804ec9e50cc8f2c9f49b025f7e9cc8ec4185e6ad0fa82e4764d2",
+        "line": 61,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetOrigin",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "67: \t\t\tName = \"SetOrigin\",\n68: \t\t\tType = \"Function\",\n69: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n70: \n71: \t\t\tArguments =\n72: \t\t\t{\n73: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n74: \t\t\t\t{ Name = \"originX\", Type = \"number\", Nilable = false },\n75: \t\t\t\t{ Name = \"originY\", Type = \"number\", Nilable = false },\n76: \t\t\t},\n77: \t\t},",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 67,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetSmoothing",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetSmoothing",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "377: \t\t\tName = \"SetSmoothing\",\n378: \t\t\tType = \"Function\",\n379: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n380: \n381: \t\t\tArguments =\n382: \t\t\t{\n383: \t\t\t\t{ Name = \"weights\", Type = \"SmoothingType\", Nilable = false },\n384: \t\t\t},\n385: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 377,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "374: \t\t\t},\n375: \t\t},\n376: \t\t{\n377: \t\t\tName = \"SetSmoothing\",\n378: \t\t\tType = \"Function\",\n379: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n380: ",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 377,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "GetSmoothProgress",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "GetSmoothProgress",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "107: \t\t\tName = \"GetSmoothProgress\",\n108: \t\t\tType = \"Function\",\n109: \n110: \t\t\tArguments =\n111: \t\t\t{\n112: \t\t\t},\n113: \n114: \t\t\tReturns =\n115: \t\t\t{\n116: \t\t\t\t{ Name = \"progress\", Type = \"number\", Nilable = false },\n117: \t\t\t},\n118: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 107,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "104: \t\t\t},\n105: \t\t},\n106: \t\t{\n107: \t\t\tName = \"GetSmoothProgress\",\n108: \t\t\tType = \"Function\",\n109: \n110: \t\t\tArguments =",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 107,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetFromAlpha",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetFromAlpha",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "38: \t\t\tName = \"SetFromAlpha\",\n39: \t\t\tType = \"Function\",\n40: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"normalizedAlpha\", Type = \"number\", Nilable = false },\n46: \t\t\t},\n47: \t\t},",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 38,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "35: \t\t\t},\n36: \t\t},\n37: \t\t{\n38: \t\t\tName = \"SetFromAlpha\",\n39: \t\t\tType = \"Function\",\n40: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 38,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetToAlpha",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetToAlpha",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "49: \t\t\tName = \"SetToAlpha\",\n50: \t\t\tType = \"Function\",\n51: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n52: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n53: \n54: \t\t\tArguments =\n55: \t\t\t{\n56: \t\t\t\t{ Name = \"normalizedAlpha\", Type = \"number\", Nilable = false },\n57: \t\t\t},\n58: \t\t},",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 49,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAlphaAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "46: \t\t\t},\n47: \t\t},\n48: \t\t{\n49: \t\t\tName = \"SetToAlpha\",\n50: \t\t\tType = \"Function\",\n51: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n52: \t\t\tSecretArguments = \"AllowedWhenUntainted\",",
+        "contentHash": "31763b33566fe6f60286f2a25396643d62ab22333cad95b62bad88372468f119",
+        "line": 49,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetDuration",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetDuration",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "300: \t\t\tName = \"SetDuration\",\n301: \t\t\tType = \"Function\",\n302: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n303: \n304: \t\t\tArguments =\n305: \t\t\t{\n306: \t\t\t\t{ Name = \"durationSec\", Type = \"number\", Nilable = false },\n307: \t\t\t\t{ Name = \"recomputeGroupDuration\", Type = \"bool\", Nilable = false, Default = true },\n308: \t\t\t},\n309: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 300,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetOrder",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetOrder",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "322: \t\t\tName = \"SetOrder\",\n323: \t\t\tType = \"Function\",\n324: \t\t\tSecretArguments = \"NotAllowed\",\n325: \n326: \t\t\tArguments =\n327: \t\t\t{\n328: \t\t\t\t{ Name = \"newOrder\", Type = \"number\", Nilable = false },\n329: \t\t\t},\n330: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 322,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "CreateAnimationGroup",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "CreateAnimationGroup",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimatableObjectAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "10: \t\t\tName = \"CreateAnimationGroup\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: \n14: \t\t\tArguments =\n15: \t\t\t{\n16: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = true },\n17: \t\t\t\t{ Name = \"templateName\", Type = \"cstring\", Nilable = true },\n18: \t\t\t},\n19: \n20: \t\t\tReturns =\n21: \t\t\t{\n22: \t\t\t\t{ Name = \"group\", Type = \"SimpleAnimGroup\", Nilable = false },\n23: \t\t\t},\n24: \t\t},",
+        "contentHash": "2c0477d5f9640d152337584258606d79e0a9f80b4d7611d9ba1e4f25a0526fb3",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimatableObjectAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "7: \tFunctions =\n8: \t{\n9: \t\t{\n10: \t\t\tName = \"CreateAnimationGroup\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: ",
+        "contentHash": "2c0477d5f9640d152337584258606d79e0a9f80b4d7611d9ba1e4f25a0526fb3",
+        "line": 10,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "CreateAnimation",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "CreateAnimation",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "10: \t\t\tName = \"CreateAnimation\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: \n14: \t\t\tArguments =\n15: \t\t\t{\n16: \t\t\t\t{ Name = \"animationType\", Type = \"cstring\", Nilable = true },\n17: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = true },\n18: \t\t\t\t{ Name = \"templateName\", Type = \"cstring\", Nilable = true },\n19: \t\t\t},\n20: \n21: \t\t\tReturns =\n22: \t\t\t{\n23: \t\t\t\t{ Name = \"anim\", Type = \"SimpleAnim\", Nilable = false },\n24: \t\t\t},\n25: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "CreateAnimationGroup",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimatableObjectAPIDocumentation.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "official-generated-api",
+        "excerpt": "7: \tFunctions =\n8: \t{\n9: \t\t{\n10: \t\t\tName = \"CreateAnimationGroup\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: ",
+        "contentHash": "2c0477d5f9640d152337584258606d79e0a9f80b4d7611d9ba1e4f25a0526fb3",
+        "line": 10,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "7: \tFunctions =\n8: \t{\n9: \t\t{\n10: \t\t\tName = \"CreateAnimation\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: ",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 10,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "Play",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Play",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "268: \t\t\tName = \"Play\",\n269: \t\t\tType = \"Function\",\n270: \n271: \t\t\tArguments =\n272: \t\t\t{\n273: \t\t\t},\n274: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 268,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Play",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "267: \t\t\tName = \"Play\",\n268: \t\t\tType = \"Function\",\n269: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n270: \n271: \t\t\tArguments =\n272: \t\t\t{\n273: \t\t\t\t{ Name = \"reverse\", Type = \"bool\", Nilable = false, Default = false },\n274: \t\t\t\t{ Name = \"offset\", Type = \"number\", Nilable = false, Default = 0 },\n275: \t\t\t},\n276: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 267,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "Stop",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Stop",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "460: \t\t\tName = \"Stop\",\n461: \t\t\tType = \"Function\",\n462: \n463: \t\t\tArguments =\n464: \t\t\t{\n465: \t\t\t},\n466: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 460,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Stop",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "350: \t\t\tName = \"Stop\",\n351: \t\t\tType = \"Function\",\n352: \n353: \t\t\tArguments =\n354: \t\t\t{\n355: \t\t\t},\n356: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 350,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetScript",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetScript",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "327: \t\t\tName = \"SetScript\",\n328: \t\t\tType = \"Function\",\n329: \t\t\tRequiresAssignableScript = true,\n330: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n331: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n332: \n333: \t\t\tArguments =\n334: \t\t\t{\n335: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n336: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n337: \t\t\t},\n338: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 327,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]
