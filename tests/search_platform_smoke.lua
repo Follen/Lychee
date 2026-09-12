@@ -17,7 +17,7 @@ UIParent = {}
 local root = "package/Lychee/"
 local files = {
     "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
-    "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
+    "Search/Storage.lua", "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
     "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua",
     "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
 }
@@ -201,7 +201,8 @@ assert(#compact:Search("共享坐骑",10)==2 and #compact:Search("",10,{category
 assert(compact:ApplyDelta("compact",{{id="two",title="独立飞龙",category="飞龙类"}},{}))
 assert(#compact:Search("共享坐骑",10)==1)
 assert(compact:UnregisterSource("compact"))
-for _,name in ipairs({"entries","exact","prefix","tokens","grams","categories"}) do
+for _,name in ipairs({"entries","grams","categories"}) do
     assert(next(compact[name])==nil,"source removal must clear "..name)
 end
+assert(compact.exact==nil and compact.prefix==nil and compact.tokens==nil,"retired index families must not return")
 print("Lychee search platform PASS")

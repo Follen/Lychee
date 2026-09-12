@@ -113,7 +113,7 @@ try {
     }
     & $lua.Source 'tests/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
-    foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','provider_ingestion','ui_runtime')) {
+    foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','provider_ingestion','compact_storage','ui_runtime')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }

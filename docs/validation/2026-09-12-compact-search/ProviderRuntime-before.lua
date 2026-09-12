@@ -7,7 +7,12 @@ local weakRecords = { __mode = "k" }
 local function resolvedRecords() return setmetatable({}, weakRecords) end
 local localizedRecordFields = {"title","kindTitle","subtitle","subtext","description","aliases","keywords"}
 
-local function copy(value) return I.Search.Storage:Copy(value) end
+local function copy(value)
+    if type(value) ~= "table" then return value end
+    local result = {}
+    for key, child in pairs(value) do result[key] = copy(child) end
+    return result
+end
 local function failure(code, field, owner)
     return nil, { code = code, field = field, providerID = owner, retryable = false }
 end

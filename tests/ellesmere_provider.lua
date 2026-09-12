@@ -30,7 +30,7 @@ local function drain()
 end
 for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
     "Builtin/Ellesmere/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
-    "Search/ProviderPolicy.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua",
+    "Search/ProviderPolicy.lua","Search/Storage.lua", "Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua",
     "Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua",
     "Core/ProviderRuntime.lua","PublicAPI/SDK.lua","Builtin/Ellesmere/Adapter.lua","Builtin/Ellesmere/Provider.lua"}) do
     dofile(file=="Builtin/Ellesmere/Provider.lua" and arg[1] or "package/Lychee/"..file)

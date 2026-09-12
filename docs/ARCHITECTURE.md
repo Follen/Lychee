@@ -146,3 +146,5 @@ Elles的版本敏感访问集中在Adapter，不能据此宣称与上游无耦�
 内置功能按职责存放在 `package/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](PROJECT_STRUCTURE.md)。
 
 revision 6 将普通搜索 searchGlobal 与两个快捷入口词表解耦。ProviderPolicy.Configuration 把旧声明和旧用户 mode 覆盖映射为原有效能力，新用户组合配置优先；Snapshot 负责独立入口路由与冲突归属。UI 只编辑组合配置，不再暴露互斥模式。旧模式中未启用的词表不会自动激活。
+
+2026-09-12：搜索记录与索引采用 [紧凑存储设计](architecture/2026-09-12-compact-search.md)，Provider/UI 接口保持；只有过量错拼候选的无序选择改为稳定顺序。

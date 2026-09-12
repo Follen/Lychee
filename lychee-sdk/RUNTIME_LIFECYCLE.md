@@ -23,3 +23,5 @@ UI Runtime 继续复用原生结构。release/unmount 清除活动 props/context
 ## 验证
 
 接收安全与隔离：`provider_ingestion.lua`、`provider_record_ownership.lua`、`provider_sdk_smoke.lua`。角色恢复：`character_settings.lua`、`character_pins.lua`、搜索个性化/策略回归。UI：`ui_runtime.lua`、`view_lifecycle.lua`、`interaction_smoke.lua`。统一由 `tests/check_contract.ps1` 执行，不能以 SDK 文档描述替代实际断言。
+
+紧凑搜索存储保持 SDK 2/revision 6；扩展字段、普通回调和模糊候选稳定顺序见 [搜索存储契约](SEARCH_STORAGE.md)。

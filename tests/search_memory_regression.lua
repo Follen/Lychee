@@ -2,7 +2,7 @@
 function GetLocale() return "zhCN" end
 LycheeInternal={Search={}}
 dofile("package/Lychee/Search/Normalizer.lua")
-dofile("package/Lychee/Search/StaticIndex.lua")
+dofile("package/Lychee/Search/Storage.lua");dofile("package/Lychee/Search/StaticIndex.lua")
 local N,Index=LycheeInternal.Search.Normalizer,LycheeInternal.Search.StaticIndex
 local function distance(a,b)
     local p,c={},{}

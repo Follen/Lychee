@@ -1,18 +1,18 @@
-## 当前构建：0.3.0-character-storage
+## 当前构建：0.3.1-compact-search
 
-当前副本包含角色存储模块，共 57 个产品模块、60 个 Lua 文件、61 个交付文件。构建自动记录真实 `sourceCommit`、运行时目录 `sourceDirty` 和 `sourceTreeHash`，不再沿用固定提交号。私有轮次按角色清理/保留成就缓存；真实产品仍只做只读采样。以下 0.2.2 基准与历史报告保留作为修改前证据，不能当作本轮实机验证。
+当前副本包含角色存储与紧凑搜索模块，共 58 个产品模块、61 个 Lua 文件、62 个交付文件。构建自动记录真实 `sourceCommit`、运行时目录 `sourceDirty` 和 `sourceTreeHash`，不再沿用固定提交号。私有轮次按角色清理/保留成就缓存；真实产品仍只做只读采样。以下 0.2.2 基准与历史报告保留作为修改前证据，不能当作本轮实机验证。
 
 # Lychee Performance Test
 
 独立、手动启动的诊断插件，调查 Lychee 生命周期与内存/CPU；不实施产品 SDK 或低内存重构。目录、TOC、Title 均为 `Lychee Performance Test`。仅依赖 `Lychee`，不依赖 Lychee Dev；原长文本粘贴入口已撤回。
 
-当前修订 `0.2.2-baseline-gate`。整轮墙钟上限按用户要求从 180 秒延长到 600 秒，报告记录 `wallLimitSeconds=600`；这是诊断等待上限，不改变产品性能预算。开始/结束聊天和报告 `carrierRevision` 显示修订，中央大字显示运行状态。覆盖修复：显式启动后正常初始化 Ellesmere 设置、打开一个现有/默认模块页面、记录真实选项登记并关闭，再测 SDK 选项查询/Resolve；不再仅测试未就绪状态。旧报告仍保留。
+历史修订 `0.2.2-baseline-gate`。整轮墙钟上限按用户要求从 180 秒延长到 600 秒，报告记录 `wallLimitSeconds=600`；这是诊断等待上限，不改变产品性能预算。开始/结束聊天和报告 `carrierRevision` 显示修订，中央大字显示运行状态。覆盖修复：显式启动后正常初始化 Ellesmere 设置、打开一个现有/默认模块页面、记录真实选项登记并关闭，再测 SDK 选项查询/Resolve；不再仅测试未就绪状态。旧报告仍保留。
 
 ## 构建与安装
 
 仓库根目录运行 `python tools/performance-test/build.py`，得到：
 
-- `analyze/performance-test-package/Lychee Performance Test/`：60 个安装文件。
+- `analyze/performance-test-package/Lychee Performance Test/`：62 个安装文件。
 - 同目录的 `Lychee Performance Test.zip`、`manifest.json`、`START.txt`。
 - 56 个模块工厂来自当前生产 TOC 的非 UI/安全层源码，原文嵌入普通 Lua 函数，使用正常文件编译；没有 source-string/loadstring 编译器。源码逐文件 SHA256 记录在 manifest 中。
 

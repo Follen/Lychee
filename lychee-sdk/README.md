@@ -52,3 +52,5 @@ API 2 不保留旧 Extension/Command 多角色接入流程，也不迁移旧数�
 允许不同客户端／build 使用不同业务实现。同一业务保持一个 Provider ID，由 Provider 在注册前选择唯一适配器，再向 Host 提交该实现的完整 scope、i18n 和回调。支持范围不等于实现相同；不能同时注册多个同 ID 分支。目录结构、选择规则、身份／缓存和验收要求见 [客户端与 build 差异约定](CLIENT_VARIANTS.md)。
 
 动效接口与分层规范见 [MOTION.md](MOTION.md)；完整可安装示例见 [ComponentPanel](examples/ComponentPanel/ComponentPanel.lua)，仅供 SDK 开发使用，不随 Lychee 运行时同步。
+
+紧凑搜索存储保持 SDK 2/revision 6；扩展字段、普通回调和模糊候选稳定顺序见 [搜索存储契约](SEARCH_STORAGE.md)。

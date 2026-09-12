@@ -18,7 +18,7 @@ report=json.loads(parsed.stdout)
 assert report['status']=='complete' and len(report['rounds'])==4 and len(report['acquisition']['rounds'])==3
 (out/'fixture-report.json').write_text(parsed.stdout,encoding='utf-8')
 manifest=json.loads((out/'manifest.json').read_text(encoding='utf-8'))
-assert len(manifest['files'])==61 and len(manifest['sourceFiles'])==57
+assert len(manifest['files'])==62 and len(manifest['sourceFiles'])==58
 assert not any('Lychee Dev' in p.read_text(encoding='utf-8') for p in (out/'Lychee Performance Test').glob('*.toc'))
 print(run.stdout.splitlines()[-1])
-print('60 Lua syntax checks + independent saved report JSON reader + manifest PASS')
+print('61 Lua syntax checks + independent saved report JSON reader + manifest PASS')

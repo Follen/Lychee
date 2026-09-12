@@ -31,7 +31,7 @@ C_MountJournal = {
 for _, path in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua", "Builtin/Shared/Support.lua", "Core/ProviderLocales.lua",
     "Builtin/Crests/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Mounts/Locales.lua",
     "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
-    "Search/ProviderPolicy.lua", "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
+    "Search/ProviderPolicy.lua", "Search/Storage.lua", "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
     "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Core/ProviderRuntime.lua",
     "PublicAPI/SDK.lua", "Builtin/Shared/InterfaceActions.lua", "Builtin/Bosses/JournalCatalog.lua", "Builtin/Crests/Provider.lua",
     "Builtin/GameMenus/Provider.lua", "Builtin/Bosses/Provider.lua", "Builtin/Mounts/Provider.lua", "Builtin/Init.lua"}) do source(path) end

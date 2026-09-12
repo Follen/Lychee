@@ -7,7 +7,7 @@ C_Timer={NewTimer=function(_,callback) return {callback=callback,Cancel=function
 local root=os.getenv('LYCHEE_PERF_ROOT') or 'package/Lychee/'
 local coreRoot=os.getenv('LYCHEE_PERF_CORE_ROOT') or root
 for _,path in ipairs({'Bootstrap.lua', 'Core/CharacterStore.lua', 'Builtin/Definitions.lua','Builtin/Shared/Support.lua','Core/ProviderLocales.lua','Core/ContextStore.lua','Search/RuntimeIdentity.lua','Search/Normalizer.lua',
-    'Search/StaticIndex.lua','Core/CommandCatalog.lua','Core/CapabilityBroker.lua','Core/Boundary.lua',
+    'Search/Storage.lua', 'Search/StaticIndex.lua','Core/CommandCatalog.lua','Core/CapabilityBroker.lua','Core/Boundary.lua',
     'Core/IntentRouter.lua','Core/Scheduler.lua','Core/ExtensionRegistry.lua','Search/QueryOrchestrator.lua',
     'Core/ProviderRuntime.lua','PublicAPI/SDK.lua'}) do dofile((path:match('^Core/') and coreRoot or root)..path) end
 local I=LycheeInternal

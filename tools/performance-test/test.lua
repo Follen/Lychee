@@ -60,7 +60,7 @@ local packagePath="analyze/performance-test-package/Lychee Performance Test/"
 for line in io.lines(packagePath.."Lychee Performance Test.toc") do
     if line:match("%.lua$") then assert(loadfile(packagePath..line))("Lychee Performance Test",carrier) end
 end
-assert(#carrier.modules==57 and #tasks==0 and nativeCalls==0 and overlayFrames==0)
+assert(#carrier.modules==58 and #tasks==0 and nativeCalls==0 and overlayFrames==0)
 assert(next(LycheePerformanceTestDB.reports)==nil and LycheeDevDB==nil)
 local script=LycheePerformanceTest.Start
 local function checkFactories()
@@ -227,7 +227,7 @@ local function prepareRun(which)
 end
 returned=prepareRun("normal");drainReal()
 report=LycheePerformanceTestDB.reports[returned.studyID]
-assert(report.status=="complete" and report.carrierRevision=="0.3.0-character-storage")
+assert(report.status=="complete" and report.carrierRevision=="0.3.1-compact-search")
 assert(report.ellesmerePreparation.status=="complete" and report.ellesmerePreparation.loadedBefore==false)
 assert(report.ellesmerePreparation.loadedAfter and report.ellesmerePreparation.shown and report.ellesmerePreparation.closed)
 assert(report.ellesmerePreparation.optionsCaptured==1 and report.ellesmerePreparation.registrationRestored)

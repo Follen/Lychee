@@ -45,7 +45,9 @@ if part=="updates" then
     local record,sourceID=entry.record,entry.sourceID
     local started=os.clock()
     for n=1,100 do
-        local updated={}; for key,value in pairs(record) do updated[key]=value end
+        local storage=LycheeInternal.Search.Storage
+        local updated=storage and storage:Copy(record) or {}
+        if not storage then for key,value in pairs(record) do updated[key]=value end end
         updated.title="更新测量坐骑"..n
         assert(index:ApplyDelta(sourceID,{updated},{}))
     end
