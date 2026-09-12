@@ -1,0 +1,221 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetPoint",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetPoint",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 135,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetSize",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetSize",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "163: \t\t\tName = \"SetSize\",\n164: \t\t\tType = \"Function\",\n165: \t\t\tIsProtectedFunction = true,\n166: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n167: \n168: \t\t\tArguments =\n169: \t\t\t{\n170: \t\t\t\t{ Name = \"x\", Type = \"uiUnit\", Nilable = false },\n171: \t\t\t\t{ Name = \"y\", Type = \"uiUnit\", Nilable = false },\n172: \t\t\t},\n173: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 163,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "ClearAllPoints",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "ClearAllPoints",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleLineAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "10: \t\t\tName = \"ClearAllPoints\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tIsProtectedFunction = true,\n13: \n14: \t\t\tArguments =\n15: \t\t\t{\n16: \t\t\t},\n17: \t\t},",
+        "contentHash": "ea5377de1c3209dc24b6be41ab63bcb79e8c9d5f6d8ec78172cd726bf013e71d",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "ClearAllPoints",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "22: \t\t\tName = \"ClearAllPoints\",\n23: \t\t\tType = \"Function\",\n24: \t\t\tIsProtectedFunction = true,\n25: \t\t\tDocumentation = { \"Clears all points and immediately invalidates the rect. (Prior to 11.2.0, this would only invalidate rect immediately for AnchoringRestricted regions.)\" },\n26: \n27: \t\t\tArguments =\n28: \t\t\t{\n29: \t\t\t},\n30: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 22,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "GetTimePreciseSec",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Os.GetTimePreciseSec",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/OsDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "27: \t\t\tName = \"GetTimePreciseSec\",\n28: \t\t\tType = \"Function\",\n29: \n30: \t\t\tReturns =\n31: \t\t\t{\n32: \t\t\t\t{ Name = \"time\", Type = \"number\", Nilable = false },\n33: \t\t\t},\n34: \t\t},",
+        "contentHash": "fe53117b85bb87784288b1f9854266b19b6967207e949d55c254029a9a9f4679",
+        "line": 27,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "IsVisible",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "IsVisible",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPIModelSceneFrameActorBaseDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "306: \t\t\tName = \"IsVisible\",\n307: \t\t\tType = \"Function\",\n308: \n309: \t\t\tArguments =\n310: \t\t\t{\n311: \t\t\t},\n312: \n313: \t\t\tReturns =\n314: \t\t\t{\n315: \t\t\t\t{ Name = \"isVisible\", Type = \"bool\", Nilable = false },\n316: \t\t\t},\n317: \t\t},",
+        "contentHash": "f163e0296e0eb07c071b57b4688c52be21b9c0ade4cf9292dc3fc0bee22d00c6",
+        "line": 306,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "IsVisible",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "968: \t\t\tName = \"IsVisible\",\n969: \t\t\tType = \"Function\",\n970: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Shown },\n971: \n972: \t\t\tArguments =\n973: \t\t\t{\n974: \t\t\t},\n975: \n976: \t\t\tReturns =\n977: \t\t\t{\n978: \t\t\t\t{ Name = \"isVisible\", Type = \"bool\", Nilable = false },\n979: \t\t\t},\n980: \t\t},",
+        "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+        "line": 968,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "IsVisible",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "545: \t\t\tName = \"IsVisible\",\n546: \t\t\tType = \"Function\",\n547: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Shown },\n548: \n549: \t\t\tArguments =\n550: \t\t\t{\n551: \t\t\t},\n552: \n553: \t\t\tReturns =\n554: \t\t\t{\n555: \t\t\t\t{ Name = \"isVisible\", Type = \"bool\", Nilable = false },\n556: \t\t\t},\n557: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 545,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetScript",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetScript",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "354: \t\t\tName = \"SetScript\",\n355: \t\t\tType = \"Function\",\n356: \t\t\tRequiresAssignableScript = true,\n357: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n358: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n359: \n360: \t\t\tArguments =\n361: \t\t\t{\n362: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n363: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n364: \t\t\t},\n365: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 354,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetScript",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "327: \t\t\tName = \"SetScript\",\n328: \t\t\tType = \"Function\",\n329: \t\t\tRequiresAssignableScript = true,\n330: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n331: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n332: \n333: \t\t\tArguments =\n334: \t\t\t{\n335: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n336: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n337: \t\t\t},\n338: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 327,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetScript",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "640: \t\t\tName = \"SetScript\",\n641: \t\t\tType = \"Function\",\n642: \t\t\tRequiresAssignableScript = true,\n643: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n644: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.ScriptBindings } },\n645: \n646: \t\t\tArguments =\n647: \t\t\t{\n648: \t\t\t\t{ Name = \"scriptTypeName\", Type = \"ScriptTypeName\", Nilable = false },\n649: \t\t\t\t{ Name = \"script\", Type = \"LuaFunctionReference\", Nilable = true },\n650: \t\t\t},\n651: \t\t},",
+        "contentHash": "cd4dc47781b8b77f088ebe7aa4aead4d34fee3ce3d679a1a950b3fc1a21fa5c9",
+        "line": 640,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

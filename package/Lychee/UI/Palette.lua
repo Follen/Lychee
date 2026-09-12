@@ -517,7 +517,7 @@ function Palette:Create()
     self.brandMark = self.brandComponent.icon
     self.brand = self.brandComponent.label
     self.settingsButton = CreateFrame("Button", nil, self.header)
-    self.settingsButton:SetAllPoints(self.brandMark)
+    self.settingsButton:SetAllPoints(self.brandComponent.frame)
     self.settingsButton:SetScript("OnClick", function() self:OpenSettings() end)
     self.settingsButton:SetScript("OnEnter", function()
         if self.visible then self.brandComponent:PlayMotion() end

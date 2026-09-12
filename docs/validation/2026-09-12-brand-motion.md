@@ -1,5 +1,7 @@
 # 原 Logo 原生动画
 
+> 已被录像 `20260912-114435.mp4` 否定。以下是历史离线记录，不代表客户端显示正确；现行修复见 `2026-09-12-brand-local-geometry.md`。
+
 ## 实施前预算与生命周期
 
 - 保留 `Media/lychee-logo.tga` 的全部像素、配色、UV；不新增媒体、Frame、纹理、定时器或 Lua OnUpdate。

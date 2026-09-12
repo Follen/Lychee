@@ -20,13 +20,13 @@ Presence只改共同根节点SetPoint/SetAlpha，不改Frame scale、字号、�
 
 ### 原 Logo 动画
 
-`Components:CreateBrand(...)` 保留原纹理。`brand:PlayMotion()` 调用 `Motion:Brand(texture)`，播放轻压、舒展与回弹；`brand:StopMotion()` / `Motion:Cancel(texture, true)` 停止并恢复原生静止姿态。仅用于单张纹理，不用于含文字或多片背景的父 Frame。
+`Components:CreateBrand(...)` 保留原图。`brand:PlayMotion()` 调用 `Motion:Brand(texture, owner, size)`；owner 是静止品牌容器，size 是未变形的图标边长。`brand:StopMotion()` / `Motion:Cancel(texture, true)` / `Motion:StopBrand()` 停止并复位。单个品牌动效通道全库互斥；播放中同目标请求合并，新目标先停止旧目标。
 
-原图轮廓、配色、透明边距与 UV 不变。五段共 1.386 秒，42 px 图标最大上移约 2.30 UI 单位；原生 IN_OUT/OUT/IN 缓动适配 SVG 的动作关键点，不承诺与浏览器曲线逐帧相同。只播放一次，悬停时播放中请求合并，停止后再悬停可重播。
+录像 `20260912-114435.mp4` 证实此前原生 Scale/Translation 会把单纹理移出标题栏。旧替身把变换当成简单累计，没有覆盖真实渲染；不再使用该实现。直接用 SetSize 和相对 owner 的 CENTER 锚点渲染确认 SVG 的五段姿态，总时长 1.386 秒，cubic-bezier 用有界二分求解。中心 x=size/2，y=size/128 × (39 × (scaleY−1) + upwardOffset)，源图枢轴 (64,103)。静止时恢复完整 size×size 和 LEFT→owner.LEFT (0,0)，不改变 UV/纹理/父框体。点击区域必须锚到 owner，不能锚到正在变形的纹理。
 
-首次实际播放创建一个组、五个 Scale 和五个 Translation，计入普通动画组 96 上限；缩放用相邻姿态比值、位移用差值，以便累计后严格回到原始姿态。后续复用，只有图标高度变化才更新几何参数。未显示、战斗与减少动态效果时跳过；关闭、组件 OnHide、StopAll 与 SetReduced 均停止。没有新增纹理、Frame、timer 或 Lua OnUpdate。
+首次实际播放创建一个私有短时驱动 Frame 和一个复用任务表；不创建原生动画组、新纹理或定时器。逐帧仅标量运算，最多 SetSize/SetPoint 各一次；同值跳过。精确时钟起点每次重置，停播解绑 OnUpdate、隐藏驱动、释放 region/parent/clock。减少动态效果和不可见时不启动；隐藏、关闭、StopAll 与 SetReduced 停止。战斗禁止几何 setter，仅保留一个有界待复位目标，下次安全调用时恢复，脱战不自动播放。
 
-Palette 在完成打开布局后触发，在设置按钮 OnEnter 且窗口可交互时触发；设置按钮点击和命中范围不随原生纹理变换改变。现有主窗口 Presence 保持不变。回归：`tests/brand_motion.lua`；实际缓动与原生渲染成本仍需游戏确认。
+Palette 完成打开布局后触发；设置按钮 OnEnter 且窗口可交互时触发。主窗口 Presence 不变。验证：`tests/brand_geometry.lua` 的关键姿态、不同屏幕位置/缩放下局部边界与 30/60/144 FPS 采样，`tests/brand_motion.lua` 的真实面板集成。离线结果不代表客户端帧时间，游戏录像复验仍需单独完成。
 
 ### 公共生命周期
 

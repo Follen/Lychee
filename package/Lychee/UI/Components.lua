@@ -161,7 +161,7 @@ function Components:CreateBrand(parent, options)
     function component:SetShown(shown) setShown(self.frame, shown) end
     function component:PlayMotion()
         local motion=Lychee.UI.Motion
-        if motion then return motion:Brand(self.icon) end
+        if motion then return motion:Brand(self.icon,self.frame,iconSize) end
         return false
     end
     function component:StopMotion()

@@ -6,8 +6,7 @@ function Motion:IsReduced()
     return LycheeDB and LycheeDB.palette and LycheeDB.palette.reduceMotion==true
 end
 function Motion:Cancel(region,settle)
-    local brand=region and region._lycheeBrand
-    if brand and brand.group:IsPlaying() then brand.group:Stop() end
+    if self.brandState and self.brandState.region==region then self:StopBrand() end
     local state=region and (region._lycheeMotion or region._lycheeSlide)
     if not state then return end
     local current=state.to
@@ -106,54 +105,87 @@ function Motion:Selection(region,selected)
     region:Show()
     self:Alpha(region,selected and 1 or 0,self.durations.feedback,nil,selected and 0 or nil)
 end
--- Original 128px logo: five authored poses, then idle. Native transforms affect
--- the texture only, never its parent, text, hit rect, or the window's Presence.
+-- Video 20260912-114435 invalidated native Scale/Translation composition here.
+-- Own the texture's LOCAL geometry instead. Never transform its parent or text.
+-- End time, scale X/Y, upward offset in source pixels, SVG scale/move beziers.
 local brandPoses={
-    {0.168,1.075,0.925,0,"IN_OUT"},
-    {0.336,0.960,1.045,7,"OUT"},
-    {0.336,1.035,0.965,0,"IN"},
-    {0.252,0.990,1.012,1,"OUT"},
-    {0.294,1,1,0,"OUT"},
+    {0.168,1.075,0.925,0,.42,0,.70,1,.42,0,.75,1},
+    {0.504,0.960,1.045,7,.16,.6,.25,1,.16,.6,.25,1},
+    {0.840,1.035,0.965,0,.30,0,.60,1,.42,0,.60,1},
+    {1.092,0.990,1.012,1,.16,.7,.30,1,.16,.7,.30,1},
+    {1.386,1,1,0,.20,.7,.30,1,.20,.7,.30,1},
 }
-function Motion:Brand(region)
-    if not region then return false end
+local function brandEase(u,x1,y1,x2,y2)
+    if u<=0 then return 0 elseif u>=1 then return 1 end
+    local low,high,t=0,1,u
+    for index=1,16 do
+        t=(low+high)*.5
+        local v=1-t
+        if 3*v*v*t*x1+3*v*t*t*x2+t*t*t<u then low=t else high=t end
+    end
+    local v=1-t
+    return 3*v*v*t*y1+3*v*t*t*y2+t*t*t
+end
+local function applyBrand(job)
+    local fromTime,fromX,fromY,fromOffset=0,1,1,0
+    for _,pose in ipairs(brandPoses) do
+        if job.elapsed<=pose[1] then
+            local u=(job.elapsed-fromTime)/(pose[1]-fromTime)
+            local scale=brandEase(u,pose[5],pose[6],pose[7],pose[8])
+            local move=brandEase(u,pose[9],pose[10],pose[11],pose[12])
+            local sx,sy=fromX+(pose[2]-fromX)*scale,fromY+(pose[3]-fromY)*scale
+            local width,height=job.size*sx,job.size*sy
+            -- SVG pivot (64,103), source size 128; local CENTER stays at x=size/2.
+            local y=job.size/128*(39*(sy-1)+fromOffset+(pose[4]-fromOffset)*move)
+            if job.lastWidth~=width or job.lastHeight~=height then
+                job.region:SetSize(width,height);job.lastWidth,job.lastHeight=width,height
+            end
+            if job.lastY~=y then
+                job.region:SetPoint("CENTER",job.parent,"LEFT",job.size/2,y);job.lastY=y
+            end
+            return
+        end
+        fromTime,fromX,fromY,fromOffset=pose[1],pose[2],pose[3],pose[4]
+    end
+end
+function Motion:StopBrand()
+    self.brand=nil
+    if self.brandDriver then self.brandDriver:SetScript("OnUpdate",nil);self.brandDriver:Hide() end
+    local job=self.brandState
+    if not job or not job.region then return end
+    job.clock=nil
+    -- A protected hierarchy is already hidden by the secure combat handler.
+    -- Retain only this bounded reset until the next safe StopAll/Brand call.
+    if combat() then return end
+    job.region:SetSize(job.size,job.size)
+    job.region:ClearAllPoints();job.region:SetPoint("LEFT",job.parent,"LEFT",0,0)
+    job.region,job.parent=nil,nil
+end
+local function brandTick(_,elapsed)
+    local job=Motion.brand
+    if not job then return end
+    if combat() or Motion:IsReduced() or not job.region:IsShown()
+        or (job.region.IsVisible and not job.region:IsVisible()) then Motion:StopBrand();return end
+    job.elapsed=job.clock and math.max(0,job.clock()-job.started) or job.elapsed+elapsed
+    if job.elapsed>=1.386 then Motion:StopBrand() else applyBrand(job) end
+end
+function Motion:Brand(region,parent,size)
+    if not region or not parent then return false end
     if combat() or self:IsReduced() or not region:IsShown()
         or (region.IsVisible and not region:IsVisible()) then
         self:Cancel(region,true);return false
     end
-    if not region.CreateAnimationGroup then return false end
-    local state=region._lycheeBrand
-    -- Hover during the entrance must not restart or stack its anticipation.
-    if state and state.group:IsPlaying() then return false end
-    if not state then
-        if #self.groups>=self.limit then return false end
-        local group=region:CreateAnimationGroup()
-        group:SetLooping("NONE")
-        state={region=region,group=group,scales={},translations={}}
-        for index,pose in ipairs(brandPoses) do
-            local scale=group:CreateAnimation("Scale")
-            local move=group:CreateAnimation("Translation")
-            scale:SetOrder(index);move:SetOrder(index)
-            scale:SetDuration(pose[1]);move:SetDuration(pose[1])
-            scale:SetSmoothing(pose[5]);move:SetSmoothing(pose[5])
-            state.scales[index]=scale;state.translations[index]=move
-        end
-        region._lycheeBrand=state;self.groups[#self.groups+1]=state
-    end
-    local height=region:GetHeight()
-    if state.height~=height then
-        local previousX,previousY,previousOffset=1,1,0
-        for index,pose in ipairs(brandPoses) do
-            -- Successive native scales multiply; translations accumulate.
-            -- Ratios/deltas close exactly at the unmodified original pose.
-            state.scales[index]:SetScale(pose[2]/previousX,pose[3]/previousY)
-            state.scales[index]:SetOrigin("BOTTOM",0,height*25/128)
-            state.translations[index]:SetOffset(0,(pose[4]-previousOffset)*height/128)
-            previousX,previousY,previousOffset=pose[2],pose[3],pose[4]
-        end
-        state.height=height
-    end
-    state.group:Play()
+    if self.brand and self.brand.region==region then return false end
+    self:StopBrand()
+    if not self.brandDriver then self.brandDriver=CreateFrame("Frame");self.brandDriver:Hide() end
+    self.brandState=self.brandState or {}
+    local job=self.brandState;self.brand=job
+    job.region,job.parent,job.size,job.elapsed=region,parent,size or region:GetWidth(),0
+    job.clock=type(GetTimePreciseSec)=="function" and GetTimePreciseSec or nil
+    job.started=job.clock and job.clock() or 0
+    job.lastWidth,job.lastHeight,job.lastY=nil,nil,nil
+    region:ClearAllPoints();applyBrand(job)
+    self.brandDriver:SetScript("OnUpdate",brandTick);self.brandDriver:Show()
     return true
 end
 local function heightTick(driver,elapsed)
@@ -190,6 +222,7 @@ function Motion:Height(region,target)
     self.driver:SetScript("OnUpdate",heightTick);self.driver:Show()
 end
 function Motion:StopAll(except)
+    if self.brandState and self.brandState.region~=except then self:StopBrand() end
     self:StopHeight(false)
     if self.presence and self.presence.region~=except then self:StopPresence(false) end
     for _,state in ipairs(self.groups) do if state.region~=except then self:Cancel(state.region,true) end end
@@ -197,6 +230,7 @@ end
 function Motion:SetReduced(reduced)
     LycheeDB.palette=LycheeDB.palette or {}
     LycheeDB.palette.reduceMotion=reduced==true
+    self:StopBrand()
     self:StopHeight(true)
     self:StopPresence(true,true)
     -- Settling an exit must also release its window. Ordinary cancellation
