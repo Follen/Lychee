@@ -24,3 +24,17 @@
 接口证据由 wowdoc 查证：sourceId=`wow-ui-source`，product=`retail`，requestedRef=`12.1.0`，resolvedCommit=`8ea15b61e45c0ed4eba01439c90757f86eb78d34`。`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua` 第124行 SetHeight，参数height为uiUnit，调用受保护；代码仍在战斗检查后执行。GetHeight及完整excerpt保存在本地 `analyze/drop-motion-20260913/`。未以本次非战斗重放代替战斗实机验收。
 
 静态验证：wowdoc Host43个Lua文件有效、无诊断；完整回归89/89，git diff --check通过。最终实机对照另行记录，不将离线通过当成视觉通过。
+
+## 修复后实机对照
+
+源提交 `03626e1cbf1c0735b76d2bd813165dfbcdebe50c`，五包178文件与正式服 SHA256一致。Ticket `LYCHEE-20260913-073205-0033` 完整320个样本，reason=completed；39190字节，SHA256=`696d16b309b9c6373920624858893af1891ef19eecdc581e5131878c8efba900`。前后相同客户端、同一探针、33ms采样、相同搜索与清空序列；无用户设置更改。
+
+| 输入 | 修复前：内容需扩展 / 开始动画 | 修复后：内容需扩展 / 开始动画 |
+| --- | --- | --- |
+| 乌拉 | 171 / 488 ms | 172 / 172 ms |
+| 成就（第一轮） | 176 / 490 ms | 173 / 173 ms |
+| 成就（第二轮） | 178 / 522 ms | 178 / 178 ms |
+
+修复后均在仍有来源等待时开始扩展；旧版约314–344ms的额外等待消失。“同一采样点”精度为约33ms，不声称原生零延迟。三次展开采样高度单调、终点518，全部样本顶栏相对面板偏移0。外部录像放大实际游戏窗口区域对照确认首批结果展开、后续结果不再触发补一次拉伸；视频绝对时间未作逐帧同步，时间结论以游戏内相对输入时间为准。
+
+本地 before/after.json、before/after.mp4、before/after-game.jpg 和 compare.py 保留原始证据。已确认接收两个Ticket，移除自有任务 `lychee-height-replay-0913` 并 reload。没有新增常驻探针；这轮不重新宣称完整业务或战斗等价，也未测无录屏状态的动画CPU。
