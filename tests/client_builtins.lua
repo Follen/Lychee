@@ -1,5 +1,5 @@
 -- Real built-in modules under a bounded client fixture, with isolated locales.
-local root="package/Lychee/"
+local root="addon/Lychee/"
 local captured={}
 local product,locale="anniversary","enUS"
 _G.LycheeInternal={Builtin={},Search={RuntimeIdentity={Current=function() return {product=product} end}},

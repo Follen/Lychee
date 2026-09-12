@@ -35,7 +35,7 @@ end}
 local function flush() local pending=queue; queue={}; for _,fn in ipairs(pending) do fn() end end
 local function enable(noFlush) disabled=false; cleanup=definition.onEnable(handle); if not noFlush then flush() end end
 local function disable() disabled=true; cleanup("disable") end
-local root = os.getenv('LYCHEE_PERF_SOURCE') or 'package/Lychee'
+local root = os.getenv('LYCHEE_PERF_SOURCE') or 'addon/Lychee'
 function GetLocale() return "zhCN" end
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Exclude the shared bootstrap frame from this isolated feature cost fixture.

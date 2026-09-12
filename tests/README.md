@@ -18,3 +18,5 @@ dofile("tests/support/runtime.lua").Load("provider", {"Search/SearchSession.lua"
 `sdk_resources.lua` 检查托管生命周期、取消/回复重入、迟到 timer、额度、页面部分创建失败、设置角色/实例隔离、缓存容量。原 Provider 接收、所有权、搜索质量、原子更新、真实 UI 事件序列和性能预算继续保留。旧 Command/Capability 专项退出；其用户可见动作、视图和失效身份由公共 Provider 的交互测试覆盖。
 
 本目录和 SDK 开发文件不进入游戏运行时目录。离线通过不等于客户端战斗、taint 或视觉验证通过。
+
+目录与交付：`repository_delivery.py`覆盖断链、SDK外层依赖、漏文件、夹带文件、越界路径和可重复ZIP；`sdk_delivery.py`覆盖版本、清单、helper兼容下限与性能规范副本漂移。两者接入完整入口；预算唯一源是[PERFORMANCE.md](../PERFORMANCE.md)。

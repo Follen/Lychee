@@ -14,7 +14,7 @@ function CreateFrame()
 end
 UIParent = {}
 
-local root = "package/Lychee/"
+local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"})
 
 local I = _G.LycheeInternal

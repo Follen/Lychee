@@ -1,6 +1,8 @@
 # SDK 所有权与生命周期约束
 
-当前 Provider API 2 / revision 7、UI Runtime 1。普通记录、角色设置与输入隔离保持；新增 [公共托管资源](MANAGED_RESOURCES.md)，以明确所有者和自动收尾实现生命周期约束。角色存储 [设计](../docs/architecture/2026-09-12-runtime-lifecycle.md) 与 [验证](../tests/LIFECYCLE_ACCEPTANCE.md) 继续适用。
+性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+
+当前 Provider API 2 / revision 7、UI Runtime 1。普通记录、角色设置与输入隔离保持；新增 [公共托管资源](MANAGED_RESOURCES.md)，以明确所有者和自动收尾实现生命周期约束。角色存储 [设计](https://github.com/Follen/Lychee/blob/main/docs/architecture/2026-09-12-runtime-lifecycle.md) 与 [验证](https://github.com/Follen/Lychee/blob/main/tests/LIFECYCLE_ACCEPTANCE.md) 继续适用。
 
 ## Provider 接收
 

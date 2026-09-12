@@ -1,7 +1,7 @@
 LycheeInternal={Builtin={}}
 local combat=false
 function InCombatLockdown() return combat end
-dofile("package/Lychee/Builtin/Ellesmere/Adapter.lua")
+dofile("addon/Lychee/Builtin/Ellesmere/Adapter.lua")
 local A=LycheeInternal.Builtin.EllesmereAdapter
 assert(not A.Get() and not A.Ready())
 local calls=0

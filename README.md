@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="package/Lychee/Media/lychee-logo.png" width="88" alt="荔枝标识">
+<img src="addon/Lychee/Media/lychee-logo.png" width="88" alt="荔枝标识">
 
 # 荔枝启动器
 
@@ -10,12 +10,12 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](package/Lychee/Lychee.toc)
-[![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](package/Lychee)
+[![版本](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r6-536b85?style=flat-square)](docs/SDK.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r7-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
 [![许可](https://img.shields.io/badge/license-非商业%20·%20署名-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -101,7 +101,7 @@
 ## 安装
 
 1. [下载仓库 ZIP](https://github.com/Follen/Lychee/archive/refs/heads/main.zip)，解压。
-2. 把里面的 **`package/Lychee` 整个文件夹**复制到你所用客户端的 `Interface/AddOns/`。
+2. 把里面的 **`addon/Lychee` 整个文件夹**复制到你所用客户端的 `Interface/AddOns/`。
 3. 重启游戏，在插件列表启用 **荔枝启动器**，按 <kbd>Alt</kbd> + <kbd>Space</kbd>。
 
 最终目录应是这样：
@@ -147,7 +147,7 @@ Interface/
 
 ² 纹章、宏伟宝库、天赋方案、首领指南、队伍钥匙，以及 Ellesmere UI / Exwind 集成。
 
-以上为当前声明的适配范围，**不代表所有客户端都已完成实机验证**；具体入口也会检查当前客户端是否提供相应 API。版本基线见[开发文档](docs/DEVELOPMENT.md)。
+以上为当前声明的适配范围，**不代表所有客户端都已完成实机验证**；具体入口也会检查当前客户端是否提供相应 API。版本基线见[开发文档](docs/guides/DEVELOPMENT.md)。
 
 界面支持 **简体中文、English**，跟随游戏语言；繁体中文客户端暂用简体文案。物品、技能等游戏内容使用客户端本身的名称。
 
@@ -157,14 +157,14 @@ Interface/
 
 一个 Provider 提供内容和动作，荔枝负责搜索、排序和展示。你可以声明支持的客户端、注册自己的中英文文案，并为不同客户端提供不同实现。
 
-**[从 SDK 接入开始 →](docs/SDK.md)** · [协议参考](docs/PROTOCOLS.md) · [示例与类型定义](lychee-sdk/README.md)
+**[从 SDK 接入开始 →](lychee-sdk/docs/GETTING_STARTED.md)** · [协议参考](lychee-sdk/docs/PROTOCOLS.md) · [示例与类型定义](lychee-sdk/README.md)
 
 <details>
 <summary><strong>维护与验证</strong></summary>
 
-- [项目结构](docs/PROJECT_STRUCTURE.md)：运行时、SDK、工具和文档各放在哪里。
+- [项目结构](docs/guides/PROJECT_STRUCTURE.md)：运行时、SDK、工具和文档各放在哪里。
 - [架构](docs/ARCHITECTURE.md)：搜索与 Provider 的职责边界。
-- [开发与验证](docs/DEVELOPMENT.md)：环境、检查和客户端验收。
+- [开发与验证](docs/guides/DEVELOPMENT.md)：环境、检查和客户端验收。
 - [设计规范](DESIGN.md) · [性能约定](PERFORMANCE.md)。
 
 在仓库根目录运行 `pwsh -File tests/check_contract.ps1`。需要 Lua 5.1、Python 和 ripgrep；离线测试不能替代游戏内的战斗、安全动作和视觉验证。

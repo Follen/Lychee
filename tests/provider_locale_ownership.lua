@@ -1,6 +1,6 @@
 LycheeInternal={Locale={code="enUS"},Builtin={}}
 local I=LycheeInternal
-local root="package/Lychee/"
+local root="addon/Lychee/"
 dofile(root.."Builtin/Definitions.lua")
 dofile(root.."Builtin/Shared/Support.lua")
 dofile(root.."Core/ProviderLocales.lua")

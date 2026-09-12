@@ -25,7 +25,7 @@ class DeliveryContractTests(unittest.TestCase):
         assert self.root.parent == Path(tempfile.gettempdir()).resolve()
         self.addCleanup(self.temporary.cleanup)
         shutil.copytree(ROOT / "lychee-sdk", self.root / "lychee-sdk")
-        for name in ("tools/sdk_contract.json", "package/Lychee/Bootstrap.lua"):
+        for name in ("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "PERFORMANCE.md"):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
@@ -43,8 +43,12 @@ class DeliveryContractTests(unittest.TestCase):
     def test_repository_matches_contract(self):
         self.assertEqual(builder.run(ROOT), [])
 
+    def test_generated_performance_drift(self):
+        self.change("lychee-sdk/docs/PERFORMANCE.md", "性能硬门禁", "错误副本")
+        self.reject("PERFORMANCE.md")
+
     def test_host_only_drift(self):
-        self.change("package/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
+        self.change("addon/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
         self.reject("Bootstrap.lua")
 
     def test_types_only_drift(self):
@@ -68,7 +72,7 @@ class DeliveryContractTests(unittest.TestCase):
         self.reject("LycheeAPI.lua")
 
     def test_missing_required_docs_and_example(self):
-        for name in ("MANAGED_RESOURCES.md", "examples/ManagedProvider.lua"):
+        for name in ("docs/MANAGED_RESOURCES.md", "examples/ManagedProvider.lua"):
             (self.root / "lychee-sdk" / name).unlink()
             self.reject(name)
 
@@ -89,8 +93,8 @@ class DeliveryContractTests(unittest.TestCase):
             builder.run(self.root)
 
     def test_write_repairs_declarations_without_changing_other_host_code(self):
-        host = self.root / "package/Lychee/Bootstrap.lua"
-        self.change("package/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
+        host = self.root / "addon/Lychee/Bootstrap.lua"
+        self.change("addon/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
         host.write_text(host.read_text(encoding="utf-8") + "\n-- preserved fixture marker\n", encoding="utf-8")
         self.assertEqual(builder.run(self.root, write=True), [])
         self.assertEqual(builder.run(self.root), [])

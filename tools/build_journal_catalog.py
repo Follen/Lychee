@@ -26,7 +26,7 @@ for row in sorted(valid, key=lambda row: (row["JournalInstanceID"], row["OrderIn
 lines.extend(["    },", "}", ""])
 parser = argparse.ArgumentParser()
 parser.add_argument("--check", action="store_true")
-output = ROOT / "package/Lychee/Builtin/Bosses/JournalCatalog.lua"
+output = ROOT / "addon/Lychee/Builtin/Bosses/JournalCatalog.lua"
 rendered = "\n".join(lines)
 if parser.parse_args().check:
     if output.read_text(encoding="utf-8") != rendered:

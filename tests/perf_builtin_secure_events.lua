@@ -1,5 +1,5 @@
 local baseline=arg and arg[1]=='--baseline'
-local root=os.getenv('LYCHEE_PERF_SOURCE') or 'package/Lychee'
+local root=os.getenv('LYCHEE_PERF_SOURCE') or 'addon/Lychee'
 local combat, frames=false,{}
 function InCombatLockdown() return combat end
 UIParent={}

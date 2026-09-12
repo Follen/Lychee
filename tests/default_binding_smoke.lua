@@ -33,7 +33,7 @@ local function runCase(existingKey, existingAction)
         }
     end
 
-    dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
+    dofile("addon/Lychee/Bootstrap.lua"); dofile("addon/Lychee/Core/CharacterStore.lua")
     _G.LycheeInternal.OnLogin()
 
     return setCalls, saveCalls

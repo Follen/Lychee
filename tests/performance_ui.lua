@@ -1,6 +1,6 @@
 -- Offline UI allocation/identity regression. Optional argument is an addon root
 -- for measuring an unchanged baseline; --check enforces the new budget.
-local root, check = "package/Lychee/", false
+local root, check = "addon/Lychee/", false
 for _, value in ipairs(arg or {}) do
     if value == "--check" then check = true else root = value:gsub("[/\\]$", "") .. "/" end
 end

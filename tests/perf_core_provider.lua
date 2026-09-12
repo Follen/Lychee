@@ -4,7 +4,7 @@ function InCombatLockdown() return false end
 UIParent={}
 function CreateFrame() return {RegisterEvent=function() end,SetScript=function() end,Hide=function() end,Show=function() end} end
 C_Timer={NewTimer=function(_,callback) return {callback=callback,Cancel=function(self) self.cancelled=true end} end}
-local root=os.getenv('LYCHEE_PERF_ROOT') or 'package/Lychee/'
+local root=os.getenv('LYCHEE_PERF_ROOT') or 'addon/Lychee/'
 local coreRoot=os.getenv('LYCHEE_PERF_CORE_ROOT') or root
 dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"}, {root=root,load=function(path) dofile((path:match("^Core/") and coreRoot or root)..path) end})
 local I=LycheeInternal

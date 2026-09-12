@@ -1,9 +1,9 @@
 -- Independent lexical oracle: no production scorer is used to derive expectations.
 function GetLocale() return "enUS" end
 LycheeInternal={Search={}};Lychee={UI={Theme={MatchColorCode="|cffabcdef"}}}
-local base=os.getenv("LYCHEE_QUALITY_BASE") or "package/Lychee/"
+local base=os.getenv("LYCHEE_QUALITY_BASE") or "addon/Lychee/"
 dofile(base.."Search/Normalizer.lua");dofile(base.."Search/StaticIndex.lua")
-dofile("package/Lychee/UI/TextHighlight.lua")
+dofile("addon/Lychee/UI/TextHighlight.lua")
 local N,Index=LycheeInternal.Search.Normalizer,LycheeInternal.Search.StaticIndex
 local cases={
  {"rl","heirlooms",false},{"rl","rl",true},{"rl","open rltools",true},

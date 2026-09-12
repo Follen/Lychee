@@ -1,6 +1,6 @@
 -- Native animation boundary simulator: engine interpolation is not a game FPS test.
 Lychee={UI={}};LycheeCharacterDB={palette={}}
-LycheeInternal={};dofile("package/Lychee/Core/CharacterStore.lua")
+LycheeInternal={};dofile("addon/Lychee/Core/CharacterStore.lua")
 local frames,groups,combat=0,0,false
 function InCombatLockdown() return combat end
 local methods={}
@@ -40,8 +40,8 @@ function methods:CreateAnimationGroup()
     end
     return g
 end
-dofile("package/Lychee/UI/Motion.lua")
-dofile("package/Lychee/UI/Presence.lua")
+dofile("addon/Lychee/UI/Motion.lua")
+dofile("addon/Lychee/UI/Presence.lua")
 local M=Lychee.UI.Motion
 assert(frames==0 and groups==0,"cold motion has zero engine objects")
 local knob,parent=region(),region()
@@ -133,12 +133,12 @@ print(string.format("UI motion PASS frames=%d groups=%d alpha2000_KiB=%.2f cpu_m
 LycheeInternal={Search={}}
 Lychee.UI.Theme={Metrics={rowHeight=46}}
 Lychee.UI.ResultList={HideTooltip=function() end}
-dofile("package/Lychee/Search/Normalizer.lua")
+dofile("addon/Lychee/Search/Normalizer.lua")
 local createFrameForMotion=CreateFrame
 CreateFrame=nil
-dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
+dofile("addon/Lychee/Bootstrap.lua"); dofile("addon/Lychee/Core/CharacterStore.lua")
 CreateFrame=createFrameForMotion
-dofile("package/Lychee/UI/Palette.lua")
+dofile("addon/Lychee/UI/Palette.lua")
 function methods:RegisterEvent() end
 function methods:UnregisterEvent() end
 local input={text="key"}
@@ -336,9 +336,9 @@ function methods:SetAllPoints() end
 function methods:SetTexture() end
 function methods:SetColorTexture() end
 function methods:SetVertexColor() end
-dofile("package/Lychee/UI/Theme.lua")
-dofile("package/Lychee/UI/Runtime.lua")
-dofile("package/Lychee/UI/Components.lua")
+dofile("addon/Lychee/UI/Theme.lua")
+dofile("addon/Lychee/UI/Runtime.lua")
+dofile("addon/Lychee/UI/Components.lua")
 local toggle=Lychee.UI.Components:CreateToggle(parent)
 toggle:SetChecked(false,true)
 assert(toggle.bg:GetAlpha()==0 and toggle.knob:GetAlpha()==1 and toggle.knob.x==2)

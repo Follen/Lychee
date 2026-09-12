@@ -2,7 +2,7 @@
 -- the header while its parent was stationary. Check actual local geometry,
 -- not the old substitute's assumed native transform composition.
 Lychee={UI={}};LycheeCharacterDB={palette={}}
-LycheeInternal={};dofile("package/Lychee/Core/CharacterStore.lua")
+LycheeInternal={};dofile("addon/Lychee/Core/CharacterStore.lua")
 local combat,now,frames,setters=false,0,0,0
 function InCombatLockdown() return combat end
 function GetTimePreciseSec() return now end
@@ -32,7 +32,7 @@ end
 local function center()
     return icon.x+(icon.point=="LEFT" and icon.width/2 or 0),icon.y
 end
-dofile("package/Lychee/UI/Motion.lua")
+dofile("addon/Lychee/UI/Motion.lua")
 local M=Lychee.UI.Motion
 M.StopPresence=noop
 assert(frames==0)

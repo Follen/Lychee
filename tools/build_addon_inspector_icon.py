@@ -6,7 +6,7 @@ import cairosvg
 from PIL import Image, ImageDraw
 root = Path(__file__).resolve().parent.parent
 source = root / 'assets/provider-icons/addon-inspector.svg'
-target = root / 'package/Lychee/Media/MenuIcons/addon-inspector.tga'
+target = root / 'addon/Lychee/Media/MenuIcons/addon-inspector.tga'
 data = cairosvg.svg2png(url=str(source), output_width=256, output_height=256)
 icon = Image.open(io.BytesIO(data)).convert('RGBA').resize((64,64), Image.Resampling.LANCZOS)
 icon.save(target)

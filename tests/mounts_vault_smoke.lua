@@ -41,7 +41,7 @@ local journal={
     end,
 }
 C_MountJournal=journal
-local root="package/Lychee/"
+local root="addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Builtin/Shared/InterfaceActions.lua", "Builtin/Mounts/Provider.lua", "Builtin/GreatVault/Provider.lua", "Builtin/Init.lua"})
 local I, M = LycheeInternal, LycheeInternal.Builtin.Mounts
 local function find(text, provider)

@@ -34,8 +34,8 @@ function theme:SetFont(frame) frame:SetFont() end
 function theme:CreateRoundedSurface() return {SetColor=function() end} end
 function theme:CreateSurface() end
 function theme:ApplySurface() end
-dofile("package/Lychee/UI/Components.lua")
-dofile("package/Lychee/UI/Runtime.lua")
+dofile("addon/Lychee/UI/Components.lua")
+dofile("addon/Lychee/UI/Runtime.lua")
 local UI=Lychee.UI
 local parent=CreateFrame("Frame")
 local activated,edited=0,0
@@ -150,7 +150,7 @@ controlledInput:Get("field"):SetText("user typed")
 assert(controlledInput:Update(controlledProps));assert(controlledInput:Get("field"):GetText()=="owned","same controlled prop corrects native user edits")
 -- Use the actual cancellation implementation; only native AnimationGroup is a
 -- stand-in. Stopping it is allowed here, setters still assert outside combat.
-dofile("package/Lychee/UI/Motion.lua")
+dofile("addon/Lychee/UI/Motion.lua")
 local stopping=0
 local animView=assert(UI:Create(parent,{type="Button",key="button",props={text="Animated"}}))
 assert(animView:Update({}))

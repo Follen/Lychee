@@ -15,9 +15,9 @@ local L=setmetatable({resources={}},{__index=function(_,key) return key end})
 LycheeInternal={Search={},Builtin={Support={Scope=function() return {products={"retail"}} end}},
     ProviderLocales={Builtin=function() return L end}}
 LycheeDB={}
-dofile("package/Lychee/Search/Normalizer.lua")
-dofile("package/Lychee/Core/Boundary.lua")
-dofile("package/Lychee/Core/Resources.lua")
+dofile("addon/Lychee/Search/Normalizer.lua")
+dofile("addon/Lychee/Core/Boundary.lua")
+dofile("addon/Lychee/Core/Resources.lua")
 function InCombatLockdown() return false end
 function debugprofilestop() return 0 end
 function hooksecurefunc(owner,key,callback)
@@ -39,9 +39,9 @@ EllesmereUI={_modules={},_deferredLoaded=true,_RegisterSearchEntry=function() en
         write("ACTION\t",folder,"\t",page,"\t",section or "","\t",label or "","\n")
         if select then select() end
     end}
-local adapter=io.open("package/Lychee/Builtin/Ellesmere/Adapter.lua","r")
-if adapter then adapter:close();dofile("package/Lychee/Builtin/Ellesmere/Adapter.lua") end
-dofile(arg[1] or "package/Lychee/Builtin/Ellesmere/Provider.lua")
+local adapter=io.open("addon/Lychee/Builtin/Ellesmere/Adapter.lua","r")
+if adapter then adapter:close();dofile("addon/Lychee/Builtin/Ellesmere/Adapter.lua") end
+dofile(arg[1] or "addon/Lychee/Builtin/Ellesmere/Provider.lua")
 local M=LycheeInternal.Builtin.Ellesmere
 M:Init();local disable=definition.onEnable()
 for m=1,8 do

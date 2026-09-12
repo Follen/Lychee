@@ -1,9 +1,11 @@
 # 可复用视图与生命周期
 
+性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+
 当前 SDK 为 API 2 / revision 7，UI Runtime 仍为 1。新增公共资源生命周期、角色设置和有界缓存，见 [托管资源协议](MANAGED_RESOURCES.md)；旧 revision 1–6 的 Provider 保持兼容。
 
 适用 Provider API 2；本次补强不新增 revision，不改变旧 Provider 的正常回调顺序。
-可执行示例：[ThirdPartyFixture](examples/ThirdPartyFixture/ThirdPartyFixture.lua)。
+可执行示例：[ThirdPartyFixture](../examples/ThirdPartyFixture/ThirdPartyFixture.lua)。
 
 ## 所有权与调用顺序
 

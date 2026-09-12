@@ -10,7 +10,7 @@ local profiles={
 }
 function M.Load(profile,extra,options)
     options=options or {}
-    local root=options.root or "package/Lychee/"
+    local root=options.root or "addon/Lychee/"
     local selected={}
     if profile then for _,path in ipairs(assert(profiles[profile],"Unknown test profile")) do selected[path]=true end end
     for _,path in ipairs(extra or {}) do selected[path]=true end

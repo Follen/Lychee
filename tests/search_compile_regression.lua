@@ -3,9 +3,9 @@ local locale = "zhCN"
 function GetLocale() return locale end
 function GetBuildInfo() return "12.1.0", "69587", "today", 120100 end
 LycheeInternal={Search={}}
-dofile("package/Lychee/Search/RuntimeIdentity.lua")
-dofile("package/Lychee/Search/Normalizer.lua")
-dofile("package/Lychee/Search/StaticIndex.lua")
+dofile("addon/Lychee/Search/RuntimeIdentity.lua")
+dofile("addon/Lychee/Search/Normalizer.lua")
+dofile("addon/Lychee/Search/StaticIndex.lua")
 local I=LycheeInternal
 local N,R,Index=I.Search.Normalizer,I.Search.RuntimeIdentity,I.Search.StaticIndex
 local values={"普通文本 mixed words", "", false, 42,

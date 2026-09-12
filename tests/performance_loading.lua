@@ -1,6 +1,6 @@
 -- Measures TOC execution separately from login, provider activation and UI creation.
 local product=arg[1] or "Mainline"
-local runtimeRoot=arg[2] or "package/Lychee"
+local runtimeRoot=arg[2] or "addon/Lychee"
 local measureOnly=arg[3]=="--measure"
 local frames,events=0,0
 local methods={}

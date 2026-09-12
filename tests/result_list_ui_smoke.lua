@@ -98,13 +98,13 @@ GameTooltip = tooltip
 
 local frameFactory=CreateFrame
 CreateFrame=nil
-dofile("package/Lychee/Bootstrap.lua"); dofile("package/Lychee/Core/CharacterStore.lua")
+dofile("addon/Lychee/Bootstrap.lua"); dofile("addon/Lychee/Core/CharacterStore.lua")
 CreateFrame=frameFactory
-dofile("package/Lychee/UI/Theme.lua")
-dofile("package/Lychee/UI/Runtime.lua")
-dofile("package/Lychee/UI/Components.lua")
-dofile("package/Lychee/Core/InteractionBinding.lua")
-dofile("package/Lychee/UI/ResultList.lua")
+dofile("addon/Lychee/UI/Theme.lua")
+dofile("addon/Lychee/UI/Runtime.lua")
+dofile("addon/Lychee/UI/Components.lua")
+dofile("addon/Lychee/Core/InteractionBinding.lua")
+dofile("addon/Lychee/UI/ResultList.lua")
 
 local activatedRow, activatedAction, draggedRow
 local controller = {
@@ -327,8 +327,8 @@ end
 assert(#created==createdBeforeTypes, "type labels reuse existing rows and regions")
 list:Clear()
 
-dofile("package/Lychee/UI/Runtime.lua")
-dofile("package/Lychee/UI/Components.lua")
+dofile("addon/Lychee/UI/Runtime.lua")
+dofile("addon/Lychee/UI/Components.lua")
 local menuOwner = {}
 Lychee.UI.Components:StyleActionMenuOwner(menuOwner)
 local menuFrame = object("Frame")

@@ -26,7 +26,7 @@ C_SpellBook = {
         if slot == 2 then return { spellID = 393256, name = "利爪防御者之路", iconID = 4578416, isPassive = false, isOffSpec = false } end
     end,
 }
-local root = "package/Lychee/"
+local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Builtin/PlayerSpells/Aliases.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua"})
 assert(_G.Lychee and _G.Lychee:Supports(2, 1))
 assert(_G.LycheeInternal.Builtin and _G.LycheeInternal.Builtin.Init)

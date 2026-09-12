@@ -10,7 +10,7 @@ encounters = json.loads((data / "2026-09-10-journal-encounters.json").read_text(
 owners = {row["ID"]: row for row in instances if row.get("Name_lang")}
 expected = sorted((row for row in encounters if row.get("Name_lang") and row["JournalInstanceID"] in owners),
                   key=lambda row: (row["JournalInstanceID"], row["OrderIndex"], row["ID"]))
-script = '''LycheeInternal={Builtin={}}; dofile("package/Lychee/Builtin/Bosses/JournalCatalog.lua")
+script = '''LycheeInternal={Builtin={}}; dofile("addon/Lychee/Builtin/Bosses/JournalCatalog.lua")
 local c=LycheeInternal.Builtin.JournalCatalog; assert(#c.encounters==c.encounterCount*3)
 for i=1,#c.encounters,3 do
  local id,owner,name=c.encounters[i],c.encounters[i+1],c.encounters[i+2]

@@ -6,7 +6,7 @@ function CreateFrame()
 end
 function geterrorhandler() return function() end end
 local measureOnly=arg[2]=="--measure"
-dofile(arg[1] or "package/Lychee/UI/ViewHost.lua")
+dofile(arg[1] or "addon/Lychee/UI/ViewHost.lua")
 local host=Lychee.UI.ViewHost:Create({})
 local log={}
 local panel={Mount=function(self,context,state) self.context=context;self.state=state end,

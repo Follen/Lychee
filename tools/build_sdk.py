@@ -6,6 +6,20 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 import sys
+from urllib.parse import quote
+
+
+def performance_document(root: Path) -> str:
+    """One authoritative policy; standalone SDK links point to the source repository."""
+    text = (root / "PERFORMANCE.md").read_text(encoding="utf-8")
+    def link(match):
+        target = match[1]
+        if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target) or target.startswith("#"):
+            return match[0]
+        path, separator, fragment = target.partition("#")
+        return "](https://github.com/Follen/Lychee/blob/main/" + quote(path, safe="/") + (separator + fragment if separator else "") + ")"
+    text = re.sub(r"\]\(([^\s)]+)\)", link, text)
+    return "<!-- Generated from root PERFORMANCE.md by tools/build_sdk.py; do not edit. -->\n\n" + text
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -46,7 +60,7 @@ def replace_one(text: str, pattern: str, value: str, path: str) -> str:
 
 def expected_files(root: Path, contract: dict) -> dict[str, str]:
     version, revision, floor = (contract[k] for k in ("apiVersion", "apiRevision", "helperMinimumRevision"))
-    host_path = "package/Lychee/Bootstrap.lua"
+    host_path = "addon/Lychee/Bootstrap.lua"
     host = (root / host_path).read_text(encoding="utf-8")
     host = replace_one(host, r"^I\.VERSION = \{ api = \d+, revision = \d+ \}$",
                        f"I.VERSION = {{ api = {version}, revision = {revision} }}", host_path)
@@ -74,7 +88,8 @@ def expected_files(root: Path, contract: dict) -> dict[str, str]:
                 "hostAddon: Lychee\nfacade: _G.Lychee\n"
                 f"apiVersion: {version}\napiRevision: {revision}\nhelperMinimumRevision: {floor}\ncontents:\n")
     manifest += "".join(f"  - {name}\n" for name in contract["contents"])
-    return {host_path: host, types_path: types, helper_path: helper, "lychee-sdk/manifest.yaml": manifest}
+    return {host_path: host, types_path: types, helper_path: helper, "lychee-sdk/manifest.yaml": manifest,
+            "lychee-sdk/docs/PERFORMANCE.md": performance_document(root)}
 
 
 def delivery_errors(root: Path, contract: dict) -> list[str]:

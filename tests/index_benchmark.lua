@@ -4,8 +4,8 @@ function GetLocale() return "enUS" end
 function debugprofilestop() return os.clock() * 1000 end
 LycheeInternal = { Search={} }
 LycheeDB = {}
-dofile("package/Lychee/Search/Normalizer.lua")
-dofile(arg[1] or "package/Lychee/Search/StaticIndex.lua")
+dofile("addon/Lychee/Search/Normalizer.lua")
+dofile(arg[1] or "addon/Lychee/Search/StaticIndex.lua")
 local index=LycheeInternal.Search.StaticIndex
 local delta=arg[2]=="delta"
 local count, iterations=1000,delta and 100 or 10

@@ -1,8 +1,8 @@
 local function load(locale)
     LycheeInternal={Locale={code=locale}}
-    dofile("package/Lychee/Builtin/Definitions.lua")
-    dofile("package/Lychee/Builtin/Shared/Support.lua")
-    dofile("package/Lychee/Core/ProviderLocales.lua")
+    dofile("addon/Lychee/Builtin/Definitions.lua")
+    dofile("addon/Lychee/Builtin/Shared/Support.lua")
+    dofile("addon/Lychee/Core/ProviderLocales.lua")
     return LycheeInternal.ProviderLocales
 end
 local resources={enUS={name="Launcher",count="%d items: %s (%%)",unicode="中文"},zhCN={name="启动器",count="%d 个：%s (%%)"},zhTW={name="啟動器"},enGB={name="British"}}

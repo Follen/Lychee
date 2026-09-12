@@ -14,7 +14,7 @@ C_Timer = { NewTimer = function(seconds, callback)
     timers[#timers+1] = timer
     return timer
 end }
-local root = "package/Lychee/"
+local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua", "Core/ResultActionExecutor.lua"})
 local I, SDK = LycheeInternal, Lychee
 assert(SDK:Supports(2,1) and not SDK:Supports(1,1))

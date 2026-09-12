@@ -5,7 +5,7 @@ local baselineRoot=os.getenv("LYCHEE_PERF_BASELINE")
 if baselineRoot and baselineRoot~="" then
     local nativeDofile=dofile
     dofile=function(file)
-        if file:sub(1,15)=="package/Lychee/" then file=baselineRoot.."/"..file end
+        if file:sub(1,15)=="addon/Lychee/" then file=baselineRoot.."/"..file end
         return nativeDofile(file)
     end
 end
@@ -24,8 +24,8 @@ C_MountJournal={
     GetMountIDs=function() local ids={};for n=1,1500 do ids[n]=n end;return ids end,
     GetMountInfoByID=function(n) return mountNames[(n-1)%#mountNames+1]..n,100000+n,123456,false,true,1,false,false,nil,false,true,n end,
 }
-dofile("package/Lychee/Builtin/Shared/CatalogLedger.lua")
-dofile("package/Lychee/Builtin/Mounts/Provider.lua")
+dofile("addon/Lychee/Builtin/Shared/CatalogLedger.lua")
+dofile("addon/Lychee/Builtin/Mounts/Provider.lua")
 assert(I.Builtin.Mounts:Init())
 if arg[1]=="--stress" then
     local spells={}

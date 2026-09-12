@@ -2,7 +2,7 @@ LycheeInternal={}
 LycheeDB={schemaVersion=2,palette={reduceMotion=true,recent={{entryID="old"}},providerSearch={{id="builtin.exwind",global=true}}},
     disabledProviders={["builtin.exwind"]=true,["builtin.ellesmere"]=true}}
 LycheeCharacterDB={pinned={{entryID="owned-pin"}}}
-dofile("package/Lychee/Core/CharacterStore.lua")
+dofile("addon/Lychee/Core/CharacterStore.lua")
 local S=LycheeInternal.CharacterStore
 S:Initialize()
 local mage=LycheeCharacterDB
@@ -38,11 +38,11 @@ assert(allocated<8,"warm character reads must not clone SV or allocate settings 
 -- Detailed game business fixtures separately cover activation/side effects.
 local function file(path) local f=assert(io.open(path));local s=f:read("*a");f:close();return s end
 for _,name in ipairs({"Shared/CatalogProvider","Ellesmere/Provider","Exwind/Provider","AddonInspector/Provider"}) do
-    local source=file("package/Lychee/Builtin/"..name..".lua")
+    local source=file("addon/Lychee/Builtin/"..name..".lua")
     assert(not source:find("optionalProviderDefaults",1,true),"built-in must not reintroduce automatic disabled defaults: "..name)
 end
 for _,path in ipairs({"Core/ExtensionRegistry", "Core/UserPreferences", "UI/Motion", "UI/Palette", "Search/Personalization", "Search/ProviderPolicy"}) do
-    local source=file("package/Lychee/"..path..".lua")
+    local source=file("addon/Lychee/"..path..".lua")
     assert(not source:find("LycheeDB",1,true),"settings owner must be CharacterStore: "..path)
 end
 print(string.format("Character settings PASS isolation/restored-SV/one-time-transfer/default-on/explicit-opt-out; reads10000 %.2f KiB",allocated))

@@ -9,14 +9,14 @@ apiRevision: 7
 helperMinimumRevision: 6
 contents:
   - README.md
-  - DELIVERY.md
-  - CLIENT_VARIANTS.md
-  - ADAPTER_COMPATIBILITY.md
-  - RUNTIME_LIFECYCLE.md
-  - VIEW_LIFECYCLE.md
-  - UI_LIBRARY.md
-  - MOTION.md
-  - MANAGED_RESOURCES.md
+  - docs/DELIVERY.md
+  - docs/CLIENT_VARIANTS.md
+  - docs/ADAPTER_COMPATIBILITY.md
+  - docs/RUNTIME_LIFECYCLE.md
+  - docs/VIEW_LIFECYCLE.md
+  - docs/UI_LIBRARY.md
+  - docs/MOTION.md
+  - docs/MANAGED_RESOURCES.md
   - LycheeAPI.lua
   - ApiStubs.lua
   - examples/ThirdPartyFixture/ThirdPartyFixture.toc
@@ -29,3 +29,7 @@ contents:
   - examples/ManagedProvider.lua
   - examples/ComponentPanel/ComponentPanel.toc
   - examples/ComponentPanel/ComponentPanel.lua
+  - docs/GETTING_STARTED.md
+  - docs/PROTOCOLS.md
+  - docs/COMPATIBILITY.md
+  - docs/PERFORMANCE.md

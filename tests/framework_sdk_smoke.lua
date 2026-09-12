@@ -8,7 +8,7 @@ function InCombatLockdown() return false end
 function CreateFrame()
     return { RegisterEvent = function() end, SetScript = function() end, Hide = function() end, Show = function() end }
 end
-local root = "package/Lychee/"
+local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"})
 local I, SDK = _G.LycheeInternal, _G.Lychee
 local readyCalls = 0

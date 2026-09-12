@@ -46,26 +46,26 @@ function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Exclude the shared bootstrap frame from this isolated feature cost fixture.
 local featureCreateFrame=CreateFrame
 CreateFrame=nil
-dofile("package/Lychee/".."Bootstrap.lua");dofile("package/Lychee/Core/CharacterStore.lua")
+dofile("addon/Lychee/".."Bootstrap.lua");dofile("addon/Lychee/Core/CharacterStore.lua")
 CreateFrame=featureCreateFrame
-dofile("package/Lychee/".."Builtin/Definitions.lua")
-dofile("package/Lychee/".."Builtin/Shared/Support.lua")
-dofile("package/Lychee/".."Core/ProviderLocales.lua")
-dofile("package/Lychee/".."Builtin/Achievements/Locales.lua")
-dofile("package/Lychee/".."Builtin/AddonInspector/Locales.lua")
-dofile("package/Lychee/".."Builtin/Bags/Locales.lua")
-dofile("package/Lychee/".."Builtin/BlizzardSettings/Locales.lua")
-dofile("package/Lychee/".."Builtin/Bosses/Locales.lua")
-dofile("package/Lychee/".."Builtin/Crests/Locales.lua")
-dofile("package/Lychee/".."Builtin/EquipmentSets/Locales.lua")
-dofile("package/Lychee/".."Builtin/GameMenus/Locales.lua")
-dofile("package/Lychee/".."Builtin/GreatVault/Locales.lua")
-dofile("package/Lychee/".."Builtin/Keystones/Locales.lua")
-dofile("package/Lychee/".."Builtin/Mounts/Locales.lua")
-dofile("package/Lychee/".."Builtin/PlayerSpells/Locales.lua")
-dofile("package/Lychee/".."Builtin/TalentLoadouts/Locales.lua")
-dofile("package/Lychee/".."Search/RuntimeIdentity.lua")
-dofile('package/Lychee/Builtin/Bags/Provider.lua')
+dofile("addon/Lychee/".."Builtin/Definitions.lua")
+dofile("addon/Lychee/".."Builtin/Shared/Support.lua")
+dofile("addon/Lychee/".."Core/ProviderLocales.lua")
+dofile("addon/Lychee/".."Builtin/Achievements/Locales.lua")
+dofile("addon/Lychee/".."Builtin/AddonInspector/Locales.lua")
+dofile("addon/Lychee/".."Builtin/Bags/Locales.lua")
+dofile("addon/Lychee/".."Builtin/BlizzardSettings/Locales.lua")
+dofile("addon/Lychee/".."Builtin/Bosses/Locales.lua")
+dofile("addon/Lychee/".."Builtin/Crests/Locales.lua")
+dofile("addon/Lychee/".."Builtin/EquipmentSets/Locales.lua")
+dofile("addon/Lychee/".."Builtin/GameMenus/Locales.lua")
+dofile("addon/Lychee/".."Builtin/GreatVault/Locales.lua")
+dofile("addon/Lychee/".."Builtin/Keystones/Locales.lua")
+dofile("addon/Lychee/".."Builtin/Mounts/Locales.lua")
+dofile("addon/Lychee/".."Builtin/PlayerSpells/Locales.lua")
+dofile("addon/Lychee/".."Builtin/TalentLoadouts/Locales.lua")
+dofile("addon/Lychee/".."Search/RuntimeIdentity.lua")
+dofile('addon/Lychee/Builtin/Bags/Provider.lua')
 local bags=LycheeInternal.Builtin.Bags
 assert(#frames==0 and #timers==0)
 local entry={payload={itemID=123}}
@@ -125,10 +125,10 @@ local palette={ValidateRowAction=function() return valid end,Hide=noop,TouchRece
 LycheeInternal.Host={PaletteController=palette}
 C_Item={GetItemCount=function() return present and 1 or 0 end}
 function IsPlayerSpell() return true end
-dofile('package/Lychee/Secure/Descriptor.lua')
-dofile('package/Lychee/Secure/Policy.lua')
-dofile('package/Lychee/Core/InteractionBinding.lua')
-dofile('package/Lychee/Secure/SecureActionBroker.lua')
+dofile('addon/Lychee/Secure/Descriptor.lua')
+dofile('addon/Lychee/Secure/Policy.lua')
+dofile('addon/Lychee/Core/InteractionBinding.lua')
+dofile('addon/Lychee/Secure/SecureActionBroker.lua')
 local broker=LycheeInternal.Host.SecureBroker
 local token={controller=palette,row={},item={},session=1,generation=1}
 local action={kind='secure-item',itemID=123}

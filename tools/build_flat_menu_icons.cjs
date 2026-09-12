@@ -18,7 +18,7 @@ async function main() {
     }
     const xs=[0,.18,.343,.507,.67,.833,1].map(v=>Math.round(v*info.width));
     const ys=[0,.18,.347,.506,.665,.83,1].map(v=>Math.round(v*info.height));
-    const out=path.join(root,'package/Lychee/Media/MenuIcons');
+    const out=path.join(root,'addon/Lychee/Media/MenuIcons');
     const manifest=[],parts=[];
     for(let n=0;n<ids.length;n++) {
         const col=n%6,row=Math.floor(n/6);

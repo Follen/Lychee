@@ -17,8 +17,8 @@ collectgarbage=function(operation,...)
 end
 local originalDofile=dofile
 dofile=function(file)
-    if arg[3] and file=="package/Lychee/Search/StaticIndex.lua" then return originalDofile(arg[3]) end
-    if arg[4] and file=="package/Lychee/Builtin/Mounts/Provider.lua" then return originalDofile(arg[4]) end
+    if arg[3] and file=="addon/Lychee/Search/StaticIndex.lua" then return originalDofile(arg[3]) end
+    if arg[4] and file=="addon/Lychee/Builtin/Mounts/Provider.lua" then return originalDofile(arg[4]) end
     return originalDofile(file)
 end
 local ok,err=pcall(dofile,path)

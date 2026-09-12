@@ -5,7 +5,7 @@ function InCombatLockdown() return false end
 function CreateFrame() return {RegisterEvent=function() end,SetScript=function() end,Hide=function() end,Show=function() end} end
 UIParent={}
 dofile("tests/support/runtime.lua").Load("provider")
-dofile("package/Lychee/Builtin/Shared/CatalogLedger.lua")
+dofile("addon/Lychee/Builtin/Shared/CatalogLedger.lua")
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local handle=assert(Lychee:RegisterProvider({id="ledger.fixture",title="Ledger",version="1",apiVersion=2,entries={}}))

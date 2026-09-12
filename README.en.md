@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="package/Lychee/Media/lychee-logo.png" width="88" alt="Lychee logo">
+<img src="addon/Lychee/Media/lychee-logo.png" width="88" alt="Lychee logo">
 
 # Lychee Launcher
 
@@ -10,12 +10,12 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](package/Lychee/Lychee.toc)
-[![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](package/Lychee)
+[![Version](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r6-536b85?style=flat-square)](docs/SDK.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r7-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
 [![License](https://img.shields.io/badge/license-noncommercial%20·%20attribution-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -101,7 +101,7 @@ The catalog comes from the installed addon's registered data. Settings that have
 ## Install
 
 1. [Download the repository ZIP](https://github.com/Follen/Lychee/archive/refs/heads/main.zip) and extract it.
-2. Copy the entire **`package/Lychee` folder** into your client's `Interface/AddOns/` directory.
+2. Copy the entire **`addon/Lychee` folder** into your client's `Interface/AddOns/` directory.
 3. Restart the game, enable **Lychee Launcher** in the addon list, and press <kbd>Alt</kbd> + <kbd>Space</kbd>.
 
 Your folder structure should look like this:
@@ -147,7 +147,7 @@ One installation includes four client load lists. Each client gets the features 
 
 ² Crests, the Great Vault, talent loadouts, boss journal entries, group keystones, and Ellesmere UI / Exwind integrations.
 
-This is the declared compatibility scope, **not a claim that every client has completed in-game testing**. Entries also check for the required client APIs. See [development documentation](docs/DEVELOPMENT.md) for version baselines.
+This is the declared compatibility scope, **not a claim that every client has completed in-game testing**. Entries also check for the required client APIs. See [development documentation](docs/guides/DEVELOPMENT.md) for version baselines.
 
 The interface supports **English and Simplified Chinese**, following the game locale. Traditional Chinese clients currently use Simplified Chinese interface text. Game content keeps the names supplied by the client.
 
@@ -157,14 +157,14 @@ The interface supports **English and Simplified Chinese**, following the game lo
 
 A Provider supplies content and actions; Lychee handles searching, ranking and display. Declare your supported clients, register your own English and Chinese text, and use different implementations where clients differ.
 
-**[Start with the SDK →](docs/SDK.md)** · [Protocol reference](docs/PROTOCOLS.md) · [Examples and type definitions](lychee-sdk/README.md)
+**[Start with the SDK →](lychee-sdk/docs/GETTING_STARTED.md)** · [Protocol reference](lychee-sdk/docs/PROTOCOLS.md) · [Examples and type definitions](lychee-sdk/README.md)
 
 <details>
 <summary><strong>Maintenance and verification</strong></summary>
 
-- [Project structure](docs/PROJECT_STRUCTURE.md): runtime, SDK, tools and documentation.
+- [Project structure](docs/guides/PROJECT_STRUCTURE.md): runtime, SDK, tools and documentation.
 - [Architecture](docs/ARCHITECTURE.md): the boundary between search and Providers.
-- [Development](docs/DEVELOPMENT.md): setup, checks and in-game validation.
+- [Development](docs/guides/DEVELOPMENT.md): setup, checks and in-game validation.
 - [Design](DESIGN.md) · [Performance requirements](PERFORMANCE.md).
 
 Run `pwsh -File tests/check_contract.ps1` at the repository root. Lua 5.1, Python and ripgrep are required. Offline tests do not replace in-game combat, protected-action or visual checks. Most developer documentation is currently in Chinese.

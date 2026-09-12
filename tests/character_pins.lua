@@ -3,7 +3,7 @@ LycheeInternal={Providers={CanRemember=function() return true end}}
 local legacy={providerID="spells",entryID="portal"}
 LycheeDB={palette={pinned={legacy},reduceMotion=true}}
 LycheeCharacterDB=nil
-dofile("package/Lychee/Core/CharacterStore.lua");dofile("package/Lychee/Core/UserPreferences.lua")
+dofile("addon/Lychee/Core/CharacterStore.lua");dofile("addon/Lychee/Core/UserPreferences.lua")
 local P=LycheeInternal.UserPreferences
 assert(#P:GetPins()==0,"new character must not inherit the account's mage portal pin")
 assert(#P:GetPins()==0,"account pins are never used")
@@ -28,7 +28,7 @@ assert(P:PinIndex(item("holy").ref)==nil)
 P:Remove(1)
 LycheeCharacterDB=paladin
 assert(P:GetPins()[1].entryID=="holy" and P:GetPins()[2].entryID=="shield")
-dofile("package/Lychee/Core/CharacterStore.lua");dofile("package/Lychee/Core/UserPreferences.lua")
+dofile("addon/Lychee/Core/CharacterStore.lua");dofile("addon/Lychee/Core/UserPreferences.lua")
 P=LycheeInternal.UserPreferences
 P:Initialize()
 assert(#P:GetPins()==2,"reload keeps this character's saved pins")
@@ -42,7 +42,7 @@ for i=1,64 do assert(P:Pin(item(tostring(i)))) end
 local ok,err=P:Pin(item("overflow"))
 assert(not ok and err=="PIN_LIMIT","64 pin budget remains enforced per character")
 for _,suffix in ipairs({"","_Mainline","_Mists","_Wrath","_TBC"}) do
-    local file=assert(io.open("package/Lychee/Lychee"..suffix..".toc","r"))
+    local file=assert(io.open("addon/Lychee/Lychee"..suffix..".toc","r"))
     local toc=file:read("*a");file:close()
     assert(toc:find("## SavedVariablesPerCharacter: LycheeCharacterDB",1,true),
         "every shipped client TOC must persist the character database")

@@ -30,7 +30,7 @@ end
 function Frame:CreateFontString() return CreateFrame() end
 function Frame:CreateTexture() return CreateFrame() end
 UIParent=CreateFrame()
-local root="package/Lychee/"
+local root="addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "Builtin/Shared/InterfaceActions.lua", "Builtin/Bosses/JournalCatalog.lua", "Builtin/Crests/Provider.lua", "Builtin/GameMenus/Provider.lua", "Builtin/Bosses/Provider.lua", "Builtin/Init.lua"})
 local I=LycheeInternal
 local frameBaseline=#frames

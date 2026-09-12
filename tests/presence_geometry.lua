@@ -1,7 +1,7 @@
 -- Geometry boundary regression derived from 20260912-103056.mp4.
 -- Models the observed per-region Scale behavior, not a full WoW renderer.
 Lychee={UI={}};LycheeCharacterDB={palette={}}
-LycheeInternal={};dofile("package/Lychee/Core/CharacterStore.lua")
+LycheeInternal={};dofile("addon/Lychee/Core/CharacterStore.lua")
 local methods={}
 local function node(parent) return setmetatable({parent=parent,points={},width=640,height=508,alpha=1,shown=true,scripts={}},{__index=methods}) end
 local function fraction(point)
@@ -61,9 +61,9 @@ end
 function CreateFrame() return node() end
 function InCombatLockdown() return false end
 UIParent=node();UIParent.fixed={0,0,1920,1080}
-dofile('package/Lychee/UI/Theme.lua')
-dofile('package/Lychee/UI/Motion.lua')
-dofile(arg[1] or 'package/Lychee/UI/Presence.lua')
+dofile('addon/Lychee/UI/Theme.lua')
+dofile('addon/Lychee/UI/Motion.lua')
+dofile(arg[1] or 'addon/Lychee/UI/Presence.lua')
 local root=node(UIParent)
 root:SetPoint('TOP',UIParent,'TOP',0,-200)
 local surface=Lychee.UI.Theme:CreateRoundedSurface(root,'background',10)

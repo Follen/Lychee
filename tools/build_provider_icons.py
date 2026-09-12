@@ -7,7 +7,7 @@ import cairosvg
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / 'package/Lychee/Media/MenuIcons'
+OUT = ROOT / 'addon/Lychee/Media/MenuIcons'
 preview = Image.new('RGB', (480, 140), '#101012')
 manifest = []
 for index, name in enumerate(('reload', 'cooldown-manager', 'keystone')):

@@ -1,5 +1,7 @@
 # SDK 版本与交付约束
 
+性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+
 SDK 开发包只提供协议、编辑器声明、可选 helper 和示例，不是第二个 Host，也不直接安装为 AddOn。
 
 当前 API 为 **2 / revision 7**。可选 `LycheeAPI.lua` 分开声明：
@@ -25,3 +27,5 @@ python tests/sdk_delivery.py
 `manifest.yaml` 自身随开发包保留，`contents` 列出其余全部文档、类型、helper 和示例，包括托管资源与 UI 生命周期示例。示例目录各自的 TOC 只用于示例插件；`ApiStubs.lua` 不得写入运行时 TOC。
 
 自动测试会分别破坏 Host、类型、helper 和交付文件，以确认门禁能识别单边修改；同时验证合法的 revision 6 默认兼容下限与显式 revision 7 要求。
+
+性能规范从项目根PERFORMANCE.md生成到本包docs/PERFORMANCE.md。维护者只编辑根文件，再执行build_sdk.py --write；手改副本会导致--check失败。SDK文档的本地链接必须在本包内闭合，外部仓库资料使用明确网页链接。发布包由仓库tools/build_release.py构建到dist/lychee-sdk.zip。

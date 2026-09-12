@@ -1,5 +1,7 @@
 # SDK revision 7：托管资源、设置与缓存
 
+性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+
 检查 `Lychee:Supports(2,7)`，Provider 声明 `minApiRevision=7`。公共普通记录、动作与现有更新协议不变。运行时只依赖 `_G.Lychee`，不得使用 `LycheeInternal`。旧 revision 1–6 的接入继续有效。
 
 ## 三种生命周期
@@ -51,4 +53,4 @@
 - 托管队列有限，取消后迟到回调不提交；页面创建到一半失败也清理已登记资源。
 - 诊断按需读取，不扫描第三方内存，不承诺能控制未登记资源或抢占第三方同步代码。游戏实测使用项目的显式诊断流程，SDK 不附带独立性能测试插件。
 
-示例：[ManagedProvider.lua](examples/ManagedProvider.lua)。测试覆盖见 [SDK 托管测试](../tests/sdk_resources.lua)、[测试装配与门禁](../tests/README.md)。
+示例：[ManagedProvider.lua](../examples/ManagedProvider.lua)。测试覆盖见 [SDK 托管测试](https://github.com/Follen/Lychee/blob/main/tests/sdk_resources.lua)、[测试装配与门禁](https://github.com/Follen/Lychee/blob/main/tests/README.md)。

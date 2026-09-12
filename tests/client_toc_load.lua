@@ -14,10 +14,10 @@ for _,client in ipairs(clients) do
         GetLocale=function() return locale end
         GetBuildInfo=function() return "fixture","70000","",client[3] end
         local loaded={}
-        for line in io.lines("package/Lychee/Lychee_"..client[1]..".toc") do
+        for line in io.lines("addon/Lychee/Lychee_"..client[1]..".toc") do
             line=line:gsub("\r$","")
             if line~="" and line:sub(1,1)~="#" then
-                dofile("package/Lychee/"..line);loaded[line]=true
+                dofile("addon/Lychee/"..line);loaded[line]=true
             end
         end
         local I=LycheeInternal

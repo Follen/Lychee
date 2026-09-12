@@ -2,7 +2,7 @@
 
 运行时低内存重构另见 [角色存储与生命周期设计](architecture/2026-09-12-runtime-lifecycle.md)。它覆盖插件、SDK、构建和验收；以下描述已实现架构；使用普通具名业务记录，不包含全量休眠或伴随包。
 
-当前契约：Provider API 2 / revision 7。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
+当前契约：Provider API 2 / revision 7。字段定义见 [PROTOCOLS.md](../lychee-sdk/docs/PROTOCOLS.md)，接入见 [SDK.md](../lychee-sdk/docs/GETTING_STARTED.md)。
 
 Provider 可声明 `searchable=false` 保留目录与引用能力，同时退出通用搜索索引；独立 query 控制触发范围。该策略由 Host 通用协议处理，查询引擎不判断具体 Provider ID。省略声明保持旧行为。
 
@@ -126,7 +126,7 @@ onEnable(handle) 可返回清理函数；禁用/注销调用一次。SDK 还提�
 
 ## Provider 内部的版本适配层
 
-Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实例可用性，后者允许同一业务在不同 product/interface/build 下采用不同数据源、事件与交互。适配器归 Provider 所有，推荐按 TOC 加载，初始化时唯一选择；共享入口仅提交一个普通 descriptor。Host 不依赖具体适配器或新增游戏业务分支。未选中分支不创建业务资源，稳定 ID／缓存版本隔离／清理遵循 [SDK 版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。
+Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实例可用性，后者允许同一业务在不同 product/interface/build 下采用不同数据源、事件与交互。适配器归 Provider 所有，推荐按 TOC 加载，初始化时唯一选择；共享入口仅提交一个普通 descriptor。Host 不依赖具体适配器或新增游戏业务分支。未选中分支不创建业务资源，稳定 ID／缓存版本隔离／清理遵循 [SDK 版本差异约定](../lychee-sdk/docs/CLIENT_VARIANTS.md)。
 
 ## 内部结构维护
 
@@ -139,17 +139,17 @@ TOC列出的Lua在加载阶段执行，并非所有代码按需加载。Provider
 
 ViewHost串行处理一次挂载会话；create每次调用，实例缓存归Provider，正常Unmount→Dispose顺序不变。
 重入挂载/更新拒绝，回调中请求关闭在回调结束后清理；归属保存在宿主字段中，不从可修改context重新推断。
-模板和完整契约见[SDK视图生命周期](../lychee-sdk/VIEW_LIFECYCLE.md)。
+模板和完整契约见[SDK视图生命周期](../lychee-sdk/docs/VIEW_LIFECYCLE.md)。
 Elles的版本敏感访问集中在Adapter，不能据此宣称与上游无耦合；详见
-[适配契约](../lychee-sdk/ADAPTER_COMPATIBILITY.md)和[本轮验证](validation/2026-09-11-loading-views-adapters.md)。
+[适配契约](../lychee-sdk/docs/ADAPTER_COMPATIBILITY.md)和[本轮验证](validation/2026-09-11-loading-views-adapters.md)。
 
-内置功能按职责存放在 `package/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](PROJECT_STRUCTURE.md)。
+内置功能按职责存放在 `addon/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](guides/PROJECT_STRUCTURE.md)。
 
 revision 6 将普通搜索 searchGlobal 与两个快捷入口词表解耦。ProviderPolicy.Configuration 把旧声明和旧用户 mode 覆盖映射为原有效能力，新用户组合配置优先；Snapshot 负责独立入口路由与冲突归属。UI 只编辑组合配置，不再暴露互斥模式。旧模式中未启用的词表不会自动激活。
 
 ## 公共资源与测试装配
 
-Resources 统一管理 Provider/query/view 三种寿命的任务、普通事件及清理回调；ProviderData 管理角色设置与作用域缓存。EUI/EX 使用 query 作用域的 Run，保留各自枚举、结果和点击逻辑。SDK 不接管第三方同步 Lua 的抢占执行。详细 [设计](architecture/2026-09-12-managed-sdk.md)、[SDK 合同](../lychee-sdk/MANAGED_RESOURCES.md)。
+Resources 统一管理 Provider/query/view 三种寿命的任务、普通事件及清理回调；ProviderData 管理角色设置与作用域缓存。EUI/EX 使用 query 作用域的 Run，保留各自枚举、结果和点击逻辑。SDK 不接管第三方同步 Lua 的抢占执行。详细 [设计](architecture/2026-09-12-managed-sdk.md)、[SDK 合同](../lychee-sdk/docs/MANAGED_RESOURCES.md)。
 
 测试公共模块加载在 tests/support/runtime.lua 收敛，实际 TOC 决定顺序；游戏 API 替身、业务断言和参考算法仍相互独立。test_assembly 验证前置依赖和失败时不执行部分加载；client_manifest/client_toc_load 独立验证真实客户端装配。
 

@@ -1,7 +1,7 @@
 -- Search-owned allocation and lifetime budgets. Same harness accepts archived sources.
 local baselineRoot = os.getenv("LYCHEE_PERF_BASELINE")
 local function loadSource(file)
-    return dofile((baselineRoot and baselineRoot ~= "" and baselineRoot .. "/" or "") .. "package/Lychee/" .. file)
+    return dofile((baselineRoot and baselineRoot ~= "" and baselineRoot .. "/" or "") .. "addon/Lychee/" .. file)
 end
 function GetLocale() return "zhCN" end
 _G.LycheeInternal = {}

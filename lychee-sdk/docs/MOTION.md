@@ -1,5 +1,7 @@
 # Motion 与窗口 Presence
 
+性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+
 Motion.lua管理普通控件Alpha/Translation和页面高度；Presence.lua管理一个互斥主窗口通道。Provider页面使用宿主窗口，不给结果行创建Presence。
 
 ## 整个层级一起运动

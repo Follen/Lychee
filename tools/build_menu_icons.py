@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/menu-icons"
-OUT = ROOT / "package/Lychee/Media/MenuIcons"
+OUT = ROOT / "addon/Lychee/Media/MenuIcons"
 DOCS = ROOT / "docs/architecture"
 SIZE, SCALE, SAFE_INSET = 64, 4, 5
 WHITE, RED, BACKGROUND = "#efeee8", "#d53c49", "#101012"
@@ -43,7 +43,7 @@ def colored_svg(icon):
 def main():
     selection = json.loads((ASSETS / "selection.json").read_text(encoding="utf-8"))
     items = selection["icons"]
-    provider = (ROOT / "package/Lychee/Builtin/GameMenus/Provider.lua").read_text(encoding="utf-8")
+    provider = (ROOT / "addon/Lychee/Builtin/GameMenus/Provider.lua").read_text(encoding="utf-8")
     menu_ids = set(re.findall(r'^\s*\{"([^"\n]+)",', provider, re.MULTILINE))
     assert len(items) == len(menu_ids) == 34
     assert {icon["id"] for icon in items} == menu_ids

@@ -13,7 +13,7 @@ C_Timer = {
     end,
 }
 
-local root = "package/Lychee/"
+local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load(nil, {"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua", "Builtin/Shared/Support.lua", "Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua"})
 
 local I = _G.LycheeInternal
