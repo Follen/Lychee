@@ -1162,16 +1162,16 @@ assert(registrations == 1, "Escape registration is not duplicated")
 local oldAnimation=palette.frame.CreateAnimationGroup
 local oldScale=palette.frame.SetScale
 palette.frame.SetScale=function(self,value) mutation(self,"SetScale");self.scale=value end
-palette.frame.CreateAnimationGroup=dofile("tests/native_animation.lua")
+palette.frame.CreateAnimationGroup=function() error("composite window must move through its parent, never per-region native transforms") end
 local motion=Lychee.UI.Motion
 local function finishPresence()
-    if motion.presence then motion.presence.group:Advance(1) end
+    if motion.presence then motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,1) end
 end
 local reduced=LycheeDB.palette.reduceMotion
 LycheeDB.palette.reduceMotion=false
 palette:Show();palette.input:ClearFocus()
 for tick=1,8 do
-    motion.presence.group:Advance(0.02)
+    motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
     assert(palette.frame.scale==palette._scale,"presence must keep the whole text and hit-test tree at its final scale")
     assert(palette.header:GetParent()==palette.frame and palette.content:GetParent()==palette.frame and palette.footer:GetParent()==palette.frame,
         "background, input and content must share one motion root without an outer clipping viewport")
@@ -1195,7 +1195,7 @@ palette.input.container.scripts.OnLeave()
 assert(palette.input._visualState==exitStyle,"hover changes during exit cannot repaint the frozen input")
 assert(not palette.input.frame.focused and not palette.input:IsEnabled() and not palette.escapeFrame:IsShown(),"exit releases input and Escape receiver immediately")
 for tick=1,8 do
-    motion.presence.group:Advance(0.02)
+    motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
     assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001 and math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"closing must not rescale the search glyphs or caret")
 end
 finishPresence()
@@ -1212,7 +1212,7 @@ assert(not palette.input.visualFrozen and palette.input:IsEnabled(),"reopening r
 _G.__combat=true
 RunPaletteCombatSnippet(palette.frame);palette.frame.scripts.OnHide(palette.frame)
 assert(not palette.escapeFrame:IsShown(),"combat exit cannot consume a later native Escape")
-assert(not palette.visible and not motion.presence and not motion.presenceDriver,"secure combat hide cancels entrance without delayed work")
+assert(not palette.visible and not motion.presence and not motion.presenceDriver.scripts.OnUpdate,"secure combat hide cancels entrance without delayed work")
 _G.__combat=false
 palette:Show();assert(palette.visible and palette.escapeFrame:IsShown(),"reopen restores Escape after combat cleanup")
 palette:Hide("animation-test");finishPresence()

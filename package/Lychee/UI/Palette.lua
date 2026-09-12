@@ -993,9 +993,9 @@ function Palette:Show()
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if self.visible then return true end
     self:Create()
-    local motion,initialScale,initialAlpha=Lychee.UI.Motion,nil,nil
+    local motion,initialPosition,initialVelocity,initialAlpha=Lychee.UI.Motion,nil,nil,nil
     if self._motionClosing and motion then
-        initialScale,initialAlpha=motion:StopPresence(false)
+        initialPosition,initialVelocity,initialAlpha=motion:StopPresence(false)
     end
     if self._motionClosing then self:FinishHide("reopen") end
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll();self.frame:SetAlpha(1) end
@@ -1013,7 +1013,7 @@ function Palette:Show()
     if I.Search.Normalizer:IsBlank(self.input:GetText()) and not self.activeFilter then self:RefreshHomeSections(true) end
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
     if self.escapeFrame then self.escapeFrame:Show() end
-    if motion then motion:Presence(self.frame,true,nil,initialScale,initialAlpha,self) end
+    if motion then motion:Presence(self.frame,true,nil,initialPosition,initialVelocity,self,initialAlpha) end
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
     -- the same input dispatch; focusing synchronously would swallow it as query text.
