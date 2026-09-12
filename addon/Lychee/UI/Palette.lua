@@ -85,12 +85,6 @@ local function cropIcon(texture)
 end
 
 local function createHomeView(parent, controller)
-    local function sizeCategory(tile)
-        local label=tile.category
-        local measured=label.GetUnboundedStringWidth and label:GetUnboundedStringWidth() or label:GetStringWidth()
-        local width=math.min(160,math.max(80,math.ceil(measured)+2))
-        if label:GetWidth()~=width then label:SetWidth(width) end
-    end
     local frame = CreateFrame("ScrollFrame", nil, parent)
     frame:SetScript("OnHide", function() Lychee.UI.ResultList:HideTooltip() end)
     frame:SetAllPoints(parent)
@@ -189,10 +183,6 @@ local function createHomeView(parent, controller)
     frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll);view:RefreshScrollRect() end)
     frame:SetScript("OnShow",function()
         view._scrollRectDirty=true;view:RefreshScrollRect()
-        -- Native text metrics can be unavailable while the root is hidden.
-        for _,tile in ipairs(view.tiles) do
-            if tile._recentLayout and tile.category:IsShown() then sizeCategory(tile) end
-        end
     end)
     if frame.SetVerticalScroll then
         frame:SetScript("OnMouseWheel", function(_, delta)
@@ -248,7 +238,7 @@ local function createHomeView(parent, controller)
         tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -5)
         tile.category = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         tile.category:SetPoint("RIGHT", tile, "RIGHT", -12, 0)
-        tile.category:SetWidth(80)
+        tile.category:SetWidth(LIST_METRICS.sourceLabelWidth)
         tile.category:SetHeight(16)
         tile.category:SetWordWrap(false)
         tile.category:SetNonSpaceWrap(false)
@@ -396,9 +386,6 @@ local function createHomeView(parent, controller)
             tile.extensionID = section.item and section.item._ext
             local title = homeLabel(section.title or section.text, "Lychee")
             setText(tile.category, homeLabel(section.meta, ""))
-            if recent then
-                sizeCategory(tile)
-            end
             tint(tile.title, color(section.enabled == false and "muted" or "text"))
             if tile._title ~= title or tile._titleLayoutDirty then
                 setText(tile.title, title)

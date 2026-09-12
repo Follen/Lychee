@@ -427,17 +427,17 @@ for _,labels in ipairs(tip.scoreLabels) do
 end
 assert(rowOne.accent:GetWidth()==2 and rowOne.accent:GetHeight()==22,"selection matches recent list")
 local measuredLabel=list.rows[1].category
-local measureFull=measuredLabel.GetStringWidth
-measuredLabel.GetUnboundedStringWidth=measureFull
-measuredLabel.GetStringWidth=function(self) return math.min(self:GetWidth(),measureFull(self)) end
-measuredLabel:SetWidth(80)
-list.rows[1]._categoryWidth=nil
+local measures=0
+measuredLabel.GetStringWidth=function() measures=measures+1;return 0 end
+measuredLabel.GetUnboundedStringWidth=measuredLabel.GetStringWidth
 list:SetItems({{id="long-kind",text="首领名称",kindTitle="荔枝大米助手 · 首领",
     interaction={actions={{id="open",title="打开"},{id="more",title="更多"}}}}},12,24)
 local sourceLabel=list.rows[1].category
-assert(sourceLabel:GetWidth()>=sourceLabel:GetUnboundedStringWidth(),"Chinese source and kind fit before ellipsis is applied")
+assert(sourceLabel:GetWidth()==160 and measures==0,"source column is ready before native font metrics exist")
 assert(sourceLabel:GetWidth()<=160,"source column cannot consume unbounded title space")
 assert(list.rows[1]._categoryInset==42,"selected secondary action remains outside source text")
 list:SetItems({{id="huge-kind",text="名称",kindTitle=string.rep("很长的来源",50)}},12,25)
 assert(list.rows[1].category:GetWidth()<=160 and list.rows[1].category.maxLines==1,"overlong source clips on one line")
+list:SetItems({{id="short-kind",text="名称",kindTitle="成就"}},12,26)
+assert(sourceLabel:GetWidth()==160 and measures==0,"short source does not move the title boundary or measure text")
 print("Lychee result list UI smoke PASS")

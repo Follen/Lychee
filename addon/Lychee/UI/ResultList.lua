@@ -418,7 +418,7 @@ function ResultList:Create(parent, controller)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
         row.ui=Lychee.UI:Create(row,{type="Fragment",children={
-            {type="Text",key="category",props={role="meta",color="textDim",width=80,height=16,justifyH="RIGHT",maxLines=1,wordWrap=false,nonSpaceWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
+            {type="Text",key="category",props={role="meta",color="textDim",width=metrics.sourceLabelWidth,height=16,justifyH="RIGHT",maxLines=1,wordWrap=false,nonSpaceWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
             {type="Text",key="title",props={role="body",color="text",height=18,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset or 48,-6},{"RIGHT","category","LEFT",-14,0}}},bind={text="title"}},
             {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT","category","LEFT",-14,0}}},bind={text="subtext"}},
         }})
@@ -507,11 +507,6 @@ function ResultList:SetItems(items, session, generation, offset)
         end
         row.textProps.title,row.textProps.subtext,row.textProps.category=title,subtitle,kindText(item)
         row.ui:Update(row.textProps)
-        local measured=row.category.GetUnboundedStringWidth and row.category:GetUnboundedStringWidth() or row.category:GetStringWidth()
-        local categoryWidth=math.min(160,math.max(80,math.ceil(measured)+2))
-        if row._categoryWidth~=categoryWidth then
-            row.category:SetWidth(categoryWidth);row._categoryWidth=categoryWidth
-        end
         local single=row.subtext:GetText()==""
         if row._singleTitle~=single then
             row.title:ClearAllPoints()

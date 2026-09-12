@@ -72,28 +72,24 @@ do
     local view=UI.Palette.homeView
     local recent={id="runtime-label",title="受缚的队长",meta="荔枝大米助手 · 小怪",groupID="recent",groupTitle="最近使用"}
     local label=view.tiles[1].category
-    label.GetStringWidth=function(self) return math.min(self:GetWidth(),#self:GetText()*6) end
-    label.GetUnboundedStringWidth=function(self) return #self:GetText()*6 end
-    label:SetWidth(80)
+    local measures=0
+    label.GetStringWidth=function() measures=measures+1;return 0 end
+    label.GetUnboundedStringWidth=label.GetStringWidth
     view:SetSections({recent},true)
     local tile=view.tiles[1]
     assert(tile.category.wordWrap==false and tile.category.nonSpaceWrap==false and tile.category.maxLines==1,
         "recent source label must remain one line, including CJK suffix")
-    assert(tile.category:GetWidth()==160,"long recent source uses bounded measured width")
+    assert(tile.category:GetWidth()==160,"recent source reserves room even before native text metrics exist")
     assert(tile.title.point[2]==tile.category and tile.title.point[3]=="LEFT","title reserves measured source width")
     recent.meta="技能";view:SetSections({recent},true)
-    assert(tile.category:GetWidth()==80,"rebound short source releases spare width")
+    assert(tile.category:GetWidth()==160,"short source keeps a stable column boundary")
     recent.groupID="pinned";view:SetSections({recent},true)
     assert(not tile.category:IsShown(),"pinned grid hides source label")
     recent.groupID="recent";view:SetSections({recent},true)
     assert(tile.category:IsShown() and tile.title.point[2]==tile.category,"reused recent row restores category anchor")
-    local measurable=false
-    label.GetUnboundedStringWidth=function(self) return measurable and #self:GetText()*6 or 0 end
-    label.GetStringWidth=function() return 0 end
     recent.meta="荔枝大米助手 · 小怪";view:SetSections({recent},true)
-    assert(label:GetWidth()==80,"hidden native text may not have metrics yet")
-    measurable=true;view.frame.scripts.OnShow(view.frame)
-    assert(label:GetWidth()==160,"native show boundary remeasures text prepared while hidden")
+    view.frame.scripts.OnShow(view.frame)
+    assert(label:GetWidth()==160 and measures==0,"show and reuse do not depend on delayed font measurement")
 end
 print("Recent source label layout PASS")
 

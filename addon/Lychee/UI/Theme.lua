@@ -69,6 +69,7 @@ Theme.Metrics = {
     listInset = 12,
     listIconInset = 8,
     listTitleInset = 48,
+    sourceLabelWidth = 160,
     settingsTabsHeight = 42,
     switchWidth = 32,
     switchHeight = 18,
