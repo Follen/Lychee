@@ -20,7 +20,7 @@ function I.RecordCodec:Receive(owner,...)
 end
 
 local function definition(id, entries)
-    return {id=id,title=id,version="1",apiVersion=3,catalog=entries,
+    return {id=id,title=id,version="1",apiVersion="1.0.0",catalog=entries,
         actions={open={title="Open",run=function(record)
             record.aliases[1]="callback mutation"
             record.actions[1]="callback mutation"

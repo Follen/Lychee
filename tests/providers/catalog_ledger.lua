@@ -9,7 +9,7 @@ dofile("tests/support/runtime.lua").Load("provider")
 local namespace={Modules={}};assert(loadfile("addon/Lychee_Player/Runtime/CatalogLedger.lua"))("Fixture",namespace);TestPackages.Modules.CatalogLedger=namespace.Modules.CatalogLedger
 local I=LycheeInternal
 I.Registry:SetReady(true)
-local handle=assert(Fixture:Register({id="ledger.fixture",title="Ledger",version="1",apiVersion=3,catalog={}}))
+local handle=assert(Fixture:Register({id="ledger.fixture",title="Ledger",version="1",apiVersion="1.0.0",catalog={}}))
 local ledger=TestPackages.Modules.CatalogLedger:New()
 local function build(values)
     local rows={}
@@ -83,7 +83,7 @@ local compact=TestPackages.Modules.CatalogLedger:New({
     recordID=function(id) return "record:"..id end,
     key=function(row) return row.payload.id end,
 })
-handle=assert(Fixture:Register({id="ledger.compact",title="Compact",version="1",apiVersion=3,catalog={}}))
+handle=assert(Fixture:Register({id="ledger.compact",title="Compact",version="1",apiVersion="1.0.0",catalog={}}))
 local function named(values)
     local rows={};for id,v in pairs(values) do rows[#rows+1]={id="record:"..id,title=v.title,payload={id=id}} end
     return rows

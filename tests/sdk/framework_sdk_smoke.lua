@@ -17,7 +17,7 @@ assert(type(readyToken.Cancel) == "function" and readyToken:Cancel(), "ready sub
 I.Registry:SetReady(true)
 assert(readyCalls == 0, "cancelled ready callback does not run")
 local function descriptor(id)
-    return {id=id,title="SDK contract",version="1",apiVersion=3,minApiRevision=1}
+    return {id=id,title="SDK contract",version="1",apiVersion="1.0.0"}
 end
 local function register(id)
     local draft=assert(I.Registry:Begin(descriptor(id),{public=true}))
@@ -47,16 +47,16 @@ local owned=assert(I.Registry:Begin(copied,{public=true}));copied.title="Mutated
 local committed=assert(owned:Commit());assert(I.Registry.entries[copied.id].descriptor.title=="SDK contract")
 assert(committed:Unregister())
 local fixture=dofile("tests/support/provider_fixture.lua")
-local a=assert(fixture:Register({id="registry.catalog",title="Catalog",version="1",apiVersion=3,catalog={}}))
+local a=assert(fixture:Register({id="registry.catalog",title="Catalog",version="1",apiVersion="1.0.0",catalog={}}))
 local input={id="owned",title="Original",payload={value=1}}
 assert(a.catalog:Update({replace={input}}));input.payload.value=99
 assert(a.catalog:Resolve("owned").payload.value==1)
 local many={};for n=1,129 do many[n]={id=tostring(n),title="Bulk "..n} end
 assert(a.catalog:Update({replace=many}) and a.catalog:GetState().entries==129)
-assert(a:Unregister());local b=assert(fixture:Register({id="registry.catalog",title="New",version="1",apiVersion=3,catalog={}}))
+assert(a:Unregister());local b=assert(fixture:Register({id="registry.catalog",title="New",version="1",apiVersion="1.0.0",catalog={}}))
 for _,delta in ipairs({{replace=many},{upsert={input}},{remove={"owned"}}}) do assert(not a.catalog:Update(delta),"retired catalog cannot write into replacement") end
 assert(not a:Invalidate() and not a:GetState() and b.catalog:GetState().entries==0)
 assert(b:Unregister())
 local ok,supported=pcall(SDK.Supports,SDK,3,"bad")
-assert(ok and not supported and SDK:Supports(3,1) and not SDK:Supports(2,1))
+assert(ok and not supported and SDK:Supports("1.0.0") and not SDK:Supports(2,1))
 print("Registry boundary PASS: panels, draft closure/abort, replacement, owner isolation, private catalogs, capacity and retired handles")

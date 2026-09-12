@@ -111,8 +111,7 @@ function C:Init()
     end
     local m=self
     self.handle=self.handle or I.Modules.Support:Register({
-        id=self.id,apiVersion=3,version="1.0.0",title=self.title,
-        minApiRevision=1,
+        id=self.id,apiVersion="1.0.0",version="1.0.0",title=self.title,
         searchGlobal=self.searchGlobal,searchPrefixes=self.searchPrefixes,searchKeywords=self.searchKeywords,
         i18n=self.locale.resources,scope=I.Modules.Support:Scope(self.id),catalog={},actions=self.actions,query=self.query,resolve=self.resolve,
         onEnable=function(handle)

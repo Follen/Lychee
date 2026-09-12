@@ -100,10 +100,10 @@ assert(#index:Search("红玉", 10) == 0)
 local english = index:Search("ruby life pools", 10)
 assert(#english == 1 and english[1].item.id == "spell:393256")
 
--- Catalog owners deliver bounded hits through API 3; no Host catalog is created.
+-- Catalog owners deliver bounded hits through API 1.0.0; no Host catalog is created.
 _G.__locale="zhCN";I.Search.RuntimeIdentity:Refresh();I.Search.Normalizer.locale="zhCN";I.Locale.code="zhCN"
 I.Registry:SetReady(true)
-local handle=assert(Fixture:Register({id="test.search",apiVersion=3,minApiRevision=1,version="1",title="生物来源",catalog={
+local handle=assert(Fixture:Register({id="test.search",apiVersion="1.0.0",version="1",title="生物来源",catalog={
  {id="creature:1",title="红玉小怪",kindTitle="生物",category={id="dungeons",title="副本",color={0.8,0.4,0.7,1}}}
 }}))
 local catalog=handle.catalog
@@ -114,7 +114,7 @@ local _,results=I.Search.Query:Query("红玉小怪",{})
 assert(#results==1 and results[1].kindTitle=="生物" and results[1].sourceTitle=="生物来源")
 assert(results[1].category=="副本" and results[1].categoryColor[1]==0.8)
 assert(next(I.Search.StaticIndex.entries)==nil,"Host retains no complete catalog")
-local other=assert(Fixture:Register({id="test.other",apiVersion=3,version="1",title="Other",catalog={{id="one",title="保留记录"}}}))
+local other=assert(Fixture:Register({id="test.other",apiVersion="1.0.0",version="1",title="Other",catalog={{id="one",title="保留记录"}}}))
 local previous=other.catalog:GetState().revision
 assert(catalog:Update({upsert={{id="creature:3",title="局部更新"}}}))
 assert(other.catalog:GetState().revision==previous and other.catalog:Resolve("one").title=="保留记录")

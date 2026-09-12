@@ -1,6 +1,6 @@
 # 生命周期与风险覆盖
 
-当前契约为五包架构、SDK 1.0.0 / Provider API 3 revision 1。执行方式、夹具规则和分组见 [测试入口](README.md)；性能阈值只在 [PERFORMANCE.md](../PERFORMANCE.md) 维护。
+当前契约为五包架构、SDK 1.0.0 / Provider API 1.0.0。执行方式、夹具规则和分组见 [测试入口](README.md)；性能阈值只在 [PERFORMANCE.md](../PERFORMANCE.md) 维护。
 
 ## 可执行风险地图
 

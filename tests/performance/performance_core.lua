@@ -1,5 +1,5 @@
 -- Lua 5.1 offline boundary allocation and scheduler lifecycle regression.
-LycheeInternal = { VERSION={api=2,revision=1} }
+LycheeInternal = { VERSION={api="1.0.0"} }
 local frames = 0
 function CreateFrame()
     frames=frames+1

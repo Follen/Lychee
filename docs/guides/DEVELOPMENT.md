@@ -1,6 +1,6 @@
 # 开发与验证
 
-当前版本为 Lychee 0.2.0，SDK 1.0.0 / Provider API 3 revision 1。运行时来源是 `addon/` 下五个明确插件包；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
+当前版本为 Lychee 0.2.0，SDK 1.0.0 / Provider API 1.0.0。运行时来源是 `addon/` 下五个明确插件包；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
 
 当前[五包架构](../ARCHITECTURE.md)与[生命周期验收](../../tests/LIFECYCLE_ACCEPTANCE.md)定义角色存储、接收校验和资源释放门禁。运行时为五个明确包，检查和同步均覆盖五包；详见[交付步骤](DELIVERY.md)。
 

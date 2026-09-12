@@ -217,8 +217,7 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=I.Modules.Support:Register({id=self.id,title="Exwind",version="1.0.0",apiVersion=3,minApiRevision=1,
-        scope=I.Modules.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},catalog={},actions=actions,
+    self.handle=I.Modules.Support:Register({id=self.id,title="Exwind",version="1.0.0",apiVersion="1.0.0",scope=I.Modules.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},catalog={},actions=actions,
         query=function(request,reply,context) return self:Query(request,reply,context) end,resolve=function(id) return self:Resolve(id) end,
         onEnable=function() self.active=true;return function() self.active=false end end})
 end

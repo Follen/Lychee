@@ -195,11 +195,11 @@ I.Registry:SetReady(true)
 
 -- Public Providers preserve ordinary actions, owned panels and same-ID isolation.
 local foreignActionCalls=0
-local foreignHandle=assert(Fixture:Register({id="interaction.foreign",title="Foreign",version="1",apiVersion=3,
+local foreignHandle=assert(Fixture:Register({id="interaction.foreign",title="Foreign",version="1",apiVersion="1.0.0",
     catalog={{id="foreign",title="越权动作",actions={"open"}}},
     actions={open={title="打开",run=function() foreignActionCalls=foreignActionCalls+1;return {ok=true} end}}}))
 local actionCalled,panelMounted,openPanel=false,false,false
-local actionHandle=assert(Fixture:Register({id="interaction.actions",title="Actions",version="1",apiVersion=3,
+local actionHandle=assert(Fixture:Register({id="interaction.actions",title="Actions",version="1",apiVersion="1.0.0",
     catalog={{id="spell:interaction-action",kind="spell",category={id="spells",title={default="Spells",zhCN="技能"}},
         title="动作技能",aliases={{text="动作",locale="zhCN"}},description={{text="可执行普通动作。",locale="zhCN"}},
         actions={"open",{id="panel",title="面板",kind="open-panel",panel="detail",state={itemID=7}},
@@ -214,7 +214,7 @@ local actionHandle=assert(Fixture:Register({id="interaction.actions",title="Acti
     end}}}))
 local extraHandles={}
 for sourceIndex=1,21 do
-    extraHandles[#extraHandles+1]=assert(Fixture:Register({id=string.format("overflow-%02d",sourceIndex),apiVersion=3,title="Additional source",version="1",catalog={}}))
+    extraHandles[#extraHandles+1]=assert(Fixture:Register({id=string.format("overflow-%02d",sourceIndex),apiVersion="1.0.0",title="Additional source",version="1",catalog={}}))
 end
 local extraHandle={Unregister=function() for _,h in ipairs(extraHandles) do h:Unregister() end end}
 assert(actionHandle:GetState().enabled==true)
@@ -476,7 +476,7 @@ palette:Hide("interaction-smoke")
 
 -- A stale row must not invoke an unregistered extension action.
 local called=false
-local handle=assert(Fixture:Register({id="interaction.stale",title="Stale",version="1",apiVersion=3,
+local handle=assert(Fixture:Register({id="interaction.stale",title="Stale",version="1",apiVersion="1.0.0",
     catalog={{id="stale-command",title="Stale",actions={"open"}}},
     actions={open={title="Open",run=function() called=true;return {ok=true} end}}}))
 local _,staleItems=I.Search.Query:Query("Stale",{})
@@ -497,7 +497,7 @@ for index = 1, 12 do
         actions = { { id = "cast", kind = "secure-spell", spellID = 31884 } },
         drag = { type = "spell", spellID = 31884 } }
 end
-local launcherHandle=assert(Fixture:Register({id="interaction.launcher",apiVersion=3,minApiRevision=1,title="Launcher",version="1",catalog=launcherRecords}))
+local launcherHandle=assert(Fixture:Register({id="interaction.launcher",apiVersion="1.0.0",title="Launcher",version="1",catalog=launcherRecords}))
 local function effectiveVisibility(self)
     local current = self
     while current do
@@ -608,7 +608,7 @@ assert(launcherHandle:Unregister())
 
 -- A mixed source owns actions and drag independently of presentation kind.
 local mixedMounts,mixedRuns=0,0
-local mixedHandle=assert(Fixture:Register({id="interaction.mixed",title="Mixed",version="1",apiVersion=3,
+local mixedHandle=assert(Fixture:Register({id="interaction.mixed",title="Mixed",version="1",apiVersion="1.0.0",
     catalog={
     { id = "mixed:cast", kind = "spell", title = "混合入口施放", actions = {
         { id = "cast", title = "施放", kind = "secure-spell", spellID = 31884 },
@@ -685,7 +685,7 @@ commandTile.scripts.OnClick(commandTile)
 assertEq(mixedRuns, 1, "recent click runs the provider command")
 assertEq(LycheeCharacterDB.palette.recent[1].entryID, "mixed:command", "successful ordinary action updates recency")
 assert(mixedHandle:Unregister())
--- The distributable API 3 fixture must work through real Host rendering/view code.
+-- The distributable API 1.0.0 fixture must work through real Host rendering/view code.
 dofile("lychee-sdk/examples/ThirdPartyFixture/ThirdPartyFixture.lua")
 local fixtureProvider = assert(ThirdPartyFixture.GetProvider())
 assert(palette:Show())
@@ -757,7 +757,7 @@ palette:Hide("fixture-done")
 assert(ThirdPartyFixture.Unregister())
 
 local menuRan = 0
-local secureMenuProvider = assert(Fixture:Register({id="ui.sdk-menu",apiVersion=3,version="1.0.0",title="Menu",
+local secureMenuProvider = assert(Fixture:Register({id="ui.sdk-menu",apiVersion="1.0.0",version="1.0.0",title="Menu",
     catalog={{id="secure-menu",title="安全菜单入口",actions={{id="cast",title="施放",kind="secure-spell",spellID=31884},"info",
         {id="secondary-cast",title="次要施放",kind="secure-spell",spellID=31884}}}},
     actions={info={title="查看",run=function() menuRan=menuRan+1; return {ok=true} end}},
@@ -971,7 +971,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     local controller=Lychee.UI.Palette
     local prefs=I.UserPreferences
     LycheeCharacterDB.pinned={};LycheeCharacterDB.palette.recent={}
-    local source=assert(Fixture:Register({id="settings.fixture",apiVersion=3,version="1.0.0",title="设置测试来源",
+    local source=assert(Fixture:Register({id="settings.fixture",apiVersion="1.0.0",version="1.0.0",title="设置测试来源",
         catalog={{id="a",title="设置固定甲",icon=123,actions={"open"}},{id="b",title="设置固定乙",icon=456,actions={"open"}}},
         actions={open={title="打开",run=function() return {ok=true} end}}}))
     controller:Show()
@@ -1095,7 +1095,7 @@ do
     local savedTimers=C_Timer;C_Timer=nil
     controller:Hide("recent-regression-reset")
     local function record(id) return {id=id,title="Recent "..id,kindTitle="Fixture"} end
-    local source=assert(Fixture:Register({id="recent.dynamic",apiVersion=3,version="1.0.0",title="Recent fixture",
+    local source=assert(Fixture:Register({id="recent.dynamic",apiVersion="1.0.0",version="1.0.0",title="Recent fixture",
         catalog={record("static")},
         query=function(_,reply) reply({record("first"),record("last")}) end,
         resolve=function(id) return record(id) end}))
@@ -1184,7 +1184,7 @@ dofile(root .. "Search/RuntimeIdentity.lua")
 do
     local controller=LycheeInternal.Host.PaletteController
     local P=LycheeInternal.Search.Personalization
-    local source=assert(Fixture:Register({id="alias.ui",apiVersion=3,version="1.0.0",title="Aliases",
+    local source=assert(Fixture:Register({id="alias.ui",apiVersion="1.0.0",version="1.0.0",title="Aliases",
         catalog={{id="one",title="别名测试物品"},{id="two",title="第二物品"}}}))
     controller:Show();typeQuery("别名测试物品")
     local row=findEntry(controller.list.rows,"one")
@@ -1248,7 +1248,7 @@ do
 end
 do
     local controller=LycheeInternal.Host.PaletteController
-    local source=assert(Fixture:Register({id="manage.ui",apiVersion=3,version="1",title="管理测试",catalog={{id="one",title="管理搜索目标"}}}))
+    local source=assert(Fixture:Register({id="manage.ui",apiVersion="1.0.0",version="1",title="管理测试",catalog={{id="one",title="管理搜索目标"}}}))
     controller:Show();controller:OpenSettings("providers")
     local view=controller.settingsView
     local row
@@ -1314,7 +1314,7 @@ do
     edit(page.keywordInput,"过期");saveButton.scripts.OnClick()
     assert(#search("过期")==0,"reopened editor rejects stale release")
     source:Unregister();saveButton.scripts.OnClick()
-    local independent=assert(Fixture:Register({id="manage.independent",apiVersion=3,minApiRevision=1,version="1",title="独立来源",
+    local independent=assert(Fixture:Register({id="manage.independent",apiVersion="1.0.0",version="1",title="独立来源",
         searchGlobal=false,searchKeywords={"independent"},scope={products={"retail"}},i18n={enUS={TITLE="Independent"}},catalog={}}))
     view:OpenProvider("manage.independent",134400)
     assert(page.globalToggle:IsShown(),"all registered providers use the same editable routing controls")

@@ -297,7 +297,7 @@ Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用同�
 
 页面和16个词条容器首次使用懒创建、以后固定复用；配置变化后才测量词宽，普通打字不重排词表，布局键包括两份完整配置和编辑／错误／信息展开状态。隐藏清焦点、停止拖动和页面动画，不添加轮询、timer或事件。关键词仅承诺显示搜索结果，查询上限与协议保持现状。
 
-UI 通过 Host 的 ProviderManagement 读取展示数据和执行配置动作；组合配置规则由 ProviderPolicy 维护。旧角色存档中的互斥模式仅在数据边界解释为原有效行为；API 3 不接受旧模式声明，Index 仍只接收通用来源过滤；不在 UI、Index 或查询排序里增加具体 Provider 分支。
+UI 通过 Host 的 ProviderManagement 读取展示数据和执行配置动作；组合配置规则由 ProviderPolicy 维护。旧角色存档中的互斥模式仅在数据边界解释为原有效行为；API 1.0.0 不接受旧模式声明，Index 仍只接收通用来源过滤；不在 UI、Index 或查询排序里增加具体 Provider 分支。
 
 #### 搜索习惯与自定义别名
 

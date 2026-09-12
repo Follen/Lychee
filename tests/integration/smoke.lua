@@ -29,7 +29,7 @@ C_SpellBook = {
 }
 local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "../Lychee_Player/Runtime/CatalogProvider.lua", "../Lychee_Player/Runtime/CatalogLedger.lua", "../Lychee_Player/Runtime/InterfaceActions.lua", "../Lychee_Encounters/Runtime/CatalogProvider.lua", "../Lychee_Encounters/Runtime/CatalogLedger.lua", "../Lychee_Encounters/Runtime/InterfaceActions.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "../Lychee_Player/PlayerSpells/Aliases.lua", "../Lychee_Player/PlayerSpells/Provider.lua", "../Lychee_Player/PlayerSpells/Init.lua", })
-assert(_G.Lychee and _G.Lychee:Supports(3, 1))
+assert(_G.Lychee and _G.Lychee:Supports("1.0.0"))
 assert(_G.TestPackages.Modules and _G.TestPackages.Modules.Init)
 _G.TestPackages.Modules:Init()
 _G.LycheeInternal.Registry:SetReady(true)
@@ -84,13 +84,13 @@ local _, reenabledFixtureResults = q:Query("第三方示例条目", {})
 assert(#reenabledFixtureResults == 1 and reenabledFixtureResults[1].sourceID == "third-party-fixture:records")
 assert(results[1].interaction and results[1].interaction.actions[1].kind == "secure-spell")
 assert(results[1].interaction.drag and results[1].interaction.drag.spellID == 31884)
-local badProvider=assert(Fixture:Register({id="test.invalid",title="Bad",version="1",apiVersion=3,catalog={}}))
+local badProvider=assert(Fixture:Register({id="test.invalid",title="Bad",version="1",apiVersion="1.0.0",catalog={}}))
 local invalid,invalidError=badProvider.catalog:Update({upsert={{id="bad",title="Bad",actions={"missing"}}}})
 assert(not invalid and invalidError.code=="UNKNOWN_ACTION")
 assert(badProvider:Unregister())
 local oldSecret = issecretvalue
 issecretvalue = function(value) return value == "SECRET" end
-local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion=3, minApiRevision=1, title = "SECRET", version = "1.0.0" })
+local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion="1.0.0", title = "SECRET", version = "1.0.0" })
 assert(not secretBad and secretErr and secretErr.code == "SECRET_VALUE")
 issecretvalue = oldSecret
 local callbackToken

@@ -1,6 +1,6 @@
 # 接入 Lychee SDK 1.0.0
 
-使用 Provider API 3 / revision 1。不兼容 API 2；运行时入口是 `_G.Lychee`，开发包不是另一个 AddOn。先阅读[协议](PROTOCOLS.md)、[性能硬门禁](PERFORMANCE.md)和[能力边界](CATALOG.md)。
+使用 Provider API 1.0.0。不兼容 API 2；运行时入口是 `_G.Lychee`，开发包不是另一个 AddOn。先阅读[协议](PROTOCOLS.md)、[性能硬门禁](PERFORMANCE.md)和[能力边界](CATALOG.md)。
 
 ## 最小可用接入
 
@@ -8,11 +8,11 @@
 
 ```lua
 local api=_G.Lychee
-if not api or not api:Supports(3,1) then return end
+if not api or not api:Supports("1.0.0") then return end
 local function register()
     local entry={id="settings",title="Example settings",actions={"open"}}
     local handle,err=api:RegisterProvider({
-        id="example.settings",apiVersion=3,minApiRevision=1,version="1.0.0",
+        id="example.settings",apiVersion="1.0.0",version="1.0.0",
         title="Example",scope={products={"retail"}},i18n={enUS={}},
         searchGlobal=true,searchPrefixes={"example"},searchKeywords={},
         query=function(request,reply)

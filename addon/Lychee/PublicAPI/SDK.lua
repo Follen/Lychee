@@ -1,12 +1,8 @@
 local I = _G.LycheeInternal
 local facade = _G.Lychee or {}
 facade.API_VERSION = I.VERSION.api
-facade.API_REVISION = I.VERSION.revision
-function facade:Supports(api, revision)
-    revision = revision == nil and 1 or revision
-    return type(api) == "number" and api == self.API_VERSION
-        and type(revision) == "number" and revision >= 1 and revision < math.huge
-        and revision == math.floor(revision) and revision <= self.API_REVISION
+function facade:Supports(api, ...)
+    return select("#", ...) == 0 and type(api) == "string" and api == self.API_VERSION
 end
 function facade:RegisterProvider(desc)
     return I.Providers:Register(desc)

@@ -33,7 +33,6 @@ M=I.Modules.CatalogProvider:New("lychee.bosses",L["团本首领"],{"ADDON_LOADED
         end,L)
     end}})
 M.defaultEnabled=true
-M.minApiRevision=1
 M.batchSize=16
 function M:onEvent(event,addon)
     if event=="ADDON_LOADED" and addon=="Blizzard_EncounterJournal" and self.hasFallback then self:MarkDirty() end
@@ -276,7 +275,7 @@ if I.Locale:IsChinese() then
                 kindTitle=L["团本首领"],icon=instance[2],aliases={instance[1]},keywords={"首领","boss"},
                 payload={encounterID=encounterID,instanceID=instanceID},actions={"open"}}
         end
-        local handle,err=I.Modules.Support:Register({id=self.id,apiVersion=3,minApiRevision=1,version="1.0.0",
+        local handle,err=I.Modules.Support:Register({id=self.id,apiVersion="1.0.0",version="1.0.0",
             title=L["团本首领"],i18n=L.resources,scope=I.Modules.Support:Scope("lychee.bosses"),catalog=records,actions=self.actions,query=self.query,resolve=self.resolve,
             onEnable=function() M.active=true;return function(reason) M.active=false;if reason=="unregister" then M.handle=nil end end end})
         self.handle=handle

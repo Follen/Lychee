@@ -10,7 +10,7 @@ local I=LycheeInternal
 I.Registry:SetReady(true)
 local P=I.Search.Personalization
 local function query(text,context) local _,rows=I.Search.Query:Query(text,context or {visible=true});return rows end
-local handle=assert(Fixture:Register({id="personal.test",apiVersion=3,version="1.0.0",title="Test",
+local handle=assert(Fixture:Register({id="personal.test",apiVersion="1.0.0",version="1.0.0",title="Test",
     catalog={{id="a",title="Common Alpha",category={id="tools",title="Tools"}},
         {id="b",title="Common Beta",category={id="tools",title="Tools"}}}}))
 local original=query("Common")
@@ -63,7 +63,7 @@ assert(handle:Unregister())
 LycheeCharacterDB={palette={}}
 local entries={}
 for index=1,128 do entries[index]={id=tostring(index),title="Performance "..index} end
-local perf=assert(Fixture:Register({id="personal.perf",apiVersion=3,version="1.0.0",title="Perf",catalog=entries}))
+local perf=assert(Fixture:Register({id="personal.perf",apiVersion="1.0.0",version="1.0.0",title="Perf",catalog=entries}))
 for index=1,128 do assert(P:SetAlias({providerID="personal.perf",entryID=tostring(index)},"共同别名"..index,"Performance")) end
 local function measure(enabled)
     I.Search.Personalization=enabled and P or nil
@@ -85,8 +85,7 @@ print(string.format("Alias capacity benchmark (200 queries, Lua 5.1): off mean=%
 assert(perf:Unregister())
 do
     for _,field in ipairs({"searchable","searchMode","entries"}) do
-        local definition={id="removed.api",title="Removed",version="1",apiVersion=3,minApiRevision=1,
-            scope={products={"retail"}},i18n={enUS={}},query=function(_,reply) reply({}) end}
+        local definition={id="removed.api",title="Removed",version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={}},query=function(_,reply) reply({}) end}
         definition[field]=field=="entries" and {} or field=="searchable" and false or "global"
         local value,err=Lychee:RegisterProvider(definition)
         assert(not value and err.code=="INVALID_SCHEMA","old field must be rejected: "..field)
@@ -96,11 +95,11 @@ print("Search personalization PASS: real query, aliases, filtering, disable/relo
 do
     local policy=I.Search.ProviderPolicy
     local function definition(id)
-        return {id=id,apiVersion=3,minApiRevision=1,version="1",title="Combined",scope={products={"retail"}},i18n={enUS={TITLE="Combined"}},
+        return {id=id,apiVersion="1.0.0",version="1",title="Combined",scope={products={"retail"}},i18n={enUS={TITLE="Combined"}},
             searchGlobal=true,searchPrefixes={"inside"},searchKeywords={"openlist"},catalog={{id="one",title="Unique target"}}}
     end
-    assert(Lychee:Supports(3,1))
-    local bad=definition("combined.bad");bad.minApiRevision=2;assert(not Fixture:Register(bad))
+    assert(Lychee:Supports("1.0.0"))
+    local bad=definition("combined.bad");bad.apiVersion="2.0.0";assert(not Fixture:Register(bad))
     bad=definition("combined.bad");bad.searchMode="global";assert(not Fixture:Register(bad))
     bad=definition("combined.bad");bad.searchGlobal=false;bad.searchPrefixes={};bad.searchKeywords={};assert(not Fixture:Register(bad))
     local handle=assert(Fixture:Register(definition("combined.test")))
@@ -124,13 +123,13 @@ do
     local policy=I.Search.ProviderPolicy
     local calls=0
     local function definition(id,list)
-        return {id=id,apiVersion=3,minApiRevision=1,version="1",title="Scoped",
+        return {id=id,apiVersion="1.0.0",version="1",title="Scoped",
             scope={products={"retail"}},i18n={enUS={TITLE="Scoped"}},searchGlobal=false,searchPrefixes=list,
             catalog={{id="one",title="限定目标"}},query=function(_,reply) calls=calls+1;reply({}) end}
     end
     local handle=assert(Fixture:Register(definition("prefix.test",{"限定","scope"})))
     local legacyCalled,legacyFilter=0,nil
-    local legacy=assert(Fixture:Register({id="prefix.legacy",apiVersion=3,version="1",title="Legacy",
+    local legacy=assert(Fixture:Register({id="prefix.legacy",apiVersion="1.0.0",version="1",title="Legacy",
         query=function(request,reply) legacyCalled=legacyCalled+1;legacyFilter=request.filter;reply({}) end}))
     local before=calls
     assert(#query("限定目标")==0 and calls==before,"global search excludes static and dynamic provider work")
@@ -157,13 +156,13 @@ do
     local policy=I.Search.ProviderPolicy
     local calls,last=0,nil
     local function definition(id,words)
-        return {id=id,apiVersion=3,minApiRevision=1,version="1",title="Triggered",scope={products={"retail"}},i18n={enUS={TITLE="Triggered"}},
+        return {id=id,apiVersion="1.0.0",version="1",title="Triggered",scope={products={"retail"}},i18n={enUS={TITLE="Triggered"}},
             searchGlobal=false,searchKeywords=words,searchPrefixes={},catalog={{id="one",title="Hidden dungeon"}},
             query=function(request,reply) calls=calls+1;last=request;reply({{id="live",title="Live result"}}) end}
     end
-    assert(Lychee:Supports(3,1))
-    local old=definition("keyword.old",{"show"});old.minApiRevision=2
-    assert(not Fixture:Register(old),"future API revisions are rejected")
+    assert(Lychee:Supports("1.0.0"))
+    local old=definition("keyword.old",{"show"});old.apiVersion="2.0.0"
+    assert(not Fixture:Register(old),"unsupported API versions are rejected")
     local missing=definition("keyword.missing",nil);assert(not Fixture:Register(missing))
     local handle,registrationError=Fixture:Register(definition("keyword.test",{"KEYWORD","触发"}))
     assert(handle,registrationError and tostring(registrationError.code)..":"..tostring(registrationError.field))

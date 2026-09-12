@@ -1,17 +1,17 @@
-# Provider API 3 协议参考
+# Provider API 1.0.0 协议参考
 
-Host 版本：API_VERSION=3，API_REVISION=1。SDK 发行版本 1.0.0，UI Runtime 版本 1。不兼容 API 2；未知字段和废弃接口不做转换。接入步骤见[教程](GETTING_STARTED.md)。
+公开 API 版本：API_VERSION="1.0.0"。SDK 发行版本同为 1.0.0，UI Runtime 版本 1。API 使用完整版本字符串；旧数字版本与修订号字段不兼容，未知字段和废弃接口不做转换。接入步骤见[教程](GETTING_STARTED.md)。
 
 ## 公共入口
 
-`Lychee:Supports(3,1)`、`IsReady()`、`RegisterReady(callback)`、`RegisterProvider(definition)`。Ready 登记返回可 Cancel 的订阅；就绪与 SavedVariables 就绪是两个条件。`OpenSettings()` 打开 Host 设置；`ObservePalette(callback)` 订阅打开/关闭并返回 Cancel 句柄，最多 64 个，调用者结束时取消。
+`Lychee:Supports("1.0.0")`、`IsReady()`、`RegisterReady(callback)`、`RegisterProvider(definition)`。Ready 登记返回可 Cancel 的订阅；就绪与 SavedVariables 就绪是两个条件。`OpenSettings()` 打开 Host 设置；`ObservePalette(callback)` 订阅打开/关闭并返回 Cancel 句柄，最多 64 个，调用者结束时取消。
 
 ## Provider 声明
 
 | 字段 | 合同 |
 |---|---|
 | id | 必填，全局唯一，最多 64 字节；小写 ASCII 字母/数字起始，仅含字母、数字、点、短横线。 |
-| apiVersion / minApiRevision | `3` / `1`。 |
+| apiVersion | 必填字符串 `"1.0.0"`，与 SDK 发行版本一致。无独立修订号。 |
 | version / title | 必填，集成版本和用户显示名。标题可使用所属词典的 `{key=...}`。 |
 | scope | 必填 `products`，1–4 个不同的 retail/classic/titan/anniversary；可限制 interface/build/locale。 |
 | i18n | 必填，完整 enUS，可选 enGB/zhCN/zhTW；最多 256 键，键 96 字节、值 1024 字节、总量 128 KiB。 |

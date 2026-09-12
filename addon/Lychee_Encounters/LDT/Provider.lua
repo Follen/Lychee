@@ -4,7 +4,7 @@ local L=I.ProviderLocales:ForProvider(M.id)
 function M:Init()
     if self.handle and self.handle:GetState() then return true end
     local handle,err=I.Modules.Support:Register({
-        id=self.id,title=L["荔枝大米助手"],version="1.0.0",apiVersion=3,minApiRevision=1,i18n=L.resources,
+        id=self.id,title=L["荔枝大米助手"],version="1.0.0",apiVersion="1.0.0",i18n=L.resources,
         scope=I.Modules.Support:Scope(self.id),searchGlobal=true,searchPrefixes={"ldt"},catalog={},
         query=function(request,reply,context) return M:Query(request,reply,context) end,
         resolve=function(id) return M:Resolve(id) end,

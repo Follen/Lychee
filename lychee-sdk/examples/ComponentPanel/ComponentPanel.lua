@@ -9,7 +9,7 @@ local definition={type="Fragment",children={
     {type="Input",key="name",props={width=240,height=28,maxBytes=128,text="可编辑文字",point={"TOPLEFT","toggle","BOTTOMLEFT",0,-16}}},
 }}
 local handle,err=Lychee:RegisterProvider({
-    id="example.component-panel",apiVersion=3,minApiRevision=1,version="1.0.0",title="组件库示例",
+    id="example.component-panel",apiVersion="1.0.0",version="1.0.0",title="组件库示例",
     scope={products={"retail"}},i18n={enUS={TITLE="Component library example"},zhCN={TITLE="组件库示例"}},
     query=function(request,reply) reply(assert(Lychee.SDK.Score(request,{{id="panel",title={key="TITLE"},actions={"open"}}}))) end,
     resolve=function(id) if id=="panel" then return {id=id,title={key="TITLE"},actions={"open"}} end end,

@@ -1,4 +1,4 @@
--- A test AddOn using the shipped package adapter and the real API 3 boundary.
+-- A test AddOn using the shipped package adapter and the real API 1.0.0 boundary.
 -- It does not replace Lychee:RegisterProvider or implement Host behavior.
 local Fixture={}
 function Fixture:Register(definition)

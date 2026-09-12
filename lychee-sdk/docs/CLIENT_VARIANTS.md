@@ -2,7 +2,7 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-本文件是 Provider API 3 的实现约定，适用于项目子插件与第三方 Provider。它不增加新的 Host 注册字段或 API。
+本文件是 Provider API 1.0.0 的实现约定，适用于项目子插件与第三方 Provider。它不增加新的 Host 注册字段或 API。
 
 ## 支持范围与业务实现
 
@@ -35,7 +35,7 @@ Register.lua 只调用插件已选中的适配模块。以下 `client`、`Select
 
 ```lua
 local function RegisterForClient(SDK, client, SelectAdapter)
-    if not SDK or not SDK:Supports(3, 1) then
+    if not SDK or not SDK:Supports("1.0.0") then
         return nil, { code = "UNSUPPORTED_API" }
     end
     -- SelectAdapter verifies product, numeric ranges and capabilities.
@@ -46,8 +46,7 @@ local function RegisterForClient(SDK, client, SelectAdapter)
     -- This factory builds only declarations and closures. No UI/events/timers.
     local definition = adapter:CreateDefinition(client)
     definition.id = "my-addon.equipment" -- same business identity in all clients
-    definition.apiVersion = 3
-    definition.minApiRevision = 1
+    definition.apiVersion="1.0.0"
     -- definition contains this adapter's version, title, scope, i18n,
     -- query, actions/views and onEnable cleanup as needed.
     return SDK:RegisterProvider(definition)
@@ -84,4 +83,4 @@ end
 
 ## Lychee 内置实现的维护入口
 
-本项目由 tools/client_manifest.json 生成五个子插件的 TOC 与私有声明；这是构建约定，不是 SDK。第三方在自己的 TOC 和代码中选择唯一适配实现，注册普通 API 3 Provider，不依赖 LycheeInternal 或项目清单。
+本项目由 tools/client_manifest.json 生成五个子插件的 TOC 与私有声明；这是构建约定，不是 SDK。第三方在自己的 TOC 和代码中选择唯一适配实现，注册普通 API 1.0.0 Provider，不依赖 LycheeInternal 或项目清单。

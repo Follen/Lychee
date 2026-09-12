@@ -24,7 +24,7 @@ end
 S:BindPalette(palette)
 S:Start()
 local function register(id, query)
-    return assert(Fixture:Register({id=id, apiVersion=3, version="1", title=id, query=query}))
+    return assert(Fixture:Register({id=id, apiVersion="1.0.0", version="1", title=id, query=query}))
 end
 local function fire(timer)
     assert(timer and not timer.cancelled, "expected a live timer")

@@ -29,9 +29,9 @@ dofile("tests/support/runtime.lua").Load("provider",{"UI/ViewHost.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local function definition(id)
-    return {id=id,title=id,version="1",apiVersion=3,minApiRevision=1,scope={products={"retail"}},i18n={enUS={NAME="Test"}},catalog={}}
+    return {id=id,title=id,version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={NAME="Test"}},catalog={}}
 end
-assert(Lychee:Supports(3,1))
+assert(Lychee:Supports("1.0.0"))
 local def=definition("test.resources")
 local scope,queryScope,viewScope
 def.onEnable=function(handle) scope=assert(handle:Resources()) end

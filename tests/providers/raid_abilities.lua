@@ -49,7 +49,7 @@ TestPackages.namespaces.Lychee_Encounters.Modules.JournalCatalog={instances={[1]
  difficulties={[11]="14,15,16",[12]="14,15"},abilities={[11]="101:1001:96;101:1002:128;102:1003:128;103:1004:32;104:1005:64;105:1007:32",[12]="101:1006:96"}}
 assert(loadfile("addon/Lychee_Encounters/Bosses/Provider.lua"))("Lychee_Encounters",TestPackages.namespaces.Lychee_Encounters);TestPackages:Refresh()
 local m=TestPackages.Modules.Bosses;assert(m:Init());I.Registry:SetReady(true);drain()
-assert(I.Providers.entries[m.id].definition.apiVersion==3 and I.Providers.entries[m.id].definition.minApiRevision==1, "all locales receive query resources")
+assert(I.Providers.entries[m.id].definition.apiVersion=="1.0.0", "all locales receive query resources")
 assert(I.Providers.entries[m.id].definition.title==(locale=="zhCN" and "团本首领" or "Raid bosses"))
 local function query(q)
  local result

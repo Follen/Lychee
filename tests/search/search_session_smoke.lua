@@ -18,7 +18,7 @@ C_Timer = {
 local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Search/SearchSession.lua"})
 local I = LycheeInternal
-local source=assert(Fixture:Register({id="session-fixture",apiVersion=3,minApiRevision=1,version="1",title="Session",catalog={
+local source=assert(Fixture:Register({id="session-fixture",apiVersion="1.0.0",version="1",title="Session",catalog={
     {id="old",title="旧查询"},{id="new",title="新查询"}
 }}))
 I.Registry:SetReady(true)

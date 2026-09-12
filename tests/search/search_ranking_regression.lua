@@ -14,7 +14,7 @@ local function query(text,filter)
     return rows
 end
 local function register(id,entries)
-    return assert(Fixture:Register({id=id,apiVersion=3,version="1",title="Ranking test",catalog=entries}))
+    return assert(Fixture:Register({id=id,apiVersion="1.0.0",version="1",title="Ranking test",catalog=entries}))
 end
 local entries={}
 for index=1,21 do entries[index]={id=string.format("%03d",index),title="Neutral item "..index} end
@@ -75,7 +75,7 @@ assert(handle:Unregister())
 print("Search ranking regression passed: alias quality, stale references, route/lifecycle and remembered TopK")
 
 local static=register("ranking.static",{{id="x",title="Neutral",aliases={"destination"}}})
-local dynamic=assert(Fixture:Register({id="ranking.dynamic",apiVersion=3,version="1",title="Dynamic",query=function(request,reply)
+local dynamic=assert(Fixture:Register({id="ranking.dynamic",apiVersion="1.0.0",version="1",title="Dynamic",query=function(request,reply)
  reply({{id="x",title="Neutral",aliases={"destination"}}})
 end}))
 local hits=query("destination")

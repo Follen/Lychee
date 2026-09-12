@@ -214,7 +214,7 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=I.Modules.Support:Register({id=self.id,apiVersion=3,minApiRevision=1,version="1.0.0",title="Ellesmere UI",
+    self.handle=I.Modules.Support:Register({id=self.id,apiVersion="1.0.0",version="1.0.0",title="Ellesmere UI",
         scope=I.Modules.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
         catalog={},actions=actions,query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,

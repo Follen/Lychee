@@ -7,8 +7,7 @@ function InCombatLockdown() return combat end
 dofile("tests/support/runtime.lua").Load("provider", {"Search/ProviderPolicy.lua", "Core/ProviderManagement.lua"})
 local I, M = LycheeInternal, LycheeInternal.ProviderManagement
 local function definition(id)
-    return {id=id,title="Management fixture",version="1",apiVersion=3,minApiRevision=1,
-        scope={products={"retail"}},i18n={enUS={},zhCN={}},
+    return {id=id,title="Management fixture",version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={},zhCN={}},
         searchGlobal=true,searchPrefixes={"fixture"},searchKeywords={},
         source={id="ThirdPartyAddon",title="Third-party features"},description="Search fixture content",icon=123,order=4,
         catalog={{id="one",title="Example record"}}}

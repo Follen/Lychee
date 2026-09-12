@@ -260,7 +260,7 @@ combat=false;event(b,"PLAYER_REGEN_ENABLED");drain()
 local source=I.Search.Query:_BuildRequest("未知:物品",{},1)
 assert(source.raw=="未知:物品" and not source.filter.sourceID and source.filter.excludedSources["lychee.keystones:records"],"unknown prefix retains global policy")
 -- Independent reference: prefix isolation equals a direct scan of this fixture.
-local fixture=assert(dofile("tests/support/provider_fixture.lua"):Register({id="lychee.player-spells",title="技能",version="1",apiVersion=3,searchPrefixes={"技能"},
+local fixture=assert(dofile("tests/support/provider_fixture.lua"):Register({id="lychee.player-spells",title="技能",version="1",apiVersion="1.0.0",searchPrefixes={"技能"},
     catalog={{id="frost",title="冰霜箭"},{id="fire",title="火焰箭"}}}))
 local results=query("技能：冰")
 assert(#results==1 and results[1].id=="frost")

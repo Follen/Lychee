@@ -1,6 +1,6 @@
 # 测试
 
-测试针对 SDK 1.0.0 / Provider API 3 revision 1、UI Runtime 1 和五个运行时包。预算唯一源为 [PERFORMANCE.md](../PERFORMANCE.md)，不以测试数量或离线替身推断游戏内覆盖率。
+测试针对 SDK 1.0.0 / Provider API 1.0.0、UI Runtime 1 和五个运行时包。预算唯一源为 [PERFORMANCE.md](../PERFORMANCE.md)，不以测试数量或离线替身推断游戏内覆盖率。
 
 ## 一个入口
 
@@ -27,7 +27,7 @@ python tests/run.py --suite benchmarks
 
 | 目录 / 分组 | 负责证明什么 |
 | --- | --- |
-| `sdk/` | 原始公开输入、API 3 拒绝旧协议、Catalog/Storage、托管资源、通知、语言、所有权与原子失败 |
+| `sdk/` | 原始公开输入、API 1.0.0 拒绝旧协议、Catalog/Storage、托管资源、通知、语言、所有权与原子失败 |
 | `search/` | 质量和排名、独立参考算法、会话/异步取消、快照、个性化、缓存有界 |
 | `providers/` | Player/Encounters/Integrations/Inspector 的具体查询、动作、视图、数据和生命周期 |
 | `ui/` | 真实控制器配原生替身：点击身份、导航回滚、设置、固定项、动效、模型及控件复用；模型细节另见 LDT 用例 |

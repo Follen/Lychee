@@ -36,7 +36,7 @@ if arg[1]=="--stress" then
             aliases={"stress spell "..n},icon=123456,actions={{id="cast",title="施放",kind="secure-spell",spellID=200000+n}},
             drag={type="spell",spellID=200000+n}}
     end
-    assert(dofile("tests/support/provider_fixture.lua"):Register({id="stress.spells",title="压力技能",version="1.0.0",apiVersion=3,catalog=spells}))
+    assert(dofile("tests/support/provider_fixture.lua"):Register({id="stress.spells",title="压力技能",version="1.0.0",apiVersion="1.0.0",catalog=spells}))
 end
 collectgarbage("collect")
 local retained=collectgarbage("count")-baseline

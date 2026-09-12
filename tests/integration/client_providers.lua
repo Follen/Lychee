@@ -48,7 +48,7 @@ load("../Lychee_Player/Runtime/InterfaceActions.lua");load("../Lychee_Player/Gam
 for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     product=client;TestPackages.Modules.GameMenus.handle=nil;TestPackages.Modules.GameMenus:Init()
     local def=captured["lychee.game-menus"]
-    assert(def.minApiRevision==1 and def.i18n.enUS and #def.scope.products==4)
+    assert(def.apiVersion=="1.0.0" and def.i18n.enUS and #def.scope.products==4)
     local entries={};for _,entry in ipairs(def.catalog) do entries[entry.id]=entry end
     assert(entries.spellbook and entries.talents and entries.settings)
     assert((entries["warband-scenes"]~=nil)==(client=="retail"))

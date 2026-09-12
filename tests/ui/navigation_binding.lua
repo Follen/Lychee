@@ -5,7 +5,7 @@ local I=LycheeInternal
 I.Registry:SetReady(true)
 local p=I.Host.PaletteController
 local calls,last=0,nil
-assert(dofile("tests/support/provider_fixture.lua"):Register({id='binding.regression',apiVersion=3,title='Binding fixture',version='1',
+assert(dofile("tests/support/provider_fixture.lua"):Register({id='binding.regression',apiVersion="1.0.0",title='Binding fixture',version='1',
  catalog={{id='a',title='Binding fixture A',actions={'open','other'}},{id='b',title='Binding fixture B',actions={'open','other'}}},
  actions={open={title='Open',run=function(e) calls=calls+1;last=e.id;return {ok=true} end},
  other={title='Other',run=function(e) calls=calls+1;last=e.id;return {ok=true} end}}}))
@@ -89,7 +89,7 @@ assert(p:OpenView({create=function()
     return {}
 end},{},{}))
 assert(nesting and p.viewHost:IsActive());p:CloseView('test')
-local updating=assert(dofile("tests/support/provider_fixture.lua"):Register({id='navigation.updating',title='Update fixture',version='1',apiVersion=3,
+local updating=assert(dofile("tests/support/provider_fixture.lua"):Register({id='navigation.updating',title='Update fixture',version='1',apiVersion="1.0.0",
  catalog={{id='one',title='Before'}}}))
 assert(p:OpenView({create=function() return {} end},{},{}))
 assert(p:OpenView({create=function()
@@ -109,7 +109,7 @@ local cancelled,cancelError=p:OpenView({create=function()
 end},{},{})
 assert(not cancelled and cancelError=='PANEL_CANCELLED' and not p.viewHost:IsActive())
 assert(p.list.frame:IsShown() or p.emptyState:IsShown() or p.searchPending,'query navigation wins even when create then throws')
-assert(dofile("tests/support/provider_fixture.lua"):Register({id='navigation.secure',title='Secure navigation',version='1',apiVersion=3,
+assert(dofile("tests/support/provider_fixture.lua"):Register({id='navigation.secure',title='Secure navigation',version='1',apiVersion="1.0.0",
  catalog={{id='spell',title='Secure navigation spell',actions={{id='cast',kind='secure-spell',spellID=31884,title='Cast'}}}}}))
 p.input:SetText('Secure navigation spell');p:SetQueryMode('Secure navigation spell')
 local _,secureItems=I.Search.Query:Query('Secure navigation spell',{},nil)

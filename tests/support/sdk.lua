@@ -1,4 +1,4 @@
--- API 3 end-to-end behavior; game time is the only scheduled external input.
+-- API 1.0.0 end-to-end behavior; game time is the only scheduled external input.
 function GetLocale() return "enUS" end
 function GetBuildInfo() return "12.1.0","70000","",120100 end
 function InCombatLockdown() return false end

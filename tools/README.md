@@ -1,6 +1,6 @@
 # 构建工具
 
-当前运行时为 addon 下五个明确插件包；Host、Player、Encounters、Integrations、Inspector 分开交付。不是按需卸载代码的方案；目录和任务生命周期由各自 Provider 控制。SDK 1.0.0 / API 3，不兼容旧接口。
+当前运行时为 addon 下五个明确插件包；Host、Player、Encounters、Integrations、Inspector 分开交付。不是按需卸载代码的方案；目录和任务生命周期由各自 Provider 控制。SDK 1.0.0 / API 1.0.0，不兼容旧接口。
 
 工具不进入 AddOns，SDK 文档与类型位于 lychee-sdk，离线验证位于 tests。
 

@@ -19,7 +19,7 @@ for _,client in ipairs({{"retail",1,120100},{"classic",19,50504},{"titan",11,380
         sequence=sequence+1
         local id="matrix."..sequence
         local enabled,disabled=0,0
-        local handle=assert(Fixture:Register({id=id,apiVersion=3,minApiRevision=1,version="1",title={key="name"},
+        local handle=assert(Fixture:Register({id=id,apiVersion="1.0.0",version="1",title={key="name"},
             scope={products={"retail","classic","titan","anniversary"},minBuild=60000,maxBuild=80000},
             i18n={enUS={name="Shared launcher",entry="Test entry",run="Run",message="Found %d"},zhCN={name="共享启动器",entry="测试条目",run="执行",message="找到 %d"}},
             catalog={{id="entry",title={key="entry"},actions={"run"}}},
@@ -48,13 +48,13 @@ locale="zhTW";I.Search.Normalizer.locale=locale;I.Search.RuntimeIdentity:Refresh
 assert(I.Search.Normalizer:Display({zhCN="中文",enUS="English"})=="中文")
 assert(I.Search.Normalizer:Display({zhTW="繁體"})=="繁體")
 for _,scope in ipairs({{products={}},{products={"retail","retail"}},{products={"wrong"}},{product="retail",products={"retail"}},{minBuild=100,maxBuild=10}}) do assert(not I.Boundary:ValidateScope(scope,"scope")) end
-assert(not Lychee:RegisterProvider({id="missing.scope",apiVersion=3,minApiRevision=1,version="1",title="No",query=function(_,reply) reply({}) end,i18n={enUS={}}}))
-assert(not Lychee:RegisterProvider({id="missing.locales",apiVersion=3,minApiRevision=1,version="1",title="No",query=function(_,reply) reply({}) end,scope={products={"retail"}}}))
+assert(not Lychee:RegisterProvider({id="missing.scope",apiVersion="1.0.0",version="1",title="No",query=function(_,reply) reply({}) end,i18n={enUS={}}}))
+assert(not Lychee:RegisterProvider({id="missing.locales",apiVersion="1.0.0",version="1",title="No",query=function(_,reply) reply({}) end,scope={products={"retail"}}}))
 print("Client/locale public registration matrix PASS 7 identities x 4 locales, updates/resolve/disable/namespace release")
 
 locale="enUS";I.Locale.code=locale;I.Search.Normalizer.locale=locale;I.Search.RuntimeIdentity:Refresh()
 local function descriptor(id)
-    return {id=id,apiVersion=3,minApiRevision=1,version="1",title={key="name"},scope={products={"retail"}},i18n={enUS={name="Name"}},catalog={}}
+    return {id=id,apiVersion="1.0.0",version="1",title={key="name"},scope={products={"retail"}},i18n={enUS={name="Name"}},catalog={}}
 end
 local malformed=assert(Lychee.SDK.CreateCatalog({id="malformed.actions",scope={products={"retail"}},i18n={enUS={name="Name"}}}))
 local safe,bad,why=pcall(malformed.Update,malformed,{replace={{id="one",title={key="name"},actions=3}}})

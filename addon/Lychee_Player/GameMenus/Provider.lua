@@ -98,7 +98,7 @@ function M:Init()
         aliases={"荔枝","lychee","荔枝设置","lychee settings"},payload={menuID="lychee-settings"},actions={"open"}}
     opens["lychee-settings"]=function() return _G.Lychee:OpenSettings() end
     local handle, err = I.Modules.Support:Register({
-        id="lychee.game-menus", apiVersion=3,minApiRevision=1,i18n=L.resources, version="1.0.0", title=L["游戏菜单"], scope=I.Modules.Support:Scope("lychee.game-menus"), catalog=records,
+        id="lychee.game-menus", apiVersion="1.0.0",i18n=L.resources, version="1.0.0", title=L["游戏菜单"], scope=I.Modules.Support:Scope("lychee.game-menus"), catalog=records,
         actions={open={title=L["打开界面"],run=function(entry)
             local open = opens[entry.payload.menuID]
             if not open then return {ok=false, code="UI_UNAVAILABLE"} end

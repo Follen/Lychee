@@ -2,9 +2,9 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-当前 SDK 为 1.0.0 / API 3 revision 1，UI Runtime 为 1。不兼容 API 2；资源与独立存储见 [托管资源协议](MANAGED_RESOURCES.md)。
+当前 SDK 为 1.0.0 / API 1.0.0，UI Runtime 为 1。不兼容 API 2；资源与独立存储见 [托管资源协议](MANAGED_RESOURCES.md)。
 
-UI Runtime 1 位于 `Lychee.UI`，与 Provider API 3 的注册协议独立。先检查
+UI Runtime 1 位于 `Lychee.UI`，与 Provider API 1.0.0 的注册协议独立。先检查
 `Lychee.UI and Lychee.UI.RuntimeVersion == 1`。声明结构只创建一次并视为只读；
 `Create` 不创建 Frame，首次 `Update` 才创建，后续复用固定树。没有 VirtualDOM、
 后台渲染循环或隐式完整 GC。

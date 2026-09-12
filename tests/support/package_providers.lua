@@ -1,4 +1,4 @@
--- Real Host/catalog/API 3; deterministic WoW adapters for package providers.
+-- Real Host/catalog/API 1.0.0; deterministic WoW adapters for package providers.
 function GetLocale() return "zhCN" end
 function GetBuildInfo() return "12.1.0", "69587", "today", 120100 end
 local state = {combat=false}

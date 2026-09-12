@@ -9,7 +9,7 @@ I.Registry:SetReady(true)
 local initMS=(os.clock()-initStarted)*1000
 collectgarbage("collect")
 local indexKB=collectgarbage("count")-memoryBefore
-assert(TestPackages.Modules.Crests.handle and TestPackages.Modules.GameMenus.handle and TestPackages.Modules.Bosses.handle, "all providers register through API 3")
+assert(TestPackages.Modules.Crests.handle and TestPackages.Modules.GameMenus.handle and TestPackages.Modules.Bosses.handle, "all providers register through API 1.0.0")
 assert(#frames==frameBaseline, "registration/search creates no UI or resident event driver")
 local function query(text)
     local _, items=I.Search.Query:Query(text,{visible=true})

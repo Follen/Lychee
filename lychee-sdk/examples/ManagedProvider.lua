@@ -1,10 +1,9 @@
 -- Callable SDK example; no automatic registration or load-time game work.
 -- settings is created by the caller with SDK Storage.Open and its own SV root.
 return function(sdk, id, items, settings)
-    assert(sdk:Supports(3,1),"Lychee SDK 1.0.0 / API 3 required")
+    assert(sdk:Supports("1.0.0"),"Lychee SDK 1.0.0 / API 1.0.0 required")
     return sdk:RegisterProvider({
-        id=id,title="Managed example",version="1",apiVersion=3,minApiRevision=1,
-        scope={products={"retail"}},i18n={enUS={NAME="Managed example"}},
+        id=id,title="Managed example",version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={NAME="Managed example"}},
         onEnable=function(handle)
             local resources=assert(handle:Resources())
             assert(settings,"AddOn-owned settings required")

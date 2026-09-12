@@ -1,6 +1,6 @@
 # 运行时生命周期
 
-SDK 1.0.0 / API 3 revision 1；UI Runtime 1。性能与容量上限只在[性能硬门禁](PERFORMANCE.md)维护。
+SDK 1.0.0 / API 1.0.0；UI Runtime 1。性能与容量上限只在[性能硬门禁](PERFORMANCE.md)维护。
 
 | 时段 | 允许保留 | 必须释放 |
 |---|---|---|

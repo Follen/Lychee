@@ -30,7 +30,6 @@ end
 local function validID(value)
     return type(value)=="string" and #value<=64 and value:match("^[a-z0-9][a-z0-9%.%-]*$")~=nil
 end
-local function integer(value) return type(value)=="number" and value > -math.huge and value < math.huge and value==math.floor(value) end
 local function validTitle(value)
     return (type(value)=="string" and value~="") or
         (type(value)=="table" and type(value.default)=="string" and value.default~="")
@@ -49,7 +48,7 @@ local function validateDescriptor(desc, public)
     if type(desc)~="table" then return nil,failure("INVALID_SCHEMA","descriptor") end
     local ok,why=I.Boundary:Validate(desc,"descriptor",{callbacks=descriptorCallbacks})
     if not ok then return nil,why end
-    if not validID(desc.id) or not integer(desc.apiVersion) or not integer(desc.minApiRevision or 1) or not validTitle(desc.title) then
+    if not validID(desc.id) or type(desc.apiVersion)~="string" or desc.minApiRevision~=nil or not validTitle(desc.title) then
         return nil,failure("INVALID_SCHEMA","descriptor",desc.id)
     end
     if public and (type(desc.version)~="string" or desc.version=="") then return nil,failure("INVALID_SCHEMA","version",desc.id) end
@@ -80,7 +79,7 @@ function Registry:RegisterReady(callback)
         return true
     end
     if self.ready then
-        invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
+        invoke(callback,{apiVersion=I.VERSION.api})
         listener.callback = nil
     else
         listener.index = #self.readyListeners + 1
@@ -96,10 +95,10 @@ function Registry:SetReady(ready)
     for i=1,#callbacks do
         local callback = callbacks[i].callback
         callbacks[i].callback, callbacks[i].index = nil, nil
-        if callback then invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision}) end
+        if callback then invoke(callback,{apiVersion=I.VERSION.api}) end
     end
     local pending={}
-    for i=1,#self.order do local entry=self.entries[self.order[i]]; if entry and entry.state=="pending" and not entry.incompatible then pending[#pending+1]=entry end end
+    for i=1,#self.order do local entry=self.entries[self.order[i]]; if entry and entry.state=="pending" then pending[#pending+1]=entry end end
     table.sort(pending,function(a,b) return a.id<b.id end)
     for i=1,#pending do self:_Publish(pending[i]) end
 end
@@ -133,11 +132,11 @@ function Registry:Begin(desc, options)
         if #draft.panels>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
         local disabled = I.CharacterStore:DisabledProviders()
         local userEnabled = not (type(disabled) == "table" and disabled[desc.id])
-        local entry={id=desc.id,descriptor=desc,panels=draft.panels,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
+        local entry={id=desc.id,descriptor=desc,panels=draft.panels,ownerEnabled=true,userEnabled=userEnabled,state="pending"}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
-        notify(entry,"pending",entry.incompatible and "INCOMPATIBLE_HOST" or nil)
+        notify(entry,"pending")
         local handle=registry:_Handle(entry)
-        if registry.ready and not entry.incompatible then local published,publishErr=registry:_Publish(entry); if not published then return nil,publishErr end end
+        if registry.ready then local published,publishErr=registry:_Publish(entry); if not published then return nil,publishErr end end
         return handle
     end
     if public then
@@ -165,7 +164,7 @@ function Registry:_Publish(entry)
     self.panelsByExtension[entry.id]={}
     for i=1,#entry.panels do local panel=entry.panels[i]; local key=entry.id..":"..panel.id; if self.panels[key] then self:_Rollback(entry); return nil,failure("DUPLICATE_ID","panel",entry.id) end; self.panels[key]={extensionID=entry.id,descriptor=panel}; self.panelsByExtension[entry.id][panel.id]=key end
     notify(entry,"registered")
-    invoke(entry.descriptor.onHostAttached,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
+    invoke(entry.descriptor.onHostAttached,{apiVersion=I.VERSION.api})
     if entry.ownerEnabled and entry.userEnabled then notify(entry,"enabled"); invoke(entry.descriptor.onEnabled)
     else
         notify(entry,"disabled")
@@ -217,7 +216,7 @@ function Registry:_Handle(entry)
     local registry=self
     local handle={id=entry.id}
     function handle:GetState()
-        return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=entry.userEnabled,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled",errorCode=entry.incompatible and "INCOMPATIBLE_HOST" or nil}
+        return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=entry.userEnabled,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled"}
     end
 
     function handle:SetEnabled(enabled)

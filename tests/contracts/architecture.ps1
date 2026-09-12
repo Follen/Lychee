@@ -53,7 +53,7 @@ foreach ($marker in @('RegisterProvider','actions=','views=','drags=','ADDON_LOA
     if ($fixture -notmatch [regex]::Escape($marker)) { throw "Third-party fixture marker missing: $marker" }
 }
 if ($fixture -match 'match\s*=\s*\{\s*type\s*=\s*"ambient"') { throw 'Stable fixture entities must not duplicate SearchSource through ambient Command' }
-if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on API 3' }
+if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on API 1.0.0' }
 $provider = Get-Content (Join-Path $root 'addon/Lychee/Core/ProviderRuntime.lua') -Raw
 if ($provider -match 'OnUpdate') { throw 'Provider runtime must not add idle OnUpdate work' }
 $sdk = Get-Content (Join-Path $root 'addon/Lychee/PublicAPI/SDK.lua') -Raw

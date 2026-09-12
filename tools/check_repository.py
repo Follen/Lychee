@@ -59,6 +59,14 @@ def document_errors(root: Path, files: list[Path]) -> list[str]:
     return errors
 
 
+def api_declaration_errors(root: Path) -> list[str]:
+    sources = [p for folder in ("addon", "lychee-sdk") for p in (root / folder).rglob("*.lua")]
+    retired = r'\bapiVersion\s*=\s*\d|\bSupports\(\s*\d|\bminApiRevision\s*=\s*\d|\bAPI_REVISION\s*=\s*\d'
+    return [str(p.relative_to(root)) + ": retired numeric API/revision declaration"
+            for p in sorted(set(current_documents(root) + sources))
+            if re.search(retired, p.read_text(encoding="utf-8-sig"))]
+
+
 def check(root: Path) -> list[str]:
     errors = document_errors(root, current_documents(root))
     if not (root / "addon/Lychee/Lychee.toc").is_file() or (root / "package/Lychee").exists():
@@ -69,15 +77,17 @@ def check(root: Path) -> list[str]:
         if p.name.lower() in {"perfermance.md", "pefermance.md", "perfermes.md", "desgin.md"}:
             errors.append("duplicate misspelled policy: " + p.name)
     contract = json.loads((root / "tools/sdk_contract.json").read_text(encoding="utf-8"))
-    version, revision = contract["apiVersion"], contract["apiRevision"]
+    version = contract["apiVersion"]
     for p in (root / "README.md", root / "README.en.md"):
-        badges = re.findall(r"API%20(\d+)%20r(\d+)", p.read_text(encoding="utf-8"))
-        if badges != [(str(version), str(revision))]:
+        badges = re.findall(r"API%20([\d.]+)", p.read_text(encoding="utf-8"))
+        if badges != [version]:
             errors.append(p.name + ": SDK version badge differs from contract")
     protocol = root / "lychee-sdk/docs/PROTOCOLS.md"
-    declared = re.findall(r"Host 版本：API_VERSION=(\d+)，API_REVISION=(\d+)", protocol.read_text(encoding="utf-8"))
-    if declared != [(str(version), str(revision))]:
+    declared = re.findall(r'公开 API 版本：API_VERSION="([\d.]+)"', protocol.read_text(encoding="utf-8"))
+    if declared != [version]:
         errors.append("SDK protocol current version differs from contract")
+    # Current examples and runtime declarations cannot reintroduce numeric API versions.
+    errors.extend(api_declaration_errors(root))
     # Historical evidence and workflow state intentionally retain the original paths.
     scan = current_documents(root)
     for folder in ("tools", "tests"):

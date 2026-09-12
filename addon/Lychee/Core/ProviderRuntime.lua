@@ -93,12 +93,12 @@ function P:Register(definition)
     })
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
-    ok, err = keys(definition, { id=true, apiVersion=true, minApiRevision=true, version=true, title=true,
+    ok, err = keys(definition, { id=true, apiVersion=true, version=true, title=true,
         description=true,icon=true,source=true,order=true,
         query=true, resolve=true, searchGlobal=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
-    if not _G.Lychee:Supports(definition.apiVersion, definition.minApiRevision) then return failure("UNSUPPORTED_API", "apiVersion") end
+    if not _G.Lychee:Supports(definition.apiVersion) then return failure("UNSUPPORTED_API", "apiVersion") end
     if definition.order~=nil and (type(definition.order)~="number" or definition.order~=definition.order or math.abs(definition.order)>10000) then
         return failure("INVALID_SCHEMA","order")
     end
@@ -213,7 +213,7 @@ function P:Register(definition)
     end
     local draft
     draft, err = I.Registry:Begin({ id = entry.id, title = definition.title, version = definition.version,
-        apiVersion = 3, minApiRevision = definition.minApiRevision or 1,
+        apiVersion = definition.apiVersion,
         onEnabled = start, onDisabled = stop }, { public = true })
     if not draft then return nil, err end
     for id, view in pairs(definition.views or {}) do

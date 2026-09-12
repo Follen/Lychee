@@ -13,7 +13,7 @@ function I.RecordCodec:Receive(owner,...)
 end
 
 local original={id="entry",title="Original",payload={nested={value=1}},aliases={"original alias"}}
-local handle=assert(Fixture:Register({id="ownership.transfer",apiVersion=3,version="1",title="Ownership",catalog={original}}))
+local handle=assert(Fixture:Register({id="ownership.transfer",apiVersion="1.0.0",version="1",title="Ownership",catalog={original}}))
 I.Search.StaticIndex.New=create
 
 local function current() return privateIndex:GetRecord("ownership.transfer:records","entry") end
@@ -36,7 +36,7 @@ assert(not ok and current()==before and I.Providers.entries[handle.id].records==
 assert(handle.catalog:Update({upsert={{id="entry",title="Recovered",payload={nested={value=5}}}}}))
 assert(current().payload.nested.value==5,"failed transfer must not poison retry")
 -- A field on public data cannot manufacture the private ownership capability.
-local bad,err=Fixture:Register({id="ownership.forged",apiVersion=3,version="1",title="Bad",catalog={},_ownedRecords=true})
+local bad,err=Fixture:Register({id="ownership.forged",apiVersion="1.0.0",version="1",title="Bad",catalog={},_ownedRecords=true})
 assert(not bad and err.code=="INVALID_SCHEMA")
 assert(Lychee._OwnRecords==nil,"private ownership must not enter the SDK facade")
 local reentered=false

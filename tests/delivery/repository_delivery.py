@@ -36,6 +36,18 @@ class RepositoryDelivery(unittest.TestCase):
         for name in ("release_manifest.json", "sdk_contract.json"):
             shutil.copyfile(ROOT / "tools" / name, self.root / "tools" / name)
 
+    def test_retired_api_examples_are_rejected(self):
+        self.assertEqual(docs.api_declaration_errors(self.root), [])
+        path = self.root / "lychee-sdk/docs/GETTING_STARTED.md"
+        original = path.read_text(encoding="utf-8")
+        for sample in ('apiVersion=3', 'Supports(3,1)', 'minApiRevision=1', 'API_REVISION=1'):
+            path.write_text(original + '\n```lua\n' + sample + '\n```\n', encoding="utf-8")
+            with self.subTest(sample=sample):
+                errors = docs.api_declaration_errors(self.root)
+                self.assertTrue(any('GETTING_STARTED.md' in error for error in errors), errors)
+        path.write_text(original + '\n旧 minApiRevision 和 API_REVISION 字段已移除。\n', encoding="utf-8")
+        self.assertEqual(docs.api_declaration_errors(self.root), [])
+
     def test_exact_reproducible_archives(self):
         for name, files in release.paths(self.root).items():
             first = release.archive(files)

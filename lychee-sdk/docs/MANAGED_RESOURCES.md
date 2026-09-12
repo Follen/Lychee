@@ -2,7 +2,7 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-检查 `Lychee:Supports(3,1)`，Provider 声明 `minApiRevision=1`。公共普通记录和动作由统一 query 协议提交。运行时只依赖 `_G.Lychee`，不得使用 `LycheeInternal`。API 2 接入必须更新。
+检查 `Lychee:Supports("1.0.0")`，Provider 声明 `apiVersion="1.0.0"`。公共普通记录和动作由统一 query 协议提交。运行时只依赖 `_G.Lychee`，不得使用 `LycheeInternal`。旧数字 API 接入必须更新，不保留修订号字段。
 
 ## 三种生命周期
 
@@ -64,4 +64,4 @@ Provider 可以只保存稳定ID与关系，在 query 中读取客户端名称�
 
 分批扫描使用 query 的 `resources:Run`，等待客户端数据使用同一 query 的 `OnEvent` 和有界 `After`。先订阅再请求数据，兼容同步事件；完成只回复一次，换词/关闭使旧结果失效。精确实体查询可有明确的快速路径，其他路径的匹配完整性和加载等待另行测试。
 
-页面仅在 Mount 创建需要的原生控件并复用；Unmount/Dispose 释放当前记录、模型和技能绑定，原生Frame本身不当作可GC对象。复用行要校验按下与松开期间的绑定身份。这些均使用现有 API 3 revision 1，无需给宿主增加具体游戏业务。
+页面仅在 Mount 创建需要的原生控件并复用；Unmount/Dispose 释放当前记录、模型和技能绑定，原生Frame本身不当作可GC对象。复用行要校验按下与松开期间的绑定身份。这些均使用现有 API 1.0.0，无需给宿主增加具体游戏业务。

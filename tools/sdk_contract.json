@@ -1,8 +1,6 @@
 {
   "schemaVersion": 1,
-  "apiVersion": 3,
-  "apiRevision": 1,
-  "helperMinimumRevision": 1,
+  "apiVersion": "1.0.0",
   "errorCodes": [
     "INVALID_LOCALES",
     "INVALID_LOCALE_KEY",

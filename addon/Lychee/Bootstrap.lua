@@ -38,7 +38,7 @@ function L:Resolve(value, fallback)
 end
 L.name = L:IsChinese() and "|cffd53c49荔枝|r启动器" or "|cffd53c49Lychee|r Launcher"
 
-I.VERSION = { api = 3, revision = 1 }
+I.VERSION = { api = "1.0.0" }
 
 local function wireRegistryLifecycle()
     if I._registryLifecycleWired or not I.Registry then return end

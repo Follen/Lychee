@@ -1,6 +1,6 @@
 # Lychee 当前架构
 
-SDK 1.0.0，Provider API 3 / revision 1，UI Runtime 1。协议以 [SDK](../lychee-sdk/docs/PROTOCOLS.md) 为准，性能只引用 [PERFORMANCE.md](../PERFORMANCE.md)。
+SDK 1.0.0，Provider API 1.0.0，UI Runtime 1。协议以 [SDK](../lychee-sdk/docs/PROTOCOLS.md) 为准，性能只引用 [PERFORMANCE.md](../PERFORMANCE.md)。
 
 ## 五个运行时包
 

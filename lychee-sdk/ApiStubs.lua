@@ -17,7 +17,7 @@
 ---@field create? fun(parent:any):table Native adapter factory.
 ---@field update? fun(props:table,state:table,view:LycheeUIView)
 ---@field release? fun(reason:string,view:LycheeUIView)
--- Editor-only API 3 / revision 1 declarations. Do not list this file in an AddOn TOC.
+-- Editor-only API 1.0.0 declarations. Do not list this file in an AddOn TOC.
 
 ---@class LycheeError
 ---@field code string
@@ -39,7 +39,7 @@
 
 ---@class LycheeScope
 ---@field product? string Single-product entry restriction; Provider registration requires products.
----@field products? LycheeProduct[] Required for API 3; 1..4 unique products.
+---@field products? LycheeProduct[] Required for API 1.0.0; 1..4 unique products.
 ---@field locale? string
 ---@field minInterface? integer
 ---@field maxInterface? integer
@@ -182,14 +182,13 @@
 ---@field icon? integer|string
 ---@field order? number
 ---@field id string Globally unique; lower-case ASCII letters/numbers/dots/hyphens.
----@field apiVersion 3
+---@field apiVersion "1.0.0"
 ---@field searchGlobal? boolean Ordinary search, default true; false requires at least one prefix/keyword.
 ---@field searchPrefixes? string[] 0..8 unique literal prefixes, at most 48 bytes each.
 ---@field searchKeywords? string[] 0..8 unique literal triggers; maps to an empty source query.
----@field minApiRevision? integer Minimum API 3 revision; current 1.
 ---@field version string Integration version.
 ---@field title string|table<string,string>|LycheeLocaleKey Legacy localized maps require default.
----@field i18n LycheeLocaleResources Required for API 3. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.
+---@field i18n LycheeLocaleResources Required for API 1.0.0. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.
 ---@field query fun(request:LycheeQueryRequest,reply:LycheeReply,context:LycheeQueryContext):LycheeCancel?
 ---@field resolve? fun(entryID:string,context:LycheeContext):LycheeEntry?
 ---@field actions? table<string,LycheeProviderAction>
@@ -228,11 +227,10 @@
 ---@field UI LycheeUIRuntime
 ---@field OpenSettings fun(self:LycheeFacade):boolean,string?
 ---@field ObservePalette fun(self:LycheeFacade,callback:fun(visible:boolean)):LycheeReadySubscription?,LycheeError?
----@field API_VERSION 3
----@field API_REVISION 1
----@field Supports fun(self:LycheeFacade,apiVersion:integer,minRevision?:integer):boolean
+---@field API_VERSION "1.0.0"
+---@field Supports fun(self:LycheeFacade,apiVersion:string):boolean
 ---@field IsReady fun(self:LycheeFacade):boolean
----@field RegisterReady fun(self:LycheeFacade,callback:fun(info:{apiVersion:integer,apiRevision:integer})):LycheeReadySubscription?,LycheeError?
+---@field RegisterReady fun(self:LycheeFacade,callback:fun(info:{apiVersion:"1.0.0"})):LycheeReadySubscription?,LycheeError?
 ---@field RegisterProvider fun(self:LycheeFacade,definition:LycheeProviderDefinition):LycheeProviderHandle?,LycheeError?
 
 ---@type LycheeFacade

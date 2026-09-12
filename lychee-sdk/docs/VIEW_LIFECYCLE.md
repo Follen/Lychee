@@ -2,9 +2,9 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-当前 SDK 为 1.0.0 / API 3 revision 1，UI Runtime 为 1。不兼容 API 2；资源与独立存储见 [托管资源协议](MANAGED_RESOURCES.md)。
+当前 SDK 为 1.0.0 / API 1.0.0，UI Runtime 为 1。不兼容 API 2；资源与独立存储见 [托管资源协议](MANAGED_RESOURCES.md)。
 
-适用 Provider API 3；页面正常回调顺序与资源清理规则如下。
+适用 Provider API 1.0.0；页面正常回调顺序与资源清理规则如下。
 可执行示例：[ThirdPartyFixture](../examples/ThirdPartyFixture/ThirdPartyFixture.lua)。
 
 ## 所有权与调用顺序
