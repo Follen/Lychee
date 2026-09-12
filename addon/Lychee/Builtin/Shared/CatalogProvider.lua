@@ -112,7 +112,7 @@ function C:Init()
     local m=self
     self.handle=self.handle or _G.Lychee:RegisterProvider({
         id=self.id,apiVersion=2,version="1.0.0",title=self.title,
-        minApiRevision=self.searchGlobal~=nil and 6 or (self.searchMode=="keyword" or self.searchKeywords~=nil) and 5 or (self.searchMode~=nil or self.searchPrefixes~=nil) and 4 or self.searchable~=nil and 3 or 2,
+        minApiRevision=self.minApiRevision or (self.searchGlobal~=nil and 6 or (self.searchMode=="keyword" or self.searchKeywords~=nil) and 5 or (self.searchMode~=nil or self.searchPrefixes~=nil) and 4 or self.searchable~=nil and 3 or 2),
         searchable=self.searchable,searchGlobal=self.searchGlobal,searchMode=self.searchMode,searchPrefixes=self.searchPrefixes,searchKeywords=self.searchKeywords,
         i18n=self.locale.resources,scope=I.Builtin.Support:Scope(self.id),entries={},actions=self.actions,query=self.query,resolve=self.resolve,
         onEnable=function(handle)

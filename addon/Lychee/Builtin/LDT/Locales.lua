@@ -1,7 +1,7 @@
 local I=_G.LycheeInternal
 I.BuiltinLocaleData=I.BuiltinLocaleData or {}
 I.BuiltinLocaleData["builtin.ldt"]={
-    enUS={ ["怪物资料"]="Creature reference",["查看资料"]="View details",["首领"]="Boss",["小怪"]="Enemy",
+    enUS={ ["荔枝大米助手"]="LDT",["怪物资料"]="Creature reference",["查看资料"]="View details",["首领"]="Boss",["小怪"]="Enemy",
         ["技能"]="Abilities",["技能资料暂未加载"]="Ability data not loaded",["资料暂不可用"]="Details unavailable",
         ["请先脱离战斗"]="Leave combat first",["返回搜索"]="Back to search",["上一页"]="Previous",["下一页"]="Next",
         ["暂无技能资料"]="No abilities recorded",["模型暂不可用"]="Model unavailable",["基础生命"]="Base health",

@@ -34,7 +34,7 @@ local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["buil
 local providerDescriptions = {
     ["builtin.player-spells"]=L["搜索并施放已学技能"],
     ["builtin.mounts"]=L["搜索并召唤坐骑"],
-    ["builtin.bosses"]=L["搜索首领并查看指南"],
+    ["builtin.bosses"]=L["搜索团本首领和技能并查看指南"],
     ["builtin.game-menus"]=L["快速打开游戏面板"],
     ["builtin.crests"]=L["查看当前角色的纹章数量"],
     ["builtin.great-vault"]=L["查看宏伟宝库进度与奖励"],

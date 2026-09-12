@@ -186,13 +186,11 @@ EJ_ContentTab_OnClick=nil
 EncounterJournal_LoadUI=function() return false end
 assert(execute(travelers).code=="UI_UNAVAILABLE", "journal subpage load failure is recoverable")
 
-local boss=find("格拉布托克","builtin.bosses","boss-89")
-assert(boss.payload.encounterID==89 and boss.payload.instanceID==63)
-local dungeonBosses=0
+local boss=find("鲁西弗隆","builtin.bosses","boss-1519")
+assert(boss.payload.encounterID==1519 and boss.payload.instanceID==741)
 for _, item in ipairs(query("死亡矿井")) do
-    if item.providerID=="builtin.bosses" then dungeonBosses=dungeonBosses+1; assert(item.payload.instanceID==63) end
+    assert(item.providerID~="builtin.bosses", "retail raid provider excludes dungeon bosses")
 end
-assert(dungeonBosses>=5, "dungeon name returns individual selectable bosses")
 assert(find("熔火之心","builtin.bosses"), "old bosses without overview sections remain searchable")
 local loaded=0
 EncounterJournal_LoadUI=function()
@@ -204,7 +202,7 @@ EncounterJournal_LoadUI=function()
     end
     return true
 end
-assert(execute(boss).ok and loaded==1 and EncounterJournal.encounterID==89 and EncounterJournal.instanceID==63)
+assert(execute(boss).ok and loaded==1 and EncounterJournal.encounterID==1519 and EncounterJournal.instanceID==741)
 assert(execute(boss).ok and loaded==1)
 EncounterJournal_OpenJournal=function() end
 EncounterJournal.encounterID=999
@@ -215,7 +213,7 @@ assert(execute(boss).code=="UI_UNAVAILABLE")
 assert(#I.Providers.entries["builtin.bosses"].records==I.Builtin.JournalCatalog.encounterCount)
 for _, frame in ipairs(frames) do assert(not frame.scripts.OnUpdate, "no idle polling") end
 local queryStarted=os.clock()
-for index=1,100 do query(index%2==0 and "死亡矿井" or "纹章") end
+for index=1,100 do query(index%2==0 and "熔火之心" or "纹章") end
 print(string.format("Built-in providers PASS: %d bosses; init %.2f ms / retained %.1f KiB; alternating query mean %.3f ms (offline Lua only)",
     I.Builtin.JournalCatalog.encounterCount,initMS,indexKB,(os.clock()-queryStarted)*10))
 assert(indexKB < 8192, "built-in retained indexes exceed 8 MiB memory budget")

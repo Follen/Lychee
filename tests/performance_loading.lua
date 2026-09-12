@@ -35,8 +35,11 @@ assert(frames<=2 and events<=3,"TOC execution adds no eager feature UI or subscr
 -- Retained component definitions + presence channel may add at most 64 KiB to
 -- the previous 1282 KiB ceiling; startup allocation savings are measured apart.
 local creature=LycheeInternal.Builtin.LDT~=nil
+-- The new captured raid ability relationships have a separate 128 KiB allowance.
+-- Full retail loading retains its existing 1858 KiB ceiling (not an additive bump).
+local raid=LycheeInternal.Builtin.JournalCatalog and LycheeInternal.Builtin.JournalCatalog.abilities~=nil
 if not measureOnly then
-    assert(retained<(creature and 1858 or 1346) and elapsed<(creature and 61 or 46),"loading stays below the declared memory/time budgets")
+    assert(retained<(creature and 1858 or raid and 1474 or 1346) and elapsed<(creature and 61 or 46),"loading stays below the declared memory/time budgets")
 end
 table.sort(measurements,function(a,b) return a.kib>b.kib end)
 print(string.format("TOC loading files=%d cpu_ms=%.2f allocated_KiB=%.1f retained_KiB=%.1f frames=%d events=%d",#paths,elapsed,allocated,retained,frames,events))

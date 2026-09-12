@@ -100,6 +100,7 @@ I.Registry:SetReady(true)
 local count=#frames
 assert(M:Init());assert(M.active and #frames==count and #timers==0,"default enable has no activity")
 local definition=I.Providers.entries[M.id].definition
+assert(definition.title=="荔枝大米助手", "localized provider title")
 assert(definition.searchGlobal==true and definition.scope.products[1]=="retail" and #definition.scope.products==1)
 local function query(input)
     local result
@@ -122,7 +123,7 @@ do
         locale=case.locale;I.Search.Normalizer.locale=locale
         local rows={}
         for _,row in ipairs(query(case.input)) do
-            rows[#rows+1]={id=row.id,title=row.title,subtitle=row.subtitle,icon=row.icon,kind=row.kind,kindTitle=row.kindTitle,aliases=row.aliases,payload=row.payload,actions=row.actions}
+            rows[#rows+1]={id=row.id,title=row.title,subtitle=row.subtitle,icon=row.icon,kind=row.kind,kindTitle=row.kindTitle:gsub("^荔枝大米助手","LDT"),aliases=row.aliases,payload=row.payload,actions=row.actions}
         end
         equal(rows,case.rows,case.locale..":"..case.input)
     end
@@ -130,6 +131,7 @@ do
 end
 forbidSpellReads=true
 local boss=query("毒牙老二")[1]
+assert(boss.kindTitle=="荔枝大米助手 · 首领", "localized result kind")
 assert(boss and boss.title=="扭缠盘蛇" and boss.payload.npcID==259446,"boss ordinal comes from journal order")
 assert(query("毒牙二号boss")[1].id==boss.id)
 assert(query("ldt:毒牙老2")[1].id==boss.id)

@@ -1,27 +1,45 @@
-"""Compare shipped compact records against the immutable source snapshots."""
-import json
-import subprocess
+"""Independent full capture-to-runtime relation comparison; no generator import."""
+import hashlib,json,subprocess
 from pathlib import Path
-
-root = Path(__file__).resolve().parents[1]
-data = root / "docs/architecture"
-instances = json.loads((data / "2026-09-10-journal-instances.json").read_text(encoding="utf-8-sig"))["data"]["rows"]
-encounters = json.loads((data / "2026-09-10-journal-encounters.json").read_text(encoding="utf-8-sig"))["data"]["rows"]
-owners = {row["ID"]: row for row in instances if row.get("Name_lang")}
-expected = sorted((row for row in encounters if row.get("Name_lang") and row["JournalInstanceID"] in owners),
-                  key=lambda row: (row["JournalInstanceID"], row["OrderIndex"], row["ID"]))
-script = '''LycheeInternal={Builtin={}}; dofile("addon/Lychee/Builtin/Bosses/JournalCatalog.lua")
-local c=LycheeInternal.Builtin.JournalCatalog; assert(#c.encounters==c.encounterCount*3)
+root=Path(__file__).resolve().parents[1]
+folder=root/"docs/architecture/raid-journal"
+raw=(folder/"retail-zhCN.tsv").read_bytes();meta=json.loads((folder/"manifest.json").read_text(encoding="utf-8"))
+assert hashlib.sha256(raw).hexdigest()==meta["sha256"] and meta["complete"] and not meta["outputTruncated"]
+instances,bosses,diffs,relations={},{},{},{}
+for line in raw.decode().splitlines():
+    a=line.split("\t")
+    if a[0]=="D":diffs[int(a[1])]=int(a[2])
+    elif a[0]=="I":instances[int(a[1])]=a[2]
+    elif a[0]=="B":bosses[int(a[1])]=(int(a[2]),a[3],int(a[4]))
+    elif a[0]=="A":
+        for entry in filter(None,a[2].split(";")):
+            spell,section,mask=map(int,entry.split(":"))
+            for bit,d in diffs.items():
+                if bit&mask:
+                    key=(int(a[1]),spell,d);relations[key]=min(section,relations.get(key,section))
+script=r'''LycheeInternal={Builtin={}};dofile("addon/Lychee/Builtin/Bosses/JournalCatalog.lua")
+local c=LycheeInternal.Builtin.JournalCatalog
 for i=1,#c.encounters,3 do
  local id,owner,name=c.encounters[i],c.encounters[i+1],c.encounters[i+2]
- local instance=assert(c.instances[owner])
- io.write(id,"\\t",owner,"\\t",name,"\\t",instance[1],"\\t",tostring(instance[2]),"\\n")
+ io.write("B\t",id,"\t",owner,"\t",name,"\t",c.instances[owner][1],"\t",c.difficulties[id],"\n")
+end
+for boss,encoded in pairs(c.abilities) do
+ for spell,section,mask in encoded:gmatch("(%d+):(%d+):(%d+)") do
+  for i,d in ipairs({3,4,5,6,9,14,15,16}) do
+   if math.floor(tonumber(mask)/2^(i-1))%2==1 then io.write("S\t",boss,"\t",spell,"\t",d,"\t",section,"\n") end
+  end
+ end
 end'''
-lines = subprocess.check_output(["lua", "-e", script], cwd=root).decode("utf-8").splitlines()
-assert len(lines) == len(expected)
-for line, row in zip(lines, expected):
-    owner = owners[row["JournalInstanceID"]]
-    icon = owner["ButtonSmallFileDataID"] or owner["ButtonFileDataID"]
-    assert line.split("\t") == [str(row["ID"]), str(row["JournalInstanceID"]), row["Name_lang"],
-                               owner["Name_lang"], str(icon) if icon > 0 else "nil"]
-print(f"Journal snapshot equivalence PASS: {len(lines)} full rows, order, owners, names, icons")
+actual={};seen=set()
+for line in subprocess.check_output(["lua","-e",script],cwd=root).decode().splitlines():
+ a=line.split("\t")
+ if a[0]=="B":
+  id,owner=int(a[1]),int(a[2]);assert id not in seen;seen.add(id)
+  ref=bosses[id];assert (owner,a[3],a[4])==(ref[0],ref[1],instances[owner])
+  assert set(map(int,a[5].split(",")))=={d for bit,d in diffs.items() if bit&ref[2]}
+ else:
+  key=tuple(map(int,a[1:4]));assert key not in actual;actual[key]=int(a[4])
+assert seen==set(bosses) and actual==relations
+assert 89 not in seen and 2879 not in seen, "dungeon bosses excluded"
+assert 1519 in seen and not any(k[0]==1519 for k in relations), "legacy raid boss remains without invented abilities"
+print(f"Journal runtime capture equivalence PASS: {len(bosses)} bosses, {len(relations)} difficulty relations")

@@ -149,3 +149,11 @@ PRIVATE Registry/Index 的具体方法、source token、内部字段、生命周
 ## Revision 7：公共资源与数据
 
 handle 新增 Resources()、Settings()、GetDiagnostics()；query/view 的 context 新增 resources。方法、所有权、配额及失败契约集中见 [托管资源规范](MANAGED_RESOURCES.md)。新增稳定错误 RESOURCE_CLOSED、RESOURCE_LIMIT、RESOURCE_REENTRANT、RESOURCE_UNAVAILABLE、INVALID_EVENT、DATA_LIMIT、INVALID_SETTINGS；非法选项仍为 INVALID_SCHEMA，注销后的数据句柄为 STALE_HANDLE。内部旧命令/能力/意图注册方法已移除，第三方接入只使用 RegisterProvider。
+
+## 本地化实体与动态名称查询
+
+Provider ID、entry ID、action ID 是稳定机器标识，不翻译；`title`、`kindTitle`、动作名称从 Provider i18n 资源获取。游戏实体的名称/图标通过当前客户端 API 获取，未知名称不能永久缓存为不存在。界面品牌名称与搜索前缀可以不同，不能把内部缩写自动用作中文标题。
+
+含难度、变体或语言上下文的动态条目以稳定 ID 保存恢复所需身份，`payload` 保持具名字段。`resolve` 和动作执行时重新验证有效关系，不能相信过期或伪造的 payload。相同显示名称不等于相同实体。
+
+需要 `context.resources` 的 query 必须声明 `minApiRevision=7`，包括通过共享工厂注册的所有语言分支。使用 `Run` 分批、`OnEvent` 等待数据、`After` 限定等待，并将清理纳入当前 query 作用域；同步返回事件、失败、超时、取消及迟到事件都必须测试。只物化有界候选，不能以按需调用为理由永久缓存所有游戏名称。额度见 [PERFORMANCE.md](PERFORMANCE.md)，本模式不新增 SDK API。

@@ -1,0 +1,155 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 471,
+    "excerpt": "468: \tlootContainer.slotFilter:SetPoint(\"LEFT\", lootContainer.filter, \"RIGHT\", 10, 0);\n469: \n470: \t-- check if tabs are active\n471: \tlocal dungeonInstanceID = EJ_GetInstanceByIndex(1, false);\n472: \tif( not dungeonInstanceID ) then\n473: \t\tEJ_ContentTab_SetEnabled(self.dungeonsTab, false);\n474: \tend"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 952,
+    "excerpt": "949: \n950: local function EncounterJournal_SearchForOverview(instanceID)\n951: \tlocal bossIndex = 1;\n952: \tlocal _, _, bossID = EJ_GetEncounterInfoByIndex(bossIndex);\n953: \twhile bossID do\n954: \t\tlocal _, _, _, rootSectionID = EJ_GetEncounterInfo(bossID);\n955: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 159,
+    "excerpt": "156: local EJ_JOURNEYS_MIN_TIER = GetEJTierDataTableID(LE_EXPANSION_DRAGONFLIGHT);\n157: \n158: local function SelectJourneysTier()\n159: \tlocal currentTier = EJ_GetCurrentTier();\n160: \tif currentTier < EJ_JOURNEYS_MIN_TIER then\n161: \t\t-- Invalid tier for journeys, so reset to default selected tier\n162: \t\tC_EncounterJournal.InitalizeSelectedTier();"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 566,
+    "excerpt": "563: \tlocal dropdown = EncounterJournal.encounter.info.difficulty;\n564: \n565: \tlocal function IsSelected(difficultyID)\n566: \t\treturn EJ_GetDifficulty() == difficultyID;\n567: \tend\n568: \n569: \tlocal function SetSelected(difficultyID)"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 224,
+    "excerpt": "221: \n222: \t\tlocal numEncounters = EJ_GetNumEncountersForLootByIndex(self.index);\n223: \t\tif ( numEncounters == 1 ) then\n224: \t\t\tself.boss:SetFormattedText(BOSS_INFO_STRING, EJ_GetEncounterInfo(itemInfo.encounterID));\n225: \t\telseif ( numEncounters == 2) then\n226: \t\t\tlocal itemInfoSecond = C_EncounterJournal.GetLootInfoByIndex(self.index, 2);\n227: \t\t\tlocal secondEncounterID = itemInfoSecond and itemInfoSecond.encounterID;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 1182,
+    "excerpt": "1179: end\n1180: \n1181: local function UpdateDifficultyVisibility()\n1182: \tlocal shouldDisplayDifficulty = select(9, EJ_GetInstanceInfo());\n1183: \n1184: \t-- As long as the current tab isn't the model tab, which always suppresses the difficulty, then update the shown state.\n1185: \tlocal info = EncounterJournal.encounter.info;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 580,
+    "excerpt": "577: \t\t-- These new difficulties map to a base difficulty that they behave identically to.\n578: \t\tlocal difficultiesOverridden = {};\n579: \t\tfor index, difficultyID in ipairs(EJ_DIFFICULTIES) do\n580: \t\t\tif EJ_IsValidInstanceDifficulty(difficultyID) then\n581: \t\t\t\tlocal baseDifficultyID = C_EncounterJournal.GetBaseDifficultyID(difficultyID);\n582: \t\t\t\tif (baseDifficultyID ~= difficultyID) and EJ_IsValidInstanceDifficulty(baseDifficultyID) then\n583: \t\t\t\t\t-- This difficulty has a base so we will skip it in the loop below regardless."
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 641,
+    "excerpt": "638: end\n639: \n640: local function ExpansionDropdown_SelectInternal(self, tier)\n641: \tEJ_SelectTier(tier);\n642: \tlocal instanceSelect = EncounterJournal.instanceSelect;\n643: \tEJ_ContentTab_SetEnabled(EncounterJournal.dungeonsTab, true);\n644: \tEJ_ContentTab_SetEnabled(EncounterJournal.raidsTab, true);"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 1251,
+    "excerpt": "1248: \n1249: \tEncounterJournal.instanceID = instanceID;\n1250: \tEncounterJournal.encounterID = nil;\n1251: \tEJ_SelectInstance(instanceID);\n1252: \tEncounterJournal_LootUpdate();\n1253: \tEncounterJournal_ClearDetails();\n1254: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 1360,
+    "excerpt": "1357: \t\tNavBar_OpenTo(EncounterJournal.navBar, EncounterJournal.instanceID);\n1358: \tend\n1359: \tEncounterJournal.encounterID = encounterID;\n1360: \tEJ_SelectEncounter(encounterID);\n1361: \tEncounterJournal_LootUpdate();\n1362: \tEncounterJournal_ClearDetails();\n1363: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/EncounterJournalDocumentation.lua",
+    "line": 138,
+    "excerpt": "138: \t\t\tName = \"GetSectionInfo\",\n139: \t\t\tType = \"Function\",\n140: \t\t\tMayReturnNothing = true,\n141: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n142: \n143: \t\t\tArguments =\n144: \t\t\t{\n145: \t\t\t\t{ Name = \"sectionID\", Type = \"number\", Nilable = false },\n146: \t\t\t},\n147: \n148: \t\t\tReturns =\n149: \t\t\t{\n150: \t\t\t\t{ Name = \"info\", Type = \"EncounterJournalSectionInfo\", Nilable = false },\n151: \t\t\t},\n152: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_FrameXML/Mainline/AlertFrameSystems.lua",
+    "line": 1361,
+    "excerpt": "1358: \t\treturn;\n1359: \tend\n1360: \n1361: \tEncounterJournal_LoadUI();\n1362: \tEncounterJournal_OpenToPowerID(self:GetPowerID());\n1363: end\n1364: "
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_EncounterJournal/Mainline/Blizzard_EncounterJournal.lua",
+    "line": 2738,
+    "excerpt": "2738: function EncounterJournal_OpenJournal(difficultyID, instanceID, encounterID, sectionID, creatureID, itemID, tierIndex)\n2739: \tEJ_HideNonInstancePanels();\n2740: \tShowUIPanel(EncounterJournal);\n2741: \tif instanceID then\n2742: \t\tNavBar_Reset(EncounterJournal.navBar);\n2743: \t\tEJ_ContentTab_SelectAppropriateInstanceTab(instanceID);\n2744: \n2745: \t\tEncounterJournal_DisplayInstance(instanceID);\n2746: \n2747: \t\tif difficultyID then\n2748: \t\t\tEJ_SetDifficulty(difficultyID);\n2749: \t\tend\n2750: \n2751: \t\tif encounterID then\n2752: \t\t\tif sectionID then\n2753: \t\t\t\tif (EncounterJournal_CheckForOverview(sectionID)) then\n2754: \t\t\t\t\tEncounterJournal.encounter.overviewFrame.linkSection = sectionID;\n2755: \t\t\t\telse\n2756: \t\t\t\t\tlocal sectionPath = {EJ_GetSectionPath(sectionID)};\n2757: \t\t\t\t\tfor _, id in pairs(sectionPath) do\n2758: \t\t\t\t\t\tEJ_section_openTable[id] = true;\n2759: \t\t\t\t\tend\n2760: \t\t\t\tend\n2761: \t\t\tend\n2762: \t\t\tEncounterJournal_DisplayEncounter(encounterID);\n2763: \t\tend\n2764: \t\tif sectionID then\n2765: \t\t\tif (EncounterJournal_CheckForOverview(sectionID) or not EncounterJournal_SearchForOverview(instanceID)) then\n2766: \t\t\t\tEncounterJournal.encounter.info.overviewTab:Click();\n2767: \t\t\telse\n2768: \t\t\t\tEncounterJournal.encounter.info.bossTab:Click();\n2769: \t\t\tend\n2770: \t\t\tEncounterJournal_FocusSection(sectionID);\n2771: \t\telseif itemID then\n2772: \t\t\tEncounterJournal.encounter.info.lootTab:Click();\n2773: \t\tend\n2774: \telseif tierIndex then\n2775: \t\tEncounterJournal_ExpansionDropdown_Select(EncounterJournal, tierIndex+1);\n2776: \telse\n2777: \t\tEncounterJournal_ListInstances();\n2778: \tend\n2779: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 477,
+    "excerpt": "477: \t\t\tName = \"GetSpellName\",\n478: \t\t\tType = \"Function\",\n479: \t\t\tMayReturnNothing = true,\n480: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n481: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n482: \n483: \t\t\tArguments =\n484: \t\t\t{\n485: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n486: \t\t\t},\n487: \n488: \t\t\tReturns =\n489: \t\t\t{\n490: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = false },\n491: \t\t\t},\n492: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 554,
+    "excerpt": "554: \t\t\tName = \"GetSpellTexture\",\n555: \t\t\tType = \"Function\",\n556: \t\t\tMayReturnNothing = true,\n557: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n558: \t\t\tDocumentation = { \"Returns nothing if spell is not found\" },\n559: \n560: \t\t\tArguments =\n561: \t\t\t{\n562: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n563: \t\t\t},\n564: \n565: \t\t\tReturns =\n566: \t\t\t{\n567: \t\t\t\t{ Name = \"iconID\", Type = \"fileID\", Nilable = false },\n568: \t\t\t\t{ Name = \"originalIconID\", Type = \"fileID\", Nilable = false },\n569: \t\t\t\t{ Name = \"conditionalIconID\", Type = \"fileID\", Nilable = true },\n570: \t\t\t},\n571: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 938,
+    "excerpt": "938: \t\t\tName = \"RequestLoadSpellData\",\n939: \t\t\tType = \"Function\",\n940: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n941: \t\t\tDocumentation = { \"Requests data for the spell be loaded; Listen for SPELL_DATA_LOAD_RESULT to be notified when load is finished\" },\n942: \n943: \t\t\tArguments =\n944: \t\t\t{\n945: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n946: \t\t\t},\n947: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 941,
+    "excerpt": "938: \t\t\tName = \"RequestLoadSpellData\",\n939: \t\t\tType = \"Function\",\n940: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n941: \t\t\tDocumentation = { \"Requests data for the spell be loaded; Listen for SPELL_DATA_LOAD_RESULT to be notified when load is finished\" },\n942: \n943: \t\t\tArguments =\n944: \t\t\t{"
+  }
+]

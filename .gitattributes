@@ -1,0 +1,2 @@
+# Native capture checksum covers exact bytes; a trailing TAB is an empty TSV field.
+docs/architecture/raid-journal/retail-zhCN.tsv -text whitespace=-blank-at-eol

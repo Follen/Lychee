@@ -93,6 +93,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Journal catalogue generation drift' }
     & python 'tests/journal_catalog.py'
     if ($LASTEXITCODE -ne 0) { throw 'Journal catalogue equivalence failed' }
+    & $lua.Source 'tests/raid_abilities.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Raid abilities zhCN failed' }
+    & $lua.Source 'tests/raid_abilities.lua' 'enUS'
+    if ($LASTEXITCODE -ne 0) { throw 'Raid abilities enUS failed' }
     foreach ($test in @('performance_loading','view_lifecycle','ellesmere_adapter','ellesmere_equivalence')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }

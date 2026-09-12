@@ -1,0 +1,28 @@
+{
+  "schema": "lychee.raid-journal.capture.v1",
+  "ticket": "LYCHEE-20260913-021745-0019",
+  "requestId": "req-20260913-raid-journal-01",
+  "revision": "raid-v1",
+  "environment": {
+    "build": "69587",
+    "version": "12.1.0",
+    "interface": 120100,
+    "clientId": "retail",
+    "locale": "zhCN"
+  },
+  "complete": true,
+  "outputTruncated": false,
+  "sha256": "542d4dd995afeb3c787ebd5e3767b548fdbc96241a9d76175dba621a7b69dc31",
+  "counts": {
+    "batches": 1186,
+    "bosses": 490,
+    "bytes": 156161,
+    "elapsed": 4.8329999999842,
+    "initialInstanceKnown": false,
+    "instances": 70,
+    "knownSelectionRestored": true,
+    "maxBatchMS": 6.7530999779701,
+    "relations": 8003,
+    "sections": 35251
+  }
+}

@@ -38,7 +38,7 @@ if arg[1]=="--stress" then
 end
 collectgarbage("collect")
 local retained=collectgarbage("count")-baseline
-local queries={"死","死亡","死亡矿井","巫妖王","纹章","星","星光","星光云端","无敌","午夜","not-found","翡翠"}
+local queries={"熔","熔火","熔火之心","巫妖王","纹章","星","星光","星光云端","无敌","午夜","not-found","翡翠"}
 local function run()
     for n=1,4 do
         for _,text in ipairs(queries) do

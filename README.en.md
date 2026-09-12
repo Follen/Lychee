@@ -102,6 +102,12 @@ Search creature names, boss names, ability names, or NPC/ability IDs directly. O
 
 The built-in catalogue covers 462 creature records across 16 dungeons and needs no additional addon. Ability text and icons are resolved in the client language; uncached game data may take time to load. Base health and forces are not live difficulty-scaled values. Other clients do not load LDT.
 
+## Raid bosses (Retail only)
+
+Search raid boss names, ability names or spell IDs. Use `bosses:` to restrict the source; prepend `normal`, `heroic` or `mythic` plus a space to select difficulty. Results list supported difficulties and open the corresponding Encounter Journal section. Additional actions select other supported difficulties.
+
+One boss/spell pair produces one result across difficulties. Different spell IDs retain separate identities. Relationships come from a versioned in-game journal capture; older raids without ability sections retain boss entries only. Dungeon bosses are excluded here. LDT currently covers 16 dungeons, not every historical dungeon.
+
 <a id="install"></a>
 
 ## Install

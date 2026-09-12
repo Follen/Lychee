@@ -46,7 +46,8 @@ local beforeFrames = frames
 local allocated, retained, ms = measure(function() I.Builtin:Init(); I.Registry:SetReady(true) end)
 local index = I.Search.StaticIndex
 local count = 0; for _ in pairs(index.entries) do count=count+1 end
-assert(count == 2689, "startup dataset changed: "..count)
+assert(I.Builtin.JournalCatalog.encounterCount==490,"captured raid boss coverage changed")
+assert(count == 1535+490, "startup dataset changed: "..count)
 assert(frames == beforeFrames + 1, "mount event frame count changed")
 local rebuildAlloc, rebuildRetained, rebuildMS = measure(function() index:Rebuild() end)
 print(string.format("STARTUP entries=%d alloc_KiB=%.2f retained_KiB=%.2f transient_KiB=%.2f ms=%.2f frames=%d", count, allocated, retained, allocated-retained, ms, frames-beforeFrames))

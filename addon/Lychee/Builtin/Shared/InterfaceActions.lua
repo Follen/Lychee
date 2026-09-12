@@ -23,12 +23,17 @@ function A:ToggleOpen(fn, frameName, alternateFrame)
     return self:IsShown(frameName) or (alternateFrame and self:IsShown(alternateFrame)) or false
 end
 
-function A:OpenJournal(instanceID, encounterID)
+function A:OpenJournal(instanceID, encounterID, difficultyID, sectionID)
     if not EncounterJournal_OpenJournal then
         if not self:Call(EncounterJournal_LoadUI) then return false end
     end
-    if not self:Call(EncounterJournal_OpenJournal, nil, instanceID, encounterID) then return false end
+    if not self:Call(EncounterJournal_OpenJournal, difficultyID, instanceID, encounterID, sectionID~=0 and sectionID or nil) then return false end
     if not self:IsShown("EncounterJournal") then return false end
+    if difficultyID and (not EJ_GetDifficulty or EJ_GetDifficulty()~=difficultyID) then return false end
+    if sectionID and sectionID>0 then
+        local info=C_EncounterJournal and C_EncounterJournal.GetSectionInfo and C_EncounterJournal.GetSectionInfo(sectionID)
+        if not info or info.filteredByDifficulty then return false end
+    end
     if encounterID then
         return EncounterJournal.instanceID == instanceID and EncounterJournal.encounterID == encounterID
     end

@@ -32,7 +32,7 @@ function M:Record(enemy,dungeon,spellID)
     local aliases=self:Aliases(enemy,dungeon)
     if spellID then aliases[#aliases+1]=spell or tostring(spellID);aliases[#aliases+1]=tostring(spellID) end
     return {id=dungeon.id.."/"..enemy.id..(spellID and "/"..spellID or ""),title=self:Name(enemy),
-        kindTitle="LDT · "..L[enemy.isBoss and "首领" or "小怪"],kind="reference",icon=spellID and C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(spellID) or icon,
+        kindTitle=L["荔枝大米助手"].." · "..L[enemy.isBoss and "首领" or "小怪"],kind="reference",icon=spellID and C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(spellID) or icon,
         subtitle=self:Name(dungeon)..(spellID and (" · "..(spell or (L["技能"].." "..spellID))) or ""),aliases=aliases,
         payload={dungeonID=dungeon.id,npcID=enemy.id,spellID=spellID or 0},actions={"open"}}
 end
