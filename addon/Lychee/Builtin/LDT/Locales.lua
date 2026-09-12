@@ -15,7 +15,7 @@ I.BuiltinLocaleData["builtin.ldt"]={
         ["查看特性"]="View traits",["未记录"]="Not recorded",["放逐"]="Banish",["拉拽"]="Grip",["休眠"]="Hibernate",
         ["禁锢"]="Imprison",["击退"]="Knock",["精神控制"]="Mind control",["安抚心灵"]="Mind soothe",["变形"]="Polymorph",
         ["忏悔"]="Repentance",["闷棍"]="Sap",["恐吓野兽"]="Scare beast",["束缚亡灵"]="Shackle undead",["沉默"]="Silence",["梦游"]="Sleep walk",["嘲讽"]="Taunt",
-        ["特性"]="Traits",["复位"]="Reset",["拖动旋转 · 滚轮缩放"]="Drag to rotate · Scroll to zoom",
+        ["重置视角"]="Reset view",["特性"]="Traits",["复位"]="Reset",["拖动旋转 · 滚轮缩放"]="Drag to rotate · Scroll to zoom",
         ["Shift + 左键：贴入聊天框"]="Shift + click: link in chat",["链接暂不可用，请稍后重试"]="Link unavailable. Try again shortly",
     },zhCN={}}
 for key in pairs(I.BuiltinLocaleData["builtin.ldt"].enUS) do I.BuiltinLocaleData["builtin.ldt"].zhCN[key]=key end

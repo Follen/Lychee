@@ -841,8 +841,13 @@ function Palette:SetStatus(mode, count)
     elseif mode == "panel" then text = L["详情"]
     elseif count and count > 0 then text = L["搜索结果："] .. tostring(count)
     else text = L["没有结果"] end
-    setText(self.status, text)
-    setText(self.footerHint, mode == "home" and "" or L["↑ ↓ 选择   ·   点击使用"])
+    local panel=mode=="panel" and self.viewHost and self.viewHost.panel
+    if panel and panel.footerHint~=nil then
+        setText(self.status, "");setText(self.footerHint,panel.footerHint)
+    else
+        setText(self.status, text)
+        setText(self.footerHint, mode == "home" and "" or L["↑ ↓ 选择   ·   点击使用"])
+    end
 end
 
 function Palette:ResizeForMode(mode, count)
@@ -1173,6 +1178,15 @@ function Palette:ResizeView(instance, height)
     if type(height)~="number" or height~=height or height<0 or height==math.huge then return false end
     panel.contentHeight=height
     if not self._openingView then return self:ResizeForMode("panel",height) end
+    return true
+end
+
+function Palette:SetViewFooter(instance, hint)
+    local panel=self.viewHost and self.viewHost.panel
+    if not self.visible or not panel or panel.instance~=instance or not self.viewHost:IsActive() then return false end
+    if type(hint)~="string" or #hint>256 then return false end
+    panel.footerHint=hint
+    if not self._openingView then self:SetStatus("panel") end
     return true
 end
 

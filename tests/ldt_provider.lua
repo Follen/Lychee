@@ -52,6 +52,7 @@ function IsShiftKeyDown() return shiftHeld end
 function methods:GetEffectiveScale() return 1 end
 function methods:GetStringHeight() return math.max(14,#(self.text or "")/8) end
 function methods:SetScrollChild(value) self.child=value end
+function methods:SetSpacing(value) self.spacing=value end
 function methods:SetVerticalScroll(value) self.scroll=value end
 function methods:GetVerticalScroll() return self.scroll or 0 end
 function methods:EnableMouseWheel() end
@@ -233,7 +234,7 @@ linked=nil;child.frame.scripts.OnMouseDown(child.frame,"LeftButton");view:Render
 assert(not linked,"rebound row cannot insert a stale link")
 missing[second]=true
 child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
-assert(not linked and view.hint:GetText()=="链接暂不可用，请稍后重试")
+assert(not linked and view.hintText=="链接暂不可用，请稍后重试")
 drain();assert(not linked,"late spell load never inserts a link automatically")
 shiftHeld=false;activeChat=nil
 view.selected=second;view:BuildGroups(true);view:RenderSkills()
@@ -317,8 +318,15 @@ mouseHeld=true;view.model.scripts.OnMouseDown(view.model,"LeftButton");combat=tr
 assert(not view.model.scripts.OnUpdate);combat=false
 view.model.scripts.OnMouseWheel(view.model,100);assert(view.zoom==0.7)
 view.model.scripts.OnMouseWheel(view.model,-100);assert(view.zoom==0)
+view.facing,view.zoom=1,0.3
+view.reset.frame.scripts.OnClick(view.reset.frame)
+assert(view.facing==0 and view.zoom==0 and not view.model.scripts.OnUpdate,"icon reset restores the model camera and ends dragging")
+assert(view.reset.label:GetText()=="" and view.reset.icon.texture=="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\reload.tga")
+view.reset.frame.scripts.OnEnter(view.reset.frame)
+assert(GameTooltip.shown and GameTooltip.lines[1]=="重置视角")
 view.model.scripts.OnMouseDown(view.model,"LeftButton");view:Unmount()
 assert(not view.model.scripts.OnUpdate and not view.groups and not view.flat and not view.expanded and not view.resources)
+assert(not GameTooltip.shown and not view.detailIcon.texture and not view.hintText,"closing clears owned tooltip, reading icon and footer reference")
 mouseHeld=false
 local high=#frames
 

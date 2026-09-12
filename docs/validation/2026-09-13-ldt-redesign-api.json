@@ -1,0 +1,20 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleTextureBaseAPIDocumentation.lua",
+    "line": 600,
+    "excerpt": "600: \t\t\tName = \"SetTexture\",\n601: \t\t\tType = \"Function\",\n602: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n603: \n604: \t\t\tArguments =\n605: \t\t\t{\n606: \t\t\t\t{ Name = \"textureAsset\", Type = \"cstring\", Nilable = true },\n607: \t\t\t\t{ Name = \"wrapModeHorizontal\", Type = \"cstring\", Nilable = true },\n608: \t\t\t\t{ Name = \"wrapModeVertical\", Type = \"cstring\", Nilable = true },\n609: \t\t\t\t{ Name = \"filterMode\", Type = \"cstring\", Nilable = true },\n610: \t\t\t},\n611: \n612: \t\t\tReturns =\n613: \t\t\t{\n614: \t\t\t\t{ Name = \"success\", Type = \"bool\", Nilable = false },\n615: \t\t\t},\n616: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua",
+    "line": 654,
+    "excerpt": "654: Name = \"SetSpacing\",\n655: Type = \"Function\",\n656: SecretArguments = \"AllowedWhenUntainted\",\n658: Arguments =\n659: {\n660: { Name = \"spacing\", Type = \"uiUnit\", Nilable = false },\n661: },"
+  }
+]

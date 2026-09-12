@@ -4,6 +4,8 @@ local I=_G.LycheeInternal
 local M=I.Builtin.LDT
 local L=I.ProviderLocales:Builtin(M.id)
 local PER_PAGE,MAX_ROWS,ROW_HEIGHT=6,8,26
+local LIST_TOP,READING_TOP,READING_HEIGHT=80,60,72
+local ICON_ROOT="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local flags={{"interruptible","可打断"},{"magic","魔法"},{"curse","诅咒"},{"poison","中毒"},{"disease","疾病"},{"enrage","激怒"},{"bleed","流血"}}
 local types={Humanoid="人型生物",Beast="野兽",Undead="亡灵",Demon="恶魔",Dragonkin="龙类",Elemental="元素生物",Mechanical="机械",Giant="巨人",Aberration="畸变怪"}
 local controls={{"Stun","昏迷"},{"Fear","恐惧"},{"Incapacitate","瘫痪"},{"Disorient","迷惑"},{"Slow","减速"},{"Root","定身"},
@@ -60,6 +62,34 @@ function M:CreateView()
         local component=Components:CreateNavigationButton(parent,{text=caption,width=width,height=24,onClick=fn,direction=direction})
         Theme:SetFont(component.label,"body");return component
     end
+    local function iconButton(parent,asset,caption,action,detail)
+        local button=nav(parent,"",28,action);button.frame:SetHeight(28)
+        button.icon=button.frame:CreateTexture(nil,"ARTWORK")
+        button.icon:SetPoint("CENTER",button.frame,"CENTER");button.icon:SetSize(20,20);button.icon:SetTexture(ICON_ROOT..asset..".tga")
+        button.icon:SetAlpha(0.85)
+        local function leave()
+            button.icon:SetAlpha(0.85)
+            if GameTooltip and GameTooltip:GetOwner()==button.frame then GameTooltip:Hide() end
+        end
+        button.frame:HookScript("OnEnter",function()
+            if not panel.active then return end
+            button.icon:SetAlpha(1)
+            if GameTooltip then
+                GameTooltip:SetOwner(button.frame,"ANCHOR_LEFT");GameTooltip:ClearLines();GameTooltip:AddLine(caption,1,1,1)
+                if detail then GameTooltip:AddLine(detail,0.71,0.705,0.69,true) end
+                GameTooltip:Show()
+            end
+        end)
+        button.frame:HookScript("OnLeave",leave);button.frame:HookScript("OnHide",leave)
+        button.frame:HookScript("OnMouseDown",function() button.icon:SetAlpha(0.55) end)
+        button.frame:HookScript("OnMouseUp",function() button.icon:SetAlpha(button.frame:IsMouseOver() and 1 or 0.85) end)
+        return button
+    end
+    function panel:SetHint(value)
+        self.hintText=value
+        local c=I.Host and I.Host.PaletteController
+        if c and c.SetViewFooter then c:SetViewFooter(self,value) end
+    end
     function panel:StopDrag()
         self.dragX=nil
         if self.model then self.model:SetScript("OnUpdate",nil) end
@@ -72,6 +102,7 @@ function M:CreateView()
         GameTooltip:SetOwner(self.traits.frame,"ANCHOR_LEFT");GameTooltip:ClearLines()
         GameTooltip:AddLine(M:Name(enemy),1,1,1)
         GameTooltip:AddLine(L["可受控制"].."："..(#affected>0 and table.concat(affected," / ") or L["未记录"]),0.85,0.85,0.85,true)
+        GameTooltip:AddLine("NPC "..enemy.id,0.71,0.705,0.69)
         GameTooltip:AddLine(L["基础生命"].." "..(enemy.health or "—").."  ·  "..L["基础进度"].." "..(enemy.count or "—"),0.85,0.85,0.85,true)
         if enemy.stealth then GameTooltip:AddLine(L["隐形"],0.85,0.85,0.85) end
         if enemy.stealthDetect then GameTooltip:AddLine(L["侦测隐形"],0.85,0.85,0.85) end
@@ -157,19 +188,22 @@ function M:CreateView()
             self.revealGroup=nil
         end
         self.rowOffset=math.max(0,math.min(offset,math.max(0,#items-self.visibleRows)))
-        local sectionEnd=math.max(250,84+self.visibleRows*ROW_HEIGHT+10)
+        local sectionEnd=math.max(244,LIST_TOP+self.visibleRows*ROW_HEIGHT+12)
         if self.sectionEnd~=sectionEnd then
             self.sectionEnd=sectionEnd
             self.divider:ClearAllPoints();self.divider:SetPoint("TOPLEFT",16,-sectionEnd);self.divider:SetPoint("RIGHT",-16,0)
-            self.detailTitle:ClearAllPoints();self.detailTitle:SetPoint("TOPLEFT",16,-sectionEnd-12)
-            self.detailMeta:ClearAllPoints();self.detailMeta:SetPoint("TOPLEFT",280,-sectionEnd-13);self.detailMeta:SetPoint("RIGHT",-16,0)
-            self.descriptionScroll:ClearAllPoints();self.descriptionScroll:SetPoint("TOPLEFT",16,-sectionEnd-38);self.descriptionScroll:SetPoint("RIGHT",-16,0)
-            self.hint:ClearAllPoints();self.hint:SetPoint("TOPRIGHT",-16,-sectionEnd-94)
+            self.detailIcon:ClearAllPoints();self.detailIcon:SetPoint("TOPLEFT",16,-sectionEnd-16)
+            self.detailTitle:ClearAllPoints();self.detailTitle:SetPoint("TOPLEFT",58,-sectionEnd-13);self.detailTitle:SetPoint("RIGHT",-16,0)
+            self.detailMeta:ClearAllPoints();self.detailMeta:SetPoint("TOPLEFT",58,-sectionEnd-35);self.detailMeta:SetPoint("RIGHT",-16,0)
+            self.descriptionScroll:ClearAllPoints();self.descriptionScroll:SetPoint("TOPLEFT",16,-sectionEnd-READING_TOP);self.descriptionScroll:SetPoint("RIGHT",-16,0)
+            self.columnRule:ClearAllPoints();self.columnRule:SetPoint("TOPLEFT",244,-62);self.columnRule:SetHeight(sectionEnd-76)
         end
+        local readingHeight=math.min(READING_HEIGHT,430-sectionEnd-READING_TOP-16)
+        if self.descriptionScroll:GetHeight()~=readingHeight then self.descriptionScroll:SetHeight(readingHeight);self:UpdateDescriptionSize() end
         local areaHeight=math.max(ROW_HEIGHT,self.visibleRows*ROW_HEIGHT)
         if self.skillArea:GetHeight()~=areaHeight then self.skillArea:SetHeight(areaHeight) end
         local c=I.Host and I.Host.PaletteController
-        if c and c.ResizeView then c:ResizeView(self,sectionEnd+114) end
+        if c and c.ResizeView then c:ResizeView(self,sectionEnd+READING_TOP+readingHeight+16) end
         self.skillBar:SetRange(#items*ROW_HEIGHT,self.visibleRows*ROW_HEIGHT,self.rowOffset*ROW_HEIGHT)
     end
     function panel:UpdateDescriptionSize()
@@ -188,7 +222,11 @@ function M:CreateView()
         local spell
         for _,entry in ipairs(self.enemy.spells) do if entry.id==id then spell=entry;break end end
         self.detailTitle:SetText(id and (M:SpellName(id) or (L["技能"].." "..id)) or L["暂无技能资料"])
-        self.detailMeta:SetText(id and ("ID "..id..(spell and tags(spell)~="" and "  ·  "..tags(spell) or "")) or "")
+        local attributes=spell and tags(spell) or ""
+        self.detailMeta:SetText(id and ("ID "..id..(attributes~="" and "  ·  "..attributes or "")) or "")
+        local texture=id and C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(id)
+        if texture~=self.detailTexture then self.detailTexture=texture;self.detailIcon:SetTexture(texture) end
+        self.detailIcon:SetShown(id~=nil)
         local description=id and C_Spell and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(id)
         if self.describedID~=id or self.descriptionRaw~=description then
             self.describedID,self.descriptionRaw=id,description
@@ -200,7 +238,7 @@ function M:CreateView()
     function panel:LinkSpell(id)
         if not self.active or (InCombatLockdown and InCombatLockdown()) then return end
         local link=C_Spell and C_Spell.GetSpellLink and C_Spell.GetSpellLink(id)
-        if not link then self.hint:SetText(L["链接暂不可用，请稍后重试"]);self:Request(id);return end
+        if not link then self:SetHint(L["链接暂不可用，请稍后重试"]);self:Request(id);return end
         local chat=ChatFrameUtil
         if not chat then return end
         local controller=I.Host and I.Host.PaletteController
@@ -208,6 +246,7 @@ function M:CreateView()
         local edit=chat.GetActiveWindow and chat.GetActiveWindow()
         if edit then edit:Insert(link);edit:SetFocus()
         elseif chat.OpenChat then chat.OpenChat(link) end
+        self:SetHint(L["Shift + 左键：贴入聊天框"])
     end
     function panel:RenderSkills()
         if not self.active then return end
@@ -224,7 +263,7 @@ function M:CreateView()
                 local id=not entry.child and not expanded and group.ids[self.selected] and self.selected or entry.spellID
                 row.spellID,row.group=id,group
                 row.label:SetText(group.name or (L["技能"].." "..id))
-                row.label:ClearAllPoints();row.label:SetPoint("LEFT",entry.child and 46 or 34,0)
+                row.label:ClearAllPoints();row.label:SetPoint("LEFT",entry.child and 52 or 40,0)
                 row.label:SetPoint("RIGHT",-70,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
                 row.icon:SetTexture(C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(id) or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\spellbook.tga")
                 row.icon:ClearAllPoints();row.icon:SetPoint("LEFT",entry.child and 20 or 8,0)
@@ -245,19 +284,20 @@ function M:CreateView()
     end
     function panel:Create(parent)
         self.frame=CreateFrame("Frame",nil,parent);self.frame:SetAllPoints(parent);self.frame:Hide()
-        self.title=label(self.frame,"input","text",16,-4,400,22);self.title:SetPoint("RIGHT",-178,0)
+        self.title=label(self.frame,"input","text",16,-4,400,22);self.title:SetPoint("RIGHT",-164,0)
         self.subtitle=label(self.frame,"meta","textMuted",16,-30,584,16);self.subtitle:SetPoint("RIGHT",-16,0)
         self.back=nav(self.frame,L["返回搜索"],94,function()
             if not self.active then return end
             local c=I.Host and I.Host.PaletteController
             if c and c.viewHost and c.viewHost:IsOwnedBy(M.id) then c:CloseView("reference-back") end
         end,"left");self.back.frame:SetPoint("TOPRIGHT",-12,-2)
-        self.traits=nav(self.frame,L["特性"],48,function() self:ShowTraits() end);self.traits.frame:SetPoint("TOPRIGHT",-118,-2)
-        self.traits.frame:HookScript("OnLeave",function() if GameTooltip and GameTooltip:GetOwner()==self.traits.frame then GameTooltip:Hide() end end)
+        self.traits=iconButton(self.frame,"skull",L["特性"],function() self:ShowTraits() end)
+        self.traits.frame:SetPoint("TOPRIGHT",-120,-2)
         local function line(y)
             local f=self.frame:CreateTexture(nil,"BORDER");f:SetPoint("TOPLEFT",16,y);f:SetPoint("RIGHT",-16,0);f:SetHeight(1);Theme:SetColorTexture(f,"border");return f
         end
-        line(-52);self.divider=line(-250)
+        line(-52);self.divider=line(-244)
+        self.columnRule=self.frame:CreateTexture(nil,"BORDER");self.columnRule:SetWidth(1);Theme:SetColorTexture(self.columnRule,"border")
         self.model=CreateFrame("PlayerModel",nil,self.frame);self.model:SetPoint("TOPLEFT",16,-62);self.model:SetSize(214,168)
         self.model:EnableMouse(true);self.model:EnableMouseWheel(true)
         local function drag()
@@ -276,15 +316,18 @@ function M:CreateView()
             if zoom~=self.zoom then self.zoom=zoom;self.model:SetPortraitZoom(zoom) end
         end)
         self.modelMessage=label(self.frame,"body","textMuted",32,-142,180,32)
-        self.dragHint=label(self.frame,"meta","textMuted",16,-233,170,16);self.dragHint:SetText(L["拖动旋转 · 滚轮缩放"])
-        self.reset=nav(self.frame,L["复位"],40,function() if self.active then self:StopDrag();self.facing,self.zoom=0,0;self.model:SetFacing(0);self.model:SetPortraitZoom(0) end end)
-        self.reset.frame:SetPoint("TOPLEFT",192,-225)
-        self.abilities=label(self.frame,"body","text",252,-64,160,18)
+        self.reset=iconButton(self.model,"reload",L["重置视角"],function()
+            if self.active and not (InCombatLockdown and InCombatLockdown()) then
+                self:StopDrag();self.facing,self.zoom=0,0;self.model:SetFacing(0);self.model:SetPortraitZoom(0)
+            end
+        end,L["拖动旋转 · 滚轮缩放"])
+        self.reset.frame:SetPoint("TOPRIGHT",self.model,"TOPRIGHT",0,0)
+        self.abilities=label(self.frame,"body","text",268,-60,160,18)
         self.previous=nav(self.frame,"",20,function() if self.active then self.page=self.page-1;self:RenderSkills() end end,"left")
         self.next=nav(self.frame,"",20,function() if self.active then self.page=self.page+1;self:RenderSkills() end end,"right")
-        self.next.frame:SetPoint("TOPRIGHT",-16,-60);self.previous.frame:SetPoint("TOPRIGHT",-90,-60)
+        self.next.frame:SetPoint("TOPRIGHT",-16,-56);self.previous.frame:SetPoint("TOPRIGHT",-90,-56)
         self.pageLabel=label(self.frame,"meta","textMuted",0,0,52,18);self.pageLabel:ClearAllPoints();self.pageLabel:SetPoint("RIGHT",self.next.frame,"LEFT",-4,0);self.pageLabel:SetJustifyH("CENTER")
-        self.skillArea=CreateFrame("Frame",nil,self.frame);self.skillArea:SetPoint("TOPLEFT",244,-84);self.skillArea:SetPoint("RIGHT",-12,0);self.skillArea:SetHeight(PER_PAGE*ROW_HEIGHT)
+        self.skillArea=CreateFrame("Frame",nil,self.frame);self.skillArea:SetPoint("TOPLEFT",260,-LIST_TOP);self.skillArea:SetPoint("RIGHT",-12,0);self.skillArea:SetHeight(PER_PAGE*ROW_HEIGHT)
         self.skillArea:EnableMouseWheel(true)
         self.skillBar=Components:CreateScrollbar(self.skillArea,function(value)
             local offset=math.floor(value/ROW_HEIGHT+0.5)
@@ -301,7 +344,7 @@ function M:CreateView()
             end)
             row.frame:SetPoint("TOPLEFT",0,-(i-1)*ROW_HEIGHT);row.frame:SetPoint("RIGHT",-14,0);row.frame:SetHeight(ROW_HEIGHT)
             row.frame:EnableMouseWheel(true);row.frame:SetScript("OnMouseWheel",function(_,delta) if self.active then self.skillBar:SetValue((self.rowOffset-delta)*ROW_HEIGHT) end end)
-            row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetSize(20,20)
+            row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetSize(24,24)
             row.meta=text(row.frame,"meta","textDim");row.meta:SetPoint("RIGHT",-6,0);row.meta:SetWidth(68);row.meta:SetHeight(16);row.meta:SetJustifyH("RIGHT")
             row.mark=row.frame:CreateTexture(nil,"ARTWORK");Theme:SetColorTexture(row.mark,"accent");row.mark:SetPoint("LEFT",0,0);row.mark:SetSize(2,22)
             row.bg=row.frame:CreateTexture(nil,"BACKGROUND");Theme:SetColorTexture(row.bg,"surfaceSelected");row.bg:SetPoint("TOPLEFT",0,-2);row.bg:SetPoint("BOTTOMRIGHT",0,2)
@@ -326,16 +369,17 @@ function M:CreateView()
             end)
             self.rows[i]=row
         end
-        self.detailTitle=label(self.frame,"body","text",16,-262,250,18)
-        self.detailMeta=label(self.frame,"meta","textMuted",280,-263,320,16);self.detailMeta:SetPoint("RIGHT",-16,0);self.detailMeta:SetJustifyH("RIGHT")
-        self.descriptionScroll=CreateFrame("ScrollFrame",nil,self.frame);self.descriptionScroll:SetPoint("TOPLEFT",16,-288);self.descriptionScroll:SetPoint("RIGHT",-16,0);self.descriptionScroll:SetHeight(52)
+        self.detailIcon=self.frame:CreateTexture(nil,"ARTWORK");self.detailIcon:SetSize(28,28)
+        self.detailTitle=label(self.frame,"title","text",58,-257,520,20)
+        self.detailMeta=label(self.frame,"meta","textMuted",280,-263,320,16);self.detailMeta:SetPoint("RIGHT",-16,0);self.detailMeta:SetJustifyH("LEFT")
+        self.descriptionScroll=CreateFrame("ScrollFrame",nil,self.frame);self.descriptionScroll:SetPoint("TOPLEFT",16,-288);self.descriptionScroll:SetPoint("RIGHT",-16,0);self.descriptionScroll:SetHeight(READING_HEIGHT)
         self.descriptionBody=CreateFrame("Frame",nil,self.descriptionScroll);self.descriptionBody:SetSize(570,52)
-        self.description=text(self.descriptionBody,"body","textMuted");self.description:SetPoint("TOPLEFT");self.description:SetWidth(570)
+        self.description=text(self.descriptionBody,"body","textMuted");self.description:SetPoint("TOPLEFT");self.description:SetWidth(570);self.description:SetSpacing(3)
         self.descriptionScroll:SetScrollChild(self.descriptionBody);self.descriptionScroll:EnableMouseWheel(true)
         self.descriptionBar=Components:CreateScrollbar(self.descriptionScroll,function(value) self.descriptionScroll:SetVerticalScroll(value);self:UpdateDescriptionSize() end)
         self.descriptionScroll:SetScript("OnMouseWheel",function(_,delta) self.descriptionBar:SetValue(self.descriptionScroll:GetVerticalScroll()-delta*24) end)
         self.descriptionScroll:SetScript("OnSizeChanged",function() if self.active then self:UpdateDescriptionSize() end end)
-        self.hint=label(self.frame,"meta","textMuted",252,-352,348,16);self.hint:ClearAllPoints();self.hint:SetPoint("BOTTOMRIGHT",-16,0);self.hint:SetJustifyH("RIGHT")
+
     end
     function panel:Mount(context,state)
         local enemy,dungeon=M:Find(state.dungeonID,state.npcID,state.spellID);assert(enemy,L["资料暂不可用"])
@@ -346,8 +390,8 @@ function M:CreateView()
         self.selected=state.spellID~=0 and state.spellID or enemy.spells[1] and enemy.spells[1].id
         self.page,self.facing,self.zoom,self.rowOffset,self.renderedPage=1,0,0,0,nil
         self.title:SetText(M:Name(enemy))
-        self.subtitle:SetText(M:Name(dungeon).."  ·  "..L[enemy.isBoss and "首领" or "小怪"].."  ·  "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or "").."  ·  NPC "..enemy.id)
-        self.hint:SetText(L["Shift + 左键：贴入聊天框"])
+        self.subtitle:SetText(M:Name(dungeon).."  ·  "..L[enemy.isBoss and "首领" or "小怪"].."  ·  "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or ""))
+        self:SetHint(L["Shift + 左键：贴入聊天框"])
         self.event=context.resources:OnEvent("SPELL_DATA_LOAD_RESULT",function(_,id)
             if self.active and self.pending[id]==true then
                 self.pending[id]=false
@@ -357,7 +401,7 @@ function M:CreateView()
                 end) end
             end
         end)
-        self.frame:Show();self.model:Show()
+        self.frame:Show();self.model:Show();self.reset.frame:Show();self.traits.frame:Show()
         local ok=pcall(function() self.model:ClearModel();self.model:SetDisplayInfo(enemy.displayId);self.model:SetPortraitZoom(0);self.model:SetCamDistanceScale(1);self.model:SetFacing(0) end)
         self.modelMessage:SetText(ok and "" or L["模型暂不可用"])
         self:BuildGroups(true);self:RenderSkills()
@@ -369,10 +413,11 @@ function M:CreateView()
         for _,row in ipairs(self.rows) do row.spellID=nil;row.group=nil;row.frame:Hide();row.label:SetText("");row.meta:SetText("");row.icon:SetTexture(nil) end
         self.enemy,self.dungeon,self.pending,self.selected,self.groups,self.flat,self.expanded,self.resources=nil,nil,nil,nil,nil,nil,nil,nil
         self.pageItems,self.anchorID,self.anchorChild,self.revealID,self.revealGroup,self.renderedPage=nil,nil,nil,nil,nil,nil
-        self.describedID,self.descriptionRaw=nil,nil
+        self.describedID,self.descriptionRaw,self.detailTexture,self.hintText=nil,nil,nil,nil
         if self.frame then
-            if GameTooltip and GameTooltip:GetOwner()==self.traits.frame then GameTooltip:Hide() end
+            if GameTooltip and (GameTooltip:GetOwner()==self.traits.frame or GameTooltip:GetOwner()==self.reset.frame) then GameTooltip:Hide() end
             self.title:SetText("");self.subtitle:SetText("");self.detailTitle:SetText("");self.detailMeta:SetText("");self.description:SetText("")
+            self.detailIcon:SetTexture(nil);self.reset.frame:Hide();self.traits.frame:Hide()
             self.descriptionBar:StopDrag();self.skillBar:StopDrag();self.model:Hide();pcall(self.model.ClearModel,self.model);self.frame:Hide()
         end
     end

@@ -146,3 +146,25 @@ assert(p.viewHost.panel.contentHeight==nil,"replacement keeps default height")
 p:CloseView("resize-done")
 Lychee.UI.Motion.Height=heightMotion
 print("View height ownership PASS")
+
+p:Show();p:SetQueryMode("")
+local footerView={Mount=function(self) assert(p:SetViewFooter(self,"Share current ability")) end}
+assert(p:OpenView({create=function() return footerView end},{},{}))
+assert(p.footerHint:GetText()=="Share current ability" and p.status:GetText()=="","custom detail footer contains one instruction")
+assert(p:SetViewFooter(footerView,"Try again") and p.footerHint:GetText()=="Try again")
+assert(not p:SetViewFooter({},"stale") and not p:SetViewFooter(footerView,string.rep("x",257)))
+p:CloseView("footer-close")
+assert(not p:SetViewFooter(footerView,"stale") and p.footerHint:GetText()~="Try again","closing restores the destination footer")
+assert(p:OpenView({create=function() return {} end},{},{}))
+assert(p.viewHost.panel.footerHint==nil and p.footerHint:GetText()~="Share current ability")
+p:CloseView("footer-test-done")
+print("View footer ownership PASS")
+
+p:Show();p:SetQueryMode("")
+local originalStatus,originalHint=p.status:GetText(),p.footerHint:GetText()
+local failedFooter,failedFooterReason=p:OpenView({create=function() return {
+    Mount=function(self) assert(p:SetViewFooter(self,"provisional footer"));error("footer mount failure") end
+} end},{},{})
+assert(not failedFooter and failedFooterReason=="PANEL_ERROR")
+assert(p.status:GetText()==originalStatus and p.footerHint:GetText()==originalHint,"failed Mount cannot publish provisional footer")
+print("Failed view footer rollback PASS")
