@@ -1,6 +1,6 @@
 # SDK 所有权与生命周期约束
 
-当前实现为 Provider API 2 / revision 6、UI Runtime 1。本轮采用角色存储和内部接收优化，未改变公开签名。用户允许未来破坏式更新，但旧 SDK 3/完全休眠候选不再是本轮实施要求。完整 [设计](../docs/architecture/2026-09-12-runtime-lifecycle.md) 与 [验证](../tests/LIFECYCLE_ACCEPTANCE.md)。
+当前 Provider API 2 / revision 7、UI Runtime 1。普通记录、角色设置与输入隔离保持；新增 [公共托管资源](MANAGED_RESOURCES.md)，以明确所有者和自动收尾实现生命周期约束。角色存储 [设计](../docs/architecture/2026-09-12-runtime-lifecycle.md) 与 [验证](../tests/LIFECYCLE_ACCEPTANCE.md) 继续适用。
 
 ## Provider 接收
 
@@ -18,7 +18,7 @@
 
 UI Runtime 继续复用原生结构。release/unmount 清除活动 props/context/回调与任务，已创建 Frame 不视为普通 Lua 临时表。宿主首页也遵守该规则，动画完成后解除结果引用；独立 UI 库没有 CharacterStore 时，Motion 使用独立默认/本地减少动态效果状态。
 
-新增 Provider 复用标准注册与 CatalogProvider 调度，不复制默认关闭或账号存档逻辑。新增设置通过角色存储入口维护；第三方自己的业务数据库归第三方所有，不由 Host 自动迁移。
+新增 Provider 通过公开 RegisterProvider 注册，通用异步工作使用 context.resources:Run/After。内置 CatalogProvider 的目录发布仍是 Host 内部能力，第三方不依赖它。简单设置使用 handle:Settings() 按角色维护；第三方原有数据库仍归第三方所有，不自动迁移。
 
 ## 验证
 

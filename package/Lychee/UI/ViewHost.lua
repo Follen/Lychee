@@ -31,6 +31,8 @@ local function release(self, reason)
     local panel = self.panel
     self.panel, self.active = nil, false
     self.generation = self.generation + 1
+    local resources=self.resources;self.resources=nil
+    if resources then _G.LycheeInternal.Resources:Close(resources,reason) end
     if panel then
         invoke(panel, "Unmount", reason)
         invoke(panel, "Dispose", reason)
@@ -74,6 +76,13 @@ function ViewHost:Mount(factory, context, state)
     -- Lua callbacks may ignore the second argument, so legacy create(context) factories remain valid.
     local owner = context.extensionID
     self.pendingOwner = owner
+    local providers=_G.LycheeInternal and _G.LycheeInternal.Providers
+    if providers and providers.CreateViewResources then
+        local resources,err=providers:CreateViewResources(owner)
+        if err then return finish(self,false,err.code) end
+        self.resources=resources
+        context.resources=resources
+    end
     local ok, instance = xpcall(function()
         if type(factory.create) == "function" then return factory.create(context, state) end
     end, report)

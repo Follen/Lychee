@@ -5,7 +5,7 @@ function GetBuildInfo() return "fixture","70000","",interface end
 function InCombatLockdown() return false end
 CreateFrame=nil
 WOW_PROJECT_MAINLINE=1;WOW_PROJECT_MISTS_CLASSIC=19;WOW_PROJECT_WRATH_CLASSIC=11;WOW_PROJECT_BURNING_CRUSADE_CLASSIC=5
-for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua"}) do dofile("package/Lychee/"..file) end
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local sequence=0

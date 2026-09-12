@@ -1,6 +1,6 @@
 # 可复用视图与生命周期
 
-本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+当前 SDK 为 API 2 / revision 7，UI Runtime 仍为 1。新增公共资源生命周期、角色设置和有界缓存，见 [托管资源协议](MANAGED_RESOURCES.md)；旧 revision 1–6 的 Provider 保持兼容。
 
 适用 Provider API 2；本次补强不新增 revision，不改变旧 Provider 的正常回调顺序。
 可执行示例：[ThirdPartyFixture](examples/ThirdPartyFixture/ThirdPartyFixture.lua)。

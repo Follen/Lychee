@@ -197,8 +197,11 @@ local function finish(job, reason)
     if job.done then return end
     job.done, job.reason = true, reason
     P.jobs[job] = nil
-    if job.timer then job.timer:Cancel(); job.timer = nil end
+    local resources,timer=job.resources,job.timer
+    job.resources,job.timer=nil,nil
     local cancel = job.cancel; job.cancel = nil
+    if timer and not pcall(timer.Cancel,timer) then report(job.entry,"CALLBACK_ERROR","query.timer") end
+    if resources then I.Resources:Close(resources, reason) end
     if cancel then
         local ok = pcall(cancel, reason)
         if not ok then report(job.entry, "CALLBACK_ERROR", "query.cancel") end
@@ -312,11 +315,13 @@ function P:Register(definition)
         if not internal then enabledBeforeCommit = true; return end
         if not active(entry) or entry.started then return end
         entry.started = true
+        entry.lifecycleEpoch=(entry.lifecycleEpoch or 0)+1
+        local lifecycle=entry.lifecycleEpoch
         if definition.onEnable then
             local called, cleanup = pcall(definition.onEnable, handle)
             if not called then report(entry, "CALLBACK_ERROR", "onEnable")
             elseif type(cleanup) == "function" then
-                if active(entry) then entry.cleanup = cleanup
+                if active(entry) and entry.lifecycleEpoch==lifecycle then entry.cleanup = cleanup
                 elseif not pcall(cleanup, "cancelled-enable") then report(entry, "CALLBACK_ERROR", "cleanup") end
             elseif cleanup ~= nil then report(entry, "INVALID_CALLBACK", "onEnable.cleanup") end
         end
@@ -324,12 +329,19 @@ function P:Register(definition)
     local function stop(reason)
         local wasStarted = entry.started
         entry.started = nil
-        P:CancelQueries(reason, entry)
+        entry.lifecycleEpoch=(entry.lifecycleEpoch or 0)+1
+        local lifecycle=entry.lifecycleEpoch
+        local resources=entry.resources;entry.resources=nil
+        local cleanup = entry.cleanup; entry.cleanup = nil
+        local pending={}
+        for job in pairs(P.jobs) do if job.entry==entry then pending[#pending+1]=job end end
         entry.dynamic, entry.resolved = {}, resolvedRecords()
         entry.dynamicEpoch = entry.dynamicEpoch + 1
-        local cleanup = entry.cleanup; entry.cleanup = nil
+        if resources then I.Resources:Close(resources,reason) end
+        for _,job in ipairs(pending) do finish(job,reason) end
         if cleanup and not pcall(cleanup, reason) then report(entry, "CALLBACK_ERROR", "cleanup") end
-        if wasStarted and definition.onDisable and not pcall(definition.onDisable, reason) then report(entry, "CALLBACK_ERROR", "onDisable") end
+        if wasStarted and entry.lifecycleEpoch==lifecycle and definition.onDisable
+            and not pcall(definition.onDisable, reason) then report(entry, "CALLBACK_ERROR", "onDisable") end
     end
     local draft
     draft, err = I.Registry:Begin({ id = entry.id, title = definition.title, version = definition.version,
@@ -409,6 +421,23 @@ function P:Register(definition)
         if not (C_Timer and C_Timer.NewTimer) and I.Search.Session then I.Search.Session:RefreshSource() end
         return true
     end
+    function handle:Resources()
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        if not active(entry) then return failure("PROVIDER_DISABLED",nil,entry.id) end
+        if not entry.resources then
+            entry.resources=I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end)
+        end
+        return entry.resources
+    end
+    function handle:Settings()
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        if not entry.settings then entry.settings=I.ProviderData:Settings(entry.id,function() return P.entries[entry.id]==entry end) end
+        return entry.settings
+    end
+    function handle:GetDiagnostics()
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        return entry.resources and entry.resources:GetDiagnostics() or {active=false,resources=0,providerResources=0,errors=0,limit=I.Resources.limit}
+    end
     function handle:Text(key,...)
         if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
         if not entry.localizer then return failure("INVALID_LOCALE_KEY","i18n",entry.id) end
@@ -433,7 +462,7 @@ function P:Register(definition)
         if removed then
             P.entries[entry.id] = nil
             if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
-            entry.localizer=nil
+            entry.localizer,entry.settings=nil,nil
             entry.metadataPool, entry.actionRecords, entry.actionLists = nil, nil, nil
             entry.records, entry.recordMap, entry.recordOrder, entry.dynamic, entry.resolved = {}, {}, {}, {}, {}
             definition.actions, definition.drags, definition.views, definition.query, definition.resolve = nil, nil, nil, nil, nil
@@ -443,6 +472,13 @@ function P:Register(definition)
     end
     if enabledBeforeCommit then start() end
     return handle
+end
+
+function P:CreateViewResources(owner)
+    local entry=self.entries[owner]
+    if not entry or not active(entry) or (entry.definition.minApiRevision or 1)<7 then return nil end
+    if not entry.resources then entry.resources=I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end) end
+    return I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end,entry.resources)
 end
 
 function P:Stamp(item, dynamic)
@@ -607,19 +643,36 @@ function P:Search(request, context, onChange)
             settle(job, "complete")
             return true
         end
-        local ok, cancel = pcall(entry.definition.query, publicQueryRequest(request), reply, copy(context or {}))
+        local queryContext=copy(context or {})
+        local resourceError
+        if (entry.definition.minApiRevision or 1)>=7 then
+            if not entry.resources then entry.resources=I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end) end
+            job.resources,resourceError=I.Resources:Create(function() return not job.done and active(entry) and job.epoch==P.queryEpoch end,
+                function(code,field) report(entry,code,field) end,entry.resources)
+            queryContext.resources=job.resources
+        end
+        local ok, cancel
+        if (entry.definition.minApiRevision or 1)>=7 and not job.resources then
+            ok=false
+        else ok,cancel=pcall(entry.definition.query, publicQueryRequest(request), reply, queryContext) end
         if not ok then
-            output[id], entry.dynamic = nil, {}
-            report(entry, "CALLBACK_ERROR", "query"); settle(job, "error")
+            if P.entries[id]==entry and epoch==P.queryEpoch and job.dynamicEpoch==entry.dynamicEpoch then
+                output[id], entry.dynamic = nil, {}
+            end
+            report(entry, resourceError and resourceError.code or "CALLBACK_ERROR", "query"); settle(job, "error")
         elseif cancel ~= nil and type(cancel) ~= "function" then report(entry, "INVALID_CALLBACK", "query.cancel"); settle(job, "error")
         elseif job.done then
             if cancel and not pcall(cancel, job.reason) then report(entry, "CALLBACK_ERROR", "query.cancel") end
         else
             job.cancel = cancel
-            if C_Timer and C_Timer.NewTimer then job.timer = C_Timer.NewTimer(5, function()
+            if C_Timer and C_Timer.NewTimer then
+                local scheduled,timer=pcall(C_Timer.NewTimer,5, function()
                 if job.done then return end
                 report(entry, "QUERY_TIMEOUT", "query"); settle(job, "timeout")
-            end) end
+                end)
+                if scheduled and timer then job.timer=timer
+                else report(entry,"RESOURCE_UNAVAILABLE","query.timer");settle(job,"error") end
+            end
         end
         end
     end

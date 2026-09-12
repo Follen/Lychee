@@ -24,11 +24,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
-    "Builtin/Exwind/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
-    "Search/ProviderPolicy.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua",
-    "Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua",
-    "Core/ProviderRuntime.lua","PublicAPI/SDK.lua","Builtin/Exwind/Provider.lua"}) do dofile("package/Lychee/"..file) end
+dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Exwind/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Builtin/Exwind/Provider.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.Exwind
@@ -40,6 +36,11 @@ assert(M.active and #timers==0 and frames==baseFrames)
 local definition=I.Providers.entries[M.id].definition
 assert(#definition.scope.products==1 and definition.scope.products[1]=="retail")
 assert(definition.searchGlobal==false and definition.searchPrefixes[1]=="ex")
+local function managedQuery(request,reply)
+    local resources=assert(I.Resources:Create(function() return M.active end,nil,assert(M.handle:Resources())))
+    local cancel=M:Query(request,function(rows) I.Resources:Close(resources,"complete");reply(rows) end,{resources=resources})
+    return function() I.Resources:Close(resources,"cancelled");if cancel then cancel() end end
+end
 local function query(input)
     local result
     local _,initial=I.Search.Query:Query(input,{visible=true},nil,function(rows) result=rows end)
@@ -106,9 +107,9 @@ assert(query("ex:test")[1].title=="请先脱离战斗")
 assert(not definition.actions.unlock.run(unlockRow).ok and not definition.actions.open.run(boss).ok)
 combat=false
 local replied=false
-local cancel=M:Query({normalized="x",filter={sourceID=M.id..":records"}},function() replied=true end)
+local cancel=managedQuery({normalized="x",filter={sourceID=M.id..":records"}},function() replied=true end)
 cancel();drain();assert(not replied and not M.cancel)
-M:Query({normalized="x",filter={sourceID=M.id..":records"}},function() replied=true end)
+managedQuery({normalized="x",filter={sourceID=M.id..":records"}},function() replied=true end)
 assert(I.Registry:SetUserEnabled(M.id,false));drain();assert(not replied and not M.cancel)
 assert(I.Registry:SetUserEnabled(M.id,true))
 -- One hundred modules, ten actual static settings each. No UI/callback work.
@@ -123,7 +124,7 @@ for module=1,100 do
 end
 local function measured()
     local result
-    M:Query({normalized="setting 100 10",limit=20,filter={sourceID=M.id..":records"}},function(rows) result=rows end)
+    managedQuery({normalized="setting 100 10",limit=20,filter={sourceID=M.id..":records"}},function(rows) result=rows end)
     drain();assert(result and result[1].title=="Module 100")
 end
 local start=os.clock();measured();local coldMS=(os.clock()-start)*1000

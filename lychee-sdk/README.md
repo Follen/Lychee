@@ -1,8 +1,8 @@
 # lychee-sdk
 
-本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+当前 SDK 为 API 2 / revision 7，UI Runtime 仍为 1。新增公共资源生命周期、角色设置和有界缓存，见 [托管资源协议](MANAGED_RESOURCES.md)；旧 revision 1–6 的 Provider 保持兼容。
 
-Provider API 2.6 / revision 6 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
+Provider API 2 / revision 7 的开发包。它不是独立 AddOn，不要整包复制到正式服 AddOns。
 
 统一控件、受控状态和懒创建面板参见 [UI 库](UI_LIBRARY.md)。UI Runtime 1 独立版本化，
 可通过 AsView 接入既有 Provider 面板生命周期，不更改 Provider API 2.6 的业务协议。
@@ -11,7 +11,7 @@ Provider API 2.6 / revision 6 的开发包。它不是独立 AddOn，不要整�
 关闭时Unmount→Dispose、部分失败恢复与回调重入规则。TOC加载代码、Provider初始化、索引构建和UI创建是不同阶段，
 “窗口按需创建”不代表对应Lua尚未加载。第三方适配契约见[适配与兼容性](ADAPTER_COMPATIBILITY.md)。
 
-新接入推荐 revision 6：`searchGlobal=true, searchPrefixes={"scope"}, searchKeywords={"openlist"}`，普通搜索与两类入口同时可用。检查 `Supports(2,6)` 并声明 `minApiRevision=6`；空词表移除对应入口，不与旧 searchMode 混用。旧 revision 1–5 声明保持原效果，用户可在管理页明确组合。详见 [SDK 接入](../docs/SDK.md)。
+新接入推荐 revision 7，包含 revision 6 的搜索入口：`searchGlobal=true, searchPrefixes={"scope"}, searchKeywords={"openlist"}`，普通搜索与两类入口同时可用。检查 `Supports(2,7)` 并声明 `minApiRevision=7`；空词表移除对应入口，不与旧 searchMode 混用。旧 revision 1–5 声明保持原效果，用户可在管理页明确组合。详见 [SDK 接入](../docs/SDK.md)。
 
 revision 5 新增 `searchMode="keyword", searchKeywords={"quick","快捷"}`。检查 `Supports(2,5)`，声明 `minApiRevision=5`；Host 负责精确触发和来源隔离，query 收到空文本及本来源 sourceID，无需重复判断触发词。用户可在管理页修改触发词或切换模式。触发词和冒号前缀互不混用；保留旧独立查询兼容。完整示例、冲突与生命周期语义见 [SDK 接入](../docs/SDK.md)。
 

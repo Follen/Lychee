@@ -68,3 +68,5 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 ## 版本差异实现的验收
 
 Provider 声明多个客户端或版本区间时，按 [客户端与 build 差异约定](../lychee-sdk/CLIENT_VARIANTS.md) 为每个实际分支验证选择边界、缺失能力、唯一注册、业务行为、独立 i18n、历史／缓存隔离和启停清理。一个客户端的 API 存在性或测试通过不能代替其他分支。分支的 WoW API 证据必须对应正确的 wowdoc product/ref；离线结果与实机结果分开记录。
+
+测试新增/迁移请使用 [测试装配约定](../tests/README.md)，保留独立的外部替身、业务参照和断言。SDK 资源契约修改必须同步 MANAGED_RESOURCES、ApiStubs 与可执行示例。

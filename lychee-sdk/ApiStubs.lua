@@ -17,7 +17,7 @@
 ---@field create? fun(parent:any):table Native adapter factory.
 ---@field update? fun(props:table,state:table,view:LycheeUIView)
 ---@field release? fun(reason:string,view:LycheeUIView)
--- Editor-only API 2.2 declarations. Do not list this file in an AddOn TOC.
+-- Editor-only API 2 / revision 7 declarations. Do not list this file in an AddOn TOC.
 
 ---@class LycheeError
 ---@field code string
@@ -144,6 +144,7 @@
 ---@class LycheeViewContext
 ---Current mount only: clear references on Unmount; do not mutate Host identity fields.
 ---Context/state are not promised to be immutable or deep-copied on every mount.
+---@field resources? LycheeResources Since revision 7; current mount lifetime.
 ---@field contentFrame table WoW content container owned by the Host.
 ---@field width number
 ---@field height number
@@ -176,12 +177,12 @@
 ---@field searchGlobal? boolean Since revision 6. Independently include records and query in ordinary search. Both shortcut types remain active. Cannot coexist with searchMode or searchable=false. If false, at least one shortcut is required.
 ---@field searchPrefixes? string[] Since revision 4. 1..8 unique case-insensitive prefixes, <=48 bytes each; no spaces, separators or color markup. Required for searchMode=prefix. With searchGlobal (revision 6), empty array disables prefix shortcuts. Conflicts rejected at registration.
 ---@field searchKeywords? string[] Since revision 5. 1..8 unique exact triggers, <=48 bytes each; ASCII case-insensitive, trimmed; no internal whitespace, commas, colons or markup. Required for legacy keyword mode. With searchGlobal (revision 6), empty array disables direct shortcuts. Unique across providers, independent of prefix names. Trigger maps to an empty source-scoped query; user settings may override.
----@field minApiRevision? integer Use 6 for searchGlobal (empty prefix/keyword arrays remove shortcuts), 5 for keyword/searchKeywords, 4 for global/prefix/searchPrefixes, 3 for searchable, 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
+---@field minApiRevision? integer Use 7 for managed query/view resources, 6 for searchGlobal (empty prefix/keyword arrays remove shortcuts), 5 for keyword/searchKeywords, 4 for global/prefix/searchPrefixes, 3 for searchable, 2 for scope.products and Provider-owned i18n; omitted means legacy revision 1.
 ---@field version string Integration version.
 ---@field title string|table<string,string>|LycheeLocaleKey Legacy localized maps require default.
 ---@field i18n? LycheeLocaleResources Required for revision 2. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.
 ---@field entries? LycheeEntry[] Maximum 4096; entries or query is required.
----@field query? fun(request:LycheeQueryRequest,reply:LycheeReply,context:LycheeContext):LycheeCancel?
+---@field query? fun(request:LycheeQueryRequest,reply:LycheeReply,context:LycheeQueryContext):LycheeCancel?
 ---@field resolve? fun(entryID:string,context:LycheeContext):LycheeEntry?
 ---@field actions? table<string,LycheeProviderAction>
 ---@field drags? table<string,LycheeDragHandler>
@@ -203,6 +204,9 @@
 
 ---@class LycheeProviderHandle
 ---@field id string
+---@field Resources fun(self:LycheeProviderHandle):LycheeResources?,LycheeError?
+---@field Settings fun(self:LycheeProviderHandle):LycheeSettings?,LycheeError?
+---@field GetDiagnostics fun(self:LycheeProviderHandle):LycheeResourceDiagnostics?,LycheeError?
 ---@field Text fun(self:LycheeProviderHandle,key:string,...:string|number):string?,LycheeError? Up to 16 arguments; strings <=1024 bytes, output <=32768 bytes.
 ---@field Update fun(self:LycheeProviderHandle,delta:LycheeProviderUpdate):boolean?,LycheeError?
 ---@field GetState fun(self:LycheeProviderHandle):LycheeProviderState?,LycheeError?
@@ -215,7 +219,7 @@
 ---@class LycheeFacade
 ---@field UI LycheeUIRuntime
 ---@field API_VERSION 2
----@field API_REVISION 6
+---@field API_REVISION 7
 ---@field Supports fun(self:LycheeFacade,apiVersion:integer,minRevision?:integer):boolean
 ---@field IsReady fun(self:LycheeFacade):boolean
 ---@field RegisterReady fun(self:LycheeFacade,callback:fun(info:{apiVersion:integer,apiRevision:integer})):LycheeReadySubscription?,LycheeError?
@@ -228,3 +232,40 @@ Lychee = {}
 ---@field RuntimeVersion 1
 ---@field Create fun(self:LycheeUIRuntime,parent:any,definition:LycheeUIDefinition):LycheeUIView?,string?
 ---@field AsView fun(self:LycheeUIRuntime,definition:LycheeUIDefinition,stateSchema?:table):table
+
+---@class LycheeQueryContext: table
+---@field resources? LycheeResources Revision 7; closed at query completion/cancellation/error.
+
+---@class LycheeResourceToken
+---@field Cancel fun(self:LycheeResourceToken,reason?:string):boolean
+
+---@class LycheeResourceDiagnostics
+---@field active boolean
+---@field resources integer Direct registrations in this scope.
+---@field providerResources integer Aggregate registrations across scopes.
+---@field errors integer Callback failures in this scope.
+---@field limit integer
+
+---@class LycheeTaskHandlers
+---@field complete? fun(value:any)
+---@field error? fun(errorValue:any)
+---@field combat? fun() End task before resuming in combat, only when declared.
+
+---@class LycheeResources
+---@field Own fun(self:LycheeResources,key:string,cleanup:fun(reason:string)):LycheeResourceToken?,LycheeError?
+---@field After fun(self:LycheeResources,key:string,seconds:number,callback:fun()):LycheeResourceToken?,LycheeError?
+---@field Run fun(self:LycheeResources,key:string,work:fun():any,handlers?:LycheeTaskHandlers):LycheeResourceToken?,LycheeError?
+---@field OnEvent fun(self:LycheeResources,event:string,callback:fun(event:string,...)):LycheeResourceToken?,LycheeError?
+---@field Cache fun(self:LycheeResources,key:string,options?:{entries?:integer,bytes?:integer}):LycheeCache?,LycheeError?
+---@field IsActive fun(self:LycheeResources):boolean
+---@field GetDiagnostics fun(self:LycheeResources):LycheeResourceDiagnostics
+
+---@class LycheeSettings
+---@field Get fun(self:LycheeSettings,key:string,default?:any):any,LycheeError?
+---@field Set fun(self:LycheeSettings,key:string,value:any):boolean?,LycheeError?
+
+---@class LycheeCache
+---@field Get fun(self:LycheeCache,key:string):any,LycheeError?
+---@field Set fun(self:LycheeCache,key:string,value:any):boolean?,LycheeError?
+---@field Clear fun(self:LycheeCache):boolean?,LycheeError?
+---@field GetDiagnostics fun(self:LycheeCache):{entries:integer,bytes:integer,entryLimit:integer,byteLimit:integer,active:boolean}

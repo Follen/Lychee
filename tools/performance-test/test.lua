@@ -60,7 +60,7 @@ local packagePath="analyze/performance-test-package/Lychee Performance Test/"
 for line in io.lines(packagePath.."Lychee Performance Test.toc") do
     if line:match("%.lua$") then assert(loadfile(packagePath..line))("Lychee Performance Test",carrier) end
 end
-assert(#carrier.modules==57 and #tasks==0 and nativeCalls==0 and overlayFrames==0)
+assert(#carrier.modules==56 and #tasks==0 and nativeCalls==0 and overlayFrames==0)
 assert(next(LycheePerformanceTestDB.reports)==nil and LycheeDevDB==nil)
 local script=LycheePerformanceTest.Start
 local function checkFactories()

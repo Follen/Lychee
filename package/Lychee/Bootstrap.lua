@@ -38,7 +38,7 @@ function L:Resolve(value, fallback)
 end
 L.name = L:IsChinese() and "|cffd53c49荔枝|r启动器" or "|cffd53c49Lychee|r Launcher"
 
-I.VERSION = { api = 2, revision = 6 }
+I.VERSION = { api = 2, revision = 7 }
 I.Modules = I.Modules or {}
 LycheeDB = LycheeDB or {}
 if LycheeDB.schemaVersion ~= 2 then LycheeDB = { schemaVersion = 2 } end

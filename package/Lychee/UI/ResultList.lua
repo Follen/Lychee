@@ -77,7 +77,7 @@ local function singleLine(fontString)
     if type(fontString.SetMaxLines) == "function" then fontString:SetMaxLines(1) end
 end
 
-local function extensionID(item) return item and (item._ext or (item.command and item.command._ext)) end
+local function extensionID(item) return item and (item._ext) end
 local function stableItemID(item) return item and (item.stableID or item.id or item.itemID or item) or nil end
 local function actionEnabled(action) return action and action.id and action.enabled ~= false and action.disabled ~= true end
 local function actionLabel(action) return action and (action.title or action.label or action.id) or "" end

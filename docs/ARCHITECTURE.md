@@ -1,8 +1,8 @@
 # Lychee 通用搜索框架
 
-运行时低内存重构另见 [角色存储与生命周期设计](architecture/2026-09-12-runtime-lifecycle.md)。它覆盖插件、SDK、构建和验收；以下描述已实现架构；保留紧凑目录，不包含全量休眠或伴随包。
+运行时低内存重构另见 [角色存储与生命周期设计](architecture/2026-09-12-runtime-lifecycle.md)。它覆盖插件、SDK、构建和验收；以下描述已实现架构；使用普通具名业务记录，不包含全量休眠或伴随包。
 
-当前契约：Provider API 2.6 / revision 6。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
+当前契约：Provider API 2 / revision 7。字段定义见 [PROTOCOLS.md](PROTOCOLS.md)，接入见 [SDK.md](SDK.md)。
 
 Provider 可声明 `searchable=false` 保留目录与引用能力，同时退出通用搜索索引；独立 query 控制触发范围。该策略由 Host 通用协议处理，查询引擎不判断具体 Provider ID。省略声明保持旧行为。
 
@@ -29,9 +29,9 @@ Lychee:RegisterProvider(definition)
        declared drag     -> Host cursor adapter / Provider callback
 ```
 
-`CommandCatalog`、`CapabilityBroker`、`IntentRouter` 保留为 Host 内部模块与独立测试对象，不是 API 2 的第三方接入模型。SDK 不公开旧的 Extension draft 或多角色注册流程，也不维护一套旧协议适配层。
+旧 CommandCatalog、CapabilityBroker、IntentRouter 已移除，包括 TOC、注册事务和执行分支。所有业务结果通过 Provider，Registry 仅负责搜索来源与视图的事务发布；不保留第二套命令目录或意图执行入口。
 
-ProviderRuntime 是统一边界，不建立第二套索引或第二套启用状态。公共句柄提供 Text、Update、SetEnabled、GetState、Unregister；内部 generation 和 source token 不交给调用方。
+ProviderRuntime 是统一边界，不建立第二套索引或第二套启用状态。公共句柄提供 Text、Update、SetEnabled、GetState、Unregister，以及 Resources、Settings、GetDiagnostics；内部 generation 和 source token 不交给调用方。
 
 ## 产品与语言边界
 
@@ -85,11 +85,11 @@ QueryOrchestrator 的 operation 身份用于隔离嵌套调用，SearchSession g
 
 拖动与点击相互独立。原生 spell cursor 与 Provider 自有非保护拖动各有声明，没有声明就不注册拖动。菜单可访问全部声明动作；搜索行、最近使用图标和安全覆盖层使用同一执行校验。
 
-ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state)、Unmount、Dispose。Provider 负责释放自己建立的事件、计时器等活动；可复用 frame，不能让隐藏视图持续工作。
+ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state)、Unmount、Dispose。revision 7 的 context.resources 在 create 前建立，卸载及构造失败时关闭；Provider 可复用 frame。未登记资源仍由 Provider 清理，隐藏视图不能持续工作。
 
 ## 内置 Provider
 
-`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。API 为 2 / revision 6。
+`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。Host API 为 2 / revision 7。
 
 关键词触发归 ProviderPolicy 所有：注册／保存时验证词表，失效后构建有限路由快照；精确命中转为空文本来源查询，复用既有索引和动态查询入口。Index 继续只认识 sourceID/excludedSources 通用条件，不识别模式或 Provider ID。触发词用大小写／首尾空白规范化，与通用模糊搜索的标点处理分离。队伍钥匙使用同一声明，删除独立触发判断和重复查询目录，查询回调仅限频请求刷新。
 
@@ -146,3 +146,9 @@ Elles的版本敏感访问集中在Adapter，不能据此宣称与上游无耦�
 内置功能按职责存放在 `package/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](PROJECT_STRUCTURE.md)。
 
 revision 6 将普通搜索 searchGlobal 与两个快捷入口词表解耦。ProviderPolicy.Configuration 把旧声明和旧用户 mode 覆盖映射为原有效能力，新用户组合配置优先；Snapshot 负责独立入口路由与冲突归属。UI 只编辑组合配置，不再暴露互斥模式。旧模式中未启用的词表不会自动激活。
+
+## 公共资源与测试装配
+
+Resources 统一管理 Provider/query/view 三种寿命的任务、普通事件及清理回调；ProviderData 管理角色设置与作用域缓存。EUI/EX 使用 query 作用域的 Run，保留各自枚举、结果和点击逻辑。SDK 不接管第三方同步 Lua 的抢占执行。详细 [设计](architecture/2026-09-12-managed-sdk.md)、[SDK 合同](../lychee-sdk/MANAGED_RESOURCES.md)。
+
+测试公共模块加载在 tests/support/runtime.lua 收敛，实际 TOC 决定顺序；游戏 API 替身、业务断言和参考算法仍相互独立。test_assembly 验证前置依赖和失败时不执行部分加载；client_manifest/client_toc_load 独立验证真实客户端装配。

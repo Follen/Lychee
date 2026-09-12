@@ -122,24 +122,6 @@
       ]
     },
     {
-      "path": "Core/CommandCatalog.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/CapabilityBroker.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
       "path": "Core/Boundary.lua",
       "products": [
         "retail",
@@ -149,7 +131,16 @@
       ]
     },
     {
-      "path": "Core/IntentRouter.lua",
+      "path": "Core/Resources.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ProviderData.lua",
       "products": [
         "retail",
         "classic",

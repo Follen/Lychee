@@ -28,13 +28,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
-    "Builtin/Ellesmere/Locales.lua","Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua",
-    "Search/ProviderPolicy.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua",
-    "Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua",
-    "Core/ProviderRuntime.lua","PublicAPI/SDK.lua","Builtin/Ellesmere/Adapter.lua","Builtin/Ellesmere/Provider.lua"}) do
-    dofile(file=="Builtin/Ellesmere/Provider.lua" and arg[1] or "package/Lychee/"..file)
-end
+dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Ellesmere/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Builtin/Ellesmere/Adapter.lua", "Builtin/Ellesmere/Provider.lua"}, {overrides={ ["Builtin/Ellesmere/Provider.lua"]=arg[1] }})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.Builtin.Ellesmere
@@ -65,10 +59,15 @@ function EllesmereUI:OpenUnlockMode()
     if self._unlockActive then return end
     self._unlockActive=true;calls.unlock=calls.unlock+1
 end
+local function managedQuery(request,reply)
+    local resources=assert(I.Resources:Create(function() return M.active end,nil,assert(M.handle:Resources())))
+    local cancel=M:Query(request,function(rows) I.Resources:Close(resources,"complete");reply(rows) end,{resources=resources})
+    return function() I.Resources:Close(resources,"cancelled");if cancel then cancel() end end
+end
 local function query(text)
     local raw,filter=I.Search.ProviderPolicy:Route(text)
     local result
-    local cancel=M:Query({normalized=I.Search.Normalizer:Normalize(raw),filter=filter,limit=20},function(rows) result=rows end)
+    local cancel=managedQuery({normalized=I.Search.Normalizer:Normalize(raw),filter=filter,limit=20},function(rows) result=rows end)
     drain();assert(result,"query did not finish");return result,cancel
 end
 assert(#query("悬停施法")==0 and calls.load==0,"no global query")
@@ -114,9 +113,9 @@ local oldEUI=EllesmereUI;EllesmereUI=nil
 assert(query("eui:test")[1].title=="请先启用 Ellesmere UI")
 EllesmereUI=oldEUI
 local replied=false
-local cancel=M:Query({normalized="test",filter={sourceID=M.id..":records"}},function() replied=true end)
+local cancel=managedQuery({normalized="test",filter={sourceID=M.id..":records"}},function() replied=true end)
 cancel();drain();assert(not replied and not M.cancel,"cancel releases work")
-M:Query({normalized="test",filter={sourceID=M.id..":records"}},function() replied=true end)
+managedQuery({normalized="test",filter={sourceID=M.id..":records"}},function() replied=true end)
 assert(I.Registry:SetUserEnabled(M.id,false));drain();assert(not replied and not M.cancel)
 assert(M.options==nil,"disabled collector releases callback references")
 EllesmereUI._RegisterSearchEntry("Ignored",nil,nil,"Another","New Page")

@@ -26,7 +26,7 @@ local function primaryActionFor(item)
 end
 
 local function extensionID(row, item)
-    return row and row.extensionID or item and (item._ext or (item.command and item.command._ext))
+    return row and row.extensionID or item and item._ext
 end
 
 local function pickupSpell(spellID)
@@ -91,15 +91,6 @@ function Executor:IsRowCurrent(row, session, generation, item, owner)
 end
 
 function Executor:IsAvailable(item)
-    local command = item and item.command
-    if type(command) ~= "table" then command = nil end
-    if command and type(command.availability) == "function" then
-        local context = I.Context and I.Context:Snapshot() or {}
-        local ok, available = xpcall(function()
-            return command.availability(context)
-        end, function() return "CALLBACK_ERROR" end)
-        return ok and available == true
-    end
     local availability = item and item.searchRecord and item.searchRecord.availability
     if type(availability) ~= "table" then return true end
     local context = I.Context and I.Context:Snapshot() or {}
@@ -158,78 +149,13 @@ function Executor:_OpenPanel(item, row, panelID, state, session, generation)
     return mounted
 end
 
-function Executor:_CommandIntent(command, context)
-    if type(command.intentFactory) == "function" then
-        local ok, intent = xpcall(function()
-            return command.intentFactory(context)
-        end, function() return "CALLBACK_ERROR" end)
-        if not ok then return nil, "CALLBACK_ERROR" end
-        return intent
-    end
-    if type(command.intent) == "table" then return command.intent end
-    if type(command.intent) == "string" and command.intent ~= "" then
-        return {
-            type = command.intent,
-            version = command.intentVersion or 1,
-            payload = command.payload or {},
-        }
-    end
-end
-
-function Executor:_Intent(item, actionID, row, session, generation)
-    local command = item and item.command
-    local owner = extensionID(row, item)
-    local context = I.Context and I.Context:Snapshot() or {}
-    local intent
-    if command and type(command.itemIntent) == "function" then
-        local ok, value = xpcall(function()
-            return command.itemIntent(item, actionID, context)
-        end, function() return "CALLBACK_ERROR" end)
-        if not ok then return false, "CALLBACK_ERROR" end
-        intent = value
-    else
-        local action = actionFor(item, actionID)
-        if action and type(action.intent) == "table" then intent = action.intent end
-    end
-    if type(intent) ~= "table" then return false, "ACTION_UNAVAILABLE" end
-    local result, err = I.Router and I.Router:Execute(intent, context, owner)
-    if not result then return false, type(err) == "table" and err.code or err or "HANDLER_UNAVAILABLE" end
-    local transitioned, transitionErr = self:_Transition(result, item, row, session, generation)
-    if transitioned == false then return false, transitionErr end
-    if result.closePalette and self.palette then self.palette:Hide("intent") end
-    return result
-end
-
 function Executor:Execute(row, actionID)
     local palette = self.palette
     if not palette or not palette.visible then return false, "INVALID_STATE" end
     local valid, err = self:Validate(row)
     if not valid then return palette:RejectRow(row, err) end
     local item = row.item
-    local command = item and item.command
-    if type(command) ~= "table" then command = nil end
-    local result, actionErr, handled
-
-    if command and command.presentation == "row" and actionID == "default" then
-        handled = true
-        local context = I.Context and I.Context:Snapshot() or {}
-        local intent, intentErr = self:_CommandIntent(command, context)
-        if not intent then return false, intentErr or "ACTION_UNAVAILABLE" end
-        result, actionErr = I.Router and I.Router:Execute(intent, context, extensionID(row, item))
-        if not result then
-            actionErr = type(actionErr) == "table" and actionErr.code or actionErr or "HANDLER_UNAVAILABLE"
-        else
-            result, actionErr = self:_Transition(result, item, row, palette.session, palette.generation)
-        end
-    elseif command and command.presentation == "custom-panel" and actionID == "default" then
-        handled = true
-        result, actionErr = self:_OpenPanel(item, row, command.panel, command.state or command.payload or {}, palette.session, palette.generation)
-    end
-    if handled then
-        if succeeded(result) and palette.TouchRecent then palette:TouchRecent(item) end
-        if succeeded(result) and type(result) == "table" and result.closePalette then palette:Hide("intent") end
-        return result, actionErr
-    end
+    local result, actionErr
 
     local action, interaction = actionFor(item, actionID)
 
@@ -255,7 +181,7 @@ function Executor:Execute(row, actionID)
         result, actionErr = palette.secureBroker and palette.secureBroker:ShowFor(row, action, palette.session, palette.generation, item, row.extensionID) or false
         if result then result = { ok=true, awaitingHardwareClick=true, actionTitle=action.title } end
     else
-        result, actionErr = self:_Intent(item, actionID, row, palette.session, palette.generation)
+        return false, "ACTION_UNAVAILABLE"
     end
     if succeeded(result) and not (type(result) == "table" and result.awaitingHardwareClick) and palette.TouchRecent then palette:TouchRecent(item) end
     return result, actionErr

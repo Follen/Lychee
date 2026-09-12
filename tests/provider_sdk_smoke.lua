@@ -15,10 +15,7 @@ C_Timer = { NewTimer = function(seconds, callback)
     return timer
 end }
 local root = "package/Lychee/"
-for _, path in ipairs({ "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
-    "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
-    "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua",
-    "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua", "Core/ResultActionExecutor.lua" }) do dofile(root .. path) end
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua", "Core/ResultActionExecutor.lua"})
 local I, SDK = LycheeInternal, Lychee
 assert(SDK:Supports(2,1) and not SDK:Supports(1,1))
 assert(SDK.RegisterExtension == nil and SDK.RegisterSearchSource == nil)

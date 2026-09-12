@@ -115,18 +115,11 @@ local function tooltipText()
 end
 
 local root = "package/Lychee/"
-local files = {
-    "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/Normalizer.lua","Search/ProviderPolicy.lua", "Search/StaticIndex.lua",
-    "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua",
-    "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
-    "Core/UserPreferences.lua","Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua",
-    "UI/FocusController.lua", "UI/Theme.lua","UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua","UI/ProviderSettings.lua","UI/SettingsView.lua", "UI/Palette.lua",
-}
-for i = 1, #files do
-    local before = createdFrames
-    dofile(root .. files[i])
-    if files[i] == "UI/Palette.lua" then assert(createdFrames == before, "loading Palette creates no hidden UI") end
-end
+dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Search/SearchSession.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua", "UI/FocusController.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua", "UI/ProviderSettings.lua", "UI/SettingsView.lua", "UI/Palette.lua"}, {load=function(path)
+    local before=createdFrames
+    dofile(root..path)
+    if path=="UI/Palette.lua" then assert(createdFrames==before,"loading Palette creates no hidden UI") end
+end})
 
 local I = _G.LycheeInternal
 local assertEq = function(actual, expected, label)
@@ -319,149 +312,31 @@ palette:CloseView("fixture-close")
 assertEq(palette.homeView.frame:IsShown(), true, "closing panel restores current query mode")
 I.Registry:SetReady(true)
 
--- Fixed row/custom-panel Commands and catalog dynamic-list use the production executor.
-local foreignDraft = I.Registry:Begin({ id = "interaction.foreign", apiVersion = 2, minApiRevision = 1, title = "Foreign", version = "1.0.0" })
-assert(foreignDraft)
-local foreignCommandCalls, foreignActionCalls, foreignOnlyCommandCalls, foreignOnlyActionCalls = 0, 0, 0, 0
-assert(foreignDraft:RegisterIntentHandler({
-    type = "interaction.commands.execute", version = 1, schema = {},
-    handle = function() foreignCommandCalls = foreignCommandCalls + 1; return { ok = true } end,
-}))
-assert(foreignDraft:RegisterIntentHandler({
-    type = "interaction.actions.open", version = 1, schema = {},
-    handle = function() foreignActionCalls = foreignActionCalls + 1; return { ok = true } end,
-}))
-assert(foreignDraft:RegisterIntentHandler({
-    type = "interaction.foreign.command", version = 1, schema = {},
-    handle = function() foreignOnlyCommandCalls = foreignOnlyCommandCalls + 1; return { ok = true } end,
-}))
-assert(foreignDraft:RegisterIntentHandler({
-    type = "interaction.foreign.action", version = 1, schema = {},
-    handle = function() foreignOnlyActionCalls = foreignOnlyActionCalls + 1; return { ok = true } end,
-}))
-local foreignHandle = assert(foreignDraft:Commit())
-
-local commandDraft = I.Registry:Begin({ id = "interaction.commands", apiVersion = 2, minApiRevision = 1, title = "Commands", version = "1.0.0" })
-assert(commandDraft)
-local fixedCommandCalls = 0
-assert(commandDraft:RegisterIntentHandler({
-    type = "interaction.commands.execute", version = 1, schema = {},
-    handle = function() fixedCommandCalls = fixedCommandCalls + 1; return { ok = true } end,
-}))
-local fixedPanelMounted = false
-assert(commandDraft:RegisterPanelFactory({
-    id = "settings", stateSchema = {},
-    create = function()
-        return { Mount = function() fixedPanelMounted = true; return true end, Unmount = function() end, Dispose = function() end }
-    end,
-}))
-assert(commandDraft:RegisterCommand({
-    id = "execute", title = "执行固定命令", presentation = "row",
-    intent = { type = "interaction.commands.execute", version = 1, payload = {} },
-}))
-assert(commandDraft:RegisterCommand({
-    id = "settings", title = "打开固定面板", presentation = "custom-panel", panel = "settings",
-}))
-assert(commandDraft:RegisterCommand({
-    id = "foreign", title = "越权固定命令", presentation = "row",
-    intent = { type = "interaction.foreign.command", version = 1, payload = {} },
-}))
-assert(commandDraft:RegisterCommand({
-    id = "dynamic", title = "动态目录入口", presentation = "dynamic-list", match = { type = "catalog" },
-    resolve = function()
-        return { { id = "dynamic-result", text = "动态目录结果", payload = {} } }
-    end,
-    itemIntent = function()
-        return { type = "interaction.commands.execute", version = 1, payload = {} }
-    end,
-}))
-local commandHandle = assert(commandDraft:Commit())
-
-local _, fixedCommandResults = I.Search.Query:Query("执行固定命令", {})
-assert(#fixedCommandResults == 1 and fixedCommandResults[1].command, "fixed row Command query")
-assert(palette:SetResults(fixedCommandResults, palette.generation, palette.session))
-assert(palette:ActivateRow(palette.list.rows[1]))
-assertEq(fixedCommandCalls, 1, "fixed row Command execution")
-assertEq(foreignCommandCalls, 0, "fixed row Command rejects foreign same-type Handler")
-
-local _, fixedPanelResults = I.Search.Query:Query("打开固定面板", {})
-assert(#fixedPanelResults == 1 and fixedPanelResults[1].command, "fixed custom-panel Command query")
-assert(palette:SetResults(fixedPanelResults, palette.generation, palette.session))
-assert(palette:ActivateRow(palette.list.rows[1]))
-assertEq(fixedPanelMounted, true, "fixed custom-panel Command execution")
-
-local _, foreignCommandResults = I.Search.Query:Query("越权固定命令", {})
-assert(#foreignCommandResults == 1 and foreignCommandResults[1].command, "foreign-targeting row Command query")
-assert(palette:SetResults(foreignCommandResults, palette.generation, palette.session))
-local foreignCommandResult, foreignCommandErr = palette:ActivateRow(palette.list.rows[1])
-assertEq(foreignCommandResult, nil, "foreign-targeting row Command result")
-assertEq(foreignCommandErr, "HANDLER_UNAVAILABLE", "foreign-targeting row Command stable error")
-assertEq(foreignOnlyCommandCalls, 0, "foreign-targeting row Command does not invoke foreign Handler")
-
-local _, catalogDynamicResults = I.Search.Query:Query("动态目录入口", {})
-assert(#catalogDynamicResults == 1 and catalogDynamicResults[1].text == "动态目录结果", "catalog dynamic-list resolves items")
-assert(palette:SetResults(catalogDynamicResults, palette.generation, palette.session))
-assert(palette:ActivateRow(palette.list.rows[1]))
-assertEq(fixedCommandCalls, 2, "catalog dynamic item execution")
-assertEq(foreignCommandCalls, 0, "dynamic Command rejects foreign same-type Handler")
-local commandOwnerMismatch, commandOwnerMismatchErr = I.Router:Execute(
-    { type = "interaction.commands.execute", version = 1, payload = {} }, {}, "interaction.no-command-handler"
-)
-assertEq(commandOwnerMismatch, nil, "Command owner mismatch result")
-assert(commandOwnerMismatchErr and commandOwnerMismatchErr.code == "HANDLER_UNAVAILABLE", "Command owner mismatch stable error")
-assertEq(foreignCommandCalls, 0, "Command owner mismatch does not invoke foreign Handler")
-assert(commandHandle:Unregister())
-
--- SearchRecord actions stay declarative and route ordinary intents through the host router.
-local actionDraft = I.Registry:Begin({ id = "interaction.actions", apiVersion = 2, minApiRevision = 1, title = "Actions", version = "1.0.0" })
-assert(actionDraft)
-assert(actionDraft:RegisterSearchSource({
-    id = "records", version = 1, revision = 1, priority = 50, scope = {},
-    records = {
-        {
-            id = "spell:interaction-action", kind = "spell",
-            category = { id = "spells", title = { default = "Spells", zhCN = "技能" } },
-            title = "动作技能", aliases = { { text = "动作", locale = "zhCN" } },
-            description = { { text = "可执行普通动作。", locale = "zhCN" } },
-            actions = {
-                { id = "open", title = { zhCN = "打开", enUS = "Open" }, kind = "intent", intent = { type = "interaction.actions.open", version = 1, payload = {} } },
-                { id = "panel", title = "面板", kind = "open-panel", panel = "detail", state = { itemID = 7 } },
-                { id = "drag", title = "拖拽", kind = "drag-spell", spellID = 31884 },
-            },
-        },
-        {
-            id = "spell:foreign-action", kind = "spell", title = "越权动作",
-            actions = {
-                { id = "open", title = "打开", kind = "intent", intent = { type = "interaction.foreign.action", version = 1, payload = {} } },
-            },
-        },
-    },
-}))
-assert(actionDraft:RegisterSearchSource({
-    id = "secondary", version = 1, revision = 1, priority = 40, scope = {}, records = {},
-}))
-for sourceIndex = 1, 20 do
-    assert(actionDraft:RegisterSearchSource({
-        id = string.format("overflow-%02d", sourceIndex), version = 1, revision = 1,
-        priority = 20, scope = {}, records = {},
-    }))
+-- Public Providers preserve ordinary actions, owned panels and same-ID isolation.
+local foreignActionCalls=0
+local foreignHandle=assert(Lychee:RegisterProvider({id="interaction.foreign",title="Foreign",version="1",apiVersion=2,
+    entries={{id="foreign",title="越权动作",actions={"open"}}},
+    actions={open={title="打开",run=function() foreignActionCalls=foreignActionCalls+1;return {ok=true} end}}}))
+local actionCalled,panelMounted,openPanel=false,false,false
+local actionHandle=assert(Lychee:RegisterProvider({id="interaction.actions",title="Actions",version="1",apiVersion=2,
+    entries={{id="spell:interaction-action",kind="spell",category={id="spells",title={default="Spells",zhCN="技能"}},
+        title="动作技能",aliases={{text="动作",locale="zhCN"}},description={{text="可执行普通动作。",locale="zhCN"}},
+        actions={"open",{id="panel",title="面板",kind="open-panel",panel="detail",state={itemID=7}},
+            {id="drag",title="拖拽",kind="drag-spell",spellID=31884}}}},
+    actions={open={title="打开",run=function()
+        if openPanel then return {ok=true,view="detail",state={itemID=7}} end
+        actionCalled=true;return {ok=true}
+    end}},
+    views={detail={stateSchema={itemID="integer"},create=function(_,state)
+        assert(state.itemID==7)
+        return {Mount=function() panelMounted=true;return true end,Unmount=function() end,Dispose=function() end}
+    end}}}))
+local extraDraft=assert(I.Registry:Begin({id="interaction.sources",apiVersion=2,title="Additional sources"}))
+for sourceIndex=1,21 do
+    assert(extraDraft:RegisterSearchSource({id=string.format("overflow-%02d",sourceIndex),version=1,revision=1,priority=20,scope={},records={}}))
 end
-local actionCalled = false
-assert(actionDraft:RegisterIntentHandler({
-    type = "interaction.actions.open", version = 1, schema = {},
-    handle = function() actionCalled = true; return { ok = true } end,
-}))
-local panelMounted = false
-assert(actionDraft:RegisterPanelFactory({
-    id = "detail", stateSchema = { itemID = "integer" },
-    create = function(_, state)
-        assert(state.itemID == 7)
-        return { Mount = function() panelMounted = true; return true end, Unmount = function() end, Dispose = function() end }
-    end,
-}))
-local actionHandle, actionCommitErr = actionDraft:Commit()
-assert(actionHandle, "action extension commit: " .. tostring(actionCommitErr and actionCommitErr.code) .. " " .. tostring(actionCommitErr and actionCommitErr.field))
-assert(actionHandle:GetState().effectiveEnabled == true)
+local extraHandle=assert(extraDraft:Commit())
+assert(actionHandle:GetState().enabled==true)
 local actionGeneration, actionResults = I.Search.Query:Query("动作", { visible = true })
 assert(#actionResults > 0, "search returned action record")
 local actionItem = actionResults[1]
@@ -477,22 +352,11 @@ assert(actionItem.evidence and actionItem.evidence.matchedField == "alias", "sea
 assert(actionItem.confidence and actionItem.confidence >= 0.85, "search result confidence")
 local categoryGeneration, categoryResults = I.Search.Query:Query("技能 动作", { visible = true })
 assert(categoryGeneration and #categoryResults > 0 and categoryResults[1].category == "技能", "category filter result")
-local ownerActionHandler
-for handlerIndex = 1, #I.Router.handlers["interaction.actions.open"] do
-    if I.Router.handlers["interaction.actions.open"][handlerIndex].ext == "interaction.actions" then
-        ownerActionHandler = I.Router.handlers["interaction.actions.open"][handlerIndex]
-        break
-    end
-end
-assert(ownerActionHandler, "owner action Handler lookup")
-local originalActionHandler = ownerActionHandler.handler.handle
-ownerActionHandler.handler.handle = function()
-    return { ok = true, transition = { type = "custom-panel", panelFactoryID = "detail", state = { itemID = 7 } } }
-end
+openPanel=true
 assert(palette:SetResults({ actionItem }, palette.generation, palette.session))
 local routedPanel, routedPanelErr = palette:ActivateRowAction(palette.list.rows[1], "open")
 assert(routedPanel and panelMounted, "search record intent mounts owner panel: " .. tostring(routedPanelErr))
-ownerActionHandler.handler.handle = originalActionHandler
+openPanel=false
 palette:SetResults(actionResults, actionGeneration, palette.session)
 local actionRow = palette.list.rows[1]
 assert(actionRow.primaryAction and actionRow.primaryAction.id == "open", "primary action is rendered from the generic protocol")
@@ -633,21 +497,12 @@ actionItem = actionRow.item
 local ordinaryResult, ordinaryErr = palette:ActivateRowAction(actionRow, "open")
 assert(ordinaryResult and ordinaryResult.ok == true and actionCalled, "ordinary action execution: " .. tostring(ordinaryErr))
 assertEq(foreignActionCalls, 0, "SearchRecord rejects foreign same-type Handler")
-local _, foreignActionResults = I.Search.Query:Query("越权动作", { visible = true })
-assert(#foreignActionResults == 1, "foreign-targeting SearchRecord query")
-assert(palette:SetResults(foreignActionResults, palette.generation, palette.session))
-local foreignActionResult, foreignActionErr = palette:ActivateRowAction(palette.list.rows[1], "open")
-assertEq(foreignActionResult, false, "foreign-targeting SearchRecord result")
-assertEq(foreignActionErr, "HANDLER_UNAVAILABLE", "foreign-targeting SearchRecord stable error")
-assertEq(foreignOnlyActionCalls, 0, "foreign-targeting SearchRecord does not invoke foreign Handler")
+local _,foreignActionResults=I.Search.Query:Query("越权动作",{visible=true})
+assert(palette:SetResults(foreignActionResults,palette.generation,palette.session))
+assert(palette:ActivateRowAction(palette.list.rows[1],"open"))
+assertEq(foreignActionCalls,1,"same action ID executes only its owning Provider")
 assert(palette:SetResults({ actionItem }, palette.generation, palette.session))
 actionRow = palette.list.rows[1]
-local actionOwnerMismatch, actionOwnerMismatchErr = I.Router:Execute(
-    { type = "interaction.actions.open", version = 1, payload = {} }, {}, "interaction.no-action-handler"
-)
-assertEq(actionOwnerMismatch, nil, "SearchRecord owner mismatch result")
-assert(actionOwnerMismatchErr and actionOwnerMismatchErr.code == "HANDLER_UNAVAILABLE", "SearchRecord owner mismatch stable error")
-assertEq(foreignActionCalls, 0, "SearchRecord owner mismatch does not invoke foreign Handler")
 local panelResult, panelErr = palette:ActivateRowAction(actionRow, "panel")
 assert(panelResult and panelMounted, "direct panel action: " .. tostring(panelErr))
 local pickupBefore = _G.__pickup or 0
@@ -657,9 +512,6 @@ _G.__combat = true
 local combatAction, combatActionErr = palette:ActivateRowAction(actionRow, "open")
 assertEq(combatAction, false, "ordinary combat action")
 assertEq(combatActionErr, "COMBAT_LOCKED", "ordinary combat action error")
-local routedInCombat, routedCombatErr = I.Router:Execute({ type = "interaction.actions.open", version = 1, payload = {} }, {})
-assertEq(routedInCombat, nil, "router combat action")
-assert(routedCombatErr and routedCombatErr.code == "COMBAT_LOCKED", "router combat guard")
 _G.__combat = false
 actionItem.searchRecord.availability = { contextKey = "interactionReady", equals = true }
 I.Context:Set("interactionReady", false)
@@ -691,23 +543,9 @@ local invalidDeclaration, invalidDeclarationErr = invalidActionDraft:RegisterSea
 assertEq(invalidDeclaration, nil, "invalid action declaration")
 assert(invalidDeclarationErr and invalidDeclarationErr.code == "INVALID_SCHEMA", "invalid action schema error")
 
-local missingIntentDraft = I.Registry:Begin({ id = "interaction.missing-intent", apiVersion = 2, minApiRevision = 1, title = "Missing intent", version = "1.0.0" })
-assert(missingIntentDraft)
-assert(missingIntentDraft:RegisterSearchSource({
-    id = "records", version = 1, revision = 1, priority = 1, scope = {},
-    records = { { id = "bad:missing-intent", kind = "spell", title = "Bad", actions = {
-        { id = "bad", kind = "intent" },
-    } } },
-}))
-local missingIntentHandle, missingIntentErr = missingIntentDraft:Commit()
-assertEq(missingIntentHandle, nil, "missing intent commit")
-assert(missingIntentErr and missingIntentErr.code == "INVALID_SCHEMA", "missing intent schema error")
-
-local missingSourceDraft = I.Registry:Begin({ id = "interaction.missing-source-fields", apiVersion = 2, minApiRevision = 1, title = "Missing source fields", version = "1.0.0" })
-assert(missingSourceDraft)
-local missingSource, missingSourceErr = missingSourceDraft:RegisterSearchSource({ id = "records", records = {} })
-assertEq(missingSource, nil, "missing source metadata")
-assert(missingSourceErr and missingSourceErr.code == "INVALID_SCHEMA", "missing source metadata error")
+local retired,retiredErr=Lychee:RegisterProvider({id="interaction.retired",title="Retired",version="1",apiVersion=2,
+    entries={{id="bad",title="Bad",actions={{id="bad",kind="intent",intent={type="retired",version=1}}}}}})
+assert(not retired and retiredErr.code=="INVALID_SCHEMA","retired intent declarations rejected")
 
 -- Disabled extensions and stale generations invalidate result actions before execution.
 assert(actionHandle:SetEnabled(false))
@@ -720,8 +558,7 @@ local staleRow = makeInteractionRow(actionItem, "interaction.actions", palette.s
 local staleCurrent, staleGenerationErr = palette:IsRowCurrent(staleRow)
 assertEq(staleCurrent, false, "stale generation row")
 assertEq(staleGenerationErr, "STALE_GENERATION", "stale generation error")
-local actionSource = assert(actionHandle:GetSearchSource("records"))
-assert(actionSource:Upsert({ id = "spell:new-generation", kind = "spell", title = "新代记录" }))
+assert(actionHandle:Update({upsert={{ id = "spell:new-generation", kind = "spell", title = "新代记录" }}}))
 local sourceStaleRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation)
 local sourceCurrent, sourceCurrentErr = palette:IsRowCurrent(sourceStaleRow)
 assertEq(sourceCurrent, false, "stale source row")
@@ -759,23 +596,18 @@ assertEq(invalidDragErr, "DRAG_UNSUPPORTED", "invalid drag error")
 palette:Hide("interaction-smoke")
 
 -- A stale row must not invoke an unregistered extension action.
-local draft = I.Registry:Begin({ id = "interaction.stale", apiVersion = 2, minApiRevision = 1, title = "Stale", version = "1.0.0" })
-assert(draft)
-local called = false
-assert(draft:RegisterCommand({
-    id = "stale-command", title = "Stale", presentation = "row", intent = "interaction.stale.open",
-    itemIntent = function() called = true; return { type = "interaction.stale.open", version = 1, payload = {} } end,
-}))
-assert(draft:RegisterIntentHandler({ type = "interaction.stale.open", version = 1, schema = {}, handle = function() return { ok = true } end }))
-local handle = draft:Commit()
-assert(handle)
-local command = I.Catalog:Get("interaction.stale:stale-command")
-assert(handle:Unregister())
+local called=false
+local handle=assert(Lychee:RegisterProvider({id="interaction.stale",title="Stale",version="1",apiVersion=2,
+    entries={{id="stale-command",title="Stale",actions={"open"}}},
+    actions={open={title="Open",run=function() called=true;return {ok=true} end}}}))
+local _,staleItems=I.Search.Query:Query("Stale",{})
+local staleItem
+for _,item in ipairs(staleItems) do if item.providerID=="interaction.stale" then staleItem=item end end
+assert(staleItem and handle:Unregister())
 assert(palette:Show())
-local staleRow = makeInteractionRow({ command = command, interaction = { primaryActionID = "default" } }, "interaction.stale", palette.session, palette.generation)
-local staleOK, staleErr = palette:ActivateRowAction(staleRow, "default")
-assertEq(staleOK, false, "unregistered stale action")
-assert(staleErr == "HANDLER_UNAVAILABLE" or staleErr == "EXTENSION_DISABLED", "unregistered stale action error: " .. tostring(staleErr))
+local staleRow=makeInteractionRow(staleItem,"interaction.stale",palette.session,palette.generation)
+local staleOK,staleErr=palette:ActivateRowAction(staleRow,"open")
+assert(not staleOK and not called and staleErr=="EXTENSION_DISABLED","unregistered old result cannot execute")
 
 -- Launcher regressions: effective visibility, direct recent clicks, bounded
 -- scrolling and secure combat cleanup, using the real host and broker.
@@ -895,8 +727,9 @@ assertEq(#I.Search.Query:ResolveRecent({ { providerID = "interaction.launcher", 
 assert(launcherHandle:Unregister())
 
 -- A mixed source owns actions and drag independently of presentation kind.
-local mixedDraft = assert(I.Registry:Begin({ id = "interaction.mixed", apiVersion = 2, minApiRevision = 1, title = "Mixed" }))
-assert(mixedDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 100, scope = {}, records = {
+local mixedMounts,mixedRuns=0,0
+local mixedHandle=assert(Lychee:RegisterProvider({id="interaction.mixed",title="Mixed",version="1",apiVersion=2,
+    entries={
     { id = "mixed:cast", kind = "spell", title = "混合入口施放", actions = {
         { id = "cast", title = "施放", kind = "secure-spell", spellID = 31884 },
     } },
@@ -905,18 +738,14 @@ assert(mixedDraft:RegisterSearchSource({ id = "records", version = 1, revision =
         { id = "open", title = "打开面板", kind = "open-panel", panel = "detail", state = { itemID = 42 } },
     }, drag = { type = "spell", spellID = 31884 } },
     { id = "mixed:command", kind = "command", title = "混合入口命令", actions = {
-        { id = "run", title = "运行命令", kind = "intent", intent = { type = "interaction.mixed.run", version = 1, payload = {} } },
+        "run",
     } },
-} }))
-local mixedMounts, mixedRuns = 0, 0
-assert(mixedDraft:RegisterPanelFactory({ id = "detail", stateSchema = { itemID = "integer" }, create = function(_, state)
-    assertEq(state.itemID, 42, "provider panel state")
-    return { Mount = function() mixedMounts = mixedMounts + 1; return true end, Unmount = function() end, Dispose = function() end }
-end }))
-assert(mixedDraft:RegisterIntentHandler({ type = "interaction.mixed.run", version = 1, schema = {}, handle = function()
-    mixedRuns = mixedRuns + 1; return { ok = true }
-end }))
-local mixedHandle = assert(mixedDraft:Commit())
+},
+    actions={run={title="运行命令",run=function() mixedRuns=mixedRuns+1;return {ok=true} end}},
+    views={detail={stateSchema={itemID="integer"},create=function(_,state)
+        assertEq(state.itemID,42,"provider panel state")
+        return {Mount=function() mixedMounts=mixedMounts+1;return true end,Unmount=function() end,Dispose=function() end}
+    end}}}))
 assert(palette:Show())
 typeQuery("混合入口")
 local function findEntry(rows, id)

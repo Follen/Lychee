@@ -96,23 +96,12 @@ local function layoutFor(core,key)
     if layout==nil then layout=core.RegisteredLayouts and core.RegisteredLayouts[key] end
     if type(layout)=="table" then return layout end
 end
-function M:Cancel() if self.cancel then self.cancel() end end
-function M:Query(request,reply)
-    self:Cancel()
+function M:Query(request,reply,context)
     if not self.active or not request.filter or request.filter.sourceID~=self.id..":records" then reply({});return end
     local query=request.normalized or ""
     local terms=N:Terms(query)
     local limit=math.max(1,math.min(50,tonumber(request.limit) or 20))
     local selected,fields={},{}
-    local timer,job,cancelled
-    local function cancel()
-        cancelled=true
-        if timer then timer:Cancel();timer=nil end
-        job,reply,selected,fields=nil,nil,nil,nil
-        if self.cancel==cancel then self.cancel=nil end
-    end
-    self.cancel=cancel
-    local function finish(records) local send=reply;cancel();if send then send(records) end end
     local function score(title,alias,owner,description)
         if query=="" then return 0 end
         fields[1],fields[2],fields[3]="title",title,N:Normalize(title)
@@ -130,7 +119,7 @@ function M:Query(request,reply)
             if #selected>limit then selected[#selected]=nil end
         end
     end
-    job=coroutine.create(function()
+    local function work()
         local core,why=available()
         if not core then return {status(why)} end
         local batch,visited,started=0,0,now()
@@ -170,22 +159,18 @@ function M:Query(request,reply)
         local records={}
         for _,row in ipairs(selected) do records[#records+1]=row.target.id=="unlock" and unlock() or entry(row.target,row.label) end
         return records
-    end)
-    local function step()
-        timer=nil
-        if cancelled or not self.active then return end
-        if combat() then finish({status("请先脱离战斗")});return end
-        local current=job
-        local ok,result=coroutine.resume(current)
-        if cancelled or not self.active then return end
-        if not ok then
-            self.lastError=tostring(result)
-            finish({status(self.lastError:find("EXWIND_CATALOG_LIMIT",1,true) and "Exwind 设置目录超出限制" or "Exwind 设置暂不可用")})
-        elseif coroutine.status(current)=="dead" then self.lastError=nil;finish(result)
-        else timer=C_Timer.NewTimer(0,step) end
     end
-    timer=C_Timer.NewTimer(0,step)
-    return cancel
+    local resources=assert(context and context.resources,"Managed query resources required")
+    local token,err=resources:Run("query",work,{
+        complete=function(records) self.lastError=nil;reply(records) end,
+        combat=function() reply({status("请先脱离战斗")}) end,
+        error=function(value)
+            self.lastError=tostring(value)
+            reply({status(self.lastError:find("EXWIND_CATALOG_LIMIT",1,true) and "Exwind 设置目录超出限制" or "Exwind 设置暂不可用")})
+        end,
+    })
+    if not token then reply({status("查询暂不可用")});return end
+    return function(reason) token:Cancel(reason) end
 end
 function M:Find(id)
     local core=available()
@@ -232,8 +217,8 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,title="Exwind",version="1.0.0",apiVersion=2,minApiRevision=6,
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,title="Exwind",version="1.0.0",apiVersion=2,minApiRevision=7,
         scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},entries={},actions=actions,
-        query=function(request,reply) return self:Query(request,reply) end,resolve=function(id) return self:Resolve(id) end,
-        onEnable=function() self.active=true;return function() self.active=false;self:Cancel() end end})
+        query=function(request,reply,context) return self:Query(request,reply,context) end,resolve=function(id) return self:Resolve(id) end,
+        onEnable=function() self.active=true;return function() self.active=false end end})
 end

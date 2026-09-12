@@ -1,6 +1,6 @@
 # Provider API 2 协议参考
 
-本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](../lychee-sdk/RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+当前 SDK 为 API 2 / revision 7，UI Runtime 仍为 1。新增公共资源生命周期、角色设置和有界缓存，见 [托管资源协议](../lychee-sdk/MANAGED_RESOURCES.md)；旧 revision 1–6 的 Provider 保持兼容。
 
 Host 版本：API_VERSION=2，API_REVISION=6。SDK helper 和 LuaLS 类型均使用本协议。兼容 API 2 revision 1/2/3/4/5；SavedVariables schema 本次不变。
 
@@ -142,3 +142,7 @@ PRIVATE Registry/Index 的具体方法、source token、内部字段、生命周
 ## 多版本业务实现边界
 
 一个 Provider 可在不同客户端／build 采用不同业务逻辑。产品／版本匹配和实现选择由 Provider 的兼容层在注册前完成；Host 只接收选中的普通 descriptor。一个 ID 在同一 Host 中只注册一次，scope 声明当前实现真正支持的范围。零匹配不启用；重叠匹配拒绝选择，不能按顺序取第一个。各实现仍遵循相同 Entry/Action/View、独立 i18n 与生命周期协议。没有 variants／implementations 注册字段。具体身份、缓存、能力判断和分支验收约束见 [版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。
+
+## Revision 7：公共资源与数据
+
+handle 新增 Resources()、Settings()、GetDiagnostics()；query/view 的 context 新增 resources。方法、所有权、配额及失败契约集中见 [托管资源规范](../lychee-sdk/MANAGED_RESOURCES.md)。新增稳定错误 RESOURCE_CLOSED、RESOURCE_LIMIT、RESOURCE_REENTRANT、RESOURCE_UNAVAILABLE、INVALID_EVENT、DATA_LIMIT、INVALID_SETTINGS；非法选项仍为 INVALID_SCHEMA，注销后的数据句柄为 STALE_HANDLE。内部旧命令/能力/意图注册方法已移除，第三方接入只使用 RegisterProvider。

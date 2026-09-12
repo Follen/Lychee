@@ -73,11 +73,7 @@ local function optionRecord(eui,option,config)
         aliases={option.label,translated(eui,moduleName),translated(eui,option.page)},description=option.tooltip,
         payload={module=option.module,page=option.page},actions={"open"}}
 end
-function M:Cancel()
-    if self.cancel then self.cancel() end
-end
-function M:Query(request, reply)
-    self:Cancel()
+function M:Query(request,reply,context)
     -- Host routes prefixes. This extra guard prevents accidental global loading
     -- even when a user turns on ordinary search in Provider settings.
     if not self.active or not request.filter or request.filter.sourceID~=self.id..":records" then reply({});return end
@@ -86,20 +82,7 @@ function M:Query(request, reply)
     local terms=N:Terms(query)
     local fields={}
     local limit=math.max(1,math.min(50,tonumber(request.limit) or 20))
-    local timer,cancelled,job
     local selected={}
-    local function cancel()
-        cancelled=true
-        if timer then timer:Cancel();timer=nil end
-        reply,selected,job=nil,nil,nil
-        if self.cancel==cancel then self.cancel=nil end
-    end
-    self.cancel=cancel
-    local function finish(records)
-        local send=reply
-        cancel()
-        if send then send(records) end
-    end
     local length=0
     local function field(kind,value)
         if type(value)~="string" or value=="" then return end
@@ -127,7 +110,7 @@ function M:Query(request, reply)
         row.record,row.score=record,score
         table.insert(selected,at,row)
     end
-    job=coroutine.create(function()
+    local function work()
         if combat() then return {statusRecord("请先脱离战斗")} end
         local eui=A.Get()
         if type(eui)~="table" then return {statusRecord("请先启用 Ellesmere UI")} end
@@ -135,7 +118,7 @@ function M:Query(request, reply)
         if query=="解锁" or query=="unlock" or query=="unlock mode" then return {unlockRecord()} end
         local why
         eui,why=ready()
-        if cancelled or not self.active then return {} end
+        if not context.resources:IsActive() or not self.active then return {} end
         if not eui then return {statusRecord(why)} end
         self:Attach()
         coroutine.yield() -- Give the upstream one-time load its own execution.
@@ -184,22 +167,18 @@ function M:Query(request, reply)
         if self.overflow then records[#records+1]=statusRecord("Ellesmere UI 设置目录超出限制") end
         for _,row in ipairs(selected) do records[#records+1]=row.record end
         return records
-    end)
-    local function step()
-        timer=nil
-        if cancelled or not self.active then return end
-        if combat() then finish({statusRecord("请先脱离战斗")});return end
-        local current=job
-        local ok,records=coroutine.resume(current)
-        if cancelled or not self.active then return end
-        if not ok then
-            self.lastError=tostring(records)
-            finish({statusRecord(self.lastError:find("EUI_CATALOG_LIMIT",1,true) and "Ellesmere UI 设置目录超出限制" or "Ellesmere UI 设置暂不可用")})
-        elseif coroutine.status(current)=="dead" then self.lastError=nil;finish(records)
-        else timer=C_Timer.NewTimer(0,step) end
     end
-    timer=C_Timer.NewTimer(0,step)
-    return cancel
+    local resources=assert(context and context.resources,"Managed query resources required")
+    local token,err=resources:Run("query",work,{
+        complete=function(records) self.lastError=nil;reply(records) end,
+        combat=function() reply({statusRecord("请先脱离战斗")}) end,
+        error=function(value)
+            self.lastError=tostring(value)
+            reply({statusRecord(self.lastError:find("EUI_CATALOG_LIMIT",1,true) and "Ellesmere UI 设置目录超出限制" or "Ellesmere UI 设置暂不可用")})
+        end,
+    })
+    if not token then reply({statusRecord("查询暂不可用")});return end
+    return function(reason) token:Cancel(reason) end
 end
 function M:Resolve(id)
     if not self.active then return end
@@ -235,15 +214,15 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=6,version="1.0.0",title="Ellesmere UI",
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=7,version="1.0.0",title="Ellesmere UI",
         scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
-        entries={},actions=actions,query=function(request,reply) return self:Query(request,reply) end,
+        entries={},actions=actions,query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,
         onEnable=function()
             self.active=true;self.options={};self.optionCount,self.optionBytes=0,0;self.overflow=nil
             self:Attach()
             return function()
-                self.active=false;self:Cancel();self.options=nil;self.optionCount,self.optionBytes=0,0;self.overflow=nil
+                self.active=false;self.options=nil;self.optionCount,self.optionBytes=0,0;self.overflow=nil
             end
         end})
 end

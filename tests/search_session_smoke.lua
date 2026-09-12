@@ -14,17 +14,7 @@ C_Timer = {
 }
 
 local root = "package/Lychee/"
-for _, file in ipairs({
-    "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
-    "Core/ContextStore.lua",
-    "Search/Normalizer.lua",
-    "Search/StaticIndex.lua",
-    "Core/CommandCatalog.lua",
-    "Search/QueryOrchestrator.lua",
-    "Search/SearchSession.lua",
-}) do
-    dofile(root .. file)
-end
+dofile("tests/support/runtime.lua").Load(nil, {"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua", "Builtin/Shared/Support.lua", "Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua"})
 
 local I = _G.LycheeInternal
 assert(I.Search.StaticIndex:RegisterSource({ id = "session-fixture", priority = 10 }))

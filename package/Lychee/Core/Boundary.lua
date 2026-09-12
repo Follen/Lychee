@@ -3,10 +3,9 @@ local Boundary = { MAX_DEPTH = 8, MAX_FIELDS = 128 }
 I.Boundary = Boundary
 -- Immutable validation vocabulary; never allocate it per record/action.
 local DEFAULT_OPTIONS = {}
-local ACTION_KEYS = { id=true, title=true, kind=true, intent=true, panel=true, state=true, spellID=true, itemID=true }
+local ACTION_KEYS = { id=true, title=true, kind=true, panel=true, state=true, spellID=true, itemID=true }
 local ACTION_KIND_KEYS = {
     provider={id=true,title=true,kind=true},
-    intent={id=true,title=true,kind=true,intent=true},
     ["open-panel"]={id=true,title=true,kind=true,panel=true,state=true},
     ["secure-item"]={id=true,title=true,kind=true,itemID=true},
     ["secure-spell"]={id=true,title=true,kind=true,spellID=true},
@@ -37,10 +36,15 @@ local function access(value, field)
     return true
 end
 
-local function visit(value, options, seen, depth, field, parentKey, copying)
+local function visit(value, options, seen, depth, field, parentKey, copying, budget)
     local ok, why = access(value, field)
     if not ok then return nil, why end
     local kind = type(value)
+    if budget then
+        budget.nodes = budget.nodes + 1
+        budget.bytes = budget.bytes + (kind == "string" and #value or 16)
+        if budget.nodes > options.maxNodes or budget.bytes > options.maxBytes then return failure("DATA_LIMIT", field) end
+    end
     if kind == "function" then
         if options.callbacks and type(parentKey) == "string" and options.callbacks[parentKey] then return true, nil, value end
         return failure("INVALID_SCHEMA", field)
@@ -64,9 +68,12 @@ local function visit(value, options, seen, depth, field, parentKey, copying)
     for key, child in next, value do
         count = count + 1
         if count > (options.maxFields or Boundary.MAX_FIELDS) then seen[value] = nil; return failure("INVALID_SCHEMA", field) end
-        local keyOK, keyErr = visit(key, options, seen, depth + 1, field, nil)
+        local keyOK, keyErr = visit(key, options, seen, depth + 1, field, nil, false, budget)
         if not keyOK then seen[value] = nil; return nil, keyErr end
-        local childOK, childErr, childCopy = visit(child, options, seen, depth + 1, field, key, copying)
+        if options.scalarKeys and type(key)~="string" and type(key)~="number" then
+            seen[value]=nil;return failure("INVALID_SCHEMA",field)
+        end
+        local childOK, childErr, childCopy = visit(child, options, seen, depth + 1, field, key, copying, budget)
         if not childOK then seen[value] = nil; return nil, childErr end
         if copying then owned[key] = childCopy end
     end
@@ -83,9 +90,11 @@ end
 -- An owned copy is produced during the safety walk, never by rereading an
 -- unchecked graph. Seen state is local to this invocation, including reentry.
 function Boundary:Copy(value, field, options)
-    local ok, why, owned = visit(value, options or DEFAULT_OPTIONS, {}, 0, field, nil, true)
+    options = options or DEFAULT_OPTIONS
+    local budget = options.maxNodes and options.maxBytes and {nodes=0,bytes=0} or nil
+    local ok, why, owned = visit(value, options, {}, 0, field, nil, true, budget)
     if not ok then return nil, why end
-    return owned
+    return owned, nil, budget and budget.bytes
 end
 
 -- Host-only receipt: no record field or public SDK option can create it.
@@ -206,20 +215,6 @@ local function allowedKeys(value, keys, field)
     return true
 end
 
-local function validateIntent(value, field, checked)
-    if type(value) ~= "table" then return schemaFailure(field) end
-    if not checked then
-        local ok, why = Boundary:Validate(value, field)
-        if not ok then return nil, why end
-    end
-    if type(value.type) ~= "string" or value.type == "" or
-        type(value.version) ~= "number" or value.version ~= math.floor(value.version) then
-        return schemaFailure(field)
-    end
-    if value.payload ~= nil and type(value.payload) ~= "table" then return schemaFailure(field .. ".payload") end
-    return true
-end
-
 local function validateSearchAction(action, field, checked)
     field = field or "action"
     if type(action) ~= "table" then return schemaFailure(field) end
@@ -231,7 +226,7 @@ local function validateSearchAction(action, field, checked)
     if not keyOK then return nil, keyErr end
     if not stableID(action.id, 64) then return schemaFailure(field .. ".id") end
     local kind = action.kind
-    if kind ~= "provider" and kind ~= "intent" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "secure-item" and kind ~= "drag-spell" then
+    if kind ~= "provider" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "secure-item" and kind ~= "drag-spell" then
         return schemaFailure(field .. ".kind")
     end
     keyOK, keyErr = allowedKeys(action, ACTION_KIND_KEYS[kind], field)
@@ -239,7 +234,6 @@ local function validateSearchAction(action, field, checked)
     if action.title ~= nil and type(action.title) ~= "string" and type(action.title) ~= "table" then
         return schemaFailure(field .. ".title")
     end
-    if kind == "intent" and action.intent == nil then return schemaFailure(field .. ".intent") end
     if kind == "open-panel" and not stableID(action.panel, 96) then return schemaFailure(field .. ".panel") end
     if kind == "open-panel" and action.state ~= nil then
         if type(action.state) ~= "table" then return schemaFailure(field .. ".state") end
@@ -248,10 +242,6 @@ local function validateSearchAction(action, field, checked)
         return schemaFailure(field .. ".spellID")
     end
     if kind == "secure-item" and not positiveInteger(action.itemID) then return schemaFailure(field .. ".itemID") end
-    if action.intent ~= nil then
-        local intentOK, intentErr = validateIntent(action.intent, field .. ".intent", true)
-        if not intentOK then return nil, intentErr end
-    end
     return true
 end
 

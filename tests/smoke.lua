@@ -27,14 +27,7 @@ C_SpellBook = {
     end,
 }
 local root = "package/Lychee/"
-local files = {
-    "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua",
-    "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua", "Core/IntentRouter.lua", "Core/Scheduler.lua",
-    "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Core/ResultActionExecutor.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
-    "Builtin/PlayerSpells/Aliases.lua", "Builtin/PlayerSpells/Provider.lua",
-    "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua",
-}
-for i = 1, #files do dofile(root .. files[i]) end
+dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Builtin/PlayerSpells/Aliases.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua"})
 assert(_G.Lychee and _G.Lychee:Supports(2, 1))
 assert(_G.LycheeInternal.Builtin and _G.LycheeInternal.Builtin.Init)
 _G.LycheeInternal.Builtin:Init()
@@ -77,7 +70,7 @@ assert(actionResult.transition)
 assert(actionResult.transition.panelID == "detail")
 assert(openedPanel and openedPanel.owner.extensionID == "third-party-fixture")
 assert(openedPanel.owner.panelID == "detail" and openedPanel.state.itemID == 12345)
-assert(openedPanel.factory == _G.LycheeInternal.Router:ResolvePanel("third-party-fixture", "detail"))
+assert(openedPanel.factory == _G.LycheeInternal.Registry:GetPanel("third-party-fixture", "detail"))
 local _, isolatedFixtureResults = q:Query("wings", {})
 assert(#isolatedFixtureResults == 1 and isolatedFixtureResults[1].providerID == "builtin.player-spells", "English spell alias fallback must not leak into the third-party fixture")
 assert(_G.ThirdPartyFixture.SetEnabled(false))
@@ -90,11 +83,9 @@ local _, reenabledFixtureResults = q:Query("第三方示例条目", {})
 assert(#reenabledFixtureResults == 1 and reenabledFixtureResults[1].sourceID == "third-party-fixture:records")
 assert(results[1].interaction and results[1].interaction.actions[1].kind == "secure-spell")
 assert(results[1].interaction.drag and results[1].interaction.drag.spellID == 31884)
-local publicDraft, publicErr = _G.LycheeInternal.Registry:Begin({ id = "test.public-bad", apiVersion = 2, minApiRevision = 1, title = "Bad", version = "1.0.0" })
-assert(publicDraft and not publicErr)
-local publicCommand, commandErr = publicDraft:RegisterCommand({ id = "broken", title = "Broken", presentation = "dynamic-list" })
-assert(not publicCommand and commandErr and commandErr.code == "INVALID_SCHEMA")
-publicDraft:Abort()
+local badProvider,badProviderErr=Lychee:RegisterProvider({id="test.invalid",title="Bad",version="1",apiVersion=2,
+    entries={{id="bad",title="Bad",actions={"missing"}}}})
+assert(not badProvider and badProviderErr.code=="UNKNOWN_ACTION")
 local oldSecret = issecretvalue
 issecretvalue = function(value) return value == "SECRET" end
 local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion = 2, minApiRevision = 1, title = "SECRET", version = "1.0.0" })
@@ -131,14 +122,12 @@ C_Spell = { GetSpellInfo = function(id) if id == 393256 then return { name = "�
 assert(_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh())
 local _, knownAlias = q:Query("红玉", {})
 assert(#knownAlias > 0 and knownAlias[1].payload.spellID == 393256)
-local bad = _G.LycheeInternal.Registry:Begin({ id = "test.bad", apiVersion = 2, minApiRevision = 1, title = "Bad" })
-assert(bad and not bad:RegisterCommand({ id = "broken", title = "Broken" }))
 local panel = _G.LycheeInternal.Registry:Get("builtin.player-spells")
 assert(panel and panel:GetState().lifecycle == "enabled")
 local playerSpellsEntry = _G.LycheeInternal.Registry.entries["builtin.player-spells"]
 assert(playerSpellsEntry and #playerSpellsEntry.sources == 1)
-assert(#playerSpellsEntry.commands == 0 and #playerSpellsEntry.providers == 0)
-assert(#playerSpellsEntry.handlers == 0 and #playerSpellsEntry.panels == 0)
+assert(playerSpellsEntry.commands == nil and playerSpellsEntry.providers == nil)
+assert(playerSpellsEntry.handlers == nil and #playerSpellsEntry.panels == 0)
 local playerSpells = _G.LycheeInternal.Builtin.PlayerSpells
 local committedSourceHandle = playerSpells.Provider.providerHandle
 assert(committedSourceHandle and playerSpells.Provider._active == true and playerSpells.Provider._eventFrame)
@@ -154,5 +143,5 @@ assert(playerSpells._initialized == nil and playerSpells.handle == nil)
 assert(_G.ThirdPartyFixture.Unregister())
 assert(_G.ThirdPartyFixture.Unregister())
 assert(fixture:GetState() == nil)
-assert(_G.LycheeInternal.Router:Execute({ type = "third-party-fixture.open-detail", version = 1, payload = { itemID = 12345 } }, {}) == nil)
+assert(_G.LycheeInternal.Providers:Execute(fixtureItem,"open",{}) == nil)
 print("Lychee smoke PASS")

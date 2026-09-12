@@ -27,10 +27,9 @@ Search/RuntimeIdentity.lua
 Search/Normalizer.lua
 Search/ProviderPolicy.lua
 Search/StaticIndex.lua
-Core/CommandCatalog.lua
-Core/CapabilityBroker.lua
 Core/Boundary.lua
-Core/IntentRouter.lua
+Core/Resources.lua
+Core/ProviderData.lua
 Core/Scheduler.lua
 Core/ExtensionRegistry.lua
 Search/QueryOrchestrator.lua

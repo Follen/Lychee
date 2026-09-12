@@ -13,8 +13,7 @@ function Registry:ValidateSchema(value, schema, field)
 end
 
 local descriptorCallbacks = {
-    availability=true, resolve=true, resolver=true, itemIntent=true, intentFactory=true,
-    query=true, handle=true, execute=true, create=true,
+    create=true,
     onHostAttached=true, onHostDetached=true, onEnabled=true, onDisabled=true,
     snapshot=true,
 }
@@ -81,32 +80,6 @@ local function validateDescriptor(desc, public)
             seen[key]=true
         end
     end
-    return true
-end
-local function validateCommand(command)
-    local boundaryOK, boundaryErr=I.Boundary:Validate(command,"command",{callbacks=descriptorCallbacks}); if not boundaryOK then return nil,boundaryErr end
-    if type(command)~="table" or not validID(command.id) or not validTitle(command.title) then return nil,failure("INVALID_SCHEMA","command") end
-    if command.presentation~="row" and command.presentation~="dynamic-list" and command.presentation~="custom-panel" then return nil,failure("INVALID_SCHEMA","presentation") end
-    if command.presentation=="dynamic-list" and type(command.resolve)~="function" then return nil,failure("INVALID_SCHEMA","resolve") end
-    if command.presentation=="row" and ((command.intent~=nil)==(type(command.intentFactory)=="function")) then return nil,failure("INVALID_SCHEMA","intent") end
-    if command.presentation=="custom-panel" and not validID(command.panel) then return nil,failure("INVALID_SCHEMA","panel") end
-    if command.match~=nil and (type(command.match)~="table" or (command.match.type~="ambient" and command.match.type~="explicit" and command.match.type~="catalog")) then return nil,failure("INVALID_SCHEMA","match") end
-    return true
-end
-local function validateProvider(provider, public)
-    local boundaryOK, boundaryErr=I.Boundary:Validate(provider,"provider",{callbacks=descriptorCallbacks}); if not boundaryOK then return nil,boundaryErr end
-    if type(provider)~="table" or not validID(provider.id) or type(provider.type)~="string" or provider.type=="" or not integer(provider.version or 1) or type(provider.query)~="function" then
-        return nil,failure("INVALID_SCHEMA","provider")
-    end
-    if public and (provider.requestSchema==nil or provider.resultSchema==nil) then return nil,failure("INVALID_SCHEMA","providerSchema") end
-    return true
-end
-local function validateHandler(handler, public)
-    local boundaryOK, boundaryErr=I.Boundary:Validate(handler,"handler",{callbacks=descriptorCallbacks}); if not boundaryOK then return nil,boundaryErr end
-    if type(handler)~="table" or type(handler.type)~="string" or handler.type=="" or not integer(handler.version or 1) or (type(handler.handle)~="function" and type(handler.execute)~="function") then
-        return nil,failure("INVALID_SCHEMA","handler")
-    end
-    if public and handler.schema==nil then return nil,failure("INVALID_SCHEMA","handlerSchema") end
     return true
 end
 local function validatePanel(panel, public)
@@ -212,23 +185,17 @@ function Registry:Begin(desc, options)
     desc = copyValue(desc)
     if self.drafts[desc.id] or (self.entries[desc.id] and self.entries[desc.id].state~="removed") then return nil,failure("DUPLICATE_ID","id",desc.id) end
     local registry=self
-    local draft={descriptor=desc,commands={},providers={},handlers={},panels={},sources={},state="draft",public=public}
+    local draft={descriptor=desc,panels={},sources={},state="draft",public=public}
     self.drafts[desc.id]=draft
     local function add(collection,value,validator,idField)
         if draft.state~="draft" then return nil,failure("REGISTRATION_CLOSED",collection,desc.id) end
         local valid,invalid=validator(value,public)
         if not valid then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,invalid end
         value = copyValue(value)
-        if collection == "handlers" and type(value.handle) ~= "function" then value.handle = value.execute end
         local key=value[idField or "id"]
         for i=1,#draft[collection] do if draft[collection][i][idField or "id"]==key then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("DUPLICATE_ID",collection,desc.id) end end
         draft[collection][#draft[collection]+1]=value
         return {id=key,kind=collection}
-    end
-    function draft:RegisterCommand(value) return add("commands",value,validateCommand) end
-    function draft:RegisterCapabilityProvider(value) return add("providers",value,validateProvider) end
-    function draft:RegisterIntentHandler(value)
-        return add("handlers",value,validateHandler,"type")
     end
     function draft:RegisterPanelFactory(value) return add("panels",value,validatePanel) end
     function draft:RegisterSearchSource(value) return add("sources",value,validateSearchSource) end
@@ -239,12 +206,10 @@ function Registry:Begin(desc, options)
     function draft:Commit()
         if draft.state~="draft" then return nil,failure("REGISTRATION_CLOSED",nil,desc.id) end
         if desc.apiVersion~=I.VERSION.api then draft.state="removed"; registry.drafts[desc.id]=nil; return nil,failure("UNSUPPORTED_API",nil,desc.id) end
-        if #draft.commands+#draft.providers+#draft.handlers+#draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
-        local panels={}; for i=1,#draft.panels do panels[draft.panels[i].id]=true end
-        for i=1,#draft.commands do local c=draft.commands[i]; if c.presentation=="custom-panel" and not panels[c.panel] then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("COMMAND_NOT_FOUND","panel",desc.id) end end
+        if #draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
         local disabled = I.CharacterStore:DisabledProviders()
         local userEnabled = desc.id == "lychee.settings" or not (type(disabled) == "table" and disabled[desc.id])
-        local entry={id=desc.id,descriptor=desc,commands=draft.commands,providers=draft.providers,handlers=draft.handlers,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
+        local entry={id=desc.id,descriptor=desc,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
         notify(entry,"pending",entry.incompatible and "INCOMPATIBLE_HOST" or nil)
         local handle=registry:_Handle(entry)
@@ -253,7 +218,7 @@ function Registry:Begin(desc, options)
     end
     if public then
         local facade = {}
-        for _, name in ipairs({ "RegisterCommand", "RegisterCapabilityProvider", "RegisterIntentHandler", "RegisterPanelFactory", "RegisterSearchSource", "Abort", "Commit" }) do
+        for _, name in ipairs({ "RegisterPanelFactory", "RegisterSearchSource", "Abort", "Commit" }) do
             local method = draft[name]
             facade[name] = function(_, ...) return method(draft, ...) end
         end
@@ -263,9 +228,6 @@ function Registry:Begin(desc, options)
 end
 
 function Registry:_Rollback(entry)
-    if I.Catalog then I.Catalog:RemoveExtension(entry.id) end
-    if I.Broker then I.Broker:RemoveExtension(entry.id) end
-    if I.Router then I.Router:RemoveExtension(entry.id) end
     if I.Search and I.Search.StaticIndex and entry.sources then
         for i=1,#entry.sources do I.Search.StaticIndex:UnregisterSource(entry.id..":"..entry.sources[i].id) end
     end
@@ -304,16 +266,12 @@ function Registry:_Publish(entry)
             if not committed then self:_Rollback(entry); return nil,failure(commitErr or "INVALID_SCHEMA","searchSource",entry.id) end
         end
     end
-    if I.Catalog then for i=1,#entry.commands do local ok=I.Catalog:Add(entry.id,entry.commands[i],entry.descriptor.title); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","command",entry.id) end end end
-    if I.Broker then for i=1,#entry.providers do local ok=I.Broker:Add(entry.id,entry.providers[i]); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","provider",entry.id) end end end
-    if I.Router then for i=1,#entry.handlers do local ok=I.Router:Add(entry.id,entry.handlers[i]); if not ok then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","handler",entry.id) end end end
     self.panelsByExtension[entry.id]={}
     for i=1,#entry.panels do local panel=entry.panels[i]; local key=entry.id..":"..panel.id; if self.panels[key] then self:_Rollback(entry); return nil,failure("DUPLICATE_ID","panel",entry.id) end; self.panels[key]={extensionID=entry.id,descriptor=panel}; self.panelsByExtension[entry.id][panel.id]=key end
     notify(entry,"registered")
     invoke(entry.descriptor.onHostAttached,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
     if entry.ownerEnabled and entry.userEnabled then notify(entry,"enabled"); invoke(entry.descriptor.onEnabled)
     else
-        if I.Catalog then I.Catalog:SetExtensionEnabled(entry.id, false) end
         notify(entry,"disabled")
     end
     return true
@@ -336,7 +294,6 @@ function Registry:IsEnabled(extensionID) local entry=self.entries[extensionID]; 
 function Registry:_ApplyEnabled(entry, reason)
     local enabled = entry.ownerEnabled and entry.userEnabled
     if (entry.state ~= "enabled" and entry.state ~= "disabled") or (entry.state == "enabled") == enabled then return true end
-    if I.Catalog then I.Catalog:SetExtensionEnabled(entry.id, enabled) end
     if I.Search and I.Search.StaticIndex then
         for index = 1, #entry.sources do I.Search.StaticIndex:TouchSource(entry.id .. ":" .. entry.sources[index].id, enabled) end
     end
@@ -368,12 +325,7 @@ function Registry:_Handle(entry)
     function handle:GetState()
         return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=entry.userEnabled,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled",errorCode=entry.incompatible and "INCOMPATIBLE_HOST" or nil}
     end
-    function handle:QueryCapability(request,context)
-        if entry.state~="enabled" then return nil,failure("EXTENSION_DISABLED",nil,entry.id) end
-        local ok,why=I.Boundary:Validate(request,"request"); if not ok then return nil,why end
-        if not I.Broker then return nil,failure("CAPABILITY_NOT_FOUND",nil,entry.id) end
-        return I.Broker:Query(request,context)
-    end
+
     function handle:Invalidate(key)
         local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
         local allowed = false
@@ -521,10 +473,7 @@ function Registry:_Handle(entry)
         if entry.state=="retiring" then return true end
         local wasEnabled=entry.state=="enabled"
         local wasAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled")
-        if I.Catalog then I.Catalog:RemoveExtension(entry.id) end
         notify(entry,"retiring","unregister")
-        if I.Broker then I.Broker:RemoveExtension(entry.id) end
-        if I.Router then I.Router:RemoveExtension(entry.id) end
         if I.Search and I.Search.StaticIndex then for i=1,#entry.sources do I.Search.StaticIndex:UnregisterSource(entry.id..":"..entry.sources[i].id) end end
         registry:RemovePanels(entry.id)
         if wasEnabled then invoke(entry.descriptor.onDisabled,"unregister") end

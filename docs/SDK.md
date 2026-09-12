@@ -1,6 +1,6 @@
 # Lychee SDK：Provider API 2.6
 
-本轮保留 SDK 2 / revision 6、UI Runtime 1；角色设置、内部接收和资源所有权约束见 [生命周期说明](../lychee-sdk/RUNTIME_LIFECYCLE.md)。公开字段和调用方式不变。
+当前 SDK 为 API 2 / revision 7，UI Runtime 仍为 1。新增公共资源生命周期、角色设置和有界缓存，见 [托管资源协议](../lychee-sdk/MANAGED_RESOURCES.md)；旧 revision 1–6 的 Provider 保持兼容。
 
 ## 普通搜索与快捷入口（revision 6，推荐）
 
@@ -87,7 +87,7 @@ SDK 的主要入口是 `Lychee:RegisterProvider`。内置玩家技能、坐骑�
 
 1–2 个英文字母只匹配完整词或词首，不作模糊纠错，例如 `rl` 不命中 `heirlooms`，`hei` 和 `rlo` 可以命中。中文和数字保留原有规则。此规则适用于通用文本匹配与用户别名，不改变快捷词的精确触发或前缀路由。
 
-`query` 仍可返回按业务逻辑生成的合法候选，即使其文字与输入不同；Host 保留既有业务排序回退，不要求第三方重新实现文本算法。同一 Provider、同一 ID 的静态条目仍优先。上次选择只提升当前匹配且有效的引用，不能绕过来源开关或范围限制。结果仍最多 20 条，模糊召回仍受预算限制。以上不增加 SDK 字段，当前契约保持 API 2 / revision 6。
+`query` 仍可返回按业务逻辑生成的合法候选，即使其文字与输入不同；Host 保留既有业务排序回退，不要求第三方重新实现文本算法。同一 Provider、同一 ID 的静态条目仍优先。上次选择只提升当前匹配且有效的引用，不能绕过来源开关或范围限制。结果仍最多 20 条，模糊召回仍受预算限制。以上不增加 SDK 字段，搜索字段自 revision 6 引入，当前 Host 为 revision 7。
 
 ## 最小接入
 

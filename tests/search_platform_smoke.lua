@@ -15,13 +15,7 @@ end
 UIParent = {}
 
 local root = "package/Lychee/"
-local files = {
-    "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
-    "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
-    "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua",
-    "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua",
-}
-for i = 1, #files do dofile(root .. files[i]) end
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"})
 
 local I = _G.LycheeInternal
 local index = I.Search.StaticIndex:New()

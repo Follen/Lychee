@@ -1,26 +1,25 @@
 local I = _G.LycheeInternal
-local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, ambientEnabled = {}, limit = 20, catalogLimit = 8, ambientLimit = 12, debounceSeconds = 0.04 }
+local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, limit = 20, debounceSeconds = 0.04 }
 I.Search.Query = Q
-local EMPTY = {} -- private read-only empty catalogue/command views
+local EMPTY = {} -- private read-only empty view
 
 local function resultLess(left, right)
     local lc, rc = left.confidence or 0, right.confidence or 0
     if lc ~= rc then return lc > rc end
-    local lp = left.sourcePriority or (left.command and left.command.priority) or 0
-    local rp = right.sourcePriority or (right.command and right.command.priority) or 0
+    local lp = left.sourcePriority or 0
+    local rp = right.sourcePriority or 0
     if lp ~= rp then return lp > rp end
     local lco, rco = left.categoryOrder or 0, right.categoryOrder or 0
     if lco ~= rco then return lco < rco end
     return tostring(left.stableID or left._ext or "") .. ":" .. tostring(left.id or "") < tostring(right.stableID or right._ext or "") .. ":" .. tostring(right.id or "")
 end
 
-local function appendUnique(out, seen, item, command)
+local function appendUnique(out, seen, item)
     if type(item) ~= "table" then return false end
-    if command then item._ext, item.command = command._ext, command end
     local canonical = item.stableID or (item.searchRecord and item.searchRecord.id) or item.id or item.key
     local key
     if item.searchRecord then key = "record:" .. tostring(item._ext or item.sourceID or "") .. ":" .. tostring(item.id)
-    else key = tostring(item._ext or (item.command and item.command._ext) or "") .. ":" .. tostring(canonical or item.text or #out + 1) end
+    else key = tostring(item._ext or "") .. ":" .. tostring(canonical or item.text or #out + 1) end
     if seen[key] then return false end
     seen[key] = true; out[#out + 1] = item
     return true
@@ -164,66 +163,19 @@ function Q:_IsCurrent(generation, context)
     return true
 end
 
-function Q:_AmbientCommands(normalized)
-    if normalized == "" or not I.Catalog or type(I.Catalog.GetAmbientView) ~= "function" then return {} end
-    return I.Catalog:GetAmbientView(normalized, self.ambientEnabled)
-end
-
 function Q:_Execute(raw, context, generation, request)
     request = request or self:_BuildRequest(raw, context, generation)
     local filtered = type(request.filter) == "table" and (request.filter.sourceID or request.filter.categoryID)
-    local catalogBudget = filtered and 0 or math.min(self.catalogLimit, self.limit)
-    local ambientBudget = self.limit
-    local catalogResults = not filtered and I.Catalog and I.Catalog:Query(request, catalogBudget) or EMPTY
-    local out, seen, catalogDynamic = {}, filtered and EMPTY or {}, filtered and EMPTY or {}
-    for index = 1, #catalogResults do
-        local result = catalogResults[index]
-        if result.command and result.command.presentation == "dynamic-list" then
-            catalogDynamic[#catalogDynamic + 1] = result.command
-        else
-            appendUnique(out, seen, result)
-        end
-    end
-    ambientBudget = math.max(0, self.limit - #out)
+    local out, seen = {}, filtered and EMPTY or {}
     if I.Search and I.Search.StaticIndex then
         local preferred=I.Search.Personalization and I.Search.Personalization:Preferred(request)
         local preferredKey=preferred and (preferred.providerID..":records:"..preferred.entryID)
-        local indexed = I.Search.StaticIndex:Search(request.normalized, math.min(ambientBudget, self.limit - #out), request.filter, true, preferredKey)
+        local indexed = I.Search.StaticIndex:Search(request.normalized, self.limit, request.filter, true, preferredKey)
         for index = 1, #indexed do
             local item = searchRecordItem(indexed[index])
             if item then
                 if filtered then out[#out+1]=item -- index already guarantees unique static records
                 else appendUnique(out, seen, item) end
-            end
-        end
-    end
-    local resolvedAdded = 0
-    for commandIndex = 1, #catalogDynamic do
-        if resolvedAdded >= ambientBudget or #out >= self.limit then break end
-        local command = catalogDynamic[commandIndex]
-        request.limit = math.min(ambientBudget - resolvedAdded, self.limit - #out)
-        local ok, items = pcall(command.resolve, request, context or {})
-        if ok and type(items) == "table" then
-            for itemIndex = 1, #items do
-                if appendUnique(out, seen, items[itemIndex], command) then
-                    resolvedAdded = resolvedAdded + 1
-                    if resolvedAdded >= ambientBudget or #out >= self.limit then break end
-                end
-            end
-        end
-    end
-    local ambientCommands, ambientAdded = filtered and EMPTY or self:_AmbientCommands(request.normalized), 0
-    for commandIndex = 1, #ambientCommands do
-        if resolvedAdded + ambientAdded >= ambientBudget or #out >= self.limit then break end
-        request.limit = math.min(ambientBudget - resolvedAdded - ambientAdded, self.limit - #out)
-        local schedulable = ambientCommands[commandIndex]
-        local ok, items = pcall(schedulable.resolve, request, context or {})
-        if ok and type(items) == "table" then
-            for itemIndex = 1, #items do
-                if appendUnique(out, seen, items[itemIndex], schedulable.command) then
-                    ambientAdded = ambientAdded + 1
-                    if resolvedAdded + ambientAdded >= ambientBudget or #out >= self.limit then break end
-                end
             end
         end
     end
@@ -346,5 +298,3 @@ function Q:Cancel(reason, generation)
     if I.Providers then I.Providers:CancelQueries(reason) end
     return true
 end
-
-function Q:SetAmbientEnabled(key, enabled) self.ambientEnabled[key] = enabled end

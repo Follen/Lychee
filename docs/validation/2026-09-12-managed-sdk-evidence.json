@@ -1,0 +1,42 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "name": "C_Timer.NewTimer",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+    "line": 39,
+    "excerpt": "39: \t\t\tName = \"NewTimer\",\n40: \t\t\tType = \"Function\",\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n46: \t\t\t\t{ Name = \"callback\", Type = \"TickerCallback\", Nilable = false },\n47: \t\t\t},\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"cbObject\", Type = \"TickerCallback\", Nilable = false },\n52: \t\t\t},\n53: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "name": "RegisterEvent",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+    "line": 1018,
+    "excerpt": "1018: \t\t\tName = \"RegisterEvent\",\n1019: \t\t\tType = \"Function\",\n1020: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1021: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1022: \t\t\tAddsForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1023: \n1024: \t\t\tArguments =\n1025: \t\t\t{\n1026: \t\t\t\t{ Name = \"eventName\", Type = \"cstring\", Nilable = false },\n1027: \t\t\t},\n1028: \n1029: \t\t\tReturns =\n1030: \t\t\t{\n1031: \t\t\t\t{ Name = \"registered\", Type = \"bool\", Nilable = false },\n1032: \t\t\t},\n1033: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "name": "UnregisterEvent",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+    "line": 1596,
+    "excerpt": "1596: \t\t\tName = \"UnregisterEvent\",\n1597: \t\t\tType = \"Function\",\n1598: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1599: \t\t\tChecksForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1600: \t\t\tAddsForbiddenAspects = { { Argument = \"self\", Aspect = Enum.ForbiddenAspect.EventRegistrations } },\n1601: \n1602: \t\t\tArguments =\n1603: \t\t\t{\n1604: \t\t\t\t{ Name = \"eventName\", Type = \"cstring\", Nilable = false },\n1605: \t\t\t},\n1606: \n1607: \t\t\tReturns =\n1608: \t\t\t{\n1609: \t\t\t\t{ Name = \"registered\", Type = \"bool\", Nilable = false },\n1610: \t\t\t},\n1611: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "name": "FrameScript.debugprofilestop",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+    "line": 509,
+    "excerpt": "509: \t\t\tName = \"debugprofilestop\",\n510: \t\t\tType = \"Function\",\n511: \t\t\tDocumentation = { \"Returns the time in milliseconds since the last debugprofilestart call.\" },\n512: \n513: \t\t\tReturns =\n514: \t\t\t{\n515: \t\t\t\t{ Name = \"elapsedMilliseconds\", Type = \"number\", Nilable = false },\n516: \t\t\t},\n517: \t\t},"
+  }
+]

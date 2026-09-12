@@ -9,11 +9,7 @@ function CreateFrame()
     return { RegisterEvent = function() end, SetScript = function() end, Hide = function() end, Show = function() end }
 end
 local root = "package/Lychee/"
-for _, file in ipairs({ "Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/RuntimeIdentity.lua", "Search/Normalizer.lua",
-    "Search/StaticIndex.lua", "Core/CommandCatalog.lua", "Core/CapabilityBroker.lua", "Core/Boundary.lua",
-    "Core/IntentRouter.lua", "Core/Scheduler.lua", "Core/ExtensionRegistry.lua", "Search/QueryOrchestrator.lua", "Core/ProviderRuntime.lua", "PublicAPI/SDK.lua" }) do
-    dofile(root .. file)
-end
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"})
 local I, SDK = _G.LycheeInternal, _G.Lychee
 local readyCalls = 0
 local readyToken = assert(SDK:RegisterReady(function() readyCalls = readyCalls + 1 end))

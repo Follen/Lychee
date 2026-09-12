@@ -37,7 +37,7 @@ if ($executorSource -notmatch 'DRAG_UNSUPPORTED|COMBAT_LOCKED') { throw 'Drag/co
 $bootstrapSource = Get-Content (Join-Path $root 'package/Lychee/Bootstrap.lua') -Raw
 if ($bootstrapSource -match 'palette\.(session|generation)') { throw 'Bootstrap must not access Palette session/generation internals' }
 $querySource = Get-Content (Join-Path $root 'package/Lychee/Search/QueryOrchestrator.lua') -Raw
-if ($querySource -match 'Catalog\.commands') { throw 'QueryOrchestrator must use the CommandCatalog public view' }
+if ($querySource -match 'I\.(Catalog|Broker|Router)') { throw 'QueryOrchestrator must use Provider results only' }
 if ($querySource -match 'self\.generation|local\s+Q\s*=\s*\{[^\r\n]*generation\s*=|_BeginGeneration|function\s+Q:Invalidate') { throw 'SearchSession must be the only query generation owner' }
 $playerSpellRuntime = (Get-Content (Join-Path $root 'package/Lychee/Builtin/PlayerSpells/Init.lua') -Raw) + (Get-Content (Join-Path $root 'package/Lychee/Builtin/PlayerSpells/Provider.lua') -Raw)
 if ($playerSpellRuntime -match 'StaticIndex|searchSourceID|sourceGeneration') { throw 'PlayerSpells must update through its committed SearchSource handle' }
@@ -75,7 +75,7 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('provider_locales','provider_locale_ownership','catalog_lifecycle','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
+    foreach ($test in @('test_assembly','sdk_resources','provider_locales','provider_locale_ownership','catalog_lifecycle','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
@@ -103,10 +103,6 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Search platform smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/search_session_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search session smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/command_catalog_smoke.lua'
-    if ($LASTEXITCODE -ne 0) { throw "Command catalog smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/capability_broker_smoke.lua'
-    if ($LASTEXITCODE -ne 0) { throw "Capability broker smoke failed with exit code $LASTEXITCODE" }
     foreach ($test in @('search_quality','search_ranking_regression','search_lifecycle_regression')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }

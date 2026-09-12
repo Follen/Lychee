@@ -16,6 +16,8 @@ LycheeInternal={Search={},Builtin={Support={Scope=function() return {products={"
     ProviderLocales={Builtin=function() return L end}}
 LycheeDB={}
 dofile("package/Lychee/Search/Normalizer.lua")
+dofile("package/Lychee/Core/Boundary.lua")
+dofile("package/Lychee/Core/Resources.lua")
 function InCombatLockdown() return false end
 function debugprofilestop() return 0 end
 function hooksecurefunc(owner,key,callback)
@@ -61,9 +63,11 @@ end
 for _,query in ipairs({"","生命","框体","布局","border","边框","module","page 4","Module title 3 Border","notfound","unlock"}) do
     for _,limit in ipairs({1,7,20,50}) do
         local result
+        local resources=LycheeInternal.Resources:Create(function() return true end)
         definition.query({normalized=LycheeInternal.Search.Normalizer:Normalize(query),limit=limit,
-            filter={sourceID="builtin.ellesmere:records"}},function(rows) result=rows end)
+            filter={sourceID="builtin.ellesmere:records"}},function(rows) result=rows end,{resources=resources})
         while #timers>0 do local t=table.remove(timers,1);if not t.cancelled then t.fn() end end
+        LycheeInternal.Resources:Close(resources,"complete")
         assert(result)
         write("QUERY\t",query,"\t",limit,"\n",emit(result),"\n")
         for _,row in ipairs(result) do

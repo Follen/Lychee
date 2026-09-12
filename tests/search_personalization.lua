@@ -4,11 +4,7 @@ function GetBuildInfo() return "12.1.0","12345","fixture",120100 end
 function InCombatLockdown() return false end
 function CreateFrame() return {RegisterEvent=function() end,SetScript=function() end,Hide=function() end,Show=function() end} end
 UIParent={}
-for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua",
-    "Core/ContextStore.lua","Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/ProviderPolicy.lua","Search/StaticIndex.lua",
-    "Core/CommandCatalog.lua","Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua",
-    "Core/ExtensionRegistry.lua","Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua",
-    "Core/UserPreferences.lua","Search/Personalization.lua","UI/Theme.lua","UI/TextHighlight.lua"}) do dofile("package/Lychee/"..file) end
+dofile("tests/support/runtime.lua").Load("provider", {"Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "UI/Theme.lua", "UI/TextHighlight.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local P=I.Search.Personalization
