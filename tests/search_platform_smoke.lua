@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 -- Unified SearchSource/SearchRecord contract smoke.
 _G = _G or {}
 _G.__locale = "zhCN"
@@ -72,24 +73,24 @@ index:Search("红玉新", 10)
 assert(index:GetDiagnostics().reusedPrevious == true)
 
 assert(index:RegisterSource({ id = "mutation-test", revision = 1 }))
-assert(index:Upsert("mutation-test", {
+assert(index:ApplyDelta("mutation-test", {{
     id = "spell:393256", kind = "spell", category = { id = "spells", title = { zhCN = "技能" } },
     title = "利爪防御者之路（更新）", aliases = { { text = "红玉新", locale = "zhCN" } },
-}, 2))
+}}, {}))
 local mutationHits = index:Search("红玉新", 10)
 local mutationFound = false
 for mutationIndex = 1, #mutationHits do if mutationHits[mutationIndex].sourceID == "mutation-test" then mutationFound = true end end
 assert(mutationFound)
-assert(index:Remove("mutation-test", "spell:393256", 3))
+assert(index:ApplyDelta("mutation-test",{}, {"spell:393256"}))
 local afterRemoveHits = index:Search("红玉新", 10)
 for removeIndex = 1, #afterRemoveHits do assert(afterRemoveHits[removeIndex].sourceID ~= "mutation-test") end
 assert(index:Invalidate("mutation-test", 4))
-assert(index:GetSignature():find("search%-schema%-2", 1, false))
 
 assert(index:RegisterSource({ id = "generation-test", revision = 2 }))
-assert(index:Upsert("generation-test", { id = "one", title = "代际记录" }, 2))
+assert(index:ApplyDelta("generation-test", {{ id = "one", title = "代际记录" }},{}))
 local generation = index.sources["generation-test"]._generation
-assert(index:Upsert("generation-test", { id = "old", title = "旧代记录" }, 2, generation - 1) == false)
+local stale,reason=index:CommitSnapshot("generation-test", {{ id = "old", title = "旧代记录" }}, 2, generation - 1)
+assert(not stale and reason=="STALE_GENERATION")
 
 _G.__locale = "enUS"
 I.Search.RuntimeIdentity:Refresh()
@@ -99,82 +100,37 @@ assert(#index:Search("红玉", 10) == 0)
 local english = index:Search("ruby life pools", 10)
 assert(#english == 1 and english[1].item.id == "spell:393256")
 
--- Public Extension registration publishes a source into the Host index.
-_G.__locale = "zhCN"
-I.Search.RuntimeIdentity:Refresh()
-I.Search.Normalizer.locale = "zhCN"
-I.Search.StaticIndex:Clear()
+-- Catalog owners deliver bounded hits through API 3; no Host catalog is created.
+_G.__locale="zhCN";I.Search.RuntimeIdentity:Refresh();I.Search.Normalizer.locale="zhCN";I.Locale.code="zhCN"
 I.Registry:SetReady(true)
-local draft = I.Registry:Begin({ id = "test.search", apiVersion = 2, minApiRevision = 1, title = "Search fixture" })
-assert(draft)
-assert(draft:RegisterSearchSource({
-    id = "creatures", version = 1, revision = 1, priority = 50, scope = {}, title = { default = "Creature source", zhCN = "生物来源" },
-    records = {
-        { id = "creature:1", kind = "creature", kindTitle = { default = "Creature", zhCN = "生物" }, category = { id = "dungeons", title = { default = "Dungeon", zhCN = "副本" }, color = { 0.8, 0.4, 0.7, 1 } }, title = "红玉小怪", aliases = { { text = "红玉小怪", locale = "zhCN" } } },
-    },
-}))
-local handle = draft:Commit()
-assert(handle and handle:GetState().effectiveEnabled == true)
-local sourceHandle = assert(handle:GetSearchSource("creatures"))
-local sourceState = sourceHandle:GetState()
-local snapshotGeneration = sourceHandle:BeginSnapshot()
-assert(sourceHandle:Upsert({ id = "creature:2", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "增量小怪" }, snapshotGeneration))
-assert(sourceHandle:CommitSnapshot(nil, nil, snapshotGeneration))
-assert(sourceHandle:GetState().revision > sourceState.revision)
-assert(#I.Search.StaticIndex:Search("增量小怪", 10) == 1)
-local generation, results = I.Search.Query:Query("红玉小怪", {})
-assert(generation and #results > 0 and results[1].searchRecord and results[1].category == "副本")
-
-local typedGeneration, typedResults = I.Search.Query:Query("红玉小怪", {})
-assert(typedGeneration and typedResults[1].kindTitle == "生物", "SearchRecord kindTitle is projected without a Host kind dictionary")
-assert(typedResults[1].sourceTitle == "生物来源", "result source title comes from the Source declaration")
-assert(typedResults[1].categoryColor and typedResults[1].categoryColor[1] == 0.8, "category color comes from the SearchRecord")
-
--- Source-local updates preserve unrelated source entries and snapshots restore real records.
-local sourceB = "test.search:other"
-assert(I.Search.StaticIndex:RegisterSource({ id = sourceB, revision = 1, _extensionID = "test.search" }))
-assert(I.Search.StaticIndex:CommitSnapshot(sourceB, { { id = "other:1", kind = "creature", title = "保留记录" } }, 1))
-local unrelatedKey = sourceB .. ":other:1"
-local unrelatedEntry = I.Search.StaticIndex.entries[unrelatedKey]
-assert(sourceHandle:Upsert({ id = "creature:3", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "局部更新" }))
-assert(I.Search.StaticIndex.entries[unrelatedKey] == unrelatedEntry)
-local exported = I.Search.StaticIndex:ExportSnapshot()
-local restored = I.Search.StaticIndex:New()
-for sourceIndex = 1, #exported.sources do assert(restored:RegisterSource(exported.sources[sourceIndex])) end
-assert(restored:RestoreSnapshot(exported))
-assert(#restored:Search("保留记录", 10) == 1)
-
--- Fuzzy work obeys a millisecond deadline and records a stable diagnostic code.
-local previousProfiler = debugprofilestop
-local clock = 0
-debugprofilestop = function() clock = clock + 10; return clock end
-I.Search.StaticIndex:Search("保留记绿", 10)
-debugprofilestop = previousProfiler
-assert((I.Search.StaticIndex:GetDiagnostics().FUZZY_TIME_BUDGET or 0) > 0)
-
--- Public immediate mutations are staged and committed once per frame when the client timer exists.
-local scheduled = {}
-C_Timer = { After = function(_, callback) scheduled[#scheduled + 1] = callback end }
-local beforeBatch = sourceHandle:GetState()
-assert(sourceHandle:Upsert({ id = "creature:batched-one", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "批量一" }))
-assert(sourceHandle:Upsert({ id = "creature:batched-two", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "批量二" }))
-assert(#scheduled == 1 and sourceHandle:GetState().revision == beforeBatch.revision, "same-frame mutations are coalesced")
-scheduled[1]()
-assert(sourceHandle:GetState().revision == beforeBatch.revision + 1, "same-frame batch bumps once")
-C_Timer = { After = function(_, callback) callback() end }
-local synchronousBefore = sourceHandle:GetState().revision
-assert(sourceHandle:Upsert({ id = "creature:sync-timer", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "同步计时器" }))
-assert(sourceHandle:GetState().revision == synchronousBefore + 1, "synchronous timer commits staged mutation")
-C_Timer = nil
-
-local invalidCategoryDraft = I.Registry:Begin({ id = "test.category", apiVersion = 2, minApiRevision = 1, title = "Category" })
-assert(invalidCategoryDraft)
-assert(invalidCategoryDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 1, scope = {}, records = { { id = "one", kind = "other", category = { id = "unprefixed" }, title = "Bad" } } }))
-local invalidCategoryHandle, invalidCategoryErr = invalidCategoryDraft:Commit()
-assert(not invalidCategoryHandle and invalidCategoryErr and invalidCategoryErr.code == "INVALID_SCHEMA")
-assert(handle:Unregister())
-local _, removed = I.Search.Query:Query("红玉小怪", {})
-assert(#removed == 0)
+local handle=assert(Fixture:Register({id="test.search",apiVersion=3,minApiRevision=1,version="1",title="生物来源",catalog={
+ {id="creature:1",title="红玉小怪",kindTitle="生物",category={id="dungeons",title="副本",color={0.8,0.4,0.7,1}}}
+}}))
+local catalog=handle.catalog
+local version=catalog:GetState().revision
+assert(catalog:Update({upsert={{id="creature:2",title="增量小怪"}}}))
+assert(catalog:GetState().revision==version+1)
+local _,results=I.Search.Query:Query("红玉小怪",{})
+assert(#results==1 and results[1].kindTitle=="生物" and results[1].sourceTitle=="生物来源")
+assert(results[1].category=="副本" and results[1].categoryColor[1]==0.8)
+assert(next(I.Search.StaticIndex.entries)==nil,"Host retains no complete catalog")
+local other=assert(Fixture:Register({id="test.other",apiVersion=3,version="1",title="Other",catalog={{id="one",title="保留记录"}}}))
+local previous=other.catalog:GetState().revision
+assert(catalog:Update({upsert={{id="creature:3",title="局部更新"}}}))
+assert(other.catalog:GetState().revision==previous and other.catalog:Resolve("one").title=="保留记录")
+version=catalog:GetState().revision
+assert(catalog:Update({upsert={{id="batch1",title="批量一"},{id="batch2",title="批量二"}}}))
+assert(catalog:GetState().revision==version+1,"one atomic delta bumps once")
+assert(not catalog:Update({upsert={{id="bad",title="Bad",category={id="bad id"}}}}))
+assert(catalog:GetState().revision==version+1,"invalid batch changes nothing")
+local previousProfiler,clock=debugprofilestop,0
+debugprofilestop=function()clock=clock+10;return clock end
+index:Search("过期技绿",10)
+debugprofilestop=previousProfiler
+assert((index:GetDiagnostics().FUZZY_TIME_BUDGET or 0)>0)
+assert(handle:Unregister() and other:Unregister())
+local _,removed=I.Search.Query:Query("红玉小怪",{})
+assert(#removed==0)
 
 -- Shared postings survive one owner changing/removing a repeated alias; then
 -- the last owner removal clears every index, including singleton categories.

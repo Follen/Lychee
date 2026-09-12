@@ -75,7 +75,7 @@ function P:Create(parent,controller,onBack)
     view.globalToggle:SetScript("OnMouseDown",function() view.globalToggle.press=view.generation end)
     view.globalToggle:SetScript("OnClick",function()
         local pressed=view.globalToggle.press;view.globalToggle.press=nil
-        if not current() or not view.info.searchable or pressed~=nil and pressed~=view.generation then return end
+        if not current() or pressed~=nil and pressed~=view.generation then return end
         local global,prefixes,keywords=management:GetConfiguration(view.id,view.instanceToken)
         local ok,err=management:SetConfiguration(view.id,view.instanceToken,not global,prefixes,keywords)
         if not ok then view:Failure(err);view.globalToggle:SetChecked(global);return end
@@ -122,7 +122,6 @@ function P:Create(parent,controller,onBack)
         end
     end
     view.prefixInput=view.fields.prefix.input;view.keywordInput=view.fields.keyword.input
-    view.help=label(L["独立查询入口，由功能自身决定触发词"],8,-68,width-16);view.help:SetHeight(44)
     view.error=label("",8,0,width-16,"meta");view.error:SetHeight(36);UI.Theme:SetTextColor(view.error,"warning")
     view.technical=label("",8,0,width-16,"meta");view.technical:SetHeight(36)
     function view:ClearFocus() for _,field in pairs(self.fields) do field.input:ClearFocus();field.inputStyle:SetInvalid(false) end end
@@ -132,7 +131,7 @@ function P:Create(parent,controller,onBack)
         self.error:SetText("");self:Layout();controller:SetStatusText(L["更改即时生效"])
     end
     function view:BeginEdit(kind)
-        if not current() or self.editing or not self.info.searchable then return end
+        if not current() or self.editing then return end
         local _,prefixes,keywords=management:GetConfiguration(self.id,self.instanceToken)
         self.editing=kind;self.generation=self.generation+1
         local field=self.fields[kind];field.before=table.concat(kind=="prefix" and prefixes or keywords,", ")
@@ -176,20 +175,19 @@ function P:Create(parent,controller,onBack)
     end
     function view:Layout()
         if not self.info then return end
-        local independent=not self.info.searchable
         local hasError=self.error:GetText()~=""
-        local key=tostring(independent)..":"..tostring(self.editing)..":"..tostring(self.aboutOpen)..":"..tostring(hasError)
+        local key=tostring(self.editing)..":"..tostring(self.aboutOpen)..":"..tostring(hasError)
             ..":"..self.fields.prefix.wordsKey..":"..self.fields.keyword.wordsKey
         if self.layoutKey==key then return end
         self.layoutKey=key
         local y=104;local errorY=90
         for _,kind in ipairs({"prefix","keyword"}) do
-            local field=self.fields[kind];local editing=self.editing==kind and not independent
+            local field=self.fields[kind];local editing=self.editing==kind
             local function at(region,x,offset) region:ClearAllPoints();region:SetPoint("TOPLEFT",frame,"TOPLEFT",x,-y-offset) end
-            at(field.label,8,3);field.label:SetShown(not independent)
+            at(field.label,8,3);field.label:SetShown(true)
             local x,rowY=valueX,0
             for index,chip in ipairs(field.tokens) do
-                local shown=not independent and not editing and index<=field.count
+                local shown=not editing and index<=field.count
                 if shown then
                     if x+chip.width>valueX+tokenWidth then x=valueX;rowY=rowY+28 end
                     at(chip.frame,x,rowY);chip.x,chip.y=x,rowY
@@ -202,9 +200,9 @@ function P:Create(parent,controller,onBack)
             field.edit.frame:SetWidth(editWidth);at(field.edit.frame,width-8-editWidth,0)
             field.edit.label:ClearAllPoints();field.edit.label:SetAllPoints(field.edit.frame)
             field.edit.label:SetJustifyH("RIGHT")
-            field.edit.frame:SetShown(not independent and not editing);field.edit:SetEnabled(self.editing==nil)
+            field.edit.frame:SetShown(not editing);field.edit:SetEnabled(self.editing==nil)
             field.hint:SetWidth(configured and valueWidth or valueWidth-editWidth-12)
-            at(field.hint,valueX,configured and rowY+26 or 3);field.hint:SetShown(not independent and not editing)
+            at(field.hint,valueX,configured and rowY+26 or 3);field.hint:SetShown(not editing)
             at(field.input,valueX,0);field.input:SetShown(editing)
             at(field.example,valueX,40);field.example:SetShown(editing)
             at(field.cancel.frame,width-144,78);field.cancel.frame:SetShown(editing)
@@ -212,10 +210,10 @@ function P:Create(parent,controller,onBack)
             if editing then errorY=y+112 end
             y=y+(editing and (hasError and 152 or 112) or rowY+(configured and 64 or 48))
         end
-        if not self.editing then errorY=independent and 116 or y end
+        if not self.editing then errorY=y end
         self.error:ClearAllPoints();self.error:SetPoint("TOPLEFT",frame,"TOPLEFT",valueX,-errorY);self.error:SetWidth(valueWidth);self.error:SetShown(hasError)
         if hasError and not self.editing then y=y+40 end
-        local aboutY=independent and 120 or y
+        local aboutY=y
         self.about.frame:ClearAllPoints();self.about.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-aboutY)
         self.about:SetText(L[self.aboutOpen and "收起版本信息" or "版本与兼容性"])
         self.about:SetDirection(self.aboutOpen and "down" or "right")
@@ -233,7 +231,7 @@ function P:Create(parent,controller,onBack)
         self.error:SetText(L[message]);self:Layout();controller:SetStatusText(L[message])
     end
     function view:Save()
-        if not current() or not self.editing or not self.info.searchable then return end
+        if not current() or not self.editing then return end
         local kind=self.editing;local list={}
         if self.fields[kind].input:GetText()==self.fields[kind].before then self:CancelEdit();return end
         for value in self.fields[kind].input:GetText():gsub("，",","):gmatch("[^,]+") do
@@ -246,7 +244,6 @@ function P:Create(parent,controller,onBack)
         self:CancelEdit();self:UpdateExamples();self:Layout();controller:SetStatusText(L["搜索设置已保存"])
     end
     view.reset=button(L["恢复默认"],0,0,120,function()
-        if not view.info.searchable then return end
         local ok,err=management:ResetConfiguration(view.id,view.instanceToken)
         if not ok then view:Failure(err);return end
         view.generation=view.generation+1;view:Refresh();controller:SetStatusText(L["已恢复默认搜索设置"])
@@ -258,32 +255,40 @@ function P:Create(parent,controller,onBack)
         if not current() then return end
         self:ClearFocus();self.layoutKey=nil;self.editing=nil
         management:Read(self.id,self.instanceToken,self.info)
-        local independent=not self.info.searchable
-        self.toggle:SetChecked(self.info.userEnabled,true)
-        self.state:SetText(L[self.info.userEnabled and "已启用" or "已关闭"])
-        self:UpdateExamples();self.globalToggle:SetChecked(self.global,true);self.globalToggle:SetShown(not independent)
-        self.globalLabel:SetShown(not independent);self.globalHint:SetShown(not independent);self.help:SetShown(independent)
-        self.reset:SetEnabled(not independent);self.error:SetText("")
+        self:RefreshStatus()
+        self:UpdateExamples();self.globalToggle:SetChecked(self.global,true);self.globalToggle:SetShown(true)
+        self.globalLabel:SetShown(true);self.globalHint:SetShown(true)
+        self.reset:SetEnabled(true);self.error:SetText("")
         local clients={}
         for _,product in ipairs(self.info.products) do clients[#clients+1]=L[CLIENTS[product] or product] end
         self.technical:SetText(L["版本"].." "..tostring(self.info.version).."  ·  "..table.concat(clients,", "));self:Layout()
     end
+    function view:RefreshStatus()
+        if not current() then return end
+        local info=management:Read(self.id,self.instanceToken,self.info)
+        if not info then return end
+        self.toggle:SetChecked(info.userEnabled,true)
+        self.state:SetText(L[not info.userEnabled and "已关闭" or info.effectiveEnabled and "已启用" or "暂不可用"])
+        self.title:SetText(info.title)
+        self.detail:SetText(info.userEnabled and info.statusReason or info.description or self.description or "")
+    end
     function view:Show(id,icon,description)
         local info=management:Read(id,nil,self.info)
         if not info then return false end
-        self.id,self.instanceToken,self.info=id,info.instanceToken,info
+        self.id,self.instanceToken,self.info,self.description=id,info.instanceToken,info,description
         self.sample=info.sample or L["名称"]
         self.aboutOpen=false
         self.generation=self.generation+1
         for _,field in pairs(self.fields) do field.ui:Update(EMPTY_UI_PROPS) end
         outer:Show();bar.value=0;scroll:SetVerticalScroll(0);range()
-        self.icon:SetTexture(icon);self.title:SetText(self.info.title);self.detail:SetText(description or "");self:Refresh()
+        self.icon:SetTexture(icon or info.icon);self:Refresh()
         controller:SetStatusText(L["更改即时生效"])
         return true
     end
     outer:SetScript("OnHide",function()
         view:ClearFocus();bar:StopDrag();if UI.Motion then UI.Motion:Cancel(outer,true) end
         view.generation=view.generation+1;view.id,view.instanceToken,view.info,view.sample=nil,nil,nil,nil
+        view.description=nil
         for _,field in pairs(view.fields) do field.editPress,field.savePress,field.cancelPress=nil,nil,nil;field.ui:Release("hide") end
     end)
     return view

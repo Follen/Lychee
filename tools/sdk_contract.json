@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "apiVersion": 2,
-  "apiRevision": 7,
-  "helperMinimumRevision": 6,
+  "apiVersion": 3,
+  "apiRevision": 1,
+  "helperMinimumRevision": 1,
   "errorCodes": [
     "INVALID_LOCALES",
     "INVALID_LOCALE_KEY",
@@ -39,7 +39,20 @@
     "INVALID_SETTINGS",
     "DATA_LIMIT",
     "SECRET_VALUE",
-    "INACCESSIBLE_VALUE"
+    "INACCESSIBLE_VALUE",
+    "STORAGE_CLOSED",
+    "STORAGE_BUSY",
+    "STORAGE_NOT_READY",
+    "STORAGE_EXISTS",
+    "STORAGE_NEWER_VERSION",
+    "STORAGE_MIGRATION_REQUIRED",
+    "STORAGE_MIGRATION_MISSING",
+    "STORAGE_MIGRATION_FAILED",
+    "STORAGE_MIGRATION_LIMIT",
+    "STALE_STORAGE",
+    "CATALOG_CLOSED",
+    "CATALOG_BUSY",
+    "CATALOG_CANCELLED"
   ],
   "contents": [
     "README.md",
@@ -52,6 +65,8 @@
     "docs/MOTION.md",
     "docs/MANAGED_RESOURCES.md",
     "LycheeAPI.lua",
+    "Storage.lua",
+    "docs/STORAGE.md",
     "ApiStubs.lua",
     "examples/ThirdPartyFixture/ThirdPartyFixture.toc",
     "examples/ThirdPartyFixture/ThirdPartyFixture_Mainline.toc",
@@ -66,6 +81,8 @@
     "docs/GETTING_STARTED.md",
     "docs/PROTOCOLS.md",
     "docs/COMPATIBILITY.md",
-    "docs/PERFORMANCE.md"
-  ]
+    "docs/PERFORMANCE.md",
+    "docs/CATALOG.md"
+  ],
+  "sdkVersion": "1.0.0"
 }

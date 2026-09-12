@@ -14,7 +14,7 @@ local ACTION_KIND_KEYS = {
 local RECORD_KEYS = {
     id=true,kind=true,kindTitle=true,category=true,title=true,subtitle=true,subtext=true,
     aliases=true,keywords=true,description=true,icon=true,scope=true,actions=true,
-    primaryActionID=true,drag=true,payload=true,availability=true,_extensionID=true,
+    primaryActionID=true,drag=true,payload=true,availability=true,rememberable=true,tooltipRows=true,_extensionID=true,
 }
 local TEXT_FIELDS = { "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }
 local CATEGORY_KEYS = {id=true,title=true,order=true,color=true}
@@ -105,7 +105,7 @@ function Boundary:_HasRecordReceipt(records) return receivedRecords[records] == 
 function Boundary:_ConsumeRecordReceipt(records) receivedRecords[records] = nil end
 
 function Boundary:ReceiveRecords(input, prepare, context, limit, share)
-    local list, why = self:Copy(input, "entries", { maxFields = limit, maxDepth = 10 })
+    local list, why = self:Copy(input, "entries", { maxFields = math.max(limit,128), maxDepth = 10 })
     if why then return nil, why end
     if type(list) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
     if #list > limit then return failure("RESULT_LIMIT", "entries") end
@@ -346,6 +346,22 @@ function Boundary:ValidateSearchRecord(record, field)
         if record.drag.type == "provider" and record.drag.spellID ~= nil then return schemaFailure(field .. ".drag.spellID") end
         if record.drag.title ~= nil and type(record.drag.title) ~= "string" then return schemaFailure(field .. ".drag.title") end
         for key in pairs(record.drag) do if key ~= "type" and key ~= "spellID" and key ~= "handler" and key ~= "title" then return schemaFailure(field .. ".drag." .. tostring(key)) end end
+    end
+    if record.rememberable~=nil and type(record.rememberable)~="boolean" then return schemaFailure(field..".rememberable") end
+    if record.tooltipRows~=nil then
+        if type(record.tooltipRows)~="table" or #record.tooltipRows>16 then return schemaFailure(field..".tooltipRows") end
+        local count=0
+        for key,row in pairs(record.tooltipRows) do
+            count=count+1
+            if type(key)~="number" or key%1~=0 or key<1 or key>#record.tooltipRows or type(row)~="table" or #row~=3 then return schemaFailure(field..".tooltipRows") end
+            local columns=0
+            for column,value in pairs(row) do
+                columns=columns+1
+                if type(column)~="number" or column%1~=0 or column<1 or column>3 or type(value)~="string" or #value>512 then return schemaFailure(field..".tooltipRows") end
+            end
+            if columns~=3 then return schemaFailure(field..".tooltipRows") end
+        end
+        if count~=#record.tooltipRows then return schemaFailure(field..".tooltipRows") end
     end
     if record.availability ~= nil then
         if type(record.availability) ~= "table" or type(record.availability.contextKey) ~= "string" then

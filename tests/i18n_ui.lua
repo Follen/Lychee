@@ -9,8 +9,12 @@ for _, locale in ipairs({"zhCN", "zhTW", "enUS", "enGB", "deDE"}) do
     local L = LycheeInternal.Locale
     local chinese = locale == "zhCN" or locale == "zhTW"
     assert(L:IsChinese() == chinese)
-    assert(L["复制信息"] == (chinese and "复制信息" or "Copy info"))
-    assert(L["上一级"] == (chinese and "上一级" or "Parent"))
+    dofile("addon/Lychee/Core/ProviderLocales.lua")
+    local namespace={ProviderLocaleData={}}
+    assert(loadfile("addon/Lychee_Inspector/Locales.lua"))("Lychee_Inspector",namespace)
+    local inspector=assert(LycheeInternal.ProviderLocales:Compile(namespace.ProviderLocaleData["lychee.addon-inspector"]))
+    assert(inspector:Text("复制信息") == (chinese and "复制信息" or "Copy info"))
+    assert(inspector:Text("上一级") == (chinese and "上一级" or "Parent"))
     assert(L["尚未翻译的键"] == "尚未翻译的键")
     assert(L:Resolve({zhCN="中文",enUS="English"}) == (chinese and "中文" or "English"))
     assert(L:Resolve({zhTW="繁体",enGB="British"}, "fallback") == (locale=="zhTW" and "繁体" or locale=="enGB" and "British" or "fallback"))

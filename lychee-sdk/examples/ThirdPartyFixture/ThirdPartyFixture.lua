@@ -1,4 +1,4 @@
--- Public API 2.2 integration. Lychee is optional; no Host internals are accessed.
+-- Public API 3 integration. Lychee is optional; no Host internals are accessed.
 local state = { committed=nil, enabled=false, diagnostics={}, opens=0, drags=0 }
 local waitingFrame, cachedPanel
 -- One reusable structure belongs to this Provider; each mount owns its binding.
@@ -14,16 +14,18 @@ local function attach()
     if state.committed then return state.committed end
     local SDK = _G.Lychee
     if not SDK or not SDK.Supports then return nil end
-    if not SDK:Supports(2, 2) then state.diagnostics.UNSUPPORTED_API=true; stopWaiting(); return nil end
-    local handle, err = SDK:RegisterProvider({
-        id="third-party-fixture", apiVersion=2, minApiRevision=2, version="2.2.0",
+    if not SDK:Supports(3, 1) then state.diagnostics.UNSUPPORTED_API=true; stopWaiting(); return nil end
+    local catalog,owner,records
+    local definition
+    definition={
+        id="third-party-fixture", apiVersion=3, minApiRevision=1, version="1.0.0",
         scope={products={"retail","classic","titan","anniversary"}},
         i18n={
             enUS={PROVIDER="Third-party fixture",ENTRY="Fixture entry",KIND="Example",DESCRIPTION="An ordinary addon entry with independent interactions.",ALIASES="fixture demo",STATUS="Fixture status",READY="Ready",INFO="Information entries need no action.",INSPECT="View details",KEEP="Keep search open",MOVE="Move",ITEM="Item %d"},
             zhCN={PROVIDER="第三方示例",ENTRY="第三方示例条目",KIND="示例",DESCRIPTION="具有独立交互的插件条目。",ALIASES="示例",STATUS="示例只读状态",READY="已就绪",INFO="信息条目不需要动作。",INSPECT="查看详情",KEEP="保持搜索打开",MOVE="移动",ITEM="物品 %d"},
         },
         title={key="PROVIDER"},
-        entries={
+        records={
             {id="fixture-item-12345",title={key="ENTRY"},
                 kindTitle={key="KIND"},description={key="DESCRIPTION"},
                 aliases={{key="ALIASES"},"fixture demo"},payload={itemID=12345},actions={"inspect","keep-open"},
@@ -71,11 +73,23 @@ local function attach()
             cachedPanel=panel
             return panel
         end}},
-        onEnable=function()
-            state.enabled=true
-            return function() state.enabled=false; if cachedPanel then cachedPanel:Unmount() end end
+        onEnable=function(handle)
+            owner=handle;state.enabled=true
+            assert(catalog:Update({replace=records}))
+            return function(reason) state.enabled=false;catalog:Clear();if reason=="unregister" then catalog:Close() end;if cachedPanel then cachedPanel:Unmount() end end
         end,
-    })
+    }
+    records=definition.records;definition.records=nil
+    local err
+    catalog,err=SDK.SDK.CreateCatalog({id=definition.id,title=definition.title,scope=definition.scope,i18n=definition.i18n,
+        actions=definition.actions,drags=definition.drags,views=definition.views,
+        active=function() return state.enabled end,changed=function() if owner then owner:Invalidate() end end})
+    if not catalog then state.diagnostics[err.code]=true;return nil end
+    definition.query=function(request,reply) return reply(assert(catalog:Search(request))) end
+    definition.resolve=function(id) return catalog:Resolve(id) end
+    local handle
+    handle,err=SDK:RegisterProvider(definition)
+    if not handle then catalog:Close() end
     if not handle then state.diagnostics[err and err.code or "REGISTRATION_FAILED"]=true; return nil end
     state.committed=handle
     stopWaiting()
@@ -91,7 +105,7 @@ _G.ThirdPartyFixture={
     GetProvider=function() return state.committed end,
     GetDiagnostics=function() return state.diagnostics end,
     GetPanel=function() return cachedPanel end,
-    SetEnabled=function(enabled) if state.committed then return state.committed:SetEnabled(enabled) end end,
+    SetAvailability=function(enabled) if state.committed then return state.committed:SetAvailability(enabled) end end,
     Unregister=function()
         stopWaiting()
         if not state.committed then return true end

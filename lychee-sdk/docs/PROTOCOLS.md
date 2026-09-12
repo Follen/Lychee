@@ -1,59 +1,50 @@
-# Provider API 2 协议参考
+# Provider API 3 协议参考
 
-性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+Host 版本：API_VERSION=3，API_REVISION=1。SDK 发行版本 1.0.0，UI Runtime 版本 1。不兼容 API 2；未知字段和废弃接口不做转换。接入步骤见[教程](GETTING_STARTED.md)。
 
-Host 版本：API_VERSION=2，API_REVISION=7。UI Runtime独立版本1。旧revision 1–6继续兼容；新接入使用revision 7，版本差异见[兼容说明](COMPATIBILITY.md)。本页是字段与调用契约，教程见[开始接入](GETTING_STARTED.md)。
+## 公共入口
 
-## 公共 facade
+`Lychee:Supports(3,1)`、`IsReady()`、`RegisterReady(callback)`、`RegisterProvider(definition)`。Ready 登记返回可 Cancel 的订阅；就绪与 SavedVariables 就绪是两个条件。`OpenSettings()` 打开 Host 设置；`ObservePalette(callback)` 订阅打开/关闭并返回 Cancel 句柄，最多 64 个，调用者结束时取消。
 
-| 调用 | 返回 / 行为 |
+## Provider 声明
+
+| 字段 | 合同 |
 |---|---|
-| `Supports(apiVersion, minRevision?)` | boolean；revision 缺省为 1。输入错误或不支持时返回 false。 |
-| `IsReady()` | boolean。 |
-| `RegisterReady(callback)` | 可 Cancel 的订阅；就绪后调用 callback({apiVersion,apiRevision})，最多一次。已就绪时同步调用。 |
-| `RegisterProvider(definition)` | ProviderHandle 或 nil, Error。注册整体成功才发布。 |
+| id | 必填，全局唯一，最多 64 字节；小写 ASCII 字母/数字起始，仅含字母、数字、点、短横线。 |
+| apiVersion / minApiRevision | `3` / `1`。 |
+| version / title | 必填，集成版本和用户显示名。标题可使用所属词典的 `{key=...}`。 |
+| scope | 必填 `products`，1–4 个不同的 retail/classic/titan/anniversary；可限制 interface/build/locale。 |
+| i18n | 必填，完整 enUS，可选 enGB/zhCN/zhTW；最多 256 键，键 96 字节、值 1024 字节、总量 128 KiB。 |
+| source / description / icon / order | 可选管理页来源 `{id,title}`、说明、纹理和顺序；不决定注册权限或业务所有权。 |
+| query | 必填 `function(request,reply,context)`，返回 nil 或取消函数。 |
+| resolve | 可选同步 `function(entryID,context)`，返回当前 Entry 或 nil。 |
+| searchGlobal | 可选 boolean，默认 true；与快捷入口独立。 |
+| searchPrefixes / searchKeywords | 各 0–8 个唯一字面词，每个最多 48 字节；忽略英文大小写、裁去两端空格；禁止内部空白、逗号、冒号和富文本标记。跨 Provider 同类冲突拒绝。 |
+| actions / drags / views | 本 Provider 的命名动作、拖动和页面声明；结果只能引用已声明能力。 |
+| onEnable / onDisable | 可选启用回调和停用回调。onEnable(handle) 可返回清理函数；未启动实例不执行停用。 |
 
-## ProviderDefinition
+省略普通搜索且没有任何快捷入口会拒绝。`entries`、`searchable`、`searchMode` 不是新协议字段。注册不会将 Provider 业务全量目录搬入 Host。
 
-| 字段 | 类型与约定 |
+## 句柄与失效
+
+| 方法 | 行为 |
 |---|---|
-| id | 必填 string，1–64 字节，`^[a-z0-9][a-z0-9%.%-]*$`；全局唯一。 |
-| apiVersion | 必填 2。 |
-| minApiRevision | 可选正整数，缺省 1。 |
-| version | 必填非空 string，集成自身版本。 |
-| title | 必填非空 string、带非空 default 的本地化映射，或已注册 i18n 中的 `{key="NAME"}`。 |
-| entries | 可选 Entry[]，最多 4096 条；entries 与 query 至少声明一个，空目录有效。 |
-| searchable | revision 3 可选 boolean，默认 true；使用时 minApiRevision >=3。false 排除静态目录全部文本及用户别名的通用匹配，也不允许通过 source/category filter 直接列举；query、Update、Resolve、动作、固定与最近使用不受影响。注册后不可通过 Update 修改。 |
-| searchMode | revision 4 可选 `global`／`prefix`；revision 5 增加 `keyword`。默认 global，用户可覆盖。prefix 要求来源范围；keyword 将精确触发词映射到空文本来源查询。非触发全局搜索排除该来源静态、别名及 query。不能与 searchable=false 同时声明。 |
-| searchGlobal | revision 6 可选 boolean；普通搜索独立开关，与 searchPrefixes/searchKeywords 可组合。不能与 searchMode 或 searchable=false 同时声明。此形式允许词表为空以移除入口，false 且无有效入口返回 INVALID_SCHEMA / searchGlobal.routes。旧模式保留原语义，在策略边界转换，不静默启用旧备用词表。 |
-| searchPrefixes | revision 4 可选 string[]；prefix 模式必填，1–8 个唯一前缀，每个最多48字节。忽略大小写及两端空格，禁止内部空格、冒号、逗号、控制符和富文本标记。与现有前缀冲突返回 INVALID_SCHEMA / searchPrefixes.conflict。 |
-| searchKeywords | revision 5 可选 string[]；keyword 模式必填，1–8 个唯一字面触发词，每个最多48字节。英文大小写不敏感、裁去首尾空白；保留标点差异，禁止内部空白、冒号、逗号、控制符和富文本标记。不是 LocaleRef，可同时声明中英文词。冲突返回 INVALID_SCHEMA / searchKeywords.conflict。前缀和触发词分开占用与保存。 |
-| query | 可选 function(request, reply, context)，返回 nil 或 cancel(reason)。 |
-| resolve | 可选 function(entryID, context)，同步返回当前 Entry 或 nil。 |
-| actions | 可选 map<actionID, {title:string|LocaleRef, run:function(entry,context):ActionResult}>。 |
-| drags | 可选 map<handlerID, {title:string|LocaleRef, begin:function(entry,context):ActionResult}>。 |
-| views | 可选 map<viewID, {stateSchema:Schema, create:function(context,initialState):View}>。 |
-| scope | API 2.2 必须声明 `products`；旧版未声明产品范围默认正式服。 |
-| i18n | API 2.2 必填 Provider 独立语言资源；enUS 必需，可选 zhCN/zhTW/enGB。 |
-| onEnable | 可选 function(handle)，返回 nil 或 cleanup(reason)。pending 注册在 Host 就绪后调用。 |
-| onDisable | 可选 function(reason)。清理函数执行后调用。 |
+| Invalidate() | 数据变化后使旧查询/结果失效，并通知当前界面刷新；不上传目录。 |
+| SetAvailability(boolean,reason?) | 修改运行时可用性，不覆盖用户选择。 |
+| GetState() | 当前启用状态、生命周期、版本及最近错误的快照。 |
+| Resources() / GetDiagnostics() | 当前启用资源作用域及按需计数。 |
+| Text(key,...) | 所属词典格式化；最多 16 参数、字符串参数 1024 字节、输出 32768 字节。 |
+| Unregister() | 停止查询、卸载页面、释放作用域、撤销注册；旧句柄退休。 |
 
-actionID、handlerID、viewID 使用与 Provider ID 相同的命名规则。回调仅允许出现在指定位置。条目、payload、schema、动作结果中不允许 function、metatable、循环引用、frame/userdata、NaN/无穷值或不可访问/secret 值。
+句柄不含 `Update`、`Settings` 或 `SetEnabled`。用户开关由 Host 管理；业务目录由 Provider 的 Catalog 或自有实现管理；DB 由子插件自己的 Storage 管理。
 
-## ProviderHandle
+## 查询回复
 
-| 方法 | 约定 |
-|---|---|
-| Update({replace=Entry[]}) | 整体替换当前静态目录。 |
-| Update({upsert=Entry[]?,remove=string[]?}) | 原子增量更新；同批 upsert 与 remove 不能含相同 ID。总目录不超过 4096。 |
-| SetEnabled(boolean) | 禁用时取消查询并清理活动；恢复时重新调用 onEnable。 |
-| GetState() | `{enabled:boolean,ownerEnabled:boolean,userEnabled:boolean,lifecycle:string,revision:integer,lastError?:Error}`。lastError 为最近一次隔离到的回调/查询诊断副本。 |
-| Resources() | revision 7：当前Provider启用作用域；完整方法见[托管资源](MANAGED_RESOURCES.md)。 |
-| Settings() | revision 7：当前角色、当前Provider的设置句柄。 |
-| GetDiagnostics() | revision 7：按需读取有界资源计数，不启动持续采样。 |
-| Unregister() | 注销整个实例；重复调用成功，不触达同 ID 的新实例。 |
+request 是普通数据快照：raw、normalized、tokens、limit、generation，以及可选 filter/session/visible/contextToken/preferredEntryID。generation 仅标识当前查询，不持久化。filter 来源和类别限制仍由 Host 执行。
 
-replace 与增量字段互斥；数组必须稠密且无重复条目 ID。Update 只对当前已启用实例有效，宿主分配 revision。GetState、Update、SetEnabled 对退休句柄返回 STALE_HANDLE。调用成功后原输入表仍归调用方所有。完全相同的更新不改变版本；更新通知中重入 Update/SetEnabled/Unregister 会返回可重试的 UPDATE_IN_PROGRESS，应在当前调用结束后重试。
+`reply(hits)` 接收至多 256 个 `{entry=Entry,confidence=number,evidence?=table}`；confidence 在 0–1 内。evidence 使用 matchedField、matchedText、matchType、confidence、distance，结构由 Host 校验。可用 `SDK.Score(request,entries,scope?)` 计算证据；它不会替业务筛选条目，未命中的业务候选以 0.75 回退分值保留。最终展示上限仍为 20。
+
+查询最多完成一次，最长五秒；换词、关闭、禁用、注销和超时取消旧请求。迟到回复返回 STALE_REQUEST。普通 reply 均校验原始调用方输入。Catalog:Query 只接受当前真实回复函数，不能绕过已注册能力；见[目录接口](CATALOG.md)。
 
 ## Entry
 
@@ -75,7 +66,7 @@ replace 与增量字段互斥；数组必须稠密且无重复条目 ID。Update
 | primaryActionID | 可选已声明 action ID；缺省第一项。 |
 | drag | 可选 Drag；缺省完全禁用拖动。 |
 
-Text 可以是字符串、本地化映射、语言引用 `{key="KEY"}`，或由字符串、语言引用和 `{text,locale?,scope?}` 组成的数组。Host 按当前 locale 和 scope 取值。普通回调收到公共形状的 Entry 副本，命名动作仍是字符串 ID，可修改副本并通过 Update 提交。
+Text 可以是字符串、本地化映射、语言引用 `{key="KEY"}`，或由字符串、语言引用和 `{text,locale?,scope?}` 组成的数组。Host 按当前 locale 和 scope 取值。普通回调收到公共形状的 Entry 副本，命名动作仍是字符串 ID，副本修改不影响已发布记录；目录更新通过调用方自己的 Catalog:Update 提交。
 
 ## 动作与拖动
 
@@ -94,66 +85,24 @@ EntryAction 可以是命名动作 ID 字符串，或以下 Host 描述符。未�
 
 Host 在执行前检查会话、行绑定、Provider 实例、条目版本、availability 和战斗状态。当前产品在战斗中关闭搜索并拒绝所有动作；普通回调不会改变 WoW 的保护限制。
 
-## 查询与恢复
+## 恢复与取消
 
-Request 包含 raw、normalized、tokens、limit、generation，以及可选 contextToken、session、visible、filter。这些值是本次请求的只读快照；不要保存 generation 作为身份。Context 是 Host 当前业务快照，查询时还含 session/generation/visible。
+最近使用只保存 `{providerID,entryID}`。需要恢复的 Provider 提供同步 resolve，返回当前普通 Entry 或 nil；不进行模糊搜索、不返回异步任务。临时条目没有 resolve 或声明 rememberable=false 时不记入历史。
 
-`reply(Entry[])` 最多成功一次，单次最多 256 候选，Host 最终展示最多 20 条。静态和动态候选按 Provider+Entry 去重；同一 Provider 同 ID 的静态条目优先。不同 Provider 可有相同局部 ID。Host 决定排序，不接受任意绝对分数。
+取消函数最多调用一次，包含正常完成、换词、关闭、超时、错误和启停原因；完成后仍要清理自己的临时任务。同步 Lua 不能被抢占。查询协议和评分见上文及 [Catalog](CATALOG.md)。
 
-Host 对静态和动态记录的文字字段共用非模糊评分；动态业务候选没有字面命中时仍保留原有排序回退。短英文、字段权重及用户偏好属于 Host 算法，不是 Provider 新增声明，参见 [匹配与排序](GETTING_STARTED.md#host-如何匹配与排序)。
+## 补充结果字段
 
-取消函数最多调用一次，原因包括 complete、query-replaced、input-changed、hidden、timeout、invalid、error 和启停原因。等待上限五秒；同步 Lua 不能被抢占。超时、完成、取消或旧实例的 reply 返回 nil, STALE_REQUEST。关闭后无查询 deadline 活动，输入变化取消旧请求。
+`rememberable?:boolean`，false 表示不进入固定/最近使用；可恢复条目仍必须提供 resolve。`tooltipRows?:string[][]` 最多 16 行，每行最多 3 列，每列最多 512 字节；只作为通用提示展示，不包含钥匙等具体业务字段。
 
-最近使用只保存 `{providerID,entryID}`。静态条目直接恢复；动态条目需要 resolve，返回 nil 代表当前不存在。resolve 不进行模糊搜索，也不返回异步任务。条目动作按恢复后的当前数据执行。临时 query 条目没有 resolve 时不记入历史。
+## 页面与资源
 
-Scope：可含 product、locale、minInterface、maxInterface、minBuild、maxBuild；产品/locale 为字符串，版本边界为整数。字段缺省不加该项约束。category/source 筛选同时约束动态候选。
+view 声明 `{create,stateSchema}`。create(context,initialState) 返回实例，随后 Mount(context,initialState)，更新用 Update(state,context)，结束执行 Unmount(reason)、Dispose(reason)。每次打开均调用 create，实例缓存由 Provider 决定。context 提供 contentFrame、width、height、extensionID、panelID、session、generation、resources，以及 Resize/SetFooter/ClearFocus/Close 方法；只在当前挂载期间使用。
 
-## 自定义视图
+返回 false 不是异常信号；抛错会清理。同步重入挂载/更新返回 PANEL_BUSY，取消中的挂载返回 PANEL_CANCELLED。原生 Frame 不能当作可回收 Lua 对象；复用控件必须解绑旧记录。细则见[页面生命周期](VIEW_LIFECYCLE.md)、[托管资源](MANAGED_RESOURCES.md)。
 
-View.create(context,initialState) 返回实例，Host 随后调用 instance:Mount(context,initialState)。context 包含 contentFrame、width、height、extensionID、panelID、session、generation。Mount 应使用 initialState 首次绘制。
+## 强制边界
 
-后续调用 instance:Update(state,context)。替换、关闭或注销时调用 Unmount(reason)、Dispose(reason)。实例应复用自己的 frame，并在卸载时停止事件、timer 和其他活动。不要将 contentFrame 保存到全局搜索结果或 SavedVariables。
+拒绝 secret、不可访问值、循环、metatable、函数型普通数据、NaN/无穷和未知字段。Host 负责隔离、身份、范围、用户选择、结果数量、查询代次、视图 state 和硬件点击限制。普通动作回调收到公开 Entry 副本；受保护动作由 Host 在真实硬件点击下执行，战斗限制保持。
 
-create每次挂载都调用；复用由Provider缓存保证，不存在自动缓存字段。Dispose每次卸载都会执行，
-不表示引擎Frame销毁。回调返回false不表示失败，抛错才清理；Unmount异常仍尝试Dispose。
-生命周期同步重入挂载/更新返回PANEL_BUSY；回调中请求关闭被接收并在回调结束后清理，
-被取消的挂载/更新返回PANEL_CANCELLED。正常API2顺序保持，完整责任见
-[视图生命周期](VIEW_LIFECYCLE.md)。
-
-Schema 支持基础类型字符串（string/number/boolean/table/integer/any）、可选后缀 `?`、严格字段对象，以及 `{kind="array",items=Schema,maxItems?}`。运行时值仍必须满足 plain-data 边界。
-
-## 稳定错误
-
-公共注册/更新返回 nil, Error，Error 至少包含 code，可含 field、providerID、retryable。回调失败亦可含用户可读 message。
-
-常见 code：UNSUPPORTED_API、INVALID_SCHEMA、DUPLICATE_ID、RESULT_LIMIT、UNKNOWN_ACTION、UNKNOWN_VIEW、UNKNOWN_DRAG、STALE_HANDLE、PROVIDER_DISABLED、STALE_REQUEST、STALE_RESULT、UPDATE_IN_PROGRESS、CALLBACK_ERROR、INVALID_CALLBACK、INVALID_RESULT、QUERY_TIMEOUT、ACTION_FAILED、ACTION_UNAVAILABLE、COMBAT_LOCKED、ACTION_REQUIRES_HARDWARE_CLICK、MENU_UNAVAILABLE、NO_ACTION。可选 SDK helper 在 Host 缺失时另返回 SDK_UNAVAILABLE。
-
-PRIVATE Registry/Index 的具体方法、source token、内部字段、生命周期实现细节和 `_G.LycheeInternal` 不属于 SDK 合同。
-
-## API 2.2：客户端声明与独立语言资源
-
-`scope.products` 是 1–4 项无重复数组，值为 `retail`、`classic`、`titan`、`anniversary`，与旧 `product` 字段互斥。`minInterface/maxInterface/minBuild/maxBuild` 是正整数范围。显式 `scope.locale` 是严格限制，不参与翻译回退。不支持的客户端不启动 Provider，也不执行其停用回调。
-
-每个 Provider 在注册时提交 `i18n={enUS={NAME="Name"},zhCN={NAME="名称"}}`。资源最多四种语言，每种最多 256 键，键不超过 96 字节、单条文字不超过 1024 字节，全部键与值不超过 128 KiB。enUS 是完整基线；其他语言不能新增未定义键，可缺译并回退。Host 按精确语言、语言家族、enUS 编译所选字典；资源之间隔离，注册后外部修改不影响结果。
-
-`LocaleRef` 只能是 `{key="NAME"}`，不接受附加字段。适用于 Provider title、条目文字字段、category.title、动作 title、drag.title；aliases/keywords 数组可包含引用。解析后的文本仍经过原条目校验，增量更新与动态查询共用此边界。
-
-`handle:Text(key,...)` 返回文案或 `nil, Error`；注销后为 `STALE_HANDLE`。支持至多 16 个格式参数／占位符，参数仅数字或不超过 1024 字节字符串，输出最多 32768 字节，超限在格式化前按保守上界拒绝。译文格式参数顺序和转换类型须与英文一致。无参数调用返回模板本身。
-
-语言相关错误：`INVALID_LOCALES`、`INVALID_LOCALE_KEY`、`INVALID_LOCALE_FORMAT`、`LOCALE_LIMIT`；非法引用为 `INVALID_SCHEMA`。API 2.1 仍受支持，未指定产品的旧 Provider 仅在正式服启用。
-
-## 多版本业务实现边界
-
-一个 Provider 可在不同客户端／build 采用不同业务逻辑。产品／版本匹配和实现选择由 Provider 的兼容层在注册前完成；Host 只接收选中的普通 descriptor。一个 ID 在同一 Host 中只注册一次，scope 声明当前实现真正支持的范围。零匹配不启用；重叠匹配拒绝选择，不能按顺序取第一个。各实现仍遵循相同 Entry/Action/View、独立 i18n 与生命周期协议。没有 variants／implementations 注册字段。具体身份、缓存、能力判断和分支验收约束见 [版本差异约定](CLIENT_VARIANTS.md)。
-
-## Revision 7：公共资源与数据
-
-handle 新增 Resources()、Settings()、GetDiagnostics()；query/view 的 context 新增 resources。方法、所有权、配额及失败契约集中见 [托管资源规范](MANAGED_RESOURCES.md)。新增稳定错误 RESOURCE_CLOSED、RESOURCE_LIMIT、RESOURCE_REENTRANT、RESOURCE_UNAVAILABLE、INVALID_EVENT、DATA_LIMIT、INVALID_SETTINGS；非法选项仍为 INVALID_SCHEMA，注销后的数据句柄为 STALE_HANDLE。内部旧命令/能力/意图注册方法已移除，第三方接入只使用 RegisterProvider。
-
-## 本地化实体与动态名称查询
-
-Provider ID、entry ID、action ID 是稳定机器标识，不翻译；`title`、`kindTitle`、动作名称从 Provider i18n 资源获取。游戏实体的名称/图标通过当前客户端 API 获取，未知名称不能永久缓存为不存在。界面品牌名称与搜索前缀可以不同，不能把内部缩写自动用作中文标题。
-
-含难度、变体或语言上下文的动态条目以稳定 ID 保存恢复所需身份，`payload` 保持具名字段。`resolve` 和动作执行时重新验证有效关系，不能相信过期或伪造的 payload。相同显示名称不等于相同实体。
-
-需要 `context.resources` 的 query 必须声明 `minApiRevision=7`，包括通过共享工厂注册的所有语言分支。使用 `Run` 分批、`OnEvent` 等待数据、`After` 限定等待，并将清理纳入当前 query 作用域；同步返回事件、失败、超时、取消及迟到事件都必须测试。只物化有界候选，不能以按需调用为理由永久缓存所有游戏名称。额度见 [PERFORMANCE.md](PERFORMANCE.md)，本模式不新增 SDK API。
+失败返回 nil, Error，至少 code，可含 field/providerID/retryable。稳定错误码全集见 helper 的 ERROR_CODES；不能以错误码分支获得 Host 内部对象。LycheeInternal、Index、记录校验凭证、项目 Modules/Manifest、构建模板均为私有实现。

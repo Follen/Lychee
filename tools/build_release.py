@@ -14,11 +14,18 @@ ROOT = Path(__file__).resolve().parents[1]
 def paths(root: Path) -> dict[str, list[tuple[Path, str]]]:
     spec = json.loads((root / "tools/release_manifest.json").read_text(encoding="utf-8"))
     sdk = json.loads((root / "tools/sdk_contract.json").read_text(encoding="utf-8"))
-    if spec.get("schemaVersion") != 1:
+    packages = ("Lychee", "Lychee_Player", "Lychee_Encounters", "Lychee_Integrations", "Lychee_Inspector")
+    if spec.get("schemaVersion") != 2 or set(spec.get("packages", {})) != set(packages):
         raise ValueError("invalid release schema")
-    plans = {}
-    for folder, prefix, declared in (("addon/Lychee", "Lychee", spec["runtimeFiles"]),
-                                      ("lychee-sdk", "lychee-sdk", sdk["contents"] + ["manifest.yaml"])):
+    if {p.name for p in (root / "addon").iterdir()} != set(packages):
+        raise ValueError("unlisted runtime package")
+    if (root / "addon/Lychee_Player/SDK/Storage.lua").read_bytes() != (root / "lychee-sdk/Storage.lua").read_bytes():
+        raise ValueError("embedded SDK Storage drift")
+    plans = {"Lychee": []}
+    sources = [("addon/" + name, name, spec["packages"][name]) for name in packages]
+    sources.append(("lychee-sdk", "lychee-sdk", sdk["contents"] + ["manifest.yaml"]))
+    for folder, prefix, declared in sources:
+        runtime = prefix != "lychee-sdk"
         base = root / folder
         if base.is_symlink() or base.resolve() != base.absolute():
             raise ValueError("linked package root: " + folder)
@@ -28,7 +35,7 @@ def paths(root: Path) -> dict[str, list[tuple[Path, str]]]:
             p = PurePosixPath(name)
             if not name or p.is_absolute() or ".." in p.parts or ":" in name or "\\" in name or str(p) != name:
                 raise ValueError("unsafe release path: " + name)
-            if prefix == "Lychee" and p.suffix.lower() not in {".lua", ".xml", ".toc", ".tga", ".blp", ".png", ".ttf", ".otf", ".ogg", ".wav", ".mp3"} and name not in {"LICENSE.txt", "NOTICE.txt", "Media/MenuIcons/LICENSE.txt"}:
+            if runtime and p.suffix.lower() not in {".lua", ".xml", ".toc", ".tga", ".blp", ".png", ".ttf", ".otf", ".ogg", ".wav", ".mp3"} and name not in {"LICENSE.txt", "NOTICE.txt", "Media/MenuIcons/LICENSE.txt"}:
                 raise ValueError("non-runtime delivery file: " + name)
         actual = set()
         for p in base.rglob("*"):
@@ -38,7 +45,7 @@ def paths(root: Path) -> dict[str, list[tuple[Path, str]]]:
                 actual.add(p.relative_to(base).as_posix())
         if actual != set(declared):
             raise ValueError(f"{folder}: missing={sorted(set(declared)-actual)}, unlisted={sorted(actual-set(declared))}")
-        if prefix == "Lychee":
+        if runtime:
             for name in declared:
                 if not name.endswith(".toc"):
                     continue
@@ -50,7 +57,8 @@ def paths(root: Path) -> dict[str, list[tuple[Path, str]]]:
                         continue
                     if line.replace("\\", "/") not in actual:
                         raise ValueError(f"TOC dependency absent from archive: {name}: {line}")
-        plans[prefix] = [(base / name, prefix + "/" + name) for name in sorted(declared)]
+        plans.setdefault("Lychee" if runtime else prefix, []).extend(
+            (base / name, prefix + "/" + name) for name in sorted(declared))
     return plans
 
 

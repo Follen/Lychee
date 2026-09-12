@@ -1,8 +1,9 @@
 -- Pure observed-value adapter: no fake Frame methods or addon-name rules.
-LycheeInternal={Builtin={}}
+local namespace={Modules={}}
+TestPackages={Modules=namespace.Modules}
 function issecretvalue(v) return type(v)=="table" and v.secret==true end
-dofile("addon/Lychee/Builtin/AddonInspector/Picker.lua")
-local Picker=LycheeInternal.Builtin.AddonInspectorPicker
+assert(loadfile("addon/Lychee_Inspector/Picker.lua"))("Lychee_Inspector",namespace)
+local Picker=TestPackages.Modules.AddonInspectorPicker
 local reads={}
 local function known(...) return {"known",...} end
 local function observed(object,key)

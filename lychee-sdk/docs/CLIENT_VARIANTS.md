@@ -2,7 +2,7 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-本文件是 Provider API 2.2 的实现约定，适用于内置与第三方 Provider。它不增加新的 Host 注册字段或 API。
+本文件是 Provider API 3 的实现约定，适用于项目子插件与第三方 Provider。它不增加新的 Host 注册字段或 API。
 
 ## 支持范围与业务实现
 
@@ -35,7 +35,7 @@ Register.lua 只调用插件已选中的适配模块。以下 `client`、`Select
 
 ```lua
 local function RegisterForClient(SDK, client, SelectAdapter)
-    if not SDK or not SDK:Supports(2, 2) then
+    if not SDK or not SDK:Supports(3, 1) then
         return nil, { code = "UNSUPPORTED_API" }
     end
     -- SelectAdapter verifies product, numeric ranges and capabilities.
@@ -46,10 +46,10 @@ local function RegisterForClient(SDK, client, SelectAdapter)
     -- This factory builds only declarations and closures. No UI/events/timers.
     local definition = adapter:CreateDefinition(client)
     definition.id = "my-addon.equipment" -- same business identity in all clients
-    definition.apiVersion = 2
-    definition.minApiRevision = 2
+    definition.apiVersion = 3
+    definition.minApiRevision = 1
     -- definition contains this adapter's version, title, scope, i18n,
-    -- entries/query, actions/views and onEnable cleanup as needed.
+    -- query, actions/views and onEnable cleanup as needed.
     return SDK:RegisterProvider(definition)
 end
 ```
@@ -84,4 +84,4 @@ end
 
 ## Lychee 内置实现的维护入口
 
-上述公开约定保持不变。Lychee 仓库内的内置功能使用 `tools/client_manifest.json` 统一维护产品范围、必需能力和文件归属，由工具生成加载清单与运行时支持表；对应实现和语言资源放在 `addon/Lychee/Builtin/<功能>/`。这是 Host 仓库内部的构建约定，第三方无需依赖 `LycheeInternal`、`Builtin.Support` 或此清单，仍使用自己的实现选择并注册普通 Provider。具体步骤见 [项目结构](https://github.com/Follen/Lychee/blob/main/docs/guides/PROJECT_STRUCTURE.md)。
+本项目由 tools/client_manifest.json 生成五个子插件的 TOC 与私有声明；这是构建约定，不是 SDK。第三方在自己的 TOC 和代码中选择唯一适配实现，注册普通 API 3 Provider，不依赖 LycheeInternal 或项目清单。

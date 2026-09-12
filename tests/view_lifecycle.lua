@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 local frames=0
 function CreateFrame()
     frames=frames+1

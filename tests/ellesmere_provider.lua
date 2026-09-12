@@ -28,10 +28,10 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Ellesmere/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Builtin/Ellesmere/Adapter.lua", "Builtin/Ellesmere/Provider.lua"}, {overrides={ ["Builtin/Ellesmere/Provider.lua"]=arg[1] }})
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Integrations/Ellesmere/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "../Lychee_Integrations/Ellesmere/Adapter.lua", "../Lychee_Integrations/Ellesmere/Provider.lua"}, {overrides={ ["../Lychee_Integrations/Ellesmere/Provider.lua"]=arg[1] }})
 local I=LycheeInternal
 I.Registry:SetReady(true)
-local M=I.Builtin.Ellesmere
+local M=TestPackages.Modules.Ellesmere
 M:Init()
 assert(M.active,"Ellesmere defaults enabled")
 assert(I.Registry:SetUserEnabled(M.id,true))

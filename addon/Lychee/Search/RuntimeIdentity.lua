@@ -1,6 +1,7 @@
 local I = _G.LycheeInternal
 I.Search = I.Search or {}
 
+local EMPTY = {}
 local R = { schema = "search-schema-2", sourceRevision = 0, product = "retail", locale = "enUS", version = "", build = "", interface = 0, signature = "" }
 I.Search.RuntimeIdentity = R
 
@@ -9,7 +10,6 @@ local function number(value)
 end
 
 function R:Refresh()
-    local previousSignature = self.signature
     self.locale = (type(GetLocale) == "function" and GetLocale()) or self.locale or "enUS"
     if type(GetBuildInfo) == "function" then
         local version, build, _, tocVersion = GetBuildInfo()
@@ -23,22 +23,7 @@ function R:Refresh()
     elseif (project==nil or project==(WOW_PROJECT_WRATH_CLASSIC or 11)) and interface>=38000 and interface<38100 then self.product="titan"
     elseif (project==nil or project==(WOW_PROJECT_BURNING_CRUSADE_CLASSIC or 5)) and interface>=20505 and interface<20600 then self.product="anniversary" end
     self.signature = table.concat({ self.schema, "identity-v2", self.product, self.interface, self.build, self.locale, self.sourceRevision }, "|")
-    if previousSignature and previousSignature ~= self.signature and I.Search.StaticIndex and type(I.Search.StaticIndex.Rebuild) == "function" then
-        I.Search.StaticIndex:Rebuild()
-    end
     return self
-end
-
-function R:SetSourceRevision(revision)
-    revision = number(revision)
-    if revision <= self.sourceRevision then return self.sourceRevision end
-    self.sourceRevision = revision
-    self.signature = table.concat({ self.schema, "identity-v2", self.product, self.interface, self.build, self.locale, self.sourceRevision }, "|")
-    return self.sourceRevision
-end
-
-function R:BuildSignature(sourceSignature)
-    return table.concat({ self.signature, tostring(sourceSignature or "") }, "|")
 end
 
 function R:Current()
@@ -47,8 +32,8 @@ function R:Current()
 end
 
 function R:MatchesScope(scope, textEntry)
-    scope = scope or {}
-    textEntry = textEntry or {}
+    scope = scope or EMPTY
+    textEntry = textEntry or EMPTY
     local identity = self:Current()
     -- Scope is an explicit data restriction; translation language is ranked separately.
     if scope.locale and scope.locale~="default" and scope.locale~=identity.locale then return false end

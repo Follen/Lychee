@@ -31,17 +31,17 @@ function Frame:CreateFontString() return CreateFrame() end
 function Frame:CreateTexture() return CreateFrame() end
 UIParent=CreateFrame()
 local root="addon/Lychee/"
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "Builtin/Shared/InterfaceActions.lua", "Builtin/Bosses/JournalCatalog.lua", "Builtin/Crests/Provider.lua", "Builtin/GameMenus/Provider.lua", "Builtin/Bosses/Provider.lua", "Builtin/Init.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "Shared/InterfaceActions.lua", "../Lychee_Encounters/Bosses/JournalCatalog.lua", "../Lychee_Player/Crests/Provider.lua", "../Lychee_Player/GameMenus/Provider.lua", "../Lychee_Encounters/Bosses/Provider.lua", "Core/Modules.lua"})
 local I=LycheeInternal
 local frameBaseline=#frames
 collectgarbage("collect")
 local memoryBefore, initStarted=collectgarbage("count"),os.clock()
-I.Builtin:Init()
+TestPackages.Modules:Init()
 I.Registry:SetReady(true)
 local initMS=(os.clock()-initStarted)*1000
 collectgarbage("collect")
 local indexKB=collectgarbage("count")-memoryBefore
-assert(I.Builtin.Crests.handle and I.Builtin.GameMenus.handle and I.Builtin.Bosses.handle, "all providers register through API 2")
+assert(TestPackages.Modules.Crests.handle and TestPackages.Modules.GameMenus.handle and TestPackages.Modules.Bosses.handle, "all providers register through API 2")
 assert(#frames==frameBaseline, "registration/search creates no UI or resident event driver")
 local function query(text)
     local _, items=I.Search.Query:Query(text,{visible=true})
@@ -54,6 +54,7 @@ local function find(text, provider, id)
     error("missing result: "..text.." / "..tostring(id))
 end
 local function execute(item)
+    item=assert(I.Providers:Resolve(item.ref))
     local result, err=I.Providers:Execute(item,"open",{})
     if result then return result end
     assert(type(err)=="table" and err.code)
@@ -62,16 +63,16 @@ local function execute(item)
 end
 for _, alias in ipairs({"纹章","神话","英雄","勇士","老兵","冒险者","迷雾神话纹章","英雄迷雾纹章"}) do
     local count=0
-    for _, item in ipairs(query(alias)) do if item.providerID=="builtin.crests" then count=count+1; assert(item.text=="纹章" and item.icon==7734060) end end
+    for _, item in ipairs(query(alias)) do if item.providerID=="lychee.crests" then count=count+1; assert(item.text=="纹章" and item.icon==7734060) end end
     assert(count==1, "one crest result per alias: "..alias)
 end
-local crest=find("纹章","builtin.crests")
+local crest=find("纹章","lychee.crests")
 local result=execute(crest)
 assert(result.ok and result.view=="balances" and not result.close)
 local quantities={[3446]=7,[3445]=12,[3444]=0,[3443]=45,[3442]=0}
 local reads=0
 C_CurrencyInfo={GetCurrencyInfo=function(id) reads=reads+1; return {quantity=quantities[id],name="",iconFileID=0} end}
-local provider=I.Providers.entries["builtin.crests"]
+local provider=I.Providers.entries["lychee.crests"]
 local factory=provider.definition.views.balances
 local host=Lychee.UI.ViewHost:Create(UIParent)
 assert(host:Mount(factory,{},{}))
@@ -100,35 +101,35 @@ host:Unmount("close")
 assert(not next(panel.frame.events) and not panel.active and not panel.frame.shown)
 assert(host:Mount(factory,{},{}))
 assert(host.panel.instance==panel and #frames==allocated, "view rows reused across reopen")
-assert(I.Builtin.Crests.handle:SetEnabled(false))
+assert(TestPackages.Modules.Crests.handle:SetAvailability(false))
 assert(not next(panel.frame.events) and not panel.active, "provider disable releases currency events")
-assert(I.Builtin.Crests.handle:SetEnabled(true))
+assert(TestPackages.Modules.Crests.handle:SetAvailability(true))
 host:Unmount("test")
 
 local function shown(name) local f=_G[name] or CreateFrame("Frame",name); f:Show(); return f end
 ToggleCharacter=function(tab, onlyShow) calls.character={tab,onlyShow}; shown("CharacterFrame"); shown(tab) end
-local character=find("装备","builtin.game-menus","character")
+local character=find("装备","lychee.game-menus","character")
 assert(execute(character).ok and calls.character[1]=="PaperDollFrame" and calls.character[2]==true)
 assert(execute(character).ok and PaperDollFrame:IsShown())
 PlayerSpellsUtil={OpenToClassTalentsTab=function() calls.talents=true; shown("PlayerSpellsFrame") end}
-assert(execute(find("天赋","builtin.game-menus","talents")).ok and calls.talents)
+assert(execute(find("天赋","lychee.game-menus","talents")).ok and calls.talents)
 SetCollectionsJournalShown=function(value, tab)
     calls.collection={value,tab}; shown("CollectionsJournal")
     shown(({"MountJournal","PetJournal","ToyBox","HeirloomsJournal","WardrobeCollectionFrame","WarbandSceneJournal"})[tab])
 end
-assert(execute(find("幻化","builtin.game-menus","appearances")).ok and calls.collection[1] and calls.collection[2]==5)
+assert(execute(find("幻化","lychee.game-menus","appearances")).ok and calls.collection[1] and calls.collection[2]==5)
 local toggles=0
 ToggleWorldMap=function() toggles=toggles+1; shown("WorldMapFrame") end
-local map=find("世界地图","builtin.game-menus","map")
+local map=find("世界地图","lychee.game-menus","map")
 assert(execute(map).ok and execute(map).ok and toggles==1, "repeated open never toggles closed")
 local allowed=true
 C_LFGInfo={CanPlayerUseGroupFinder=function() return allowed end}
 PVEFrame_ShowFrame=function(side,selection) calls.group={side,selection}; shown("PVEFrame"); if side then shown(side) end; if selection then shown(selection) end end
-assert(execute(find("团队查找器","builtin.game-menus","raid-finder")).ok and calls.group[2]=="RaidFinderFrame")
-assert(execute(find("竞技场","builtin.game-menus","pvp")).ok and calls.group[1]=="PVPUIFrame")
+assert(execute(find("团队查找器","lychee.game-menus","raid-finder")).ok and calls.group[2]=="RaidFinderFrame")
+assert(execute(find("竞技场","lychee.game-menus","pvp")).ok and calls.group[1]=="PVPUIFrame")
 allowed=false
-assert(not execute(find("地下城查找器","builtin.game-menus","dungeon-finder")).ok)
-local calendar=find("日历","builtin.game-menus","calendar")
+assert(not execute(find("地下城查找器","lychee.game-menus","dungeon-finder")).ok)
+local calendar=find("日历","lychee.game-menus","calendar")
 assert(execute(calendar).code=="UI_UNAVAILABLE", "missing API leaves palette open")
 ToggleCalendar=function() error("restricted") end
 assert(execute(calendar).code=="UI_UNAVAILABLE", "native failure is bounded")
@@ -164,11 +165,11 @@ EncounterJournal_LoadUI=function()
     return true
 end
 for _, target in ipairs(tabTargets) do
-    local item=find(target[1],"builtin.game-menus",target[2])
+    local item=find(target[1],"lychee.game-menus",target[2])
     assert(execute(item).ok and selectedTab==target[4], "journal subpage opens exact runtime tab")
 end
 assert(tabLoads==1, "journal subpages load the UI only once")
-local travelers=find("旅行者日志","builtin.game-menus","travelers-log")
+local travelers=find("旅行者日志","lychee.game-menus","travelers-log")
 EncounterJournal.MonthlyActivitiesTab.disabled=true
 assert(execute(travelers).code=="UI_UNAVAILABLE" and selectedTab==77, "disabled page is not forced open")
 EncounterJournal.MonthlyActivitiesTab.disabled=false
@@ -180,18 +181,18 @@ EncounterJournal.MonthlyActivitiesTab.IsEnabled=function() error("restricted sta
 assert(execute(travelers).code=="UI_UNAVAILABLE", "restricted button state stays inside native boundary")
 EncounterJournal.MonthlyActivitiesTab.IsEnabled=nil
 EJ_ContentTab_OnClick=function() end
-assert(execute(find("旅程","builtin.game-menus","journeys")).code=="UI_UNAVAILABLE", "silent tab selection failure is not success")
+assert(execute(find("旅程","lychee.game-menus","journeys")).code=="UI_UNAVAILABLE", "silent tab selection failure is not success")
 EncounterJournal=nil
 EJ_ContentTab_OnClick=nil
 EncounterJournal_LoadUI=function() return false end
 assert(execute(travelers).code=="UI_UNAVAILABLE", "journal subpage load failure is recoverable")
 
-local boss=find("鲁西弗隆","builtin.bosses","boss-1519")
+local boss=find("鲁西弗隆","lychee.bosses","boss-1519")
 assert(boss.payload.encounterID==1519 and boss.payload.instanceID==741)
 for _, item in ipairs(query("死亡矿井")) do
-    assert(item.providerID~="builtin.bosses", "retail raid provider excludes dungeon bosses")
+    assert(item.providerID~="lychee.bosses", "retail raid provider excludes dungeon bosses")
 end
-assert(find("熔火之心","builtin.bosses"), "old bosses without overview sections remain searchable")
+assert(find("熔火之心","lychee.bosses"), "old bosses without overview sections remain searchable")
 local loaded=0
 EncounterJournal_LoadUI=function()
     loaded=loaded+1
@@ -210,10 +211,10 @@ assert(execute(boss).code=="UI_UNAVAILABLE", "journal must reach exact encounter
 EncounterJournal_OpenJournal=nil
 EncounterJournal_LoadUI=function() return false end
 assert(execute(boss).code=="UI_UNAVAILABLE")
-assert(#I.Providers.entries["builtin.bosses"].records==I.Builtin.JournalCatalog.encounterCount)
+assert(TestPackages.Modules.Bosses.handle.catalog:GetState().entries==TestPackages.Modules.JournalCatalog.encounterCount)
 for _, frame in ipairs(frames) do assert(not frame.scripts.OnUpdate, "no idle polling") end
 local queryStarted=os.clock()
 for index=1,100 do query(index%2==0 and "熔火之心" or "纹章") end
 print(string.format("Built-in providers PASS: %d bosses; init %.2f ms / retained %.1f KiB; alternating query mean %.3f ms (offline Lua only)",
-    I.Builtin.JournalCatalog.encounterCount,initMS,indexKB,(os.clock()-queryStarted)*10))
+    TestPackages.Modules.JournalCatalog.encounterCount,initMS,indexKB,(os.clock()-queryStarted)*10))
 assert(indexKB < 8192, "built-in retained indexes exceed 8 MiB memory budget")

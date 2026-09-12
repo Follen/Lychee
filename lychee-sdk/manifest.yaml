@@ -4,9 +4,10 @@ kind: development-package
 runtimeAddon: false
 hostAddon: Lychee
 facade: _G.Lychee
-apiVersion: 2
-apiRevision: 7
-helperMinimumRevision: 6
+sdkVersion: 1.0.0
+apiVersion: 3
+apiRevision: 1
+helperMinimumRevision: 1
 contents:
   - README.md
   - docs/DELIVERY.md
@@ -18,6 +19,8 @@ contents:
   - docs/MOTION.md
   - docs/MANAGED_RESOURCES.md
   - LycheeAPI.lua
+  - Storage.lua
+  - docs/STORAGE.md
   - ApiStubs.lua
   - examples/ThirdPartyFixture/ThirdPartyFixture.toc
   - examples/ThirdPartyFixture/ThirdPartyFixture_Mainline.toc
@@ -33,3 +36,4 @@ contents:
   - docs/PROTOCOLS.md
   - docs/COMPATIBILITY.md
   - docs/PERFORMANCE.md
+  - docs/CATALOG.md

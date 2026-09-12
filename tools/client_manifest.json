@@ -18,519 +18,64 @@
       "interface": 20506
     }
   },
-  "files": [
-    {
-      "path": "Bootstrap.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/CharacterStore.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Builtin/Definitions.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Builtin/Shared/Support.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/ProviderLocales.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Locales/UI.enUS.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "providerLocales": true
-    },
-    {
-      "path": "Core/ContextStore.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/RuntimeIdentity.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/Normalizer.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/ProviderPolicy.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/StaticIndex.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/Boundary.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/Resources.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/ProviderData.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/Scheduler.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/ExtensionRegistry.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/ResultSnapshot.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/QueryOrchestrator.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/SearchSession.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/ProviderRuntime.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/ProviderManagement.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/UserPreferences.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Search/Personalization.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "PublicAPI/SDK.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/InteractionBinding.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Secure/Descriptor.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Secure/Policy.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Secure/SecureActionBroker.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/FocusController.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Theme.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/TextHighlight.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Motion.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Presence.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Runtime.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Components.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Input.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/ResultList.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/ViewHost.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Core/ResultActionExecutor.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/AliasSettings.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/ProviderSettings.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/SettingsView.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/AddonInspector.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "UI/Palette.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Builtin/Shared/InterfaceActions.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Builtin/Shared/CatalogLedger.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "path": "Builtin/Shared/CatalogProvider.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
-      "provider": "builtin.player-spells"
-    },
-    {
-      "provider": "builtin.mounts"
-    },
-    {
-      "provider": "builtin.crests"
-    },
-    {
-      "provider": "builtin.game-menus"
-    },
-    {
-      "provider": "builtin.bosses"
-    },
-    {
-      "provider": "builtin.great-vault"
-    },
-    {
-      "provider": "builtin.bags"
-    },
-    {
-      "provider": "builtin.talent-loadouts"
-    },
-    {
-      "provider": "builtin.equipment-sets"
-    },
-    {
-      "provider": "builtin.blizzard-settings"
-    },
-    {
-      "provider": "builtin.keystones"
-    },
-    {
-      "provider": "builtin.achievements"
-    },
-    {
-      "provider": "builtin.addon-inspector"
-    },
-    {
-      "provider": "builtin.ellesmere"
-    },
-    {
-      "provider": "builtin.exwind"
-    },
-    {
-      "provider": "builtin.ldt"
-    },
-    {
-      "path": "Builtin/Init.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    }
-  ],
   "providers": [
     {
-      "id": "builtin.exwind",
+      "id": "lychee.exwind",
       "module": "Exwind",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/Exwind/Provider.lua"
+        "Exwind/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Exwind/Locales.lua"
+      "locales": "Exwind/Locales.lua",
+      "package": "Lychee_Integrations",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Integrations",
+          "zhCN": "插件集成",
+          "enUS": "Addon integrations"
+        },
+        "description": {
+          "zhCN": "用 EX：搜索设置页面或解锁界面",
+          "enUS": "Use EX: to find settings pages or unlock the layout"
+        },
+        "icon": "settings.tga",
+        "order": 1,
+        "prefixes": []
+      }
     },
     {
-      "id": "builtin.ellesmere",
+      "id": "lychee.ellesmere",
       "module": "Ellesmere",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/Ellesmere/Adapter.lua",
-        "Builtin/Ellesmere/Provider.lua"
+        "Ellesmere/Adapter.lua",
+        "Ellesmere/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Ellesmere/Locales.lua"
+      "locales": "Ellesmere/Locales.lua",
+      "package": "Lychee_Integrations",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Integrations",
+          "zhCN": "插件集成",
+          "enUS": "Addon integrations"
+        },
+        "description": {
+          "zhCN": "用 EUI：搜索设置页面或解锁界面",
+          "enUS": "Use EUI: to find settings pages or unlock the layout"
+        },
+        "icon": "settings.tga",
+        "order": 2,
+        "prefixes": []
+      }
     },
     {
-      "id": "builtin.player-spells",
+      "id": "lychee.player-spells",
       "module": "PlayerSpells",
       "products": [
         "retail",
@@ -539,15 +84,35 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/PlayerSpells/Aliases.lua",
-        "Builtin/PlayerSpells/Provider.lua",
-        "Builtin/PlayerSpells/Init.lua"
+        "PlayerSpells/Aliases.lua",
+        "PlayerSpells/Provider.lua",
+        "PlayerSpells/Init.lua"
       ],
       "requires": [],
-      "locales": "Builtin/PlayerSpells/Locales.lua"
+      "locales": "PlayerSpells/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "搜索并施放已学技能",
+          "enUS": "Find and cast learned spells"
+        },
+        "icon": "spellbook.tga",
+        "order": 3,
+        "prefixes": [
+          "技能",
+          "spell",
+          "spells",
+          "玩家技能"
+        ]
+      }
     },
     {
-      "id": "builtin.mounts",
+      "id": "lychee.mounts",
       "module": "Mounts",
       "products": [
         "retail",
@@ -555,28 +120,63 @@
         "titan"
       ],
       "files": [
-        "Builtin/Mounts/Provider.lua"
+        "Mounts/Provider.lua"
       ],
       "requires": [
         "C_MountJournal.GetMountIDs",
         "C_MountJournal.GetMountInfoByID"
       ],
-      "locales": "Builtin/Mounts/Locales.lua"
+      "locales": "Mounts/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "搜索并召唤坐骑",
+          "enUS": "Find and summon mounts"
+        },
+        "icon": "mounts.tga",
+        "order": 4,
+        "prefixes": [
+          "坐骑",
+          "mounts"
+        ]
+      }
     },
     {
-      "id": "builtin.crests",
+      "id": "lychee.crests",
       "module": "Crests",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/Crests/Provider.lua"
+        "Crests/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Crests/Locales.lua"
+      "locales": "Crests/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "查看当前角色的纹章数量",
+          "enUS": "View this character's crest balances"
+        },
+        "icon": "currency.tga",
+        "order": 5,
+        "prefixes": [
+          "纹章"
+        ]
+      }
     },
     {
-      "id": "builtin.game-menus",
+      "id": "lychee.game-menus",
       "module": "GameMenus",
       "products": [
         "retail",
@@ -585,38 +185,93 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/GameMenus/Provider.lua"
+        "GameMenus/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/GameMenus/Locales.lua"
+      "locales": "GameMenus/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "快速打开游戏面板",
+          "enUS": "Quickly open game panels"
+        },
+        "icon": "game-menu.tga",
+        "order": 6,
+        "prefixes": [
+          "菜单",
+          "游戏菜单"
+        ]
+      }
     },
     {
-      "id": "builtin.bosses",
+      "id": "lychee.bosses",
       "module": "Bosses",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/Bosses/JournalCatalog.lua",
-        "Builtin/Bosses/Provider.lua"
+        "Bosses/JournalCatalog.lua",
+        "Bosses/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Bosses/Locales.lua"
+      "locales": "Bosses/Locales.lua",
+      "package": "Lychee_Encounters",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Encounters",
+          "zhCN": "副本资料",
+          "enUS": "Encounter reference"
+        },
+        "description": {
+          "zhCN": "搜索团本首领和技能并查看指南",
+          "enUS": "Find raid bosses and abilities in the journal"
+        },
+        "icon": "skull.tga",
+        "order": 7,
+        "prefixes": [
+          "团本首领",
+          "首领",
+          "bosses"
+        ]
+      }
     },
     {
-      "id": "builtin.great-vault",
+      "id": "lychee.great-vault",
       "module": "GreatVault",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/GreatVault/Provider.lua"
+        "GreatVault/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/GreatVault/Locales.lua"
+      "locales": "GreatVault/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "查看宏伟宝库进度与奖励",
+          "enUS": "View Great Vault progress and rewards"
+        },
+        "icon": "great-vault.tga",
+        "order": 8,
+        "prefixes": [
+          "宏伟宝库",
+          "宝库"
+        ]
+      }
     },
     {
-      "id": "builtin.bags",
+      "id": "lychee.bags",
       "module": "Bags",
       "products": [
         "retail",
@@ -625,28 +280,67 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/Bags/Provider.lua"
+        "Bags/Provider.lua"
       ],
       "requires": [
         "C_Container.GetContainerNumSlots",
         "C_Container.GetContainerItemInfo"
       ],
-      "locales": "Builtin/Bags/Locales.lua"
+      "locales": "Bags/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "搜索物品并定位背包",
+          "enUS": "Search and locate bag items"
+        },
+        "icon": "toys.tga",
+        "order": 9,
+        "prefixes": [
+          "背包",
+          "物品",
+          "bags",
+          "背包物品"
+        ]
+      }
     },
     {
-      "id": "builtin.talent-loadouts",
+      "id": "lychee.talent-loadouts",
       "module": "TalentLoadouts",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/TalentLoadouts/Provider.lua"
+        "TalentLoadouts/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/TalentLoadouts/Locales.lua"
+      "locales": "TalentLoadouts/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "搜索并切换天赋方案",
+          "enUS": "Find and switch talent loadouts"
+        },
+        "icon": "talents.tga",
+        "order": 10,
+        "prefixes": [
+          "天赋",
+          "天赋方案",
+          "talents"
+        ]
+      }
     },
     {
-      "id": "builtin.equipment-sets",
+      "id": "lychee.equipment-sets",
       "module": "EquipmentSets",
       "products": [
         "retail",
@@ -654,17 +348,36 @@
         "titan"
       ],
       "files": [
-        "Builtin/EquipmentSets/Provider.lua"
+        "EquipmentSets/Provider.lua"
       ],
       "requires": [
         "C_EquipmentSet.GetEquipmentSetIDs",
         "C_EquipmentSet.GetEquipmentSetInfo",
         "C_EquipmentSet.UseEquipmentSet"
       ],
-      "locales": "Builtin/EquipmentSets/Locales.lua"
+      "locales": "EquipmentSets/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "搜索并切换装备方案",
+          "enUS": "Find and switch equipment sets"
+        },
+        "icon": "character.tga",
+        "order": 11,
+        "prefixes": [
+          "装备",
+          "装备方案",
+          "gear"
+        ]
+      }
     },
     {
-      "id": "builtin.blizzard-settings",
+      "id": "lychee.blizzard-settings",
       "module": "BlizzardSettings",
       "products": [
         "retail",
@@ -673,25 +386,64 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/BlizzardSettings/Provider.lua"
+        "BlizzardSettings/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/BlizzardSettings/Locales.lua"
+      "locales": "BlizzardSettings/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "定位设置、重载界面与冷却管理器",
+          "enUS": "Find settings, reload, and manage cooldowns"
+        },
+        "icon": "settings.tga",
+        "order": 12,
+        "prefixes": [
+          "设置",
+          "暴雪设置",
+          "settings"
+        ]
+      }
     },
     {
-      "id": "builtin.keystones",
+      "id": "lychee.keystones",
       "module": "Keystones",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/Keystones/Provider.lua"
+        "Keystones/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Keystones/Locales.lua"
+      "locales": "Keystones/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "队伍钥匙、分数与副本传送",
+          "enUS": "Party keys, ratings, and dungeon teleports"
+        },
+        "icon": "keystone.tga",
+        "order": 13,
+        "prefixes": [
+          "钥匙",
+          "key",
+          "keys",
+          "队伍钥匙"
+        ]
+      }
     },
     {
-      "id": "builtin.achievements",
+      "id": "lychee.achievements",
       "module": "Achievements",
       "products": [
         "retail",
@@ -699,7 +451,7 @@
         "titan"
       ],
       "files": [
-        "Builtin/Achievements/Provider.lua"
+        "Achievements/Provider.lua"
       ],
       "requires": [
         "GetCategoryList",
@@ -708,10 +460,29 @@
         "GetAchievementNumCriteria",
         "GetAchievementLink"
       ],
-      "locales": "Builtin/Achievements/Locales.lua"
+      "locales": "Achievements/Locales.lua",
+      "package": "Lychee_Player",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Player",
+          "zhCN": "玩家功能",
+          "enUS": "Player features"
+        },
+        "description": {
+          "zhCN": "搜索成就、查看进度与分享链接",
+          "enUS": "Find achievements, progress, and share links"
+        },
+        "icon": "achievements.tga",
+        "order": 14,
+        "prefixes": [
+          "成就",
+          "achievement",
+          "achievements"
+        ]
+      }
     },
     {
-      "id": "builtin.addon-inspector",
+      "id": "lychee.addon-inspector",
       "module": "AddonInspector",
       "products": [
         "retail",
@@ -720,30 +491,604 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/AddonInspector/Picker.lua",
-        "Builtin/AddonInspector/Provider.lua"
+        "View.lua",
+        "Picker.lua",
+        "Provider.lua"
       ],
       "requires": [
         "GetMouseFoci"
       ],
-      "locales": "Builtin/AddonInspector/Locales.lua"
+      "locales": "Locales.lua",
+      "package": "Lychee_Inspector",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Inspector",
+          "zhCN": "插件识别",
+          "enUS": "Addon Inspector"
+        },
+        "description": {
+          "zhCN": "指向界面，识别来源插件",
+          "enUS": "Point at a frame to identify its addon"
+        },
+        "icon": "addon-inspector.tga",
+        "order": 15,
+        "prefixes": []
+      }
     },
     {
-      "id": "builtin.ldt",
+      "id": "lychee.ldt",
       "module": "LDT",
       "products": [
         "retail"
       ],
       "files": [
-        "Builtin/LDT/Data.lua",
-        "Builtin/LDT/Catalog.lua",
-        "Builtin/LDT/View.lua",
-        "Builtin/LDT/Provider.lua"
+        "LDT/Data.lua",
+        "LDT/Catalog.lua",
+        "LDT/View.lua",
+        "LDT/Provider.lua"
       ],
       "requires": [
         "C_Spell.GetSpellName"
       ],
-      "locales": "Builtin/LDT/Locales.lua"
+      "locales": "LDT/Locales.lua",
+      "package": "Lychee_Encounters",
+      "presentation": {
+        "source": {
+          "id": "Lychee_Encounters",
+          "zhCN": "副本资料",
+          "enUS": "Encounter reference"
+        },
+        "description": {
+          "zhCN": "搜索地下城怪物和技能并查看资料",
+          "enUS": "Search dungeon enemies and abilities, and view their details"
+        },
+        "icon": "skull.tga",
+        "order": 16,
+        "prefixes": []
+      }
     }
-  ]
+  ],
+  "packages": {
+    "Lychee": {
+      "title": "Lychee Launcher",
+      "files": [
+        {
+          "path": "Bootstrap.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/CharacterStore.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ProviderLocales.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Locales/UI.enUS.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ContextStore.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/RuntimeIdentity.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/Normalizer.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/ProviderPolicy.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/StaticIndex.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/Boundary.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/RecordCodec.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/Catalog.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/Resources.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ProviderData.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/Scheduler.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ExtensionRegistry.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/ResultSnapshot.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/QueryOrchestrator.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/SearchSession.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ProviderRuntime.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ProviderManagement.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/UserPreferences.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Search/Personalization.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "PublicAPI/SDK.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/InteractionBinding.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Secure/Descriptor.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Secure/Policy.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Secure/SecureActionBroker.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/FocusController.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Theme.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/TextHighlight.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Motion.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Presence.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Runtime.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Components.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Input.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/ResultList.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/ViewHost.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "Core/ResultActionExecutor.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/AliasSettings.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/ProviderSettings.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/SettingsView.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
+          "path": "UI/Palette.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        }
+      ],
+      "savedVariables": [
+        "LycheeDB"
+      ],
+      "savedVariablesPerCharacter": [
+        "LycheeCharacterDB"
+      ]
+    },
+    "Lychee_Player": {
+      "title": "Lychee Player",
+      "files": [
+        {
+          "path": "Bootstrap.lua"
+        },
+        {
+          "path": "Manifest.lua"
+        },
+        {
+          "path": "SDK/Storage.lua"
+        },
+        {
+          "path": "Storage.lua"
+        },
+        {
+          "providerLocales": true
+        },
+        {
+          "path": "Runtime/InterfaceActions.lua"
+        },
+        {
+          "path": "Runtime/CatalogLedger.lua"
+        },
+        {
+          "path": "Runtime/CatalogProvider.lua"
+        },
+        {
+          "provider": "lychee.player-spells"
+        },
+        {
+          "provider": "lychee.mounts"
+        },
+        {
+          "provider": "lychee.crests"
+        },
+        {
+          "provider": "lychee.game-menus"
+        },
+        {
+          "provider": "lychee.great-vault"
+        },
+        {
+          "provider": "lychee.bags"
+        },
+        {
+          "provider": "lychee.talent-loadouts"
+        },
+        {
+          "provider": "lychee.equipment-sets"
+        },
+        {
+          "provider": "lychee.blizzard-settings"
+        },
+        {
+          "provider": "lychee.keystones"
+        },
+        {
+          "provider": "lychee.achievements"
+        },
+        {
+          "path": "Activate.lua"
+        }
+      ],
+      "savedVariablesPerCharacter": [
+        "LycheePlayerCharacterDB"
+      ]
+    },
+    "Lychee_Encounters": {
+      "title": "Lychee Encounters",
+      "files": [
+        {
+          "path": "Bootstrap.lua"
+        },
+        {
+          "path": "Manifest.lua"
+        },
+        {
+          "providerLocales": true
+        },
+        {
+          "path": "Runtime/InterfaceActions.lua"
+        },
+        {
+          "path": "Runtime/CatalogLedger.lua"
+        },
+        {
+          "path": "Runtime/CatalogProvider.lua"
+        },
+        {
+          "provider": "lychee.bosses"
+        },
+        {
+          "provider": "lychee.ldt"
+        },
+        {
+          "path": "Activate.lua"
+        }
+      ]
+    },
+    "Lychee_Integrations": {
+      "title": "Lychee Integrations",
+      "files": [
+        {
+          "path": "Bootstrap.lua"
+        },
+        {
+          "path": "Manifest.lua"
+        },
+        {
+          "providerLocales": true
+        },
+        {
+          "provider": "lychee.ellesmere"
+        },
+        {
+          "provider": "lychee.exwind"
+        },
+        {
+          "path": "Activate.lua"
+        }
+      ]
+    },
+    "Lychee_Inspector": {
+      "title": "Lychee Inspector",
+      "files": [
+        {
+          "path": "Bootstrap.lua"
+        },
+        {
+          "path": "Manifest.lua"
+        },
+        {
+          "providerLocales": true
+        },
+        {
+          "provider": "lychee.addon-inspector"
+        },
+        {
+          "path": "Activate.lua"
+        }
+      ]
+    }
+  }
 }

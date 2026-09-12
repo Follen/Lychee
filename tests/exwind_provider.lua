@@ -24,10 +24,10 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Exwind/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Builtin/Exwind/Provider.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Integrations/Exwind/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "../Lychee_Integrations/Exwind/Provider.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
-local M=I.Builtin.Exwind
+local M=TestPackages.Modules.Exwind
 local baseFrames=frames
 M:Init()
 assert(M.active and #timers==0 and frames==baseFrames,"Exwind defaults enabled without idle tasks")

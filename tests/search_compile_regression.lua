@@ -66,7 +66,7 @@ local function checkPostings()
     end
 end
 checkPostings()
-assert(index:Remove("utf8","one"));checkPostings()
+assert(index:ApplyDelta("utf8",{},{"one"}));checkPostings()
 assert(index:TouchSource("utf8",false));checkPostings()
 assert(index:TouchSource("utf8",true));checkPostings()
 print("Search compile PASS: "..cases.." locale/scope cases; all-byte UTF-8 membership, duplicate fields, removal and enable lifecycle")

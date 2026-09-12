@@ -52,6 +52,7 @@ for n = 1, 1000 do entries[n] = { id = tostring(n), title = "共同候选 " .. n
 assert(index:CommitSnapshot("performance", entries, 1))
 assert(#index:Search("共同", 20) == 20)
 local candidateCount = #(index.previousCandidates or {})
+index:ClearQueryCache() -- A private index owner releases its own query workspace.
 I.Search.Query:Cancel("hidden", 1)
 local cancelledCandidates = #(index.previousCandidates or {})
 print(string.format("SEARCH normalization_2048_KiB=%.1f normalization_ms=%.1f long_cache_retained_KiB=%.1f invalidation_keys=%d candidates_before=%d candidates_after_cancel=%d",
@@ -63,3 +64,14 @@ if not baselineMode then
     assert(cancelledCandidates == 0, "closed search retains prior candidates")
 end
 print(baselineMode and "Search measurement complete (new budgets not enforced)" or "Search allocation, byte-normalization and cancellation checks PASS")
+
+-- Exercise the public catalog path, not only the private index cleanup primitive.
+function GetBuildInfo() return "12.1.0","70000","",120100 end
+dofile("tests/support/runtime.lua").Load("provider")
+local captured;local create=LycheeInternal.Search.StaticIndex.New
+function LycheeInternal.Search.StaticIndex:New() captured=create(self);return captured end
+local catalog=assert(Lychee.SDK.CreateCatalog({id="cancellation",scope={products={"retail"}}}))
+assert(catalog:Update({replace=entries}))
+assert(#catalog:Search({normalized="共同",limit=20})==20)
+assert(captured.previousCandidates==nil,"public catalog never retains candidates beyond Search")
+assert(catalog:Close())

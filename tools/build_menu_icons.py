@@ -43,7 +43,7 @@ def colored_svg(icon):
 def main():
     selection = json.loads((ASSETS / "selection.json").read_text(encoding="utf-8"))
     items = selection["icons"]
-    provider = (ROOT / "addon/Lychee/Builtin/GameMenus/Provider.lua").read_text(encoding="utf-8")
+    provider = (ROOT / "addon/Lychee_Player/GameMenus/Provider.lua").read_text(encoding="utf-8")
     menu_ids = set(re.findall(r'^\s*\{"([^"\n]+)",', provider, re.MULTILINE))
     assert len(items) == len(menu_ids) == 34
     assert {icon["id"] for icon in items} == menu_ids

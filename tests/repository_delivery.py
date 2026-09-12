@@ -30,7 +30,7 @@ class RepositoryDelivery(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name).resolve()
         assert self.root.parent == Path(tempfile.gettempdir()).resolve()
-        for folder in ("addon/Lychee", "lychee-sdk"):
+        for folder in ("addon", "lychee-sdk"):
             shutil.copytree(ROOT / folder, self.root / folder)
         (self.root / "tools").mkdir()
         for name in ("release_manifest.json", "sdk_contract.json"):
@@ -42,11 +42,33 @@ class RepositoryDelivery(unittest.TestCase):
             self.assertEqual(first, release.archive(files))
             with zipfile.ZipFile(io.BytesIO(first)) as z:
                 self.assertEqual(z.namelist(), [entry for _, entry in files])
-                self.assertTrue(all(n.startswith(name + "/") for n in z.namelist()))
+                self.assertTrue(all(n.split("/")[0] in ({"Lychee","Lychee_Player","Lychee_Encounters","Lychee_Integrations","Lychee_Inspector"} if name=="Lychee" else {name}) for n in z.namelist()))
 
     def test_extra_runtime_doc_rejected(self):
         (self.root / "addon/Lychee/AGENTS.md").write_text("not runtime")
         with self.assertRaisesRegex(ValueError, "unlisted"):
+            release.paths(self.root)
+
+    def test_unlisted_sixth_package_rejected(self):
+        (self.root / "addon/Unexpected").mkdir()
+        with self.assertRaisesRegex(ValueError, "unlisted runtime package"):
+            release.paths(self.root)
+
+    def test_missing_child_file_rejected(self):
+        (self.root / "addon/Lychee_Inspector/Provider.lua").unlink()
+        with self.assertRaisesRegex(ValueError, "missing"):
+            release.paths(self.root)
+
+    def test_embedded_sdk_drift_rejected(self):
+        p = self.root / "addon/Lychee_Player/SDK/Storage.lua"
+        p.write_bytes(p.read_bytes() + b"\n-- drift\n")
+        with self.assertRaisesRegex(ValueError, "Storage drift"):
+            release.paths(self.root)
+
+    def test_cross_package_toc_rejected(self):
+        p = self.root / "addon/Lychee_Inspector/Lychee_Inspector.toc"
+        p.write_text(p.read_text() + "\n../Lychee_Player/Storage.lua\n")
+        with self.assertRaisesRegex(ValueError, "TOC dependency"):
             release.paths(self.root)
 
     def test_missing_runtime_resource_rejected(self):
@@ -58,7 +80,7 @@ class RepositoryDelivery(unittest.TestCase):
         (self.root / "addon/Lychee/AGENTS.md").write_text("not runtime")
         path = self.root / "tools/release_manifest.json"
         value = json.loads(path.read_text())
-        value["runtimeFiles"].append("AGENTS.md")
+        value["packages"]["Lychee"].append("AGENTS.md")
         path.write_text(json.dumps(value))
         with self.assertRaisesRegex(ValueError, "non-runtime"):
             release.paths(self.root)
@@ -77,8 +99,9 @@ class RepositoryDelivery(unittest.TestCase):
     def test_unsafe_and_duplicate_paths_rejected(self):
         path = self.root / "tools/release_manifest.json"
         original = json.loads(path.read_text())
-        for name in ("../outside", "C:/outside", "/outside", "a\\b", original["runtimeFiles"][0]):
-            modified = dict(original, runtimeFiles=original["runtimeFiles"] + [name])
+        for name in ("../outside", "C:/outside", "/outside", "a\\b", original["packages"]["Lychee"][0]):
+            modified = json.loads(json.dumps(original))
+            modified["packages"]["Lychee"].append(name)
             path.write_text(json.dumps(modified))
             with self.assertRaises(ValueError):
                 release.paths(self.root)

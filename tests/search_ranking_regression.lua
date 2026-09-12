@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 -- Real Host ranking paths, with only the game environment substituted.
 function GetLocale() return "enUS" end
 function GetBuildInfo() return "12.1.0","12345","fixture",120100 end
@@ -13,7 +14,7 @@ local function query(text,filter)
     return rows
 end
 local function register(id,entries)
-    return assert(Lychee:RegisterProvider({id=id,apiVersion=2,version="1",title="Ranking test",entries=entries}))
+    return assert(Fixture:Register({id=id,apiVersion=3,version="1",title="Ranking test",catalog=entries}))
 end
 local entries={}
 for index=1,21 do entries[index]={id=string.format("%03d",index),title="Neutral item "..index} end
@@ -29,13 +30,13 @@ assert(#rows==20 and rows[1].id=="021","late exact alias must beat earlier parti
 assert(calls==20,"do not resolve the entire declaration set when enough valid results exist")
 P:Remember("destination",rows[20])
 local remembered=rows[20].id
-assert(handle:Update({upsert={{id="000",title="New aliased item"}}}))
+assert(handle.catalog:Update({upsert={{id="000",title="New aliased item"}}}))
 assert(P:SetAlias({providerID="ranking.alias",entryID="000"},"destination entry new"))
 assert(query("destination")[1].id==remembered,"alias preference participates before candidate truncation")
 assert(#query("destination",{sourceID="other:records"})==0,"aliases respect source routes")
-assert(handle:SetEnabled(false))
+assert(handle:SetAvailability(false))
 assert(#query("destination")==0,"aliases cannot resurrect a disabled source")
-assert(handle:SetEnabled(true))
+assert(handle:SetAvailability(true))
 assert(handle:Unregister())
 
 -- Historical aliases may outlive their records. Missing matches do not spend
@@ -54,7 +55,7 @@ assert(handle:Unregister())
 I.Providers.Resolve=resolve
 
 LycheeCharacterDB={palette={}}
-entries={}
+catalog={}
 for index=101,120 do entries[#entries+1]={id=tostring(index),title="Common "..index} end
 handle=register("ranking.memory",entries)
 rows=query("Common")
@@ -67,14 +68,14 @@ local locale=I.Locale.code
 I.Locale.code="zhCN"
 assert(not P:Preferred({normalized="common"}),"preference is locale-scoped")
 I.Locale.code=locale
-assert(handle:Update({upsert={{id="001",title="Common newcomer"}}}))
+assert(handle.catalog:Update({upsert={{id="001",title="Common newcomer"}}}))
 assert(query("Common")[1].id=="120","preference must survive TopK truncation after catalogue growth")
 assert(#query("unrelated")==0,"preference cannot inject unrelated entries")
 assert(handle:Unregister())
 print("Search ranking regression passed: alias quality, stale references, route/lifecycle and remembered TopK")
 
 local static=register("ranking.static",{{id="x",title="Neutral",aliases={"destination"}}})
-local dynamic=assert(Lychee:RegisterProvider({id="ranking.dynamic",apiVersion=2,version="1",title="Dynamic",query=function(request,reply)
+local dynamic=assert(Fixture:Register({id="ranking.dynamic",apiVersion=3,version="1",title="Dynamic",query=function(request,reply)
  reply({{id="x",title="Neutral",aliases={"destination"}}})
 end}))
 local hits=query("destination")

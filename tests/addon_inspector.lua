@@ -148,10 +148,10 @@ C_Timer={NewTimer=function(delay,fn)
     local t={fn=fn,delay=delay};function t:Cancel() self.cancelled=true end
     timers[#timers+1]=t;return t
 end}
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "UI/Theme.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/AddonInspector.lua", "Builtin/AddonInspector/Picker.lua", "Builtin/AddonInspector/Provider.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Shared/CatalogProvider.lua", "Core/Scheduler.lua", "UI/Theme.lua", "UI/Runtime.lua", "UI/Components.lua", "../Lychee_Inspector/View.lua", "../Lychee_Inspector/Picker.lua", "../Lychee_Inspector/Provider.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
-local M=I.Builtin.AddonInspector
+local M=TestPackages.Modules.AddonInspector
 local parentless=frame(nil,"ParentUnavailable")
 assert(M:CheckFocus(parentless)==parentless,"absent AuraButtonTooltip global must not exclude objects with no readable parent")
 local beforeFrames,beforeRegions=frames,regions

@@ -1,6 +1,6 @@
 # 角色存储与内存生命周期验收
 
-2026-09-12。本轮保留 SDK 2/revision 6、UI Runtime 1，执行 [当前设计](../docs/architecture/2026-09-12-runtime-lifecycle.md)。1 MiB 不再是用户要求；旧 SDK 3/拆包/全量休眠候选不作为当前验收标准。性能硬规则只在 [PERFORMANCE.md](../PERFORMANCE.md) 维护。
+当前验收为 SDK 1.0.0 / API 3 revision 1、UI Runtime 1 与五个运行时包，执行 [当前架构](../docs/ARCHITECTURE.md)。1 MiB 不是硬目标，按五包合计验证性能；不兼容旧 SDK 接口。性能规则只在 [PERFORMANCE.md](../PERFORMANCE.md) 维护。
 
 ## 统一入口
 
@@ -31,3 +31,12 @@
 - provider_management：状态、管理配置、旧实例及回调重入，禁止页面持有内部注册记录。
 - sdk_delivery.py：单边版本漂移、兼容政策、错误码与文件清单故障注入。
 - 独立性能诊断插件已退役；历史报告保留，本体 performance_* / perf_* 与完整契约测试不删减。
+
+
+## SDK 1.0.0 / 五包验收
+
+API 3 统一 query 结果，Host 不持有全量业务目录；测试使用五包真实 TOC 和私有命名空间。package_namespaces 验证自身 ADDON_LOADED、还原 SV、登录后默认注册与无提前页面；client_manifest/client_toc_load 验证四产品和中文/英文。
+
+sdk_catalog 直接测试公开输入、原子更新、隔离副本、迟到回复和不同动作声明不能借 Catalog 绕过校验。sdk_storage 测试无 Host 的独立 DB、就绪、根替换、角色/命名空间隔离、配额、原子迁移和未来版本保留。character_settings/achievements_provider 验证 Player 接管数据及关闭/恢复。
+
+管理页验证注销移除、用户关闭保留、来源分组、失效页面、重绑点击和长标签单行；语言与业务等价仍使用原有查询/动作记录验证。所有原性能门槛保持，TOC 内存按五包合计。SDK/release 的反向测试拒绝单边版本漂移、错误加载清单、SDK 文档遗漏、路径越界和运行时混入文档。实机重启验收单独记录，离线测试不替代游戏结果。

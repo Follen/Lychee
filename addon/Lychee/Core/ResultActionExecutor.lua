@@ -79,14 +79,6 @@ function Executor:IsRowCurrent(row, session, generation, item, owner)
     if owner and I.Registry and not I.Registry:IsEnabled(owner) then return false, "EXTENSION_DISABLED" end
     local rowItem = row.item
     if I.Providers and not I.Providers:IsCurrent(rowItem) then return false, "STALE_GENERATION" end
-    if rowItem.sourceID and rowItem.sourceGeneration then
-        local static = I.Search and I.Search.StaticIndex
-        local state = static and static:GetSourceState(rowItem.sourceID)
-        if not state or state.enabled == false or state.generation ~= rowItem.sourceGeneration
-            or state.revision ~= rowItem.sourceRevision then
-            return false, "STALE_GENERATION"
-        end
-    end
     return true
 end
 

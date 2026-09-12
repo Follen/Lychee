@@ -17,14 +17,17 @@ for line in raw.decode().splitlines():
             for bit,d in diffs.items():
                 if bit&mask:
                     key=(int(a[1]),spell,d);relations[key]=min(section,relations.get(key,section))
-script=r'''LycheeInternal={Builtin={}};dofile("addon/Lychee/Builtin/Bosses/JournalCatalog.lua")
-local c=LycheeInternal.Builtin.JournalCatalog
+script=r'''local ns={Modules={}};assert(loadfile("addon/Lychee_Encounters/Bosses/JournalCatalog.lua"))("Lychee_Encounters",ns)
+local c=ns.Modules.JournalCatalog
 for i=1,#c.encounters,3 do
  local id,owner,name=c.encounters[i],c.encounters[i+1],c.encounters[i+2]
  io.write("B\t",id,"\t",owner,"\t",name,"\t",c.instances[owner][1],"\t",c.difficulties[id],"\n")
 end
 for boss,encoded in pairs(c.abilities) do
- for spell,section,mask in encoded:gmatch("(%d+):(%d+):(%d+)") do
+ local previousSpell=0
+ for spell,section,mask in encoded:gmatch("([0-9a-z]+):([0-9a-z]+):([0-9a-z]+)") do
+  spell,section,mask=tonumber(spell,c.numberBase),tonumber(section,c.numberBase),tonumber(mask,c.numberBase)
+  spell=spell+previousSpell;previousSpell=spell
   for i,d in ipairs({3,4,5,6,9,14,15,16}) do
    if math.floor(tonumber(mask)/2^(i-1))%2==1 then io.write("S\t",boss,"\t",spell,"\t",d,"\t",section,"\n") end
   end

@@ -1,5 +1,5 @@
-local addonName = ...
-local I = _G.LycheeInternal or {}
+local addonName,namespace = ...
+local I = namespace or _G.LycheeInternal or {}
 _G.LycheeInternal = I
 -- Client locale is immutable during a session; zhTW uses Simplified Chinese fallback.
 local locale = type(GetLocale) == "function" and GetLocale() or "enUS"
@@ -38,10 +38,7 @@ function L:Resolve(value, fallback)
 end
 L.name = L:IsChinese() and "|cffd53c49荔枝|r启动器" or "|cffd53c49Lychee|r Launcher"
 
-I.VERSION = { api = 2, revision = 7 }
-I.Modules = I.Modules or {}
-LycheeDB = LycheeDB or {}
-if LycheeDB.schemaVersion ~= 2 then LycheeDB = { schemaVersion = 2 } end
+I.VERSION = { api = 3, revision = 1 }
 
 local function wireRegistryLifecycle()
     if I._registryLifecycleWired or not I.Registry then return end
@@ -68,7 +65,6 @@ local function onLogin()
         end
     end
     wireRegistryLifecycle()
-    if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController
     if palette then I.WirePalette(palette) end
@@ -84,12 +80,17 @@ function I.WirePalette(palette)
 end
 
 local frame = CreateFrame and CreateFrame("Frame")
+function I.SetAddonLoadWatch(enabled)
+    if not frame then return end
+    if enabled then frame:RegisterEvent("ADDON_LOADED") else frame:UnregisterEvent("ADDON_LOADED") end
+end
 if frame then
     frame:RegisterEvent("PLAYER_LOGIN")
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
-    frame:SetScript("OnEvent", function(_, event)
-        if event == "PLAYER_LOGIN" then onLogin()
+    frame:SetScript("OnEvent", function(_, event,name)
+        if event=="ADDON_LOADED" and I.DeliverAddonLoaded then I.DeliverAddonLoaded(name)
+        elseif event == "PLAYER_LOGIN" then onLogin()
         elseif event == "PLAYER_REGEN_DISABLED" and I.Host and I.Host.PaletteController then I.Host.PaletteController:Hide("combat")
         elseif event == "PLAYER_REGEN_ENABLED" then
             if I.Host and I.Host.SecureBroker then I.Host.SecureBroker:Flush() end

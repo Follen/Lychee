@@ -42,14 +42,14 @@ C_Spell={GetSpellName=function(id)reads=reads+1;if not missing[id] then return s
 function EJ_GetEncounterInfo(id)return id==11 and "Alpha Boss" or id==12 and "Beta Boss" or "Boss "..id end
 function EJ_GetInstanceInfo(id)return "Raid "..id end
 local load=dofile("tests/support/runtime.lua").Load
-load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","Builtin/Shared/CatalogProvider.lua","Builtin/Shared/InterfaceActions.lua","Builtin/Bosses/Locales.lua","Builtin/Bosses/JournalCatalog.lua"})
+load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","Shared/CatalogProvider.lua","Shared/InterfaceActions.lua","../Lychee_Encounters/Bosses/Locales.lua","../Lychee_Encounters/Bosses/JournalCatalog.lua"})
 local I=LycheeInternal
-local full=I.Builtin.JournalCatalog
-I.Builtin.JournalCatalog={instances={[1]={"Raid 1",123}},encounters={11,1,"Alpha Boss",12,1,"Beta Boss"},encounterCount=2,
+local full=TestPackages.Modules.JournalCatalog
+TestPackages.namespaces.Lychee_Encounters.Modules.JournalCatalog={instances={[1]={"Raid 1",123}},encounters={11,1,"Alpha Boss",12,1,"Beta Boss"},encounterCount=2,
  difficulties={[11]="14,15,16",[12]="14,15"},abilities={[11]="101:1001:96;101:1002:128;102:1003:128;103:1004:32;104:1005:64;105:1007:32",[12]="101:1006:96"}}
-dofile("addon/Lychee/Builtin/Bosses/Provider.lua")
-local m=I.Builtin.Bosses;assert(m:Init());I.Registry:SetReady(true);drain()
-assert(I.Providers.entries[m.id].definition.minApiRevision>=7, "all locales receive query resources")
+assert(loadfile("addon/Lychee_Encounters/Bosses/Provider.lua"))("Lychee_Encounters",TestPackages.namespaces.Lychee_Encounters);TestPackages:Refresh()
+local m=TestPackages.Modules.Bosses;assert(m:Init());I.Registry:SetReady(true);drain()
+assert(I.Providers.entries[m.id].definition.apiVersion==3 and I.Providers.entries[m.id].definition.minApiRevision==1, "all locales receive query resources")
 assert(I.Providers.entries[m.id].definition.title==(locale=="zhCN" and "团本首领" or "Raid bosses"))
 local function query(q)
  local result
@@ -81,8 +81,8 @@ drain(function()return requests>beforeRequests end)
 I.Providers:CancelQueries("cancelled-awaiting-load");drain();assert(not called,"late spell event cannot revive a query")
 local callback=false
 I.Search.Query:Query("Shadow Grip",{visible=true},nil,function()callback=true end)
-assert(m.handle:SetEnabled(false));drain();assert(not callback)
-assert(m.handle:SetEnabled(true));drain()
+assert(m.handle:SetAvailability(false));drain();assert(not callback)
+assert(m.handle:SetAvailability(true));drain()
 local currentDiff,opened
 EncounterJournal={instanceID=0,encounterID=0,IsShown=function()return true end}
 function EncounterJournal_OpenJournal(d,i,e,s)currentDiff=d;opened={d,i,e,s};EncounterJournal.instanceID=i;EncounterJournal.encounterID=e end
@@ -96,7 +96,7 @@ assert(not m:ResolveReference("boss-11-spell-102-14"),"invalid difficulty cannot
 assert(not m:ResolveReference("boss-89-spell-101-14"),"removed dungeon cannot be restored")
 print("Raid abilities correctness PASS "..locale)
 -- Fixed full-catalogue query scenario; generation data is restored intact.
-I.Builtin.JournalCatalog=full
+TestPackages.namespaces.Lychee_Encounters.Modules.JournalCatalog=full
 query("Ability 1229327")
 collectgarbage("collect");local base=collectgarbage("count");collectgarbage("stop")
 local started=os.clock()

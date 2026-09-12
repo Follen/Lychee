@@ -12,8 +12,9 @@ local function write(...)
 end
 local translations={Frames="框体",Health="生命",Layout="布局",Border="边框"}
 local L=setmetatable({resources={}},{__index=function(_,key) return key end})
-LycheeInternal={Search={},Builtin={Support={Scope=function() return {products={"retail"}} end}},
-    ProviderLocales={Builtin=function() return L end}}
+LycheeInternal={Search={}}
+local namespace={Search=LycheeInternal.Search,Modules={Support={Scope=function() return {products={"retail"}} end,Register=function(_,desc) definition=desc;return {GetState=function() return true end} end}},ProviderLocales={ForProvider=function() return L end}}
+TestPackages={Modules=namespace.Modules}
 LycheeDB={}
 dofile("addon/Lychee/Search/Normalizer.lua")
 dofile("addon/Lychee/Core/Boundary.lua")
@@ -39,10 +40,10 @@ EllesmereUI={_modules={},_deferredLoaded=true,_RegisterSearchEntry=function() en
         write("ACTION\t",folder,"\t",page,"\t",section or "","\t",label or "","\n")
         if select then select() end
     end}
-local adapter=io.open("addon/Lychee/Builtin/Ellesmere/Adapter.lua","r")
-if adapter then adapter:close();dofile("addon/Lychee/Builtin/Ellesmere/Adapter.lua") end
-dofile(arg[1] or "addon/Lychee/Builtin/Ellesmere/Provider.lua")
-local M=LycheeInternal.Builtin.Ellesmere
+local adapter=io.open("addon/Lychee_Integrations/Ellesmere/Adapter.lua","r")
+if adapter then adapter:close();assert(loadfile("addon/Lychee_Integrations/Ellesmere/Adapter.lua"))("Fixture",namespace) end
+assert(loadfile(arg[1] or "addon/Lychee_Integrations/Ellesmere/Provider.lua"))("Fixture",namespace)
+local M=TestPackages.Modules.Ellesmere
 M:Init();local disable=definition.onEnable()
 for m=1,8 do
     local pages={"Frames","Health","Layout"}
@@ -65,7 +66,7 @@ for _,query in ipairs({"","生命","框体","布局","border","边框","module",
         local result
         local resources=LycheeInternal.Resources:Create(function() return true end)
         definition.query({normalized=LycheeInternal.Search.Normalizer:Normalize(query),limit=limit,
-            filter={sourceID="builtin.ellesmere:records"}},function(rows) result=rows end,{resources=resources})
+            filter={sourceID="lychee.ellesmere:records"}},function(rows) result=rows end,{resources=resources})
         while #timers>0 do local t=table.remove(timers,1);if not t.cancelled then t.fn() end end
         LycheeInternal.Resources:Close(resources,"complete")
         assert(result)

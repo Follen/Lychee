@@ -3,8 +3,8 @@ dofile('tests/interaction_smoke.lua')
 local I=LycheeInternal
 local p=I.Host.PaletteController
 local calls,last=0,nil
-assert(Lychee:RegisterProvider({id='binding.regression',apiVersion=2,title='Binding fixture',version='1',
- entries={{id='a',title='Binding fixture A',actions={'open','other'}},{id='b',title='Binding fixture B',actions={'open','other'}}},
+assert(dofile("tests/support/provider_fixture.lua"):Register({id='binding.regression',apiVersion=3,title='Binding fixture',version='1',
+ catalog={{id='a',title='Binding fixture A',actions={'open','other'}},{id='b',title='Binding fixture B',actions={'open','other'}}},
  actions={open={title='Open',run=function(e) calls=calls+1;last=e.id;return {ok=true} end},
  other={title='Other',run=function(e) calls=calls+1;last=e.id;return {ok=true} end}}}))
 local function start()
@@ -87,16 +87,16 @@ assert(p:OpenView({create=function()
     return {}
 end},{},{}))
 assert(nesting and p.viewHost:IsActive());p:CloseView('test')
-local updating=assert(Lychee:RegisterProvider({id='navigation.updating',title='Update fixture',version='1',apiVersion=2,
- entries={{id='one',title='Before'}}}))
+local updating=assert(dofile("tests/support/provider_fixture.lua"):Register({id='navigation.updating',title='Update fixture',version='1',apiVersion=3,
+ catalog={{id='one',title='Before'}}}))
 assert(p:OpenView({create=function() return {} end},{},{}))
 assert(p:OpenView({create=function()
-    assert(updating:Update({upsert={{id='one',title='After'}}}))
+    assert(updating.catalog:Update({upsert={{id='one',title='After'}}}))
     return {}
 end},{},{}),'background catalogue update is not navigation cancellation')
 assert(p.viewHost:IsActive())
 local updated,updateError=p:OpenView({create=function()
-    assert(updating:Update({upsert={{id='one',title='After failure'}}}))
+    assert(updating.catalog:Update({upsert={{id='one',title='After failure'}}}))
     error('after update')
 end},{},{})
 assert(not updated and updateError=='PANEL_ERROR' and p.homeView.frame:IsShown(),'replacement failure after update restores current presentation')
@@ -107,8 +107,8 @@ local cancelled,cancelError=p:OpenView({create=function()
 end},{},{})
 assert(not cancelled and cancelError=='PANEL_CANCELLED' and not p.viewHost:IsActive())
 assert(p.list.frame:IsShown() or p.emptyState:IsShown() or p.searchPending,'query navigation wins even when create then throws')
-assert(Lychee:RegisterProvider({id='navigation.secure',title='Secure navigation',version='1',apiVersion=2,
- entries={{id='spell',title='Secure navigation spell',actions={{id='cast',kind='secure-spell',spellID=31884,title='Cast'}}}}}))
+assert(dofile("tests/support/provider_fixture.lua"):Register({id='navigation.secure',title='Secure navigation',version='1',apiVersion=3,
+ catalog={{id='spell',title='Secure navigation spell',actions={{id='cast',kind='secure-spell',spellID=31884,title='Cast'}}}}}))
 p.input:SetText('Secure navigation spell');p:SetQueryMode('Secure navigation spell')
 local _,secureItems=I.Search.Query:Query('Secure navigation spell',{},nil)
 local secureItem;for _,item in ipairs(secureItems) do if item.providerID=='navigation.secure' then secureItem=item end end

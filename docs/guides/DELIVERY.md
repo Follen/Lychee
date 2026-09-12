@@ -1,37 +1,13 @@
-# 构建与交付
+# 构建、提交与正式服同步
 
-命令从仓库根目录执行。运行源码只在 `addon/Lychee`，SDK只在 `lychee-sdk`；游戏中仍安装为 `Interface/AddOns/Lychee`。
+`python tools/build_release.py --check` 在内存中构建并校验归档；不安装、不上传。去掉 --check 输出 dist/Lychee.zip（五个运行时根目录）、dist/lychee-sdk.zip（独立开发包）和带源码提交/dirty 状态及 SHA-256 的 manifest.json。
 
-## 先检查，再生成
+先运行完整契约、Lua/XML/TOC 检查和版本化 wowdoc 验证，再检查 git diff --check 和 git status，仅暂存本轮相关文件并创建描述性提交。提交失败禁止复制；记录成功 hash 后才同步。
 
-```powershell
-python tools/build_client_tocs.py --check
-python tools/build_sdk.py --check
-python tools/check_repository.py
-python tools/build_release.py --check
-powershell -NoProfile -File tests/check_contract.ps1
-```
+同步源为 `addon/` 的五个明确包，父目标固定为 `D:/Game/World of Warcraft/_retail_/Interface/AddOns`。每个目标末级必须与源包同名；确认源及 AddOns 父目录存在，目标缺少时可创建，任何路径越界立即停止。
 
-变更SDK版本或文件清单时修改 `tools/sdk_contract.json`，执行 `python tools/build_sdk.py --write`。它更新声明、manifest与SDK性能规范副本，不自动创建ZIP或发布。API公共能力不因目录迁移升版。
+只复制发布清单中的运行时资源。复制后逐包比较全部源文件的相对路径和 SHA-256；目标已有额外旧文件单独列出，不默认删除。SDK、测试、文档、分析资料和工具状态不复制。
 
-新增/移除运行资源必须同步 `tools/release_manifest.json`；该清单包含运行Lua/XML/TOC、媒体与许可证。TOC加载顺序只在 `tools/client_manifest.json` 维护，两个清单分别回答“随包交付什么”和“客户端加载什么”，不是两个加载入口。门禁拒绝漏文件、未声明文件和越界路径。
+本轮新增子插件及 TOC，须完全退出并重启客户端，启用五个包；/reload 不足以发现新 AddOn。只修改已经加载的 Lua 内容时才使用 /reload。离线通过不能写成实机验证通过。
 
-## 发布产物
-
-```powershell
-python tools/build_release.py
-```
-
-输出忽略的 `dist/Lychee.zip`、`dist/lychee-sdk.zip` 和 `dist/manifest.json`。压缩包分别以Lychee和lychee-sdk为顶层目录，固定ZIP元数据，按完整清单逐文件验证字节和SHA-256；manifest记录来源commit与dirty状态。正式交付应先提交再构建，确认dirty=false。
-
-`dist/legacy`只保存整理前的旧产物，不能当成当前版本。不要把ZIP放回源码目录，也不要把测试、SDK或文档塞进Lychee游戏包。
-
-## 本机游戏同步
-
-检查通过 → 查看git status → 只暂存相关文件 → 提交并记hash → 从addon/Lychee覆盖复制到已验证的目标 → 核对清单与哈希。提交失败不复制。
-
-本机唯一目标为 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`。校验源和AddOns父目录存在、末级为Lychee，防止越界或链接误写。默认保留目标多余文件；已获明确清理授权才定向删除。构建工具本身不操作游戏目录。
-
-仅已加载运行文件更新使用/reload；新增模块、TOC或加载顺序变化重启客户端。仅仓库布局/文档/工具变动且游戏运行字节一致时不重复复制。离线通过不等于实机通过。
-
-完整开发和验收说明见[开发与验证](DEVELOPMENT.md)，性能约束见[PERFORMANCE.md](../../PERFORMANCE.md)。
+仅文档或测试改动不复制。撤回已交付提交使用新的 git revert，不改写历史。推送 GitHub 与安装是独立操作，按用户授权执行。

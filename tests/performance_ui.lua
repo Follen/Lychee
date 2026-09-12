@@ -30,6 +30,9 @@ function methods:SetTextColor() setters=setters+1 end
 function methods:SetFont() setters=setters+1;return true end
 function methods:SetShadowOffset() end
 function methods:SetJustifyH() end
+function methods:SetWordWrap(value) self.wordWrap=value end
+function methods:SetNonSpaceWrap(value) self.nonSpaceWrap=value end
+function methods:SetMaxLines(value) self.maxLines=value end
 function methods:EnableMouseWheel() end
 function methods:EnableMouse() end
 function methods:RegisterForDrag() end
@@ -90,15 +93,16 @@ local allocated=collectgarbage("count")-before
 collectgarbage("restart")
 -- Visit the end and return repeatedly; pool growth must depend on viewport.
 for i=1,20 do
-    view.scrollFrame.scripts.OnMouseWheel(view.scrollFrame,-1000)
-    view.scrollFrame.scripts.OnMouseWheel(view.scrollFrame,1000)
+    view.scrollFrame.scripts.OnMouseWheel(view.scrollFrame,-10000)
+    view.scrollFrame.scripts.OnMouseWheel(view.scrollFrame,10000)
 end
 print(string.format("providers=1000 rows=%d objects=%d cold_ms=%.3f retained_kib=%.1f refresh20_ms=%.3f refresh20_alloc_kib=%.1f pool_growth=%d",firstRows,firstObjects,cold,retained,refresh,allocated,objects-firstObjects))
 if check then
     assert(#view.rows<=math.ceil(400/46)+1,"row pool must be bounded by viewport")
+    assert(#view.groups<=math.ceil(400/46)+1,"group labels must also be bounded by viewport")
     assert(retained<1024,"1000-source UI retained allocation stays below 1 MiB")
     assert(allocated<512,"20 unchanged refreshes allocate less than 512 KiB")
-    view.scrollFrame.scripts.OnMouseWheel(view.scrollFrame,-1000)
+    view.scrollFrame.scripts.OnMouseWheel(view.scrollFrame,-10000)
     local last
     for _,row in ipairs(view.rows) do if row:IsShown() then last=row end end
     assert(last.providerID=="external.1000","last source remains reachable")
@@ -175,23 +179,25 @@ if check then
     assert(mutations==before,"same source ID with new provider invalidates press")
     press(control);release(control)
     assert(mutations==before+1,"normal provider mouse sequence remains usable")
-    I.Providers.entries["builtin.mounts"]={instanceToken=2002,definition={title="Mounts",version="1"}}
-    I.Registry.entries["builtin.mounts"]={userEnabled=true}
+    I.Providers.entries["lychee.mounts"]={instanceToken=2002,definition={title="Mounts",version="1",source={id="A_Player",title="玩家功能"}}}
+    I.Registry.entries["lychee.mounts"]={userEnabled=true}
     view:SetTab("providers")
-    assert(view.rows[1].providerID=="builtin.mounts","built-in ordering survives reuse")
-    assert(view.rows[2]._y==110,"group spacing survives virtualization with shared row gap")
+    assert(view.rows[1].providerID=="lychee.mounts","declared source grouping survives reuse")
+    assert(view.rows[2]._y==122,"group spacing survives virtualization with shared row gap")
     for id in pairs(I.Providers.entries) do I.Providers.entries[id]=nil end
-    local added={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
+    local added={"lychee.bags","lychee.talent-loadouts","lychee.equipment-sets","lychee.blizzard-settings","lychee.keystones"}
     local icons={"toys.tga","talents.tga","character.tga","settings.tga","keystone.tga"}
-    for _,id in ipairs(added) do
-        I.Providers.entries[id]={instanceToken=3000,definition={title="新增功能",version="1.0.0"}}
+    for index,id in ipairs(added) do
+        I.Providers.entries[id]={instanceToken=3000,definition={title="新增功能",version="1.0.0",source={id="Player",title="玩家功能"},
+            order=index,description="功能说明",icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"..icons[index]}}
         I.Registry.entries[id]={userEnabled=false}
     end
     view:SetTab("providers")
     for index,id in ipairs(added) do
         local record,row=view.data[index],view.rows[index]
-        assert(record.id==id and record.builtin,"new providers belong to built-in group: "..id)
-        assert(not row.detail:GetText():find("builtin.",1,true),"internal ID must not be presented as description")
+        assert(record.id==id and record.sourceID=="Player","providers use declared group and order: "..id)
+        assert(row.detail:GetText()=="功能说明","disabled source keeps its description")
+        assert(not row.detail:GetText():find("lychee.",1,true),"internal ID must not be presented as description")
         assert(row._icon=="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"..icons[index],"provider icon: "..id)
         assert(I.Registry.entries[id].userEnabled==false,"presentation must preserve disabled state")
     end

@@ -18,7 +18,7 @@ end
 local originalDofile=dofile
 dofile=function(file)
     if arg[3] and file=="addon/Lychee/Search/StaticIndex.lua" then return originalDofile(arg[3]) end
-    if arg[4] and file=="addon/Lychee/Builtin/Mounts/Provider.lua" then return originalDofile(arg[4]) end
+    if arg[4] and file=="addon/Lychee_Player/Mounts/Provider.lua" then return originalDofile(arg[4]) end
     return originalDofile(file)
 end
 local ok,err=pcall(dofile,path)
@@ -31,7 +31,7 @@ local entries=retainedIndex or index.entries
 -- registration using its same 1500-record synthetic collection.
 if scenario=="mounts" then
     C_Timer=nil
-    assert(LycheeInternal.Builtin.Mounts:Init())
+    assert(TestPackages.Modules.Mounts:Init())
     entries=index.entries
 end
 local count,memberships,seen=0,0,0

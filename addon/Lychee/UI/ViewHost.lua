@@ -5,6 +5,29 @@ Lychee.UI = Lychee.UI or {}
 local ViewHost = {}
 ViewHost.__index = ViewHost
 
+local bindings=setmetatable({},{__mode="k"})
+local function ownerPalette(context)
+    local host=bindings[context]
+    if not host or not host.active or not host.panel or host.panel.context~=context then return end
+    local root=_G.LycheeInternal
+    local palette=root and root.Host and root.Host.PaletteController
+    if palette and palette.viewHost==host then return palette,host.panel.instance end
+end
+local function resize(context,height)
+    local palette,instance=ownerPalette(context);return palette and palette:ResizeView(instance,height) or false
+end
+local function footer(context,value)
+    local palette,instance=ownerPalette(context);return palette and palette:SetViewFooter(instance,value) or false
+end
+local function clearFocus(context)
+    local palette=ownerPalette(context)
+    if palette and palette.input then palette.input:ClearFocus();return true end
+    return false
+end
+local function close(context)
+    local palette=ownerPalette(context);return palette and palette:CloseView("provider-back") or false
+end
+
 local function report(message)
     if geterrorhandler then return geterrorhandler()(message) end
     return message
@@ -34,6 +57,7 @@ local function release(self, reason)
     local resources=self.resources;self.resources=nil
     if resources then _G.LycheeInternal.Resources:Close(resources,reason) end
     if panel then
+        bindings[panel.context]=nil
         invoke(panel, "Unmount", reason)
         invoke(panel, "Dispose", reason)
     end
@@ -93,6 +117,8 @@ function ViewHost:Mount(factory, context, state)
     self.active = true
     self.frame:Show()
     if self.cancelReason then return finish(self, true) end
+    bindings[context]=self
+    context.Resize,context.SetFooter,context.ClearFocus,context.Close=resize,footer,clearFocus,close
     local mounted = invoke(self.panel, "Mount", context, state)
     return finish(self, mounted, not mounted and "PANEL_ERROR" or nil)
 end

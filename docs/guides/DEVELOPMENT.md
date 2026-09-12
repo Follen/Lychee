@@ -1,8 +1,8 @@
 # 开发与验证
 
-当前版本为 Lychee 0.2.0，Provider API 2 / revision 6。运行时唯一来源是 `addon/Lychee`；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
+当前版本为 Lychee 0.2.0，SDK 1.0.0 / Provider API 3 revision 1。运行时来源是 `addon/` 下五个明确插件包；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
 
-当前 [生命周期实施设计](../architecture/2026-09-12-runtime-lifecycle.md) 与 [测试框架升级设计](../../tests/LIFECYCLE_ACCEPTANCE.md) 定义本轮角色存储、接收校验和资源释放门禁。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
+当前 [生命周期实施设计](../architecture/2026-09-12-runtime-lifecycle.md) 与 [测试框架升级设计](../../tests/LIFECYCLE_ACCEPTANCE.md) 定义本轮角色存储、接收校验和资源释放门禁。运行时为五个明确包，检查和同步均覆盖五包；详见 [交付步骤](DELIVERY.md)。
 
 ## 环境与目录
 
@@ -22,11 +22,11 @@
 pwsh -NoProfile -File tests/check_contract.ps1
 ```
 
-该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行当前完整的 Lua 契约、交互和性能测试。内置 Provider 测试使用真实 SDK、索引和 ViewHost，替换 WoW 外部 API，覆盖纹章事件生命周期、菜单分页与失败、首领精确跳转。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
+该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行当前完整的 Lua 契约、交互和性能测试。子插件 Provider 测试使用真实 SDK、索引和 ViewHost，替换 WoW 外部 API，覆盖纹章事件生命周期、菜单分页与失败、首领精确跳转。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
 
 ```powershell
 $ErrorActionPreference = 'Stop'
-Get-ChildItem addon/Lychee, lychee-sdk, tests -Filter *.lua -File -Recurse | ForEach-Object {
+Get-ChildItem addon, lychee-sdk, tests -Filter *.lua -File -Recurse | ForEach-Object {
     & luac -p $_.FullName
     if ($LASTEXITCODE -ne 0) { throw "Lua parse failed: $($_.FullName)" }
 }
@@ -45,9 +45,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 ## 安装与第三方示例
 
-正式服安装结构为 `Interface/AddOns/Lychee/Lychee.toc`。只安装 `addon/Lychee` 的运行时文件，不复制 SDK、测试、文档或工具状态。仓库开发流程要求检查通过并创建 Git 提交后，才覆盖复制到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，随后核对文件清单和 SHA-256；不自动删除目标旧文件。
+正式服安装结构为 `Interface/AddOns/Lychee/Lychee.toc`。安装 `addon/` 下五个明确包的运行时文件，不复制 SDK、测试、文档或工具状态。仓库开发流程要求检查通过并创建 Git 提交后，才覆盖复制到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，随后核对文件清单和 SHA-256；不自动删除目标旧文件。
 
-新增模块或 TOC 变化后重启客户端；仅已加载文件内容变化时可用 `/reload`。0.2.0 升级不迁移旧 schema，旧 `LycheeDB` 整表重置。系统保存的游戏按键绑定独立于该表；默认 Alt+Space 不覆盖已有绑定。
+新增模块或 TOC 变化后重启客户端；仅已加载文件内容变化时可用 `/reload`。Player 只迁移自己认识的旧角色设置和成就，失败保留原数据，不清空未知或未来版本。系统保存的游戏按键绑定独立于该表；默认 Alt+Space 不覆盖已有绑定。
 
 演示 AddOn 可将 `lychee-sdk/examples/ThirdPartyFixture` 复制到 `Interface/AddOns/ThirdPartyFixture`，与 Lychee 同时启用并重启客户端。搜索“示例”或英文 `fixture`，可检查普通动作、只读条目、右键次要动作和详情视图。示例拖动仅记录一次普通回调，不会创建游戏物品光标。该示例用于开发验收，不随 Host 正式服同步自动安装。
 

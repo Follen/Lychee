@@ -1,141 +1,115 @@
-"""Generate client TOCs from one ordered manifest; --check detects drift."""
+"""Generate isolated AddOn TOCs and Provider metadata from the ordered manifest."""
 import argparse
 import json
 import re
-from pathlib import Path
+from pathlib import Path,PurePosixPath
+ROOT=Path(__file__).resolve().parents[1]
+ADDON=ROOT/'addon'
 
-ROOT = Path(__file__).resolve().parents[1]
-ADDON = ROOT / "addon/Lychee"
+def safe(path):
+    p=PurePosixPath(path)
+    return bool(path) and not p.is_absolute() and '..' not in p.parts and '\\' not in path and ':' not in path and str(p)==path
 
+def validate(m):
+    products=set(m['clients']);ids=set();owned=set()
+    if set(m['packages'])!={'Lychee','Lychee_Player','Lychee_Encounters','Lychee_Integrations','Lychee_Inspector'}:raise ValueError('Package ownership must be explicit')
+    for p in m['providers']:
+        if p['package']=='Lychee' or p['package'] not in m['packages'] or p['id'] in ids:raise ValueError('Invalid or duplicate Provider owner')
+        ids.add(p['id'])
+        if not p['products'] or len(set(p['products']))!=len(p['products']) or not set(p['products'])<=products:raise ValueError('Invalid Provider products')
+        for path in [p['locales'],*p['files']]:
+            key=(p['package'],path)
+            if not safe(path) or key in owned:raise ValueError('Unsafe or duplicate Provider path: '+path)
+            owned.add(key)
+        for symbol in p['requires']:
+            if not re.fullmatch(r'[A-Za-z_]\w*(\.\w+)*',symbol):raise ValueError('Invalid capability')
+    refs=[]
+    for package,info in m['packages'].items():
+        locales=False
+        for item in info['files']:
+            if 'provider' in item:
+                if set(item)!={'provider'}:raise ValueError('Unknown Provider declaration field')
+                p=next((p for p in m['providers'] if p['id']==item['provider']),None)
+                if p is None or p['package']!=package:raise ValueError('Cross-package Provider reference')
+                refs.append(item['provider'])
+            elif 'path' in item:
+                if not set(item)<={'path','products'}:raise ValueError('Unknown path declaration field')
+                if not safe(item['path']) or (package,item['path']) in owned:raise ValueError('Unsafe/repeated shared path')
+                owned.add((package,item['path']))
+                selected=item.get('products',products)
+                if not selected or len(set(selected))!=len(selected) or not set(selected)<=products:raise ValueError('Invalid file products')
+            elif item=={'providerLocales':True}:
+                if locales:raise ValueError('Duplicate locale declaration')
+                locales=True
+            else:raise ValueError('Unknown file declaration')
+        if package!='Lychee' and not locales:raise ValueError('Missing locale declaration')
+    if len(refs)!=len(ids) or set(refs)!=ids:raise ValueError('Every Provider needs one load position')
 
-def validate(manifest):
-    products = set(manifest['clients'])
-    ids, modules, owned = set(), set(), set()
-    for spec in manifest['providers']:
-        if set(spec) != {'id', 'module', 'products', 'files', 'requires', 'locales'}:
-            raise ValueError('Unknown or missing Provider declaration fields')
-        if spec['id'] in ids or spec['module'] in modules:
-            raise ValueError('Duplicate Provider identity')
-        ids.add(spec['id']); modules.add(spec['module'])
-        if not spec['products'] or len(set(spec['products'])) != len(spec['products']) or not set(spec['products']) <= products:
-            raise ValueError('Invalid Provider products: ' + spec['id'])
-        for path in [spec['locales'], *spec['files']]:
-            if Path(path).is_absolute() or '..' in Path(path).parts or '\\' in path:
-                raise ValueError('Unsafe Provider path: ' + path)
-            if path in owned:
-                raise ValueError('File owned by multiple Providers: ' + path)
-            owned.add(path)
-        for symbol in spec.get('requires', []):
-            if not re.fullmatch(r'[A-Za-z_][A-Za-z_0-9]*(\.[A-Za-z_][A-Za-z_0-9]*)*', symbol):
-                raise ValueError('Invalid capability: ' + symbol)
-    references = [item['provider'] for item in manifest['files'] if 'provider' in item]
-    if len(references) != len(ids) or set(references) != ids:
-        raise ValueError('Every Provider needs exactly one load position')
-    for item in manifest['files']:
-        if item.get('providerLocales'):
-            if item != {'providerLocales': True}:
-                raise ValueError('Invalid locale load position')
-            continue
-        if 'path' in item and set(item) != {'path', 'products'}:
-            raise ValueError('Unknown shared file fields')
-        if 'provider' in item and set(item) != {'provider'}:
-            raise ValueError('Provider load positions must not repeat products/files')
-        if 'path' in item and item['path'] in owned:
-            raise ValueError('Provider file repeated as shared: ' + item['path'])
-        if 'path' in item and (not item['products'] or not set(item['products']) <= products):
-            raise ValueError('Invalid shared products')
-    if sum(item.get('providerLocales', False) for item in manifest['files']) != 1:
-        raise ValueError('Provider locales need exactly one load position')
+def runtime_definitions(m,package):
+    q=lambda x:json.dumps(x,ensure_ascii=False)
+    strings=lambda xs:'{'+','.join(q(x) for x in xs)+'}'
+    localize=lambda x:'chinese and '+q(x['zhCN'])+' or '+q(x['enUS'])
+    specs=[p for p in m['providers'] if p['package']==package]
+    lines=['-- Generated by tools/build_client_tocs.py; edit tools/client_manifest.json.','local _,I=...',
+           'local chinese=GetLocale()=="zhCN" or GetLocale()=="zhTW"','local root="Interface\\\\AddOns\\\\Lychee\\\\Media\\\\MenuIcons\\\\"','I.Modules.Definitions={']
+    for p in specs:lines.append('    {id=%s,module=%s,scope={products=%s},requires=%s},'%(q(p['id']),q(p['module']),strings(p['products']),strings(p['requires'])))
+    lines+=['}','I.Modules.Presentation={']
+    for p in specs:
+        meta=p['presentation']
+        lines.append('    [%s]={source={id=%s,title=%s},description=%s,icon=root..%s,order=%d,prefixes=%s},'%(
+            q(p['id']),q(package),localize(meta['source']),localize(meta['description']),q(meta['icon']),meta['order'],strings(meta['prefixes'])))
+    return '\n'.join([*lines,'}',''])
 
-
-def runtime_definitions(manifest):
-    lines = ['-- Generated by tools/build_client_tocs.py; edit tools/client_manifest.json.',
-             'local I = _G.LycheeInternal', 'I.Builtin = I.Builtin or {}',
-             'I.Builtin.Definitions = {']
-    def strings(values):
-        return '{' + ','.join(json.dumps(value) for value in values) + '}'
-    for spec in manifest['providers']:
-        lines.append('    {id=%s,module=%s,scope={products=%s},requires=%s},' % (
-            json.dumps(spec['id']), json.dumps(spec['module']), strings(spec['products']), strings(spec.get('requires', []))))
-    lines.append('}')
-    return '\n'.join(lines) + '\n'
-
-
-def file_list(manifest, product):
-    providers = {spec['id']: spec for spec in manifest['providers']}
-    paths = []
-    for item in manifest['files']:
-        if item.get('providerLocales'):
-            paths.extend(spec['locales'] for spec in manifest['providers'] if product in spec['products'])
-            continue
-        spec = providers[item['provider']] if 'provider' in item else item
-        if product in spec['products']:
-            paths.extend(spec['files'] if 'provider' in item else [spec['path']])
-    if len(set(paths)) != len(paths):
-        raise ValueError('Duplicate loaded file: ' + product)
+def file_list(m,product,package='Lychee'):
+    if package!='Lychee' and not any(p['package']==package and product in p['products'] for p in m['providers']):return []
+    providers={p['id']:p for p in m['providers']};paths=[]
+    for item in m['packages'][package]['files']:
+        if item.get('providerLocales'):paths.extend(p['locales'] for p in m['providers'] if p['package']==package and product in p['products'])
+        elif 'provider' in item:
+            p=providers[item['provider']]
+            if product in p['products']:paths.extend(p['files'])
+        elif product in item.get('products',m['clients']):paths.append(item['path'])
+    if len(paths)!=len(set(paths)):raise ValueError('Duplicate loaded file')
     return paths
 
-
-def render(manifest, product):
-    client = manifest["clients"][product]
-    lines = [
-        f'## Interface: {client["interface"]}',
-        '## Title: |cffd53c49Lychee|r Launcher',
-        '## Title-zhCN: |cffd53c49荔枝|r启动器',
-        '## Title-zhTW: |cffd53c49荔枝|r启动器',
-        '## Notes: Universal launcher for World of Warcraft',
-        '## Notes-zhCN: 魔兽世界万用启动器',
-        '## Notes-zhTW: 魔兽世界万用启动器',
-        '## Author: Lychee',
-        f'## Version: {manifest["version"]}',
-        '## SavedVariables: LycheeDB',
-        '## SavedVariablesPerCharacter: LycheeCharacterDB',
-        '## Bindings: Bindings.xml',
-        '',
-    ]
-    for path in file_list(manifest, product):
-        if not (ADDON / path).is_file():
-            raise SystemExit(f'Missing file: {path}')
+def render(m,product,package='Lychee'):
+    info=m['packages'][package]
+    lines=[f'## Interface: {m["clients"][product]["interface"]}',f'## Title: {info["title"]}','## Author: Lychee',f'## Version: {m["version"]}']
+    if package=='Lychee':lines+=['## Title-zhCN: |cffd53c49荔枝|r启动器','## Title-zhTW: |cffd53c49荔枝|r启动器','## Notes: Universal launcher for World of Warcraft','## Notes-zhCN: 魔兽世界万用启动器','## Bindings: Bindings.xml']
+    else:lines+=['## Dependencies: Lychee']
+    for key,label in [('savedVariables','SavedVariables'),('savedVariablesPerCharacter','SavedVariablesPerCharacter')]:
+        if info.get(key):lines.append('## '+label+': '+', '.join(info[key]))
+    lines.append('')
+    for path in file_list(m,product,package):
+        if not (ADDON/package/path).is_file():raise ValueError('Missing runtime file: '+package+'/'+path)
         lines.append(path)
-    return '\n'.join(lines) + '\n'
-
+    return '\n'.join(lines).rstrip()+'\n'
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--check', action='store_true')
-    args = parser.parse_args()
-    manifest = json.loads((ROOT / 'tools/client_manifest.json').read_text())
-    validate(manifest)
-    definitions = ADDON / 'Builtin/Definitions.lua'
-    generated = runtime_definitions(manifest)
-    if args.check:
-        if not definitions.is_file() or definitions.read_text(encoding='utf-8') != generated:
-            raise SystemExit('Builtin definitions drift')
-    else:
-        definitions.write_text(generated, encoding='utf-8')
-    for product, client in manifest['clients'].items():
-        text = render(manifest, product)
-        names = [f'Lychee_{client["suffix"]}.toc']
-        if product == 'retail':
-            names.append('Lychee.toc')
-        for name in names:
-            target = ADDON / name
-            if args.check:
-                if not target.is_file() or target.read_text(encoding='utf-8') != text:
-                    raise SystemExit(f'TOC drift: {name}')
-            else:
-                target.write_text(text, encoding='utf-8')
-        fixture = ROOT / 'lychee-sdk/examples/ThirdPartyFixture'
-        template = (fixture / 'ThirdPartyFixture.toc').read_text(encoding='utf-8')
-        example = re.sub(r'^## Interface:.*$', f'## Interface: {client["interface"]}', template, flags=re.M)
-        target = fixture / f'ThirdPartyFixture_{client["suffix"]}.toc'
+    parser=argparse.ArgumentParser();parser.add_argument('--check',action='store_true');args=parser.parse_args()
+    m=json.loads((ROOT/'tools/client_manifest.json').read_text(encoding='utf-8'));validate(m)
+    def emit(target,text):
+        binary=isinstance(text,bytes)
         if args.check:
-            if not target.is_file() or target.read_text(encoding='utf-8') != example:
-                raise SystemExit(f'Example TOC drift: {target.name}')
-        else:
-            target.write_text(example, encoding='utf-8')
-    print('Client TOCs PASS: retail, classic, titan, anniversary + retail fallback')
+            if not target.exists() or (target.read_bytes() if binary else target.read_text(encoding='utf-8'))!=text:raise ValueError('Generated drift: '+str(target.relative_to(ROOT)))
+        elif binary:target.write_bytes(text)
+        else:target.write_text(text,encoding='utf-8')
+    emit(ADDON/'Lychee_Player/SDK/Storage.lua',(ROOT/'lychee-sdk/Storage.lua').read_bytes())
+    for name in ('CatalogLedger.lua','CatalogProvider.lua'):
+        emit(ADDON/'Lychee_Encounters/Runtime'/name,(ADDON/'Lychee_Player/Runtime'/name).read_text(encoding='utf-8'))
+    for package in m['packages']:
+        if package!='Lychee':
+            emit(ADDON/package/'Manifest.lua',runtime_definitions(m,package))
+            emit(ADDON/package/'Bootstrap.lua',(ROOT/'tools/templates/provider_bootstrap.lua').read_text(encoding='utf-8'))
+            emit(ADDON/package/'Activate.lua',(ROOT/'tools/templates/provider_activate.lua').read_text(encoding='utf-8'))
+        for product,client in m['clients'].items():
+            names=[package+'_'+client['suffix']+'.toc']
+            if product=='retail':names.append(package+'.toc')
+            for name in names:emit(ADDON/package/name,render(m,product,package))
+    fixture=ROOT/'lychee-sdk/examples/ThirdPartyFixture'
+    for product,client in m['clients'].items():
+        template=(fixture/'ThirdPartyFixture.toc').read_text(encoding='utf-8')
+        emit(fixture/f'ThirdPartyFixture_{client["suffix"]}.toc',re.sub(r'^## Interface:.*$',f'## Interface: {client["interface"]}',template,flags=re.M))
+    print('Client TOCs PASS: five isolated packages, four products and retail fallback')
 
-
-if __name__ == '__main__':
-    main()
+if __name__=='__main__':main()

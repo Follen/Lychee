@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 -- Exercise the real Host management seam. Only the game combat flag is mocked.
 local combat=false
 function GetLocale() return "enUS" end
@@ -6,15 +7,16 @@ function InCombatLockdown() return combat end
 dofile("tests/support/runtime.lua").Load("provider", {"Search/ProviderPolicy.lua", "Core/ProviderManagement.lua"})
 local I, M = LycheeInternal, LycheeInternal.ProviderManagement
 local function definition(id)
-    return {id=id,title="Management fixture",version="1",apiVersion=2,minApiRevision=6,
+    return {id=id,title="Management fixture",version="1",apiVersion=3,minApiRevision=1,
         scope={products={"retail"}},i18n={enUS={},zhCN={}},
         searchGlobal=true,searchPrefixes={"fixture"},searchKeywords={},
-        entries={{id="one",title="Example record"}}}
+        source={id="ThirdPartyAddon",title="Third-party features"},description="Search fixture content",icon=123,order=4,
+        catalog={{id="one",title="Example record"}}}
 end
 local function expect(code, result, err)
     assert(not result and type(err)=="table" and err.code==code, "expected "..code)
 end
-local pending=assert(Lychee:RegisterProvider(definition("management.pending")))
+local pending=assert(Fixture:Register(definition("management.pending")))
 local pendingToken=assert(M:GetInstance("management.pending"))
 local pendingInfo=assert(M:Read("management.pending",pendingToken,{}))
 assert(pendingInfo.status=="pending" and not pendingInfo.effectiveEnabled)
@@ -23,11 +25,13 @@ assert(M:Read("management.pending",pendingToken,pendingInfo).status=="pending", 
 I.Registry:SetReady(true)
 assert(M:Read("management.pending",pendingToken,pendingInfo).status=="user-disabled")
 assert(pending:Unregister())
-local handle=assert(Lychee:RegisterProvider(definition("management.fixture")))
+local handle=assert(Fixture:Register(definition("management.fixture")))
 local token=assert(M:GetInstance("management.fixture"))
 assert(type(token)=="number" and M:IsCurrent("management.fixture",token))
 local rows=M:FillList({})
 assert(#rows==1 and rows[1].instanceToken==token and rows[1].effectiveEnabled)
+assert(rows[1].sourceID=="ThirdPartyAddon" and rows[1].sourceTitle=="Third-party features")
+assert(rows[1].description=="Search fixture content" and rows[1].icon==123 and rows[1].order==4)
 for _,field in ipairs({"entry","definition","records","provider","state"}) do assert(rows[1][field]==nil) end
 local first=rows[1]
 for index=1,100 do assert(M:FillList(rows)==rows and rows[1]==first) end
@@ -38,7 +42,7 @@ local allocated=collectgarbage("count")-before
 collectgarbage("restart")
 assert(allocated<8, "warm management list filling must reuse its records")
 local detail=assert(M:Read("management.fixture",token,{}))
-assert(detail.sample=="Example record" and detail.products[1]=="retail")
+assert(detail.sample==nil and detail.products[1]=="retail")
 local products=detail.products
 assert(M:Read("management.fixture",token,detail)==detail and detail.products==products)
 detail.products[1]="corrupted"
@@ -47,11 +51,20 @@ assert(M:SetUserEnabled("management.fixture",token,false))
 M:FillList(rows);M:Read("management.fixture",token,detail)
 assert(rows[1].status=="user-disabled" and detail.status==rows[1].status)
 assert(not detail.userEnabled and detail.ownerEnabled and not detail.effectiveEnabled)
+assert(#rows==1 and rows[1].description=="Search fixture content","turning off keeps the management entry and description")
 assert(M:IsCurrent("management.fixture",token), "disable preserves registration identity")
 assert(M:ToggleUserEnabled("management.fixture",token))
-assert(handle:SetEnabled(false));M:Read("management.fixture",token,detail)
+assert(handle:SetAvailability(false));M:Read("management.fixture",token,detail)
 assert(detail.status=="owner-disabled" and detail.userEnabled and not detail.ownerEnabled)
-assert(handle:SetEnabled(true))
+assert(handle:SetAvailability(true))
+assert(handle:SetAvailability(false,"Dependency unavailable"))
+M:Read("management.fixture",token,detail)
+assert(detail.userEnabled and not detail.effectiveEnabled and detail.statusReason=="Dependency unavailable")
+assert(M:SetUserEnabled("management.fixture",token,false))
+assert(handle:SetAvailability(true))
+M:Read("management.fixture",token,detail)
+assert(not detail.userEnabled and not detail.effectiveEnabled and detail.statusReason==nil,"dependency recovery must not override user's off switch")
+assert(M:SetUserEnabled("management.fixture",token,true))
 
 assert(M:SetConfiguration("management.fixture",token,false,{"fixture"},{"showfixture"}))
 local global,prefixes,keywords=M:GetConfiguration("management.fixture",token)
@@ -73,7 +86,8 @@ expect("COMBAT_LOCKED",M:SetConfiguration("management.fixture",token,false,{"fix
 combat=false
 assert(handle:Unregister())
 expect("STALE_HANDLE",M:Read("management.fixture",token,detail))
-handle=assert(Lychee:RegisterProvider(definition("management.fixture")))
+M:FillList(rows);assert(#rows==0,"unregistered sources disappear without ghost entries")
+handle=assert(Fixture:Register(definition("management.fixture")))
 local nextToken=assert(M:GetInstance("management.fixture"))
 assert(nextToken~=token and not M:IsCurrent("management.fixture",token))
 expect("STALE_HANDLE",M:SetUserEnabled("management.fixture",token,false))
@@ -88,9 +102,9 @@ local reentrant,replacement
 local d=definition("management.reentrant")
 d.onDisable=function()
     assert(reentrant:Unregister())
-    replacement=assert(Lychee:RegisterProvider(definition("management.reentrant")))
+    replacement=assert(Fixture:Register(definition("management.reentrant")))
 end
-reentrant=assert(Lychee:RegisterProvider(d))
+reentrant=assert(Fixture:Register(d))
 local reentrantToken=assert(M:GetInstance("management.reentrant"))
 expect("STALE_HANDLE",M:SetUserEnabled("management.reentrant",reentrantToken,false))
 assert(replacement and not M:IsCurrent("management.reentrant",reentrantToken))

@@ -28,7 +28,7 @@ local handle={Update=function(_,patch)
     return true
 end}
 Lychee={RegisterProvider=function(_,d)
-    definition=d; records={}; for _,r in ipairs(d.entries) do records[r.id]=r end
+    definition=d; records={}; for _,r in ipairs(d.catalog) do records[r.id]=r end
     if not disabled then cleanup=d.onEnable(handle) end
     return handle
 end}
@@ -38,32 +38,13 @@ local function disable() disabled=true; cleanup("disable") end
 local root = os.getenv('LYCHEE_PERF_SOURCE') or 'addon/Lychee'
 function GetLocale() return "zhCN" end
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
--- Exclude the shared bootstrap frame from this isolated feature cost fixture.
-local featureCreateFrame=CreateFrame
-CreateFrame=nil
-dofile(root.."/".."Bootstrap.lua");dofile(root.."/Core/CharacterStore.lua")
+local register=Lychee.RegisterProvider
+local featureCreateFrame=CreateFrame;CreateFrame=nil
+dofile("tests/support/runtime.lua").Load("provider",{"../Lychee_Player/PlayerSpells/Provider.lua","../Lychee_Player/PlayerSpells/Init.lua"})
 CreateFrame=featureCreateFrame
-dofile(root.."/".."Builtin/Definitions.lua")
-dofile(root.."/".."Builtin/Shared/Support.lua")
-dofile(root.."/".."Core/ProviderLocales.lua")
-dofile(root.."/".."Builtin/Achievements/Locales.lua")
-dofile(root.."/".."Builtin/AddonInspector/Locales.lua")
-dofile(root.."/".."Builtin/Bags/Locales.lua")
-dofile(root.."/".."Builtin/BlizzardSettings/Locales.lua")
-dofile(root.."/".."Builtin/Bosses/Locales.lua")
-dofile(root.."/".."Builtin/Crests/Locales.lua")
-dofile(root.."/".."Builtin/EquipmentSets/Locales.lua")
-dofile(root.."/".."Builtin/GameMenus/Locales.lua")
-dofile(root.."/".."Builtin/GreatVault/Locales.lua")
-dofile(root.."/".."Builtin/Keystones/Locales.lua")
-dofile(root.."/".."Builtin/Mounts/Locales.lua")
-dofile(root.."/".."Builtin/PlayerSpells/Locales.lua")
-dofile(root.."/".."Builtin/TalentLoadouts/Locales.lua")
-dofile(root.."/".."Search/RuntimeIdentity.lua")
-dofile(root.."/Builtin/Shared/CatalogLedger.lua")
-dofile(root.."/Builtin/PlayerSpells/Provider.lua")
-dofile(root.."/Builtin/PlayerSpells/Init.lua")
-local module=LycheeInternal.Builtin.PlayerSpells
+handle.catalog=handle
+TestPackages.namespaces.Lychee_Player.Modules.Support.Register=register
+local module=TestPackages.Modules.PlayerSpells
 local p=module.Provider
 assert(module:Init())
 local disabledScans=scans

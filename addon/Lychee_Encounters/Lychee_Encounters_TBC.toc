@@ -1,0 +1,5 @@
+## Interface: 20506
+## Title: Lychee Encounters
+## Author: Lychee
+## Version: 0.2.0
+## Dependencies: Lychee

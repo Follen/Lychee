@@ -42,8 +42,8 @@ local journal={
 }
 C_MountJournal=journal
 local root="addon/Lychee/"
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Builtin/Shared/InterfaceActions.lua", "Builtin/Mounts/Provider.lua", "Builtin/GreatVault/Provider.lua", "Builtin/Init.lua"})
-local I, M = LycheeInternal, LycheeInternal.Builtin.Mounts
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Shared/CatalogProvider.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Shared/InterfaceActions.lua", "../Lychee_Player/Mounts/Provider.lua", "../Lychee_Player/GreatVault/Provider.lua", "Core/Modules.lua"})
+local I, M = LycheeInternal, TestPackages.Modules.Mounts
 local function find(text, provider)
     local _, items=I.Search.Query:Query(text,{visible=true})
     for _, item in ipairs(items) do if item.providerID==provider then return item end end
@@ -57,15 +57,15 @@ local baseline=#frames
 C_MountJournal=nil
 assert(not M:Init() and #frames==baseline, "absent collection API creates no frame or provider")
 C_MountJournal=journal
-I.Builtin:Init(); I.Registry:SetReady(true); flush()
-assert(M.handle and I.Builtin.GreatVault.handle, "both providers are wired by Builtin.Init")
+TestPackages.Modules:Init(); I.Registry:SetReady(true); flush()
+assert(M.handle and TestPackages.Modules.GreatVault.handle, "both providers are wired by Builtin.Init")
 assert(#frames==baseline+1 and not M.eventFrame.scripts.OnUpdate, "one event-only collection frame")
-local entry=assert(find("无敌","builtin.mounts"))
+local entry=assert(find("无敌","lychee.mounts"))
 assert(entry.ref.entryID=="mount:11" and entry.interaction.actions[1].spellID==90011)
 assert(entry.interaction.actions[1].kind=="secure-spell" and entry.interaction.primaryActionID=="summon")
 assert(entry.interaction.drag.type=="spell" and entry.interaction.drag.spellID==90011)
-assert(find("星光","builtin.mounts"), "temporary inability to summon does not remove search/drag")
-assert(not find("未收藏战马","builtin.mounts") and not find("隐藏战马","builtin.mounts"))
+assert(find("星光","lychee.mounts"), "temporary inability to summon does not remove search/drag")
+assert(not find("未收藏战马","lychee.mounts") and not find("隐藏战马","lychee.mounts"))
 local policy=Lychee.Secure.Policy
 assert(policy:IsSpellAvailable(90011) and policy:IsSpellAvailable(90012))
 assert(not policy:IsSpellAvailable(90013) and not policy:IsSpellAvailable(90014) and not policy:IsSpellAvailable(99999))
@@ -88,69 +88,69 @@ failedID=11; assert(not policy:IsSpellAvailable(90011), "restricted collection r
     C_SpellBook, C_Spell, Enum, IsPlayerSpell, IsPassiveSpell = oldBook, oldSpell, oldEnum, oldKnown, oldPassive
 end)()
 
-local state=I.Providers.entries["builtin.mounts"]
+local state=I.Providers.entries["lychee.mounts"]
 local beforeReads,beforeLists,beforeRevision=reads,listReads,state.revision
-for n=1,100 do find(n%2==0 and "无敌" or "星光","builtin.mounts") end
+for n=1,100 do find(n%2==0 and "无敌" or "星光","lychee.mounts") end
 assert(reads==beforeReads and listReads==beforeLists and #timers==0, "queries use index without collection scans")
 mounts[15]={name="翡翠幼龙",spell=90015,collected=true}
 event("NEW_MOUNT_ADDED",15); event("NEW_MOUNT_ADDED",15)
 assert(#timers==1, "same-frame mount events coalesce")
 flush()
 assert(reads==beforeReads+1 and listReads==beforeLists, "new mount event reads only one ID")
-assert(find("翡翠幼龙","builtin.mounts") and not I.Providers:IsCurrent(entry), "delta updates index and rejects stale refs")
+assert(find("翡翠幼龙","lychee.mounts") and not I.Providers:IsCurrent(entry), "delta updates index and rejects stale refs")
 beforeRevision=state.revision
 event("NEW_MOUNT_ADDED",15); flush()
 assert(state.revision==beforeRevision, "unchanged mount does not rebuild source")
 mounts[15].name="翡翠巨龙"
 event("NEW_MOUNT_ADDED",15); flush()
-assert(find("翡翠巨龙","builtin.mounts").text=="翡翠巨龙" and state.recordMap["mount:15"].title=="翡翠巨龙")
+assert(find("翡翠巨龙","lychee.mounts").text=="翡翠巨龙" and M.handle.catalog:Resolve("mount:15").title=="翡翠巨龙")
 mounts[15].collected=false
 event("COMPANION_UNLEARNED"); flush()
-assert(not find("翡翠巨龙","builtin.mounts"), "unlearned mount removed")
+assert(not find("翡翠巨龙","lychee.mounts"), "unlearned mount removed")
 mounts[16]={name="碧蓝云端翔龙",spell=90016,collected=true}
 combat=true; beforeReads=reads
 event("NEW_MOUNT_ADDED",16); event("COMPANION_LEARNED")
 assert(reads==beforeReads and #timers==0, "combat events only mark dirty")
 combat=false; event("PLAYER_REGEN_ENABLED"); flush()
-assert(find("碧蓝云端翔龙","builtin.mounts"), "dirty work resumes after combat")
+assert(find("碧蓝云端翔龙","lychee.mounts"), "dirty work resumes after combat")
 
 beforeRevision=state.revision
 mounts[11].name="更新后的无敌"; failedID=11
 event("NEW_MOUNT_ADDED",11); flush()
 assert(state.revision==beforeRevision and M.dirtyIDs[11] and M.lastError, "failed read retains cache and dirty state")
-assert(state.recordMap["mount:11"].title=="无敌", "failed refresh keeps the old indexed title")
+assert(M.handle.catalog:Resolve("mount:11").title=="无敌", "failed refresh keeps the old indexed title")
 failedID=nil; event("PLAYER_REGEN_ENABLED"); flush()
-assert(find("更新后的无敌","builtin.mounts"))
-local update=M.handle.Update
-M.handle.Update=function() return nil,{code="TEST_COMMIT_FAILURE"} end
+assert(find("更新后的无敌","lychee.mounts"))
+local update=M.handle.catalog.Update
+M.handle.catalog.Update=function() return nil,{code="TEST_COMMIT_FAILURE"} end
 mounts[11].name="提交后的无敌"
 event("NEW_MOUNT_ADDED",11); flush()
 assert(M.lastError=="TEST_COMMIT_FAILURE" and M.items[11].title=="更新后的无敌" and M.dirtyIDs[11])
-M.handle.Update=update; event("PLAYER_REGEN_ENABLED"); flush()
-assert(find("提交后的无敌","builtin.mounts"), "failed commit remains retryable")
+M.handle.catalog.Update=update; event("PLAYER_REGEN_ENABLED"); flush()
+assert(find("提交后的无敌","lychee.mounts"), "failed commit remains retryable")
 failedList=true; event("COMPANION_LEARNED"); flush()
-assert(M.fullDirty and find("提交后的无敌","builtin.mounts"), "full read failure preserves index")
+assert(M.fullDirty and find("提交后的无敌","lychee.mounts"), "full read failure preserves index")
 failedList=nil; event("PLAYER_REGEN_ENABLED"); flush()
 
 event("NEW_MOUNT_ADDED",11)
 beforeReads=reads
-assert(M.handle:SetEnabled(false))
+assert(M.handle:SetAvailability(false))
 assert(next(M.eventFrame.events)==nil and M.eventFrame.scripts.OnEvent==nil)
-flush(); assert(reads==beforeReads and not find("无敌","builtin.mounts"), "disabled callback cannot keep working")
+flush(); assert(reads==beforeReads and not find("无敌","lychee.mounts"), "disabled callback cannot keep working")
 local warmFrames=#frames
-assert(M.handle:SetEnabled(true)); flush()
-assert(#frames==warmFrames and find("提交后的无敌","builtin.mounts"), "re-enable reuses event frame")
+assert(M.handle:SetAvailability(true)); flush()
+assert(#frames==warmFrames and find("提交后的无敌","lychee.mounts"), "re-enable reuses event frame")
 event("NEW_MOUNT_ADDED",11)
-assert(M.handle:SetEnabled(false)); assert(M.handle:SetEnabled(true))
+assert(M.handle:SetAvailability(false)); assert(M.handle:SetAvailability(true))
 beforeLists=listReads; flush()
 assert(listReads==beforeLists+1, "obsolete queued callback cannot consume new lifecycle work")
 
-local vault=I.Builtin.GreatVault
+local vault=TestPackages.Modules.GreatVault
 local function open(text)
-    return I.Providers:Execute(assert(find(text,"builtin.great-vault")),"open",{})
+    return I.Providers:Execute(assert(find(text,"lychee.great-vault")),"open",{})
 end
 for _, keyword in ipairs({"宏伟宝库","低保","宝库","每周奖励","great vault"}) do
-    assert(find(keyword,"builtin.great-vault").ref.entryID=="great-vault")
+    assert(find(keyword,"lychee.great-vault").ref.entryID=="great-vault")
 end
 local result,err=open("低保")
 assert(not result and err.code=="UI_UNAVAILABLE", "missing UI bootstrap fails honestly")
@@ -169,7 +169,7 @@ result,err=open("低保"); assert(not result and err.code=="UI_UNAVAILABLE")
 WeeklyRewards_ShowUI=function() end
 result,err=open("低保"); assert(not result and err.code=="UI_UNAVAILABLE", "silent native failure is not success")
 assert(vault.handle:Unregister())
-assert(not find("低保","builtin.great-vault") and not vault.handle)
+assert(not find("低保","lychee.great-vault") and not vault.handle)
 assert(M.handle:Unregister() and not M.handle and next(M.items)==nil and next(M.eventFrame.events)==nil)
 
 -- Bounded offline peak: 1,500 collected mounts, no game engine/profiler claims.
@@ -181,10 +181,10 @@ assert(M:Init()); flush()
 local initMS=(os.clock()-started)*1000
 collectgarbage("collect")
 local retainedKB=collectgarbage("count")-memoryBefore
-assert(#I.Providers.entries["builtin.mounts"].records==1500)
+assert(M.handle.catalog:GetState().entries==1500)
 beforeReads,beforeLists=reads,listReads
 started=os.clock()
-for n=1,100 do assert(find(n%2==0 and "峰值测试坐骑1500" or "峰值测试坐骑1499","builtin.mounts")) end
+for n=1,100 do assert(find(n%2==0 and "峰值测试坐骑1500" or "峰值测试坐骑1499","lychee.mounts")) end
 local queryMS=(os.clock()-started)*1000/100
 assert(reads==beforeReads and listReads==beforeLists and #timers==0, "peak query remains collection-scan free")
 assert(M.handle:Unregister()); flush()

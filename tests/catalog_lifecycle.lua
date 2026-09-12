@@ -4,8 +4,8 @@
 local timers,frames,notices={},0,0
 local definition,cleanup,combat,failCommit
 local records,commits={},0
-LycheeInternal={Builtin={},ProviderLocales={Builtin=function() return {resources={enUS={}}} end},
-    Search={Session={SourceChanged=function() notices=notices+1 end}}}
+local namespace={Modules={},ProviderLocales={ForProvider=function() return {resources={enUS={}}} end}}
+TestPackages={Modules=namespace.Modules}
 LycheeDB={}
 function InCombatLockdown() return combat end
 function debugprofilestop() return 0 end
@@ -43,11 +43,13 @@ local function drain()
         if not t.cancelled then t.callback() end
     end
 end
-LycheeInternal.Builtin.Support={Scope=function() return {products={"retail"}} end}
-dofile("addon/Lychee/Builtin/Shared/CatalogLedger.lua")
-dofile("addon/Lychee/Builtin/Shared/CatalogProvider.lua")
+handle.catalog=handle
+function handle:Invalidate() notices=notices+1;return true end
+TestPackages.Modules.Support={Scope=function() return {products={"retail"}} end,Register=function(_,d) definition=d;return handle end}
+assert(loadfile("addon/Lychee_Player/Runtime/CatalogLedger.lua"))("Fixture",namespace)
+assert(loadfile("addon/Lychee_Player/Runtime/CatalogProvider.lua"))("Fixture",namespace)
 local values={a="A",b="B"}
-local m=LycheeInternal.Builtin.CatalogProvider:New("fixture","Fixture",{"DATA_CHANGED"},
+local m=TestPackages.Modules.CatalogProvider:New("fixture","Fixture",{"DATA_CHANGED"},
     function(_,put,checkpoint)
         for id,title in pairs(values) do put({id=id,title=title},title);checkpoint() end
     end,{})

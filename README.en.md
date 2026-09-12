@@ -15,7 +15,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r7-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%203%20r1-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
 [![License](https://img.shields.io/badge/license-noncommercial%20·%20attribution-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -113,14 +113,18 @@ One boss/spell pair produces one result across difficulties. Different spell IDs
 ## Install
 
 1. [Download the repository ZIP](https://github.com/Follen/Lychee/archive/refs/heads/main.zip) and extract it.
-2. Copy the entire **`addon/Lychee` folder** into your client's `Interface/AddOns/` directory.
-3. Restart the game, enable **Lychee Launcher** in the addon list, and press <kbd>Alt</kbd> + <kbd>Space</kbd>.
+2. Copy the **five AddOn folders inside `addon/`** into your client's `Interface/AddOns/` directory.
+3. Restart the game, enable **Lychee Launcher and its four feature packages** in the addon list, and press <kbd>Alt</kbd> + <kbd>Space</kbd>.
 
 Your folder structure should look like this:
 
 ```text
 Interface/
 └── AddOns/
+    ├── Lychee_Player/
+    ├── Lychee_Encounters/
+    ├── Lychee_Integrations/
+    ├── Lychee_Inspector/
     └── Lychee/
         ├── Lychee.toc
         ├── Lychee_Mainline.toc

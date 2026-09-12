@@ -109,17 +109,29 @@ function GetLFGDungeonInfo(id) return id==3102 and "地城1" or "其他" end
 C_SpellBook={IsSpellKnown=function(id) return id==1286801 end}
 C_ChatInfo={RegisterAddonMessagePrefix=function() return 0 end,SendAddonMessage=function(prefix,msg,channel)
     calls.messages=(calls.messages or 0)+1;assert(prefix=="LibKS" and channel=="PARTY");return 0 end}
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Builtin/Shared/CatalogProvider.lua", "Builtin/Bags/Provider.lua", "Builtin/TalentLoadouts/Provider.lua", "Builtin/EquipmentSets/Provider.lua", "Builtin/BlizzardSettings/Provider.lua", "Builtin/Keystones/Provider.lua", "Builtin/Init.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Shared/CatalogProvider.lua", "../Lychee_Player/Bags/Provider.lua", "../Lychee_Player/TalentLoadouts/Provider.lua", "../Lychee_Player/EquipmentSets/Provider.lua", "../Lychee_Player/BlizzardSettings/Provider.lua", "../Lychee_Player/Keystones/Provider.lua", "Core/Modules.lua"})
 local I=LycheeInternal
+local bagIndex
+local newIndex=I.Search.StaticIndex.New
+function I.Search.StaticIndex:New(...)
+ local index=newIndex(self,...)
+ local register=index.RegisterSource
+ function index:RegisterSource(definition)
+  if definition.id=="lychee.bags:records" then bagIndex=self end
+  return register(self,definition)
+ end
+ return index
+end
+
 I.Registry:SetReady(true)
 local baseFrames=#frames
 collectgarbage("collect");local baseKB=collectgarbage("count")
-local ids={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
+local ids={"lychee.bags","lychee.talent-loadouts","lychee.equipment-sets","lychee.blizzard-settings","lychee.keystones"}
 local defaultScenario=arg and arg[1]=="--defaults"
 if not defaultScenario then
     for _,id in ipairs(ids) do I.CharacterStore:DisabledProviders()[id]=true end
 end
-I.Builtin:Init()
+TestPackages.Modules:Init()
 if defaultScenario then
     drain()
     for _,id in ipairs(ids) do
@@ -133,7 +145,7 @@ end
 collectgarbage("collect");local disabledKB=collectgarbage("count")-baseKB
 assert(#frames==baseFrames and #timers==0,"disabled optional sources must not start work")
 assert(disabledKB<128,"disabled registration memory")
-local modules={I.Builtin.Bags,I.Builtin.TalentLoadouts,I.Builtin.EquipmentSets,I.Builtin.BlizzardSettings,I.Builtin.Keystones}
+local modules={TestPackages.Modules.Bags,TestPackages.Modules.TalentLoadouts,TestPackages.Modules.EquipmentSets,TestPackages.Modules.BlizzardSettings,TestPackages.Modules.Keystones}
 local metrics={}
 for _,m in ipairs(modules) do
     local inherited=m.Step
@@ -153,7 +165,7 @@ for _,m in ipairs(modules) do assert(not m.lastError,m.id..":"..tostring(m.lastE
 for id,metric in pairs(metrics) do
     print(string.format("COLD %s cpu_ms=%.2f peak_wall_ms=%.2f scheduled_seconds=%.2f",id,metric.cpu,metric.peak,metric.finish))
     -- Bags now validate one secure-item descriptor per entry; measured baseline/new in bag-actions.md.
-    local cpuBudget=id=="builtin.bags" and 75 or 50
+    local cpuBudget=id=="lychee.bags" and 75 or 50
     assert(metric.cpu<cpuBudget and metric.peak<5 and metric.finish<1.5,"cold budget "..id)
 end
 collectgarbage("collect"); local retained=collectgarbage("count")-baseKB
@@ -165,22 +177,23 @@ local function find(text,id)
     error("Missing "..text.." / "..tostring(id))
 end
 local function action(m,id,recordID)
-    local record=I.Providers.entries[m.id].recordMap[recordID]
+    local record=m.handle.catalog:Resolve(recordID)
     return m.actions[id].run(record)
 end
-assert(find("背包:物品512").providerID=="builtin.bags")
-assert(find("装备：装备方案16").providerID=="builtin.equipment-sets")
-for _,item in ipairs(query("设置：")) do assert(item.providerID=="builtin.blizzard-settings") end
+assert(find("背包:物品512").providerID=="lychee.bags")
+assert(find("装备：装备方案16").providerID=="lychee.equipment-sets")
+for _,item in ipairs(query("设置：")) do assert(item.providerID=="lychee.blizzard-settings") end
 assert(find("rl").id=="reload" and find("reload").id=="reload" and find("cdm").id=="cdm")
 -- Full public-shaped hits versus compact internal hits, with fixed fuzzy clock.
+assert(bagIndex and #bagIndex:Search("物品512",20)>0)
 local realProfiler=debugprofilestop
 debugprofilestop=function() return 1 end
 for _,text in ipairs({"物品512","物品","设置256","冰","not-found"}) do
-    local filter={sourceID="builtin.bags:records"}
-    I.Search.StaticIndex:ClearQueryCache()
-    local full=I.Search.StaticIndex:Search(text,20,filter)
-    I.Search.StaticIndex:ClearQueryCache()
-    local compact=I.Search.StaticIndex:Search(text,20,filter,true)
+    local filter={sourceID="lychee.bags:records"}
+    bagIndex:ClearQueryCache()
+    local full=bagIndex:Search(text,20,filter)
+    bagIndex:ClearQueryCache()
+    local compact=bagIndex:Search(text,20,filter,true)
     assert(#full==#compact)
     for index=1,#full do
         local a,z=I.Search.ResultSnapshot:Materialize(full[index]),I.Search.ResultSnapshot:Materialize(compact[index])
@@ -192,30 +205,30 @@ for _,text in ipairs({"物品512","物品","设置256","冰","not-found"}) do
     end
 end
 debugprofilestop=realProfiler
-assert(action(I.Builtin.BlizzardSettings,"open",find("设置:设置256").id).ok and calls.category==7 and calls.setting=="设置256")
-assert(action(I.Builtin.BlizzardSettings,"cdm","cdm").ok and calls.cdm)
+assert(action(TestPackages.Modules.BlizzardSettings,"open",find("设置:设置256").id).ok and calls.category==7 and calls.setting=="设置256")
+assert(action(TestPackages.Modules.BlizzardSettings,"cdm","cdm").ok and calls.cdm)
 bags[1],bags[2]=bags[2],bags[1]
-assert(action(I.Builtin.Bags,"locate","item:1").ok and calls.bagSearch=="")
+assert(action(TestPackages.Modules.Bags,"locate","item:1").ok and calls.bagSearch=="")
 bags[2]=nil
-assert(not action(I.Builtin.Bags,"locate","item:1").ok,"stale slot must not act on another item")
-event(I.Builtin.Bags,"BAG_UPDATE_DELAYED");drain()
-assert(not I.Providers.entries["builtin.bags"].recordMap["item:1"])
-assert(action(I.Builtin.TalentLoadouts,"apply","talent:2").ok and calls.talent==2)
-talentIDs={1};assert(not action(I.Builtin.TalentLoadouts,"apply","talent:2").ok)
-assert(action(I.Builtin.EquipmentSets,"equip","equipment:2").ok and calls.gear==2)
-local keys=I.Builtin.Keystones
+assert(not action(TestPackages.Modules.Bags,"locate","item:1").ok,"stale slot must not act on another item")
+event(TestPackages.Modules.Bags,"BAG_UPDATE_DELAYED");drain()
+assert(not TestPackages.Modules.Bags.handle.catalog:Resolve("item:1"))
+assert(action(TestPackages.Modules.TalentLoadouts,"apply","talent:2").ok and calls.talent==2)
+talentIDs={1};assert(not action(TestPackages.Modules.TalentLoadouts,"apply","talent:2").ok)
+assert(action(TestPackages.Modules.EquipmentSets,"equip","equipment:2").ok and calls.gear==2)
+local keys=TestPackages.Modules.Keystones
 for _,item in ipairs(query("毒牙")) do
-    assert(item.providerID~="builtin.keystones","unrelated keys must not match a dungeon listed only in seasonal scores")
+    assert(item.providerID~="lychee.keystones","unrelated keys must not match a dungeon listed only in seasonal scores")
 end
 local ownItem=find("key","key:Player-1-1")
-assert(ownItem.kindTitle=="分数 |cffff80002500|r" and ownItem.payload.scoreRows[8][3]:find("208.0",1,true))
+assert(ownItem.kindTitle=="分数 |cffff80002500|r" and ownItem.searchRecord.tooltipRows[8][3]:find("208.0",1,true))
 assert(ownItem.icon==134400 and ownItem.text:find("|cff4080ff我-甲服|r",1,true))
-assert(#ownItem.payload.scoreRows==8 and ownItem.payload.scoreRows[2][2]=="限时 +11","own timed record must win over overtime level")
-assert(find("key","key:Player-2-2").payload.scoreRows[2][2]=="超时 +12","peer overtime must not appear timed")
-assert(find("key","key:Player-3-3").payload.scoreRows[1][2]=="未获取")
+assert(#ownItem.searchRecord.tooltipRows==8 and ownItem.searchRecord.tooltipRows[2][2]=="限时 +11","own timed record must win over overtime level")
+assert(find("key","key:Player-2-2").searchRecord.tooltipRows[2][2]=="超时 +12","peer overtime must not appear timed")
+assert(find("key","key:Player-3-3").searchRecord.tooltipRows[1][2]=="未获取")
 assert(ownItem.searchRecord.actions[1].spellID==1286801)
 for _,term in ipairs({"地城1","毒牙","我-甲服","keys","大秘境","key:","钥匙：毒牙"}) do
-    for _,item in ipairs(query(term)) do assert(item.providerID~="builtin.keystones","restricted key query: "..term) end
+    for _,item in ipairs(query(term)) do assert(item.providerID~="lychee.keystones","restricted key query: "..term) end
 end
 assert(find(" KEY ","key:Player-1-1") and find("钥匙","key:Player-1-1"))
 assert(find("分数","key:Player-1-1"),"score overview remains searchable")
@@ -232,23 +245,23 @@ stamp=stamp+2
 event(keys,"CHAT_MSG_ADDON","LibKS","12,601,2700","PARTY","同名-乙服");drain()
 local keyRevision=keys.handle:GetState().revision
 runs[8].mapScore=209;keys:MarkDirty();drain()
-assert(keys.handle:GetState().revision>keyRevision and find("key","key:Player-1-1").payload.scoreRows[8][3]:find("209.0",1,true),"score-only update still refreshes tooltip")
+assert(keys.handle:GetState().revision>keyRevision and find("key","key:Player-1-1").searchRecord.tooltipRows[8][3]:find("209.0",1,true),"score-only update still refreshes tooltip")
 local messages=calls.messages;query("key");query("key");assert(calls.messages==messages,"request throttle")
 event(keys,"CHAT_MSG_ADDON","LibKS","20,601,9999","PARTY","外人-乙服")
 assert(not keys.members["外人-乙服"])
 units.party1=nil;event(keys,"GROUP_ROSTER_UPDATE");drain()
 assert(not keys.members["同名-乙服"])
-local b=I.Builtin.Bags
+local b=TestPackages.Modules.Bags
 local rev=b.handle:GetState().revision
 event(b,"GET_ITEM_INFO_RECEIVED",99999);assert(#timers==0,"unrelated item event")
 event(b,"BAG_UPDATE_DELAYED");drain();assert(b.handle:GetState().revision==rev,"no-change must not publish")
 combat=true;event(b,"PLAYER_REGEN_DISABLED");assert(not b.timer and not b.job)
 combat=false;event(b,"PLAYER_REGEN_ENABLED");drain()
 local source=I.Search.Query:_BuildRequest("未知:物品",{},1)
-assert(source.raw=="未知:物品" and not source.filter.sourceID and source.filter.excludedSources["builtin.keystones:records"],"unknown prefix retains global policy")
+assert(source.raw=="未知:物品" and not source.filter.sourceID and source.filter.excludedSources["lychee.keystones:records"],"unknown prefix retains global policy")
 -- Independent reference: prefix isolation equals a direct scan of this fixture.
-local fixture=assert(Lychee:RegisterProvider({id="builtin.player-spells",title="技能",version="1",apiVersion=2,
-    entries={{id="frost",title="冰霜箭"},{id="fire",title="火焰箭"}}}))
+local fixture=assert(dofile("tests/support/provider_fixture.lua"):Register({id="lychee.player-spells",title="技能",version="1",apiVersion=3,searchPrefixes={"技能"},
+    catalog={{id="frost",title="冰霜箭"},{id="fire",title="火焰箭"}}}))
 local results=query("技能：冰")
 assert(#results==1 and results[1].id=="frost")
 results=query("技能:");assert(#results==2)
@@ -289,14 +302,14 @@ end
 drain()
 bags[3]=nil
 assert(I.Registry:SetUserEnabled(b.id,true));drain()
-assert(not I.Providers.entries[b.id].recordMap["item:3"],"disable/re-enable removes obsolete record")
-local originalUpdate=b.handle.Update
+assert(not b.handle.catalog:Resolve("item:3"),"disable/re-enable removes obsolete record")
+local originalUpdate=b.handle.catalog.Update
 local previousSignature=b.signatures["item:4"]
 bags[4].stackCount=7
-b.handle.Update=function() return nil,{code="INJECTED_FAILURE"} end
+b.handle.catalog.Update=function() return nil,{code="INJECTED_FAILURE"} end
 b:MarkDirty();drain()
 assert(b.signatures["item:4"]==previousSignature and b.dirty,"failed commit must keep dirty/snapshot")
-b.handle.Update=originalUpdate;b:MarkDirty();drain()
+b.handle.catalog.Update=originalUpdate;b:MarkDirty();drain()
 assert(b.signatures["item:4"]~=previousSignature,"retry commits fresh signature")
 local oldBuild=b.build
 b.build=function(self) self:MarkDirty();coroutine.yield() end

@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 -- Real Provider/index boundaries; no UI or native action emulation is needed.
 function GetLocale() return "enUS" end
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
@@ -30,15 +31,15 @@ local record={id="one",title="Uniform snapshot",subtitle="Same subtitle",descrip
     icon=123,payload={number=7},actions={"open"}}
 local executed=0
 local function definition()
-    return {id="snapshot.fixture",title="Fixture",version="1",apiVersion=2,entries={record},
+    return {id="snapshot.fixture",title="Fixture",version="1",apiVersion=3,catalog={record},
         actions={open={title="Open",run=function(value)
             assert(value.id=="one" and value.payload.number==7);executed=executed+1;return {ok=true}
         end}},query=function(_,reply) assert(reply({record})) end}
 end
-local handle=assert(Lychee:RegisterProvider(definition()))
+local handle=assert(Fixture:Register(definition()))
 local _,results=query:Query("Uniform snapshot",{visible=true})
 local static=assert(results[1])
-assert(static.sourceGeneration and static.sourceRevision and static._dynamicEpoch==nil)
+assert(static.sourceGeneration==nil and static.sourceRevision==nil and static._dynamicEpoch~=nil)
 assert(static._providerInstance and static._providerRevision and static._providerRecord)
 
 local stamps=0
@@ -66,11 +67,11 @@ assert(providers:IsCurrent(dynamic) and providers:IsCurrent(again), "live result
 assert(providers:Execute(dynamic,"open",{}).ok and providers:Execute(again,"open",{}).ok and executed==2)
 I.Search.Query=query
 providers.Stamp=stamp
-assert(handle:Update({upsert={{id="one",title="Updated snapshot",actions={"open"},payload={number=7}}}}))
+assert(handle.catalog:Update({upsert={{id="one",title="Updated snapshot",actions={"open"},payload={number=7}}}}))
 assert(not providers:IsCurrent(static) and not providers:IsCurrent(dynamic) and not providers:IsCurrent(again))
 local previous=assert(providers:Resolve({providerID="snapshot.fixture",entryID="one"},{}))
 assert(handle:Unregister())
-local replacement=assert(Lychee:RegisterProvider(definition()))
+local replacement=assert(Fixture:Register(definition()))
 assert(not providers:IsCurrent(previous), "same ID replacement never revives an old result")
 assert(replacement:Unregister())
 print("Result snapshot PASS: pure presentation, canonical sharing, localized actions, one stamp, static/dynamic/restore equivalence, stale lifetime")

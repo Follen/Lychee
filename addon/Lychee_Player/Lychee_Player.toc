@@ -1,0 +1,39 @@
+## Interface: 120100
+## Title: Lychee Player
+## Author: Lychee
+## Version: 0.2.0
+## Dependencies: Lychee
+## SavedVariablesPerCharacter: LycheePlayerCharacterDB
+
+Bootstrap.lua
+Manifest.lua
+SDK/Storage.lua
+Storage.lua
+PlayerSpells/Locales.lua
+Mounts/Locales.lua
+Crests/Locales.lua
+GameMenus/Locales.lua
+GreatVault/Locales.lua
+Bags/Locales.lua
+TalentLoadouts/Locales.lua
+EquipmentSets/Locales.lua
+BlizzardSettings/Locales.lua
+Keystones/Locales.lua
+Achievements/Locales.lua
+Runtime/InterfaceActions.lua
+Runtime/CatalogLedger.lua
+Runtime/CatalogProvider.lua
+PlayerSpells/Aliases.lua
+PlayerSpells/Provider.lua
+PlayerSpells/Init.lua
+Mounts/Provider.lua
+Crests/Provider.lua
+GameMenus/Provider.lua
+GreatVault/Provider.lua
+Bags/Provider.lua
+TalentLoadouts/Provider.lua
+EquipmentSets/Provider.lua
+BlizzardSettings/Provider.lua
+Keystones/Provider.lua
+Achievements/Provider.lua
+Activate.lua

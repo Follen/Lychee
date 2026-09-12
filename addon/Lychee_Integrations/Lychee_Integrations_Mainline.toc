@@ -1,0 +1,14 @@
+## Interface: 120100
+## Title: Lychee Integrations
+## Author: Lychee
+## Version: 0.2.0
+## Dependencies: Lychee
+
+Bootstrap.lua
+Manifest.lua
+Exwind/Locales.lua
+Ellesmere/Locales.lua
+Ellesmere/Adapter.lua
+Ellesmere/Provider.lua
+Exwind/Provider.lua
+Activate.lua

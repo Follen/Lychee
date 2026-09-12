@@ -17,19 +17,15 @@ altar=next(x for x in d['dungeons'] if x['id']==164)
 boss=next(e for e in altar['enemies'] if e['id']==259446)
 assert boss['nameZh']=='扭缠盘蛇' and boss['bossOrder']==2 and boss['journalID']==2879
 assert boss['displayId']==144156 and 1287798 in [s['id'] for s in boss['spells']]
-for product in ('Classic','Titan','Anniversary'):
-    toc=ROOT/f'addon/Lychee/Lychee_{product}.toc'
-    if not toc.exists():
-        manifest=json.loads((ROOT/'tools/client_manifest.json').read_text())
-        continue
-    assert 'Builtin/LDT/' not in toc.read_text()
 manifest=json.loads((ROOT/'tools/client_manifest.json').read_text())
-provider=next(x for x in manifest['providers'] if x['id']=='builtin.ldt')
-assert provider['products']==['retail'] and provider['module']=='LDT'
-for toc in (ROOT/'addon/Lychee').glob('Lychee*.toc'):
-    text=toc.read_text(encoding='utf-8-sig')
-    if toc.name not in ('Lychee.toc','Lychee_Mainline.toc'): assert 'Builtin/LDT/' not in text
-    assert 'Builtin/MDT/' not in text
+provider=next(x for x in manifest['providers'] if x['id']=='lychee.ldt')
+assert provider['products']==['retail'] and provider['module']=='LDT' and provider['package']=='Lychee_Encounters'
+for product,client in manifest['clients'].items():
+    host=(ROOT/f"addon/Lychee/Lychee_{client['suffix']}.toc").read_text()
+    toc=(ROOT/f"addon/Lychee_Encounters/Lychee_Encounters_{client['suffix']}.toc").read_text()
+    assert 'LDT/' not in host
+    assert ('LDT/Provider.lua' in toc)==(product=='retail')
+    assert ('Bosses/Provider.lua' in toc)==(product=='retail')
 spec=spec_from_file_location('generator',ROOT/'tools/build_enemy_catalog.py');g=module_from_spec(spec);spec.loader.exec_module(g)
 assert g.lua({'Shackle Undead':True})=='{["Shackle Undead"]=true}'
 bad=json.loads(json.dumps(d));bad['dungeons'][0]['enemies'][0]['displayId']=0
@@ -39,9 +35,9 @@ else:raise AssertionError('generator accepted invalid display ID')
 # Compare generated execution to the independent factual JSON, including all details.
 # Test-owned full tables are not part of the runtime catalogue or search cache.
 probe = '''
-LycheeInternal={Builtin={}}
-dofile("addon/Lychee/Builtin/LDT/Data.lua")
-local M=LycheeInternal.Builtin.LDT
+local ns={Modules={}}
+assert(loadfile("addon/Lychee_Encounters/LDT/Data.lua"))("Lychee_Encounters",ns)
+local M=ns.Modules.LDT
 local function equal(a,b)
  assert(type(a)==type(b))
  if type(a)~="table" then assert(a==b);return end

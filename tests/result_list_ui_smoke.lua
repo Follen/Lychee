@@ -26,6 +26,13 @@ local function object(kind, parent)
     function value:SetClampedToScreen(enabled) self.clamped = enabled end
     function value:EnableMouse(enabled) self.mouseEnabled = enabled end
     function value:GetStringHeight() return self.measuredHeight or 15 end
+    function value:GetStringWidth()
+        local width = 0
+        for char in (self:GetText()):gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+            width = width + (#char > 1 and 11 or 6)
+        end
+        return width
+    end
     function value:SetFont(path, size, flags) self.font = {path, size, flags}; return true end
     function value:SetShadowOffset(x, y) self.shadow = {x, y} end
     function value:SetVertexColor() end
@@ -142,9 +149,9 @@ local items = {
         description = longText,
         category = "技能",
         categoryColor = { 0.455, 0.670, 0.925, 1 },
-        source = "builtin.player-spells:records",
+        source = "lychee.player-spells:records",
         icon = 4578416,
-        _ext = "builtin.player-spells",
+        _ext = "lychee.player-spells",
         confidence = 0.98,
         evidence = { matchedField = "alias", matchType = "exact" },
         interaction = {
@@ -171,11 +178,13 @@ local items = {
 list:SetItems(items, 11, 23)
 assert(#created == frameCount, "query update does not create frames or regions")
 assert(rowOne:IsShown() and rowTwo:IsShown() and not list.rows[3]:IsShown(), "only populated rows are shown")
-assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "builtin.player-spells", "freshness fields bind to row")
+assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "lychee.player-spells", "freshness fields bind to row")
 assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == longText, "name and description remain separately constrained")
 assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 46, "long text cannot mutate row geometry")
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
 assert(rowOne.category:GetText() == "自定义类型", "type label takes precedence over category")
+assert(rowOne.category.nonSpaceWrap == false and rowOne.category.wordWrap == false and rowOne.category.maxLines == 1,
+    "source labels must disable both word and non-space wrapping")
 assert(rowOne.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim and rowTwo.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim,
     "all result labels use the same subdued theme color, including colored provider categories")
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")
@@ -402,7 +411,7 @@ bar.frame.scripts.OnHide()
 assert(bar.frame.scripts.OnUpdate==nil, "hidden viewport stops drag")
 local scores={}
 for index=1,8 do scores[index]={"副本"..index,"限时 +12","|cffaa00ff329.0|r"} end
-local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="builtin.keystones",payload={scoreRows=scores}}
+local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="lychee.keystones",searchRecord={tooltipRows=scores}}
 local beforeScores=#created
 Lychee.UI.ResultList:ShowItemTooltip(keyItem,parent)
 assert(tip:GetWidth()==416 and #tip.scoreLabels==9,"eight dungeon rows and column header")
@@ -417,4 +426,12 @@ for _,labels in ipairs(tip.scoreLabels) do
     for _,label in ipairs(labels) do assert(not label:IsShown() and label:GetText()=="","old scores released") end
 end
 assert(rowOne.accent:GetWidth()==2 and rowOne.accent:GetHeight()==22,"selection matches recent list")
+list:SetItems({{id="long-kind",text="首领名称",kindTitle="荔枝大米助手 · 首领",
+    interaction={actions={{id="open",title="打开"},{id="more",title="更多"}}}}},12,24)
+local sourceLabel=list.rows[1].category
+assert(sourceLabel:GetWidth()>=sourceLabel:GetStringWidth(),"Chinese source and kind fit the label column")
+assert(sourceLabel:GetWidth()<=160,"source column cannot consume unbounded title space")
+assert(list.rows[1]._categoryInset==42,"selected secondary action remains outside source text")
+list:SetItems({{id="huge-kind",text="名称",kindTitle=string.rep("很长的来源",50)}},12,25)
+assert(list.rows[1].category:GetWidth()<=160 and list.rows[1].category.maxLines==1,"overlong source clips on one line")
 print("Lychee result list UI smoke PASS")

@@ -1,7 +1,5 @@
 local function load(locale)
     LycheeInternal={Locale={code=locale}}
-    dofile("addon/Lychee/Builtin/Definitions.lua")
-    dofile("addon/Lychee/Builtin/Shared/Support.lua")
     dofile("addon/Lychee/Core/ProviderLocales.lua")
     return LycheeInternal.ProviderLocales
 end
@@ -37,9 +35,6 @@ invalid({enUS={x=string.rep("a",1025)}},"INVALID_LOCALES")
 invalid({enUS={[string.rep("a",97)]="x"}},"INVALID_LOCALES")
 local over={enUS={}};for i=1,257 do over.enUS["key"..i]="x" end;invalid(over,"LOCALE_LIMIT")
 over={enUS={}};for i=1,140 do over.enUS["key"..i]=string.rep("a",1024) end;invalid(over,"LOCALE_LIMIT")
-LycheeInternal.BuiltinLocaleData={["builtin.bags"]={enUS={["名字"]="Name"},zhCN={["名字"]="名字"}}}
-local builtin=assert(p:Builtin("builtin.bags"));assert(builtin["名字"]=="Name" and builtin.resources==LycheeInternal.BuiltinLocaleData["builtin.bags"])
-assert(builtin["未知"]=="未知")
 local bounded=assert(p:Compile({enUS={name="Name",text="%s",quoted=string.rep("%q",16),number="%.99f"}}))
 for _,reference in ipairs({{key=""},{key=3},{key="name",locale="zhCN"},{key="name",scope={locale="zhCN"}},{key="name",[1]="extra"},setmetatable({key="name"},{})}) do
     local result,err=bounded:Resolve(reference)

@@ -667,12 +667,6 @@ function Palette:Create()
         if not internal.Host.TogglePalette then internal.Host.TogglePalette = function() return self:Toggle() end end
         if internal.WirePalette then internal.WirePalette(self) end
     end
-    if Lychee.RegisterProvider then
-        self.settingsProvider = Lychee:RegisterProvider({id="lychee.settings",apiVersion=2,version="1.0.0",title=L["荔枝设置"],
-            entries={{id="settings",title=L["荔枝设置"],kindTitle=L["设置"],aliases={"设置","荔枝设置","lychee settings"},
-                icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga",actions={"open"}}},
-            actions={open={title=L["打开荔枝设置"],run=function() local ok,err=self:OpenSettings();if not ok then return nil,err end;return {ok=true,close=false} end}}})
-    end
     return self
 end
 
@@ -742,7 +736,7 @@ function Palette:MarkHomeDirty()
 end
 
 function Palette:TouchRecent(item)
-    if not item or not item.ref or item.ref.providerID == "lychee.settings" or not I.Providers or not I.Providers:CanRemember(item) then return false end
+    if not item or not item.ref or not I.Providers or not I.Providers:CanRemember(item) then return false end
     local ref = item.ref
     local db = paletteDB()
     if I.Search.Personalization and self.input and not self.settingsOpen then
@@ -1022,8 +1016,7 @@ function Palette:SetResults(items, generation, session)
 end
 
 function Palette:Show()
-    local inspector=I.Builtin and I.Builtin.AddonInspector
-    if inspector and inspector.running then inspector:Stop() end
+    if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(true) end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if self.visible then return true end
     self:Create()
@@ -1069,6 +1062,7 @@ function Palette:Hide(reason)
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
+    if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(false) end
     self.searchPending=false
     self.actionMenu = nil
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session

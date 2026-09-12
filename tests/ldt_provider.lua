@@ -92,10 +92,10 @@ local loader=dofile("tests/support/runtime.lua")
 loader.Load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","UI/Theme.lua","UI/Components.lua"})
 local I=LycheeInternal
 collectgarbage("collect");local before=collectgarbage("count")
-loader.Load(nil,{"Builtin/LDT/Locales.lua","Builtin/LDT/Data.lua","Builtin/LDT/Catalog.lua","Builtin/LDT/View.lua","Builtin/LDT/Provider.lua"})
+loader.Load(nil,{"../Lychee_Encounters/LDT/Locales.lua","../Lychee_Encounters/LDT/Data.lua","../Lychee_Encounters/LDT/Catalog.lua","../Lychee_Encounters/LDT/View.lua","../Lychee_Encounters/LDT/Provider.lua"})
 collectgarbage("collect");local moduleMemory=collectgarbage("count")-before
 assert(moduleMemory<512,"feature loading budget")
-local M=I.Builtin.LDT
+local M=TestPackages.Modules.LDT
 I.Registry:SetReady(true)
 local count=#frames
 assert(M:Init());assert(M.active and #frames==count and #timers==0,"default enable has no activity")
@@ -202,7 +202,9 @@ assert(maxBatch<8,"bounded task maximum callback budget")
 local view=M:CreateView()
 local parent=CreateFrame("Frame")
 local resources=assert(I.Resources:Create(function()return true end,nil,assert(M.handle:Resources())))
-local function mount() view:Mount({contentFrame=parent,resources=resources},{dungeonID=164,npcID=259446,spellID=1287798}) end
+local function mount() view:Mount({contentFrame=parent,resources=resources,
+    SetFooter=function(_,value) return true end,Resize=function(_,height) parent.requestedHeight=height;return true end,
+    ClearFocus=function() return true end,Close=function() return true end},{dungeonID=164,npcID=259446,spellID=1287798}) end
 mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
 view.enemy.characteristics={Stun=true,["Shackle Undead"]=true,Fear=false}
 view:ShowTraits()

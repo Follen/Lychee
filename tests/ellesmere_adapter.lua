@@ -1,8 +1,9 @@
-LycheeInternal={Builtin={}}
+local namespace={Modules={}}
+TestPackages={Modules=namespace.Modules}
 local combat=false
 function InCombatLockdown() return combat end
-dofile("addon/Lychee/Builtin/Ellesmere/Adapter.lua")
-local A=LycheeInternal.Builtin.EllesmereAdapter
+assert(loadfile("addon/Lychee_Integrations/Ellesmere/Adapter.lua"))("Lychee_Integrations",namespace)
+local A=TestPackages.Modules.EllesmereAdapter
 assert(not A.Get() and not A.Ready())
 local calls=0
 EllesmereUI={_modules={Unit={title="Units",pages={"Frames"}}},EnsureLoaded=function(self) calls=calls+1;self._deferredLoaded=true end}

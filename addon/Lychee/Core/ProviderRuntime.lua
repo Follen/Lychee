@@ -1,11 +1,11 @@
 local I = _G.LycheeInternal
-local P = { entries = {}, jobs = {}, diagnostics = {}, queryEpoch = 0, instanceSequence = 0, entryLimit = 4096, queryLimit = 256 }
+local P = { entries = {}, jobs = {}, diagnostics = {}, queryEpoch = 0, instanceSequence = 0, queryLimit = 256 }
 I.Providers = P
 -- Membership follows each live resolved snapshot, not its ID: pins and recent
 -- may resolve the same entry independently. UI/action references keep it alive.
+local catalogReplies, catalogToken = {}, {}
 local weakRecords = { __mode = "k" }
 local function resolvedRecords() return setmetatable({}, weakRecords) end
-local localizedRecordFields = {"title","kindTitle","subtitle","subtext","description","aliases","keywords"}
 
 local function copy(value)
     if type(value) ~= "table" then return value end
@@ -52,141 +52,10 @@ local function array(value, limit, field)
     return count == #value and true or failure("INVALID_SCHEMA", field)
 end
 
--- Only Host-owned presentation metadata is shared. Values are weak and the
--- auxiliary FIFO has at most 128 keys of <=256 bytes; unique/large metadata
--- stays on its record and never grows an unbounded interning dictionary.
-local weakValues = { __mode = "v" }
-local function sameMetadata(left, right)
-    for key, value in pairs(left) do if right[key] ~= value then return false end end
-    for key, value in pairs(right) do if left[key] ~= value then return false end end
-    return true
-end
-local function internMetadata(entry, key, value)
-    if #key > 256 then return value end
-    local pool = entry.metadataPool
-    if not pool then
-        pool = { values = setmetatable({}, weakValues), keys = {}, cursor = 0 }
-        entry.metadataPool = pool
-    end
-    local previous = pool.values[key]
-    if previous then return sameMetadata(previous, value) and previous or value end
-    local slot = pool.cursor % 128 + 1
-    local expired = pool.keys[slot]
-    if expired then pool.values[expired] = nil end
-    pool.keys[slot], pool.cursor, pool.values[key] = key, slot, value
-    return value
-end
-local function internStrings(entry, field, value)
-    if type(value) ~= "table" or #value > 16 then return value end
-    local count = 0
-    for key, text in pairs(value) do
-        if type(key) ~= "number" or key < 1 or key > #value or key ~= math.floor(key)
-            or type(text) ~= "string" or #text > 256 then return value end
-        count = count + 1
-    end
-    if count ~= #value then return value end
-    return internMetadata(entry, field .. ":" .. count .. ":" .. table.concat(value, "\0"), value)
-end
-local function shareMetadata(entry, record)
-    record.aliases = internStrings(entry, "aliases", record.aliases)
-    record.keywords = internStrings(entry, "keywords", record.keywords)
-    local category = record.category
-    if type(category) == "table" and (category.id == nil or type(category.id) == "string")
-        and (category.title == nil or type(category.title) == "string")
-        and (category.order == nil or type(category.order) == "number") and category.color == nil then
-        record.category = internMetadata(entry, "category:" .. tostring(category.id) .. "\0"
-            .. tostring(category.title) .. "\0" .. tostring(category.order), category)
-    end
-    local actions = record.actions
-    if #actions == 1 and entry.actionRecords and entry.actionRecords[actions[1].id] == actions[1] then
-        local lists = entry.actionLists
-        if not lists then lists = {}; entry.actionLists = lists end
-        local id = actions[1].id
-        if lists[id] then record.actions = lists[id] else lists[id] = actions end
-    end
-end
-local function prepareRecord(entry, record, index)
-    if type(record) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
-    local ok, err
-    if record._extensionID ~= nil then return failure("INVALID_SCHEMA", "entry._extensionID") end
-    if record.title == nil or record.title == "" then return failure("INVALID_SCHEMA", "entry.title") end
-    if record.payload ~= nil and type(record.payload) ~= "table" then return failure("INVALID_SCHEMA", "entry.payload") end
-    if record.icon ~= nil and not (type(record.icon) == "string" and record.icon ~= "")
-        and not (type(record.icon) == "number" and record.icon > 0 and record.icon == math.floor(record.icon)) then return failure("INVALID_SCHEMA", "entry.icon") end
-    if record.scope ~= nil then
-        ok, err = I.Boundary:ValidateScope(record.scope,"entry.scope")
-        if not ok then return nil, err end
-    end
-    if record.actions ~= nil then
-        ok, err = array(record.actions, 16, "entry.actions"); if not ok then return nil, err end
-    end
-    if entry.localizer then
-        for _,field in ipairs(localizedRecordFields) do
-            local value=record[field]
-            if type(value)=="table" and value.key then
-                record[field],err=entry.localizer:Resolve(value)
-                if not record[field] then return nil,err end
-            elseif (field=="aliases" or field=="keywords") and type(value)=="table" then
-                for index,alias in ipairs(value) do
-                    value[index],err=entry.localizer:Resolve(alias)
-                    if not value[index] then return nil,err end
-                end
-            end
-        end
-        if type(record.category)=="table" then
-            local title=record.category.title
-            record.category.title,err=entry.localizer:Resolve(title)
-            if title and not record.category.title then return nil,err end
-        end
-        if type(record.drag)=="table" and record.drag.title then
-            record.drag.title,err=entry.localizer:Resolve(record.drag.title)
-            if not record.drag.title then return nil,err end
-        end
-        for _,action in ipairs(record.actions or {}) do
-            if type(action)=="table" and action.title then
-                action.title,err=entry.localizer:Resolve(action.title)
-                if not action.title then return nil,err end
-            end
-        end
-    end
-    if record.title == nil or record.title == "" then return failure("INVALID_SCHEMA", "entry.title") end
-    if record.drag ~= nil and type(record.drag) ~= "table" then return failure("INVALID_SCHEMA", "entry.drag") end
-    if record.kind == nil then record.kind = "entry" end
-    if record.actions == nil then record.actions = {} end
-    ok, err = array(record.actions, 16, "entry.actions"); if not ok then return nil, err end
-    for actionIndex = 1, #record.actions do
-        local action = record.actions[actionIndex]
-        if type(action) == "string" then
-            local definition = entry.definition.actions and entry.definition.actions[action]
-            if not definition then return failure("UNKNOWN_ACTION", "entry.actions", entry.id) end
-            local templates = entry.actionRecords
-            if not templates then templates = {}; entry.actionRecords = templates end
-            if not templates[action] then templates[action] = { id = action, title = definition.title, kind = "provider" } end
-            record.actions[actionIndex] = templates[action]
-        elseif type(action) == "table" and action.kind == "open-panel" then
-            if not (entry.definition.views and entry.definition.views[action.panel]) then return failure("UNKNOWN_VIEW", "entry.actions", entry.id) end
-            ok, err = I.Boundary:ValidateSchema(action.state or {}, entry.definition.views[action.panel].stateSchema, "entry.actions.state")
-            if not ok then return nil, err end
-        elseif type(action) == "table" and (action.kind == "provider" or action.kind == "intent") then
-            return failure("INVALID_SCHEMA", "entry.actions", entry.id)
-        end
-    end
-    if record.drag and record.drag.type == "provider" then
-        if not (entry.definition.drags and entry.definition.drags[record.drag.handler]) then return failure("UNKNOWN_DRAG", "entry.drag", entry.id) end
-    end
-    -- The receiving boundary certifies this final, namespaced representation.
-    if type(record.category) == "string" then record.category = { title = record.category }
-    elseif type(record.category) == "table" and type(record.category.id) == "string" then
-        local id = record.category.id
-        if #id == 0 or #id > 192 or not id:match("^[A-Za-z0-9][A-Za-z0-9%._:%-/]*$") then
-            return failure("INVALID_SCHEMA", "entries[" .. index .. "].category.id")
-        end
-        record.category.id = entry.id .. ":" .. id
-    end
-    return record
-end
-local function records(entry, input, limit)
-    return I.Boundary:ReceiveRecords(input, prepareRecord, entry, limit or P.entryLimit, shareMetadata)
+local function records(entry,input,limit)
+    local list,map=I.RecordCodec:Receive(entry,input,limit or P.queryLimit)
+    if list then I.Boundary:_ConsumeRecordReceipt(list) end
+    return list,map
 end
 local function active(entry)
     local identity = I.Search.RuntimeIdentity
@@ -195,6 +64,7 @@ local function active(entry)
 end
 local function finish(job, reason)
     if job.done then return end
+    if job.reply then catalogReplies[job.reply]=nil;job.reply=nil end
     job.done, job.reason = true, reason
     P.jobs[job] = nil
     local resources,timer=job.resources,job.timer
@@ -218,28 +88,37 @@ end
 
 function P:Register(definition)
     local ok, err = I.Boundary:Validate(definition, "provider", {
-        maxFields = P.entryLimit, maxDepth = 12,
+        maxFields = 256, maxDepth = 12,
         callbacks = { query = true, resolve = true, run = true, begin = true, create = true, onEnable = true, onDisable = true },
     })
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
     ok, err = keys(definition, { id=true, apiVersion=true, minApiRevision=true, version=true, title=true,
-        entries=true, query=true, resolve=true, searchable=true, searchMode=true, searchGlobal=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
+        description=true,icon=true,source=true,order=true,
+        query=true, resolve=true, searchGlobal=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
     if not _G.Lychee:Supports(definition.apiVersion, definition.minApiRevision) then return failure("UNSUPPORTED_API", "apiVersion") end
+    if definition.order~=nil and (type(definition.order)~="number" or definition.order~=definition.order or math.abs(definition.order)>10000) then
+        return failure("INVALID_SCHEMA","order")
+    end
+    if definition.icon~=nil and not (type(definition.icon)=="string" and #definition.icon>0 and #definition.icon<=512)
+        and not (type(definition.icon)=="number" and definition.icon>0 and definition.icon<math.huge and definition.icon==math.floor(definition.icon)) then
+        return failure("INVALID_SCHEMA","icon")
+    end
+    if definition.source~=nil then
+        local source=definition.source
+        if type(source)~="table" or type(source.id)~="string" or #source.id==0 or #source.id>128 then return failure("INVALID_SCHEMA","source") end
+        ok,err=keys(source,{id=true,title=true},"source");if not ok then return nil,err end
+    end
     if I.Search.ProviderPolicy then
         local valid,field=I.Search.ProviderPolicy:ValidateDefinition(definition)
         if not valid then return failure("INVALID_SCHEMA",field) end
     end
-    if definition.searchable~=nil then
-        if type(definition.searchable)~="boolean" then return failure("INVALID_SCHEMA","searchable") end
-        if (definition.minApiRevision or 1)<3 then return failure("INVALID_SCHEMA","searchable.minApiRevision") end
-    end
     if definition.scope ~= nil and type(definition.scope) ~= "table" then return failure("INVALID_SCHEMA", "scope") end
     ok, err = I.Boundary:ValidateScope(definition.scope or {},"scope")
     if not ok then return nil, err end
-    if (definition.minApiRevision or 1)>=2 and (not definition.scope or not definition.scope.products or definition.i18n==nil) then
+    if not definition.scope or not definition.scope.products or definition.i18n==nil then
         return failure("INVALID_SCHEMA","scope.products/i18n")
     end
     local localizer
@@ -248,15 +127,18 @@ function P:Register(definition)
         localizer,err=I.ProviderLocales:Compile(definition.i18n)
         if not localizer then return nil,err end
     end
-    local inputEntries,ownedDefinition=definition.entries,{}
+    local ownedDefinition={}
     for key,value in pairs(definition) do if key~="entries" and key~="i18n" then ownedDefinition[key]=copy(value) end end
     definition=ownedDefinition
-    -- Unscoped API 2.1 providers predate other clients; do not silently opt them in.
-    if not definition.scope or (not definition.scope.product and not definition.scope.products) then
-        definition.scope=definition.scope or {};definition.scope.product="retail"
-    end
-    definition.entries=inputEntries
     if localizer then
+        if definition.description~=nil then
+            definition.description,err=localizer:Resolve(definition.description)
+            if not definition.description then return nil,err end
+        end
+        if definition.source and definition.source.title~=nil then
+            definition.source.title,err=localizer:Resolve(definition.source.title)
+            if not definition.source.title then return nil,err end
+        end
         definition.title,err=localizer:Resolve(definition.title)
         if not definition.title then
             if err then return nil,err end
@@ -273,8 +155,9 @@ function P:Register(definition)
             end
         end
     end
-    if definition.entries == nil and type(definition.query) ~= "function" then return failure("INVALID_SCHEMA", "entries/query") end
-    if definition.entries ~= nil and type(definition.entries) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
+    if definition.description~=nil and (type(definition.description)~="string" or #definition.description>512) then return failure("INVALID_SCHEMA","description") end
+    if definition.source and definition.source.title~=nil and (type(definition.source.title)~="string" or #definition.source.title==0 or #definition.source.title>128) then return failure("INVALID_SCHEMA","source.title") end
+    if type(definition.query)~="function" then return failure("INVALID_SCHEMA","query") end
     for _, field in ipairs({ "query", "resolve", "onEnable", "onDisable" }) do
         if definition[field] ~= nil and type(definition[field]) ~= "function" then return failure("INVALID_SCHEMA", field) end
     end
@@ -295,23 +178,7 @@ function P:Register(definition)
     end
     self.instanceSequence = self.instanceSequence + 1
     local entry = { id = definition.id, instanceToken = self.instanceSequence, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
-    local initial, map = records(entry, inputEntries or {})
-    if not initial then return nil, map end
-    entry.records, entry.recordMap = initial, map
-    entry.recordOrder = {}
-    for index, record in ipairs(initial) do entry.recordOrder[record.id] = index end
-    definition.entries = nil
-    local handle, internal, enabledBeforeCommit
-    local sourceID = entry.id .. ":records"
-    local function canonical(record)
-        return I.Search.StaticIndex:GetRecord(sourceID, record.id) or record
-    end
-    local function adoptRecords()
-        for index, record in ipairs(entry.records) do
-            local owned = canonical(record)
-            entry.records[index], entry.recordMap[record.id] = owned, owned
-        end
-    end
+    local handle,internal,enabledBeforeCommit
     local function start()
         if not internal then enabledBeforeCommit = true; return end
         if not active(entry) or entry.started then return end
@@ -346,13 +213,9 @@ function P:Register(definition)
     end
     local draft
     draft, err = I.Registry:Begin({ id = entry.id, title = definition.title, version = definition.version,
-        apiVersion = 2, minApiRevision = definition.minApiRevision or 1,
-        onHostAttached = adoptRecords, onEnabled = start, onDisabled = stop }, { public = true })
+        apiVersion = 3, minApiRevision = definition.minApiRevision or 1,
+        onEnabled = start, onDisabled = stop }, { public = true })
     if not draft then return nil, err end
-    ok, err = draft:RegisterSearchSource({ id = "records", title = definition.title, version = 2, revision = 1,
-        priority = 0, scope = definition.scope or {}, searchable=definition.searchable,
-        snapshot = function() return I.Registry:_OwnRecords(entry.records, entry.id) end })
-    if not ok then draft:Abort(); return nil, err end
     for id, view in pairs(definition.views or {}) do
         ok, err = draft:RegisterPanelFactory({ id = id, create = view.create, stateSchema = view.stateSchema })
         if not ok then draft:Abort(); return nil, err end
@@ -361,65 +224,14 @@ function P:Register(definition)
     if not internal then return nil, err end
     self.entries[entry.id] = entry
     if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
-    local source = internal:GetSearchSource("records")
-    handle = { id = entry.id }
-    function handle:Update(delta)
-        if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end
-        if entry.updating then return nil, {code="UPDATE_IN_PROGRESS",providerID=entry.id,retryable=true} end
-        if not active(entry) then return failure("PROVIDER_DISABLED", nil, entry.id) end
-        local valid, why = I.Boundary:Validate(delta, "update", { maxFields = P.entryLimit, maxDepth = 12 })
-        if not valid then return nil, why end
-        if type(delta) ~= "table" then return failure("INVALID_SCHEMA", "update") end
-        for _, field in ipairs({ "replace", "upsert", "remove" }) do
-            if delta[field] ~= nil and type(delta[field]) ~= "table" then return failure("INVALID_SCHEMA", "update." .. field) end
-        end
-        valid, why = keys(delta, { replace=true, upsert=true, remove=true }, "update"); if not valid then return nil, why end
-        if delta.replace ~= nil and (delta.upsert ~= nil or delta.remove ~= nil) then return failure("INVALID_SCHEMA", "update.replace") end
-        if delta.replace ~= nil then
-            local nextList, nextMap = records(entry, delta.replace)
-            if not nextList then return nil, nextMap end
-            entry.updating = true
-            local committed, commitError, _, changed = source:CommitSnapshot(I.Registry:_OwnRecords(nextList, entry.id))
-            entry.updating = nil
-            if not committed then return nil, commitError end
-            if not changed then return true end
-            entry.records, entry.recordMap, entry.recordOrder = nextList, nextMap, {}
-            for index, record in ipairs(nextList) do entry.recordOrder[record.id] = index end
-            adoptRecords()
-        else
-            local additions, addedMap = records(entry, delta.upsert or {})
-            if not additions then return nil, addedMap end
-            valid, why = array(delta.remove or {}, P.entryLimit, "update.remove"); if not valid then return nil, why end
-            local removed, count = {}, #entry.records
-            for _, id in ipairs(delta.remove or {}) do
-                if type(id) ~= "string" or id == "" or addedMap[id] or removed[id] then return failure("INVALID_SCHEMA", "update.remove") end
-                removed[id] = true
-                if entry.recordMap[id] then count = count - 1 end
-            end
-            for _, record in ipairs(additions) do if not entry.recordMap[record.id] then count = count + 1 end end
-            if count > P.entryLimit then return failure("RESULT_LIMIT", "update") end
-            entry.updating = true
-            local committed, commitError, _, changed = source:ApplyDelta(I.Registry:_OwnRecords(additions, entry.id), delta.remove or {})
-            entry.updating = nil
-            if not committed then return nil, commitError end
-            if not changed then return true end
-            for id in pairs(removed) do
-                local index = entry.recordOrder[id]
-                if index then
-                    local last = entry.records[#entry.records]
-                    entry.records[index], entry.recordOrder[last.id] = last, index
-                    entry.records[#entry.records] = nil
-                    entry.recordOrder[id], entry.recordMap[id] = nil, nil
-                end
-            end
-            for _, record in ipairs(additions) do
-                record = canonical(record)
-                local index = entry.recordOrder[record.id] or #entry.records + 1
-                entry.records[index], entry.recordMap[record.id], entry.recordOrder[record.id] = record, record, index
-            end
-        end
-        entry.revision = entry.revision + 1
-        if not (C_Timer and C_Timer.NewTimer) and I.Search.Session then I.Search.Session:RefreshSource() end
+    handle = {id=entry.id}
+    function handle:Invalidate()
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        if not active(entry) then return failure("PROVIDER_DISABLED",nil,entry.id) end
+        entry.revision=entry.revision+1
+        entry.dynamic,entry.resolved={},resolvedRecords()
+        P:CancelQueries("provider-changed",entry)
+        if active(entry) and I.Search.Session then I.Search.Session:SourceChanged(entry.id) end
         return true
     end
     function handle:Resources()
@@ -429,11 +241,6 @@ function P:Register(definition)
             entry.resources=I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end)
         end
         return entry.resources
-    end
-    function handle:Settings()
-        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
-        if not entry.settings then entry.settings=I.ProviderData:Settings(entry.id,function() return P.entries[entry.id]==entry end) end
-        return entry.settings
     end
     function handle:GetDiagnostics()
         if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
@@ -450,11 +257,20 @@ function P:Register(definition)
         return { enabled = active(entry), ownerEnabled = state.ownerEnabled, userEnabled = state.userEnabled,
             lifecycle = state.lifecycle, revision = entry.revision, lastError = copy(entry.lastError) }
     end
-    function handle:SetEnabled(enabled)
-        if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end
-        if entry.updating then return nil, {code="UPDATE_IN_PROGRESS",providerID=entry.id,retryable=true} end
-        if type(enabled) ~= "boolean" then return failure("INVALID_SCHEMA", "enabled") end
-        return internal:SetEnabled(enabled)
+    function handle:SetAvailability(available,reason)
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        if entry.updating then return nil,{code="UPDATE_IN_PROGRESS",providerID=entry.id,retryable=true} end
+        local valid=I.Boundary:Validate(reason,"availability.reason")
+        if not valid or type(available)~="boolean" or reason~=nil and (type(reason)~="string" or #reason>256) then
+            return failure("INVALID_SCHEMA","availability",entry.id)
+        end
+        local previous=entry.unavailableReason
+        entry.unavailableReason=not available and reason or nil
+        local ok,why=internal:SetEnabled(available)
+        if not ok then entry.unavailableReason=previous;return nil,why end
+        if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
+        if previous~=entry.unavailableReason then I.Registry:NotifyMetadata(entry.id) end
+        return true
     end
     function handle:Unregister()
         if P.entries[entry.id] ~= entry then return true end
@@ -463,9 +279,9 @@ function P:Register(definition)
         if removed then
             P.entries[entry.id] = nil
             if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
-            entry.localizer,entry.settings=nil,nil
+            entry.localizer=nil
             entry.metadataPool, entry.actionRecords, entry.actionLists = nil, nil, nil
-            entry.records, entry.recordMap, entry.recordOrder, entry.dynamic, entry.resolved = {}, {}, {}, {}, {}
+            entry.dynamic, entry.resolved = {}, {}
             definition.actions, definition.drags, definition.views, definition.query, definition.resolve = nil, nil, nil, nil, nil
             definition.onEnable, definition.onDisable = nil, nil
         end
@@ -477,7 +293,7 @@ end
 
 function P:CreateViewResources(owner)
     local entry=self.entries[owner]
-    if not entry or not active(entry) or (entry.definition.minApiRevision or 1)<7 then return nil end
+    if not entry or not active(entry) then return nil end
     if not entry.resources then entry.resources=I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end) end
     return I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end,entry.resources)
 end
@@ -488,10 +304,13 @@ function P:Stamp(item, dynamic)
         if item and item._ext and item.sourceID then item.ref = { providerID = item._ext, entryID = item.id, sourceID = item.sourceID } end
         return item
     end
-    item.providerID, item.ref = entry.id, { providerID = entry.id, entryID = item.id }
-    item._providerInstance, item._providerRevision = entry, entry.revision
-    item._providerRecord = entry.recordMap[item.id]
-    item._dynamicEpoch = dynamic and entry.dynamicEpoch or nil
+    item.ref = {providerID=entry.id,entryID=item.id}
+    if not getmetatable(item) then
+        item.providerID=entry.id
+        item._providerInstance,item._providerRevision=entry,entry.revision
+        item._dynamicEpoch=dynamic and entry.dynamicEpoch or nil
+    end
+    item._providerRecord = item.searchRecord
     return item
 end
 function P:IsCurrent(item)
@@ -501,46 +320,42 @@ function P:IsCurrent(item)
     return active(entry) and item._providerRevision == entry.revision
         and record ~= nil and (not identity or identity:MatchesScope(record.scope or entry.definition.scope))
         and (not item._dynamicEpoch or item._dynamicEpoch == entry.dynamicEpoch)
-        and (item._providerRecord == entry.recordMap[item.id] or item._providerRecord == entry.dynamic[item.id] or entry.resolved[item._providerRecord] == true)
+        and (item._providerRecord == entry.dynamic[item.id] or entry.resolved[item._providerRecord] == true)
 end
 local function materialize(entry, record)
-    local item = I.Search.ResultSnapshot:Materialize({ record = record, sourceID = entry.id .. ":records",
-        sourceExtensionID = entry.id, sourceTitle = entry.definition.title, confidence = 0.75,
-        stableID = entry.id .. ":" .. record.id })
+    local presentation=entry.presentation
+    if not presentation or presentation.revision~=entry.revision or presentation.epoch~=entry.dynamicEpoch then
+        local sourceID=entry.id..":records"
+        local metadata={source=sourceID,sourceID=sourceID,sourceTitle=I.Search.Normalizer:Display(entry.definition.title),
+            _ext=entry.id,providerID=entry.id,_providerInstance=entry,_providerRevision=entry.revision,_dynamicEpoch=entry.dynamicEpoch}
+        presentation={sourceID=sourceID,confidence=0.75,metadata={__index=metadata},revision=entry.revision,epoch=entry.dynamicEpoch}
+        entry.presentation=presentation
+    end
+    local item = I.Search.ResultSnapshot:Materialize(entry.presentation,record)
+    item.stableID=entry.id..":"..record.id
     P:Stamp(item, true)
     item._providerRecord = record
     return item
 end
 function P:CanRemember(item)
-    local entry = item and self.entries[item.providerID]
-    if entry then return active(entry) and item._providerInstance == entry and (entry.recordMap[item.id] ~= nil or type(entry.definition.resolve) == "function") end
-    return item and item.ref and item.sourceID and I.Search.StaticIndex.entries[item.sourceID .. ":" .. item.id] ~= nil
+    local entry=item and self.entries[item.providerID]
+    return entry and active(entry) and item._providerInstance==entry and item._providerRecord.rememberable~=false and type(entry.definition.resolve)=="function"
 end
-function P:Resolve(ref, context)
-    if type(ref) ~= "table" or type(ref.providerID) ~= "string" or type(ref.entryID) ~= "string" then return nil end
-    local entry = self.entries[ref.providerID]
-    if not entry then
-        local indexed = type(ref.sourceID) == "string" and I.Search.StaticIndex.entries[ref.sourceID .. ":" .. ref.entryID]
-        local source = indexed and indexed.source
-        if not source or source.extensionID ~= ref.providerID or not I.Registry:IsEnabled(ref.providerID) or not source.enabled then return nil end
-        local item = I.Search.ResultSnapshot:Materialize({ record = indexed.record, sourceID = source.id, sourceExtensionID = ref.providerID,
-            sourceTitle = source.title or source.extensionTitle, sourceGeneration = source.generation, sourceRevision = source.revision, stableID = indexed.stableID })
-        return self:Stamp(item)
-    end
-    if not active(entry) then return nil end
-    local record = entry.recordMap[ref.entryID]
-    if not record and entry.definition.resolve then
-        local ok, result = pcall(entry.definition.resolve, ref.entryID, copy(context or {}))
-        if not ok then report(entry, "CALLBACK_ERROR", "resolve"); return nil end
-        if not active(entry) then return nil end
-        if result == nil then return nil end
-        local restored, err = records(entry, { result })
-        if not restored or restored[1].id ~= ref.entryID then report(entry, err and err.code or "INVALID_SCHEMA", "resolve"); return nil end
-        record = restored[1]; entry.resolved[record] = true
-    end
-    local identity = I.Search.RuntimeIdentity
-    if record and identity and not identity:MatchesScope(record.scope or entry.definition.scope) then return nil end
-    return record and materialize(entry, record)
+function P:Resolve(ref,context)
+    if type(ref)~="table" or type(ref.providerID)~="string" or type(ref.entryID)~="string" then return nil end
+    local entry=self.entries[ref.providerID]
+    if not entry or not active(entry) or not entry.definition.resolve then return nil end
+    local revision=entry.revision
+    local ok,result=pcall(entry.definition.resolve,ref.entryID,copy(context or {}))
+    if not ok then report(entry,"CALLBACK_ERROR","resolve");return nil end
+    if not active(entry) or revision~=entry.revision or result==nil then return nil end
+    local list,err=records(entry,{result},1)
+    if not list or list[1].id~=ref.entryID then report(entry,err and err.code or "INVALID_SCHEMA","resolve");return nil end
+    local record=list[1]
+    local identity=I.Search.RuntimeIdentity
+    if identity and not identity:MatchesScope(record.scope or entry.definition.scope) then return nil end
+    entry.resolved[record]=true
+    return materialize(entry,record)
 end
 function P:Execute(item, actionID, context, dragging)
     if not self:IsCurrent(item) then return failure("STALE_RESULT", nil, item and item.providerID) end
@@ -550,13 +365,7 @@ function P:Execute(item, actionID, context, dragging)
     local definition = dragging and entry.definition.drags or entry.definition.actions
     local action = definition and definition[actionID]
     if not record or not action then return failure("ACTION_UNAVAILABLE", actionID, entry.id) end
-    local publicRecord = copy(record)
-    publicRecord._extensionID = nil
-    for index, declared in ipairs(publicRecord.actions or {}) do
-        if declared.kind == "provider" then publicRecord.actions[index] = declared.id end
-    end
-    local category = publicRecord.category
-    if type(category) == "table" and type(category.id) == "string" then category.id = category.id:sub(#entry.id + 2) end
+    local publicRecord = I.RecordCodec:Public(record,entry.id)
     local resultOK, result = pcall(dragging and action.begin or action.run, publicRecord, copy(context or {}))
     if not resultOK then report(entry, "CALLBACK_ERROR", actionID); return failure("CALLBACK_ERROR", actionID, entry.id) end
     if not active(entry) then return failure("STALE_RESULT", actionID, entry.id) end
@@ -618,45 +427,71 @@ function P:Search(request, context, onChange)
         entry.dynamicEpoch = entry.dynamicEpoch + 1
         local job = { entry = entry, epoch = epoch, revision = entry.revision, dynamicEpoch = entry.dynamicEpoch }
         self.jobs[job] = true
-        local function reply(input)
+        local function reply(input,token)
             if job.done then return failure("STALE_REQUEST", "query", id) end
             if not active(entry) or job.epoch ~= P.queryEpoch or job.revision ~= entry.revision
                 or job.dynamicEpoch ~= entry.dynamicEpoch then
                 settle(job, "stale")
                 return failure("STALE_REQUEST", "query", id)
             end
-            local list, map = records(entry, input, P.queryLimit)
-            if not list then report(entry, map.code, "query"); settle(job, "invalid"); return nil, map end
-            entry.dynamic = map
-            local items = {}
-            for index = 1, #list do
-                local record = list[index]
-                local category = type(record.category) == "table" and record.category.id or record.category
-                local identity = I.Search.RuntimeIdentity
-                if (not request.filter or not request.filter.categoryID or request.filter.categoryID == category)
+            local list,map
+            if token==catalogToken then
+                list,map={},{}
+                for at,hit in ipairs(input) do local record=hit.entry.record;list[at],map[record.id]=record,record end
+            else
+            local valid,why=I.Boundary:Validate(input,"hits",{maxFields=P.queryLimit,maxDepth=14})
+            if valid then valid,why=array(input,P.queryLimit,"hits") end
+            if not valid then report(entry,why.code,"query");settle(job,"invalid");return nil,why end
+            local raw={}
+            for index,hit in ipairs(input) do
+                if type(hit)~="table" or not keys(hit,{entry=true,confidence=true,evidence=true},"hit")
+                    or type(hit.confidence)~="number" or hit.confidence<0 or hit.confidence>1
+                    or hit.evidence~=nil and type(hit.evidence)~="table" then
+                    settle(job,"invalid");return failure("INVALID_RESULT","hit",id)
+                end
+                if type(hit.entry)~="table" then settle(job,"invalid");return failure("INVALID_SCHEMA","query.entry",entry.id) end
+                raw[index]=hit.entry
+            end
+            list,map=records(entry,raw,P.queryLimit)
+            if not list then report(entry,map.code,"query");settle(job,"invalid");return nil,map end
+            end
+            entry.dynamic=map
+            local items={}
+            for index,record in ipairs(list) do
+                local category=type(record.category)=="table" and record.category.id or record.category
+                local identity=I.Search.RuntimeIdentity
+                if (not request.filter or not request.filter.categoryID or request.filter.categoryID==category)
                     and (not identity or identity:MatchesScope(record.scope or entry.definition.scope)) then
-                    local item = materialize(entry, record)
-                    local match = I.Search.Normalizer:MatchRecord(request.normalized, record, entry.definition.scope)
-                    if match then item.confidence, item.evidence = match.confidence, match end
-                    items[#items + 1] = item
+                    local item=materialize(entry,record)
+                    item.confidence,item.evidence=input[index].confidence,token==catalogToken and input[index] or copy(input[index].evidence)
+                    item.categoryOrder=type(record.category)=="table" and record.category.order or 0
+                    if token==catalogToken then input[index].entry=nil end
+                    items[#items+1]=item
                 end
             end
             output[id] = items
             settle(job, "complete")
             return true
         end
+        job.reply=reply
+        catalogReplies[reply]={entry=entry,reply=reply}
         local queryContext=copy(context or {})
         local resourceError
-        if (entry.definition.minApiRevision or 1)>=7 then
+        if true then
             if not entry.resources then entry.resources=I.Resources:Create(function() return active(entry) end,function(code,field) report(entry,code,field) end) end
             job.resources,resourceError=I.Resources:Create(function() return not job.done and active(entry) and job.epoch==P.queryEpoch end,
                 function(code,field) report(entry,code,field) end,entry.resources)
             queryContext.resources=job.resources
         end
         local ok, cancel
-        if (entry.definition.minApiRevision or 1)>=7 and not job.resources then
+        if not job.resources then
             ok=false
-        else ok,cancel=pcall(entry.definition.query, publicQueryRequest(request), reply, queryContext) end
+        else
+            local publicRequest=publicQueryRequest(request)
+            local preferred=I.Search.Personalization and I.Search.Personalization:Preferred(request)
+            if preferred and preferred.providerID==id then publicRequest.preferredEntryID=preferred.entryID end
+            ok,cancel=pcall(entry.definition.query,publicRequest,reply,queryContext)
+        end
         if not ok then
             if P.entries[id]==entry and epoch==P.queryEpoch and job.dynamicEpoch==entry.dynamicEpoch then
                 output[id], entry.dynamic = nil, {}
@@ -680,4 +515,24 @@ function P:Search(request, context, onChange)
     end
     collecting = false
     return gather()
+end
+
+-- Private transfer: only SDK-owned catalogs can reach this bridge. The public
+-- reply function cannot manufacture catalogToken or reach canonical records.
+local function equal(a,b)
+    if a==b then return true end
+    if type(a)~="table" or type(b)~="table" then return false end
+    for k,v in pairs(a) do if not equal(v,b[k]) then return false end end
+    for k in pairs(b) do if a[k]==nil then return false end end
+    return true
+end
+function I.CatalogFactory:Deliver(reply,definition,hits)
+    local target=catalogReplies[reply]
+    if not target then return nil,{code="STALE_REQUEST"} end
+    local actual=target.entry.definition
+    if definition.id~=actual.id then return false end
+    for _,field in ipairs({"scope","actions","drags","views"}) do
+        if not equal(definition[field],actual[field]) then return false end
+    end
+    return reply(hits,catalogToken)
 end

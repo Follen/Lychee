@@ -8,46 +8,6 @@ end
 local function plain(value)
     return I.Boundary:Copy(value,"data",{maxDepth=6,maxFields=128,maxNodes=256,maxBytes=16384,scalarKeys=true})
 end
-function D:Settings(owner,valid)
-    local function entries(create)
-        if not valid() then return failure("STALE_HANDLE") end
-        local data=I.CharacterStore:Data()
-        if getmetatable(data)~=nil then return failure("INVALID_SETTINGS") end
-        if data.providerSettings==nil then if not create then return {} end;data.providerSettings={} end
-        if type(data.providerSettings)~="table" or getmetatable(data.providerSettings)~=nil then return failure("INVALID_SETTINGS") end
-        if data.providerSettings[owner]==nil then if not create then return {} end;data.providerSettings[owner]={} end
-        local values=data.providerSettings[owner]
-        if type(values)~="table" or getmetatable(values)~=nil then return failure("INVALID_SETTINGS") end
-        return values
-    end
-    return {
-        Get=function(_,key,default)
-            if not keyOK(key) then return failure("INVALID_SCHEMA") end
-            local values,err=entries(false);if not values then return nil,err end
-            local value=values[key];if value==nil then value=default end
-            return plain(value)
-        end,
-        Set=function(_,key,value)
-            if not keyOK(key) then return failure("INVALID_SCHEMA") end
-            local owned,err,size=plain(value);if err then return nil,err end
-            local values;values,err=entries(false);if not values then return nil,err end
-            local count,bytes=0,0
-            for name,existing in pairs(values) do
-                if name~=key then
-                    if not keyOK(name) then return failure("INVALID_SETTINGS") end
-                    local _,invalid,size=plain(existing);if invalid then return nil,invalid end
-                    count=count+1;bytes=bytes+#name+size
-                    if count>64 or bytes>65536 then return failure("DATA_LIMIT") end
-                end
-            end
-            if owned~=nil then count=count+1;bytes=bytes+#key+size end
-            if count>64 or bytes>65536 then return failure("DATA_LIMIT") end
-            values,err=entries(true);if not values then return nil,err end
-            values[key]=owned
-            return true
-        end,
-    }
-end
 function D:Cache(scope,key,options)
     if not keyOK(key) then return failure("INVALID_SCHEMA") end
     local config,err=I.Boundary:Copy(options==nil and {} or options,"cache")

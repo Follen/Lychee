@@ -30,9 +30,9 @@ local function displayActions(actions)
     return displayed
 end
 
-function R:Materialize(hit)
+function R:Materialize(hit,ownedRecord)
     local indexed=hit and hit.entry
-    local record = indexed and indexed.record or (hit and hit.record)
+    local record = ownedRecord or (indexed and indexed.record or (hit and hit.record))
     local source=indexed and indexed.source
     local sourceID=source and source.id or (hit and hit.sourceID)
     if not record or not sourceID or sourceID == "legacy" then return nil end
@@ -46,19 +46,21 @@ function R:Materialize(hit)
         icon = record.icon,
         category = displayText(record.category and record.category.title or record.category),
         categoryColor = record.category and record.category.color,
-        source = sourceID,
-        sourceID = sourceID,
-        sourceTitle = displayText(source and (source.title or source.extensionTitle) or hit.sourceTitle),
-        sourceGeneration = source and source.generation or hit.sourceGeneration,
-        sourceRevision = source and source.revision or hit.sourceRevision,
-        _ext = record._extensionID or (source and source.extensionID) or hit.sourceExtensionID,
         searchRecord = record,
         confidence = hit.confidence,
         evidence = hit.evidence,
-        sourcePriority = indexed and indexed.source.priority or hit.sourcePriority,
         categoryOrder = indexed and indexed.categoryOrder or hit.categoryOrder,
         stableID = indexed and indexed.stableID or hit.stableID,
     }
+    if ownedRecord then setmetatable(item,hit.metadata)
+    else
+        item.source,item.sourceID=sourceID,sourceID
+        item.sourceTitle=displayText(source and (source.title or source.extensionTitle) or hit.sourceTitle)
+        item.sourceGeneration=source and source.generation or hit.sourceGeneration
+        item.sourceRevision=source and source.revision or hit.sourceRevision
+        item._ext=record._extensionID or (source and source.extensionID) or hit.sourceExtensionID
+        item.sourcePriority=indexed and indexed.source.priority or hit.sourcePriority
+    end
     if type(record.actions) == "table" then
         item.interaction = {
             primaryActionID = record.primaryActionID or (record.actions[1] and record.actions[1].id),

@@ -1,0 +1,20 @@
+## Interface: 120100
+## Title: Lychee Encounters
+## Author: Lychee
+## Version: 0.2.0
+## Dependencies: Lychee
+
+Bootstrap.lua
+Manifest.lua
+Bosses/Locales.lua
+LDT/Locales.lua
+Runtime/InterfaceActions.lua
+Runtime/CatalogLedger.lua
+Runtime/CatalogProvider.lua
+Bosses/JournalCatalog.lua
+Bosses/Provider.lua
+LDT/Data.lua
+LDT/Catalog.lua
+LDT/View.lua
+LDT/Provider.lua
+Activate.lua

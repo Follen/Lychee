@@ -1,0 +1,47 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+    "line": 347,
+    "excerpt": "347: \t\t\tName = \"LoadAddOn\",\n348: \t\t\tType = \"Function\",\n349: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n350: \n351: \t\t\tArguments =\n352: \t\t\t{\n353: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n354: \t\t\t},\n355: \n356: \t\t\tReturns =\n357: \t\t\t{\n358: \t\t\t\t{ Name = \"loaded\", Type = \"bool\", Nilable = true },\n359: \t\t\t\t{ Name = \"value\", Type = \"string\", Nilable = true },\n360: \t\t\t},\n361: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+    "line": 322,
+    "excerpt": "322: \t\t\tName = \"IsAddOnLoaded\",\n323: \t\t\tType = \"Function\",\n324: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n325: \n326: \t\t\tArguments =\n327: \t\t\t{\n328: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n329: \t\t\t},\n330: \n331: \t\t\tReturns =\n332: \t\t\t{\n333: \t\t\t\t{ Name = \"loadedOrLoading\", Type = \"bool\", Nilable = false },\n334: \t\t\t\t{ Name = \"loaded\", Type = \"bool\", Nilable = false },\n335: \t\t\t},\n336: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+    "line": 98,
+    "excerpt": "98: \t\t\tName = \"GetAddOnEnableState\",\n99: \t\t\tType = \"Function\",\n100: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n101: \n102: \t\t\tArguments =\n103: \t\t\t{\n104: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n105: \t\t\t\t{ Name = \"character\", Type = \"cstring\", Nilable = false, Default = \"0\" },\n106: \t\t\t},\n107: \n108: \t\t\tReturns =\n109: \t\t\t{\n110: \t\t\t\t{ Name = \"state\", Type = \"AddOnEnableState\", Nilable = false },\n111: \t\t\t},\n112: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+    "line": 391,
+    "excerpt": "388: \t\t{\n389: \t\t\tName = \"AddonLoaded\",\n390: \t\t\tType = \"Event\",\n391: \t\t\tLiteralName = \"ADDON_LOADED\",\n392: \t\t\tSynchronousEvent = true,\n393: \t\t\tPayload =\n394: \t\t\t{"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AchievementInfoDocumentation.lua",
+    "line": 96,
+    "excerpt": "93: \t\t{\n94: \t\t\tName = \"AchievementEarned\",\n95: \t\t\tType = \"Event\",\n96: \t\t\tLiteralName = \"ACHIEVEMENT_EARNED\",\n97: \t\t\tSynchronousEvent = true,\n98: \t\t\tPayload =\n99: \t\t\t{"
+  }
+]

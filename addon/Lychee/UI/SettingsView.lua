@@ -27,48 +27,12 @@ local function button(parent, title, width, callback)
     Lychee.UI.Theme:SetFont(control.label,"body")
     return control
 end
-local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
-    ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6,
-    ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
-    ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
-local providerDescriptions = {
-    ["builtin.player-spells"]=L["搜索并施放已学技能"],
-    ["builtin.mounts"]=L["搜索并召唤坐骑"],
-    ["builtin.bosses"]=L["搜索团本首领和技能并查看指南"],
-    ["builtin.game-menus"]=L["快速打开游戏面板"],
-    ["builtin.crests"]=L["查看当前角色的纹章数量"],
-    ["builtin.great-vault"]=L["查看宏伟宝库进度与奖励"],
-    ["builtin.bags"]=L["搜索物品并定位背包"],
-    ["builtin.talent-loadouts"]=L["搜索并切换天赋方案"],
-    ["builtin.equipment-sets"]=L["搜索并切换装备方案"],
-    ["builtin.blizzard-settings"]=L["定位设置、重载界面与冷却管理器"],
-    ["builtin.keystones"]=L["队伍钥匙、分数与副本传送"],
-    ["builtin.achievements"]=L["搜索成就、查看进度与分享链接"],
-    ["builtin.addon-inspector"]=L["指向界面，识别来源插件"],
-    ["builtin.ellesmere"]=L["用 EUI：搜索设置页面或解锁界面"],
-    ["builtin.exwind"]=L["用 EX：搜索设置页面或解锁界面"],
-}
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
-local providerIcons = {
-    ["builtin.player-spells"] = iconRoot .. "spellbook.tga",
-    ["builtin.mounts"] = iconRoot .. "mounts.tga",
-    ["builtin.bosses"] = iconRoot .. "skull.tga",
-    ["builtin.game-menus"] = iconRoot .. "game-menu.tga",
-    ["builtin.crests"] = iconRoot .. "currency.tga",
-    ["builtin.great-vault"] = iconRoot .. "great-vault.tga",
-    ["builtin.bags"] = iconRoot .. "toys.tga",
-    ["builtin.talent-loadouts"] = iconRoot .. "talents.tga",
-    ["builtin.equipment-sets"] = iconRoot .. "character.tga",
-    ["builtin.blizzard-settings"] = iconRoot .. "settings.tga",
-    ["builtin.keystones"] = iconRoot .. "keystone.tga",
-    ["builtin.achievements"] = iconRoot .. "achievements.tga",
-    ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
-}
 local function rowIcon(record)
     local pin = type(record.pin) == "table" and record.pin or nil
     local icon = record.item and record.item.icon or pin and pin.icon
     if type(icon) == "string" and icon ~= "" or type(icon) == "number" and icon > 0 then return icon end
-    return providerIcons[record.id or pin and pin.providerID] or iconRoot .. "settings.tga"
+    return record.icon or iconRoot .. "settings.tga"
 end
 local function displayTitle(value, fallback) return L:Resolve(value, fallback) end
 local function releaseIdentity(row)
@@ -153,13 +117,13 @@ function Settings:Create(parent, controller)
         local row=CreateFrame("Button",nil,content);row:SetSize(rowWidth,metrics.rowHeight)
         row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(metrics.iconSize,metrics.iconSize);row.icon:SetPoint("LEFT",row,"LEFT",metrics.listIconInset,0)
         row.ui=Lychee.UI:Create(row,{type="Fragment",children={
-            {type="Text",key="name",props={role="body",color="text",height=17,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7},{"RIGHT",row,"RIGHT",-188,0}}}},
-            {type="Text",key="detail",props={role="meta",color="textMuted",height=14,points={{"TOPLEFT","name","BOTTOMLEFT",0,-3},{"RIGHT",row,"RIGHT",-180,0}}}},
+            {type="Text",key="name",props={role="body",color="text",height=17,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7},{"RIGHT",row,"RIGHT",-124,0}}}},
+            {type="Text",key="detail",props={role="meta",color="textMuted",height=14,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT","name","BOTTOMLEFT",0,-3},{"RIGHT",row,"RIGHT",-124,0}}}},
             {type="Text",key="state",props={role="meta",color="textMuted",width=118,justifyH="RIGHT",point={"RIGHT",row,"RIGHT",-54,0}}},
         }})
         assert(row.ui:Update(EMPTY_UI_PROPS));row.name,row.detail,row.state=row.ui:Get("name"),row.ui:Get("detail"),row.ui:Get("state")
         row.toggle=Lychee.UI.Components:CreateToggle(row);row.toggle:SetPoint("RIGHT",row,"RIGHT",-metrics.listIconInset,0)
-        row.manage=button(row,L["点击管理"],54,function()
+        row.manage=button(row,L["设置"],54,function()
             if currentClick(row.manage.frame,row) then self:OpenProvider(row.providerID,row._icon) end
         end)
         row.manage.frame:SetPoint("RIGHT",row,"RIGHT",-52,0)
@@ -228,8 +192,9 @@ function Settings:Create(parent, controller)
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
         if self.providerView and self.providerView.frame:IsShown() then
-            if management:IsCurrent(self.providerView.id,self.providerView.instanceToken) then return end
+            if management:IsCurrent(self.providerView.id,self.providerView.instanceToken) then self.providerView:RefreshStatus();return end
             self.providerView.frame:Hide()
+            controller:SetStatusText(L["该功能已断开连接，配置已保留"])
         end
         if self.aliasView and self.aliasView.frame:IsShown() then return end
         if frame:IsShown() and controller.ResizeForMode then controller:ResizeForMode("settings") end
@@ -286,27 +251,29 @@ function Settings:Create(parent, controller)
         local data,count=self.data or {},0
         if self.tab=="providers" then
             management:FillList(data)
-            for _,record in ipairs(data) do
-                record.builtin,record.order=builtinOrder[record.id]~=nil,builtinOrder[record.id] or 100
-            end
-            table.sort(data,function(a,b) if a.order~=b.order then return a.order<b.order end;return a.id<b.id end)
+            table.sort(data,function(a,b)
+                if a.sourceID~=b.sourceID then return a.sourceID<b.sourceID end
+                if a.order~=b.order then return a.order<b.order end
+                return a.id<b.id
+            end)
         else
             for index,pin in ipairs(I.UserPreferences:GetPins()) do
                 count=count+1
                 local record=data[count] or {};data[count]=record
-                record.id,record.instanceToken,record.title,record.version,record.builtin,record.order=nil,nil,nil,nil,nil,nil
-                record.status,record.lifecycle,record.userEnabled,record.ownerEnabled,record.effectiveEnabled,record.searchable=nil,nil,nil,nil,nil,nil
+                record.id,record.instanceToken,record.title,record.version,record.sourceID,record.order=nil,nil,nil,nil,nil,nil
+                record.sourceTitle,record.description,record.icon,record.groupY=nil,nil,nil,nil
+                record.status,record.lifecycle,record.userEnabled,record.ownerEnabled,record.effectiveEnabled=nil,nil,nil,nil,nil
                 record.pin,record.pinIndex=pin,index
             end
             for index=#data,count+1,-1 do data[index]=nil end
         end
         local y,groupCount,lastGroup=0,0,nil
         for index,record in ipairs(data) do
+            record.groupY=nil
             if self.tab=="providers" then
-                local group=record.builtin and L["内置"] or L["第三方"]
-                if group~=lastGroup then
-                    if lastGroup then y=y+12 end
-                    groupCount=groupCount+1;self:Header(groupCount,group,y);y=y+23;lastGroup=group
+                if record.sourceID~=lastGroup then
+                    if lastGroup then y=y+18 end
+                    record.groupY=y;y=y+26;lastGroup=record.sourceID
                 end
             end
             record.y=y;y=y+rowStride
@@ -330,9 +297,12 @@ function Settings:Create(parent, controller)
             local middle=math.floor((low+high)/2)
             if data[middle].y+metrics.rowHeight<=self.scroll then low=middle+1 else high=middle-1 end
         end
-        local visible=0
+        local visible,visibleGroups=0,0
         for index=low,#data do
             local record=data[index]
+            if record.groupY and record.groupY+20>self.scroll and record.groupY<self.scroll+viewport then
+                visibleGroups=visibleGroups+1;self:Header(visibleGroups,record.sourceTitle,record.groupY)
+            end
             if record.y>=self.scroll+viewport then break end
             visible=visible+1
             local row=self:Acquire(visible)
@@ -359,12 +329,11 @@ function Settings:Create(parent, controller)
             text(row.name,record.title)
             if self.tab=="providers" then
                 local global,prefixes,keywords=management:GetConfiguration(record.id,record.instanceToken)
-                text(row.detail,(not record.searchable and L["独立查询入口"]
-                    or global==false and L["仅通过快捷入口"].." · "..(#keywords>0 and table.concat(keywords," / ") or (prefixes[1] or "").."：")
-                    or providerDescriptions[record.id] or L["全局搜索"]))
+                text(row.detail,(global==false and L["仅通过快捷入口"].." · "..(#keywords>0 and table.concat(keywords," / ") or (prefixes[1] or "").."：")
+                    or record.description or L["全局搜索"]))
                 text(row.state,"")
-                if record.status then
-                    text(row.detail,record.status=="incompatible" and L["版本不兼容"] or record.status=="pending" and L["尚未加载"]
+                if record.status and record.status~="user-disabled" then
+                    text(row.detail,record.statusReason or record.status=="incompatible" and L["版本不兼容"] or record.status=="pending" and L["尚未加载"]
                         or record.status=="user-disabled" and L["已关闭"] or L["扩展自行停用"])
                 end
                 row.toggle:SetChecked(record.userEnabled,rebound)
@@ -383,6 +352,8 @@ function Settings:Create(parent, controller)
             if row._icon~=nil and row.icon:SetTexture(nil)~=false then row._icon=nil end
             shown(row,false)
         end
+        if #data==0 then visibleGroups=1 end
+        for index=visibleGroups+1,#self.groups do shown(self.groups[index],false) end
     end
     function view:OpenAliases(ref,title)
         if not frame:IsShown() or InCombatLockdown() then return false end
@@ -401,7 +372,7 @@ function Settings:Create(parent, controller)
         if self.aliasView then self.aliasView.frame:Hide() end
         if self.general then self.general:Hide() end
         scroll:Hide();self.undo.frame:Hide()
-        self.providerView:Show(id,icon,providerDescriptions[id])
+        self.providerView:Show(id,icon)
         if controller.ResizeForMode then controller:ResizeForMode("settings") end
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
         self.underline:Hide()

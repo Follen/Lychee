@@ -8,7 +8,7 @@
 
 ## 当前 Elles 适配契约
 
-`Builtin/Ellesmere/Adapter.lua`集中版本敏感访问；Provider保留查询、稳定ID、捕获容量、排序与取消。
+`../Lychee_Integrations/Ellesmere/Adapter.lua`集中版本敏感访问；Provider保留查询、稳定ID、捕获容量、排序与取消。
 以下是Lychee内部维护接口，不是第三方SDK的新公开字段：
 
 | 上游能力 | 用途 | 不可用时 |

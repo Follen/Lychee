@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Offline interaction contract smoke. This harness exercises host-owned UI guards
 -- without pretending to validate the real WoW secure-click implementation.
@@ -23,6 +24,8 @@ local function object(kind, parent)
     function o:GetScript(event) return self.scripts[event] end
     function o:SetJustifyV(value) self.justifyV=value end
     function o:SetWordWrap(value) self.wordWrap=value end
+    function o:SetNonSpaceWrap(value) self.nonSpaceWrap=value end
+    function o:GetStringWidth() return #(self.text or "")*6 end
     function o:SetMaxLines(value) self.maxLines=value end
     function o:SetAllPoints(target) mutation(self, "SetAllPoints");self.allPoints=target or self.parent end
     function o:SetClipsChildren(value) self.clipsChildren=value end
@@ -116,10 +119,8 @@ local function tooltipText()
 end
 
 local root = "addon/Lychee/"
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Search/SearchSession.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua", "UI/FocusController.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua", "UI/ProviderSettings.lua", "UI/SettingsView.lua", "UI/Palette.lua"}, {load=function(path)
-    local before=createdFrames
-    dofile(root..path)
-    if path=="UI/Palette.lua" then assert(createdFrames==before,"loading Palette creates no hidden UI") end
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Search/SearchSession.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua", "UI/FocusController.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua", "UI/ProviderSettings.lua", "UI/SettingsView.lua", "UI/Palette.lua"}, {afterLoad=function(path)
+    if path=="UI/Palette.lua" then assert(not (LycheeInternal.Host and LycheeInternal.Host.PaletteController),"loading Palette creates no hidden UI") end
 end})
 
 local I = _G.LycheeInternal
@@ -315,12 +316,12 @@ I.Registry:SetReady(true)
 
 -- Public Providers preserve ordinary actions, owned panels and same-ID isolation.
 local foreignActionCalls=0
-local foreignHandle=assert(Lychee:RegisterProvider({id="interaction.foreign",title="Foreign",version="1",apiVersion=2,
-    entries={{id="foreign",title="越权动作",actions={"open"}}},
+local foreignHandle=assert(Fixture:Register({id="interaction.foreign",title="Foreign",version="1",apiVersion=3,
+    catalog={{id="foreign",title="越权动作",actions={"open"}}},
     actions={open={title="打开",run=function() foreignActionCalls=foreignActionCalls+1;return {ok=true} end}}}))
 local actionCalled,panelMounted,openPanel=false,false,false
-local actionHandle=assert(Lychee:RegisterProvider({id="interaction.actions",title="Actions",version="1",apiVersion=2,
-    entries={{id="spell:interaction-action",kind="spell",category={id="spells",title={default="Spells",zhCN="技能"}},
+local actionHandle=assert(Fixture:Register({id="interaction.actions",title="Actions",version="1",apiVersion=3,
+    catalog={{id="spell:interaction-action",kind="spell",category={id="spells",title={default="Spells",zhCN="技能"}},
         title="动作技能",aliases={{text="动作",locale="zhCN"}},description={{text="可执行普通动作。",locale="zhCN"}},
         actions={"open",{id="panel",title="面板",kind="open-panel",panel="detail",state={itemID=7}},
             {id="drag",title="拖拽",kind="drag-spell",spellID=31884}}}},
@@ -332,11 +333,11 @@ local actionHandle=assert(Lychee:RegisterProvider({id="interaction.actions",titl
         assert(state.itemID==7)
         return {Mount=function() panelMounted=true;return true end,Unmount=function() end,Dispose=function() end}
     end}}}))
-local extraDraft=assert(I.Registry:Begin({id="interaction.sources",apiVersion=2,title="Additional sources"}))
+local extraHandles={}
 for sourceIndex=1,21 do
-    assert(extraDraft:RegisterSearchSource({id=string.format("overflow-%02d",sourceIndex),version=1,revision=1,priority=20,scope={},records={}}))
+    extraHandles[#extraHandles+1]=assert(Fixture:Register({id=string.format("overflow-%02d",sourceIndex),apiVersion=3,title="Additional source",version="1",catalog={}}))
 end
-local extraHandle=assert(extraDraft:Commit())
+local extraHandle={Unregister=function() for _,h in ipairs(extraHandles) do h:Unregister() end end}
 assert(actionHandle:GetState().enabled==true)
 local actionGeneration, actionResults = I.Search.Query:Query("动作", { visible = true })
 assert(#actionResults > 0, "search returned action record")
@@ -344,7 +345,7 @@ local actionItem = actionResults[1]
 assertEq(actionItem.category, "技能", "search result category")
 assertEq(actionItem.description, "可执行普通动作。", "localized array description")
 assertEq(actionItem.interaction.actions[1].title, "打开", "localized action title")
-assert(actionItem.sourceID and actionItem.sourceGeneration and actionItem.sourceRevision, "source state retained on result")
+assert(actionItem.sourceID and actionItem._providerInstance and actionItem._providerRevision, "source state retained on result")
 actionItem.searchRecord._extensionID = nil
 actionGeneration, actionResults = I.Search.Query:Query("动作", { visible = true })
 actionItem = actionResults[1]
@@ -353,6 +354,7 @@ assert(actionItem.evidence and actionItem.evidence.matchedField == "alias", "sea
 assert(actionItem.confidence and actionItem.confidence >= 0.85, "search result confidence")
 local categoryGeneration, categoryResults = I.Search.Query:Query("技能 动作", { visible = true })
 assert(categoryGeneration and #categoryResults > 0 and categoryResults[1].category == "技能", "category filter result")
+actionItem=categoryResults[1];actionResults=categoryResults;actionGeneration=categoryGeneration
 openPanel=true
 assert(palette:SetResults({ actionItem }, palette.generation, palette.session))
 local routedPanel, routedPanelErr = palette:ActivateRowAction(palette.list.rows[1], "open")
@@ -365,7 +367,7 @@ assertEq(actionRow.primaryHint:GetText(), "", "primary action title stays in too
 assert(palette:TouchRecent(actionItem))
 assert(palette:SetPinned(actionItem, true))
 palette:RefreshHomeSections()
-assert(LycheeDB and LycheeCharacterDB.palette and LycheeCharacterDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
+assert(LycheeCharacterDB.palette and LycheeCharacterDB.palette.recent[1].entryID == actionItem.id, "recent stores stable id")
 assert(LycheeCharacterDB.pinned[1].entryID == actionItem.id and LycheeCharacterDB.pinned[1].providerID == actionItem.ref.providerID, "pinned stores qualified stable ref")
 local hasRecent = false
 for sectionIndex = 1, #(palette.homeView.sections or {}) do
@@ -470,12 +472,12 @@ for rowIndex = 1, #palette.list.rows do assertEq(palette.list.rows[rowIndex]:IsS
 palette.input.frame:SetText("")
 palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
 scans = 0
-assert(I.Search.StaticIndex:Invalidate("interaction.actions:records", "home-visible-refresh"))
+assert(actionHandle:Invalidate())
 assertEq(scans, 1, "source lifecycle refreshes Home immediately while visible")
 palette.input.frame:SetText("动作")
 palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
 scans = 0
-assert(I.Search.StaticIndex:Invalidate("interaction.actions:records", "search-hidden-home"))
+assert(actionHandle:Invalidate())
 assertEq(scans, 0, "source lifecycle only marks Home dirty outside Home mode")
 I.Search.Query.ResolveRecent = originalResolveRecent
 
@@ -502,6 +504,7 @@ local _,foreignActionResults=I.Search.Query:Query("越权动作",{visible=true})
 assert(palette:SetResults(foreignActionResults,palette.generation,palette.session))
 assert(palette:ActivateRowAction(palette.list.rows[1],"open"))
 assertEq(foreignActionCalls,1,"same action ID executes only its owning Provider")
+actionItem=assert(I.Providers:Resolve({providerID="interaction.actions",entryID=actionItem.id}))
 assert(palette:SetResults({ actionItem }, palette.generation, palette.session))
 actionRow = palette.list.rows[1]
 local panelResult, panelErr = palette:ActivateRowAction(actionRow, "panel")
@@ -533,33 +536,29 @@ I.Context:Set("interactionReady", true)
 actionItem.searchRecord.availability = nil
 
 -- SearchRecord action payloads are plain-data only; unknown executable fields are rejected.
-local invalidActionDraft = I.Registry:Begin({ id = "interaction.invalid-action", apiVersion = 2, minApiRevision = 1, title = "Invalid action", version = "1.0.0" })
-assert(invalidActionDraft)
-local invalidDeclaration, invalidDeclarationErr = invalidActionDraft:RegisterSearchSource({
-    id = "records", version = 1, revision = 1, priority = 1, scope = {},
-    records = { { id = "bad:record", kind = "spell", title = "Bad", actions = {
-        { id = "bad", kind = "secure-spell", spellID = 1, script = function() end },
-    } } },
-})
+local invalidDeclaration, invalidDeclarationErr = actionHandle.catalog:Update({upsert={
+    {id="bad:record",title="Bad",actions={{id="bad",kind="secure-spell",spellID=1,script=function() end}}},
+}})
 assertEq(invalidDeclaration, nil, "invalid action declaration")
 assert(invalidDeclarationErr and invalidDeclarationErr.code == "INVALID_SCHEMA", "invalid action schema error")
 
-local retired,retiredErr=Lychee:RegisterProvider({id="interaction.retired",title="Retired",version="1",apiVersion=2,
-    entries={{id="bad",title="Bad",actions={{id="bad",kind="intent",intent={type="retired",version=1}}}}}})
+local retired,retiredErr=actionHandle.catalog:Update({upsert={
+    {id="bad",title="Bad",actions={{id="bad",kind="intent",intent={type="retired",version=1}}}},
+}})
 assert(not retired and retiredErr.code=="INVALID_SCHEMA","retired intent declarations rejected")
 
 -- Disabled extensions and stale generations invalidate result actions before execution.
-assert(actionHandle:SetEnabled(false))
+assert(actionHandle:SetAvailability(false))
 local disabledRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation)
 local disabledCurrent, disabledErr = palette:IsRowCurrent(disabledRow)
 assertEq(disabledCurrent, false, "disabled extension row")
 assertEq(disabledErr, "EXTENSION_DISABLED", "disabled extension error")
-assert(actionHandle:SetEnabled(true))
+assert(actionHandle:SetAvailability(true))
 local staleRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation - 1)
 local staleCurrent, staleGenerationErr = palette:IsRowCurrent(staleRow)
 assertEq(staleCurrent, false, "stale generation row")
 assertEq(staleGenerationErr, "STALE_GENERATION", "stale generation error")
-assert(actionHandle:Update({upsert={{ id = "spell:new-generation", kind = "spell", title = "新代记录" }}}))
+assert(actionHandle.catalog:Update({upsert={{ id = "spell:new-generation", kind = "spell", title = "新代记录" }}}))
 local sourceStaleRow = makeInteractionRow(actionItem, "interaction.actions", palette.session, palette.generation)
 local sourceCurrent, sourceCurrentErr = palette:IsRowCurrent(sourceStaleRow)
 assertEq(sourceCurrent, false, "stale source row")
@@ -598,8 +597,8 @@ palette:Hide("interaction-smoke")
 
 -- A stale row must not invoke an unregistered extension action.
 local called=false
-local handle=assert(Lychee:RegisterProvider({id="interaction.stale",title="Stale",version="1",apiVersion=2,
-    entries={{id="stale-command",title="Stale",actions={"open"}}},
+local handle=assert(Fixture:Register({id="interaction.stale",title="Stale",version="1",apiVersion=3,
+    catalog={{id="stale-command",title="Stale",actions={"open"}}},
     actions={open={title="Open",run=function() called=true;return {ok=true} end}}}))
 local _,staleItems=I.Search.Query:Query("Stale",{})
 local staleItem
@@ -613,15 +612,13 @@ assert(not staleOK and not called and staleErr=="EXTENSION_DISABLED","unregister
 -- Launcher regressions: effective visibility, direct recent clicks, bounded
 -- scrolling and secure combat cleanup, using the real host and broker.
 palette:Hide("launcher-fixture")
-local launcherDraft = assert(I.Registry:Begin({ id = "interaction.launcher", apiVersion = 2, minApiRevision = 1, title = "Launcher", version = "1.0.0" }))
 local launcherRecords = {}
 for index = 1, 12 do
     launcherRecords[index] = { id = "launcher:" .. index, kind = "spell", title = "入口测试 " .. index,
         actions = { { id = "cast", kind = "secure-spell", spellID = 31884 } },
         drag = { type = "spell", spellID = 31884 } }
 end
-assert(launcherDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 100, scope = {}, records = launcherRecords }))
-local launcherHandle = assert(launcherDraft:Commit())
+local launcherHandle=assert(Fixture:Register({id="interaction.launcher",apiVersion=3,minApiRevision=1,title="Launcher",version="1",catalog=launcherRecords}))
 local function effectiveVisibility(self)
     local current = self
     while current do
@@ -726,14 +723,14 @@ for index = 1, #secureBroker.buttons do
     assert(not button.busy and button.token == nil and button:GetAttribute("type") == nil, "regen removes every active secure binding")
 end
 C_Timer = nil
-assert(launcherHandle:SetEnabled(false))
+assert(launcherHandle:SetAvailability(false))
 assertEq(#I.Search.Query:ResolveRecent({ { providerID = "interaction.launcher", entryID = clickedID, sourceID = "interaction.launcher:records" } }, 5), 0, "disabled source is absent from recent launcher")
 assert(launcherHandle:Unregister())
 
 -- A mixed source owns actions and drag independently of presentation kind.
 local mixedMounts,mixedRuns=0,0
-local mixedHandle=assert(Lychee:RegisterProvider({id="interaction.mixed",title="Mixed",version="1",apiVersion=2,
-    entries={
+local mixedHandle=assert(Fixture:Register({id="interaction.mixed",title="Mixed",version="1",apiVersion=3,
+    catalog={
     { id = "mixed:cast", kind = "spell", title = "混合入口施放", actions = {
         { id = "cast", title = "施放", kind = "secure-spell", spellID = 31884 },
     } },
@@ -881,8 +878,8 @@ palette:Hide("fixture-done")
 assert(ThirdPartyFixture.Unregister())
 
 local menuRan = 0
-local secureMenuProvider = assert(Lychee:RegisterProvider({id="ui.sdk-menu",apiVersion=2,version="1.0.0",title="Menu",
-    entries={{id="secure-menu",title="安全菜单入口",actions={{id="cast",title="施放",kind="secure-spell",spellID=31884},"info",
+local secureMenuProvider = assert(Fixture:Register({id="ui.sdk-menu",apiVersion=3,version="1.0.0",title="Menu",
+    catalog={{id="secure-menu",title="安全菜单入口",actions={{id="cast",title="施放",kind="secure-spell",spellID=31884},"info",
         {id="secondary-cast",title="次要施放",kind="secure-spell",spellID=31884}}}},
     actions={info={title="查看",run=function() menuRan=menuRan+1; return {ok=true} end}},
 }))
@@ -934,9 +931,9 @@ C_MountJournal={
 C_Spell=C_Spell or {}
 local oldPickup=C_Spell.PickupSpell
 C_Spell.PickupSpell=function(id) mountPicked=id end
-I.Builtin=I.Builtin or {}
-dofile(root.."Builtin/Mounts/Provider.lua")
-assert(I.Builtin.Mounts:Init())
+TestPackages.Modules=TestPackages.Modules or {}
+TestPackages:File(root.."../Lychee_Player/Mounts/Provider.lua")
+assert(TestPackages.Modules.Mounts:Init())
 assert(palette:Show())
 typeQuery("测试星光龙")
 local mountRow=findEntry(palette.list.rows,"mount:77")
@@ -979,7 +976,7 @@ mountPicked=nil
 local mountDragOK,mountDragErr=palette:BeginRowDrag(mountTile)
 assert(not mountDragOK and mountDragErr=="ACTION_UNAVAILABLE" and mountPicked==nil, "live collection check blocks a removed mount")
 palette:Hide("mount-done")
-assert(I.Builtin.Mounts.handle:Unregister())
+assert(TestPackages.Modules.Mounts.handle:Unregister())
 C_Spell.PickupSpell=oldPickup
 C_MountJournal=nil
 -- Regression from 20260912-105826.mp4: the search background must not
@@ -1095,8 +1092,8 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     local controller=Lychee.UI.Palette
     local prefs=I.UserPreferences
     LycheeCharacterDB.pinned={};LycheeCharacterDB.palette.recent={}
-    local source=assert(Lychee:RegisterProvider({id="settings.fixture",apiVersion=2,version="1.0.0",title="设置测试来源",
-        entries={{id="a",title="设置固定甲",icon=123,actions={"open"}},{id="b",title="设置固定乙",icon=456,actions={"open"}}},
+    local source=assert(Fixture:Register({id="settings.fixture",apiVersion=3,version="1.0.0",title="设置测试来源",
+        catalog={{id="a",title="设置固定甲",icon=123,actions={"open"}},{id="b",title="设置固定乙",icon=456,actions={"open"}}},
         actions={open={title="打开",run=function() return {ok=true} end}}}))
     controller:Show()
     local a=assert(prefs:Resolve({providerID=source.id,entryID="a"}))
@@ -1140,6 +1137,7 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     assert(#prefs:GetPins()==1 and view.undo.frame:IsShown())
     view.undo.frame.scripts.OnClick();assert(prefs:GetPins()[1].entryID=="b" and #prefs:GetPins()==2)
     view:SetTab("providers")
+    for _,record in ipairs(view.data) do if record.id==source.id then view.scroll=record.y;view:RenderVisible() end end
     local fixtureRow
     for _,row in ipairs(view.rows) do if row.providerID==source.id then fixtureRow=row end end
     assert(fixtureRow, "settings lists third-party providers")
@@ -1160,13 +1158,16 @@ print("Lychee interaction smoke PASS (launcher, secure combat, Provider views, m
     controller.homeView:ConfigureLayout(pinTile,true)
     controller.homeView:SetSections(controller.homeView.sections,true)
     assertEq(pinTile.title:GetHeight(),pinTitleHeight,"same-name pin restores measured title height after recent layout")
+    TestPackages:File("addon/Lychee_Player/Runtime/InterfaceActions.lua")
+    TestPackages:File("addon/Lychee_Player/GameMenus/Provider.lua")
+    assert(TestPackages.Modules.GameMenus:Init())
     typeQuery("荔枝设置")
-    local settingRow=findEntry(controller.list.rows,"settings")
+    local settingRow=findEntry(controller.list.rows,"lychee-settings")
     assert(settingRow and controller:ActivateRow(settingRow) and controller.settingsOpen, "search opens same settings page")
     controller:Hide("settings-test")
     assert(not controller.settingsOpen and not view.frame:IsShown())
     controller:Show();assert(controller:IsHomeVisible() and controller.input.container:IsShown())
-    assert(not prefs:CanPin(prefs:Resolve({providerID="lychee.settings",entryID="settings"})))
+    assert(not prefs:CanPin(prefs:Resolve({providerID="lychee.game-menus",entryID="lychee-settings"})))
     controller:Hide("done");assert(source:Unregister());C_Timer=savedTimers
 print("Lychee settings and pins interaction PASS")
 do
@@ -1190,7 +1191,7 @@ end
 do
     local controller=LycheeInternal.Host.PaletteController
     local original=LycheeInternal.ResultActionExecutor.ShowActions
-    local row={item={providerID="builtin.bags"}}
+    local row={item={providerID="lychee.bags"}}
     local located=false
     LycheeInternal.ResultActionExecutor.ShowActions=function(_,target)
         assert(target==row);located=true;return true
@@ -1215,8 +1216,8 @@ do
     local savedTimers=C_Timer;C_Timer=nil
     controller:Hide("recent-regression-reset")
     local function record(id) return {id=id,title="Recent "..id,kindTitle="Fixture"} end
-    local source=assert(Lychee:RegisterProvider({id="recent.dynamic",apiVersion=2,version="1.0.0",title="Recent fixture",
-        entries={record("static")},
+    local source=assert(Fixture:Register({id="recent.dynamic",apiVersion=3,version="1.0.0",title="Recent fixture",
+        catalog={record("static")},
         query=function(_,reply) reply({record("first"),record("last")}) end,
         resolve=function(id) return record(id) end}))
     LycheeCharacterDB.pinned={}
@@ -1284,7 +1285,7 @@ do
     local tile=controller.homeView.tiles[2]
     controller:InvalidateRow(tile);controller:PrepareHome();assertHome("rebind rejected row")
     local oldItem=controller.homeView.tiles[2].item
-    assert(source:Update({upsert={{id="static",title="Updated static"}}}))
+    assert(source.catalog:Update({upsert={{id="static",title="Updated static"}}}))
     assertHome("Provider update")
     assert(not I.Providers:IsCurrent(oldItem),"Provider update rejects old resolved snapshot")
     local entry=I.Providers.entries["recent.dynamic"]
@@ -1294,9 +1295,9 @@ do
     collectgarbage("collect")
     assert(resolvedCount()==beforeCount,"discarded resolved snapshots are reclaimed")
     oldItem=controller.homeView.tiles[2].item
-    assert(source:SetEnabled(false))
+    assert(source:SetAvailability(false))
     assert(not I.Providers:IsCurrent(oldItem),"disabled Provider rejects old resolved snapshot")
-    assert(source:SetEnabled(true));controller:MarkHomeDirty();assertHome("Provider re-enabled")
+    assert(source:SetAvailability(true));controller:MarkHomeDirty();assertHome("Provider re-enabled")
     controller:Hide("recent-regression-done");source:Unregister();C_Timer=savedTimers
     print("Dynamic recent query lifecycle PASS")
 end
@@ -1304,8 +1305,8 @@ dofile(root .. "Search/RuntimeIdentity.lua")
 do
     local controller=LycheeInternal.Host.PaletteController
     local P=LycheeInternal.Search.Personalization
-    local source=assert(Lychee:RegisterProvider({id="alias.ui",apiVersion=2,version="1.0.0",title="Aliases",
-        entries={{id="one",title="别名测试物品"},{id="two",title="第二物品"}}}))
+    local source=assert(Fixture:Register({id="alias.ui",apiVersion=3,version="1.0.0",title="Aliases",
+        catalog={{id="one",title="别名测试物品"},{id="two",title="第二物品"}}}))
     controller:Show();typeQuery("别名测试物品")
     local row=findEntry(controller.list.rows,"one")
     menuEntries={}
@@ -1368,7 +1369,7 @@ do
 end
 do
     local controller=LycheeInternal.Host.PaletteController
-    local source=assert(Lychee:RegisterProvider({id="manage.ui",apiVersion=2,version="1",title="管理测试",entries={{id="one",title="管理搜索目标"}}}))
+    local source=assert(Fixture:Register({id="manage.ui",apiVersion=3,version="1",title="管理测试",catalog={{id="one",title="管理搜索目标"}}}))
     controller:Show();controller:OpenSettings("providers")
     local view=controller.settingsView
     local row
@@ -1434,10 +1435,10 @@ do
     edit(page.keywordInput,"过期");saveButton.scripts.OnClick()
     assert(#search("过期")==0,"reopened editor rejects stale release")
     source:Unregister();saveButton.scripts.OnClick()
-    local independent=assert(Lychee:RegisterProvider({id="manage.independent",apiVersion=2,minApiRevision=3,version="1",title="独立来源",
-        searchable=false,scope={products={"retail"}},i18n={enUS={TITLE="Independent"}},entries={}}))
+    local independent=assert(Fixture:Register({id="manage.independent",apiVersion=3,minApiRevision=1,version="1",title="独立来源",
+        searchGlobal=false,searchKeywords={"independent"},scope={products={"retail"}},i18n={enUS={TITLE="Independent"}},catalog={}}))
     view:OpenProvider("manage.independent",134400)
-    assert(not page.globalToggle:IsShown() and not page.prefixInput:IsShown() and not page.reset.enabled)
+    assert(page.globalToggle:IsShown(),"all registered providers use the same editable routing controls")
     independent:Unregister();controller:CloseSettings();page.frame.scripts.OnHide()
     assert(not page.prefixInput.focused and not page.keywordInput.focused)
     controller:Hide("management-done")

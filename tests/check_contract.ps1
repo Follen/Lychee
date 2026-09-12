@@ -7,6 +7,9 @@ foreach ($line in $tocLines) {
 }
 $legacy = rg -n 'OptionalDeps:\s*LycheeSDK|_G\.LycheeSDK' (Join-Path $root 'addon') (Join-Path $root 'lychee-sdk') 2>$null
 if ($LASTEXITCODE -eq 0) { throw "Legacy SDK facade marker found: $legacy" }
+$childPrivate = rg -n 'LycheeInternal' (Join-Path $root 'addon/Lychee_Player') (Join-Path $root 'addon/Lychee_Encounters') (Join-Path $root 'addon/Lychee_Integrations') (Join-Path $root 'addon/Lychee_Inspector') 2>$null
+if ($LASTEXITCODE -eq 0) { throw "Child package uses Host-private state: $childPrivate" }
+if ($LASTEXITCODE -ne 1) { throw 'Child package boundary scan failed' }
 $architectureDocs = @(
     (Join-Path $root 'docs/comet/specs'),
     (Join-Path $root 'docs/ARCHITECTURE.md'),
@@ -23,11 +26,11 @@ if ($tocSource -notmatch '(?m)^## Bindings:\s*Bindings\.xml\s*$') { throw 'TOC m
 if ($tocSource -match '(?m)^Bindings\.xml\s*$') { throw 'Bindings.xml must not be listed as a normal TOC file' }
 $bindings = Get-Content (Join-Path $root 'addon/Lychee/Bindings.xml') -Raw
 if ($bindings -notmatch '<Binding\s+name="TOGGLELYCHEE"\s+category="BINDING_HEADER_LYCHEE"') { throw 'Lychee binding declaration missing' }
-$playerSpells = Get-Content (Join-Path $root 'addon/Lychee/Builtin/PlayerSpells/Init.lua') -Raw
+$playerSpells = Get-Content (Join-Path $root 'addon/Lychee_Player/PlayerSpells/Init.lua') -Raw
 if ($playerSpells -match 'LEARNED_SPELL_IN_TAB') { throw 'Legacy spell learned event must not be registered' }
 if ($playerSpells -notmatch 'LEARNED_SPELL_IN_SKILL_LINE') { throw 'Retail spell learned event missing' }
 if ($playerSpells -match 'Registry:Begin|RegisterSearchSource|RegisterCommand|RegisterCapabilityProvider|RegisterIntentHandler|RegisterPanelFactory') { throw 'PlayerSpells must use the public Provider facade' }
-if ($playerSpells -notmatch 'RegisterProvider') { throw 'Built-in public Provider registration missing' }
+if ($playerSpells -notmatch 'Support:Register') { throw 'Player package Provider registration missing' }
 $paletteSource = Get-Content (Join-Path $root 'addon/Lychee/UI/Palette.lua') -Raw
 if ($paletteSource -match 'Lychee\.UI\.PaletteController\s*=\s*self') { throw 'Palette controller must remain Host-private' }
 $executorSource = Get-Content (Join-Path $root 'addon/Lychee/Core/ResultActionExecutor.lua') -Raw
@@ -39,7 +42,7 @@ if ($bootstrapSource -match 'palette\.(session|generation)') { throw 'Bootstrap 
 $querySource = Get-Content (Join-Path $root 'addon/Lychee/Search/QueryOrchestrator.lua') -Raw
 if ($querySource -match 'I\.(Catalog|Broker|Router)') { throw 'QueryOrchestrator must use Provider results only' }
 if ($querySource -match 'self\.generation|local\s+Q\s*=\s*\{[^\r\n]*generation\s*=|_BeginGeneration|function\s+Q:Invalidate') { throw 'SearchSession must be the only query generation owner' }
-$playerSpellRuntime = (Get-Content (Join-Path $root 'addon/Lychee/Builtin/PlayerSpells/Init.lua') -Raw) + (Get-Content (Join-Path $root 'addon/Lychee/Builtin/PlayerSpells/Provider.lua') -Raw)
+$playerSpellRuntime = (Get-Content (Join-Path $root 'addon/Lychee_Player/PlayerSpells/Init.lua') -Raw) + (Get-Content (Join-Path $root 'addon/Lychee_Player/PlayerSpells/Provider.lua') -Raw)
 if ($playerSpellRuntime -match 'StaticIndex|searchSourceID|sourceGeneration') { throw 'PlayerSpells must update through its committed SearchSource handle' }
 $scheduler = Get-Content (Join-Path $root 'addon/Lychee/Core/Scheduler.lua') -Raw
 if ($scheduler -notmatch 'driver|swap-remove|Hide') { throw 'Shared scheduler lifecycle markers missing' }
@@ -50,7 +53,7 @@ foreach ($marker in @('RegisterProvider','actions=','views=','drags=','ADDON_LOA
     if ($fixture -notmatch [regex]::Escape($marker)) { throw "Third-party fixture marker missing: $marker" }
 }
 if ($fixture -match 'match\s*=\s*\{\s*type\s*=\s*"ambient"') { throw 'Stable fixture entities must not duplicate SearchSource through ambient Command' }
-if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on API 2' }
+if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on API 3' }
 $provider = Get-Content (Join-Path $root 'addon/Lychee/Core/ProviderRuntime.lua') -Raw
 if ($provider -match 'OnUpdate') { throw 'Provider runtime must not add idle OnUpdate work' }
 $sdk = Get-Content (Join-Path $root 'addon/Lychee/PublicAPI/SDK.lua') -Raw
@@ -77,7 +80,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'SDK delivery declaration drift' }
     & python 'tests/sdk_delivery.py'
     if ($LASTEXITCODE -ne 0) { throw 'SDK delivery mutation checks failed' }
-    foreach ($test in @('pin_restore','navigation_binding','catalog_ledger','result_snapshot','provider_management')) {
+    foreach ($test in @('pin_restore','navigation_binding','catalog_ledger','result_snapshot','provider_management','sdk_storage','sdk_catalog','package_namespaces')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }

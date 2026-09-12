@@ -1,17 +1,9 @@
-# SDK 版本兼容
+# 版本与兼容性
 
-性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+当前 SDK 发行版本 **1.0.0**，Provider **API 3 / revision 1**，UI Runtime **1**。版本分别描述开发包、Provider 协议与 UI 能力。
 
-新接入使用 API 2 / revision 7，UI Runtime 独立版本1。Host继续兼容旧Provider；helper默认最低要求6，使用托管资源必须显式要求7。旧版本是兼容说明，不是新接入步骤。
+API 2 不兼容：注册 `entries`、searchable/searchMode、handle:Update/Settings/SetEnabled 已移除。不要只改版本数字；按[接入教程](GETTING_STARTED.md)改为 query 统一回复，并把目录和数据库留在自己的插件中。旧 Extension/Command 注册同样不是公共入口。
 
-| Revision | 能力与接入条件 |
-| --- | --- |
-| 1 | 基础Provider；未声明产品范围的旧接口只在正式服启用 |
-| 2 | scope.products与独立i18n；客户端实现仍由Provider选择 |
-| 3 | searchable=false排除通用搜索，保留动作/解析；不与新组合入口混用 |
-| 4 | searchMode global/prefix和searchPrefixes |
-| 5 | searchMode keyword和searchKeywords，精确触发来源查询 |
-| 6 | searchGlobal、searchPrefixes、searchKeywords组合入口；不与旧searchMode混用 |
-| 7 | Provider/query/view资源、角色设置、有界缓存 |
+`LycheeAPI.lua` 默认检测 API 3 / revision 1；不静默回退旧版本。Host 不存在返回 SDK_UNAVAILABLE，版本不满足返回 UNSUPPORTED_API。SDK 示例不访问 LycheeInternal。
 
-准确字段限制和旧模式映射见[协议参考](PROTOCOLS.md)。新接入见[教程](GETTING_STARTED.md)，同一Provider跨客户端实现见[客户端差异](CLIENT_VARIANTS.md)。API 2不保留旧Extension/Command多角色流程。
+角色存档的数据搬迁属于对应数据所有者，不等于保留旧 SDK 接口。迁移失败保留原数据，不能清空未知或更高版本数据库。当前支持范围需明确声明并验证；参见[客户端差异](CLIENT_VARIANTS.md)。

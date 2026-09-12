@@ -28,11 +28,16 @@ local function summary(out, id, entry, state)
     local definition = entry.definition
     out.id, out.instanceToken = id, entry.instanceToken
     out.title = I.Locale and I.Locale:Resolve(definition.title, id) or definition.title or id
-    out.version, out.searchable = definition.version, definition.searchable ~= false
+    out.version = definition.version
+    out.description,out.icon,out.order=definition.description,definition.icon,definition.order or 100
+    local source=definition.source
+    out.sourceID=source and source.id or id
+    out.sourceTitle=source and (source.title or source.id) or out.title
     out.userEnabled, out.ownerEnabled = state.userEnabled, state.ownerEnabled
     out.lifecycle, out.effectiveEnabled = state.state, state.state == "enabled"
     out.status = state.incompatible and "incompatible" or state.state == "pending" and "pending"
         or state.userEnabled == false and "user-disabled" or state.ownerEnabled == false and "owner-disabled" or nil
+    out.statusReason=state.ownerEnabled==false and entry.unavailableReason or nil
     return out
 end
 
@@ -42,7 +47,7 @@ function M:FillList(out)
     local count = 0
     for id, entry in pairs(I.Providers.entries) do
         local state = I.Registry.entries[id]
-        if id ~= "lychee.settings" and state and state.state ~= "removed" and state.state ~= "retiring" then
+        if state and state.state ~= "removed" and state.state ~= "retiring" then
             count = count + 1
             local row = out[count] or {}; out[count] = row
             row.pin, row.pinIndex, row.item = nil, nil, nil
@@ -67,9 +72,7 @@ function M:Read(id, token, out)
     local entry, state = current(id, token)
     if not entry then return failure("STALE_HANDLE", id) end
     out = summary(out or {}, id, entry, state)
-    local first = entry.records and entry.records[1]
-    out.sample = first and type(first.title) == "string" and #first.title <= 42
-        and not first.title:find("|", 1, true) and first.title or nil
+    out.sample=nil
     local scope = entry.definition.scope or EMPTY
     local products = out.products or {}; out.products = products
     if scope.products then
@@ -120,7 +123,7 @@ end
 function M:ResetConfiguration(id, token)
     local entry, err = writable(id, token)
     if not entry then return nil, err end
-    local ok, why = I.Search.ProviderPolicy:Set(id, nil, nil, nil)
+    local ok, why = I.Search.ProviderPolicy:Reset(id)
     if not ok then return nil, why end
     if not self:IsCurrent(id, token) then return failure("STALE_HANDLE", id) end
     return true

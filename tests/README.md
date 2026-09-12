@@ -22,3 +22,12 @@ dofile("tests/support/runtime.lua").Load("provider", {"Search/SearchSession.lua"
 目录与交付：`repository_delivery.py`覆盖断链、SDK外层依赖、漏文件、夹带文件、越界路径和可重复ZIP；`sdk_delivery.py`覆盖版本、清单、helper兼容下限与性能规范副本漂移。两者接入完整入口；预算唯一源是[PERFORMANCE.md](../PERFORMANCE.md)。
 
 `ldt_provider.lua` 使用真实TOC/SDK装配，验证全局/前缀、Boss简称、NPC/技能ID、当前语言技能名称、同步/异步加载、取消、启停、分页身份、模型复用及独立增量预算。`ldt_data.py` 验证事实规模、关键Boss顺序、技能关系、生成器输入及正式服隔离。原加载预算另外执行 `lua tests/performance_loading.lua Mainline addon/Lychee --baseline`。
+
+
+## SDK 1.0.0 / 五包验收
+
+API 3 统一 query 结果，Host 不持有全量业务目录；测试使用五包真实 TOC 和私有命名空间。package_namespaces 验证自身 ADDON_LOADED、还原 SV、登录后默认注册与无提前页面；client_manifest/client_toc_load 验证四产品和中文/英文。
+
+sdk_catalog 直接测试公开输入、原子更新、隔离副本、迟到回复和不同动作声明不能借 Catalog 绕过校验。sdk_storage 测试无 Host 的独立 DB、就绪、根替换、角色/命名空间隔离、配额、原子迁移和未来版本保留。character_settings/achievements_provider 验证 Player 接管数据及关闭/恢复。
+
+管理页验证注销移除、用户关闭保留、来源分组、失效页面、重绑点击和长标签单行；语言与业务等价仍使用原有查询/动作记录验证。所有原性能门槛保持，TOC 内存按五包合计。SDK/release 的反向测试拒绝单边版本漂移、错误加载清单、SDK 文档遗漏、路径越界和运行时混入文档。实机重启验收单独记录，离线测试不替代游戏结果。

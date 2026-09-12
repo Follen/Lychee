@@ -42,25 +42,25 @@ local function drain()
 end
 function EJ_GetInstanceInfo(id) instanceReads=instanceReads+1;if namesReady then return "Localized instance "..id end end
 function EJ_GetEncounterInfo(id) bossReads=bossReads+1;if namesReady then return "Localized boss "..id end end
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Core/Scheduler.lua", "Builtin/Shared/CatalogProvider.lua", "Builtin/Shared/InterfaceActions.lua", "Builtin/Bosses/JournalCatalog.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Core/Scheduler.lua", "Shared/CatalogProvider.lua", "Shared/InterfaceActions.lua", "../Lychee_Encounters/Bosses/JournalCatalog.lua"})
 local I=LycheeInternal
-local data=I.Builtin.JournalCatalog
+local data=TestPackages.Modules.JournalCatalog
 local subset={};for i=1,65*3 do subset[i]=data.encounters[i] end;data.encounters=subset;data.encounterCount=65
 local firstID,firstInstance=subset[1],subset[2]
-dofile("addon/Lychee/Builtin/Bosses/Provider.lua")
-local m=I.Builtin.Bosses
+assert(loadfile("addon/Lychee_Encounters/Bosses/Provider.lua"))("Lychee_Encounters",TestPackages.namespaces.Lychee_Encounters);TestPackages:Refresh()
+local m=TestPackages.Modules.Bosses
 local baseFrames=#frames
 collectgarbage("collect");local memoryBefore=collectgarbage("count");collectgarbage("stop")
 assert(m:Init());I.Registry:SetReady(true)
 assert(m.defaultEnabled and m.active and activeTimers()==1)
 assert(bossReads==0,"registration must defer native catalogue reads")
 local provider=I.Providers.entries[m.id]
-assert(#provider.records==0)
-step();assert(bossReads==16 and #provider.records==0,"first batch reads without exposing partial staging")
+assert(m.handle.catalog:GetState().entries==0)
+step();assert(bossReads==16 and m.handle.catalog:GetState().entries==0,"first batch reads without exposing partial staging")
 drain()
-assert(#provider.records==65 and not m.timer and not m.job and activeTimers()==0)
-assert(provider.recordMap["boss-"..firstID].title=="Boss "..firstID)
-assert(provider.recordMap["boss-"..firstID].subtitle=="Instance "..firstInstance)
+assert(m.handle.catalog:GetState().entries==65 and not m.timer and not m.job and activeTimers()==0)
+assert(m.handle.catalog:Resolve("boss-"..firstID).title=="Boss "..firstID)
+assert(m.handle.catalog:Resolve("boss-"..firstID).subtitle=="Instance "..firstInstance)
 assert(m.hasFallback and m.frame.events.ADDON_LOADED)
 assert(#frames==baseFrames+1,"only one reusable lifecycle frame, no index UI")
 local reads=bossReads;local revision=m.handle:GetState().revision
@@ -69,18 +69,18 @@ assert(activeTimers()==0 and bossReads==reads and m.handle:GetState().revision==
 namesReady=true
 m.frame.scripts.OnEvent(m.frame,"ADDON_LOADED","Blizzard_EncounterJournal")
 assert(activeTimers()==1);drain()
-assert(provider.recordMap["boss-"..firstID].title=="Localized boss "..firstID)
-assert(provider.recordMap["boss-"..firstID].subtitle=="Localized instance "..firstInstance)
+assert(m.handle.catalog:Resolve("boss-"..firstID).title=="Localized boss "..firstID)
+assert(m.handle.catalog:Resolve("boss-"..firstID).subtitle=="Localized instance "..firstInstance)
 assert(not m.hasFallback and not m.frame.events.ADDON_LOADED and not m.timer and not m.job)
 m:MarkDirty();step();assert(m.job,"cancel must interrupt a live partial build")
 local stale=m.timer;local staleEvent=m.frame.scripts.OnEvent
-assert(m.handle:SetEnabled(false))
+assert(m.handle:SetAvailability(false))
 assert(not m.active and not m.timer and not m.job and not next(m.frame.events) and activeTimers()==0)
 reads=bossReads;stale.callback();staleEvent(m.frame,"ADDON_LOADED","Blizzard_EncounterJournal");drain()
 assert(bossReads==reads and activeTimers()==0 and not m.active,"late callbacks must not restart disabled catalogue")
-assert(m.handle:SetEnabled(true));drain()
-assert(#provider.records==65 and #frames==baseFrames+1 and not m.timer and not m.job)
-assert(m.handle:SetEnabled(false));drain()
+assert(m.handle:SetAvailability(true));drain()
+assert(m.handle.catalog:GetState().entries==65 and #frames==baseFrames+1 and not m.timer and not m.job)
+assert(m.handle:SetAvailability(false));drain()
 local allocation=collectgarbage("count")-memoryBefore
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-memoryBefore
 assert(peakTimers==1 and activeTimers()==0 and not next(m.frame.events))

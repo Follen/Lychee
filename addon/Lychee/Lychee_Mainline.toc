@@ -1,44 +1,27 @@
 ## Interface: 120100
-## Title: |cffd53c49Lychee|r Launcher
+## Title: Lychee Launcher
+## Author: Lychee
+## Version: 0.2.0
 ## Title-zhCN: |cffd53c49荔枝|r启动器
 ## Title-zhTW: |cffd53c49荔枝|r启动器
 ## Notes: Universal launcher for World of Warcraft
 ## Notes-zhCN: 魔兽世界万用启动器
-## Notes-zhTW: 魔兽世界万用启动器
-## Author: Lychee
-## Version: 0.2.0
+## Bindings: Bindings.xml
 ## SavedVariables: LycheeDB
 ## SavedVariablesPerCharacter: LycheeCharacterDB
-## Bindings: Bindings.xml
 
 Bootstrap.lua
 Core/CharacterStore.lua
-Builtin/Definitions.lua
-Builtin/Shared/Support.lua
 Core/ProviderLocales.lua
 Locales/UI.enUS.lua
-Builtin/Exwind/Locales.lua
-Builtin/Ellesmere/Locales.lua
-Builtin/PlayerSpells/Locales.lua
-Builtin/Mounts/Locales.lua
-Builtin/Crests/Locales.lua
-Builtin/GameMenus/Locales.lua
-Builtin/Bosses/Locales.lua
-Builtin/GreatVault/Locales.lua
-Builtin/Bags/Locales.lua
-Builtin/TalentLoadouts/Locales.lua
-Builtin/EquipmentSets/Locales.lua
-Builtin/BlizzardSettings/Locales.lua
-Builtin/Keystones/Locales.lua
-Builtin/Achievements/Locales.lua
-Builtin/AddonInspector/Locales.lua
-Builtin/LDT/Locales.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua
 Search/ProviderPolicy.lua
 Search/StaticIndex.lua
 Core/Boundary.lua
+Core/RecordCodec.lua
+Core/Catalog.lua
 Core/Resources.lua
 Core/ProviderData.lua
 Core/Scheduler.lua
@@ -69,33 +52,4 @@ Core/ResultActionExecutor.lua
 UI/AliasSettings.lua
 UI/ProviderSettings.lua
 UI/SettingsView.lua
-UI/AddonInspector.lua
 UI/Palette.lua
-Builtin/Shared/InterfaceActions.lua
-Builtin/Shared/CatalogLedger.lua
-Builtin/Shared/CatalogProvider.lua
-Builtin/PlayerSpells/Aliases.lua
-Builtin/PlayerSpells/Provider.lua
-Builtin/PlayerSpells/Init.lua
-Builtin/Mounts/Provider.lua
-Builtin/Crests/Provider.lua
-Builtin/GameMenus/Provider.lua
-Builtin/Bosses/JournalCatalog.lua
-Builtin/Bosses/Provider.lua
-Builtin/GreatVault/Provider.lua
-Builtin/Bags/Provider.lua
-Builtin/TalentLoadouts/Provider.lua
-Builtin/EquipmentSets/Provider.lua
-Builtin/BlizzardSettings/Provider.lua
-Builtin/Keystones/Provider.lua
-Builtin/Achievements/Provider.lua
-Builtin/AddonInspector/Picker.lua
-Builtin/AddonInspector/Provider.lua
-Builtin/Ellesmere/Adapter.lua
-Builtin/Ellesmere/Provider.lua
-Builtin/Exwind/Provider.lua
-Builtin/LDT/Data.lua
-Builtin/LDT/Catalog.lua
-Builtin/LDT/View.lua
-Builtin/LDT/Provider.lua
-Builtin/Init.lua

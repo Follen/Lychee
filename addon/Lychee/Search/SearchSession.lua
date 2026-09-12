@@ -154,10 +154,10 @@ end
 
 function Session:SourceChanged(reason)
     local palette = self.palette
-    if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
     self.generation = self.generation + 1
     if I.Search.Query then I.Search.Query:Cancel("source-" .. tostring(reason or "changed"), self.generation) end
     self:_SyncPalette()
+    if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
     if not self.visible then return end
     self.sourceRefreshPending = true
     if not self.sourceRefreshTimer and C_Timer and C_Timer.NewTimer then
@@ -169,8 +169,4 @@ function Session:SourceChanged(reason)
         end)
         self.sourceRefreshTimer = timer
     end
-end
-
-if I.Search.StaticIndex and type(I.Search.StaticIndex.OnChange) == "function" then
-    I.Search.StaticIndex:OnChange(function(_, reason) Session:SourceChanged(reason) end)
 end

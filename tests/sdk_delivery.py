@@ -25,7 +25,7 @@ class DeliveryContractTests(unittest.TestCase):
         assert self.root.parent == Path(tempfile.gettempdir()).resolve()
         self.addCleanup(self.temporary.cleanup)
         shutil.copytree(ROOT / "lychee-sdk", self.root / "lychee-sdk")
-        for name in ("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "PERFORMANCE.md"):
+        for name in ("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "addon/Lychee/PublicAPI/SDK.lua", "PERFORMANCE.md"):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
@@ -43,24 +43,28 @@ class DeliveryContractTests(unittest.TestCase):
     def test_repository_matches_contract(self):
         self.assertEqual(builder.run(ROOT), [])
 
+    def test_runtime_sdk_release_drift(self):
+        self.change("addon/Lychee/PublicAPI/SDK.lua", 'VERSION="1.0.0"', 'VERSION="0.9.0"')
+        self.reject("PublicAPI/SDK.lua")
+
     def test_generated_performance_drift(self):
         self.change("lychee-sdk/docs/PERFORMANCE.md", "性能硬门禁", "错误副本")
         self.reject("PERFORMANCE.md")
 
     def test_host_only_drift(self):
-        self.change("addon/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
+        self.change("addon/Lychee/Bootstrap.lua", "api = 3, revision = 1", "api = 3, revision = 2")
         self.reject("Bootstrap.lua")
 
     def test_types_only_drift(self):
-        self.change("lychee-sdk/ApiStubs.lua", "---@field API_REVISION 7", "---@field API_REVISION 6")
+        self.change("lychee-sdk/ApiStubs.lua", "---@field API_REVISION 1", "---@field API_REVISION 2")
         self.reject("ApiStubs.lua")
 
     def test_helper_only_drift(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "API_REVISION=7", "API_REVISION=6")
+        self.change("lychee-sdk/LycheeAPI.lua", "API_REVISION=1", "API_REVISION=2")
         self.reject("LycheeAPI.lua")
 
     def test_helper_floor_drift(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "MIN_API_REVISION=6", "MIN_API_REVISION=7")
+        self.change("lychee-sdk/LycheeAPI.lua", "MIN_API_REVISION=1", "MIN_API_REVISION=2")
         self.reject("LycheeAPI.lua")
 
     def test_helper_default_behavior_drift(self):
@@ -94,36 +98,36 @@ class DeliveryContractTests(unittest.TestCase):
 
     def test_write_repairs_declarations_without_changing_other_host_code(self):
         host = self.root / "addon/Lychee/Bootstrap.lua"
-        self.change("addon/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
+        self.change("addon/Lychee/Bootstrap.lua", "api = 3, revision = 1", "api = 3, revision = 2")
         host.write_text(host.read_text(encoding="utf-8") + "\n-- preserved fixture marker\n", encoding="utf-8")
         self.assertEqual(builder.run(self.root, write=True), [])
         self.assertEqual(builder.run(self.root), [])
         self.assertTrue(host.read_text(encoding="utf-8").endswith("-- preserved fixture marker\n"))
 
     def test_check_is_read_only(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "API_REVISION=7", "API_REVISION=6")
+        self.change("lychee-sdk/LycheeAPI.lua", "API_REVISION=1", "API_REVISION=2")
         before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         self.reject("LycheeAPI.lua")
         after = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         self.assertEqual(before, after)
 
-    def test_legal_floor_six_with_real_lua_helper(self):
+    def test_legal_floor_one_with_real_lua_helper(self):
         self.assertEqual(builder.run(self.root), [])
         helper_path = json.dumps((self.root / "lychee-sdk/LycheeAPI.lua").as_posix())
         script = f"""
 local helper=dofile({helper_path})
-assert(helper.API_VERSION==2 and helper.API_REVISION==7 and helper.MIN_API_REVISION==6)
+assert(helper.API_VERSION==3 and helper.API_REVISION==1 and helper.MIN_API_REVISION==1)
 local requested
-local old={{Supports=function(_,version,revision) requested=revision;return version==2 and revision<=6 end}}
-assert(helper.Supports(old) and requested==6)
-local ok,err=helper.Supports(old,2,7)
-assert(not ok and err.code=='UNSUPPORTED_API' and requested==7)
-assert(helper.Supports({{Supports=function(_,version,revision) return version==2 and revision<=7 end}},2,7))
+local current={{Supports=function(_,version,revision) requested=revision;return version==3 and revision<=1 end}}
+assert(helper.Supports(current) and requested==1)
+local ok,err=helper.Supports(current,3,2)
+assert(not ok and err.code=='UNSUPPORTED_API' and requested==2)
+assert(not helper.Supports({{Supports=function(_,version) return version==2 end}},3,1))
 for _,code in ipairs({{'RESOURCE_CLOSED','RESOURCE_REENTRANT','RESOURCE_LIMIT','RESOURCE_UNAVAILABLE',
  'INVALID_EVENT','INVALID_SETTINGS','DATA_LIMIT','SECRET_VALUE','INACCESSIBLE_VALUE'}}) do
  assert(helper.ERROR_CODES[code]==code)
 end
-print('SDK helper current 7 / default floor 6 / explicit feature requirement PASS')
+print('SDK helper current 1 / default floor 1 / explicit feature requirement PASS')
 """
         result = subprocess.run(["lua", "-"], input=script, text=True, encoding="utf-8", capture_output=True, cwd=self.root)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

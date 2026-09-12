@@ -15,7 +15,6 @@ end
 local descriptorCallbacks = {
     create=true,
     onHostAttached=true, onHostDetached=true, onEnabled=true, onDisabled=true,
-    snapshot=true,
 }
 
 local function failure(code, field, extensionID)
@@ -28,23 +27,6 @@ local function copyValue(value)
     return copy
 end
 
--- Host-private, one-shot ownership transfer. Public descriptors cannot opt in
--- with a field: only ProviderRuntime's already isolated lists enter this map.
--- Weak keys do not retain a list abandoned by a failed registration/update.
-local ownedRecordLists = setmetatable({}, {__mode="k"})
-function Registry:_OwnRecords(records, owner)
-    ownedRecordLists[records] = owner
-    return records
-end
-local function takeRecords(records, owner)
-    local owned = ownedRecordLists[records]
-    ownedRecordLists[records] = nil
-    if owned == owner then
-        I.Boundary:_ConsumeRecordReceipt(records)
-        return records
-    end
-    return copyValue(records)
-end
 local function validID(value)
     return type(value)=="string" and #value<=64 and value:match("^[a-z0-9][a-z0-9%.%-]*$")~=nil
 end
@@ -71,15 +53,6 @@ local function validateDescriptor(desc, public)
         return nil,failure("INVALID_SCHEMA","descriptor",desc.id)
     end
     if public and (type(desc.version)~="string" or desc.version=="") then return nil,failure("INVALID_SCHEMA","version",desc.id) end
-    if desc.invalidationKeys~=nil then
-        if type(desc.invalidationKeys)~="table" then return nil,failure("INVALID_SCHEMA","invalidationKeys",desc.id) end
-        local seen={}
-        for i=1,#desc.invalidationKeys do
-            local key=desc.invalidationKeys[i]
-            if type(key)~="string" or key=="" or seen[key] then return nil,failure("INVALID_SCHEMA","invalidationKeys",desc.id) end
-            seen[key]=true
-        end
-    end
     return true
 end
 local function validatePanel(panel, public)
@@ -88,54 +61,6 @@ local function validatePanel(panel, public)
     if public and panel.stateSchema==nil then return nil,failure("INVALID_SCHEMA","stateSchema") end
     return true
 end
-local function validateSearchSource(source, public)
-    local boundaryOK, boundaryErr=I.Boundary:Validate(source,"searchSource",{callbacks=descriptorCallbacks,maxFields=4096,maxDepth=I.Boundary.MAX_DEPTH+2}); if not boundaryOK then return nil,boundaryErr end
-    if type(source)~="table" or not validID(source.id) or not integer(source.version) or source.version < 1
-        or type(source.priority)~="number" or type(source.scope)~="table"
-        or not integer(source.revision) or source.revision < 0
-        or (type(source.snapshot)~="function" and type(source.records)~="table") then
-        return nil,failure("INVALID_SCHEMA","searchSource")
-    end
-    if source.title ~= nil then
-        local titleOK, titleErr = I.Boundary:ValidateText(source.title, "searchSource.title")
-        if not titleOK then return nil, titleErr end
-    end
-    return true
-end
-
-local function validateSearchRecords(records, field, owner)
-    if owner and ownedRecordLists[records] == owner and I.Boundary:_HasRecordReceipt(records) then return true end
-    if type(records) ~= "table" then return nil, failure("INVALID_SCHEMA", field) end
-    if #records > 4096 then return nil, failure("RESULT_LIMIT", field) end
-    local boundaryOK, boundaryErr = I.Boundary:Validate(records, field, { maxFields = 4096, maxDepth = I.Boundary.MAX_DEPTH + 1 })
-    if not boundaryOK then return nil, boundaryErr end
-    local count, seen = 0, {}
-    for key in pairs(records) do
-        if type(key) ~= "number" or key < 1 or key ~= math.floor(key) or key > #records then return nil, failure("INVALID_SCHEMA", field) end
-        count = count + 1
-    end
-    if count ~= #records then return nil, failure("INVALID_SCHEMA", field) end
-    for index = 1, #records do
-        local ok, why = I.Boundary:ValidateSearchRecord(records[index], field .. "[" .. index .. "]")
-        if not ok then return nil, why end
-        if seen[records[index].id] then return nil, failure("DUPLICATE_ID", field .. ".id") end
-        seen[records[index].id] = true
-    end
-    return true
-end
-
-local function validateCategoryOwnership(record, extensionID, field)
-    local category = record and record.category
-    local id = type(category) == "table" and category.id or category
-    if type(id) ~= "string" or id == "" then return true end
-    local core = { spells=true, achievements=true, quests=true, dungeons=true, extensions=true }
-    if core[id] or extensionID:sub(1, 7) == "builtin." then return true end
-    if id:sub(1, #extensionID + 1) ~= extensionID .. ":" then
-        return nil, failure("INVALID_SCHEMA", field .. ".category", extensionID)
-    end
-    return true
-end
-
 function Registry:OnChange(callback)
     if type(callback)=="function" then self.listeners[#self.listeners+1]=callback; return true end
     return nil,failure("INVALID_SCHEMA","callback")
@@ -185,7 +110,7 @@ function Registry:Begin(desc, options)
     desc = copyValue(desc)
     if self.drafts[desc.id] or (self.entries[desc.id] and self.entries[desc.id].state~="removed") then return nil,failure("DUPLICATE_ID","id",desc.id) end
     local registry=self
-    local draft={descriptor=desc,panels={},sources={},state="draft",public=public}
+    local draft={descriptor=desc,panels={},state="draft",public=public}
     self.drafts[desc.id]=draft
     local function add(collection,value,validator,idField)
         if draft.state~="draft" then return nil,failure("REGISTRATION_CLOSED",collection,desc.id) end
@@ -198,7 +123,6 @@ function Registry:Begin(desc, options)
         return {id=key,kind=collection}
     end
     function draft:RegisterPanelFactory(value) return add("panels",value,validatePanel) end
-    function draft:RegisterSearchSource(value) return add("sources",value,validateSearchSource) end
     function draft:Abort()
         if draft.state~="draft" and draft.state~="invalid" then return nil,failure("REGISTRATION_CLOSED",nil,desc.id) end
         draft.state="removed"; registry.drafts[desc.id]=nil; return true
@@ -206,10 +130,10 @@ function Registry:Begin(desc, options)
     function draft:Commit()
         if draft.state~="draft" then return nil,failure("REGISTRATION_CLOSED",nil,desc.id) end
         if desc.apiVersion~=I.VERSION.api then draft.state="removed"; registry.drafts[desc.id]=nil; return nil,failure("UNSUPPORTED_API",nil,desc.id) end
-        if #draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
+        if #draft.panels>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
         local disabled = I.CharacterStore:DisabledProviders()
-        local userEnabled = desc.id == "lychee.settings" or not (type(disabled) == "table" and disabled[desc.id])
-        local entry={id=desc.id,descriptor=desc,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
+        local userEnabled = not (type(disabled) == "table" and disabled[desc.id])
+        local entry={id=desc.id,descriptor=desc,panels=draft.panels,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
         notify(entry,"pending",entry.incompatible and "INCOMPATIBLE_HOST" or nil)
         local handle=registry:_Handle(entry)
@@ -218,7 +142,7 @@ function Registry:Begin(desc, options)
     end
     if public then
         local facade = {}
-        for _, name in ipairs({ "RegisterPanelFactory", "RegisterSearchSource", "Abort", "Commit" }) do
+        for _, name in ipairs({ "RegisterPanelFactory", "Abort", "Commit" }) do
             local method = draft[name]
             facade[name] = function(_, ...) return method(draft, ...) end
         end
@@ -228,9 +152,6 @@ function Registry:Begin(desc, options)
 end
 
 function Registry:_Rollback(entry)
-    if I.Search and I.Search.StaticIndex and entry.sources then
-        for i=1,#entry.sources do I.Search.StaticIndex:UnregisterSource(entry.id..":"..entry.sources[i].id) end
-    end
     self:RemovePanels(entry.id)
     self.entries[entry.id]=nil
     for i=#self.order,1,-1 do if self.order[i]==entry.id then table.remove(self.order,i) end end
@@ -240,32 +161,7 @@ function Registry:_Publish(entry)
     if entry.state~="pending" then return nil,failure("INVALID_STATE",nil,entry.id) end
     -- Pending providers may register before WoW restores SavedVariables.
     local disabled = I.CharacterStore:DisabledProviders()
-    entry.userEnabled = entry.id == "lychee.settings" or not (type(disabled) == "table" and disabled[entry.id])
-    if I.Search and I.Search.StaticIndex and entry.sources then
-        for i=1,#entry.sources do
-            local source=entry.sources[i]
-            local sourceID=entry.id..":"..source.id
-            source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled and entry.userEnabled
-            local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,searchable=source.searchable,revision=source.revision,title=source.title,extensionTitle=entry.descriptor.title,_enabled=source._enabled,_extensionID=entry.id})
-            if not registered then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","searchSource",entry.id) end
-            local records=source.records
-            if type(source.snapshot)=="function" then
-                local snapshotOK,snapshot=xpcall(function() return source.snapshot({ locale=I.Search.RuntimeIdentity and I.Search.RuntimeIdentity.locale, signature=I.Search.RuntimeIdentity and I.Search.RuntimeIdentity.signature }) end,function() return nil end)
-                if not snapshotOK or type(snapshot)~="table" then self:_Rollback(entry); return nil,failure("CALLBACK_ERROR","searchSource",entry.id) end
-                records=snapshot
-            end
-            local recordsOK, recordsErr = validateSearchRecords(records, "searchSource." .. source.id .. ".records", entry.id)
-            if not recordsOK then self:_Rollback(entry); return nil, recordsErr end
-            records = takeRecords(records, entry.id)
-            for recordIndex = 1, #records do
-                local categoryOK, categoryErr = validateCategoryOwnership(records[recordIndex], entry.id, "searchSource." .. source.id .. ".records[" .. recordIndex .. "]")
-                if not categoryOK then self:_Rollback(entry); return nil, categoryErr end
-                records[recordIndex]._extensionID = entry.id
-            end
-            local committed,commitErr=I.Search.StaticIndex:CommitSnapshot(sourceID,records,source.revision,sourceGeneration)
-            if not committed then self:_Rollback(entry); return nil,failure(commitErr or "INVALID_SCHEMA","searchSource",entry.id) end
-        end
-    end
+    entry.userEnabled = not (type(disabled) == "table" and disabled[entry.id])
     self.panelsByExtension[entry.id]={}
     for i=1,#entry.panels do local panel=entry.panels[i]; local key=entry.id..":"..panel.id; if self.panels[key] then self:_Rollback(entry); return nil,failure("DUPLICATE_ID","panel",entry.id) end; self.panels[key]={extensionID=entry.id,descriptor=panel}; self.panelsByExtension[entry.id][panel.id]=key end
     notify(entry,"registered")
@@ -291,19 +187,22 @@ function Registry:GetPanel(extensionID,panelID)
 end
 function Registry:IsEnabled(extensionID) local entry=self.entries[extensionID]; return entry~=nil and entry.state=="enabled" end
 
+function Registry:NotifyMetadata(id)
+    local entry=self.entries[id]
+    if not entry or entry.state=="removed" or entry.state=="retiring" then return false end
+    for index=1,#self.listeners do pcall(self.listeners[index],entry,"metadata") end
+    return true
+end
+
 function Registry:_ApplyEnabled(entry, reason)
     local enabled = entry.ownerEnabled and entry.userEnabled
     if (entry.state ~= "enabled" and entry.state ~= "disabled") or (entry.state == "enabled") == enabled then return true end
-    if I.Search and I.Search.StaticIndex then
-        for index = 1, #entry.sources do I.Search.StaticIndex:TouchSource(entry.id .. ":" .. entry.sources[index].id, enabled) end
-    end
     if enabled then notify(entry, "enabled"); invoke(entry.descriptor.onEnabled)
     else notify(entry, "disabled", reason); invoke(entry.descriptor.onDisabled, reason) end
     return true
 end
 
 function Registry:SetUserEnabled(id, enabled)
-    if id == "lychee.settings" then return nil, failure("REQUIRED_PROVIDER", nil, id) end
     if InCombatLockdown and InCombatLockdown() then return nil, failure("COMBAT_LOCKED", nil, id) end
     local entry = self.entries[id]
     if not entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("INVALID_STATE", nil, id) end
@@ -317,152 +216,10 @@ end
 function Registry:_Handle(entry)
     local registry=self
     local handle={id=entry.id}
-    local function currentEntry(mutation)
-        if registry.entries[entry.id] ~= entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("STALE_HANDLE", nil, entry.id) end
-        if mutation and entry.state ~= "enabled" and entry.state ~= "registered" then return nil, failure("EXTENSION_DISABLED", nil, entry.id) end
-        return true
-    end
     function handle:GetState()
         return {lifecycle=entry.state,ownerEnabled=entry.ownerEnabled,userEnabled=entry.userEnabled,hostAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled"),effectiveEnabled=entry.state=="enabled",errorCode=entry.incompatible and "INCOMPATIBLE_HOST" or nil}
     end
 
-    function handle:Invalidate(key)
-        local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-        local allowed = false
-        local keys = entry.descriptor.invalidationKeys or {}
-        for index = 1, #keys do if keys[index] == key then allowed = true; break end end
-        if not allowed then return nil, failure("INVALID_SCHEMA", "invalidationKey", entry.id) end
-        local states = {}
-        for index = 1, #entry.sources do
-            local sourceID = entry.id .. ":" .. entry.sources[index].id
-            local ok, generation, revision = I.Search.StaticIndex:Invalidate(sourceID, key)
-            if not ok then return nil, failure(generation or "SOURCE_NOT_FOUND", "searchSource", entry.id) end
-            states[#states + 1] = { sourceID = sourceID, generation = generation, revision = revision }
-        end
-        return true, states
-    end
-    function handle:GetSearchSource(sourceID)
-        local current, currentErr = currentEntry(false); if not current then return nil, currentErr end
-        if type(sourceID) ~= "string" then return nil, failure("INVALID_SCHEMA", "sourceID", entry.id) end
-        for index = 1, #entry.sources do
-            local source = entry.sources[index]
-            if source.id == sourceID then
-                local fullID = entry.id .. ":" .. source.id
-                local token = { id = source.id, extensionID = entry.id, sourceID = fullID }
-                local autoGeneration, scheduledGeneration
-                function token:GetState()
-                    local ok, err = currentEntry(false); if not ok then return nil, err end
-                    return I.Search.StaticIndex:GetSourceState(fullID)
-                end
-                function token:BeginSnapshot()
-                    local ok, err = currentEntry(true); if not ok then return nil, err end
-                    return I.Search.StaticIndex:BeginSnapshot(fullID)
-                end
-                local function beginAutoSnapshot()
-                    if autoGeneration then return autoGeneration end
-                    local generation, beginErr = I.Search.StaticIndex:BeginSnapshot(fullID)
-                    if not generation then return nil, beginErr end
-                    autoGeneration = generation
-                    return generation
-                end
-                local function scheduleCommit(generation)
-                    if scheduledGeneration == generation then return end
-                    scheduledGeneration = generation
-                    C_Timer.After(0, function()
-                        if scheduledGeneration == generation then scheduledGeneration = nil end
-                        if autoGeneration ~= generation then return end
-                        autoGeneration = nil
-                        if not currentEntry(true) then return end
-                        local ok, _, revision = I.Search.StaticIndex:CommitSnapshot(fullID, nil, nil, generation)
-                        if ok then source.revision = revision or source.revision end
-                    end)
-                end
-                function token:Upsert(record, generation)
-                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-                    local ok, why = I.Boundary:ValidateSearchRecord(record, "searchSource." .. source.id)
-                    if not ok then return nil, why end
-                    local categoryOK, categoryErr = validateCategoryOwnership(record, entry.id, "searchSource." .. source.id)
-                    if not categoryOK then return nil, categoryErr end
-                    record = copyValue(record)
-                    record._extensionID = entry.id
-                    if generation == nil and C_Timer and type(C_Timer.After) == "function" then
-                        local autoGeneration, autoErr = beginAutoSnapshot()
-                        if not autoGeneration then return nil, autoErr end
-                        local updated, updateErr = I.Search.StaticIndex:Upsert(fullID, record, nil, autoGeneration)
-                        if updated then scheduleCommit(autoGeneration) end
-                        return updated, updateErr
-                    end
-                    return I.Search.StaticIndex:Upsert(fullID, record, nil, generation)
-                end
-                function token:Remove(recordID, generation)
-                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-                    if type(recordID) ~= "string" or recordID == "" then return nil, failure("INVALID_SCHEMA", "recordID", entry.id) end
-                    if generation == nil and C_Timer and type(C_Timer.After) == "function" then
-                        local autoGeneration, autoErr = beginAutoSnapshot()
-                        if not autoGeneration then return nil, autoErr end
-                        local removed, removeErr = I.Search.StaticIndex:Remove(fullID, recordID, nil, autoGeneration)
-                        if removed then scheduleCommit(autoGeneration) end
-                        return removed, removeErr
-                    end
-                    return I.Search.StaticIndex:Remove(fullID, recordID, nil, generation)
-                end
-                function token:CommitSnapshot(records, revision, generation)
-                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-                    if revision ~= nil and (not integer(revision) or revision < 0) then return nil, failure("INVALID_SCHEMA", "revision", entry.id) end
-                    if generation == nil and autoGeneration then generation = autoGeneration end
-                    if records ~= nil then
-                        local valid, why = validateSearchRecords(records, "searchSource." .. source.id .. ".records", entry.id)
-                        if not valid then return nil, why end
-                        records = takeRecords(records, entry.id)
-                        for i = 1, #records do
-                            local categoryOK, categoryErr = validateCategoryOwnership(records[i], entry.id, "searchSource." .. source.id .. ".records[" .. i .. "]")
-                            if not categoryOK then return nil, categoryErr end
-                            records[i]._extensionID = entry.id
-                        end
-                    end
-                    local ok, a, b, changed = I.Search.StaticIndex:CommitSnapshot(fullID, records, revision, generation)
-                    if ok then
-                        source.revision = b or source.revision
-                        if generation == autoGeneration then autoGeneration = nil end
-                    end
-                    return ok, a, b, changed
-                end
-                function token:ApplyDelta(records, removedIDs)
-                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-                    local valid, why = validateSearchRecords(records, "searchSource.delta", entry.id)
-                    if not valid then return nil, why end
-                    local removeOK, removeErr = I.Boundary:Validate(removedIDs, "searchSource.remove", { maxFields = 4096 })
-                    if not removeOK then return nil, removeErr end
-                    if type(removedIDs) ~= "table" or #removedIDs > 4096 then return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id) end
-                    local count, seen = 0, {}
-                    for key, id in pairs(removedIDs) do
-                        if type(key) ~= "number" or key < 1 or key > #removedIDs or key ~= math.floor(key) or type(id) ~= "string" or id == "" or seen[id] then
-                            return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id)
-                        end
-                        count, seen[id] = count + 1, true
-                    end
-                    if count ~= #removedIDs then return nil, failure("INVALID_SCHEMA", "searchSource.remove", entry.id) end
-                    records = takeRecords(records, entry.id)
-                    for index = 1, #records do
-                        if seen[records[index].id] then return nil, failure("INVALID_SCHEMA", "searchSource.delta", entry.id) end
-                        local categoryOK, categoryErr = validateCategoryOwnership(records[index], entry.id, "searchSource.delta")
-                        if not categoryOK then return nil, categoryErr end
-                        records[index]._extensionID = entry.id
-                    end
-                    local ok, a, b, changed = I.Search.StaticIndex:ApplyDelta(fullID, records, removedIDs)
-                    if ok then source.revision = b or source.revision end
-                    return ok, a, b, changed
-                end
-                function token:Invalidate(key)
-                    local current, currentErr = currentEntry(true); if not current then return nil, currentErr end
-                    if type(key) ~= "string" or key == "" then return nil, failure("INVALID_SCHEMA", "key", entry.id) end
-                    return I.Search.StaticIndex:Invalidate(fullID, key)
-                end
-                return token
-            end
-        end
-        return nil, failure("SOURCE_NOT_FOUND", "sourceID", entry.id)
-    end
     function handle:SetEnabled(enabled)
         if entry.state=="removed" or entry.state=="retiring" then return nil,failure("INVALID_STATE",nil,entry.id) end
         entry.ownerEnabled=not not enabled
@@ -474,7 +231,6 @@ function Registry:_Handle(entry)
         local wasEnabled=entry.state=="enabled"
         local wasAttached=(entry.state=="registered" or entry.state=="enabled" or entry.state=="disabled")
         notify(entry,"retiring","unregister")
-        if I.Search and I.Search.StaticIndex then for i=1,#entry.sources do I.Search.StaticIndex:UnregisterSource(entry.id..":"..entry.sources[i].id) end end
         registry:RemovePanels(entry.id)
         if wasEnabled then invoke(entry.descriptor.onDisabled,"unregister") end
         if wasAttached then invoke(entry.descriptor.onHostDetached,"unregister") end

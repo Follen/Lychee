@@ -48,17 +48,6 @@ function Q:_BuildRequest(raw, context, generation)
     local text, filter = tostring(raw or ""), context and context.searchFilter
     if I.Search.ProviderPolicy then
         text,filter=I.Search.ProviderPolicy:Route(text,filter)
-    else
-    -- Fixed aliases select an existing source; ordinary text takes no parser
-    -- allocation and unknown prefixes retain their original search meaning.
-    local first,last=text:find(":",1,true)
-    local wide,wideLast=text:find("：",1,true)
-    if wide and (not first or wide<first) then first,last=wide,wideLast end
-    if first then
-        local prefix=I.Search.Normalizer:Normalize(text:sub(1,first-1))
-        local source=self.categoryPrefixes and self.categoryPrefixes[prefix]
-        if source then text=text:sub(last+1); filter={sourceID=source..":records"} end
-    end
     end
     local normalized = I.Search.Normalizer:Normalize(text)
     return { generation = generation, raw = text, normalized = normalized, preferenceKey=I.Search.Normalizer:Normalize(raw),
@@ -67,19 +56,6 @@ function Q:_BuildRequest(raw, context, generation)
         visible = context and context.visible, filter = filter }
 end
 
-Q.categoryPrefixes={
-    ["技能"]="builtin.player-spells",spell="builtin.player-spells",spells="builtin.player-spells",
-    ["坐骑"]="builtin.mounts",mounts="builtin.mounts",
-    ["背包"]="builtin.bags",["物品"]="builtin.bags",bags="builtin.bags",
-    ["天赋"]="builtin.talent-loadouts",["天赋方案"]="builtin.talent-loadouts",talents="builtin.talent-loadouts",
-    ["装备"]="builtin.equipment-sets",["装备方案"]="builtin.equipment-sets",gear="builtin.equipment-sets",
-    ["设置"]="builtin.blizzard-settings",["暴雪设置"]="builtin.blizzard-settings",settings="builtin.blizzard-settings",
-    ["钥匙"]="builtin.keystones",key="builtin.keystones",keys="builtin.keystones",
-    ["成就"]="builtin.achievements",achievement="builtin.achievements",achievements="builtin.achievements",
-    ["团本首领"]="builtin.bosses",["首领"]="builtin.bosses",bosses="builtin.bosses",["菜单"]="builtin.game-menus",
-    ["玩家技能"]="builtin.player-spells",["背包物品"]="builtin.bags",["队伍钥匙"]="builtin.keystones",
-    ["游戏菜单"]="builtin.game-menus",["纹章"]="builtin.crests",["宏伟宝库"]="builtin.great-vault",["宝库"]="builtin.great-vault",
-}
 
 function Q:_IsCurrent(generation, context)
     if context and context.visible == false then return false, "HIDDEN" end
@@ -95,19 +71,6 @@ function Q:_Execute(raw, context, generation, request)
     request = request or self:_BuildRequest(raw, context, generation)
     local filtered = type(request.filter) == "table" and (request.filter.sourceID or request.filter.categoryID)
     local out, seen = {}, filtered and EMPTY or {}
-    if I.Search and I.Search.StaticIndex then
-        local preferred=I.Search.Personalization and I.Search.Personalization:Preferred(request)
-        local preferredKey=preferred and (preferred.providerID..":records:"..preferred.entryID)
-        local indexed = I.Search.StaticIndex:Search(request.normalized, self.limit, request.filter, true, preferredKey)
-        for index = 1, #indexed do
-            local item = I.Search.ResultSnapshot:Materialize(indexed[index])
-            if item and I.Providers then I.Providers:Stamp(item) end
-            if item then
-                if filtered then out[#out+1]=item -- index already guarantees unique static records
-                else appendUnique(out, seen, item) end
-            end
-        end
-    end
     request.limit = self.limit
     if I.Search.Personalization then I.Search.Personalization:AddAliases(out,request,context) end
     table.sort(out, resultLess)
@@ -153,14 +116,14 @@ function Q:Query(raw, context, externalGeneration, callback)
         self:_Commit(generation,results)
         return generation,results,operation
     end
-    local results = self:_Execute(raw, context, generation, request)
+    local results = {}
     if self.operation ~= operation then return generation, {} end
-    if I.Providers and raw ~= "" and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
+    if I.Providers and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
         local base = results
         local function merge(dynamic)
-            if #dynamic==0 then return base end
             local combined, seen = {}, {}
-            for _, item in ipairs(base) do appendUnique(combined, seen, item) end
+            local aliases=self:_Execute(raw,context,generation,request)
+            for _, item in ipairs(aliases) do appendUnique(combined, seen, item) end
             for _, item in ipairs(dynamic) do appendUnique(combined, seen, item) end
             table.sort(combined, resultLess)
             if I.Search.Personalization then I.Search.Personalization:Promote(combined,request) end
@@ -222,7 +185,6 @@ end
 
 function Q:Cancel(reason, generation)
     self:_BeginOperation()
-    if I.Search.StaticIndex and I.Search.StaticIndex.ClearQueryCache then I.Search.StaticIndex:ClearQueryCache() end
     self.last = { generation = generation, results = {}, cancelled = reason or "INVALIDATED" }
     if I.Providers then I.Providers:CancelQueries(reason) end
     return true

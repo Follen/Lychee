@@ -17,82 +17,46 @@ assert(type(readyToken.Cancel) == "function" and readyToken:Cancel(), "ready sub
 I.Registry:SetReady(true)
 assert(readyCalls == 0, "cancelled ready callback does not run")
 local function descriptor(id)
-    return { id = id, title = "SDK contract", version = "1.0.0", apiVersion = 2, minApiRevision = 1, invalidationKeys = { "refresh" } }
+    return {id=id,title="SDK contract",version="1",apiVersion=3,minApiRevision=1}
 end
-local function register(id, title)
-    local draft = assert(I.Registry:Begin(descriptor(id), { public = true }))
-    assert(draft.descriptor == nil and draft.sources == nil and draft.state == nil, "public draft hides mutable registration state")
-    assert(draft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 10, scope = {},
-        records = { { id = "entry", kind = "custom", title = title } } }))
-    local handle = assert(draft:Commit())
-    assert(handle._entry == nil, "public handle hides the registry entry")
-    return handle, assert(handle:GetSearchSource("records"))
+local function register(id)
+    local draft=assert(I.Registry:Begin(descriptor(id),{public=true}))
+    assert(draft.RegisterSearchSource==nil,"registry no longer accepts catalog declarations")
+    assert(draft:RegisterPanelFactory({id="detail",stateSchema={id="string"},create=function() return {} end}))
+    return assert(draft:Commit()),draft
 end
-
-local oldExtension, oldSource = register("sdk.reused", "Old instance")
-assert(oldExtension:Unregister())
-local newExtension, newSource = register("sdk.reused", "New instance")
-local overwritten, staleError = oldSource:CommitSnapshot({ { id = "entry", kind = "custom", title = "Stale overwrite" } })
-assert(not overwritten and type(staleError) == "table", "retired source handle must reject writes into a replacement instance")
-assert(not oldSource:Upsert({ id = "ghost", kind = "custom", title = "Ghost" }), "old upsert cannot reach replacement source")
-assert(not oldSource:Remove("entry"), "old remove cannot reach replacement source")
-assert(not oldSource:BeginSnapshot(), "old batch cannot reach replacement source")
-assert(not oldSource:Invalidate("refresh"), "old invalidation cannot reach replacement source")
-assert(not oldSource:GetState(), "old source state cannot expose replacement state")
-assert(not oldExtension:Invalidate("refresh"), "old extension invalidation cannot reach replacement source")
-assert(not oldExtension:GetSearchSource("records"), "retired extension cannot mint replacement source handles")
-local _, staleResults = I.Search.Query:Query("Stale overwrite", { visible = true })
-assert(#staleResults == 0, "new instance remains unchanged by old handles")
-assert(newSource:CommitSnapshot({ { id = "entry", kind = "custom", title = "Current owner" } }), "current handle remains usable")
-assert(newExtension:SetEnabled(false))
-assert(not newSource:Upsert({ id = "disabled", kind = "custom", title = "Disabled" }), "disabled source rejects writes")
-assert(newExtension:SetEnabled(true))
-assert(newSource:Upsert({ id = "enabled", kind = "custom", title = "Enabled" }), "same source handle resumes after enable")
-assert(newExtension:Unregister())
-
-local queued = {}
-C_Timer = { After = function(_, callback) queued[#queued + 1] = callback end }
-local timedExtension, timedSource = register("sdk.timer", "Old timed source")
-assert(timedSource:Upsert({ id = "entry", kind = "custom", title = "Late timer" }))
-assert(timedExtension:Unregister())
-local replacement = register("sdk.timer", "Replacement timed source")
-for index = 1, #queued do queued[index]() end
-local _, timerResults = I.Search.Query:Query("Late timer", { visible = true })
-assert(#timerResults == 0, "deferred commits cannot publish into a replacement instance")
-assert(replacement:Unregister())
-C_Timer = nil
-
-local inputRecord = { id = "owned", kind = "custom", title = "Owned original", payload = { value = 1 } }
-local inputSource = { id = "records", version = 1, revision = 1, priority = 10, scope = {}, records = { inputRecord } }
-local ownedDraft = assert(I.Registry:Begin(descriptor("sdk.owned"), { public = true }))
-assert(ownedDraft:RegisterSearchSource(inputSource))
-inputRecord.title = "Changed after declaration"
-local ownedHandle = assert(ownedDraft:Commit())
-assert(inputRecord._extensionID == nil and inputSource._sourceID == nil, "Host does not stamp caller-owned tables")
-local _, ownedResults = I.Search.Query:Query("Owned original", { visible = true })
-assert(#ownedResults == 1, "published source uses the validated declaration copy")
-local ownedSource = assert(ownedHandle:GetSearchSource("records"))
-local update = { id = "owned", kind = "custom", title = "Owned update", payload = { value = 2 } }
-assert(ownedSource:Upsert(update))
-update.title = "Changed after update"; update.payload.value = 99
-local _, updatedResults = I.Search.Query:Query("Owned update", { visible = true })
-assert(#updatedResults == 1 and updatedResults[1].payload.value == 2, "nested update data is isolated from caller mutation")
-assert(update._extensionID == nil, "updates leave caller records unchanged")
-assert(ownedHandle:Unregister())
-
-local supportOK, supported = pcall(SDK.Supports, SDK, 2, "bad")
-assert(supportOK and supported == false, "Supports treats malformed version input as unsupported")
-assert(SDK:Supports(2, 1) and not SDK:Supports(2, -1), "version compatibility validates positive revisions")
-
-local many = {}
-for index = 1, 129 do many[index] = { id = "entry-" .. index, kind = "custom", title = "Bulk entry " .. index } end
-for _, mode in ipairs({ "records", "snapshot" }) do
-    local draft = assert(I.Registry:Begin(descriptor("sdk.bulk-" .. mode), { public = true }))
-    local source = { id = "records", version = 1, revision = 1, priority = 10, scope = {} }
-    if mode == "records" then source.records = many else source.snapshot = function() return many end end
-    local token, reason = draft:RegisterSearchSource(source)
-    assert(token, "initial records and snapshot have the same capacity: " .. tostring(reason and reason.code))
-    local handle = assert(draft:Commit())
-    assert(handle:Unregister())
-end
-print("Lychee registry boundary smoke PASS")
+local old,draft=register("registry.reused")
+assert(not draft:Commit() and not draft:RegisterPanelFactory({}),"closed draft rejects mutations")
+local factory=assert(I.Registry:GetPanel("registry.reused","detail"))
+assert(old:Unregister() and not I.Registry:GetPanel("registry.reused","detail"))
+local fresh=register("registry.reused")
+assert(not old:SetEnabled(false),"old handle cannot disable replacement")
+assert(fresh:GetState().effectiveEnabled)
+assert(old:Unregister() and I.Registry:GetPanel("registry.reused","detail")~=factory)
+assert(fresh:SetEnabled(false) and not I.Registry:IsEnabled("registry.reused"))
+assert(fresh:SetEnabled(true) and I.Registry:IsEnabled("registry.reused"))
+assert(fresh:Unregister())
+local aborted=assert(I.Registry:Begin(descriptor("registry.aborted"),{public=true}))
+assert(aborted:Abort() and not aborted:Commit())
+local replacement=register("registry.aborted");assert(replacement:Unregister())
+local invalid=assert(I.Registry:Begin(descriptor("registry.invalid"),{public=true}))
+assert(not invalid:RegisterPanelFactory({id="detail",create=function()end}),"public panel requires state schema")
+assert(not invalid:Commit());assert(invalid:Abort())
+local copied=descriptor("registry.owned")
+local owned=assert(I.Registry:Begin(copied,{public=true}));copied.title="Mutated"
+local committed=assert(owned:Commit());assert(I.Registry.entries[copied.id].descriptor.title=="SDK contract")
+assert(committed:Unregister())
+local fixture=dofile("tests/support/provider_fixture.lua")
+local a=assert(fixture:Register({id="registry.catalog",title="Catalog",version="1",apiVersion=3,catalog={}}))
+local input={id="owned",title="Original",payload={value=1}}
+assert(a.catalog:Update({replace={input}}));input.payload.value=99
+assert(a.catalog:Resolve("owned").payload.value==1)
+local many={};for n=1,129 do many[n]={id=tostring(n),title="Bulk "..n} end
+assert(a.catalog:Update({replace=many}) and a.catalog:GetState().entries==129)
+assert(a:Unregister());local b=assert(fixture:Register({id="registry.catalog",title="New",version="1",apiVersion=3,catalog={}}))
+for _,delta in ipairs({{replace=many},{upsert={input}},{remove={"owned"}}}) do assert(not a.catalog:Update(delta),"retired catalog cannot write into replacement") end
+assert(not a:Invalidate() and not a:GetState() and b.catalog:GetState().entries==0)
+assert(b:Unregister())
+local ok,supported=pcall(SDK.Supports,SDK,3,"bad")
+assert(ok and not supported and SDK:Supports(3,1) and not SDK:Supports(2,1))
+print("Registry boundary PASS: panels, draft closure/abort, replacement, owner isolation, private catalogs, capacity and retired handles")

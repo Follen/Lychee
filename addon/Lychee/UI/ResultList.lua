@@ -225,7 +225,7 @@ local function showTooltip(owner, title, detail)
     elseif detail and detail ~= "" and detail ~= title then
         description = detail
     end
-    local scoreRows=type(detail)=="table" and detail.providerID=="builtin.keystones" and detail.payload and detail.payload.scoreRows
+    local scoreRows=type(detail)=="table" and detail.searchRecord and detail.searchRecord.tooltipRows
     local wide=type(scoreRows)=="table" and #scoreRows>0
     local width=wide and 416 or 280
     if tip._width~=width then
@@ -418,9 +418,9 @@ function ResultList:Create(parent, controller)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
         row.ui=Lychee.UI:Create(row,{type="Fragment",children={
-            {type="Text",key="category",props={role="meta",color="textDim",width=80,justifyH="RIGHT",maxLines=1,wordWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
-            {type="Text",key="title",props={role="body",color="text",height=18,maxLines=1,wordWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset or 48,-6},{"RIGHT",row,"RIGHT",-112,0}}},bind={text="title"}},
-            {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT",row,"RIGHT",-112,0}}},bind={text="subtext"}},
+            {type="Text",key="category",props={role="meta",color="textDim",width=80,height=16,justifyH="RIGHT",maxLines=1,wordWrap=false,nonSpaceWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
+            {type="Text",key="title",props={role="body",color="text",height=18,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset or 48,-6},{"RIGHT","category","LEFT",-14,0}}},bind={text="title"}},
+            {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT","category","LEFT",-14,0}}},bind={text="subtext"}},
         }})
         row.textProps={}
         assert(row.ui:Update(EMPTY_UI_PROPS));row.category,row.title,row.subtext=row.ui:Get("category"),row.ui:Get("title"),row.ui:Get("subtext");row._categoryInset=12
@@ -507,11 +507,15 @@ function ResultList:SetItems(items, session, generation, offset)
         end
         row.textProps.title,row.textProps.subtext,row.textProps.category=title,subtitle,kindText(item)
         row.ui:Update(row.textProps)
+        local categoryWidth=math.min(160,math.max(80,math.ceil(row.category:GetStringWidth())+2))
+        if row._categoryWidth~=categoryWidth then
+            row.category:SetWidth(categoryWidth);row._categoryWidth=categoryWidth
+        end
         local single=row.subtext:GetText()==""
         if row._singleTitle~=single then
             row.title:ClearAllPoints()
             row.title:SetPoint(single and "LEFT" or "TOPLEFT",row,single and "LEFT" or "TOPLEFT",Lychee.UI.Theme.Metrics.listTitleInset,single and 0 or -6)
-            row.title:SetPoint("RIGHT",row,"RIGHT",-112,0)
+            row.title:SetPoint("RIGHT",row.category,"LEFT",-14,0)
             row._singleTitle=single
         end
         local icon = item.icon

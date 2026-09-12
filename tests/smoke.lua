@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Offline contract smoke test. WoW UI behavior still requires an in-client pass.
 _G = _G or {}
@@ -27,10 +28,10 @@ C_SpellBook = {
     end,
 }
 local root = "addon/Lychee/"
-dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Builtin/PlayerSpells/Aliases.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua"})
-assert(_G.Lychee and _G.Lychee:Supports(2, 1))
-assert(_G.LycheeInternal.Builtin and _G.LycheeInternal.Builtin.Init)
-_G.LycheeInternal.Builtin:Init()
+dofile("tests/support/runtime.lua").Load("provider", {"../Lychee_Player/Achievements/Locales.lua", "../Lychee_Inspector/Locales.lua", "../Lychee_Player/Bags/Locales.lua", "../Lychee_Player/BlizzardSettings/Locales.lua", "../Lychee_Encounters/Bosses/Locales.lua", "../Lychee_Player/Crests/Locales.lua", "../Lychee_Player/EquipmentSets/Locales.lua", "../Lychee_Player/GameMenus/Locales.lua", "../Lychee_Player/GreatVault/Locales.lua", "../Lychee_Player/Keystones/Locales.lua", "../Lychee_Player/Mounts/Locales.lua", "../Lychee_Player/PlayerSpells/Locales.lua", "../Lychee_Player/TalentLoadouts/Locales.lua", "Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "../Lychee_Player/PlayerSpells/Aliases.lua", "../Lychee_Player/PlayerSpells/Provider.lua", "../Lychee_Player/PlayerSpells/Init.lua", "Core/Modules.lua"})
+assert(_G.Lychee and _G.Lychee:Supports(3, 1))
+assert(_G.TestPackages.Modules and _G.TestPackages.Modules.Init)
+_G.TestPackages.Modules:Init()
 _G.LycheeInternal.Registry:SetReady(true)
 local q = _G.LycheeInternal.Search.Query
 local queryToken, results = q:Query("翅膀", {})
@@ -72,23 +73,24 @@ assert(openedPanel and openedPanel.owner.extensionID == "third-party-fixture")
 assert(openedPanel.owner.panelID == "detail" and openedPanel.state.itemID == 12345)
 assert(openedPanel.factory == _G.LycheeInternal.Registry:GetPanel("third-party-fixture", "detail"))
 local _, isolatedFixtureResults = q:Query("wings", {})
-assert(#isolatedFixtureResults == 1 and isolatedFixtureResults[1].providerID == "builtin.player-spells", "English spell alias fallback must not leak into the third-party fixture")
-assert(_G.ThirdPartyFixture.SetEnabled(false))
+assert(#isolatedFixtureResults == 1 and isolatedFixtureResults[1].providerID == "lychee.player-spells", "English spell alias fallback must not leak into the third-party fixture")
+assert(_G.ThirdPartyFixture.SetAvailability(false))
 assert(fixture:GetState().lifecycle == "disabled")
 local _, disabledFixtureResults = q:Query("第三方示例条目", {})
 assert(#disabledFixtureResults == 0)
-assert(_G.ThirdPartyFixture.SetEnabled(true))
+assert(_G.ThirdPartyFixture.SetAvailability(true))
 assert(fixture:GetState().lifecycle == "enabled")
 local _, reenabledFixtureResults = q:Query("第三方示例条目", {})
 assert(#reenabledFixtureResults == 1 and reenabledFixtureResults[1].sourceID == "third-party-fixture:records")
 assert(results[1].interaction and results[1].interaction.actions[1].kind == "secure-spell")
 assert(results[1].interaction.drag and results[1].interaction.drag.spellID == 31884)
-local badProvider,badProviderErr=Lychee:RegisterProvider({id="test.invalid",title="Bad",version="1",apiVersion=2,
-    entries={{id="bad",title="Bad",actions={"missing"}}}})
-assert(not badProvider and badProviderErr.code=="UNKNOWN_ACTION")
+local badProvider=assert(Fixture:Register({id="test.invalid",title="Bad",version="1",apiVersion=3,catalog={}}))
+local invalid,invalidError=badProvider.catalog:Update({upsert={{id="bad",title="Bad",actions={"missing"}}}})
+assert(not invalid and invalidError.code=="UNKNOWN_ACTION")
+assert(badProvider:Unregister())
 local oldSecret = issecretvalue
 issecretvalue = function(value) return value == "SECRET" end
-local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion = 2, minApiRevision = 1, title = "SECRET", version = "1.0.0" })
+local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion=3, minApiRevision=1, title = "SECRET", version = "1.0.0" })
 assert(not secretBad and secretErr and secretErr.code == "SECRET_VALUE")
 issecretvalue = oldSecret
 local callbackToken
@@ -106,29 +108,29 @@ C_SpellBook = {
     GetSpellBookSkillLineInfo = function() return { itemIndexOffset = 0, numSpellBookItems = 1 } end,
     GetSpellBookItemInfo = function() return { spellID = 9001, name = "实时技能", iconID = 1, subName = "当前角色", isPassive = false, isOffSpec = false } end,
 }
-_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh()
+_G.TestPackages.Modules.PlayerSpells.Provider:Refresh()
 local _, live = q:Query("实时技能", {})
 assert(#live > 0 and live[1].payload.spellID == 9001)
 local _, descriptionMatch = q:Query("测试副本", {})
 assert(#descriptionMatch > 0 and descriptionMatch[1].payload.spellID == 9001)
 C_SpellBook.GetSpellBookItemInfo = function() error("transient") end
-assert(_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh() == false)
+assert(_G.TestPackages.Modules.PlayerSpells.Provider:Refresh() == false)
 local _, retained = q:Query("实时技能", {})
 assert(#retained > 0 and retained[1].payload.spellID == 9001)
 -- Known alias spells are indexed even when the visible skill-line snapshot omits them.
 C_SpellBook.GetSpellBookItemInfo = function() return nil end
 IsPlayerSpell = function(id) return id == 393256 end
 C_Spell = { GetSpellInfo = function(id) if id == 393256 then return { name = "利爪防御者之路", iconID = 4578416 } end end }
-assert(_G.LycheeInternal.Builtin.PlayerSpells.Provider:Refresh())
+assert(_G.TestPackages.Modules.PlayerSpells.Provider:Refresh())
 local _, knownAlias = q:Query("红玉", {})
 assert(#knownAlias > 0 and knownAlias[1].payload.spellID == 393256)
-local panel = _G.LycheeInternal.Registry:Get("builtin.player-spells")
+local panel = _G.LycheeInternal.Registry:Get("lychee.player-spells")
 assert(panel and panel:GetState().lifecycle == "enabled")
-local playerSpellsEntry = _G.LycheeInternal.Registry.entries["builtin.player-spells"]
-assert(playerSpellsEntry and #playerSpellsEntry.sources == 1)
+local playerSpellsEntry = _G.LycheeInternal.Registry.entries["lychee.player-spells"]
+assert(playerSpellsEntry and playerSpellsEntry.sources == nil)
 assert(playerSpellsEntry.commands == nil and playerSpellsEntry.providers == nil)
 assert(playerSpellsEntry.handlers == nil and #playerSpellsEntry.panels == 0)
-local playerSpells = _G.LycheeInternal.Builtin.PlayerSpells
+local playerSpells = _G.TestPackages.Modules.PlayerSpells
 local committedSourceHandle = playerSpells.Provider.providerHandle
 assert(committedSourceHandle and playerSpells.Provider._active == true and playerSpells.Provider._eventFrame)
 assert(panel:SetEnabled(false))

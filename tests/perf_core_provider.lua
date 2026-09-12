@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 function GetLocale() return 'enUS' end
 function GetBuildInfo() return '12.1.0','12345','today',120100 end
 function InCombatLockdown() return false end
@@ -12,12 +13,12 @@ I.Registry:SetReady(true)
 local entries={}
 for n=1,500 do entries[n]={id='item'..n,title='Entry '..n,payload={value=n}} end
 local replies={}
-local handle=assert(Lychee:RegisterProvider({id='perf.core',title='Core',version='1.0',apiVersion=2,entries=entries,
+local handle=assert(Fixture:Register({id='perf.core',title='Core',version='1.0',apiVersion=3,catalog=entries,
     query=function(_,reply) replies[#replies+1]=reply end}))
 for run=1,5 do
     collectgarbage('collect'); collectgarbage('stop')
     local memory,started=collectgarbage('count'),os.clock()
-    for n=1,100 do assert(handle:Update({upsert={{id='item1',title='Update '..run..'-'..n}}})) end
+    for n=1,100 do assert(handle.catalog:Update({upsert={{id='item1',title='Update '..run..'-'..n}}})) end
     local allocated=collectgarbage('count')-memory
     print(string.format('provider run=%d directory=500 single_updates=100 ms=%.3f allocated_kib=%.3f',run,(os.clock()-started)*1000,allocated))
     collectgarbage('restart')
@@ -33,14 +34,14 @@ print('provider pending jobs after 200 searches='..jobs)
 assert(jobs==1,'superseded requests must not accumulate jobs')
 local ok,err=replies[1]({{id='old',title='Old'}})
 assert(not ok and err.code=='STALE_REQUEST','old query cannot publish')
-assert(handle:Update({upsert={{id='changed',title='Changed'}}}))
+assert(handle.catalog:Update({upsert={{id='changed',title='Changed'}}}))
 ok,err=replies[#replies]({{id='old',title='Old'}})
 assert(not ok and err.code=='STALE_REQUEST','old provider revision cannot publish')
 I.Providers:CancelQueries('test')
 assert(next(I.Providers.jobs)==nil)
 assert(handle:Unregister())
 local reentered=false
-local reentrant=assert(Lychee:RegisterProvider({id='perf.reentrant',title='Reentrant',version='1',apiVersion=2,
+local reentrant=assert(Fixture:Register({id='perf.reentrant',title='Reentrant',version='1',apiVersion=3,
     query=function() return function()
         if not reentered then reentered=true; I.Providers:Search({normalized='new'}, {}) end
     end end}))

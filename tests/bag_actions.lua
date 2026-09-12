@@ -38,35 +38,15 @@ function OpenAllBags() end
 local bagButton={IsVisible=function() return visible end,GetFrameLevel=function() return 3 end}
 local locatedSlot
 function ContainerFrameUtil_GetItemButtonAndContainer(_,s) locatedSlot=s;return bagButton end
-LycheeInternal={Builtin={CatalogProvider={New=function(_,id,title,events,build,actions)
-    return {build=build,actions=actions}
-end}}}
 function GetLocale() return "zhCN" end
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
--- Exclude the shared bootstrap frame from this isolated feature cost fixture.
-local featureCreateFrame=CreateFrame
-CreateFrame=nil
-dofile("addon/Lychee/".."Bootstrap.lua");dofile("addon/Lychee/Core/CharacterStore.lua")
+local featureCreateFrame=CreateFrame;CreateFrame=nil
+dofile("tests/support/runtime.lua").Load("provider",{"../Lychee_Player/Bags/Locales.lua"})
 CreateFrame=featureCreateFrame
-dofile("addon/Lychee/".."Builtin/Definitions.lua")
-dofile("addon/Lychee/".."Builtin/Shared/Support.lua")
-dofile("addon/Lychee/".."Core/ProviderLocales.lua")
-dofile("addon/Lychee/".."Builtin/Achievements/Locales.lua")
-dofile("addon/Lychee/".."Builtin/AddonInspector/Locales.lua")
-dofile("addon/Lychee/".."Builtin/Bags/Locales.lua")
-dofile("addon/Lychee/".."Builtin/BlizzardSettings/Locales.lua")
-dofile("addon/Lychee/".."Builtin/Bosses/Locales.lua")
-dofile("addon/Lychee/".."Builtin/Crests/Locales.lua")
-dofile("addon/Lychee/".."Builtin/EquipmentSets/Locales.lua")
-dofile("addon/Lychee/".."Builtin/GameMenus/Locales.lua")
-dofile("addon/Lychee/".."Builtin/GreatVault/Locales.lua")
-dofile("addon/Lychee/".."Builtin/Keystones/Locales.lua")
-dofile("addon/Lychee/".."Builtin/Mounts/Locales.lua")
-dofile("addon/Lychee/".."Builtin/PlayerSpells/Locales.lua")
-dofile("addon/Lychee/".."Builtin/TalentLoadouts/Locales.lua")
-dofile("addon/Lychee/".."Search/RuntimeIdentity.lua")
-dofile('addon/Lychee/Builtin/Bags/Provider.lua')
-local bags=LycheeInternal.Builtin.Bags
+local namespace=TestPackages.namespaces.Lychee_Player
+namespace.Modules.CatalogProvider={New=function(_,id,title,events,build,actions) return {build=build,actions=actions} end}
+assert(loadfile("addon/Lychee_Player/Bags/Provider.lua"))("Lychee_Player",namespace);TestPackages:Refresh()
+local bags=TestPackages.Modules.Bags
 assert(#frames==0 and #timers==0)
 local entry={payload={itemID=123}}
 local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)

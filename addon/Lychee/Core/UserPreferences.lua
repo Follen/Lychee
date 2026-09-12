@@ -58,7 +58,7 @@ function Preferences:Initialize() pins() end
 function Preferences:GetPins() return pins() end
 function Preferences:GetRecoveryError() pins(); return recovery end
 function Preferences:CanPin(item)
-    return item and item.ref and item.ref.providerID ~= "lychee.settings"
+    return item and item.ref
         and I.Providers and I.Providers:CanRemember(item) == true
 end
 function Preferences:PinIndex(ref)

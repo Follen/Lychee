@@ -1,5 +1,7 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 -- SearchSession owns session/generation and rejects stale asynchronous work.
 _G = _G or {}
+function GetBuildInfo() return "12.1.0","69587","",120100 end
 function GetLocale() return "zhCN" end
 function InCombatLockdown() return _G.__combat == true end
 
@@ -14,14 +16,12 @@ C_Timer = {
 }
 
 local root = "addon/Lychee/"
-dofile("tests/support/runtime.lua").Load(nil, {"Bootstrap.lua", "Core/CharacterStore.lua", "Builtin/Definitions.lua", "Builtin/Shared/Support.lua", "Core/ProviderLocales.lua", "Core/ContextStore.lua", "Search/Normalizer.lua", "Search/StaticIndex.lua", "Search/QueryOrchestrator.lua", "Search/SearchSession.lua"})
-
-local I = _G.LycheeInternal
-assert(I.Search.StaticIndex:RegisterSource({ id = "session-fixture", priority = 10 }))
-assert(I.Search.StaticIndex:CommitSnapshot("session-fixture", {
-    { id = "old", kind = "fixture", title = "旧查询" },
-    { id = "new", kind = "fixture", title = "新查询" },
-}, 1))
+dofile("tests/support/runtime.lua").Load("provider", {"Search/SearchSession.lua"})
+local I = LycheeInternal
+local source=assert(Fixture:Register({id="session-fixture",apiVersion=3,minApiRevision=1,version="1",title="Session",catalog={
+    {id="old",title="旧查询"},{id="new",title="新查询"}
+}}))
+I.Registry:SetReady(true)
 
 local accepted = {}
 local palette = { visible = true }
@@ -60,11 +60,11 @@ assert(#accepted == 3 and accepted[3].generation == newGeneration)
 assert(#accepted[3].results >= 1 and accepted[3].results[1].id == "new")
 
 local beforeSourceInvalidation = session.generation
-assert(I.Search.StaticIndex:Invalidate("session-fixture", "fixture-refresh"))
+assert(source:Invalidate("fixture-refresh"))
 assert(session.generation > beforeSourceInvalidation, "source changes must invalidate the active session")
 assert(#accepted == 3, "source changes retain the current display until the coalesced replacement")
 local sourceTimer = timers[#timers]
-assert(I.Search.StaticIndex:Invalidate("session-fixture", "second-refresh"))
+assert(source:Invalidate("second-refresh"))
 assert(timers[#timers] == sourceTimer, "same-frame source updates use one refresh")
 sourceTimer.callback()
 assert(#accepted == 4 and #accepted[4].results > 0, "source refresh reruns the current search without an empty flash")
@@ -91,7 +91,7 @@ assert(#accepted == acceptedAfterInvalidation, "invalidated generation must reje
 assert(session:Input("旧查询"))
 local pendingBeforeFilter = timers[#timers]
 local beforeFilter = #accepted
-local filtered, filterGeneration = session:Filter({ sourceID = "session-fixture" })
+local filtered, filterGeneration = session:Filter({ sourceID = "session-fixture:records" })
 assert(filtered and filterGeneration == session.generation, "filter request must use the active generation")
 assert(pendingBeforeFilter.cancelled == true, "filter request must cancel pending text debounce")
 assert(#accepted == beforeFilter + 2, "filter must clear then publish through the session owner")

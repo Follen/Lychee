@@ -1,3 +1,4 @@
+local Fixture=dofile("tests/support/provider_fixture.lua")
 -- Real Host lifecycle; only game APIs and timer delivery are substituted.
 function GetLocale() return "enUS" end
 function GetBuildInfo() return "12.1.0", "12345", "fixture", 120100 end
@@ -23,7 +24,7 @@ end
 S:BindPalette(palette)
 S:Start()
 local function register(id, query)
-    return assert(Lychee:RegisterProvider({id=id, apiVersion=2, version="1", title=id, query=query}))
+    return assert(Fixture:Register({id=id, apiVersion=3, version="1", title=id, query=query}))
 end
 local function fire(timer)
     assert(timer and not timer.cancelled, "expected a live timer")
