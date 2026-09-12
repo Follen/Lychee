@@ -183,7 +183,7 @@ Interface/
 - [开发与验证](docs/guides/DEVELOPMENT.md)：环境、检查和客户端验收。
 - [设计规范](DESIGN.md) · [性能约定](PERFORMANCE.md)。
 
-在仓库根目录运行 `pwsh -File tests/check_contract.ps1`。需要 Lua 5.1、Python 和 ripgrep；离线测试不能替代游戏内的战斗、安全动作和视觉验证。
+运行 `python tests/run.py`（原 `pwsh -File tests/check_contract.ps1` 同样有效）。需要 Lua/luac 5.1、Python 3.10+、PowerShell 7 和 ripgrep；分组、单例执行和报告见[测试说明](tests/README.md)。离线测试不能替代游戏内的战斗、安全动作和视觉验证。
 
 `analyze/` 是本地研究资料，受 Git 忽略规则保护，不进入仓库或插件安装包。
 

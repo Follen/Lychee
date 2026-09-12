@@ -54,7 +54,7 @@
 - 托管队列有限，取消后迟到回调不提交；页面创建到一半失败也清理已登记资源。
 - 诊断按需读取，不扫描第三方内存，不承诺能控制未登记资源或抢占第三方同步代码。游戏实测使用项目的显式诊断流程，SDK 不附带独立性能测试插件。
 
-示例：[ManagedProvider.lua](../examples/ManagedProvider.lua)。测试覆盖见 [SDK 托管测试](https://github.com/Follen/Lychee/blob/main/tests/sdk_resources.lua)、[测试装配与门禁](https://github.com/Follen/Lychee/blob/main/tests/README.md)。
+示例：[ManagedProvider.lua](../examples/ManagedProvider.lua)。测试覆盖见 [SDK 托管测试](https://github.com/Follen/Lychee/blob/main/tests/sdk/sdk_resources.lua)、[测试装配与门禁](https://github.com/Follen/Lychee/blob/main/tests/README.md)。
 
 ## ID 驱动的资料查询
 

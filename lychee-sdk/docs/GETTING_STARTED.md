@@ -53,3 +53,9 @@ Host 收到查询候选，不收到完整业务目录。小型固定列表可以
 数据库由自己的 TOC 声明并由自己的 AddOn 所有。等待自身 SavedVariables 就绪后，将根函数交给 [Storage](STORAGE.md)。角色设置用 `SavedVariablesPerCharacter`；关闭面板不删除设置。Host 不提供 `handle:Settings()`。
 
 完整可运行例子见 [ThirdPartyFixture](../examples/ThirdPartyFixture/ThirdPartyFixture.lua)；托管任务见 [ManagedProvider](../examples/ManagedProvider.lua)，页面见 [ComponentPanel](../examples/ComponentPanel/ComponentPanel.lua)。
+
+## 接入测试至少覆盖什么
+
+直接向公开接口传原始定义，验证缺失必填字段和旧 API 被拒绝；不要让测试包装器补齐字段后宣称校验有效。覆盖连续输入取消、迟到回复、禁用/重新启用、动作身份失效、外部修改隔离、失败后重试，以及关闭后的资源回收。Catalog 与自己管理的动态 query 应接受同样的结果契约。
+
+有数据库时测试自身存档恢复前后、根替换、角色隔离、迁移失败和未来 schema 保留；有页面时测试 Mount 失败、按下后重绑、关闭/重开和对象复用。原生 API 替身只提供外部输入，不实现 SDK 内部算法。离线通过后仍需目标客户端验证战斗、安全点击和显示效果；固定场景预算见[性能约束](PERFORMANCE.md)。

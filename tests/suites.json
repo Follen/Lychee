@@ -1,0 +1,579 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "contracts.runner",
+      "suite": "contracts",
+      "path": "tests/contracts/runner.py",
+      "args": []
+    },
+    {
+      "id": "contracts.syntax",
+      "suite": "contracts",
+      "path": "tests/contracts/syntax.py",
+      "args": []
+    },
+    {
+      "id": "contracts.architecture",
+      "suite": "contracts",
+      "path": "tests/contracts/architecture.ps1",
+      "args": []
+    },
+    {
+      "id": "sdk.sdk_storage",
+      "suite": "sdk",
+      "path": "tests/sdk/sdk_storage.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.sdk_resources",
+      "suite": "sdk",
+      "path": "tests/sdk/sdk_resources.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.sdk_catalog",
+      "suite": "sdk",
+      "path": "tests/sdk/sdk_catalog.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.provider_sdk_smoke",
+      "suite": "sdk",
+      "path": "tests/sdk/provider_sdk_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.framework_sdk_smoke",
+      "suite": "sdk",
+      "path": "tests/sdk/framework_sdk_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.provider_ingestion",
+      "suite": "sdk",
+      "path": "tests/sdk/provider_ingestion.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.provider_record_ownership",
+      "suite": "sdk",
+      "path": "tests/sdk/provider_record_ownership.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.provider_locales",
+      "suite": "sdk",
+      "path": "tests/sdk/provider_locales.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.provider_locale_ownership",
+      "suite": "sdk",
+      "path": "tests/sdk/provider_locale_ownership.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.client_contract",
+      "suite": "sdk",
+      "path": "tests/sdk/client_contract.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_session_smoke",
+      "suite": "search",
+      "path": "tests/search/search_session_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_platform_smoke",
+      "suite": "search",
+      "path": "tests/search/search_platform_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_personalization",
+      "suite": "search",
+      "path": "tests/search/search_personalization.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_quality",
+      "suite": "search",
+      "path": "tests/search/search_quality.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_ranking_regression",
+      "suite": "search",
+      "path": "tests/search/search_ranking_regression.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_lifecycle_regression",
+      "suite": "search",
+      "path": "tests/search/search_lifecycle_regression.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_compile_regression",
+      "suite": "search",
+      "path": "tests/search/search_compile_regression.lua",
+      "args": []
+    },
+    {
+      "id": "search.search_memory_regression",
+      "suite": "search",
+      "path": "tests/search/search_memory_regression.lua",
+      "args": []
+    },
+    {
+      "id": "search.result_snapshot",
+      "suite": "search",
+      "path": "tests/search/result_snapshot.lua",
+      "args": []
+    },
+    {
+      "id": "providers.achievements_provider",
+      "suite": "providers",
+      "path": "tests/providers/achievements_provider.lua",
+      "args": []
+    },
+    {
+      "id": "providers.addon_inspector",
+      "suite": "providers",
+      "path": "tests/providers/addon_inspector.lua",
+      "args": []
+    },
+    {
+      "id": "providers.addon_inspector_picker",
+      "suite": "providers",
+      "path": "tests/providers/addon_inspector_picker.lua",
+      "args": []
+    },
+    {
+      "id": "providers.bag_actions",
+      "suite": "providers",
+      "path": "tests/providers/bag_actions.lua",
+      "args": []
+    },
+    {
+      "id": "providers.bosses_locale",
+      "suite": "providers",
+      "path": "tests/providers/bosses_locale.lua",
+      "args": []
+    },
+    {
+      "id": "providers.package_providers",
+      "suite": "providers",
+      "path": "tests/providers/package_providers.lua",
+      "args": []
+    },
+    {
+      "id": "providers.catalog_ledger",
+      "suite": "providers",
+      "path": "tests/providers/catalog_ledger.lua",
+      "args": []
+    },
+    {
+      "id": "providers.catalog_lifecycle",
+      "suite": "providers",
+      "path": "tests/providers/catalog_lifecycle.lua",
+      "args": []
+    },
+    {
+      "id": "providers.ellesmere_adapter",
+      "suite": "providers",
+      "path": "tests/providers/ellesmere_adapter.lua",
+      "args": []
+    },
+    {
+      "id": "providers.ellesmere_equivalence",
+      "suite": "providers",
+      "path": "tests/providers/ellesmere_equivalence.lua",
+      "args": []
+    },
+    {
+      "id": "providers.ellesmere_provider",
+      "suite": "providers",
+      "path": "tests/providers/ellesmere_provider.lua",
+      "args": []
+    },
+    {
+      "id": "providers.exwind_provider",
+      "suite": "providers",
+      "path": "tests/providers/exwind_provider.lua",
+      "args": []
+    },
+    {
+      "id": "providers.ldt_provider",
+      "suite": "providers",
+      "path": "tests/providers/ldt_provider.lua",
+      "args": []
+    },
+    {
+      "id": "providers.mounts_vault_smoke",
+      "suite": "providers",
+      "path": "tests/providers/mounts_vault_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "providers.raid_abilities.1",
+      "suite": "providers",
+      "path": "tests/providers/raid_abilities.lua",
+      "args": []
+    },
+    {
+      "id": "providers.raid_abilities.2",
+      "suite": "providers",
+      "path": "tests/providers/raid_abilities.lua",
+      "args": [
+        "enUS"
+      ]
+    },
+    {
+      "id": "ui.interaction_smoke",
+      "suite": "ui",
+      "path": "tests/ui/interaction_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "ui.navigation_binding",
+      "suite": "ui",
+      "path": "tests/ui/navigation_binding.lua",
+      "args": []
+    },
+    {
+      "id": "ui.ui_library_integration",
+      "suite": "ui",
+      "path": "tests/ui/ui_library_integration.lua",
+      "args": []
+    },
+    {
+      "id": "ui.result_list_ui_smoke",
+      "suite": "ui",
+      "path": "tests/ui/result_list_ui_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "ui.ui_runtime",
+      "suite": "ui",
+      "path": "tests/ui/ui_runtime.lua",
+      "args": []
+    },
+    {
+      "id": "ui.ui_motion",
+      "suite": "ui",
+      "path": "tests/ui/ui_motion.lua",
+      "args": []
+    },
+    {
+      "id": "ui.brand_motion",
+      "suite": "ui",
+      "path": "tests/ui/brand_motion.lua",
+      "args": []
+    },
+    {
+      "id": "ui.brand_geometry",
+      "suite": "ui",
+      "path": "tests/ui/brand_geometry.lua",
+      "args": []
+    },
+    {
+      "id": "ui.presence_geometry",
+      "suite": "ui",
+      "path": "tests/ui/presence_geometry.lua",
+      "args": []
+    },
+    {
+      "id": "ui.view_lifecycle",
+      "suite": "ui",
+      "path": "tests/ui/view_lifecycle.lua",
+      "args": []
+    },
+    {
+      "id": "ui.provider_management",
+      "suite": "ui",
+      "path": "tests/ui/provider_management.lua",
+      "args": []
+    },
+    {
+      "id": "ui.default_binding_smoke",
+      "suite": "ui",
+      "path": "tests/ui/default_binding_smoke.lua",
+      "args": []
+    },
+    {
+      "id": "integration.assembly",
+      "suite": "integration",
+      "path": "tests/integration/assembly.lua",
+      "args": []
+    },
+    {
+      "id": "integration.package_namespaces",
+      "suite": "integration",
+      "path": "tests/integration/package_namespaces.lua",
+      "args": []
+    },
+    {
+      "id": "integration.client_providers",
+      "suite": "integration",
+      "path": "tests/integration/client_providers.lua",
+      "args": []
+    },
+    {
+      "id": "integration.client_toc_load",
+      "suite": "integration",
+      "path": "tests/integration/client_toc_load.lua",
+      "args": []
+    },
+    {
+      "id": "integration.character_settings",
+      "suite": "integration",
+      "path": "tests/integration/character_settings.lua",
+      "args": []
+    },
+    {
+      "id": "integration.character_pins",
+      "suite": "integration",
+      "path": "tests/integration/character_pins.lua",
+      "args": []
+    },
+    {
+      "id": "integration.pin_restore",
+      "suite": "integration",
+      "path": "tests/integration/pin_restore.lua",
+      "args": []
+    },
+    {
+      "id": "integration.smoke",
+      "suite": "integration",
+      "path": "tests/integration/smoke.lua",
+      "args": []
+    },
+    {
+      "id": "performance.performance_loading.1",
+      "suite": "performance",
+      "path": "tests/performance/performance_loading.lua",
+      "args": [
+        "Mainline",
+        "addon/Lychee",
+        "--baseline"
+      ]
+    },
+    {
+      "id": "performance.performance_loading.2",
+      "suite": "performance",
+      "path": "tests/performance/performance_loading.lua",
+      "args": []
+    },
+    {
+      "id": "performance.performance_startup",
+      "suite": "performance",
+      "path": "tests/performance/performance_startup.lua",
+      "args": []
+    },
+    {
+      "id": "performance.performance_memory",
+      "suite": "performance",
+      "path": "tests/performance/performance_memory.lua",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "performance.performance_search",
+      "suite": "performance",
+      "path": "tests/performance/performance_search.lua",
+      "args": []
+    },
+    {
+      "id": "performance.performance_ui",
+      "suite": "performance",
+      "path": "tests/performance/performance_ui.lua",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "performance.performance_core",
+      "suite": "performance",
+      "path": "tests/performance/performance_core.lua",
+      "args": []
+    },
+    {
+      "id": "performance.provider_updates",
+      "suite": "performance",
+      "path": "tests/performance/provider_updates.lua",
+      "args": []
+    },
+    {
+      "id": "performance.provider_secure",
+      "suite": "performance",
+      "path": "tests/performance/provider_secure.lua",
+      "args": []
+    },
+    {
+      "id": "performance.secure_events",
+      "suite": "performance",
+      "path": "tests/performance/secure_events.lua",
+      "args": []
+    },
+    {
+      "id": "performance.provider_expansion.1",
+      "suite": "performance",
+      "path": "tests/performance/provider_expansion.lua",
+      "args": [
+        "--defaults"
+      ]
+    },
+    {
+      "id": "performance.provider_expansion.2",
+      "suite": "performance",
+      "path": "tests/performance/provider_expansion.lua",
+      "args": []
+    },
+    {
+      "id": "delivery.sdk_delivery",
+      "suite": "delivery",
+      "path": "tests/delivery/sdk_delivery.py",
+      "args": []
+    },
+    {
+      "id": "delivery.repository_delivery",
+      "suite": "delivery",
+      "path": "tests/delivery/repository_delivery.py",
+      "args": []
+    },
+    {
+      "id": "delivery.client_manifest",
+      "suite": "delivery",
+      "path": "tests/delivery/client_manifest.py",
+      "args": []
+    },
+    {
+      "id": "delivery.ldt_data",
+      "suite": "delivery",
+      "path": "tests/delivery/ldt_data.py",
+      "args": []
+    },
+    {
+      "id": "delivery.journal_catalog",
+      "suite": "delivery",
+      "path": "tests/delivery/journal_catalog.py",
+      "args": []
+    },
+    {
+      "id": "benchmarks.index_benchmark",
+      "suite": "benchmarks",
+      "path": "tests/benchmarks/index_benchmark.lua",
+      "args": []
+    },
+    {
+      "id": "delivery.check_repository",
+      "suite": "delivery",
+      "path": "tools/check_repository.py",
+      "args": []
+    },
+    {
+      "id": "delivery.build_enemy_catalog",
+      "suite": "delivery",
+      "path": "tools/build_enemy_catalog.py",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "delivery.build_release",
+      "suite": "delivery",
+      "path": "tools/build_release.py",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "delivery.build_sdk",
+      "suite": "delivery",
+      "path": "tools/build_sdk.py",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "delivery.build_client_tocs",
+      "suite": "delivery",
+      "path": "tools/build_client_tocs.py",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "delivery.build_journal_catalog",
+      "suite": "delivery",
+      "path": "tools/build_journal_catalog.py",
+      "args": [
+        "--check"
+      ]
+    },
+    {
+      "id": "ui.i18n_ui",
+      "suite": "ui",
+      "path": "tests/ui/i18n_ui.lua",
+      "args": []
+    },
+    {
+      "id": "sdk.notifications",
+      "suite": "sdk",
+      "path": "tests/sdk/notifications.lua",
+      "args": []
+    },
+    {
+      "id": "integration.packages.host",
+      "suite": "integration",
+      "path": "tests/integration/package_combinations.lua",
+      "args": [
+        "host"
+      ]
+    },
+    {
+      "id": "integration.packages.lychee_player",
+      "suite": "integration",
+      "path": "tests/integration/package_combinations.lua",
+      "args": [
+        "Lychee_Player"
+      ]
+    },
+    {
+      "id": "integration.packages.lychee_encounters",
+      "suite": "integration",
+      "path": "tests/integration/package_combinations.lua",
+      "args": [
+        "Lychee_Encounters"
+      ]
+    },
+    {
+      "id": "integration.packages.lychee_integrations",
+      "suite": "integration",
+      "path": "tests/integration/package_combinations.lua",
+      "args": [
+        "Lychee_Integrations"
+      ]
+    },
+    {
+      "id": "integration.packages.lychee_inspector",
+      "suite": "integration",
+      "path": "tests/integration/package_combinations.lua",
+      "args": [
+        "Lychee_Inspector"
+      ]
+    },
+    {
+      "id": "integration.packages.reverse",
+      "suite": "integration",
+      "path": "tests/integration/package_combinations.lua",
+      "args": [
+        "reverse"
+      ]
+    }
+  ]
+}

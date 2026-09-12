@@ -17,17 +17,9 @@ function M.Load(profile,extra,options)
  for _,path in ipairs(extra or {}) do
   local name,relative=path:match("^%.%./(Lychee_[^/]+)/(.+)$")
   if name then children[name]=children[name] or {};children[name][relative]=true
-  elseif path~="Core/Modules.lua" and path~="Core/ProviderManifest.lua" and path~="Shared/Support.lua" then selected[path]=true end
+  else selected[path]=true end
  end
  if selected["UI/ResultList.lua"] or selected["Secure/SecureActionBroker.lua"] then selected["Core/InteractionBinding.lua"]=true end
- if selected["Shared/CatalogProvider.lua"] or selected["Shared/CatalogLedger.lua"] or selected["Shared/InterfaceActions.lua"] then
-  for _,name in ipairs({"Lychee_Player","Lychee_Encounters"}) do
-   if children[name] then
-    for _,file in ipairs({"CatalogProvider.lua","CatalogLedger.lua","InterfaceActions.lua"}) do children[name]["Runtime/"..file]=true end
-   end
-  end
-  selected["Shared/CatalogProvider.lua"],selected["Shared/CatalogLedger.lua"],selected["Shared/InterfaceActions.lua"]=nil,nil,nil
- end
  local loaded={}
  for line in io.lines(root..(options.toc or "Lychee_Mainline.toc")) do
   local path=line:gsub("\r$","")

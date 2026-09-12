@@ -28,7 +28,7 @@ Presence只改共同根节点SetPoint/SetAlpha，不改Frame scale、字号、�
 
 首次实际播放创建一个私有短时驱动 Frame 和一个复用任务表；不创建原生动画组、新纹理或定时器。逐帧仅标量运算，最多 SetSize/SetPoint 各一次；同值跳过。精确时钟起点每次重置，停播解绑 OnUpdate、隐藏驱动、释放 region/parent/clock。减少动态效果和不可见时不启动；隐藏、关闭、StopAll 与 SetReduced 停止。战斗禁止几何 setter，仅保留一个有界待复位目标，下次安全调用时恢复，脱战不自动播放。
 
-Palette 完成打开布局后触发；设置按钮 OnEnter 且窗口可交互时触发。主窗口 Presence 不变。验证：`tests/brand_geometry.lua` 的关键姿态、不同屏幕位置/缩放下局部边界与 30/60/144 FPS 采样，`tests/brand_motion.lua` 的真实面板集成。离线结果不代表客户端帧时间，游戏录像复验仍需单独完成。
+Palette 完成打开布局后触发；设置按钮 OnEnter 且窗口可交互时触发。主窗口 Presence 不变。验证：`tests/ui/brand_geometry.lua` 的关键姿态、不同屏幕位置/缩放下局部边界与 30/60/144 FPS 采样，`tests/ui/brand_motion.lua` 的真实面板集成。离线结果不代表客户端帧时间，游戏录像复验仍需单独完成。
 
 ### 公共生命周期
 

@@ -71,5 +71,5 @@ end
 4. 注销后同ID重新注册使用新handle，不保留旧context。
 5. 分开统计累计分配、GC后保留、引擎对象数量，不能把GC当作Frame释放。
 
-仓库回归：`lua tests/view_lifecycle.lua`与`lua tests/interaction_smoke.lua`。
+仓库回归：`lua tests/ui/view_lifecycle.lua`与`lua tests/ui/interaction_smoke.lua`。
 离线替身只证明逻辑与计数，布局、保护操作和客户端事件顺序仍需实机验证。

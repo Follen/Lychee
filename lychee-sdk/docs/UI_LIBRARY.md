@@ -112,9 +112,9 @@ Native 必须返回含 frame 的 table。Update/Release 可选；列表复用原
 ## 成本与验证
 
 创建结构数等于声明树大小；未挂载零 Frame，热更新无新增 Frame/script，关闭零活动任务。
-1000次无变化 Update 的新增累计分配预算64 KiB；`lua tests/ui_runtime.lua` 当前离线替身
+1000次无变化 Update 的新增累计分配预算64 KiB；`lua tests/ui/ui_runtime.lua` 当前离线替身
 结果为0.00 KiB。该结果不代表游戏引擎的纹理、字体或 Frame 原生内存。
-既有虚拟列表预算继续由 `lua tests/performance_ui.lua --check` 验证。
+既有虚拟列表预算继续由 `lua tests/performance/performance_ui.lua --check` 验证。
 测试覆盖 props 原表修改、状态、按下后重绑/重开、部分失败、重入、战斗、Native 清理及
 AsView。真实客户端像素表现、战斗安全和插件内存统计仍需实机验证。
 

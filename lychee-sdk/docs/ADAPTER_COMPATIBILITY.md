@@ -46,5 +46,5 @@ resolvedCommit=271ffc30d3265d9f77746b0e15224d918f0fafcb。
 上游升级时：先source check并查对应版本，再跑缺失/异常/重试/页面变化与真实导航参数测试；
 同时比较完整结果、顺序、resolve和动作参数，不能只看“没有报错”。本轮44组对照基于优化前3b0af04。
 
-运行`lua tests/ellesmere_adapter.lua`、`lua tests/ellesmere_equivalence.lua`和`lua tests/ellesmere_provider.lua`。
+运行`lua tests/providers/ellesmere_adapter.lua`、`lua tests/providers/ellesmere_equivalence.lua`和`lua tests/providers/ellesmere_provider.lua`。
 离线通过不证明新版游戏与全部第三方版本可用；游戏内仍需验证首次打开、分区定位、selector及解锁。

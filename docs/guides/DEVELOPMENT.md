@@ -2,12 +2,12 @@
 
 当前版本为 Lychee 0.2.0，SDK 1.0.0 / Provider API 3 revision 1。运行时来源是 `addon/` 下五个明确插件包；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
 
-当前 [生命周期实施设计](../architecture/2026-09-12-runtime-lifecycle.md) 与 [测试框架升级设计](../../tests/LIFECYCLE_ACCEPTANCE.md) 定义本轮角色存储、接收校验和资源释放门禁。运行时为五个明确包，检查和同步均覆盖五包；详见 [交付步骤](DELIVERY.md)。
+当前[五包架构](../ARCHITECTURE.md)与[生命周期验收](../../tests/LIFECYCLE_ACCEPTANCE.md)定义角色存储、接收校验和资源释放门禁。运行时为五个明确包，检查和同步均覆盖五包；详见[交付步骤](DELIVERY.md)。
 
 ## 环境与目录
 
 - 多客户端原生 AddOn：Mainline `120100`、Mists `50504`、Wrath（泰坦重铸）`38002`、TBC（周年纪念版）`20506`；升级时按对应客户端资料重新核对。
-- 本地契约检查使用 PowerShell 7（`pwsh`）、ripgrep（`rg`）和 Lua 5.1（`lua`）；语法检查另需 `luac`。
+- 本地契约检查使用 Python 3.10+、PowerShell 7（`pwsh`）、ripgrep（`rg`）和 Lua 5.1（`lua`、`luac`）。
 - `addon/Lychee`：安装到对应客户端的运行时、Bindings 和媒体；本仓库自动同步目标仍仅为下文指定的正式服目录。
 - `lychee-sdk`：编辑器类型、可选 helper、集成示例，不作为独立插件安装。
 - `tests`：离线契约、交互模拟和性能验证。
@@ -19,10 +19,10 @@
 在仓库根目录执行：
 
 ```powershell
-pwsh -NoProfile -File tests/check_contract.ps1
+python tests/run.py --report analyze/tests/latest.json
 ```
 
-该入口检查 TOC 文件存在性、架构边界和关键运行时约束，并运行当前完整的 Lua 契约、交互和性能测试。子插件 Provider 测试使用真实 SDK、索引和 ViewHost，替换 WoW 外部 API，覆盖纹章事件生命周期、菜单分页与失败、首领精确跳转。它不执行完整 Lua 解析、XML 解析、wowdoc 验证或真实客户端测试。运行时代码修改还需执行：
+原 `pwsh -NoProfile -File tests/check_contract.ps1` 委托同一入口。现在完整入口包含 Lua/XML/Python 解析、TOC/交付/生成漂移、架构、SDK、搜索、功能包、交互与性能门禁；每份测试独立进程、串行执行。分组/单例与清单规则见[测试说明](../../tests/README.md)。它不执行 wowdoc 验证或真实客户端测试。运行时改动的手动静态复核与 wowdoc 命令如下：
 
 ```powershell
 $ErrorActionPreference = 'Stop'
@@ -39,7 +39,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 修改 Lua/XML/TOC 或 WoW API 前，须按 [AGENTS.md](../../AGENTS.md) 先用 wowdoc 确认来源版本并查询精确符号，保存 sourceId、product、requestedRef、resolvedCommit、path、line 和 excerpt。修改后的 validate 不能替代修改前查档。
 
-索引基准可用 `lua tests/index_benchmark.lua` 或 `lua tests/index_benchmark.lua addon/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](../validation/2026-09-10-provider-framework.md)。
+索引基准可用 `lua tests/benchmarks/index_benchmark.lua` 或 `lua tests/benchmarks/index_benchmark.lua addon/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](../validation/2026-09-10-provider-framework.md)。
 
 当前菜单图标通过 `node tools/build_flat_menu_icons.cjs` 从扁平图集生成，需要 sharp。原有 `tools/build_menu_icons.py` 是旧版轮廓图标的重建工具；其他 Provider 图标和目录工具见 [工具说明](../../tools/README.md)。生成工具会写入对应运行时资源，按需要单独执行。构建脚本、预览和验证清单不进入游戏副本。
 
