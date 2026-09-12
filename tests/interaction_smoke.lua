@@ -1137,6 +1137,20 @@ palette:Hide("mount-done")
 assert(I.Builtin.Mounts.handle:Unregister())
 C_Spell.PickupSpell=oldPickup
 C_MountJournal=nil
+-- Regression from 20260912-105826.mp4: the search background must not
+-- become a darker rectangle when the root fades. Inspect the real surface
+-- emitted by Input/Theme, then compose its alpha over the window background.
+;(function()
+    local surface=palette.input.container._lycheeSurface
+    local color=surface and surface.background._lycheeColorToken
+    local localAlpha=color and color[4] or 0
+    for _,windowAlpha in ipairs({0.25,0.5,0.75,1}) do
+        local combined=windowAlpha+localAlpha*windowAlpha*(1-windowAlpha)
+        assert(math.abs(combined-windowAlpha)<0.000001,
+            "search background stacks opacity during fade: "..combined.." vs "..windowAlpha)
+    end
+    assert(not palette.input.frame._lycheeSurface,"search EditBox must not add another field backdrop")
+end)()
 -- Retail CloseSpecialWindows dispatch after the EditBox no longer owns Escape.
 ;(function()
 _G.__combat = false

@@ -8,6 +8,8 @@ Motion.lua管理普通控件Alpha/Translation和页面高度；Presence.lua管�
 
 Presence只改共同根节点SetPoint/SetAlpha，不改Frame scale、字号、宽高或子节点/纹理锚点。位置对齐整物理像素，保持文字原有像素相位；没有全窗裁剪，正文自己的滚动边界保留。
 
+搜索框不创建本地Surface，直接使用窗口底色。相同颜色的重复背景在alpha=1时看不出来，淡出时会逐层叠加成深色矩形；例如两层25%不透明度合成43.75%。不要用退场时Hide背景或另加透明度补偿修复，避免引入状态闪变。普通设置输入框的独立Surface保留。
+
 创建时调用`ConfigurePresence(layout, anchor, preset)`，anchor为`{point="TOP",relative=UIParent,relativePoint="TOP",x=0,y=restingY}`。正常布局/缩放变化后、播放之前更新静止锚点。
 
 `Presence(root, shown, finished, initialPhase, layout)`启动或反向；`StopPresence(settle, complete)`返回当前时间进度q，无任务返回nil。显式初始进度仅供主宿主跨Hide/Show收尾接续；普通反向自动采样。旧位置/速度/透明度三个初始参数已由一个phase替代。

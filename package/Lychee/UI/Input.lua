@@ -18,19 +18,9 @@ function Input:_ApplyVisualState()
     if self.visualFrozen then return false end
     local theme = Lychee.UI.Theme
     if not theme or not self.container then return false end
-    local background, border, text
-    if not self.enabled then
-        background, border, text = "input", "border", "disabled"
-    elseif self.focused then
-        background, border, text = "inputFocus", "inputFocus", "text"
-    elseif self.hovered then
-        background, border, text = "inputHover", "inputHover", "text"
-    else
-        background, border, text = "input", "input", "text"
-    end
-    local stateKey = background .. ":" .. border .. ":" .. text
+    local text = self.enabled and "text" or "disabled"
+    local stateKey = not self.enabled and "disabled" or (self.focused and "focused" or "idle")
     if self._visualState == stateKey then return false end
-    theme:ApplySurface(self.container, background, border)
     theme:SetTextColor(self.frame, text)
     theme:SetTextColor(self.placeholder, self.enabled and "textDim" or "disabled")
     theme:SetVertexColor(self.searchIcon, self.focused and "text" or (self.enabled and "textDim" or "disabled"))
@@ -46,7 +36,8 @@ function Input:Create(parent, focusController)
     container:SetPoint("TOPLEFT", parent, "TOPLEFT", 64, -8)
     container:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -64, -8)
     container:EnableMouse(true)
-    if theme then theme:CreateSurface(container, "input", "border") end
+    -- The window owns the search backdrop. A same-color local surface looks
+    -- invisible at alpha=1 but stacks opacity into a dark strip during fades.
 
     local elements=Lychee.UI:Create(container,{type="Fragment",children={
         {type="Input",key="edit",props={variant="search",role="input",autoFocus=false,allPoints=true,textInsets={40,20,0,0},justifyV="MIDDLE"}},
