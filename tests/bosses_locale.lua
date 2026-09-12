@@ -43,7 +43,7 @@ end
 function EJ_GetInstanceInfo(id) instanceReads=instanceReads+1;if namesReady then return "Localized instance "..id end end
 function EJ_GetEncounterInfo(id) bossReads=bossReads+1;if namesReady then return "Localized boss "..id end end
 for _,file in ipairs({"Bootstrap.lua", "Core/CharacterStore.lua","Builtin/Definitions.lua","Builtin/Shared/Support.lua","Core/ProviderLocales.lua","Builtin/Achievements/Locales.lua","Builtin/AddonInspector/Locales.lua","Builtin/Bags/Locales.lua","Builtin/BlizzardSettings/Locales.lua","Builtin/Bosses/Locales.lua","Builtin/Crests/Locales.lua","Builtin/EquipmentSets/Locales.lua","Builtin/GameMenus/Locales.lua","Builtin/GreatVault/Locales.lua","Builtin/Keystones/Locales.lua","Builtin/Mounts/Locales.lua","Builtin/PlayerSpells/Locales.lua","Builtin/TalentLoadouts/Locales.lua","Core/ContextStore.lua",
-    "Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/Storage.lua", "Search/StaticIndex.lua","Core/CommandCatalog.lua",
+    "Search/RuntimeIdentity.lua","Search/Normalizer.lua","Search/StaticIndex.lua","Core/CommandCatalog.lua",
     "Core/CapabilityBroker.lua","Core/Boundary.lua","Core/IntentRouter.lua","Core/Scheduler.lua","Core/ExtensionRegistry.lua",
     "Search/QueryOrchestrator.lua","Core/ProviderRuntime.lua","PublicAPI/SDK.lua","Builtin/Shared/CatalogProvider.lua",
     "Builtin/Shared/InterfaceActions.lua","Builtin/Bosses/JournalCatalog.lua"}) do dofile("package/Lychee/"..file) end

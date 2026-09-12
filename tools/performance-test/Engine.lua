@@ -31,7 +31,7 @@ local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCo
         "Private fake-frame memory is not native UI memory; private heap deltas are not addon-accounted total residency",
         "SDK 3, compact representation and final dormant architecture do not exist yet; this is baseline feasibility evidence"}}
 store[id]=report
-report.carrierRevision="0.3.1-compact-search"
+report.carrierRevision="0.3.0-character-storage"
 report.wallLimitSeconds=wallLimitSeconds
 report.scheduler={requestedWaitMs=0,actualWaitMs=0,maxOvershootMs=0,wakeups=0,resumeMs=0}
 report.diagnosticStatusUI={frames=1,fontStrings=2,scope="Reusable inert overlay created before baseline; included in diagnostic addon counters"}

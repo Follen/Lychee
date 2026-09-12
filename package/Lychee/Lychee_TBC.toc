@@ -26,7 +26,6 @@ Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua
 Search/ProviderPolicy.lua
-Search/Storage.lua
 Search/StaticIndex.lua
 Core/CommandCatalog.lua
 Core/CapabilityBroker.lua

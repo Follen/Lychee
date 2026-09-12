@@ -1,1 +1,0 @@
-MEMORY entries=2689 builtins_KiB=3623.0 combined_KiB=6888.7 48_queries_alloc_KiB=1823.9 retained_growth_KiB=0.1 query_mean_ms=0.417

@@ -6,7 +6,7 @@ end
 function GetLocale() return "zhCN" end
 _G.LycheeInternal = {}
 loadSource("Search/Normalizer.lua")
-loadSource("Search/Storage.lua");loadSource("Search/StaticIndex.lua")
+loadSource("Search/StaticIndex.lua")
 loadSource("Search/QueryOrchestrator.lua")
 local I, N = LycheeInternal, LycheeInternal.Search.Normalizer
 local baselineMode = arg[1] == "--measure"

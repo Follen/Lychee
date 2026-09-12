@@ -249,5 +249,3 @@ Mount/Update返回false不表示失败，抛错才触发清理。生命周期回
 ## 同一 Provider 在不同版本的业务逻辑
 
 `scope` 只过滤支持范围，不替 Provider 选择代码。Provider 可以为不同 product 或同一 product 的不同数值版本区间使用不同数据源、事件、动作和视图。保持同一业务 Provider ID，在注册前选择唯一实现，提交当前实现的范围和独立 i18n；未选中实现不得启动业务工作。推荐 TOC 分别加载适配模块，共享注册入口。完整示例和边界规则见 [客户端与 build 差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。这使用现有 API 2.2，不新增 variants 注册字段或 GetClient 公共接口。
-
-紧凑搜索存储保持 SDK 2/revision 6；扩展字段、普通回调和模糊候选稳定顺序见 [搜索存储契约](../lychee-sdk/SEARCH_STORAGE.md)。

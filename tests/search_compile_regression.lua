@@ -5,7 +5,7 @@ function GetBuildInfo() return "12.1.0", "69587", "today", 120100 end
 LycheeInternal={Search={}}
 dofile("package/Lychee/Search/RuntimeIdentity.lua")
 dofile("package/Lychee/Search/Normalizer.lua")
-dofile("package/Lychee/Search/Storage.lua");dofile("package/Lychee/Search/StaticIndex.lua")
+dofile("package/Lychee/Search/StaticIndex.lua")
 local I=LycheeInternal
 local N,R,Index=I.Search.Normalizer,I.Search.RuntimeIdentity,I.Search.StaticIndex
 local values={"普通文本 mixed words", "", false, 42,
@@ -57,16 +57,12 @@ local function checkPostings()
     end
     for gram,members in pairs(expected) do
         local actual=index.grams[gram];assert(actual,"missing character membership")
-        for key in pairs(members) do
-            local found=actual==key
-            if type(actual)=="table" then for _,member in ipairs(actual) do if member==key then found=true end end end
-            assert(found,"missing entry membership")
-        end
+        for key in pairs(members) do assert(type(actual)=="string" and actual==key or type(actual)=="table" and actual[key],"missing entry membership") end
     end
     for gram,actual in pairs(index.grams) do
         assert(expected[gram],"unexpected character")
         if type(actual)=="string" then assert(expected[gram][actual])
-        else local seen={};for _,key in ipairs(actual) do assert(expected[gram][key] and not seen[key]);seen[key]=true end end
+        else local count=0;for key in pairs(actual) do if key~=0 then assert(expected[gram][key]);count=count+1 end end;assert(actual[0]==count) end
     end
 end
 checkPostings()

@@ -113,15 +113,6 @@
       ]
     },
     {
-      "path": "Search/Storage.lua",
-      "products": [
-        "retail",
-        "classic",
-        "titan",
-        "anniversary"
-      ]
-    },
-    {
       "path": "Search/StaticIndex.lua",
       "products": [
         "retail",

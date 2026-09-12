@@ -2,7 +2,7 @@
 function GetLocale() return "enUS" end
 LycheeInternal={Search={}};Lychee={UI={Theme={MatchColorCode="|cffabcdef"}}}
 local base=os.getenv("LYCHEE_QUALITY_BASE") or "package/Lychee/"
-dofile(base.."Search/Normalizer.lua");dofile(base.."Search/Storage.lua");dofile(base.."Search/Normalizer.lua");dofile(base.."Search/StaticIndex.lua")
+dofile(base.."Search/Normalizer.lua");dofile(base.."Search/StaticIndex.lua")
 dofile("package/Lychee/UI/TextHighlight.lua")
 local N,Index=LycheeInternal.Search.Normalizer,LycheeInternal.Search.StaticIndex
 local cases={

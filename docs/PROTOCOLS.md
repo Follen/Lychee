@@ -142,5 +142,3 @@ PRIVATE Registry/Index 的具体方法、source token、内部字段、生命周
 ## 多版本业务实现边界
 
 一个 Provider 可在不同客户端／build 采用不同业务逻辑。产品／版本匹配和实现选择由 Provider 的兼容层在注册前完成；Host 只接收选中的普通 descriptor。一个 ID 在同一 Host 中只注册一次，scope 声明当前实现真正支持的范围。零匹配不启用；重叠匹配拒绝选择，不能按顺序取第一个。各实现仍遵循相同 Entry/Action/View、独立 i18n 与生命周期协议。没有 variants／implementations 注册字段。具体身份、缓存、能力判断和分支验收约束见 [版本差异约定](../lychee-sdk/CLIENT_VARIANTS.md)。
-
-紧凑搜索存储保持 SDK 2/revision 6；扩展字段、普通回调和模糊候选稳定顺序见 [搜索存储契约](../lychee-sdk/SEARCH_STORAGE.md)。
