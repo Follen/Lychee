@@ -1,5 +1,6 @@
 """Independent fixture checks for creature data, game-derived ordering and scope."""
 import json
+import subprocess
 from pathlib import Path
 from importlib.util import spec_from_file_location,module_from_spec
 ROOT=Path(__file__).resolve().parents[1]
@@ -35,4 +36,36 @@ bad=json.loads(json.dumps(d));bad['dungeons'][0]['enemies'][0]['displayId']=0
 try:g.render(bad)
 except AssertionError:pass
 else:raise AssertionError('generator accepted invalid display ID')
+# Compare generated execution to the independent factual JSON, including all details.
+# Test-owned full tables are not part of the runtime catalogue or search cache.
+probe = '''
+LycheeInternal={Builtin={}}
+dofile("addon/Lychee/Builtin/LDT/Data.lua")
+local M=LycheeInternal.Builtin.LDT
+local function equal(a,b)
+ assert(type(a)==type(b))
+ if type(a)~="table" then assert(a==b);return end
+ for k,v in pairs(a) do equal(v,b[k]) end
+ for k in pairs(b) do assert(a[k]~=nil) end
+end
+local expected='''+g.lua(d['dungeons'])+'''
+for _,dungeon in ipairs(expected) do
+ local index,scratch=0,{}
+ M:ScanDungeon(dungeon.id,function(row,header)
+  index=index+1;assert(row==scratch)
+  local enemy=dungeon.enemies[index]
+  for _,key in ipairs({"id","name","nameZh","isBoss","bossOrder"}) do equal(row[key],enemy[key]) end
+  local spells={};for id in row.spellIDs:gmatch("%d+") do spells[#spells+1]=tonumber(id) end
+  assert(#spells==#enemy.spells)
+  for i,id in ipairs(spells) do assert(id==enemy.spells[i].id) end
+  local details,info=M:LoadEnemy(dungeon.id,enemy.id)
+  equal(details,enemy);equal(header,info)
+  for key,value in pairs(header) do equal(value,dungeon[key]) end
+  assert(not header.enemies and not row.spells and not row.characteristics)
+ end,scratch)
+ assert(index==#dungeon.enemies and not M:LoadEnemy(dungeon.id,-1))
+end
+assert(not M:LoadEnemy(-1,1))
+'''
+subprocess.run(['lua','-'],input=probe,text=True,encoding='utf-8',cwd=ROOT,check=True)
 print('LDT data PASS: 16 dungeons, 462 creatures, 1539 spell IDs, retail only')

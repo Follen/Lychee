@@ -9,8 +9,11 @@ function M:Name(value) return N.locale:sub(1,2)=="zh" and value.nameZh or value.
 function M:SpellName(id)
     return C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(id) or nil
 end
-function M:Aliases(enemy,dungeon)
-    local aliases={enemy.name,enemy.nameZh,tostring(enemy.id),dungeon.name,dungeon.nameZh,dungeon.shortZh}
+function M:Aliases(enemy,dungeon,reuse)
+    local aliases=reuse or {}
+    for index=#aliases,1,-1 do aliases[index]=nil end
+    aliases[1],aliases[2],aliases[3]=enemy.name,enemy.nameZh,tostring(enemy.id)
+    aliases[4],aliases[5],aliases[6]=dungeon.name,dungeon.nameZh,dungeon.shortZh
     local order=enemy.bossOrder
     if order then
         local digit=tostring(order)
@@ -34,18 +37,14 @@ function M:Record(enemy,dungeon,spellID)
         payload={dungeonID=dungeon.id,npcID=enemy.id,spellID=spellID or 0},actions={"open"}}
 end
 function M:Find(dungeonID,npcID,spellID)
-    local dungeon=self:LoadDungeon(dungeonID)
-    if not dungeon then return end
-    for _,enemy in ipairs(dungeon.enemies) do
-        if enemy.id==npcID then
-            if spellID and spellID~=0 then
-                local found=false
-                for _,spell in ipairs(enemy.spells) do if spell.id==spellID then found=true;break end end
-                if not found then return end
-            end
-            dungeon.enemies=nil
-            return enemy,dungeon
+    local enemy,dungeon=self:LoadEnemy(dungeonID,npcID)
+    if enemy then
+        if spellID and spellID~=0 then
+            local found=false
+            for _,spell in ipairs(enemy.spells) do if spell.id==spellID then found=true;break end end
+            if not found then return end
         end
+        return enemy,dungeon
     end
 end
 function M:Resolve(id)
@@ -64,11 +63,12 @@ function M:Query(request,reply,context)
     local numeric=tonumber(query)
     local exactEntity=false
     local selected,pending,fields={},{},{}
+    local scratch,aliases={},{} -- Borrowed only by this query, including across coroutine yields.
     local awaiting,scanning,closed,loadedDuringScan=0,false,false,false
     local eventToken,deadline,task
     local limit=math.max(1,math.min(20,request.limit or 20))
     local function dispose()
-        closed=true;selected,pending,fields=nil,nil,nil
+        closed=true;selected,pending,fields,scratch,aliases=nil,nil,nil,nil,nil
         if eventToken then eventToken:Cancel();eventToken=nil end
         if deadline then deadline:Cancel();deadline=nil end
         if task then task:Cancel();task=nil end
@@ -94,8 +94,13 @@ function M:Query(request,reply,context)
             if rank>row.rank or rank==row.rank and key<row.key then at=index;break end
         end
         if at<=limit then
-            table.insert(selected,at,{enemy=enemy,dungeon=dungeon,rank=rank,spellID=spellID,key=key})
-            if #selected>limit then selected[#selected]=nil end
+            local row=#selected==limit and table.remove(selected) or {enemy={}}
+            -- Never let a candidate retain the borrowed scan record.
+            local copy=row.enemy
+            copy.id,copy.name,copy.nameZh=enemy.id,enemy.name,enemy.nameZh
+            copy.isBoss,copy.bossOrder=enemy.isBoss,enemy.bossOrder
+            row.dungeon,row.rank,row.spellID,row.key=dungeon,rank,spellID,key
+            table.insert(selected,at,row)
         end
     end
     local run
@@ -106,36 +111,36 @@ function M:Query(request,reply,context)
             batch=batch+1
             if batch>=128 or now()-started>=1 then coroutine.yield();batch,started=0,now() end
         end
-        for _,id in ipairs(M.dungeonIDs) do
-            local dungeon=M:LoadDungeon(id)
-            local enemies=dungeon.enemies;dungeon.enemies=nil
-            for _,enemy in ipairs(enemies) do
-                for i=#fields,1,-1 do fields[i]=nil end
-                field("title",M:Name(enemy))
-                for index,alias in ipairs(M:Aliases(enemy,dungeon)) do
-                    field("alias",alias)
-                    if (index<=3 or index>=7) and query==N:Normalize(alias,false) then exactEntity=true end
-                end
-                local base=#fields
-                local rank=query=="" and 0 or N:ScoreCompiled(query,fields,terms,false)
-                local best,bestSpell=rank,nil
-                if scanSkills then for _,spell in ipairs(enemy.spells) do
-                    if not numeric or numeric==spell.id then
-                    local name=M:SpellName(spell.id)
-                    if not name and requestMissing and not numeric and pending[spell.id]==nil and C_Spell and C_Spell.RequestLoadSpellData and eventToken then
-                        pending[spell.id]=true;awaiting=awaiting+1
-                        local ok=pcall(C_Spell.RequestLoadSpellData,spell.id)
-                        if not ok and pending[spell.id]==true then pending[spell.id]=false;awaiting=awaiting-1 end
-                    end
-                    field("alias",name);field("alias",tostring(spell.id))
-                    local score=query~="" and N:ScoreCompiled(query,fields,terms,false) or nil
-                    if score and (not best or score>best) then best,bestSpell=score,spell.id end
-                    for i=#fields,base+1,-1 do fields[i]=nil end
-                    end
-                    checkpoint()
-                end end
-                add(enemy,dungeon,best,bestSpell);checkpoint()
+        local function visit(enemy,dungeon)
+            for i=#fields,1,-1 do fields[i]=nil end
+            field("title",M:Name(enemy))
+            for index,alias in ipairs(M:Aliases(enemy,dungeon,aliases)) do
+                field("alias",alias)
+                if (index<=3 or index>=7) and query==N:Normalize(alias,false) then exactEntity=true end
             end
+            local base=#fields
+            local rank=query=="" and 0 or N:ScoreCompiled(query,fields,terms,false)
+            local best,bestSpell=rank,nil
+            if scanSkills then for spellText in enemy.spellIDs:gmatch("%d+") do
+                local spellID=tonumber(spellText)
+                if not numeric or numeric==spellID then
+                    local name=M:SpellName(spellID)
+                    if not name and requestMissing and not numeric and pending[spellID]==nil and C_Spell and C_Spell.RequestLoadSpellData and eventToken then
+                        pending[spellID]=true;awaiting=awaiting+1
+                        local ok=pcall(C_Spell.RequestLoadSpellData,spellID)
+                        if not ok and pending[spellID]==true then pending[spellID]=false;awaiting=awaiting-1 end
+                    end
+                    field("alias",name);field("alias",spellText)
+                    local score=query~="" and N:ScoreCompiled(query,fields,terms,false) or nil
+                    if score and (not best or score>best) then best,bestSpell=score,spellID end
+                    for i=#fields,base+1,-1 do fields[i]=nil end
+                end
+                checkpoint()
+            end end
+            add(enemy,dungeon,best,bestSpell);checkpoint()
+        end
+        for _,id in ipairs(M.dungeonIDs) do
+            M:ScanDungeon(id,visit,scratch)
         end
     end
     run=function(scanSkills,requestMissing)

@@ -96,6 +96,25 @@ local function query(input)
     for _,item in ipairs(result or initial) do out[#out+1]=assert(I.Providers.entries[M.id].dynamic[item.id]) end
     return out
 end
+do
+    local function equal(a,b,path)
+        assert(type(a)==type(b),"transcript type "..path)
+        if type(a)~="table" then assert(a==b,"transcript value "..path);return end
+        for key,value in pairs(a) do equal(value,b[key],path.."/"..tostring(key)) end
+        for key in pairs(b) do assert(a[key]~=nil,"transcript missing "..path.."/"..tostring(key)) end
+    end
+    local savedClock=debugprofilestop
+    debugprofilestop=function() return 0 end -- Match reference ranking independently from CPU budgets.
+    for _,case in ipairs(dofile("tests/fixtures/ldt_search.lua")) do
+        locale=case.locale;I.Search.Normalizer.locale=locale
+        local rows={}
+        for _,row in ipairs(query(case.input)) do
+            rows[#rows+1]={id=row.id,title=row.title,subtitle=row.subtitle,icon=row.icon,kind=row.kind,kindTitle=row.kindTitle,aliases=row.aliases,payload=row.payload,actions=row.actions}
+        end
+        equal(rows,case.rows,case.locale..":"..case.input)
+    end
+    debugprofilestop=savedClock;locale="zhCN";I.Search.Normalizer.locale=locale
+end
 forbidSpellReads=true
 local boss=query("毒牙老二")[1]
 assert(boss and boss.title=="扭缠盘蛇" and boss.payload.npcID==259446,"boss ordinal comes from journal order")
@@ -129,6 +148,22 @@ while requests==requestBase and #timers>0 do
 end
 assert(requests>requestBase,"spell request was actually pending before cancellation")
 I.Providers:CancelQueries("late-load-close");drain();assert(not callback,"late spell data cannot publish after cancellation")
+do
+    local scan=M.ScanDungeon
+    local borrowed=setmetatable({},{__mode="v"})
+    M.ScanDungeon=function(self,id,visit,scratch) borrowed[1]=scratch;return scan(self,id,visit,scratch) end
+    I.Search.Query:Query("cancel-borrowed-scratch",{visible=true})
+    local steps=0
+    while not borrowed[1] and #timers>0 do
+        steps=steps+1;assert(steps<300)
+        table.sort(timers,function(a,b)return a.due<b.due end)
+        local t=table.remove(timers,1);if not t.cancelled then clock=t.due;t.fn() end
+    end
+    assert(borrowed[1],"the real scan must have borrowed a scratch record")
+    I.Providers:CancelQueries("scratch-close");drain();M.ScanDungeon=scan
+    collectgarbage("collect")
+    assert(not borrowed[1],"cancel must release the suspended scan's borrowed record")
+end
 locale="enUS";I.Search.Normalizer.locale=locale
 assert(query("Coil Test")[1].payload.spellID==1287798)
 locale="zhCN";I.Search.Normalizer.locale=locale
@@ -140,7 +175,7 @@ collectgarbage("collect");before=collectgarbage("count");collectgarbage("stop")
 for i=1,20 do query(i%2==0 and "缠绕测试" or "毒牙老二");I.Providers:CancelQueries("close") end
 local allocated=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect");local growth=collectgarbage("count")-before
-assert(allocated<32768 and growth<128,"query allocation and retention budget")
+assert(allocated<4096 and growth<128,"query allocation and retention budget")
 assert(maxBatch<8,"bounded task maximum callback budget")
 local view=M:CreateView()
 local parent=CreateFrame("Frame")
