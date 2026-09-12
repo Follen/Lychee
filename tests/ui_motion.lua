@@ -7,6 +7,7 @@ local function region() return setmetatable({alphaValue=1,width=640,height=200,s
 function methods:GetWidth() return self.width end
 function methods:SetSize(w,h) assert(not combat);self.width,self.height=w,h;if self.onSize then self.onSize(w,h) end end
 function methods:SetScale(v) assert(not combat);self.scale=v end
+function methods:GetEffectiveScale() return self.scale or 1 end
 function methods:SetAlpha(v) assert(not combat);self.alphaValue=v end
 function methods:GetAlpha() return self.alphaValue end
 function methods:SetHeight(v) assert(not combat);self.height=v;if self.onHeight then self.onHeight(v) end end
@@ -16,7 +17,7 @@ function methods:Show() self.shown=true end
 function methods:Hide() self.shown=false end
 function methods:SetScript(k,v) self.scripts[k]=v end
 function methods:ClearAllPoints() end
-function methods:SetPoint(_,_,_,x,y) self.x,self.y=x,y end
+function methods:SetPoint(_,_,_,x,y) self.x,self.y=x,y;if self.onPoint then self.onPoint(x,y) end end
 function CreateFrame() frames=frames+1;return region() end
 function methods:CreateAnimationGroup()
     groups=groups+1
@@ -150,16 +151,27 @@ function input:Hide() end
 local p=setmetatable({frame=r,input=input,visible=true,list={Clear=function() end},
     focus={Restore=function() end,Clear=function() end},settingsTitle=region(),settingsBack={frame=region()}},Lychee.UI.Palette)
 function p:Create() end
-function p:ApplyBoundedScale() self.frame:SetScale(self._scale);self.frame:SetPoint("TOP",UIParent,"TOP",0,-self._topInset/self._scale) end
+function p:ApplyBoundedScale()
+    self.frame:SetScale(self._scale)
+    self._presenceSpec.y=-self._topInset/self._scale
+    self.frame:SetPoint("TOP",UIParent,"TOP",0,self._presenceSpec.y)
+end
 function p:ResizeForMode() end
 function p:RefreshHomeSections() end
 function p:SetQueryMode() end
 local function advance(seconds)
-    if M.presenceDriver and M.presenceDriver.scripts.OnUpdate then M.presenceDriver.scripts.OnUpdate(M.presenceDriver,seconds) end
+    if M.presenceDriver and M.presenceDriver.scripts.OnUpdate then
+        local width,height,scale=r.width,r.height,r.scale
+        M.presenceDriver.scripts.OnUpdate(M.presenceDriver,seconds)
+        assert(r.width==width and r.height==height and r.scale==scale,
+            "presence cannot resize or rescale the window while moving its input and background")
+        local pixels=(r.y-p._presenceSpec.y)*(r.scale or 1)
+        assert(math.abs(pixels-math.floor(pixels+0.5))<0.000001,
+            "translation preserves the resting font raster phase on physical pixels")
+    end
 end
 p._scale,p._topInset=0.8,24
-local shell,content,viewport=region(),region(),region()
-M:ConfigurePresence(p,shell,{content},nil,viewport)
+M:ConfigurePresence(p,{point="TOP",relative=UIParent,relativePoint="TOP",x=0,y=0})
 p:ApplyBoundedScale()
 r:Show();r:SetAlpha(1)
 p:Hide("close")
@@ -173,18 +185,18 @@ advance(1)
 assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening lands precisely")
 assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
 p:Hide("close");advance(0.16)
-assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>0.5,"exit midpoint must retain a visible moving panel")
-assert(math.abs(M.presence.position-0.5)<0.000001 and r.scale==p._scale and math.abs(shell.width/r.width-0.95)<0.000001,"close uses half its shell distance without rescaling text")
-assert(viewport.width==shell.width and viewport.height==shell.height and viewport.y==shell.y,"content clipping follows the shell instead of exposing fixed children outside it")
+assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>=0.5,"exit midpoint retains the complete moving panel")
+assert(math.abs(M.presence.position-0.5)<0.000001 and r.scale==p._scale and math.abs((r.y-p._presenceSpec.y)*r.scale+18)<0.000001,
+    "close translates the complete window by half its distance on physical pixels")
 advance(0.159)
 assert(M.presence and M.presence.position<0.0001 and r:GetAlpha()<0.0001,"close reaches the invisible endpoint continuously before hiding")
 advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
-assert(r.scale==p._scale and math.abs(shell.width/r.width-0.90)<0.0001 and r:GetAlpha()==0,"fresh opening expands only the empty shell")
-assert(math.abs(r.y*r.scale+24)<0.001 and shell.y==-24,"root anchor stays fixed while shell starts below it")
+assert(r.scale==p._scale and r:GetAlpha()==0,"fresh opening never rescales the window")
+assert(math.abs((r.y-p._presenceSpec.y)*r.scale+35)<0.001,"the complete window starts below its resting anchor")
 advance(0.10)
-assert(r:GetAlpha()==1 and M.presence.position<1,"opacity resolves early while geometry continues settling")
+assert(r:GetAlpha()>0.4 and r:GetAlpha()<1 and M.presence.position<1,"arrival is visible and still in motion after 100 ms")
 x,v=M.presence.position,M.presence.velocity
 p:Hide("escape")
 assert(M.presence.position==x and M.presence.velocity==v,"close preserves entrance momentum")
@@ -196,7 +208,7 @@ M:SetReduced(true)
 assert(not p.visible and not r:IsShown() and not M.presence and not p._motionClosing,"reduced motion completes close")
 p:Show()
 assert(p.visible and r:GetAlpha()==1 and r.scale==0.8 and not M.presence,"reduced opening is immediate")
-assert(viewport.width==r.width and viewport.height==r.height and viewport.y==0,"reduced motion restores the complete content viewport")
+assert(r.y==p._presenceSpec.y,"reduced motion restores the complete window to its resting anchor")
 p:Hide("close");M:SetReduced(false)
 -- Closed form must give the same geometry at 30 and 120 Hz.
 p:Show();for i=1,3 do advance(1/30) end
@@ -216,8 +228,8 @@ combat=false;p:Hide("cleanup")
 M:Presence(r,false,nil,1,0,p)
 local staleFinished=0
 M.presence.finished=function() staleFinished=staleFinished+1 end
-shell.onSize=function()
-    shell.onSize=nil
+r.onPoint=function()
+    r.onPoint=nil
     M:Presence(r,true,nil,0,0,p)
 end
 M:StopPresence(true,true)

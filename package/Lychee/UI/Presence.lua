@@ -1,14 +1,14 @@
--- Window presence is a separate channel from control feedback. The persistent
--- text/hit-test tree never changes geometry; only an empty decorative shell does.
+-- One rigid window owns the background, text and hit-test tree. Presence changes
+-- only its anchor and opacity; no scaling, resizing or outer content clipping.
 local Motion = _G.Lychee.UI.Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 Motion.Presets = Motion.Presets or {}
 Motion.Presets.palette = {
-    enter=0.44, exit=0.32, widthFrom=0.90, heightFrom=0.82, offsetY=24,
-    opaqueAt=0.30, contentFrom=0.20, contentTo=0.88, launchVelocity=2.6,
+    enter=0.44, exit=0.32, distance=44, launchVelocity=2.6,
 }
-function Motion:ConfigurePresence(layout, surface, content, preset, viewport)
-    layout._presenceSpec={surface=surface,content=content,preset=preset or self.Presets.palette,viewport=viewport}
+function Motion:ConfigurePresence(layout, anchor, preset)
+    anchor.preset=preset or self.Presets.palette
+    layout._presenceSpec=anchor
 end
 local function smooth(value)
     value=math.max(0,math.min(1,value))
@@ -20,37 +20,17 @@ local function applyPresence(job)
     local spec=layout and layout._presenceSpec
     local preset=spec and spec.preset or Motion.Presets.palette
     local position=job.position
-    local alpha=smooth(position/preset.opaqueAt)
+    local alpha=smooth(position)
     if spec then
-        local surface=spec.surface
-        local width=region:GetWidth()*(preset.widthFrom+(1-preset.widthFrom)*position)
-        local height=region:GetHeight()*(preset.heightFrom+(1-preset.heightFrom)*position)
-        if job.lastWidth~=width or job.lastHeight~=height then
-            surface:SetSize(width,height)
+        -- Preserve the resting glyph raster phase. Move the complete hierarchy
+        -- by integral physical pixels instead of rescaling or moving its parts.
+        local scale=job.pixelScale
+        local offset=math.floor(-preset.distance*(1-position)*scale+0.5)/scale
+        local x,y=spec.x,spec.y+offset
+        if job.lastX~=x or job.lastY~=y then
+            region:SetPoint(spec.point,spec.relative,spec.relativePoint,x,y)
             if Motion.presenceRevision~=revision then return false end
-            if spec.viewport then
-                spec.viewport:SetSize(width,height)
-                if Motion.presenceRevision~=revision then return false end
-            end
-            job.lastWidth,job.lastHeight=width,height
-        end
-        local offset=-preset.offsetY*(1-position)
-        if job.lastOffset~=offset then
-            surface:SetPoint("CENTER",region,"CENTER",0,offset)
-            if Motion.presenceRevision~=revision then return false end
-            if spec.viewport then
-                spec.viewport:SetPoint("CENTER",region,"CENTER",0,offset)
-                if Motion.presenceRevision~=revision then return false end
-            end
-            job.lastOffset=offset
-        end
-        local contentAlpha=smooth((position-preset.contentFrom)/(preset.contentTo-preset.contentFrom))
-        if job.lastContentAlpha~=contentAlpha then
-            for index=1,#spec.content do
-                spec.content[index]:SetAlpha(contentAlpha)
-                if Motion.presenceRevision~=revision then return false end
-            end
-            job.lastContentAlpha=contentAlpha
+            job.lastX,job.lastY=x,y
         end
     end
     if job.lastAlpha~=alpha then
@@ -104,13 +84,7 @@ function Motion:Presence(region,shown,finished,initial,velocity,layout)
         region:SetAlpha(target)
         if layout and layout._presenceSpec then
             local spec=layout._presenceSpec
-            spec.surface:SetSize(region:GetWidth(),region:GetHeight())
-            spec.surface:SetPoint("CENTER",region,"CENTER",0,0)
-            if spec.viewport then
-                spec.viewport:SetSize(region:GetWidth(),region:GetHeight())
-                spec.viewport:SetPoint("CENTER",region,"CENTER",0,0)
-            end
-            for index=1,#spec.content do spec.content[index]:SetAlpha(1) end
+            region:SetPoint(spec.point,spec.relative,spec.relativePoint,spec.x,spec.y)
         end
         if finished then finished() end
         return false
@@ -127,7 +101,9 @@ function Motion:Presence(region,shown,finished,initial,velocity,layout)
     job.target,job.elapsed,job.duration=target,0,duration
     job.clock=type(GetTimePreciseSec)=="function" and GetTimePreciseSec or nil
     job.started=job.clock and job.clock() or 0
-    job.lastWidth,job.lastHeight,job.lastOffset,job.lastAlpha,job.lastContentAlpha=nil,nil,nil,nil,nil
+    job.pixelScale=region.GetEffectiveScale and region:GetEffectiveScale() or 1
+    if job.pixelScale<=0 then job.pixelScale=1 end
+    job.lastX,job.lastY,job.lastAlpha=nil,nil,nil
     if not applyPresence(job) then return false end
     self.presenceDriver:SetScript("OnUpdate",presenceTick);self.presenceDriver:Show()
     return true

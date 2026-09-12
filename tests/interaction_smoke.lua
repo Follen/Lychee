@@ -1173,8 +1173,10 @@ palette:Show();palette.input:ClearFocus()
 for tick=1,8 do
     motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
     assert(palette.frame.scale==palette._scale,"presence must keep the whole text and hit-test tree at its final scale")
-    assert(palette.presenceContent.allPoints==palette.frame and palette.presenceContent.parent==palette.presenceViewport,"content anchors remain on final root geometry under an independent clipping parent")
-    assert(palette.presenceViewport.clipsChildren and palette.presenceViewport.width==palette.presenceSurface.width and palette.presenceViewport.height==palette.presenceSurface.height,"text cannot render outside the animated shell")
+    assert(palette.header:GetParent()==palette.frame and palette.content:GetParent()==palette.frame and palette.footer:GetParent()==palette.frame,
+        "background, input and content must share one motion root without an outer clipping viewport")
+    assert(not palette.presenceViewport and not palette.presenceSurface and not palette.presenceContent,
+        "presence must not split the window into separately moving or clipped layers")
     assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001,"search text must keep its effective font scale during opening")
     assert(math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"placeholder must share the stable cursor/text scale")
 end

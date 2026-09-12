@@ -1,0 +1,119 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetPoint",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "135: \t\t\tName = \"SetPoint\",\n136: \t\t\tType = \"Function\",\n137: \t\t\tIsProtectedFunction = true,\n138: \t\t\tCheckAllowInheritForbiddenLayoutAspects = true,\n139: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n140: \n141: \t\t\tArguments =\n142: \t\t\t{\n143: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n144: \t\t\t\t{ Name = \"relativeTo\", Type = \"ScriptRegion\", Nilable = false },\n145: \t\t\t\t{ Name = \"relativePoint\", Type = \"FramePoint\", Nilable = false },\n146: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n147: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n148: \t\t\t},\n149: \t\t},",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 135,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetPointsOffset",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua",
+        "matchedBy": "symbol_prefix",
+        "role": "official-generated-api",
+        "excerpt": "148: \t\t\t},\n149: \t\t},\n150: \t\t{\n151: \t\t\tName = \"SetPointsOffset\",\n152: \t\t\tType = \"Function\",\n153: \t\t\tIsProtectedFunction = true,\n154: \t\t\tSecretArguments = \"AllowedWhenUntainted\",",
+        "contentHash": "a3321cce107b1d934487ce6e82c40fc2c7d37c279ee3fd18ea00b3fd8bc954a2",
+        "line": 151,
+        "score": 80,
+        "scoreParts": {
+          "match": 80,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": {
+      "kind": "api-function",
+      "name": "GetEffectiveScale",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "381: \t\t\tName = \"GetEffectiveScale\",\n382: \t\t\tType = \"Function\",\n383: \t\t\tSecretReturnsForAspect = { Enum.SecretAspect.Scale },\n384: \n385: \t\t\tArguments =\n386: \t\t\t{\n387: \t\t\t},\n388: \n389: \t\t\tReturns =\n390: \t\t\t{\n391: \t\t\t\t{ Name = \"effectiveScale\", Type = \"number\", Nilable = false },\n392: \t\t\t},\n393: \t\t},",
+      "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+      "line": 381,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": {
+      "kind": "api-function",
+      "name": "SetAlpha",
+      "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua",
+      "matchedBy": "exact_symbol",
+      "role": "official-generated-api",
+      "excerpt": "1133: \t\t\tName = \"SetAlpha\",\n1134: \t\t\tType = \"Function\",\n1135: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Alpha },\n1136: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n1137: \n1138: \t\t\tArguments =\n1139: \t\t\t{\n1140: \t\t\t\t{ Name = \"alpha\", Type = \"SingleColorValue\", Nilable = false },\n1141: \t\t\t},\n1142: \t\t},",
+      "contentHash": "76fd146d432cb7ad8bc9d8ae034e29e54cd9d06f4de33c2c321874ecab0cea42",
+      "line": 1133,
+      "score": 100,
+      "scoreParts": {
+        "match": 100,
+        "rolePenalty": 0
+      }
+    }
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Os.GetTimePreciseSec",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/OsDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "27: \t\t\tName = \"GetTimePreciseSec\",\n28: \t\t\tType = \"Function\",\n29: \n30: \t\t\tReturns =\n31: \t\t\t{\n32: \t\t\t\t{ Name = \"time\", Type = \"number\", Nilable = false },\n33: \t\t\t},\n34: \t\t},",
+        "contentHash": "fe53117b85bb87784288b1f9854266b19b6967207e949d55c254029a9a9f4679",
+        "line": 27,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "source",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/OsDocumentation.lua",
+        "matchedBy": "fts5",
+        "role": "official-generated-api",
+        "excerpt": "24: \t\t\t},\n25: \t\t},\n26: \t\t{\n27: \t\t\tName = \"GetTimePreciseSec\",\n28: \t\t\tType = \"Function\",\n29: \n30: \t\t\tReturns =",
+        "contentHash": "fe53117b85bb87784288b1f9854266b19b6967207e949d55c254029a9a9f4679",
+        "line": 27,
+        "score": 70,
+        "scoreParts": {
+          "match": 70,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

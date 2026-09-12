@@ -452,6 +452,7 @@ function Palette:ApplyBoundedScale()
     local scale = math.min(1, (parentWidth - 48) / WIDTH, (parentHeight - 48) / 600)
     if self._scale ~= scale then self.frame:SetScale(scale); self._scale = scale end
     local inset = math.max(24, (parentHeight - 600 * scale) / 2)
+    self._presenceSpec.y = -inset / scale
     if self._topInset ~= inset then
         self.frame:ClearAllPoints()
         self.frame:SetPoint("TOP", UIParent, "TOP", 0, -inset / scale)
@@ -467,23 +468,10 @@ function Palette:Create()
     frame:SetPoint("TOP", UIParent, "CENTER", 0, 180)
     frame:SetFrameStrata("DIALOG")
     frame:EnableMouse(true)
-    self.presenceSurface=CreateFrame("Frame",nil,frame)
-    self.presenceSurface:SetSize(WIDTH,HEIGHT)
-    self.presenceSurface:SetPoint("CENTER",frame,"CENTER",0,0)
-    self.presenceSurface:EnableMouse(false)
-    Lychee.UI.Theme:CreateRoundedSurface(self.presenceSurface, "window", 10)
-    self.presenceViewport=CreateFrame("Frame",nil,frame)
-    self.presenceViewport:SetSize(WIDTH,HEIGHT)
-    self.presenceViewport:SetPoint("CENTER",frame,"CENTER",0,0)
-    self.presenceViewport:SetClipsChildren(true)
-    self.presenceContent=CreateFrame("Frame",nil,self.presenceViewport)
-    self.presenceContent:SetAllPoints(frame)
-    frame:SetScript("OnSizeChanged",function(_,width,height)
-        if not (InCombatLockdown and InCombatLockdown()) and not (Lychee.UI.Motion.presence and Lychee.UI.Motion.presence.region==frame) then
-            self.presenceSurface:SetSize(width,height)
-            self.presenceViewport:SetSize(width,height)
-        end
-    end)
+    -- A window is one rigid surface. Do not clip a separately anchored content
+    -- tree against an animated shell: native clipping can erase the whole tree.
+    Lychee.UI.Theme:CreateRoundedSurface(frame, "window", 10)
+    Lychee.UI.Motion:ConfigurePresence(self, {point="TOP",relative=UIParent,relativePoint="TOP",x=0,y=0})
     frame:Hide()
     -- Only the secure snippet hides a protected hierarchy during combat. The
     -- non-combat state deliberately does nothing, so leaving combat never opens it.
@@ -507,20 +495,19 @@ function Palette:Create()
     self.frame = frame
     self.session, self.generation, self.visible = 0, 0, false
     local components = Lychee.UI.Components
-    self.headerComponent = components:CreateBand(self.presenceContent, { height = HEADER_HEIGHT, top = true, color = "header" })
+    self.headerComponent = components:CreateBand(frame, { height = HEADER_HEIGHT, top = true, color = "header" })
     self.header = self.headerComponent.frame
     self.headerComponent.bg:Hide()
-    self.footerComponent = components:CreateBand(self.presenceContent, { height = FOOTER_HEIGHT, top = false, color = "footer" })
+    self.footerComponent = components:CreateBand(frame, { height = FOOTER_HEIGHT, top = false, color = "footer" })
     self.footer = self.footerComponent.frame
     self.footerComponent.bg:Hide()
-    self.contentComponent = components:CreateSurface(self.presenceContent, { allPoints = false, color = "content" })
+    self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
     self.content = self.contentComponent.frame
     if self.content.SetClipsChildren then self.content:SetClipsChildren(true) end
     self.content:SetPoint("TOPLEFT", frame, "TOPLEFT", 12, -HEADER_HEIGHT)
     self.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, FOOTER_HEIGHT)
     self.content.bg = self.contentComponent.bg
     self.content.bg:Hide()
-    Lychee.UI.Motion:ConfigurePresence(self,self.presenceSurface,{self.header,self.content,self.footer},nil,self.presenceViewport)
     self.brandComponent = components:CreateBrand(self.header, {
         iconSize = 42,
         texture = "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga",
