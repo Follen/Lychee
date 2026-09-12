@@ -16,7 +16,30 @@ C_Timer={NewTimer=function(delay,fn)
     tasks[#tasks+1]=t;return t
 end}
 local nativeCalls,externalCalls=0,0
-CreateFrame=function() nativeCalls=nativeCalls+1;error("native frame in private probe") end
+local overlayFrames,overlayFonts=0,0
+STANDARD_TEXT_FONT="fixture-font"
+CreateFrame=function(_,name,parent)
+    if name=="LycheePerformanceTestStatus" then
+        overlayFrames=overlayFrames+1
+        local frame={parent=parent}
+        function frame:SetSize(w,h) self.width=w;self.height=h end
+        function frame:SetPoint(...) self.point={...} end
+        function frame:SetFrameStrata(v) self.strata=v end
+        function frame:EnableMouse(v) self.mouse=v end
+        function frame:Show() self.shown=true end
+        function frame:CreateFontString()
+            overlayFonts=overlayFonts+1
+            local label={}
+            function label:SetFont(...) self.font={...};return true end
+            function label:SetTextColor(...) self.color={...} end
+            function label:SetPoint(...) self.point={...} end
+            function label:SetText(v) self.text=v end
+            return label
+        end
+        return frame
+    end
+    nativeCalls=nativeCalls+1;error("native frame in private probe")
+end
 local function external() externalCalls=externalCalls+1;error("external business action") end
 EllesmereUI={_modules={Unit={title="Unit",pages={"冷却","框体"}}},_deferredLoaded=true,
     L=function(s) return s end,_RegisterSearchEntry=external,EnsureLoaded=external,NavigateToElementSettings=external}
@@ -31,7 +54,7 @@ local packagePath="analyze/performance-test-package/Lychee Performance Test/"
 for line in io.lines(packagePath.."Lychee Performance Test.toc") do
     if line:match("%.lua$") then assert(loadfile(packagePath..line))("Lychee Performance Test",carrier) end
 end
-assert(#carrier.modules==56 and #tasks==0 and nativeCalls==0)
+assert(#carrier.modules==56 and #tasks==0 and nativeCalls==0 and overlayFrames==0)
 assert(next(LycheePerformanceTestDB.reports)==nil and LycheeDevDB==nil)
 local script=LycheePerformanceTest.Start
 local function checkFactories()
@@ -39,6 +62,10 @@ local function checkFactories()
 end
 checkFactories()
 local returned=script();assert(returned.status=="running",returned.reason)
+assert(carrier.statusFrame.title.text=="正在执行中…" and overlayFrames==1 and overlayFonts==2)
+assert(carrier.statusFrame.mouse==false and carrier.statusFrame.strata=="TOOLTIP")
+assert(carrier.statusFrame.title.font[2]==42 and carrier.statusFrame.title.color[1]==1)
+assert(script().status=="blocked" and carrier.statusFrame.title.text=="正在执行中…")
 local steps=0
 while #tasks>0 do
     steps=steps+1;assert(steps<20000,"real timer runaway")
@@ -50,6 +77,7 @@ end
 local report=LycheePerformanceTestDB.reports[returned.studyID]
 print("STATUS",report.status,report.lastPhase,report.error,report.cleanupError)
 assert(report.status=="complete",report.error or report.cleanupError)
+assert(carrier.statusFrame.title.text=="执行完毕，可落盘")
 assert(report.cleanupOK and report.liveRootsUnchanged and #report.rounds==4)
 assert(nativeCalls==0 and externalCalls==0)
 assert(LycheeInternal==realI and realI.Search.StaticIndex==realIndex)
@@ -64,6 +92,7 @@ assert(not LycheePerformanceTestControl)
 serial=serial+1
 returned=script();assert(returned.status=="running");LycheePerformanceTestControl:Cancel()
 assert(LycheePerformanceTestDB.reports[returned.studyID].status=="cancelled" and not LycheePerformanceTestControl)
+assert(carrier.statusFrame.title.text=="执行已取消，可落盘")
 local function drainReal(limit)
     local steps=0
     while #tasks>0 do
@@ -82,8 +111,15 @@ while LycheePerformanceTestControl and LycheePerformanceTestControl.report.round
 end
 LycheePerformanceTestControl:Cancel();drainReal()
 assert(LycheePerformanceTestDB.reports[returned.studyID].cleanupOK and not LycheePerformanceTestControl)
-serial=serial+1;returned=script();virtual=virtual+180001;drainReal()
-assert(LycheePerformanceTestDB.reports[returned.studyID].status=="aborted")
+serial=serial+1;returned=script();virtual=virtual+180001
+local pending=table.remove(tasks,1);assert(pending and not pending.cancelled);pending.fn()
+assert(LycheePerformanceTestControl and LycheePerformanceTestControl.report.status=="running","old 180s limit still active")
+assert(LycheePerformanceTestControl.report.wallLimitSeconds==600)
+virtual=virtual+420001;drainReal()
+assert(carrier.statusFrame.title.text=="执行超时，可落盘")
+local expired=LycheePerformanceTestDB.reports[returned.studyID]
+assert(expired.status=="aborted" and expired.error=="600 second wall limit")
+assert(expired.cleanupOK and not LycheePerformanceTestControl and #tasks==0)
 serial=serial+1
 local originalEUI,originalEx=EllesmereUI,ExwindTools
 EllesmereUI=nil;ExwindTools=nil;returned=script();drainReal()
@@ -117,6 +153,7 @@ LycheePerformanceTestDB={schemaVersion=1,reports={}}
 local oldI=LycheeInternal
 LycheeInternal=nil
 assert(script().status=="blocked")
+assert(carrier.statusFrame.title.text=="未能开始执行")
 LycheeInternal=oldI
 local oldCombat=InCombatLockdown
 InCombatLockdown=function() return true end
@@ -184,7 +221,7 @@ local function prepareRun(which)
 end
 returned=prepareRun("normal");drainReal()
 report=LycheePerformanceTestDB.reports[returned.studyID]
-assert(report.status=="complete" and report.carrierRevision=="0.2.0-eui-preparation")
+assert(report.status=="complete" and report.carrierRevision=="0.2.1-center-status")
 assert(report.ellesmerePreparation.status=="complete" and report.ellesmerePreparation.loadedBefore==false)
 assert(report.ellesmerePreparation.loadedAfter and report.ellesmerePreparation.shown and report.ellesmerePreparation.closed)
 assert(report.ellesmerePreparation.optionsCaptured==1 and report.ellesmerePreparation.registrationRestored)
@@ -218,3 +255,7 @@ assert(report.ui.initiallyCreated==false and report.ui.closed and #report.ui.sam
 assert(shows==3 and hides==3 and not palette.visible)
 Lychee_Toggle=nil;realI.Host=nil
 print("Lychee first-controller creation uses normal Toggle and completes three open/close cycles PASS")
+
+assert(overlayFrames==1 and overlayFonts==2,"status overlay grew across repeated runs")
+assert(carrier.statusFrame.title.text=="执行完毕，可落盘" and #tasks==0)
+print("Center status: no load-time UI / running+complete+cancel+timeout+blocked / reuse / no extra timers PASS")

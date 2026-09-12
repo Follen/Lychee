@@ -2,7 +2,7 @@
 
 独立、手动启动的诊断插件，调查 Lychee 生命周期与内存/CPU；不实施产品 SDK 或低内存重构。目录、TOC、Title 均为 `Lychee Performance Test`。仅依赖 `Lychee`，不依赖 Lychee Dev；原长文本粘贴入口已撤回。
 
-当前修订 `0.2.0-eui-preparation`。开始/结束聊天和报告 `carrierRevision` 均显示该值。覆盖修复：显式启动后正常初始化 Ellesmere 设置、打开一个现有/默认模块页面、记录真实选项登记并关闭，再测 SDK 选项查询/Resolve；不再仅测试未就绪状态。旧报告仍保留。
+当前修订 `0.2.1-center-status`。整轮墙钟上限按用户要求从 180 秒延长到 600 秒，报告记录 `wallLimitSeconds=600`；这是诊断等待上限，不改变产品性能预算。中央大字、开始/结束聊天和报告 `carrierRevision` 均显示该值。覆盖修复：显式启动后正常初始化 Ellesmere 设置、打开一个现有/默认模块页面、记录真实选项登记并关闭，再测 SDK 选项查询/Resolve；不再仅测试未就绪状态。旧报告仍保留。
 
 ## 构建与安装
 
@@ -24,7 +24,9 @@ TOC 使用 LoadOnDemand，默认不加载；加载时只建立模块工厂和入
 /run local t=debugprofilestop();local ok,e=C_AddOns.LoadAddOn("Lychee Performance Test");if ok then LycheePerformanceTest.Start(debugprofilestop()-t) else print(e) end
 ```
 
-该入口为 167 个 ASCII 字节；不需要 Lychee Dev、剪贴板源代码或编辑器。此命令加载插件并开始测试，加载的毫秒单列为 `nativeLoadMs`；再次启动不能当成首次原生加载。该命令的真实客户端运行仍待安装后验证。
+该入口为 167 个 ASCII 字节；不需要 Lychee Dev、剪贴板源代码或编辑器。此命令加载插件并开始测试，加载的毫秒单列为 `nativeLoadMs`；再次启动不能当成首次原生加载。已取得三份真实客户端报告，其中：0.2 真实 EUI 准备和前三轮选项解析已验证，第四轮超时，不能报告整套通过。
+
+启动后屏幕中央以透明底、42 号红色描边大字显示“正在执行中…”。流程完成后显示“执行完毕，可落盘”，下方提示 `/reload`；取消或中止分别显示实际结果，部分来源异常在副标题注明。提示一直保留至重载，点击穿透，不捕获键盘；仅状态变化更新，复用 1 Frame + 2 FontString，无额外 timer/OnUpdate。它在基线前创建，成本计入诊断插件，不能混入产品收益。
 
 加载后 `/lypt` 查看状态，`/lypt cancel` 取消；同会话再次运行可用 `/lypt start`，但 `/reload` 后应先用 LoadAddOn 入口。不要在测试时点击业务动作。自动测试会先打开并关闭 Ellesmere 常规设置，再在条件允许时开关 Lychee 面板三次。已有窗口、override 编辑或初始化待完成时给出具体跳过原因。
 
@@ -48,7 +50,7 @@ LycheePerformanceTestDB.reports["LYCHEE-PERF-..."]
 - 钥匙通信与刷新、技能描述下载被抑制，只测当前游戏缓存。暴雪设置只读已存在的分类/布局。Inspector 不运行真实拾取，Crests 不打开自定义页。
 - 实际 Lychee 控制器三次开关、快速重开、alpha/几何/行池检查单列；原生 UI 的视觉质量、硬件快捷键、所有页高水位、战斗和真实首次登录不在自动等价声明内。
 
-外层计时器逐阶段推进，180 秒墙钟上限，取消/战斗/错误会停止调度、注销私有来源并断开临时环境。单个生产同步函数或原生 API 无法被 Lua 时间预算抢占；报告 `maxCallMs` 和 `maxResumeMs`，不承诺测试完全无停顿。私有计时器队列上限 8,000、单次 drain 6,000 步；指纹深度 14、节点 300,000，Ellesmere 重放最多 4,096 条。
+外层计时器逐阶段推进，600 秒墙钟上限，取消/战斗/错误会停止调度、注销私有来源并断开临时环境。单个生产同步函数或原生 API 无法被 Lua 时间预算抢占；报告 `maxCallMs` 和 `maxResumeMs`，不承诺测试完全无停顿。私有计时器队列上限 8,000、单次 drain 6,000 步；指纹深度 14、节点 300,000，Ellesmere 重放最多 4,096 条。
 
 ## 内存与诊断成本
 
@@ -74,3 +76,5 @@ Ellesmere 版本依据：wowdoc `sourceId=ellesmereui, product=main, requestedRe
 - `Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua:39`：NewTimer 接收 seconds/callback，返回 cbObject。
 - `Interface/AddOns/Blizzard_ChatFrame/Shared/ClassTalentHelper.lua:57`：`SlashCmdList["TALENT_LOADOUT_BY_NAME"] = function(msg)`，原生 slash 注册形态。
 - 同版本 SettingsPanel.lua:737、FrameScriptDocumentation.lua:509、MountJournalDocumentation.lua:273 的读取/计时证据见统一调查记录。
+
+0.2.1 验证依据：同上 wow-ui-source/retail/latest、resolvedCommit `8ea15b61e45c0ed4eba01439c90757f86eb78d34`，`FrameScriptDocumentation.lua:509` 的 debugprofilestop 返回 elapsedMilliseconds；超时显式秒转毫秒。状态 UI 精确 API 查询证据保存在本机 `analyze/performance-test-package/status-api-evidence.json`，对应官方 SimpleFrame/SimpleFont 文档的 CreateFontString、SetFrameStrata、EnableMouse、SetFont、SetTextColor。用户允许将诊断墙钟上限延长至 600 秒，单批/队列/取消与产品性能预算保持原值；旧 180 秒报告继续保留为历史。

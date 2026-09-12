@@ -14,6 +14,7 @@ local liveIndex=liveI.Search.StaticIndex
 local liveP=liveI.Providers.entries
 local liveDB,liveCharacterDB=G.LycheeDB,G.LycheeCharacterDB
 local start=clock()
+local wallLimitSeconds=600
 local id="LYCHEE-PERF-"..tostring(time())
 local store=G.LycheePerformanceTestDB.reports
 if type(store)~="table" or store[id] then return {status="blocked",reason="Study storage collision"} end
@@ -30,7 +31,9 @@ local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCo
         "Private fake-frame memory is not native UI memory; private heap deltas are not addon-accounted total residency",
         "SDK 3, compact representation and final dormant architecture do not exist yet; this is baseline feasibility evidence"}}
 store[id]=report
-report.carrierRevision="0.2.0-eui-preparation"
+report.carrierRevision="0.2.1-center-status"
+report.wallLimitSeconds=wallLimitSeconds
+report.diagnosticStatusUI={frames=1,fontStrings=2,scope="Reusable inert overlay created before baseline; included in diagnostic addon counters"}
 local control={report=report};G.LycheePerformanceTestControl=control
 local E,I,roots,queue,ownedUI,uiController
 local upstreamCleanup,upstreamOptions
@@ -151,6 +154,7 @@ finish=function(status,err)
     E,I,roots,queue,bundle=nil,nil,nil,nil,nil
     upstreamOptions=nil
     G.LycheePerformanceTestControl=nil
+    carrier.UpdateStatus(report.status, report)
     local euiCheck=report.rounds[1] and report.rounds[1].ellesmereOptionCheck
     print("Lychee Performance Test "..report.carrierRevision.." "..report.status..": "..id.."; EUI="..(euiCheck and euiCheck.status or "not_tested").."; /reload to save")
 end
@@ -491,7 +495,7 @@ local function step()
     control.timer=nil
     if control.finished then return end
     if InCombatLockdown() then finish("aborted","Combat began; no protected operations attempted");return end
-    if clock()-start>180000 then finish("aborted","180 second wall limit");return end
+    if clock()-start>wallLimitSeconds*1000 then finish("aborted",tostring(wallLimitSeconds).." second wall limit");return end
     local begin=clock();local ok,delay=coroutine.resume(routine);local elapsed=clock()-begin
     report.lastPhase=currentPhase
     report.maxResumeMs=math.max(report.maxResumeMs or 0,elapsed)
@@ -504,5 +508,5 @@ end
 local scheduled,timer=pcall(C_Timer.NewTimer,0.1,step)
 if not scheduled then finish("aborted","Timer scheduling failed: "..tostring(timer));return report end
 control.timer=timer
-return {status="running",studyID=id,message="One staged run, wall limit 3 minutes. On completion /reload once.",reportPath="LycheePerformanceTestDB.reports["..id.."]"}
+return {status="running",studyID=id,message="One staged run, wall limit 10 minutes. On completion /reload once.",reportPath="LycheePerformanceTestDB.reports["..id.."]"}
 end
