@@ -1,5 +1,6 @@
 local _, carrier = ...
 local API = {}
+API.Revision = "0.2.0-eui-preparation"
 assert(_G.LycheePerformanceTest == nil, "Lychee Performance Test global already exists")
 _G.LycheePerformanceTest = API
 local initialized = false
@@ -32,7 +33,7 @@ function API.Start(nativeLoadMs)
         return {status="blocked",reason=tostring(result)}
     end
     if result.studyID or result.id then db.lastID = result.studyID or result.id end
-    print("Lychee Performance Test: "..tostring(result.status).." "..tostring(result.studyID or result.reason or ""))
+    print("Lychee Performance Test "..API.Revision..": "..tostring(result.status).." "..tostring(result.studyID or result.reason or ""))
     return result
 end
 

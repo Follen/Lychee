@@ -160,3 +160,61 @@ assert(loadfile(packagePath.."Entry.lua"))("Lychee Performance Test",carrier)
 assert(LycheePerformanceTest.Status().status=="interrupted")
 assert(#tasks==0 and not LycheePerformanceTestControl)
 print("standalone addon: native TOC / no auto-run / no Dev / module-error recovery / combat / reentry / factory env / report persistence / interrupted recovery PASS",#serialized)
+-- Exercise the actual normal-settings seam. No real business setter may run.
+local registrations=0
+local registration=function() registrations=registrations+1 end
+local mode
+local preparedUI={_deferredLoaded=false,_modules={Unit={title="Unit",pages={"冷却"}}},L=function(s) return s end,
+    _RegisterSearchEntry=registration,GetMainFrame=function() return {GetRect=function() return 10,20,900,700 end} end}
+function preparedUI:EnsureLoaded() if mode=="load_error" then error("injected upstream load error") end;if mode~="load_incomplete" then self._deferredLoaded=true end end
+function preparedUI:ShowModule(name)
+    self.visible=true;self.selected=name
+    if mode=="show_error" then error("injected upstream show error") end
+    self._RegisterSearchEntry("冷却开关",nil,"真实登记文字",name,"冷却","测试",external,"player",false)
+end
+function preparedUI:Hide() self.visible=false end
+function preparedUI:IsShown() return self.visible==true end
+function preparedUI:GetActiveModule() return self.selected end
+function preparedUI:GetActivePage() return "冷却" end
+local function prepareRun(which)
+    mode=which;EllesmereUI=preparedUI;preparedUI.visible=false;preparedUI._deferredLoaded=false
+    LycheePerformanceTestDB={schemaVersion=1,reports={}};serial=serial+1
+    local result=LycheePerformanceTest.Start();assert(result.status=="running")
+    return result
+end
+returned=prepareRun("normal");drainReal()
+report=LycheePerformanceTestDB.reports[returned.studyID]
+assert(report.status=="complete" and report.carrierRevision=="0.2.0-eui-preparation")
+assert(report.ellesmerePreparation.status=="complete" and report.ellesmerePreparation.loadedBefore==false)
+assert(report.ellesmerePreparation.loadedAfter and report.ellesmerePreparation.shown and report.ellesmerePreparation.closed)
+assert(report.ellesmerePreparation.optionsCaptured==1 and report.ellesmerePreparation.registrationRestored)
+for _,round in ipairs(report.rounds) do assert(round.ellesmereOptionCheck.status=="verified" and round.ellesmereOptionCheck.resolved>0) end
+assert(preparedUI._RegisterSearchEntry==registration and not preparedUI.visible and registrations==1)
+for _,failure in ipairs({"load_error","show_error","load_incomplete"}) do
+    returned=prepareRun(failure);drainReal();report=LycheePerformanceTestDB.reports[returned.studyID]
+    assert(preparedUI._RegisterSearchEntry==registration and not preparedUI.visible)
+    assert(report.cleanupOK and (report.status=="aborted" or report.ellesmerePreparation.status=="failed"))
+end
+for _,point in ipairs({"loaded","visible"}) do
+    returned=prepareRun("normal")
+    while LycheePerformanceTestControl do
+        local p=LycheePerformanceTestControl.report.ellesmerePreparation
+        if p and (point=="loaded" and p.loadedAfter or point=="visible" and preparedUI.visible) then break end
+        table.sort(tasks,function(a,b) return a.due<b.due end)
+        local timer=table.remove(tasks,1);assert(timer)
+        virtual=virtual+math.max(0,timer.due-debugprofilestop());if not timer.cancelled then timer.fn() end
+    end
+    LycheePerformanceTest.Cancel();drainReal();report=LycheePerformanceTestDB.reports[returned.studyID]
+    assert(report.status=="cancelled" and report.ellesmerePreparation.registrationRestored)
+    assert(preparedUI._RegisterSearchEntry==registration and not preparedUI.visible)
+end
+assert(externalCalls==0 and nativeCalls==0);checkFactories()
+print("Ellesmere: real registration capture -> private SDK query/option Resolve / initialization+visible open+close / load+show errors / incomplete load / cancellation before+after show / observer restoration PASS")
+realI.Host=nil
+Lychee_Toggle=function() realI.Host={PaletteController=palette};palette:Show() end
+shows,hides=0,0
+returned=prepareRun("normal");drainReal();report=LycheePerformanceTestDB.reports[returned.studyID]
+assert(report.ui.initiallyCreated==false and report.ui.closed and #report.ui.samples==3)
+assert(shows==3 and hides==3 and not palette.visible)
+Lychee_Toggle=nil;realI.Host=nil
+print("Lychee first-controller creation uses normal Toggle and completes three open/close cycles PASS")

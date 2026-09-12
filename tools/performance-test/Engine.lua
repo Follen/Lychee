@@ -26,12 +26,14 @@ local report={schema="lychee.lifecycle-study.v1",id=id,status="running",sourceCo
         "Client restart / truly unloaded first open cannot be recreated in this loaded session",
         "Game-internal API caches are not flushed; first sample is first probe sample only",
         "Combat, hardware Alt+Space/Esc dispatch, visual smoothness and every upstream settings page require separate interaction",
-        "Network refresh, upstream addon loading, permanent hooks and business actions are suppressed",
+        "Network refresh, new permanent diagnostic hooks and business actions are suppressed; normal Ellesmere settings preparation is separately recorded",
         "Private fake-frame memory is not native UI memory; private heap deltas are not addon-accounted total residency",
         "SDK 3, compact representation and final dormant architecture do not exist yet; this is baseline feasibility evidence"}}
 store[id]=report
+report.carrierRevision="0.2.0-eui-preparation"
 local control={report=report};G.LycheePerformanceTestControl=control
 local E,I,roots,queue,ownedUI,uiController
+local upstreamCleanup,upstreamOptions
 local aggregate={activeMs=0,maxCallMs=0,calls=0}
 report.activity=aggregate
 local currentPhase="preflight"
@@ -123,7 +125,14 @@ end
 finish=function(status,err)
     if control.finished then return end;control.finished=true
     if control.timer then control.timer:Cancel();control.timer=nil end
+    if upstreamCleanup then
+        local restored,restoreError=pcall(upstreamCleanup)
+        report.upstreamCleanupOK=restored
+        if not restored then report.upstreamCleanupError=tostring(restoreError);status="aborted" end
+        upstreamCleanup=nil
+    end
     local ok,why=pcall(release)
+    if ownedUI and not uiController then uiController=liveI.Host and liveI.Host.PaletteController end
     if ownedUI and uiController and not InCombatLockdown() then
         local uiOK,uiError=pcall(uiController.Hide,uiController,"unified-study-finish")
         report.uiCleanupOK=uiOK;if not uiOK then report.uiCleanupError=tostring(uiError) end
@@ -134,11 +143,16 @@ finish=function(status,err)
     if not report.liveRootsUnchanged then report.status="aborted";report.liveRootError="Live root replaced during study" end
     if err then report.error=tostring(err) end
     report.lastPhase=currentPhase
+    if report.ellesmerePreparation and report.ellesmerePreparation.status=="preparing" then
+        report.ellesmerePreparation.status="interrupted";report.ellesmerePreparation.reason=report.status
+    end
     report.memory.meaning="GC operates on whole client; private heap deltas include diagnostic and background noise; observed high water is not exact allocation peak"
     report.instructions="Report in LycheePerformanceTestDB.reports["..id.."]. /reload once after completion to flush. Independent SavedVariables; no Lychee Dev required."
     E,I,roots,queue,bundle=nil,nil,nil,nil,nil
+    upstreamOptions=nil
     G.LycheePerformanceTestControl=nil
-    print("Lychee Performance Test "..report.status..": "..id.."; /reload to save")
+    local euiCheck=report.rounds[1] and report.rounds[1].ellesmereOptionCheck
+    print("Lychee Performance Test "..report.carrierRevision.." "..report.status..": "..id.."; EUI="..(euiCheck and euiCheck.status or "not_tested").."; /reload to save")
 end
 function control:Cancel() finish("cancelled","Cancelled by user") end
 local function drain()
@@ -285,6 +299,19 @@ local routine=coroutine.create(function()
     end
     bundle=nil;I=E.LycheeInternal
     assert(I~=liveI and I.Search.StaticIndex~=liveIndex and I.Providers.entries~=liveP,"private isolation failure")
+    heapSample("private_code_only");pause()
+    currentPhase="ellesmere_prepare"
+    local captureOwner={active=true,hooked=G.EllesmereUI,options={},optionCount=0,optionBytes=0,Capture=I.Builtin.Ellesmere.Capture}
+    carrier.PrepareEllesmere({report=report,timed=timed,pause=pause,
+        capture=function(...) captureOwner:Capture(G.EllesmereUI,...) end,
+        optionCount=function() return captureOwner.optionCount end,
+        setCleanup=function(fn) upstreamCleanup=fn end})
+    upstreamOptions=shallow(liveI.Builtin.Ellesmere and liveI.Builtin.Ellesmere.options or {})
+    for key,option in pairs(captureOwner.options) do upstreamOptions[key]=option end
+    report.ellesmerePreparation.captureOverflow=captureOwner.overflow==true
+    report.ellesmerePreparation.optionsAvailable=count(upstreamOptions,4096)
+    captureOwner=nil
+    heapSample("after_ellesmere_preparation");pause()
     I.Registry:SetReady(true)
     local originalRegister=I.Providers.Register
     local wrappedHandles=setmetatable({},{__mode="k"})
@@ -301,7 +328,7 @@ local routine=coroutine.create(function()
     report.dependencies={ellesmerePresent=type(G.EllesmereUI)=="table",ellesmereLoaded=G.EllesmereUI and G.EllesmereUI._deferredLoaded==true,
         exwindPresent=type(G.ExwindTools)=="table",exwindShell=G.ExwindTools and type(G.ExwindTools.UnifiedPanel)=="table",
         blizzardSettingsDeclarations=G.SettingsPanel and type(G.SettingsPanel.GetAllCategories)=="function"}
-    heapSample("private_code_only");pause()
+    heapSample("private_ready_after_upstream");pause()
     local firstRecords,firstQueries
     for round=1,4 do
         profiling=round==4
@@ -329,7 +356,8 @@ local routine=coroutine.create(function()
                 sample.providerError=m.lastError or (m.Provider and m.Provider.lastError)
                 local registered=I.Providers.entries[def.id];sample.registered=registered~=nil;sample.records=registered and #registered.records or 0
                 if def.id=="builtin.ellesmere" and m.options then
-                    local original=liveI.Builtin.Ellesmere and liveI.Builtin.Ellesmere.options or {}
+                    local original=shallow(liveI.Builtin.Ellesmere and liveI.Builtin.Ellesmere.options or {})
+                    for key,option in pairs(upstreamOptions or {}) do original[key]=option end
                     local n=0
                     for key,option in pairs(original) do n=n+1;if n>4096 then error("Ellesmere captured option limit") end;m.options[key]=shallow(option) end
                     m.optionCount=n;sample.capturedOptionsReplayed=n
@@ -360,6 +388,20 @@ local routine=coroutine.create(function()
         end
         if firstQueries then result.queryOrderEqual=true;for raw,sample in pairs(result.queries) do if firstQueries[raw].hash~=sample.hash then result.queryOrderEqual=false end end
         else firstQueries=result.queries end
+        local optionKeys={};for key in pairs(upstreamOptions or {}) do optionKeys[#optionKeys+1]=key end;table.sort(optionKeys)
+        result.ellesmereOptionCheck={captured=#optionKeys,status="not_tested"}
+        if optionKeys[1] then
+            local option=upstreamOptions[optionKeys[1]]
+            local optionSample,items=query("eui:"..(option.labelLoc or option.label))
+            result.ellesmereOptionCheck.query=optionSample;result.ellesmereOptionCheck.resolved=0
+            for _,item in ipairs(items) do
+                if type(item.id)=="string" and item.id:find("option/",1,true) then
+                    local resolved=timed(I.Providers.Resolve,I.Providers,{providerID="builtin.ellesmere",entryID=item.id},{})
+                    if resolved then result.ellesmereOptionCheck.resolved=result.ellesmereOptionCheck.resolved+1 end
+                end
+            end
+            result.ellesmereOptionCheck.status=result.ellesmereOptionCheck.resolved>0 and "verified" or "no_resolved_option"
+        else result.ellesmereOptionCheck.reason="normal page produced no newly captured options; no fabricated option" end
         currentPhase="cancel_query_"..round
         local lateReplies=0
         timed(I.Search.Query.Query,I.Search.Query,"eui:冷却",{visible=true},nil,function() lateReplies=lateReplies+1 end)
@@ -387,7 +429,7 @@ local routine=coroutine.create(function()
     for _,def in ipairs(I.Builtin.Definitions) do
         local sample=report.rounds[1].providers[def.id]
         local mode="fresh source function execution against current game APIs; native events simulated"
-        if def.id=="builtin.ellesmere" then mode="loaded upstream page declarations; existing captured option metadata replay; no load/hook/action"
+        if def.id=="builtin.ellesmere" then mode="normal upstream preparation reported separately; real emitted/existing option metadata replay; per-round option query/resolve verdict; unvisited pages not covered"
         elseif def.id=="builtin.exwind" then mode="fresh read of existing upstream declarations and static layouts; no build/action"
         elseif def.id=="builtin.keystones" then mode="current game API cache only; communication and refresh suppressed; no fresh peer replies"
         elseif def.id=="builtin.addon-inspector" then mode="SDK declaration and cleanup only; live frame picker interaction not run"
@@ -401,20 +443,29 @@ local routine=coroutine.create(function()
     end
     for key in pairs(E.LycheeDB) do if key~="schemaVersion" and key~="optionalProviderDefaults" and key~="disabledProviders" then E.LycheeDB[key]=nil end end
     heapSample("all_private_data_caches_released");pause()
-    report.integrationLimits="Ellesmere uses already-loaded modules only, no EnsureLoaded or hook; Exwind reads declared layouts only; no settings builders, routes, unlock actions or UI views executed"
+    report.integrationLimits="Ellesmere normal settings initialization/page open measured separately; loaded code/native state retained; temporary registration observer restored; no global-search prebuild or business setters. Exwind reads existing declarations only."
     report.liveBeforeUI={indexVersion=liveIndex.version,records=count(liveIndex.entries),rootsUnchanged=verifyLive()}
     report.userStateBeforeUI={character=hash(liveCharacterDB or {})}
     -- Real native UI is separate from the private fake-frame instance.
     currentPhase="real_ui"
     uiController=liveI.Host and liveI.Host.PaletteController
     report.ui={method="real controller Show/Hide; not hardware shortcuts",samples={}}
-    if not uiController or uiController.visible or uiController._motionClosing or (liveI.Builtin.AddonInspector and liveI.Builtin.AddonInspector.running) then
-        report.ui.skipped="Existing active UI/inspector or unavailable controller; preserving user work"
+    report.ui.initiallyCreated=uiController~=nil and uiController.frame~=nil
+    local firstOpened=false
+    if not uiController and type(G.Lychee_Toggle)=="function" then
+        ownedUI=true;local begin=clock();timed(G.Lychee_Toggle)
+        report.ui.initialOpenCallMs=clock()-begin
+        uiController=liveI.Host and liveI.Host.PaletteController;firstOpened=true
+    end
+    if not uiController then report.ui.skipped="controller_unavailable"
+    elseif uiController.visible and not firstOpened then report.ui.skipped="lychee_already_visible"
+    elseif uiController._motionClosing then report.ui.skipped="lychee_close_animation_active"
+    elseif liveI.Builtin.AddonInspector and liveI.Builtin.AddonInspector.running then report.ui.skipped="lychee_inspector_active"
     else
-        report.ui.initiallyCreated=uiController.frame~=nil
         for n=1,3 do
-            ownedUI=true;local b=clock();timed(uiController.Show,uiController)
-            local sample={showCallMs=clock()-b};report.ui.samples[n]=sample
+            ownedUI=true;local b=clock()
+            if not (n==1 and firstOpened) then timed(uiController.Show,uiController) end
+            local sample={showCallMs=n==1 and firstOpened and report.ui.initialOpenCallMs or clock()-b};report.ui.samples[n]=sample
             pause(0.8)
             sample.shown=uiController.visible==true and uiController.frame:IsShown()
             sample.rows=uiController.list and uiController.list.rows and #uiController.list.rows
