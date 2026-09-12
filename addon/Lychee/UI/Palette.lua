@@ -236,7 +236,11 @@ local function createHomeView(parent, controller)
         tile.bg:SetPoint("TOP", tile.title, "BOTTOM", 0, -5)
         tile.category = tile:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         tile.category:SetPoint("RIGHT", tile, "RIGHT", -12, 0)
-        tile.category:SetWidth(90)
+        tile.category:SetWidth(80)
+        tile.category:SetHeight(16)
+        tile.category:SetWordWrap(false)
+        tile.category:SetNonSpaceWrap(false)
+        tile.category:SetMaxLines(1)
         tile.category:SetJustifyH("RIGHT")
         Lychee.UI.Theme:SetFont(tile.category, "meta")
         tint(tile.category, color("muted"))
@@ -286,7 +290,7 @@ local function createHomeView(parent, controller)
             end
             tile.icon:SetPoint("LEFT", tile, "LEFT", LIST_METRICS.listIconInset, 0)
             tile.title:SetPoint("LEFT", tile, "LEFT", LIST_METRICS.listTitleInset, 0)
-            tile.title:SetPoint("RIGHT", tile, "RIGHT", -112, 0)
+            tile.title:SetPoint("RIGHT", tile.category, "LEFT", -14, 0)
             tile.title:SetJustifyH("LEFT")
             tile.title:SetHeight(18)
             tile.bg:SetSize(LIST_METRICS.selectionWidth, LIST_METRICS.selectionHeight)
@@ -380,6 +384,10 @@ local function createHomeView(parent, controller)
             tile.extensionID = section.item and section.item._ext
             local title = homeLabel(section.title or section.text, "Lychee")
             setText(tile.category, homeLabel(section.meta, ""))
+            if recent then
+                local width=math.min(160,math.max(80,math.ceil(tile.category:GetStringWidth())+2))
+                if tile.category:GetWidth()~=width then tile.category:SetWidth(width) end
+            end
             tint(tile.title, color(section.enabled == false and "muted" or "text"))
             if tile._title ~= title or tile._titleLayoutDirty then
                 setText(tile.title, title)

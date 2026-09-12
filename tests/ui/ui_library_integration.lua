@@ -67,3 +67,21 @@ assert(host:Mount(factory,{contentFrame=host.frame},{}))
 assert(host.panel.instance.view==instance and instance:Get("name"):GetText()=="可编辑文字")
 host:Unmount("done");example:Unregister()
 print("SDK component example PASS: real registration, host mount, state, release, cached remount")
+
+do
+    local view=UI.Palette.homeView
+    local recent={id="runtime-label",title="受缚的队长",meta="荔枝大米助手 · 小怪",groupID="recent",groupTitle="最近使用"}
+    view:SetSections({recent},true)
+    local tile=view.tiles[1]
+    assert(tile.category.wordWrap==false and tile.category.nonSpaceWrap==false and tile.category.maxLines==1,
+        "recent source label must remain one line, including CJK suffix")
+    assert(tile.category:GetWidth()==160,"long recent source uses bounded measured width")
+    assert(tile.title.point[2]==tile.category and tile.title.point[3]=="LEFT","title reserves measured source width")
+    recent.meta="技能";view:SetSections({recent},true)
+    assert(tile.category:GetWidth()==80,"rebound short source releases spare width")
+    recent.groupID="pinned";view:SetSections({recent},true)
+    assert(not tile.category:IsShown(),"pinned grid hides source label")
+    recent.groupID="recent";view:SetSections({recent},true)
+    assert(tile.category:IsShown() and tile.title.point[2]==tile.category,"reused recent row restores category anchor")
+end
+print("Recent source label layout PASS")
