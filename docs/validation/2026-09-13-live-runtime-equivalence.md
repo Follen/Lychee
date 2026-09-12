@@ -50,6 +50,8 @@
 
 `tests/ui/ui_library_integration.lua` 在修改前准确失败于中文标签单行断言；改为80–160测宽、单行与相邻标题锚定后，通过长/短文本及固定/最近布局复用。沿用现有控件，不加对象、动画或定时器。设计规范同步补齐。
 
+首次修复提交 `37a8512` 后的实机截图发现第二层问题：GetStringWidth 测到了已经裁切的宽度，正常长度标签提前出现省略号。因此首页与搜索行改用 GetUnboundedStringWidth 测完整文字，再施加80–160上限；两处回归加入“受限测宽”和“未裁切测宽”不同的替身，旧调用准确失败，新调用通过。对应同版本 API 文档398行明确返回未约束文字宽度，完整证据为本地 `GetUnboundedStringWidth.json`。
+
 早期执行完整 interaction 用例时，旧峰值门禁出现5.000ms失败，早于新增布局断言；原始日志保留，不放宽预算。布局回归移至已有独立 UI 集成用例，完整验证结果另记收尾。
 
 修复后 `python tests/run.py --report analyze/runtime-equivalence-20260913/full-tests.json` 全量89/89通过；`wowdoc validate` Host共43个Lua文件有效、无诊断；`git diff --check`通过。

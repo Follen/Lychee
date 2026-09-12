@@ -426,10 +426,16 @@ for _,labels in ipairs(tip.scoreLabels) do
     for _,label in ipairs(labels) do assert(not label:IsShown() and label:GetText()=="","old scores released") end
 end
 assert(rowOne.accent:GetWidth()==2 and rowOne.accent:GetHeight()==22,"selection matches recent list")
+local measuredLabel=list.rows[1].category
+local measureFull=measuredLabel.GetStringWidth
+measuredLabel.GetUnboundedStringWidth=measureFull
+measuredLabel.GetStringWidth=function(self) return math.min(self:GetWidth(),measureFull(self)) end
+measuredLabel:SetWidth(80)
+list.rows[1]._categoryWidth=nil
 list:SetItems({{id="long-kind",text="首领名称",kindTitle="荔枝大米助手 · 首领",
     interaction={actions={{id="open",title="打开"},{id="more",title="更多"}}}}},12,24)
 local sourceLabel=list.rows[1].category
-assert(sourceLabel:GetWidth()>=sourceLabel:GetStringWidth(),"Chinese source and kind fit the label column")
+assert(sourceLabel:GetWidth()>=sourceLabel:GetUnboundedStringWidth(),"Chinese source and kind fit before ellipsis is applied")
 assert(sourceLabel:GetWidth()<=160,"source column cannot consume unbounded title space")
 assert(list.rows[1]._categoryInset==42,"selected secondary action remains outside source text")
 list:SetItems({{id="huge-kind",text="名称",kindTitle=string.rep("很长的来源",50)}},12,25)

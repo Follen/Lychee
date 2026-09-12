@@ -507,7 +507,8 @@ function ResultList:SetItems(items, session, generation, offset)
         end
         row.textProps.title,row.textProps.subtext,row.textProps.category=title,subtitle,kindText(item)
         row.ui:Update(row.textProps)
-        local categoryWidth=math.min(160,math.max(80,math.ceil(row.category:GetStringWidth())+2))
+        local measured=row.category.GetUnboundedStringWidth and row.category:GetUnboundedStringWidth() or row.category:GetStringWidth()
+        local categoryWidth=math.min(160,math.max(80,math.ceil(measured)+2))
         if row._categoryWidth~=categoryWidth then
             row.category:SetWidth(categoryWidth);row._categoryWidth=categoryWidth
         end

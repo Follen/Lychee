@@ -385,7 +385,8 @@ local function createHomeView(parent, controller)
             local title = homeLabel(section.title or section.text, "Lychee")
             setText(tile.category, homeLabel(section.meta, ""))
             if recent then
-                local width=math.min(160,math.max(80,math.ceil(tile.category:GetStringWidth())+2))
+                local measured=tile.category.GetUnboundedStringWidth and tile.category:GetUnboundedStringWidth() or tile.category:GetStringWidth()
+                local width=math.min(160,math.max(80,math.ceil(measured)+2))
                 if tile.category:GetWidth()~=width then tile.category:SetWidth(width) end
             end
             tint(tile.title, color(section.enabled == false and "muted" or "text"))

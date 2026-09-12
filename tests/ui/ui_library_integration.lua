@@ -71,6 +71,10 @@ print("SDK component example PASS: real registration, host mount, state, release
 do
     local view=UI.Palette.homeView
     local recent={id="runtime-label",title="受缚的队长",meta="荔枝大米助手 · 小怪",groupID="recent",groupTitle="最近使用"}
+    local label=view.tiles[1].category
+    label.GetStringWidth=function(self) return math.min(self:GetWidth(),#self:GetText()*6) end
+    label.GetUnboundedStringWidth=function(self) return #self:GetText()*6 end
+    label:SetWidth(80)
     view:SetSections({recent},true)
     local tile=view.tiles[1]
     assert(tile.category.wordWrap==false and tile.category.nonSpaceWrap==false and tile.category.maxLines==1,
