@@ -135,6 +135,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Presence geometry checks failed' }
     & $lua.Source 'tests/ui_motion.lua'
     if ($LASTEXITCODE -ne 0) { throw "UI motion lifecycle failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/brand_motion.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Brand motion lifecycle or allocation budget failed' }
     & $lua.Source 'tests/bag_actions.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Bag actions failed' }
     & $lua.Source 'tests/addon_inspector.lua'

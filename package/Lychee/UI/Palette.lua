@@ -519,6 +519,9 @@ function Palette:Create()
     self.settingsButton = CreateFrame("Button", nil, self.header)
     self.settingsButton:SetAllPoints(self.brandMark)
     self.settingsButton:SetScript("OnClick", function() self:OpenSettings() end)
+    self.settingsButton:SetScript("OnEnter", function()
+        if self.visible then self.brandComponent:PlayMotion() end
+    end)
     self.settingsTitle = self.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     self.settingsTitle:SetPoint("LEFT", self.header, "LEFT", 82, 0)
     Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
@@ -1014,6 +1017,7 @@ function Palette:Show()
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
     if self.escapeFrame then self.escapeFrame:Show() end
     if motion then motion:Presence(self.frame,true,nil,initialPhase,self) end
+    self.brandComponent:PlayMotion()
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
     -- the same input dispatch; focusing synchronously would swallow it as query text.

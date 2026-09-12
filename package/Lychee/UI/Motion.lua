@@ -6,6 +6,8 @@ function Motion:IsReduced()
     return LycheeDB and LycheeDB.palette and LycheeDB.palette.reduceMotion==true
 end
 function Motion:Cancel(region,settle)
+    local brand=region and region._lycheeBrand
+    if brand and brand.group:IsPlaying() then brand.group:Stop() end
     local state=region and (region._lycheeMotion or region._lycheeSlide)
     if not state then return end
     local current=state.to
@@ -103,6 +105,56 @@ function Motion:Selection(region,selected)
     if not selected and not region._lycheeMotion then region:SetAlpha(0);region:Hide();return end
     region:Show()
     self:Alpha(region,selected and 1 or 0,self.durations.feedback,nil,selected and 0 or nil)
+end
+-- Original 128px logo: five authored poses, then idle. Native transforms affect
+-- the texture only, never its parent, text, hit rect, or the window's Presence.
+local brandPoses={
+    {0.168,1.075,0.925,0,"IN_OUT"},
+    {0.336,0.960,1.045,7,"OUT"},
+    {0.336,1.035,0.965,0,"IN"},
+    {0.252,0.990,1.012,1,"OUT"},
+    {0.294,1,1,0,"OUT"},
+}
+function Motion:Brand(region)
+    if not region then return false end
+    if combat() or self:IsReduced() or not region:IsShown()
+        or (region.IsVisible and not region:IsVisible()) then
+        self:Cancel(region,true);return false
+    end
+    if not region.CreateAnimationGroup then return false end
+    local state=region._lycheeBrand
+    -- Hover during the entrance must not restart or stack its anticipation.
+    if state and state.group:IsPlaying() then return false end
+    if not state then
+        if #self.groups>=self.limit then return false end
+        local group=region:CreateAnimationGroup()
+        group:SetLooping("NONE")
+        state={region=region,group=group,scales={},translations={}}
+        for index,pose in ipairs(brandPoses) do
+            local scale=group:CreateAnimation("Scale")
+            local move=group:CreateAnimation("Translation")
+            scale:SetOrder(index);move:SetOrder(index)
+            scale:SetDuration(pose[1]);move:SetDuration(pose[1])
+            scale:SetSmoothing(pose[5]);move:SetSmoothing(pose[5])
+            state.scales[index]=scale;state.translations[index]=move
+        end
+        region._lycheeBrand=state;self.groups[#self.groups+1]=state
+    end
+    local height=region:GetHeight()
+    if state.height~=height then
+        local previousX,previousY,previousOffset=1,1,0
+        for index,pose in ipairs(brandPoses) do
+            -- Successive native scales multiply; translations accumulate.
+            -- Ratios/deltas close exactly at the unmodified original pose.
+            state.scales[index]:SetScale(pose[2]/previousX,pose[3]/previousY)
+            state.scales[index]:SetOrigin("BOTTOM",0,height*25/128)
+            state.translations[index]:SetOffset(0,(pose[4]-previousOffset)*height/128)
+            previousX,previousY,previousOffset=pose[2],pose[3],pose[4]
+        end
+        state.height=height
+    end
+    state.group:Play()
+    return true
 end
 local function heightTick(driver,elapsed)
     local job=Motion.height

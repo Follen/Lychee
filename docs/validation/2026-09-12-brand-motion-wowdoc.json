@@ -1,0 +1,365 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "CreateAnimationGroup",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "CreateAnimationGroup",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimatableObjectAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "10: \t\t\tName = \"CreateAnimationGroup\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: \n14: \t\t\tArguments =\n15: \t\t\t{\n16: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = true },\n17: \t\t\t\t{ Name = \"templateName\", Type = \"cstring\", Nilable = true },\n18: \t\t\t},\n19: \n20: \t\t\tReturns =\n21: \t\t\t{\n22: \t\t\t\t{ Name = \"group\", Type = \"SimpleAnimGroup\", Nilable = false },\n23: \t\t\t},\n24: \t\t},",
+        "contentHash": "2c0477d5f9640d152337584258606d79e0a9f80b4d7611d9ba1e4f25a0526fb3",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "CreateAnimation",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "CreateAnimation",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "10: \t\t\tName = \"CreateAnimation\",\n11: \t\t\tType = \"Function\",\n12: \t\t\tSecretArguments = \"NotAllowed\",\n13: \n14: \t\t\tArguments =\n15: \t\t\t{\n16: \t\t\t\t{ Name = \"animationType\", Type = \"cstring\", Nilable = true },\n17: \t\t\t\t{ Name = \"name\", Type = \"cstring\", Nilable = true },\n18: \t\t\t\t{ Name = \"templateName\", Type = \"cstring\", Nilable = true },\n19: \t\t\t},\n20: \n21: \t\t\tReturns =\n22: \t\t\t{\n23: \t\t\t\t{ Name = \"anim\", Type = \"SimpleAnim\", Nilable = false },\n24: \t\t\t},\n25: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 10,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetScale",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetScale",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "79: \t\t\tName = \"SetScale\",\n80: \t\t\tType = \"Function\",\n81: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n82: \n83: \t\t\tArguments =\n84: \t\t\t{\n85: \t\t\t\t{ Name = \"scaleX\", Type = \"number\", Nilable = false },\n86: \t\t\t\t{ Name = \"scaleY\", Type = \"number\", Nilable = false },\n87: \t\t\t},\n88: \t\t},",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 79,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetOrigin",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetOrigin",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimRotationAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "61: \t\t\tName = \"SetOrigin\",\n62: \t\t\tType = \"Function\",\n63: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n64: \n65: \t\t\tArguments =\n66: \t\t\t{\n67: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n68: \t\t\t\t{ Name = \"originX\", Type = \"number\", Nilable = false },\n69: \t\t\t\t{ Name = \"originY\", Type = \"number\", Nilable = false },\n70: \t\t\t},\n71: \t\t},",
+        "contentHash": "36c66c54ae8d804ec9e50cc8f2c9f49b025f7e9cc8ec4185e6ad0fa82e4764d2",
+        "line": 61,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetOrigin",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimScaleAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "67: \t\t\tName = \"SetOrigin\",\n68: \t\t\tType = \"Function\",\n69: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n70: \n71: \t\t\tArguments =\n72: \t\t\t{\n73: \t\t\t\t{ Name = \"point\", Type = \"FramePoint\", Nilable = false },\n74: \t\t\t\t{ Name = \"originX\", Type = \"number\", Nilable = false },\n75: \t\t\t\t{ Name = \"originY\", Type = \"number\", Nilable = false },\n76: \t\t\t},\n77: \t\t},",
+        "contentHash": "5ef81186d3a92874e7f5f9102b35237c543ffa25bdb3a534743cf73c5af7f39d",
+        "line": 67,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetOrder",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetOrder",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "322: \t\t\tName = \"SetOrder\",\n323: \t\t\tType = \"Function\",\n324: \t\t\tSecretArguments = \"NotAllowed\",\n325: \n326: \t\t\tArguments =\n327: \t\t\t{\n328: \t\t\t\t{ Name = \"newOrder\", Type = \"number\", Nilable = false },\n329: \t\t\t},\n330: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 322,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetDuration",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetDuration",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "300: \t\t\tName = \"SetDuration\",\n301: \t\t\tType = \"Function\",\n302: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n303: \n304: \t\t\tArguments =\n305: \t\t\t{\n306: \t\t\t\t{ Name = \"durationSec\", Type = \"number\", Nilable = false },\n307: \t\t\t\t{ Name = \"recomputeGroupDuration\", Type = \"bool\", Nilable = false, Default = true },\n308: \t\t\t},\n309: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 300,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetSmoothing",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetSmoothing",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "377: \t\t\tName = \"SetSmoothing\",\n378: \t\t\tType = \"Function\",\n379: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n380: \n381: \t\t\tArguments =\n382: \t\t\t{\n383: \t\t\t\t{ Name = \"weights\", Type = \"SmoothingType\", Nilable = false },\n384: \t\t\t},\n385: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 377,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetOffset",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetOffset",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimTextureCoordTranslationAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "24: \t\t\tName = \"SetOffset\",\n25: \t\t\tType = \"Function\",\n26: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n27: \n28: \t\t\tArguments =\n29: \t\t\t{\n30: \t\t\t\t{ Name = \"offsetU\", Type = \"number\", Nilable = false },\n31: \t\t\t\t{ Name = \"offsetV\", Type = \"number\", Nilable = false },\n32: \t\t\t},\n33: \t\t},",
+        "contentHash": "fd7ef3be3e4da523b84d97652b79d1fdf053abf87390f3a0af4eb655f7d4019b",
+        "line": 24,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "SetOffset",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimTranslationAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "24: \t\t\tName = \"SetOffset\",\n25: \t\t\tType = \"Function\",\n26: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n27: \n28: \t\t\tArguments =\n29: \t\t\t{\n30: \t\t\t\t{ Name = \"offsetX\", Type = \"uiUnit\", Nilable = false },\n31: \t\t\t\t{ Name = \"offsetY\", Type = \"uiUnit\", Nilable = false },\n32: \t\t\t},\n33: \t\t},",
+        "contentHash": "635cb81742c8e2c7f130de5322afeab74983ccf774e175338b18211b80cb0de0",
+        "line": 24,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "SetLooping",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "SetLooping",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "307: \t\t\tName = \"SetLooping\",\n308: \t\t\tType = \"Function\",\n309: \t\t\tSecretArguments = \"NotAllowed\",\n310: \n311: \t\t\tArguments =\n312: \t\t\t{\n313: \t\t\t\t{ Name = \"loopType\", Type = \"LoopType\", Nilable = false },\n314: \t\t\t},\n315: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 307,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "Play",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Play",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "268: \t\t\tName = \"Play\",\n269: \t\t\tType = \"Function\",\n270: \n271: \t\t\tArguments =\n272: \t\t\t{\n273: \t\t\t},\n274: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 268,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Play",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "267: \t\t\tName = \"Play\",\n268: \t\t\tType = \"Function\",\n269: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n270: \n271: \t\t\tArguments =\n272: \t\t\t{\n273: \t\t\t\t{ Name = \"reverse\", Type = \"bool\", Nilable = false, Default = false },\n274: \t\t\t\t{ Name = \"offset\", Type = \"number\", Nilable = false, Default = 0 },\n275: \t\t\t},\n276: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 267,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "Stop",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "Stop",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "460: \t\t\tName = \"Stop\",\n461: \t\t\tType = \"Function\",\n462: \n463: \t\t\tArguments =\n464: \t\t\t{\n465: \t\t\t},\n466: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 460,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "Stop",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "350: \t\t\tName = \"Stop\",\n351: \t\t\tType = \"Function\",\n352: \n353: \t\t\tArguments =\n354: \t\t\t{\n355: \t\t\t},\n356: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 350,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "latest",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "symbol": "IsPlaying",
+    "results": [
+      {
+        "kind": "api-function",
+        "name": "IsPlaying",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "234: \t\t\tName = \"IsPlaying\",\n235: \t\t\tType = \"Function\",\n236: \n237: \t\t\tArguments =\n238: \t\t\t{\n239: \t\t\t},\n240: \n241: \t\t\tReturns =\n242: \t\t\t{\n243: \t\t\t\t{ Name = \"isPlaying\", Type = \"bool\", Nilable = false },\n244: \t\t\t},\n245: \t\t},",
+        "contentHash": "bc1254d859c1323080ed43f14e4ebd72d3e1d6feafeac82fe944f04276f7b3b0",
+        "line": 234,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      },
+      {
+        "kind": "api-function",
+        "name": "IsPlaying",
+        "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimGroupAPIDocumentation.lua",
+        "matchedBy": "exact_symbol",
+        "role": "official-generated-api",
+        "excerpt": "220: \t\t\tName = \"IsPlaying\",\n221: \t\t\tType = \"Function\",\n222: \n223: \t\t\tArguments =\n224: \t\t\t{\n225: \t\t\t},\n226: \n227: \t\t\tReturns =\n228: \t\t\t{\n229: \t\t\t\t{ Name = \"isPlaying\", Type = \"bool\", Nilable = false },\n230: \t\t\t},\n231: \t\t},",
+        "contentHash": "88caf2f20f9423834a76c72c0e89c8da7431f526ae6762344743f71e27a0c9d0",
+        "line": 220,
+        "score": 100,
+        "scoreParts": {
+          "match": 100,
+          "rolePenalty": 0
+        }
+      }
+    ]
+  }
+]

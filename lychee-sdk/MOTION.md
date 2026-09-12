@@ -18,6 +18,18 @@ Presence只改共同根节点SetPoint/SetAlpha，不改Frame scale、字号、�
 
 ## 生命周期和成本
 
+### 原 Logo 动画
+
+`Components:CreateBrand(...)` 保留原纹理。`brand:PlayMotion()` 调用 `Motion:Brand(texture)`，播放轻压、舒展与回弹；`brand:StopMotion()` / `Motion:Cancel(texture, true)` 停止并恢复原生静止姿态。仅用于单张纹理，不用于含文字或多片背景的父 Frame。
+
+原图轮廓、配色、透明边距与 UV 不变。五段共 1.386 秒，42 px 图标最大上移约 2.30 UI 单位；原生 IN_OUT/OUT/IN 缓动适配 SVG 的动作关键点，不承诺与浏览器曲线逐帧相同。只播放一次，悬停时播放中请求合并，停止后再悬停可重播。
+
+首次实际播放创建一个组、五个 Scale 和五个 Translation，计入普通动画组 96 上限；缩放用相邻姿态比值、位移用差值，以便累计后严格回到原始姿态。后续复用，只有图标高度变化才更新几何参数。未显示、战斗与减少动态效果时跳过；关闭、组件 OnHide、StopAll 与 SetReduced 均停止。没有新增纹理、Frame、timer 或 Lua OnUpdate。
+
+Palette 在完成打开布局后触发，在设置按钮 OnEnter 且窗口可交互时触发；设置按钮点击和命中范围不随原生纹理变换改变。现有主窗口 Presence 保持不变。回归：`tests/brand_motion.lua`；实际缓动与原生渲染成本仍需游戏确认。
+
+### 公共生命周期
+
 - 首次播放创建一个驱动Frame/任务表，以后复用；不创建主面板原生动画组。每帧最多SetPoint/SetAlpha各一次，无变化跳过，无表/闭包/Frame分配。
 - 各次播放独立精确时钟起点，隐藏时间不计入重开。结束解除OnUpdate、隐藏驱动并清空region/layout/finished/clock，保留有界驱动/空表。
 - StopAll(except)传入主面板可保留待反向的Presence；普通控件动画照常取消。

@@ -150,6 +150,7 @@ function input:Focus() end
 function input:Show() end
 function input:Hide() end
 local p=setmetatable({frame=r,input=input,visible=true,list={Clear=function() end},
+    brandComponent={PlayMotion=function() end}, -- actual wiring covered by brand_motion.lua
     focus={Restore=function() end,Clear=function() end},settingsTitle=region(),settingsBack={frame=region()}},Lychee.UI.Palette)
 function p:Create() end
 function p:ApplyBoundedScale()

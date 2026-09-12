@@ -147,6 +147,7 @@ function Components:CreateBrand(parent, options)
     local component = { frame = frame, icon = icon, label = label, _texture = asset, _label = options.label }
     function component:SetTexture(asset)
         if self._texture == asset then return false end
+        self:StopMotion()
         local changed = setTexture(self.icon, asset)
         self._texture = asset
         return changed
@@ -158,6 +159,16 @@ function Components:CreateBrand(parent, options)
         return changed
     end
     function component:SetShown(shown) setShown(self.frame, shown) end
+    function component:PlayMotion()
+        local motion=Lychee.UI.Motion
+        if motion then return motion:Brand(self.icon) end
+        return false
+    end
+    function component:StopMotion()
+        local motion=Lychee.UI.Motion
+        if motion then motion:Cancel(self.icon,true) end
+    end
+    frame:SetScript("OnHide",function() component:StopMotion() end)
     return component
 end
 
