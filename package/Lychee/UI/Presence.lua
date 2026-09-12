@@ -1,11 +1,9 @@
--- One rigid window owns the background, text and hit-test tree. Presence changes
--- only its anchor and opacity; no scaling, resizing or outer content clipping.
+-- One shared timeline owns geometry and opacity. Opening plays forwards;
+-- closing rewinds the identical path, including when interrupted midway.
 local Motion = _G.Lychee.UI.Motion
 local function combat() return InCombatLockdown and InCombatLockdown() end
 Motion.Presets = Motion.Presets or {}
-Motion.Presets.palette = {
-    enter=0.42, exit=0.24, distance=64, launchVelocity=2.0, enterAlpha=0.10,
-}
+Motion.Presets.palette = {enter=0.42, distance=64, enterAlpha=0.10}
 function Motion:ConfigurePresence(layout, anchor, preset)
     anchor.preset=preset or self.Presets.palette
     layout._presenceSpec=anchor
@@ -15,16 +13,15 @@ local function applyPresence(job)
     local region,layout=job.region,job.layout
     local spec=layout and layout._presenceSpec
     local preset=spec and spec.preset or Motion.Presets.palette
-    local position=job.position
-    -- Opacity has its own timeline. Arrival is fully readable before most
-    -- travel finishes; exit stays legible through the initial withdrawal.
-    local u=math.min(1,job.elapsed/job.alphaDuration)
-    local progress=job.target==1 and (1-(1-u)^2) or u*u*u
-    local alpha=job.fromAlpha+(job.target-job.fromAlpha)*progress
-    if job.settling then alpha=job.target end
+    local phase=job.phase
+    -- Exactly the previously accepted full entrance: 2u-u^2. The reverse
+    -- changes only the direction of time, never its spatial or opacity curve.
+    local position=phase*(2-phase)
+    job.position=position
+    job.velocity=job.direction*2*(1-phase)/job.timeSpan
+    local u=math.min(1,phase*job.timeSpan/job.fadeDuration)
+    local alpha=u*(2-u)
     if spec then
-        -- Preserve the resting glyph raster phase. Move the complete hierarchy
-        -- by integral physical pixels instead of rescaling or moving its parts.
         local scale=job.pixelScale
         local offset=math.floor(-preset.distance*(1-position)*scale+0.5)/scale
         local x,y=spec.x,spec.y+offset
@@ -43,49 +40,38 @@ local function applyPresence(job)
 end
 function Motion:StopPresence(settle,complete)
     local job=self.presence
-    if not job then return nil,nil,nil end
+    if not job then return nil end
     self.presence=nil
     self.presenceRevision=(self.presenceRevision or 0)+1
     local revision=self.presenceRevision
     self.presenceDriver:SetScript("OnUpdate",nil);self.presenceDriver:Hide()
-    local position,velocity,alpha=job.position,job.velocity,job.lastAlpha
+    local phase=job.phase
     local finished=complete and job.finished
-    if settle and not combat() then job.position,job.velocity,job.settling=job.target,0,true;applyPresence(job) end
-    if self.presenceRevision~=revision then return position,velocity,alpha end
+    if settle and not combat() then job.phase=job.target;applyPresence(job) end
+    if self.presenceRevision~=revision then return phase end
     job.region,job.layout,job.finished,job.clock=nil,nil,nil,nil
     if finished then finished() end
-    return position,velocity,alpha
+    return phase
 end
 local function presenceTick(_,elapsed)
     local job=Motion.presence
     if not job then return end
     if combat() or not job.region:IsShown() then Motion:StopPresence(false);return end
-    -- Each playback owns its epoch. A resumed driver's elapsed value must not
-    -- charge hidden time to a new entrance; fallback supports minimal adapters.
     job.elapsed=math.min(job.duration,job.clock and math.max(0,job.clock()-job.started) or job.elapsed+elapsed)
-    local t=job.elapsed
-    -- Full-duration Hermite motion, with velocity preserved through reversal.
-    local u=t/job.duration
-    local u2,u3=u*u,u*u*u
-    local delta=job.target-job.from
-    job.position=job.from+delta*(3*u2-2*u3)+job.fromVelocity*job.duration*(u3-2*u2+u)
-    job.velocity=delta*(6*u-6*u2)/job.duration+job.fromVelocity*(3*u2-4*u+1)
-    if job.position<0 or job.position>1 then
-        job.position=math.max(0,math.min(1,job.position));job.velocity=0
-    end
-    if t==job.duration then Motion:StopPresence(true,true) else applyPresence(job) end
+    job.phase=math.max(0,math.min(1,job.from+job.direction*job.elapsed/job.timeSpan))
+    if job.elapsed==job.duration then Motion:StopPresence(true,true) else applyPresence(job) end
 end
-function Motion:Presence(region,shown,finished,initial,velocity,layout,initialAlpha)
+function Motion:Presence(region,shown,finished,initialPhase,layout)
     local target=shown and 1 or 0
-    local position=initial
+    local phase=initialPhase
     if self.presence then
         local revision=self.presenceRevision
-        position,velocity,initialAlpha=self:StopPresence(false)
+        phase=self:StopPresence(false)
         if self.presenceRevision~=revision+1 then return false end
     end
-    if position==nil then position=shown and 0 or 1 end
+    if phase==nil then phase=shown and 0 or 1 end
     if combat() then return false end
-    if self:IsReduced() or not region.CreateAnimationGroup or not region.SetScale then
+    if phase==target or self:IsReduced() or not region.CreateAnimationGroup or not region.SetScale then
         region:SetAlpha(target)
         if layout and layout._presenceSpec then
             local spec=layout._presenceSpec
@@ -100,13 +86,9 @@ function Motion:Presence(region,shown,finished,initial,velocity,layout,initialAl
     self.presenceRevision=(self.presenceRevision or 0)+1
     job.region,job.layout,job.finished=region,layout,finished
     local preset=layout and layout._presenceSpec and layout._presenceSpec.preset or self.Presets.palette
-    local duration=shown and preset.enter or preset.exit
-    if shown and position==0 and (velocity or 0)==0 then velocity=preset.launchVelocity/duration end
-    job.position,job.velocity,job.from,job.fromVelocity=position,velocity or 0,position,velocity or 0
-    job.target,job.elapsed,job.duration=target,0,duration
-    job.fromAlpha=initialAlpha or (shown and 0 or 1)
-    job.alphaDuration=shown and preset.enterAlpha or duration
-    job.settling=false
+    job.timeSpan,job.fadeDuration=preset.enter,preset.enterAlpha
+    job.phase,job.from,job.target,job.direction=phase,phase,target,shown and 1 or -1
+    job.elapsed,job.duration=0,math.abs(target-phase)*job.timeSpan
     job.clock=type(GetTimePreciseSec)=="function" and GetTimePreciseSec or nil
     job.started=job.clock and job.clock() or 0
     job.pixelScale=region.GetEffectiveScale and region:GetEffectiveScale() or 1

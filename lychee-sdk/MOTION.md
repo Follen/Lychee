@@ -10,9 +10,9 @@ Presence只改共同根节点SetPoint/SetAlpha，不改Frame scale、字号、�
 
 创建时调用`ConfigurePresence(layout, anchor, preset)`，anchor为`{point="TOP",relative=UIParent,relativePoint="TOP",x=0,y=restingY}`。正常布局/缩放变化后、播放之前更新静止锚点。
 
-`Presence(root, shown, finished, initialPosition, initialVelocity, layout, initialAlpha)`启动或反向；`StopPresence(settle, complete)`返回当前位置、速度、透明度，无任务返回nil。显式初始值仅供主宿主跨Hide/Show收尾接续；普通反向自动采样。
+`Presence(root, shown, finished, initialPhase, layout)`启动或反向；`StopPresence(settle, complete)`返回当前时间进度q，无任务返回nil。显式初始进度仅供主宿主跨Hide/Show收尾接续；普通反向自动采样。旧位置/速度/透明度三个初始参数已由一个phase替代。
 
-预设：enter=0.42秒、exit=0.24秒、distance=64单位、launchVelocity=2、enterAlpha=0.10秒。三次Hermite运动，完整开场初速launchVelocity/enter、退出初速0、终点速度0；反向继承速度。透明度独立：开场100 ms使用1-(1-u)^2，关场240 ms使用u^3，避免主要位移被淡入掩盖。反向继承当前透明度。
+预设只保留enter=0.42秒、distance=64单位、enterAlpha=0.10秒。打开和关闭共用一个时间轴：q每秒增减1/enter，位置q(2-q)，透明度a(2-a)，a=min(1,q×enter/enterAlpha)。完整关闭420ms，是完整开场的原样倒放；最后100ms倒放开场淡入。中途反向从当前q立即改变方向，只消耗剩余路程的时间。位置、透明度连续；速度方向即时反转，不沿用旧方向惯性。没有独立exit参数或另一条退场曲线。
 
 ## 生命周期和成本
 

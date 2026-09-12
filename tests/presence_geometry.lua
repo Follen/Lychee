@@ -79,7 +79,7 @@ local function check()
     assert(cx==x+12 and cy+ch==y+h-56,'content moved independently of root')
 end
 for _,opening in ipairs({true,false}) do
-    M:Presence(root,opening,nil,nil,nil,layout)
+    M:Presence(root,opening,nil,nil,layout)
     for i=1,12 do
         if M.presenceDriver then
             if M.presence then M.presenceDriver.scripts.OnUpdate(M.presenceDriver,1/60) end

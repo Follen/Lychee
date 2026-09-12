@@ -183,16 +183,16 @@ local exitAlpha=r:GetAlpha()
 p:Show()
 assert(r:GetAlpha()==exitAlpha,"opening midway through exit must not flash opacity")
 assert(p.visible and input.enabled and not p._motionClosing,"reopen cancels old exit")
-assert(M.presence.position==x and M.presence.velocity==v,"reversal preserves position AND velocity")
+assert(M.presence.position==x and M.presence.velocity==-v,"reversal retraces the current point in the opposite direction")
 advance(1)
 assert(p.visible and r:IsShown() and r.scale==0.8 and r:GetAlpha()==1,"opening lands precisely")
 assert(math.abs(r.y*r.scale+24)<0.001,"search top edge is fixed through scale")
-p:Hide("close");advance(0.12)
+p:Hide("close");advance(0.21)
 assert(M.presence and M.presence.position>0.4 and r:GetAlpha()>=0.8,"exit midpoint retains the complete moving panel")
-assert(math.abs(M.presence.position-0.5)<0.000001 and r.scale==p._scale and math.abs((r.y-p._presenceSpec.y)*r.scale+26)<0.000001,
-    "close translates the complete window by half its distance on physical pixels")
-advance(0.119)
-assert(M.presence and M.presence.position<0.0001 and r:GetAlpha()<0.02,"close reaches the invisible endpoint continuously before hiding")
+assert(math.abs(M.presence.position-0.75)<0.000001 and r.scale==p._scale and math.abs((r.y-p._presenceSpec.y)*r.scale+13)<0.000001,
+    "close reaches the same position as the opening midpoint")
+advance(0.209)
+assert(M.presence and M.presence.position<0.01 and r:GetAlpha()<0.02,"close reaches the invisible endpoint continuously before hiding")
 advance(1)
 assert(not p.visible and not r:IsShown() and not p._motionClosing,"completed exit releases the window")
 p:Show()
@@ -204,7 +204,7 @@ local openingAlpha=r:GetAlpha()
 x,v=M.presence.position,M.presence.velocity
 p:Hide("escape")
 assert(r:GetAlpha()==openingAlpha,"reversal inherits current opacity independently of travel")
-assert(M.presence.position==x and M.presence.velocity==v,"close preserves entrance momentum")
+assert(M.presence.position==x and M.presence.velocity==-v,"close reverses entrance direction at the same point")
 advance(0.03)
 local elapsed=M.presence.elapsed
 p:Hide("escape")
@@ -218,24 +218,24 @@ p:Hide("close");M:SetReduced(false)
 -- Closed form must give the same geometry at 30 and 120 Hz.
 p:Show();for i=1,3 do advance(1/30) end
 local at30=M.presence.position
-M:StopPresence(false);M:Presence(r,true,nil,0,0,p)
+M:StopPresence(false);M:Presence(r,true,nil,0,p)
 for i=1,12 do advance(1/120) end
 assert(math.abs(M.presence.position-at30)<0.000001,"motion is frame-rate independent")
-M:StopPresence(false);M:Presence(r,false,nil,1,0,p)
+M:StopPresence(false);M:Presence(r,false,nil,1,p)
 for i=1,3 do advance(1/30) end
 local exit30=M.presence.position
-M:StopPresence(false);M:Presence(r,false,nil,1,0,p)
+M:StopPresence(false);M:Presence(r,false,nil,1,p)
 for i=1,12 do advance(1/120) end
 assert(math.abs(M.presence.position-exit30)<0.000001,"dismissal is frame-rate independent too")
 combat=true;advance(0.01)
 assert(not M.presence and not M.presenceDriver.scripts.OnUpdate,"combat stops before protected setters")
 combat=false;p:Hide("cleanup")
-M:Presence(r,false,nil,1,0,p)
+M:Presence(r,false,nil,1,p)
 local staleFinished=0
 M.presence.finished=function() staleFinished=staleFinished+1 end
 r.onPoint=function()
     r.onPoint=nil
-    M:Presence(r,true,nil,0,0,p)
+    M:Presence(r,true,nil,0,p)
 end
 M:StopPresence(true,true)
 assert(M.presence and M.presence.target==1 and staleFinished==0,"settling layout reentry cannot erase a new animation or fire stale completion")
@@ -277,13 +277,47 @@ do
     GetTimePreciseSec=nil
     print("Palette cold/warm openings PASS 12 cycles x 6 samples; hidden elapsed ignored")
 end
+-- User contract: close is the accepted entrance played backwards, including
+-- opacity. Compare rendered setters, not implementation curve coefficients.
+do
+    p:Hide("reverse-baseline");advance(1)
+    local opening={}
+    p:Show()
+    for i=0,42 do
+        if i>0 then advance(0.01) end
+        opening[i]={r.y,r:GetAlpha()}
+    end
+    p:Hide("reverse-check")
+    for i=0,42 do
+        if i>0 then advance(0.01) end
+        local expected=opening[42-i]
+        local visibleAlpha=r:IsShown() and r:GetAlpha() or 0
+        assert(math.abs(r.y-expected[1])<0.000001 and math.abs(visibleAlpha-expected[2])<0.000001,
+            "closing must retrace opening geometry AND opacity at sample "..i)
+    end
+    assert(not r:IsShown() and not M.presence,"reverse playback ends fully hidden")
+    p:Show();advance(0.15)
+    p:Hide("partial-rewind")
+    assert(math.abs(M.presence.duration-0.15)<0.000001,"partial close only rewinds time already played")
+    advance(0.05)
+    assert(r.y==opening[10][1] and math.abs(r:GetAlpha()-opening[10][2])<0.000001,"partial rewind returns to the earlier entrance sample")
+    local y,alpha=r.y,r:GetAlpha()
+    p:Show()
+    assert(r.y==y and r:GetAlpha()==alpha,"reopen cannot jump at the reversal boundary")
+    advance(0.05)
+    assert(r.y==opening[15][1] and math.abs(r:GetAlpha()-opening[15][2])<0.000001,"reopen resumes the same forward trajectory")
+    p:Hide("partial-cleanup");advance(1)
+    p:Show();p:Hide("zero-time-close")
+    assert(not M.presence and not r:IsShown(),"reversing at the hidden endpoint finishes immediately")
+    print("Palette reverse trajectory PASS 43 mirrored samples plus partial/zero-time reversal")
+end
 collectgarbage("collect");collectgarbage("stop")
 local paletteBase=collectgarbage("count")
 local started=os.clock()
 for i=1,1000 do
     p:Show();advance(0.05);p:Hide("toggle")
     advance(0.03);p:Show();for tick=1,54 do advance(1/120) end
-    p:Hide("escape");for tick=1,39 do advance(1/120) end
+    p:Hide("escape");for tick=1,51 do advance(1/120) end
 end
 local paletteCPU=(os.clock()-started)*1000
 local paletteAllocated=collectgarbage("count")-paletteBase
@@ -291,7 +325,7 @@ collectgarbage("restart")
 assert(groups==paletteGroups and frames==paletteFrames and paletteAllocated<512 and not M.presence,"warm cycles are bounded")
 assert(not M.presenceDriver.scripts.OnUpdate and not M.presenceDriver:IsShown() and not M.presenceState.region and not M.presenceState.finished,"idle retains no active job or callback")
 print(string.format("Palette motion cycles1000_KiB=%.2f cpu_ms=%.2f frame_growth=0 group_growth=0 idle_callback=nil",paletteAllocated,paletteCPU))
-print("Palette spring close/reopen/velocity/scale/reduced/combat PASS")
+print("Palette reverse close/reopen/direction/scale/reduced/combat PASS")
 -- Exercise the actual reusable switch, not just the motion primitive.
 function methods:CreateTexture() return region() end
 function methods:SetSize() end
