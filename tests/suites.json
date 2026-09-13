@@ -609,19 +609,63 @@
       "id": "ui.popup_keyboard_hover",
       "suite": "ui",
       "path": "tests/ui/popup_keyboard.lua",
-      "args": ["hover"]
+      "args": [
+        "hover"
+      ]
     },
     {
       "id": "ui.popup_keyboard_scroll",
       "suite": "ui",
       "path": "tests/ui/popup_keyboard.lua",
-      "args": ["scroll"]
+      "args": [
+        "scroll"
+      ]
     },
     {
       "id": "ui.popup_keyboard_filter",
       "suite": "ui",
       "path": "tests/ui/popup_keyboard.lua",
-      "args": ["filter"]
+      "args": [
+        "filter"
+      ]
+    },
+    {
+      "id": "ui.about_social.zhcn",
+      "suite": "ui",
+      "path": "tests/ui/about_social.lua",
+      "args": [
+        "zhCN"
+      ]
+    },
+    {
+      "id": "ui.about_social.enus",
+      "suite": "ui",
+      "path": "tests/ui/about_social.lua",
+      "args": [
+        "enUS"
+      ]
+    },
+    {
+      "id": "ui.about_social.zhtw",
+      "suite": "ui",
+      "path": "tests/ui/about_social.lua",
+      "args": [
+        "zhTW"
+      ]
+    },
+    {
+      "id": "ui.about_social.engb",
+      "suite": "ui",
+      "path": "tests/ui/about_social.lua",
+      "args": [
+        "enGB"
+      ]
+    },
+    {
+      "id": "delivery.about_assets",
+      "suite": "delivery",
+      "path": "tests/delivery/about_assets.py",
+      "args": []
     }
   ]
 }

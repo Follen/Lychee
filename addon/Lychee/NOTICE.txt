@@ -5,6 +5,11 @@ License / 许可: LICENSE.txt (Lychee Non-Commercial Attribution License 1.0)
 
 Original Lychee code and artwork are covered by LICENSE.txt.
 Current menu-artwork provenance is documented in Media/MenuIcons/LICENSE.txt.
+Social marks (GitHub, PayPal, X, WeChat): Simple Icons, CC0 1.0 Universal.
+Source: https://github.com/simple-icons/simple-icons
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Support hand/heart: Lychee original artwork. WeChat code artwork: user-provided
+references, generated style conversion, user-approved after scan verification.
 
 World of Warcraft, client-provided names, icons and game content remain the
 property of Blizzard Entertainment and the applicable rights holders.

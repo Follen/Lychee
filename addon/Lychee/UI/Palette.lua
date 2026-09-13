@@ -71,7 +71,10 @@ function Palette:Create()
     self.escapeFrame:Hide()
     if SecureHandlerSetFrameRef then SecureHandlerSetFrameRef(frame,"escape",self.escapeFrame) end
     self.escapeFrame:SetScript("OnHide",function()
-        if self.visible and frame:IsShown() and not (InCombatLockdown and InCombatLockdown()) then self:Hide("escape") end
+        if self.visible and frame:IsShown() and not (InCombatLockdown and InCombatLockdown()) then
+            if self.settingsView and self.settingsView.social:Close() then self.escapeFrame:Show()
+            else self:Hide("escape") end
+        end
     end)
     if UISpecialFrames then table.insert(UISpecialFrames, "LycheePaletteEscape") end
     self.frame = frame
@@ -248,7 +251,7 @@ function Palette:OpenSettings(tab)
     self.settingsView.frame:Show(); self.settingsView:SetTab(tab or "providers")
     if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.settingsView.frame,"page") end
     self.settingsTitle:Show(); self:SetBackNavigation(true)
-    self:ResizeForMode("settings"); self:SetStatusText(L["更改即时生效"])
+    self:ResizeForMode("settings")
     return true
 end
 
@@ -609,6 +612,7 @@ function Palette:Hide(reason)
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
+    if self.settingsView then self.settingsView.social:Close();self.settingsView.social.frame:Hide() end
     self._openingLayout,self._deferredHover,self._deferredHoverRevision=nil,nil,nil
     if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(false) end
     self.searchPending=false

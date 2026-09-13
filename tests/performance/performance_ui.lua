@@ -11,6 +11,16 @@ local function object(parent)
     return setmetatable({parent=parent, shown=true, height=400, width=592, scripts={}}, {__index=methods})
 end
 function methods:SetScript(event, fn) self.scripts[event]=fn end
+function methods:HookScript(event, fn)
+    local old=self.scripts[event]
+    self.scripts[event]=function(...) if old then old(...) end;fn(...) end
+end
+function methods:GetEffectiveScale() return self.scale or 1 end
+function methods:SetScale(value) self.scale=value end
+function methods:GetFrameLevel() return self.frameLevel or 0 end
+function methods:SetFrameLevel(value) self.frameLevel=value end
+function methods:SetFrameStrata(value) self.frameStrata=value end
+function methods:SetVertexColor() end
 function methods:SetAllPoints() setters=setters+1 end
 function methods:ClearAllPoints() setters=setters+1 end
 function methods:SetPoint(...) setters=setters+1; self.point={...} end
@@ -62,14 +72,15 @@ function I.UserPreferences:Move(from,to)
 end
 function I.UserPreferences:Remove(index) mutations=mutations+1;return table.remove(pins,index) end
 function I.Registry:SetUserEnabled(id,value) mutations=mutations+1;self.entries[id].userEnabled=value;return true end
-local controller={MarkHomeDirty=function() end,SetStatusText=function() end}
+UIParent=object()
+local controller={frame=object(UIParent),footer=object(UIParent),MarkHomeDirty=function() end,SetStatusText=function() end}
 local frameFactory=CreateFrame
 CreateFrame=nil
 dofile(root.."Bootstrap.lua")
 CreateFrame=frameFactory
 I.Search=I.Search or {}
 dofile(root.."Core/ProviderManagement.lua")
-for _, name in ipairs({"Theme","Runtime","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
+for _, name in ipairs({"Theme","Runtime","Components","ResultList","SocialLinks","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
 for i=1,1000 do
     local id=string.format("external.%04d",i)
     I.Providers.entries[id]={instanceToken=i,definition={title=id,version="1"}}

@@ -51,6 +51,7 @@ UI/ViewHost.lua
 Core/ResultActionExecutor.lua
 UI/AliasSettings.lua
 UI/ProviderSettings.lua
+UI/SocialLinks.lua
 UI/SettingsView.lua
 UI/HomeView.lua
 UI/Palette.lua

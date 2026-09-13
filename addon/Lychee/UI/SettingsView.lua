@@ -27,6 +27,13 @@ local function button(parent, title, width, callback)
     Lychee.UI.Theme:SetFont(control.label,"body")
     return control
 end
+local function settingRow(parent, index, title, detail)
+    local row=CreateFrame("Frame",nil,parent);row:SetSize(rowWidth,metrics.rowHeight)
+    row:SetPoint("TOPLEFT",parent,"TOPLEFT",0,-rowStride*index)
+    local name=label(row,"body");name:SetPoint("TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7);name:SetText(L[title])
+    local caption=label(row,"meta","textMuted");caption:SetPoint("TOPLEFT",name,"BOTTOMLEFT",0,-3);caption:SetText(L[detail])
+    return row
+end
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local function rowIcon(record)
     local pin = type(record.pin) == "table" and record.pin or nil
@@ -63,13 +70,14 @@ end
 function Settings:Create(parent, controller)
     local view = {controller=controller, rows={}, groups={}, tab="providers",scroll=0}
     local frame=CreateFrame("Frame",nil,parent);frame:SetAllPoints(parent);frame:Hide();view.frame=frame
-    local sourceTab=button(frame,L["功能来源"],86,function() view:SetTab("providers") end)
-    sourceTab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2)
-    local pinsTab=button(frame,L["已固定"],86,function() view:SetTab("pins") end)
-    pinsTab.frame:SetPoint("LEFT",sourceTab.frame,"RIGHT",12,0)
-    local generalTab=button(frame,L["综合设置"],86,function() view:SetTab("general") end)
-    generalTab.frame:SetPoint("LEFT",pinsTab.frame,"RIGHT",12,0)
-    view.tabs={providers=sourceTab,pins= pinsTab,general=generalTab}
+    view.tabs={}
+    local previous
+    for _,entry in ipairs({{"providers","功能来源"},{"pins","已固定"},{"general","综合设置"},{"about","关于"}}) do
+        local tab=button(frame,L[entry[2]],86,function() view:SetTab(entry[1]) end)
+        if previous then tab.frame:SetPoint("LEFT",previous,"RIGHT",12,0)
+        else tab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2) end
+        view.tabs[entry[1]]=tab;previous=tab.frame
+    end
     view.underline=frame:CreateTexture(nil,"ARTWORK");view.underline:SetSize(60,2)
     Lychee.UI.Theme:SetColorTexture(view.underline,"accent")
     view.undo=button(frame,L["撤销"],48,function()
@@ -179,15 +187,17 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
-        controller:SetStatusText(L["更改即时生效"])
+        controller:SetStatusText(tab=="about" and L["关于"] or L["更改即时生效"])
+        self.social:Close();self.social:Show()
         if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
         if Lychee.UI.Motion then
             Lychee.UI.Motion:Cancel(content,true)
             if self.general then Lychee.UI.Motion:Cancel(self.general,true) end
+            if self.about then Lychee.UI.Motion:Cancel(self.about,true) end
         end
         self.tab=tab;self.scroll=0;scroll:SetVerticalScroll(0);self:Refresh()
-        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or content,"page") end
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or tab=="about" and self.about or content,"page") end
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
@@ -202,18 +212,34 @@ function Settings:Create(parent, controller)
         self.underline:Show()
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
-        shown(scroll,self.tab~="general")
+        shown(scroll,self.tab~="general" and self.tab~="about")
+        if self.general then shown(self.general,self.tab=="general") end
+        if self.about then shown(self.about,self.tab=="about") end
+        if self.tab=="about" then
+            self.data=nil
+            for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
+            if not self.about then
+                local about=CreateFrame("Frame",nil,frame);self.about=about
+                about:SetSize(rowWidth,100)
+                about:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset+10,-metrics.settingsTabsHeight-12)
+                local version=C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Lychee","Version") or L["暂不可用"]
+                for index,value in ipairs({L.name,L["魔兽世界万用启动器"],L["版本"].."  "..version.."    ·    "..L["作者"].."  Follen"}) do
+                    local title=label(about,index==1 and "input" or index==2 and "body" or "meta",index==1 and "text" or "textMuted")
+                    title:SetPoint("TOPLEFT",about,"TOPLEFT",0,-(index-1)*30)
+                    title:SetWidth(rowWidth-20);title:SetText(value)
+                end
+            end
+            return
+        end
         if self.tab=="general" then
             self.data=nil
             for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
             if not self.general then
-                local general=CreateFrame("Frame",nil,frame);self.general=general
-                general:SetSize(rowWidth,metrics.rowHeight)
+                local general=settingRow(frame,0,"动态效果","窗口、页面与控件的过渡动画");self.general=general
+                general:ClearAllPoints()
                 general:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight)
                 local icon=general:CreateTexture(nil,"ARTWORK");icon:SetSize(metrics.iconSize,metrics.iconSize)
                 icon:SetPoint("LEFT",general,"LEFT",metrics.listIconInset,0);icon:SetTexture(iconRoot.."settings.tga")
-                local title=label(general,"body");title:SetPoint("TOPLEFT",general,"TOPLEFT",metrics.listTitleInset,-7);title:SetText(L["动态效果"])
-                local detail=label(general,"meta","textMuted");detail:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-3);detail:SetText(L["窗口、页面与控件的过渡动画"])
                 local toggle=Lychee.UI.Components:CreateToggle(general)
                 self.motion={frame=toggle,label=label(general,"meta","textMuted")}
                 self.motion.label:SetPoint("RIGHT",toggle,"LEFT",-12,0)
@@ -225,16 +251,10 @@ function Settings:Create(parent, controller)
                     text(view.motion.label,motion:IsReduced() and L["关闭"] or L["开启"])
                 end)
                 self.motion.frame:SetPoint("RIGHT",general,"RIGHT",-metrics.listIconInset,0)
-                local aliases=CreateFrame("Frame",nil,general);aliases:SetSize(rowWidth,metrics.rowHeight)
-                aliases:SetPoint("TOPLEFT",general,"TOPLEFT",0,-rowStride)
-                local aliasTitle=label(aliases,"body");aliasTitle:SetPoint("TOPLEFT",aliases,"TOPLEFT",metrics.listTitleInset,-7);aliasTitle:SetText(L["自定义别名"])
-                local aliasDetail=label(aliases,"meta","textMuted");aliasDetail:SetPoint("TOPLEFT",aliasTitle,"BOTTOMLEFT",0,-3);aliasDetail:SetText(L["用自己熟悉的名字搜索条目"])
+                local aliases=settingRow(general,1,"自定义别名","用自己熟悉的名字搜索条目")
                 self.aliasManage=button(aliases,L["管理别名"],110,function() view:OpenAliases() end)
                 self.aliasManage.frame:SetPoint("RIGHT",aliases,"RIGHT",-metrics.listIconInset,0)
-                local memory=CreateFrame("Frame",nil,general);memory:SetSize(rowWidth,metrics.rowHeight)
-                memory:SetPoint("TOPLEFT",general,"TOPLEFT",0,-rowStride*2)
-                local memoryTitle=label(memory,"body");memoryTitle:SetPoint("TOPLEFT",memory,"TOPLEFT",metrics.listTitleInset,-7);memoryTitle:SetText(L["搜索记忆"])
-                local memoryDetail=label(memory,"meta","textMuted");memoryDetail:SetPoint("TOPLEFT",memoryTitle,"BOTTOMLEFT",0,-3);memoryDetail:SetText(L["相同搜索优先显示上次选择"])
+                local memory=settingRow(general,2,"搜索记忆","相同搜索优先显示上次选择")
                 self.clearChoices=button(memory,L["清空记忆"],110,function()
                     if not frame:IsShown() or view.tab~="general" or InCombatLockdown() then return end
                     I.Search.Personalization:ClearChoices();controller:SetStatusText(L["搜索记忆已清空"])
@@ -360,6 +380,7 @@ function Settings:Create(parent, controller)
         if not self.aliasView then self.aliasView=Lychee.UI.AliasSettings:Create(frame,controller,function() view:SetTab("general") end) end
         if self.providerView then self.providerView.frame:Hide() end
         if self.general then self.general:Hide() end
+        if self.about then self.about:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.aliasView:Show(ref,title)
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
@@ -371,6 +392,7 @@ function Settings:Create(parent, controller)
         if not self.providerView then self.providerView=Lychee.UI.ProviderSettings:Create(frame,controller,function() view:Refresh();controller:SetStatusText(L["更改即时生效"]) end) end
         if self.aliasView then self.aliasView.frame:Hide() end
         if self.general then self.general:Hide() end
+        if self.about then self.about:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.providerView:Show(id,icon)
         if controller.ResizeForMode then controller:ResizeForMode("settings") end
@@ -378,5 +400,6 @@ function Settings:Create(parent, controller)
         self.underline:Hide()
         if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.providerView.frame,"page") end
     end
+    view.social=Lychee.UI.SocialLinks:Create(frame,controller)
     return view
 end

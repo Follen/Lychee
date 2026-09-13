@@ -288,10 +288,12 @@
 
 以下与现有测试同口径，全部为离线固定场景。`<` 为严格小于，不按打印后的四舍五入数值判断；CPU 门槛受计时精度影响时记录原值、环境和重复样本，不放宽断言。
 
+2026-09-13，用户明确将“不含 LDT 的正式服组合”常驻内存门禁增加500 KiB，从1474调整为1974 KiB；完整正式服1858 KiB及CPU、交互和其他客户端预算保持原数值。此项为用户授权的预算变更，不作为性能改善证据。
+
 | 场景与规模 | 预算 | 可执行依据 |
 | --- | --- | --- |
 | TOC 加载，不含 LDT 与团本技能关系的组合 | 回收后保留 <1346 KiB；CPU <46 ms | tests/performance/performance_loading.lua，按客户端与实际加载内容选择 |
-| TOC 加载，正式服团本技能关系、不含 LDT | 回收后保留 <1474 KiB；CPU <46 ms | tests/performance/performance_loading.lua Mainline addon/Lychee --baseline |
+| TOC 加载，正式服团本技能关系、不含 LDT | 回收后保留 <1974 KiB；CPU <46 ms | tests/performance/performance_loading.lua Mainline addon/Lychee --baseline |
 | TOC 加载，完整正式服、包含 LDT | 回收后保留 <1858 KiB；CPU <61 ms | tests/performance/performance_loading.lua Mainline |
 | 内置启动及重建 | 首次累计分配 <15000 KiB、保留 <7424 KiB；重建分配 <4500 KiB；重建保留增长 <128 KiB | tests/performance/performance_startup.lua |
 | 2025 条组合目录、48 次查询 | 常驻 <7168 KiB；分配 <4096 KiB；增长 <512 KiB | tests/performance/performance_memory.lua --check |

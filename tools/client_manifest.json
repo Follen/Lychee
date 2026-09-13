@@ -922,6 +922,15 @@
           ]
         },
         {
+          "path": "UI/SocialLinks.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
           "path": "UI/SettingsView.lua",
           "products": [
             "retail",

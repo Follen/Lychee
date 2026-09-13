@@ -10,6 +10,8 @@ for _, locale in ipairs({"zhCN", "zhTW", "enUS", "enGB", "deDE"}) do
     local chinese = locale == "zhCN" or locale == "zhTW"
     assert(L:IsChinese() == chinese)
     assert(L["操作菜单"] == (chinese and "操作菜单" or "Actions"))
+    assert(L["关于"] == (chinese and "关于" or "About"))
+    assert(L["微信赞赏"] == (chinese and "微信赞赏" or "Support via WeChat"))
     dofile("addon/Lychee/Core/ProviderLocales.lua")
     local namespace={ProviderLocaleData={}}
     assert(loadfile("addon/Lychee_Inspector/Locales.lua"))("Lychee_Inspector",namespace)

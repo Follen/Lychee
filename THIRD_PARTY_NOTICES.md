@@ -17,6 +17,10 @@ These legacy reference materials retain Apache-2.0 permissions, including permis
 
 上述历史参考素材及其衍生预览保留 Apache-2.0 授权；Lychee 的非商业限制不会取代这些素材本身的授权。
 
+## Simple Icons social marks
+
+GitHub, PayPal, X and WeChat SVG marks were obtained from [Simple Icons](https://github.com/simple-icons/simple-icons/tree/develop/icons) on 2026-09-13 under [CC0 1.0](assets/about/icons/LICENSE.txt). Originals are retained in assets/about/icons; runtime derivatives are monochrome 64×64 TGA textures. Brand names and marks identify their respective destinations and do not imply endorsement. The support hand/heart SVG is project-authored. The two code images were generated from user-provided images and explicitly approved by the user after scanning; see [asset notes](assets/about/README.md).
+
 ## Game content and addon names
 
 World of Warcraft and its game content belong to Blizzard Entertainment and the applicable rights holders. Item, spell and other game icons and names obtained through the client remain subject to their respective rights. References to Ellesmere UI, Exwind, ElvUI, NDUI and other addons identify integrations and do not imply endorsement or transfer their rights to Lychee.
