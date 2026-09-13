@@ -11,7 +11,7 @@ local Palette = {}
 Palette.__index = Palette
 
 local WIDTH, HEIGHT = 640, 220
-local HEADER_HEIGHT, FOOTER_HEIGHT = Lychee.UI.Theme.Metrics.headerHeight or 56, Lychee.UI.Theme.Metrics.footerHeight or 32
+local HEADER_HEIGHT, FOOTER_HEIGHT = Lychee.UI.Theme.Metrics.headerHeight or 56, Lychee.UI.Theme.Metrics.footerHeight or 56
 local LIST_METRICS = Lychee.UI.Theme.Metrics
 
 local function localized(value, fallback) return L:Resolve(value, fallback) end
@@ -72,7 +72,7 @@ function Palette:Create()
     if SecureHandlerSetFrameRef then SecureHandlerSetFrameRef(frame,"escape",self.escapeFrame) end
     self.escapeFrame:SetScript("OnHide",function()
         if self.visible and frame:IsShown() and not (InCombatLockdown and InCombatLockdown()) then
-            if self.settingsView and self.settingsView.social:Close() then self.escapeFrame:Show()
+            if self.social and self.social:Close() then self.escapeFrame:Show()
             else self:Hide("escape") end
         end
     end)
@@ -85,7 +85,6 @@ function Palette:Create()
     self.headerComponent.bg:Hide()
     self.footerComponent = components:CreateBand(frame, { height = FOOTER_HEIGHT, top = false, color = "footer" })
     self.footer = self.footerComponent.frame
-    self._footerHeight = FOOTER_HEIGHT
     self.footerComponent.bg:Hide()
     self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
     self.content = self.contentComponent.frame
@@ -133,11 +132,15 @@ function Palette:Create()
     Lychee.UI.Theme:SetVertexColor(self.backIcon,"text")
     self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted", left=LIST_METRICS.footerInset, right=LIST_METRICS.footerInset })
     self.status = self.statusComponent.label
+    self.status:ClearAllPoints();self.status:SetPoint("LEFT",self.footer,"LEFT",LIST_METRICS.footerInset,0)
+    self.status:SetWordWrap(false);self.status:SetMaxLines(1)
     Lychee.UI.Theme:SetFont(self.status, "meta")
     self.footerHint = self.footer:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -LIST_METRICS.footerInset, 0)
+    self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -(LIST_METRICS.footerInset+LIST_METRICS.footerSocialWidth+LIST_METRICS.footerSocialGap), 0)
+    self.footerHint:SetWordWrap(false);self.footerHint:SetMaxLines(1);self.footerHint:SetJustifyH("RIGHT")
     Lychee.UI.Theme:SetTextColor(self.footerHint, Lychee.UI.Theme:GetColor("textMuted"))
     Lychee.UI.Theme:SetFont(self.footerHint, "meta")
+    self.social=Lychee.UI.SocialLinks:Create(frame,self)
 
 
     self.emptyStateComponent = components:CreateEmptyState(self.content, {
@@ -175,10 +178,12 @@ function Palette:Create()
         self:SetQueryMode(text)
     end)
     self.input:SetSubmitCallback(function()
+        if self.social.active then return end
         if self:IsHomeVisible() then self.homeView:ActivateSelected()
         elseif self.list.frame:IsShown() then self:ActivateSelected() end
     end)
     self.input:SetMoveCallback(function(delta)
+        if self.social.active then return end
         -- false gives keyboard navigation priority for the rest of this entrance.
         self._deferredHover,self._deferredHoverRevision=false,nil
         if self:IsHomeVisible() then self.homeView:Move(delta)
@@ -240,8 +245,19 @@ function Palette:SetBackNavigation(back)
     setShown(self.backIcon,back);setShown(self.closeComponent and self.closeComponent.label,not back)
 end
 
+function Palette:SetFooterText(status, hint)
+    local split=status~="" and hint~=""
+    if self._footerSplit~=split then
+        local width=WIDTH-2*LIST_METRICS.footerInset-LIST_METRICS.footerSocialWidth-LIST_METRICS.footerSocialGap
+        self.status:SetWidth(split and LIST_METRICS.footerStatusWidth or width)
+        self.footerHint:SetWidth(split and width-LIST_METRICS.footerStatusWidth-16 or width)
+        self._footerSplit=split
+    end
+    setText(self.status,status);setText(self.footerHint,hint)
+end
+
 function Palette:SetStatusText(value)
-    setText(self.status, value); setText(self.footerHint, "")
+    self:SetFooterText(value or "", "")
 end
 
 function Palette:OpenSettings(tab)
@@ -269,6 +285,7 @@ end
 function Palette:CloseSettings(clearQuery)
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    self.social:Close(false)
     self.settingsOpen = false
     if self.settingsView then self.settingsView.frame:Hide() end
     self.settingsTitle:Hide(); self:SetBackNavigation(false); self.input:Show()
@@ -361,10 +378,9 @@ function Palette:SetStatus(mode, count)
     else text = L["没有结果"] end
     local panel=mode=="panel" and self.viewHost and self.viewHost.panel
     if panel and panel.footerHint~=nil then
-        setText(self.status, "");setText(self.footerHint,panel.footerHint)
+        self:SetFooterText("",panel.footerHint)
     else
-        setText(self.status, text)
-        setText(self.footerHint, mode == "home" and "" or L["↑ ↓ 选择   ·   点击使用"])
+        self:SetFooterText(text,mode == "home" and "" or L["↑ ↓ 选择   ·   点击使用"])
     end
 end
 
@@ -373,12 +389,6 @@ function Palette:ResizeForMode(mode, count)
     if InCombatLockdown and InCombatLockdown() then return false end
     local theme = Lychee.UI and Lychee.UI.Theme
     local metrics = theme and theme.Metrics or {}
-    local footerHeight=(mode=="settings" or mode=="settings-detail") and metrics.settingsFooterHeight or FOOTER_HEIGHT
-    if self._footerHeight~=footerHeight then
-        self.footer:SetHeight(footerHeight)
-        self.content:SetPoint("BOTTOMRIGHT",self.frame,"BOTTOMRIGHT",-12,footerHeight)
-        self._footerHeight=footerHeight
-    end
     if mode=="search" and self.searchPending and (tonumber(count) or 0)==0 then return true end
     local minHeight = metrics.paletteMinHeight or 220
     local maxHeight = metrics.paletteMaxHeight or HEIGHT
@@ -403,7 +413,7 @@ function Palette:ResizeForMode(mode, count)
         end
     end
     if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end
-    local desired = HEADER_HEIGHT + footerHeight + padding + listHeight
+    local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
     local growOnly=mode=="search" and self.searchPending
     if Lychee.UI.Motion then
@@ -604,6 +614,7 @@ function Palette:Show()
     -- Restore the actual home layout while hidden; entrance only moves it.
     self:ResizeForMode("home")
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
+    self.social:Show()
     if self.escapeFrame then self.escapeFrame:Show() end
     if motion then motion:Presence(self.frame,true,function() self:FinishShow() end,initialPhase,self)
     else self:FinishShow() end
@@ -615,7 +626,7 @@ function Palette:Show()
     if C_Timer and type(C_Timer.After) == "function" then
         local focusSession = self.session
         C_Timer.After(0, function()
-            if self.visible and not self.settingsOpen and self.session == focusSession then self.input:Focus() end
+            if self.visible and not self.settingsOpen and not self.social.active and self.session == focusSession then self.input:Focus() end
         end)
     else
         self.input:Focus()
@@ -623,6 +634,7 @@ function Palette:Show()
     return true
 end
 function Palette:Hide(reason)
+    if reason=="escape" and self.social and self.social:Close() then return true end
     if reason=="escape" and Lychee.UI.Components:HideActionMenu() then
         self.actionMenu=nil
         if self.escapeFrame then self.escapeFrame:Show() end
@@ -634,7 +646,7 @@ function Palette:Hide(reason)
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
-    if self.settingsView then self.settingsView.social:Close();self.settingsView.social.frame:Hide() end
+    if self.social then self.social:Close(false) end
     self._openingLayout,self._deferredHover,self._deferredHoverRevision=nil,nil,nil
     if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(false) end
     self.searchPending=false
@@ -776,6 +788,7 @@ function Palette:OpenView(factory, context, state)
         return false, "PANEL_CANCELLED"
     end
     if mounted then
+        self.social:Close(false)
         Lychee.UI.Components:HideActionMenu();self:SetBackNavigation(true)
         if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
         if self.secureBroker then self.secureBroker:ReleaseAll(); self._searchActionsSuspended = true end
@@ -793,6 +806,7 @@ function Palette:OpenView(factory, context, state)
 end
 function Palette:CloseView(reason)
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    self.social:Close(false)
     local result = self.viewHost:Unmount(reason or "close")
     self:SetQueryMode(self.input:GetText())
     return result

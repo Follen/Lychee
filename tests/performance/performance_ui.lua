@@ -86,6 +86,7 @@ for i=1,1000 do
     I.Providers.entries[id]={instanceToken=i,definition={title=id,version="1"}}
     I.Registry.entries[id]={userEnabled=true}
 end
+controller.social=Lychee.UI.SocialLinks:Create(controller.frame,controller)
 local view=Lychee.UI.SettingsView:Create(object(),controller)
 view.scrollFrame.height=400;view.frame:Show()
 collectgarbage("collect")

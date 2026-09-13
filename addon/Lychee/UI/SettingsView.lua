@@ -188,7 +188,7 @@ function Settings:Create(parent, controller)
     end
     function view:SetTab(tab)
         controller:SetStatusText(tab=="about" and L["感谢使用荔枝"] or L["更改即时生效"])
-        self.social:Close();self.social:Show()
+        controller.social:Close(false)
         if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
         if Lychee.UI.Motion then
@@ -408,6 +408,5 @@ function Settings:Create(parent, controller)
         self.underline:Hide()
         if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.providerView.frame,"page") end
     end
-    view.social=Lychee.UI.SocialLinks:Create(frame,controller)
     return view
 end

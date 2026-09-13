@@ -22,11 +22,15 @@ end
 local p=Lychee.UI.Palette
 Lychee.UI.Motion:SetReduced(true)
 assert(p:Show());assert(not p.settingsView)
+local social=p.social
+assert(social.frame:IsShown() and social.frame:GetParent()==p.footer,'home owns the same footer icons before settings exist')
+assert(p.footer:GetHeight()==56,'all pages use the approved settings footer spacing')
+local homeFooter=p.footer:GetHeight()
 assert(p:OpenSettings('providers'))
 local listHeight=p.frame:GetHeight()
 local settings=p.settingsView
 assert(settings.tabs.about and not settings.about and metadataReads==0,'about must be lazy')
-local social=settings.social
+assert(p.social==social and not settings.social,'settings must not own a second social bar')
 assert(social.frame:IsShown() and #social.buttons==3 and not social.popup)
 assert(p.footer:GetHeight()>=social.frame:GetHeight()+24,'footer must leave space above and below the icon hit areas')
 settings.tabs.about.frame.scripts.OnClick(settings.tabs.about.frame)
@@ -79,17 +83,52 @@ for _=1,30 do
  click(1);click(2);click(3);social:Close();settings:SetTab('providers');settings:SetTab('about')
 end
 assert(env.state.createdFrames==frames and metadataReads==1,'warm visits reuse objects and metadata')
-click(2);p:CloseSettings(true);settings.frame.scripts.OnHide(settings.frame)
-assert(not social.frame:IsShown() and not social.backdrop:IsShown() and not social.input:HasFocus())
+click(2);p:CloseSettings(true)
+assert(social.frame:IsShown() and not social.backdrop:IsShown() and not social.input:HasFocus())
 assert(p.footer:GetHeight()==Lychee.UI.Theme.Metrics.footerHeight and p.content.point[5]==Lychee.UI.Theme.Metrics.footerHeight,'search restores its own footer and content bounds')
+assert(p.footer:GetHeight()==homeFooter,'changing pages cannot change the footer baseline')
+p.input:SetText('retained search');p:SetQueryMode('retained search')
+local navigated=0
+local activate,move=p.ActivateSelected,p.list.Move
+p.ActivateSelected=function() navigated=navigated+1 end
+p.list.Move=function() navigated=navigated+1 end
+click(2)
+assert(not p.input.frame:HasFocus(),'opening a link releases search focus')
+p.input.frame.scripts.OnEnterPressed(p.input.frame)
+p.input.frame.scripts.OnArrowPressed(p.input.frame,'DOWN')
+assert(navigated==0,'a social popup owns keyboard input')
+social:Close()
+assert(p.input.frame:HasFocus() and p.input:GetText()=='retained search','close restores search focus without changing its text')
+p.ActivateSelected,p.list.Move=activate,move
+p:SetStatus('search',8)
+local textRight=p.frame:GetWidth()-Lychee.UI.Theme.Metrics.footerInset-Lychee.UI.Theme.Metrics.footerSocialWidth-Lychee.UI.Theme.Metrics.footerSocialGap
+assert(p.status:GetWidth()+28+16<=textRight-p.footerHint:GetWidth(),'status and keyboard hint occupy separate columns')
+assert(not p.status.wordWrap and not p.footerHint.wordWrap and p.status.maxLines==1 and p.footerHint.maxLines==1)
+p:SetStatusText(I.Locale['固定项数据异常，原始存档已保留'])
+assert(p.status:GetWidth()==464 and p.footerHint:GetText()=='','long status uses the full text lane')
+p:ResizeForMode('search',8)
+assert(p.frame:GetHeight()-56-homeFooter-20==8*46+7*6,'eight complete rows fit above the larger footer')
+assert(p:OpenView({create=function() return {} end},{},{}))
+assert(social.frame:IsShown() and p.footer:GetHeight()==homeFooter,'provider details retain the shared footer')
+click(2);assert(social.backdrop:IsShown());social:Close()
+assert(not p.input.frame:HasFocus(),'closing a popup over details must not focus hidden search')
+p:CloseView('social-detail-test')
 assert(p:OpenSettings('about'));click(2)
-_G.__combat=true;p:Hide('combat');_G.__combat=false
-settings.frame.scripts.OnHide(settings.frame)
-assert(not social.frame:IsShown() and not social.backdrop:IsShown() and not social.input:HasFocus())
+_G.__combat=true;RunPaletteCombatSnippet(p.frame);p:Hide('combat');_G.__combat=false
+assert(not p.frame:IsShown() and not social.backdrop:IsShown() and not social.input:HasFocus())
 assert(social.input:GetText()=='' and not social.code.texture)
 assert(p:Show());assert(p:OpenSettings('about'))
 p.input.frame:SetText('pending')
 p:SetQueryCallback(function() p.searchPending=true;p.list.items={} end)
 p:CloseSettings()
 assert(p.searchPending and p.footer:GetHeight()==Lychee.UI.Theme.Metrics.footerHeight,'pending empty results must also restore the search footer')
+assert(social.frame:IsShown(),'pending search keeps social controls')
+p:Hide('deferred-focus-test')
+local deferred
+C_Timer={After=function(_,callback) deferred=callback end}
+assert(p:Show());click(2);assert(deferred);deferred()
+assert(not p.input.frame:HasFocus() and social.input:HasFocus(),'deferred opening focus cannot steal the link field')
+C_Timer=nil
+social:Close();assert(p.input.frame:HasFocus())
+p:Hide('test-end')
 print('About/social PASS '..locale..': lazy metadata, localized footer, links/QR, Escape/backdrop/toggle, switching, reuse, combat cleanup')

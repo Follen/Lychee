@@ -12,7 +12,7 @@ assert(Fixture:Register({id="popup.fixture",apiVersion="1.0.0",version="1",title
 local p=Lychee.UI.Palette;p:Create()
 local M,home=Lychee.UI.Motion,p.homeView
 p.frame.CreateAnimationGroup=dofile("tests/support/native_animation.lua")
-home.frame.GetHeight=function() return p.frame:GetHeight()-88 end
+home.frame.GetHeight=function() return p.frame:GetHeight()-112 end
 home.frame.GetWidth=function() return 616 end
 local setHeight=p.frame.SetHeight
 p.frame.SetHeight=function(frame,height)
@@ -44,7 +44,7 @@ local function recent(count)
     for i=1,count do LycheeCharacterDB.palette.recent[i]={providerID="popup.fixture",entryID="item"..i} end
 end
 recent(5);p:Show()
-check(firstHeight==390,"cold opening shows a partial home height")
+check(firstHeight==414,"cold opening shows a partial home height")
 check(not M.height,"cold opening resizes the list during entrance")
 M:StopHeight(true);M:StopPresence(true,true)
 check(home.scrollbar.maximum==0,"five fitting rows have a phantom scroll range")
@@ -57,7 +57,7 @@ p.input:SetText("Popup");p:SetQueryMode("Popup")
 local _,items=I.Search.Query:Query("Popup",{visible=true})
 assert(#items==8);assert(p:ApplyResults(items,p.generation,p.session));M:StopHeight(true)
 close();p:Show()
-check(firstHeight==390 and not M.height,"reopening changes home geometry after showing")
+check(firstHeight==414 and not M.height,"reopening changes home geometry after showing")
 local selection=home.selected
 local secure
 for _,button in ipairs(p.secureBroker.buttons) do
@@ -106,14 +106,14 @@ check(noTooltip() and not p._deferredHover,"closing retains a deferred hover")
 recent(1);p:Show();M:StopHeight(true);M:StopPresence(true,true)
 p.input:SetText("Popup");p:SetQueryMode("Popup");close()
 recent(5);p:Show()
-check(firstHeight==390 and not M.height,"changed recents reopen at the previous home height")
+check(firstHeight==414 and not M.height,"changed recents reopen at the previous home height")
 local tile=home.tiles[3]
 tile.scripts.OnMouseDown(tile,"LeftButton");tile.scripts.OnClick(tile,"LeftButton")
 check(calls==1,"entrance blocks a deliberate physical click")
 close()
 
 -- Actual overflow still scrolls within the native viewport and remains bounded.
-home.content:SetHeight(700);p.frame:SetHeight(518);home:SetScroll(1000)
+home.content:SetHeight(700);p.frame:SetHeight(542);home:SetScroll(1000)
 check(home.scroll==270 and home.scrollbar.maximum==270,"real overflow uses inconsistent scroll bounds")
 for _,message in ipairs(failures) do print("FAIL: "..message) end
 assert(#failures==0,"popup geometry regressions: "..#failures)

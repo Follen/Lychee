@@ -4,20 +4,21 @@ UI.SocialLinks=Social
 local media="Interface\\AddOns\\Lychee\\Media\\About\\"
 
 function Social:Create(owner,controller)
-    local bar=CreateFrame("Frame",nil,UIParent)
-    bar:SetSize(100,28);bar:SetPoint("RIGHT",controller.footer,"RIGHT",-UI.Theme.Metrics.footerInset,0);bar:Hide()
+    local bar=CreateFrame("Frame",nil,controller.footer)
+    bar:SetSize(UI.Theme.Metrics.footerSocialWidth,28);bar:SetPoint("RIGHT",controller.footer,"RIGHT",-UI.Theme.Metrics.footerInset,0);bar:Hide()
     local view={frame=bar,buttons={}}
-    function view:Close()
+    function view:Close(restoreFocus)
         if not self.backdrop or not self.backdrop:IsShown() then return false end
         self.input:ClearFocus();self.input:SetText("");self.code:SetTexture(nil)
         UI.Motion:Cancel(self.backdrop,true);UI.Motion:Cancel(self.popup,true)
         self.backdrop:Hide();self.active=nil
+        if restoreFocus~=false and controller.visible and not controller.settingsOpen and not controller.viewHost:IsActive() and not InCombatLockdown() then controller.input:Focus() end
         return true
     end
     function view:Open(entry,anchor)
-        if not controller.visible or not controller.settingsOpen or not owner:IsShown() or InCombatLockdown() then return end
+        if not controller.visible or not owner:IsShown() or InCombatLockdown() then return end
         if self.active==entry then self:Close();return end
-        self:Close();UI.Components:HideTooltip()
+        self:Close(false);controller.input:ClearFocus();UI.Components:HideTooltip();UI.Components:HideActionMenu()
         if not self.popup then
             local backdrop=CreateFrame("Button",nil,UIParent);self.backdrop=backdrop
             backdrop:SetAllPoints(UIParent);backdrop:SetFrameStrata("DIALOG")
@@ -73,10 +74,9 @@ function Social:Create(owner,controller)
         button.frame:HookScript("OnLeave",function() UI.Theme:SetVertexColor(icon,"textMuted") end)
         view.buttons[index]=button
     end
-    owner:HookScript("OnHide",function() view:Close();bar:Hide() end)
+    owner:HookScript("OnHide",function() view:Close(false);if not InCombatLockdown() then bar:Hide() end end)
     function view:Show()
         for _,button in ipairs(self.buttons) do UI.Theme:SetVertexColor(button.feedbackIcon,"textMuted") end
-        bar:SetScale(controller.frame:GetEffectiveScale()/UIParent:GetEffectiveScale())
         bar:SetFrameStrata("DIALOG");bar:SetFrameLevel(controller.frame:GetFrameLevel()+10);bar:Show()
     end
     return view
