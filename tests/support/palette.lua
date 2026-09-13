@@ -72,6 +72,7 @@ local function object(kind, parent)
     function o:SetTexture(v) self.texture = v end
     function o:SetRotation(radians) self.rotation = radians end
     function o:SetColorTexture() end
+    function o:SetVertexColor(...) self.vertexColor={...} end
     function o:SetTextColor(...) self.textColor = { ... } end
     function o:SetText(v) self.text = v end
     function o:GetText() return self.text or "" end

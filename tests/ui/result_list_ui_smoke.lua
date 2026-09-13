@@ -341,6 +341,26 @@ list:Clear()
 
 dofile("addon/Lychee/UI/Runtime.lua")
 
+-- Artwork is not a state glyph: hovering/pressing a labelled skill changes text only.
+local skillButton=Lychee.UI.Components:CreateNavigationButton(parent,{text="萨拉塔斯的赠礼"})
+skillButton.icon=object("Texture",skillButton.frame)
+local artworkTints=0
+function skillButton.icon:SetVertexColor() artworkTints=artworkTints+1 end
+skillButton.frame.scripts.OnEnter()
+assert(skillButton.label._lycheeTextToken==Lychee.UI.Theme.Colors.accentHover,"hover highlights the skill name")
+skillButton.frame.scripts.OnMouseDown()
+skillButton.frame.scripts.OnLeave()
+skillButton.frame.scripts.OnHide()
+assert(artworkTints==0,"hover, press and leave must preserve the original skill artwork colors")
+skillButton.feedbackIcon=object("Texture",skillButton.frame)
+local glyphTints=0
+function skillButton.feedbackIcon:SetVertexColor() glyphTints=glyphTints+1 end
+skillButton.frame.scripts.OnEnter()
+assert(glyphTints==1 and artworkTints==0,"only an explicitly designated navigation glyph receives state tint")
+assert(skillButton.feedbackIcon._lycheeVertexToken==Lychee.UI.Theme.Colors.accentHover)
+skillButton.frame.scripts.OnLeave()
+assert(skillButton.feedbackIcon._lycheeVertexToken==Lychee.UI.Theme.Colors.text and artworkTints==0,"navigation glyph returns to warm white without tinting artwork")
+
 -- Real owned menu: a global native reskin must never receive its frame.
 local menuOwner=object("Frame")
 local nativeOpens=0

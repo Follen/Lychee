@@ -176,7 +176,7 @@ function Components:CreateButton(parent, options)
         local textToken = options.textColors and options.textColors[state]
         if not textToken then textToken = options.textColors and options.textColors.normal end
         if textToken then Theme:SetTextColor(self.label, textToken) end
-        if self.icon and textToken then Theme:SetVertexColor(self.icon,textToken) end
+        if self.feedbackIcon and textToken then Theme:SetVertexColor(self.feedbackIcon,state=="normal" and "text" or textToken) end
         if self.strokes and textToken then
             for index = 1, #self.strokes do Theme:SetColorTexture(self.strokes[index], textToken) end
         end

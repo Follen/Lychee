@@ -123,10 +123,10 @@ function Palette:Create()
     self.close = self.closeComponent.frame
     Lychee.UI.Theme:SetFont(self.closeComponent.label, "body")
     self.backIcon=self.close:CreateTexture(nil,"ARTWORK")
-    self.backIcon:SetSize(28,28);self.backIcon:SetPoint("CENTER")
+    self.backIcon:SetSize(20,20);self.backIcon:SetPoint("CENTER")
     self.backIcon:SetTexture("Interface\\AddOns\\Lychee\\Media\\back-search.tga");self.backIcon:Hide()
-    self.closeComponent.icon=self.backIcon
-    Lychee.UI.Theme:SetVertexColor(self.backIcon,"accent")
+    self.closeComponent.feedbackIcon=self.backIcon
+    Lychee.UI.Theme:SetVertexColor(self.backIcon,"text")
     self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted", left=LIST_METRICS.footerInset, right=LIST_METRICS.footerInset })
     self.status = self.statusComponent.label
     Lychee.UI.Theme:SetFont(self.status, "meta")
