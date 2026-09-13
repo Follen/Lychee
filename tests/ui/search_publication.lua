@@ -46,16 +46,16 @@ local function input(text)
     assert(state.pending==p.searchPending and state.count==#p.list.items)
 end
 input("large")
-assert(p.searchPending and #p.list.items==4 and p.list.frame:IsShown())
-assert(p.status:GetText()==I.Locale["搜索中…"] and motion.height and motion.height.to>164)
+assert(p.searchPending and #p.list.items==0 and not p.list.frame:IsShown(),"unfinished ranking must not become a visible first candidate")
+assert(p.status:GetText()==I.Locale["搜索中…"] and not motion.height and p.frame:GetHeight()==164)
 motion:StopHeight(true)
 assert(replies.large(rows(4,"async")))
 assert(not p.searchPending and #p.list.items==8 and p.status:GetText()~=I.Locale["搜索中…"])
 motion:StopHeight(true)
 local largeHeight=p.frame:GetHeight()
 input("small")
-assert(p.searchPending and #p.list.items==1 and p.frame:GetHeight()==largeHeight,
-    "new partial results cannot contract the previous height")
+assert(p.searchPending and #p.list.items==0 and p.frame:GetHeight()==largeHeight,
+    "waiting holds geometry without publishing incomplete results")
 local stale=replies.small
 input("newest")
 local generation=session.generation
@@ -123,3 +123,53 @@ for _,phase in ipairs({"initial", "asynchronous"}) do
 end
 p:Hide("nested-publication-end")
 print("Nested query publication PASS: alias resolution cannot roll back results or progress")
+
+-- Reproduce the video: a fast match used to appear first, then move down as
+-- slower sources supplied stronger matches. Observe actual list publications.
+p:Show();motion:SetReduced(true)
+local callbacks={}
+local handles={}
+handles[1]=assert(Fixture:Register({id="stable.fast",apiVersion="1.0.0",version="1",title="Fast",
+ query=function(_,reply) assert(reply({{id="first",title="毒牙撕咬"}})) end}))
+for _,id in ipairs({"middle","last"}) do
+ handles[#handles+1]=assert(Fixture:Register({id="stable."..id,apiVersion="1.0.0",version="1",title=id,
+  query=function(_,reply) callbacks[id]=reply end}))
+end
+local displays={}
+local setItems=p.list.SetItems
+p.list.SetItems=function(self,items,...)
+ if #items>0 then displays[#displays+1]=items[1].id end
+ return setItems(self,items,...)
+end
+for _,mode in ipairs({"forward","reverse","timeout","reopen"}) do
+ if mode=="reopen" then p:Hide("stable-reopen");p:Show() end
+ displays={}
+ p.input:SetText("毒牙");assert(session:Input("毒牙"));p:SetQueryMode("毒牙");assert(query:Flush())
+ assert(#displays==0 and p.searchPending and #p.list.items==0,"no provisional first candidate")
+ local a,b="middle","last"
+ if mode=="reverse" then a,b=b,a end
+ assert(callbacks[a]({{id="near",title="毒牙之怒"}}))
+ assert(#displays==0 and p.searchPending,"another incomplete batch cannot repaint")
+ if mode=="timeout" then
+  local deadline
+  for _,t in ipairs(timers) do if t.seconds==5 and not t.cancelled then assert(not deadline);deadline=t end end
+  assert(deadline,"existing Provider deadline bounds the wait");deadline.callback()
+  assert(not callbacks[b]({{id="late",title="毒牙"}}),"timed-out reply cannot reorder final rows")
+ else
+  assert(callbacks[b]({{id="exact",title="毒牙"}}))
+  assert(p.list.items[1].id=="exact" and #p.list.items==3,"final ranking and all candidates retained")
+ end
+ assert(#displays==1 and not p.searchPending and p.list.selected==1,"one complete list with first row selected")
+end
+-- A source refresh retains the previous display while collecting replacements.
+local previous=p.list.items;displays={}
+session:SourceChanged("stable-refresh");assert(session:RefreshSource())
+assert(p.list.items==previous and #displays==0)
+assert(callbacks.middle({}))
+assert(p.list.items==previous and #displays==0,"empty intermediate batch cannot erase the stable display")
+assert(callbacks.last({{id="exact",title="毒牙"}}))
+assert(#displays==1 and p.list.items[1].id=="exact" and not p.searchPending)
+p.list.SetItems=setItems
+p:Hide("stable-end")
+for _,handle in ipairs(handles) do assert(handle:Unregister()) end
+print("Candidate stability PASS: arrival order, one final ranking, first selection, timeout, late reply, reopen and refresh")

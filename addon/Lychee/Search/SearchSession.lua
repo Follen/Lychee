@@ -83,6 +83,9 @@ function Session:_Accept(results, generation, session, pending)
     if not current then return false end
     local palette = self.palette
     if not palette or not palette.visible then return false end
+    -- Provider arrival order is not a stable ranking. Keep progress separate
+    -- from the list until completion (including failure or the existing deadline).
+    if pending then results = nil end
     return self:_Publish(results, pending)
 end
 
@@ -113,7 +116,7 @@ function Session:Input(raw)
     local generation = self.generation + 1
     self.generation = generation
     self.activeFilter = nil
-    self:_Accept({}, generation, session, true)
+    self:_Publish({}, true)
     local context = contextSnapshot(session, generation)
 
     if C_Timer and (type(C_Timer.NewTimer) == "function" or type(C_Timer.After) == "function") then
@@ -146,7 +149,7 @@ function Session:Filter(filter)
     self.activeFilter = { categoryID = filter.categoryID, sourceID = filter.sourceID }
     if type(query.Cancel) == "function" and not query:Cancel("filter-change", generation) then return false, "STALE_GENERATION" end
     if not self:IsCurrent(session, generation) then return false, "STALE_GENERATION" end
-    self:_Accept({}, generation, session, true)
+    self:_Publish({}, true)
     local context = contextSnapshot(session, generation, self.activeFilter)
     local completedGeneration, results, operation, pending = query:Query("", context, generation, function(items, completed, waiting)
         self:_Accept(items, completed, session, waiting)
