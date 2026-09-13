@@ -33,14 +33,15 @@ settings.tabs.about.frame.scripts.OnClick(settings.tabs.about.frame)
 assert(settings.tab=='about' and settings.about:IsShown() and not settings.scrollFrame:IsShown())
 assert(p.frame:GetHeight()<listHeight-80,'about must not retain the tall provider list shell')
 local found=false
-local dedication,usage=false,false
+local dedication,intro,author=false,false,false
 for _,label in ipairs(strings) do
  if label:GetText():find('9.8.7',1,true) then found=true end
  if label:GetText()=='谨献给爱人：荔枝小月亮' then dedication=true end
- if label:GetText()==I.Locale['使用方式'] then usage=true end
+ if label:GetText()==I.Locale['少一点翻找，多一点冒险。'] then intro=true end
+ if label:GetText()=='Follen' then author=true end
 end
 assert(found and metadataReads==1,'version must come from installed metadata')
-assert(usage and dedication==I.Locale:IsChinese(),'useful about copy and Chinese-only dedication')
+assert(intro and author and dedication==I.Locale:IsChinese(),'brand introduction, author and Chinese-only dedication')
 assert(p.status:GetText()==I.Locale['感谢使用荔枝'])
 local function click(index)
  local b=social.buttons[index].frame;b.scripts.OnClick(b)

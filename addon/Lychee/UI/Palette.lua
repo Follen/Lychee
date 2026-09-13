@@ -389,7 +389,7 @@ function Palette:ResizeForMode(mode, count)
     if mode == "settings" then
         listHeight = metrics.resultTiles * rowHeight + (metrics.resultTiles - 1) * rowGap
         if self.settingsView and self.settingsView.tab=="about" then
-            listHeight=metrics.settingsTabsHeight+12+(L:IsChinese() and 216 or 188)
+            listHeight=metrics.settingsTabsHeight+12+(L:IsChinese() and metrics.aboutHeight or metrics.aboutEnglishHeight)
         end
     end
     if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end

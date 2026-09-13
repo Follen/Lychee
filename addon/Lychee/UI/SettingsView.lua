@@ -220,22 +220,22 @@ function Settings:Create(parent, controller)
             for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
             if not self.about then
                 local about=CreateFrame("Frame",nil,frame);self.about=about
-                about:SetSize(rowWidth,L:IsChinese() and 216 or 188)
+                about:SetSize(rowWidth,L:IsChinese() and metrics.aboutHeight or metrics.aboutEnglishHeight)
                 about:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset+10,-metrics.settingsTabsHeight-12)
                 local version=C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Lychee","Version") or L["暂不可用"]
-                local function copy(value,y,role,color,height)
+                local function copy(value,x,y,width,role,color,height)
                     local region=label(about,role,color)
-                    region:SetPoint("TOPLEFT",about,"TOPLEFT",0,-y)
-                    region:SetWidth(rowWidth-20);region:SetHeight(height or 18)
+                    region:SetPoint("TOPLEFT",about,"TOPLEFT",x,-y)
+                    region:SetWidth(width);region:SetHeight(height or 18)
                     region:SetJustifyV("TOP");region:SetText(value)
                 end
-                copy(L.name,0,"input","text",22)
-                copy(L["魔兽世界万用启动器"],26,"body","textMuted")
-                copy(L["在一个搜索框里，找到技能、物品、成就和插件入口。"],50,"body","textMuted",32)
-                copy(L["使用方式"],98,"body","text")
-                copy(L["搜索后点击使用，右键查看更多操作。\n常用内容可固定到首页，也可以设置自己的别名。"],122,"meta","textMuted",32)
-                copy(L["版本"].."  "..version.."    ·    "..L["作者"].."  Follen",166,"meta","textDim")
-                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],196,"meta","tooltipAccent") end
+                copy(L.name,0,0,376,"input","text",22)
+                copy(L["少一点翻找，多一点冒险。"],0,32,376,"title","text",22)
+                copy(L["将技能、物品与插件入口，收进一个搜索框。\n常用的入口、熟悉的名字，都按你的习惯留下。"],0,66,376,"body","textMuted",48)
+                copy(L["作者"],432,2,140,"meta","textMuted")
+                copy("Follen",432,24,140,"title","text",22)
+                copy(L["版本"].."  "..version,432,54,140,"meta","textMuted",32)
+                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],0,144,rowWidth-20,"title","tooltipAccent",24) end
             end
             return
         end
