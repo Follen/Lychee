@@ -1344,7 +1344,7 @@ do
     print("Form field lifecycle PASS: focus, invalid, correction, hide, reuse")
     local p=I.Host.PaletteController
     p:Show();p:Hide("release-test");p:FinishHide("release-test")
-    assert(#p.homeView.sections==0 and p.homeDirty,"closed home releases resolved sections")
+    assert(#p.homeView.sections==0,"closed home releases resolved sections")
     for _,tile in ipairs(p.homeView.tiles) do assert(tile.item==nil and tile.section==nil and tile.extensionID==nil,"hidden tile releases business identity") end
     local framesBefore=env.state.createdFrames
     p:Show();p:Hide("release-test");p:FinishHide("release-test")

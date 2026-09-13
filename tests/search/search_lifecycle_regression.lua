@@ -17,7 +17,9 @@ local I = LycheeInternal
 local Q, S = I.Search.Query, I.Search.Session
 I.Registry:SetReady(true)
 local palette = {visible=true, applied=0}
-function palette:ApplyResults(items)
+function palette:ApplySearchState(session, generation, pending, items)
+    self.session, self.generation, self.searchPending = session, generation, pending
+    if not items then return true end
     self.items, self.applied=items, self.applied+1
     return true
 end
@@ -133,3 +135,26 @@ deadline.callback()
 assert(palette.applied==applied)
 assert(delayed:Unregister())
 print("Search lifecycle PASS: operation reentry, invalid replies, sync/async completion, timeout and close")
+
+palette.visible=true;S:Start()
+for _,operation in ipairs({"filter","invalidate"}) do
+    local armed,entered=false,false
+    local handle=register("lifecycle.session-reentry",function(request,reply)
+        if request.normalized=="newest" then assert(reply({{id="newest",title="Newest"}})) end
+        return function()
+            if armed and not entered then
+                entered=true;assert(S:Input("newest"))
+                if operation=="invalidate" then assert(Q:Flush()) end
+            end
+        end
+    end)
+    input("seed");armed=true
+    if operation=="filter" then
+        S:Filter({sourceID="lifecycle.session-reentry:records"})
+        assert(Q.pending and Q.pending.raw=="newest","old filter must preserve reentrant input")
+        fire(Q.timer)
+    else S:Invalidate("test") end
+    assert(entered and #palette.items==1 and palette.items[1].id=="newest",operation.." cannot clear a newer publication")
+    idle();assert(handle:Unregister())
+end
+print("Session cancellation reentry PASS: filter and invalidation preserve newest input")

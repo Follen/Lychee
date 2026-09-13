@@ -32,6 +32,9 @@ if ($playerSpells -notmatch 'LEARNED_SPELL_IN_SKILL_LINE') { throw 'Retail spell
 if ($playerSpells -match 'Registry:Begin|RegisterSearchSource|RegisterCommand|RegisterCapabilityProvider|RegisterIntentHandler|RegisterPanelFactory') { throw 'PlayerSpells must use the public Provider facade' }
 if ($playerSpells -notmatch 'Support:Register') { throw 'Player package Provider registration missing' }
 $paletteSource = Get-Content (Join-Path $root 'addon/Lychee/UI/Palette.lua') -Raw
+if ($paletteSource -match 'homeView\.(tiles|sections|content)\b|self\.homeDirty\b') { throw 'HomeView must own home content, bindings and dirty state' }
+$sessionSource = Get-Content (Join-Path $root 'addon/Lychee/Search/SearchSession.lua') -Raw
+if ($sessionSource -match 'HasPendingQuery|palette\.(session|generation|searchPending)\s*=') { throw 'SearchSession must publish identity/results/progress through one presentation interface' }
 if ($paletteSource -match 'Lychee\.UI\.PaletteController\s*=\s*self') { throw 'Palette controller must remain Host-private' }
 $executorSource = Get-Content (Join-Path $root 'addon/Lychee/Core/ResultActionExecutor.lua') -Raw
 if ($paletteSource -match 'action\.kind\s*==|Router:Execute|PickupSpell|C_Spell\.PickupSpell') { throw 'Palette must delegate action routing to ResultActionExecutor' }

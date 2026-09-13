@@ -411,7 +411,7 @@ function P:Search(request, context, onChange)
         finish(job, reason)
         -- finish may reenter through a Provider cancel callback. Only the
         -- surviving query publishes its terminal state, including invalid replies.
-        if epoch == P.queryEpoch and not collecting and onChange then onChange(gather()) end
+        if epoch == P.queryEpoch and not collecting and onChange then onChange(gather(), P:HasPendingQuery()) end
     end
     local ids = {}
     for id, entry in pairs(self.entries) do
@@ -514,7 +514,7 @@ function P:Search(request, context, onChange)
         end
     end
     collecting = false
-    return gather()
+    return gather(), self:HasPendingQuery()
 end
 
 -- Private transfer: only SDK-owned catalogs can reach this bridge. The public

@@ -1,0 +1,29 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/UITimerDocumentation.lua",
+    "line": 39,
+    "excerpt": "39: \t\t\tName = \"NewTimer\",\n40: \t\t\tType = \"Function\",\n41: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n42: \n43: \t\t\tArguments =\n44: \t\t\t{\n45: \t\t\t\t{ Name = \"seconds\", Type = \"number\", Nilable = false },\n46: \t\t\t\t{ Name = \"callback\", Type = \"TickerCallback\", Nilable = false },\n47: \t\t\t},\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"cbObject\", Type = \"TickerCallback\", Nilable = false },\n52: \t\t\t},\n53: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScrollFrameAPIDocumentation.lua",
+    "line": 91,
+    "excerpt": "91: \t\t\tName = \"SetScrollChild\",\n92: \t\t\tType = \"Function\",\n93: \t\t\tIsProtectedFunction = true,\n94: \t\t\tCheckAllowChangeParent = true,\n95: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n96: \n97: \t\t\tArguments =\n98: \t\t\t{\n99: \t\t\t\t{ Name = \"scrollChild\", Type = \"SimpleFrame\", Nilable = false },\n100: \t\t\t},\n101: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "resolvedCommit": "8ea15b61e45c0ed4eba01439c90757f86eb78d34",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/RestrictedActionsDocumentation.lua",
+    "line": 45,
+    "excerpt": "45: \t\t\tName = \"InCombatLockdown\",\n46: \t\t\tType = \"Function\",\n47: \t\t\tNamespace = \"\",\n48: \n49: \t\t\tReturns =\n50: \t\t\t{\n51: \t\t\t\t{ Name = \"inCombatLockdown\", Type = \"bool\", Nilable = false },\n52: \t\t\t},\n53: \t\t},"
+  }
+]

@@ -25,7 +25,9 @@ I.Registry:SetReady(true)
 
 local accepted = {}
 local palette = { visible = true }
-function palette:ApplyResults(results, generation, session)
+function palette:ApplySearchState(session, generation, pending, results)
+    self.session, self.generation, self.searchPending = session, generation, pending
+    if not results then return true end
     accepted[#accepted + 1] = {
         results = results,
         generation = generation,
@@ -107,12 +109,13 @@ assert(combatOK == false and combatErr == "COMBAT_LOCKED")
 print("Lychee search session smoke PASS")
 
 _G.__combat=false
-local oldProviders=I.Providers
-I.Providers={HasPendingQuery=function() return true end}
-assert(session:_Accept({},session.generation,session.session))
-assert(palette.searchPending,"partial synchronous empty result must retain loading")
-I.Providers.HasPendingQuery=function() return false end
-assert(session:_Accept({},session.generation,session.session))
-assert(not palette.searchPending,"last asynchronous completion ends loading")
-I.Providers=oldProviders
+local delayedReply
+local delayed=assert(Fixture:Register({id="session.delayed",apiVersion="1.0.0",version="1",title="Delayed",
+    query=function(_, reply) delayedReply=reply end}))
+assert(session:Input("wait"))
+I.Search.Query:Flush()
+assert(palette.searchPending,"real delayed Provider keeps the publication pending")
+assert(delayedReply({}))
+assert(not palette.searchPending,"terminal reply carries completion with its results")
+assert(delayed:Unregister())
 print("Async pending state PASS")

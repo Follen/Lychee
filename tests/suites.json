@@ -574,6 +574,18 @@
       "args": [
         "reverse"
       ]
+    },
+    {
+      "id": "ui.search_publication",
+      "suite": "ui",
+      "path": "tests/ui/search_publication.lua",
+      "args": []
+    },
+    {
+      "id": "ui.home_lifecycle",
+      "suite": "ui",
+      "path": "tests/ui/home_lifecycle.lua",
+      "args": []
     }
   ]
 }

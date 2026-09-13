@@ -18,6 +18,8 @@ SDK 1.0.0，Provider API 1.0.0，UI Runtime 1。协议以 [SDK](../lychee-sdk/do
 
 输入 → SearchSession 管理代次 → ProviderPolicy 解释入口与用户选择 → 各 Provider.query → 有界候选 → Host 校验/排序/渲染 → 当前身份下执行动作。
 
+ProviderRuntime 将候选与仍在等待的状态一起交付 Query；Query 的同步返回与异步通知保持相同进度语义，合并中的外部别名解析若重入发布，以更新的发布为准。SearchSession 通过 Palette:ApplySearchState 一次交付会话、查询代次、等待标志及结果，不再旁路读取 Provider 作业或直接修改界面字段。取消回调重入后，旧操作停止后续提交；筛选与来源刷新沿用同一发布路径。这是内部协作，不改变公开 SDK，也不把查询进度写入每条 ResultSnapshot。
+
 目录型 Provider 可以创建自己的 SDK Catalog，Update 原子提交具名普通记录；动态来源可独立查询。Host 不再接受全量 entries 注册或 handle:Update，不保存第二份完整业务目录。Catalog:Search 返回副本，Catalog:Query 可直接向当前回复交付已校验候选；后者仍对实际注册能力进行比较，未知能力回到完整公开校验。
 
 记录是具名字段，业务语义与动作不变。内部结果投影可共享同一代不可变来源元数据，旧代投影保持旧身份；不向 SDK 暴露位置数组、凭证或 metatable。数据变化必须 Invalidate，使旧动作、历史恢复和页面状态重新验证。
@@ -35,6 +37,8 @@ CatalogLedger/CatalogProvider 仅是 Player/Encounters 自己的目录协作。�
 Player 等自身 ADDON_LOADED 后初始化角色 DB，并仅搬迁自己认识的旧设置和成就数据；成功后才移除对应旧键，未知命名空间、损坏或未来版本原样保留并报告错误。一次性迁移不是 API 2 兼容。其他包无持久需求时不创建空 DB。
 
 ## 管理页与页面
+
+HomeView 拥有首页固定项/最近使用的恢复、dirty、容量计划、一次过期重建、交互绑定与关闭释放；继续复用 UserPreferences 和 ResultActionExecutor 的存储/动作规则。Palette 只协调首页显示、整体尺寸及导航，不遍历其 tiles/sections。首页进入搜索时仅隐藏，完整窗口关闭才释放活动引用；布局缓存与原生池保留，恢复过程不增加轮询。
 
 管理页来自已注册 Provider，按来源包分组。用户关闭后保留条目以便重新打开；源注销即消失。用户开关与上游缺失/客户端不支持的运行时不可用分开。默认启用所有成功注册的来源，包括 EUI/EX，是否全局搜索由各自入口声明决定。
 

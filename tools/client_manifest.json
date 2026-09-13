@@ -931,6 +931,15 @@
           ]
         },
         {
+          "path": "UI/HomeView.lua",
+          "products": [
+            "retail",
+            "classic",
+            "titan",
+            "anniversary"
+          ]
+        },
+        {
           "path": "UI/Palette.lua",
           "products": [
             "retail",

@@ -20,17 +20,19 @@ local function contextSnapshot(session, generation, filter)
     return context
 end
 
-function Session:_SyncPalette()
+-- One delivery owns identity, progress and optional results. Identity-only
+-- transitions invalidate old actions without repainting the current page.
+function Session:_Publish(results, pending)
+    self.pending = pending == true
     local palette = self.palette
-    if not palette then return end
-    palette.session = self.session
-    palette.generation = self.generation
+    if not palette then return false end
+    return palette:ApplySearchState(self.session, self.generation, self.pending, results)
 end
 
 function Session:BindPalette(palette)
     if not palette then return false end
     self.palette = palette
-    self:_SyncPalette()
+    self:_Publish(nil, self.pending)
     return true
 end
 
@@ -39,7 +41,7 @@ function Session:Start()
     self.visible = true
     self.session = self.session + 1
     self.generation = self.generation + 1
-    self:_SyncPalette()
+    self:_Publish(nil, false)
     return self.session, self.generation
 end
 
@@ -47,14 +49,12 @@ function Session:Invalidate(reason)
     self:CancelSourceRefresh()
     local query = I.Search.Query
     self.generation = self.generation + 1
-    if query and type(query.Cancel) == "function" then query:Cancel(reason, self.generation) end
+    local session, generation = self.session, self.generation
+    if query and type(query.Cancel) == "function" and not query:Cancel(reason, generation) then return self.generation end
+    if session ~= self.session or generation ~= self.generation then return self.generation end
     self.lastInvalidation = reason
-    self:_SyncPalette()
     local palette = self.palette
-    if self.visible and palette and palette.visible and type(palette.ApplyResults) == "function" then
-        palette.searchPending=false
-        palette:ApplyResults({}, self.generation, self.session)
-    end
+    self:_Publish(self.visible and palette and palette.visible and {} or nil, false)
     return self.generation
 end
 
@@ -80,9 +80,8 @@ function Session:_Accept(results, generation, session, pending)
     local current = self:IsCurrent(session, generation)
     if not current then return false end
     local palette = self.palette
-    if not palette or not palette.visible or type(palette.ApplyResults) ~= "function" then return false end
-    palette.searchPending=pending==true or (I.Providers and I.Providers.HasPendingQuery and I.Providers:HasPendingQuery()) or false
-    return palette:ApplyResults(results, generation, session)
+    if not palette or not palette.visible then return false end
+    return self:_Publish(results, pending)
 end
 
 function Session:Input(raw)
@@ -97,19 +96,20 @@ function Session:Input(raw)
     local generation = self.generation + 1
     self.generation = generation
     self.activeFilter = nil
-    self:_SyncPalette()
     self:_Accept({}, generation, session, true)
     local context = contextSnapshot(session, generation)
 
     if C_Timer and (type(C_Timer.NewTimer) == "function" or type(C_Timer.After) == "function") then
-        local scheduledGeneration, scheduled = query:Schedule(raw, context, generation, function(results, completedGeneration)
-            self:_Accept(results, completedGeneration, session)
+        local scheduledGeneration, scheduled = query:Schedule(raw, context, generation, function(results, completedGeneration, pending)
+            self:_Accept(results, completedGeneration, session, pending)
         end)
         return scheduled, scheduledGeneration
     end
 
-    local completedGeneration, results = query:Query(raw, context, generation)
-    self:_Accept(results, completedGeneration, session)
+    local completedGeneration, results, operation, pending = query:Query(raw, context, generation, function(items, completed, waiting)
+        self:_Accept(items, completed, session, waiting)
+    end)
+    if operation then self:_Accept(results, completedGeneration, session, pending) end
     return true, completedGeneration
 end
 
@@ -126,12 +126,14 @@ function Session:Filter(filter)
     local generation = self.generation + 1
     self.generation = generation
     self.activeFilter = { categoryID = filter.categoryID, sourceID = filter.sourceID }
-    self:_SyncPalette()
-    if type(query.Cancel) == "function" then query:Cancel("filter-change", generation) end
+    if type(query.Cancel) == "function" and not query:Cancel("filter-change", generation) then return false, "STALE_GENERATION" end
+    if not self:IsCurrent(session, generation) then return false, "STALE_GENERATION" end
     self:_Accept({}, generation, session, true)
     local context = contextSnapshot(session, generation, self.activeFilter)
-    local completedGeneration, results = query:Query("", context, generation)
-    self:_Accept(results, completedGeneration, session)
+    local completedGeneration, results, operation, pending = query:Query("", context, generation, function(items, completed, waiting)
+        self:_Accept(items, completed, session, waiting)
+    end)
+    if operation then self:_Accept(results, completedGeneration, session, pending) end
     return true, completedGeneration
 end
 
@@ -146,17 +148,20 @@ function Session:RefreshSource()
     if not self.visible or not self.palette or not self.palette.visible or (InCombatLockdown and InCombatLockdown()) then return false end
     local currentSession, generation = self.session, self.generation
     local context = contextSnapshot(currentSession, generation, self.activeFilter)
-    local token, results = I.Search.Query:Query(self.raw or "", context, generation, function(items, completed)
-        self:_Accept(items, completed, currentSession)
+    local token, results, operation, pending = I.Search.Query:Query(self.raw or "", context, generation, function(items, completed, waiting)
+        self:_Accept(items, completed, currentSession, waiting)
     end)
-    return self:_Accept(results, token, currentSession)
+    return operation and self:_Accept(results, token, currentSession, pending) or false
 end
 
 function Session:SourceChanged(reason)
     local palette = self.palette
     self.generation = self.generation + 1
-    if I.Search.Query then I.Search.Query:Cancel("source-" .. tostring(reason or "changed"), self.generation) end
-    self:_SyncPalette()
+    if I.Search.Query and not I.Search.Query:Cancel("source-" .. tostring(reason or "changed"), self.generation) then
+        if palette and palette.MarkHomeDirty then palette:MarkHomeDirty() end
+        return
+    end
+    self:_Publish(nil, self.pending)
     if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
     if not self.visible then return end
     self.sourceRefreshPending = true

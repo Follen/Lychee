@@ -79,8 +79,8 @@ function Q:_Execute(raw, context, generation, request)
     return out
 end
 
-function Q:_Commit(generation, results)
-    self.last = { generation = generation, results = results }
+function Q:_Commit(generation, results, pending)
+    self.last = { generation = generation, results = results, pending = pending == true }
     return true
 end
 
@@ -114,12 +114,12 @@ function Q:Query(raw, context, externalGeneration, callback)
         self.active=false
         local results={}
         self:_Commit(generation,results)
-        return generation,results,operation
+        return generation,results,operation,false
     end
-    local results = {}
+    local results, pending = {}, false
     if self.operation ~= operation then return generation, {} end
     if I.Providers and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
-        local base = results
+        local publication = 0
         local function merge(dynamic)
             local combined, seen = {}, {}
             local aliases=self:_Execute(raw,context,generation,request)
@@ -130,20 +130,29 @@ function Q:Query(raw, context, externalGeneration, callback)
             while #combined > self.limit do combined[#combined] = nil end
             return combined
         end
-        local dynamic = I.Providers:Search(request, context, function(items)
+        local dynamic, waiting = I.Providers:Search(request, context, function(items, waiting)
             if self.operation ~= operation or not self:_IsCurrent(generation, context) then return end
+            publication = publication + 1
+            local revision = publication
             local combined = merge(items)
-            self:_Commit(generation, combined)
-            if callback then callback(combined, generation) end
+            -- Alias resolution may call external code and publish newer results.
+            if self.operation ~= operation or publication ~= revision or not self:_IsCurrent(generation, context) then return end
+            self:_Commit(generation, combined, waiting)
+            if callback then callback(combined, generation, waiting) end
         end)
+        local revision = publication
         results = merge(dynamic)
+        pending = waiting == true
+        if self.operation == operation and publication ~= revision then
+            results, pending = self.last.results, self.last.pending
+        end
     end
     if self.operation ~= operation then return generation, {} end
     self.active = false
     current, reason = self:_IsCurrent(generation, context)
     if not current then self.last = { generation = generation, results = {}, cancelled = reason }; return generation, {} end
-    if not self:_Commit(generation, results) then return generation, {} end
-    return generation, results, operation
+    if not self:_Commit(generation, results, pending) then return generation, {} end
+    return generation, results, operation, pending
 end
 
 function Q:Schedule(raw, context, externalGeneration, callback, delay)
@@ -178,14 +187,14 @@ function Q:Flush(expectedGeneration)
     if not pending or (expectedGeneration and pending.generation ~= expectedGeneration) then return false end
     self:_CancelTimer()
     self.pending = nil
-    local generation, results, operation = self:Query(pending.raw, pending.context, pending.generation, pending.callback)
-    if operation and self.operation == operation and type(pending.callback) == "function" then pending.callback(results, generation) end
+    local generation, results, operation, waiting = self:Query(pending.raw, pending.context, pending.generation, pending.callback)
+    if operation and self.operation == operation and type(pending.callback) == "function" then pending.callback(results, generation, waiting) end
     return true, generation, results
 end
 
 function Q:Cancel(reason, generation)
-    self:_BeginOperation()
+    local operation = self:_BeginOperation()
     self.last = { generation = generation, results = {}, cancelled = reason or "INVALIDATED" }
     if I.Providers then I.Providers:CancelQueries(reason) end
-    return true
+    return self.operation == operation
 end
