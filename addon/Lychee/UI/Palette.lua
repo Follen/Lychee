@@ -161,10 +161,14 @@ function Palette:Create()
         self:SetQueryMode(text)
     end)
     self.input:SetSubmitCallback(function()
-        if I.Search.Normalizer:IsBlank(self.input:GetText()) then self.homeView:ActivateSelected() else self:ActivateSelected() end
+        if self:IsHomeVisible() then self.homeView:ActivateSelected()
+        elseif self.list.frame:IsShown() then self:ActivateSelected() end
     end)
     self.input:SetMoveCallback(function(delta)
-        if I.Search.Normalizer:IsBlank(self.input:GetText()) then self.homeView:Move(delta) else self.list:Move(delta) end
+        -- false gives keyboard navigation priority for the rest of this entrance.
+        self._deferredHover,self._deferredHoverRevision=false,nil
+        if self:IsHomeVisible() then self.homeView:Move(delta)
+        elseif self.list.frame:IsShown() then self.list:Move(delta) end
     end)
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
@@ -532,7 +536,9 @@ function Palette:DeferRowHover(owner)
     if not self.visible then return true end
     local presence=Lychee.UI.Motion and Lychee.UI.Motion.presence
     if self._openingLayout or presence and presence.region==self.frame then
-        self._deferredHover,self._deferredHoverRevision=owner,(owner._pressBindingOwner or owner)._bindingRevision
+        if self._deferredHover~=false then
+            self._deferredHover,self._deferredHoverRevision=owner,(owner._pressBindingOwner or owner)._bindingRevision
+        end
         return true
     end
     return false

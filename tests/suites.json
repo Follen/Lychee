@@ -604,6 +604,24 @@
       "suite": "ui",
       "path": "tests/ui/popup_geometry.lua",
       "args": []
+    },
+    {
+      "id": "ui.popup_keyboard_hover",
+      "suite": "ui",
+      "path": "tests/ui/popup_keyboard.lua",
+      "args": ["hover"]
+    },
+    {
+      "id": "ui.popup_keyboard_scroll",
+      "suite": "ui",
+      "path": "tests/ui/popup_keyboard.lua",
+      "args": ["scroll"]
+    },
+    {
+      "id": "ui.popup_keyboard_filter",
+      "suite": "ui",
+      "path": "tests/ui/popup_keyboard.lua",
+      "args": ["filter"]
     }
   ]
 }

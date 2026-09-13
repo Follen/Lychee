@@ -34,6 +34,7 @@ local function object(kind, parent)
     function o:SetAllPoints(target) mutation(self, "SetAllPoints");self.allPoints=target or self.parent end
     function o:SetClipsChildren(value) self.clipsChildren=value end
     function o:SetPoint(...) mutation(self, "SetPoint"); self.point = { ... }; homeGeometryCalls.SetPoint = homeGeometryCalls.SetPoint + 1 end
+    function o:GetPoint() if self.point then return unpack(self.point) end end
     function o:ClearAllPoints() mutation(self, "ClearAllPoints"); homeGeometryCalls.ClearAllPoints = homeGeometryCalls.ClearAllPoints + 1 end
     function o:SetSize(w, h) mutation(self, "SetSize"); self.width, self.height = w, h end
     function o:SetHeight(h) mutation(self, "SetHeight"); self.height = h end

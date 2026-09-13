@@ -96,7 +96,17 @@ function HomeView:Create(parent, controller)
         local candidate = self.selected or 1
         repeat candidate = candidate + direction
         until candidate < 1 or candidate > #self.sections or self.sections[candidate].enabled ~= false
-        if candidate >= 1 and candidate <= #self.sections then return self:Select(candidate) end
+        if candidate >= 1 and candidate <= #self.sections then self:Select(candidate) end
+        local tile = self.tiles[self.selected]
+        if tile and tile:IsShown() then
+            local _,_,_,_,y = tile:GetPoint(1)
+            if y then
+                local top = -y
+                local bottom = top + tile:GetHeight() - frame:GetHeight()
+                if top < self.scroll then self:SetScroll(top)
+                elseif bottom > self.scroll then self:SetScroll(bottom) end
+            end
+        end
         return self.sections[self.selected]
     end
 
