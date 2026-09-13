@@ -2,25 +2,9 @@ local I = _G.LycheeInternal
 local R = {}
 I.RecordCodec = R
 local localizedRecordFields = {"title","kindTitle","subtitle","subtext","description","aliases","keywords"}
-local function copy(value)
-    if type(value) ~= "table" then return value end
-    local result = {}
-    for key, child in pairs(value) do result[key] = copy(child) end
-    return result
-end
-local function failure(code, field, owner)
-    return nil, { code = code, field = field, providerID = owner, retryable = false }
-end
-local function array(value, limit, field)
-    if type(value) ~= "table" then return failure("INVALID_SCHEMA", field) end
-    if #value > limit then return failure("RESULT_LIMIT", field) end
-    local count = 0
-    for key in pairs(value) do
-        if type(key) ~= "number" or key < 1 or key > #value or key ~= math.floor(key) then return failure("INVALID_SCHEMA", field) end
-        count = count + 1
-    end
-    return count == #value and true or failure("INVALID_SCHEMA", field)
-end
+local copy=I.Boundary.CopyPlain
+local failure=I.Boundary.Failure
+local array=I.Boundary.Array
 
 -- Validated presentation metadata is shared only within its owner. Values are weak and the
 -- auxiliary FIFO has at most 128 keys of <=256 bytes; unique/large metadata

@@ -155,6 +155,7 @@ function M:Query(request,reply,context)
     local task,event,deadline,owned
     local closed,scanning,changed,awaiting=false,false,false,0
     local limit=math.max(1,math.min(20,request.limit or 20))
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local terms=N:Terms(query)
     local function dispose()
         closed=true;fields,selected,pending=nil,nil,nil
@@ -175,6 +176,10 @@ function M:Query(request,reply,context)
     end
     local function add(offset,spell,mask,section,diff,score)
         if not score or not diff then return end
+        if ranker then
+            local id=I.Modules.JournalCatalog.encounters[offset]
+            score=ranker("boss-"..id..(spell and "-spell-"..spell.."-"..diff or "-difficulty-"..diff),score)
+        end
         local at=#selected+1
         for i,r in ipairs(selected) do if score>r.score then at=i;break end end
         if at<=limit then

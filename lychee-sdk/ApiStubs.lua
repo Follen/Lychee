@@ -139,8 +139,10 @@
 ---@field visible? boolean
 ---@field filter? {sourceID?:string,categoryID?:string}
 ---@field preferredEntryID? string
+---@field ranking? table<string,integer> Provider-local entry IDs to weights 0..38; at most 72. Query snapshot only.
 
 ---@alias LycheeReply fun(hits:LycheeQueryHit[]):boolean?,LycheeError? Single completion, at most 256 entries.
+---@alias LycheeRanker fun(entryID:string,confidence:number?):number?,LycheeError? Nil confidence stays nil; result is sorting-only, not reply confidence.
 ---@alias LycheeCancel fun(reason:string)
 ---@alias LycheeSchema string|table<string,any>
 
@@ -320,6 +322,8 @@ Lychee = {}
 ---@field VERSION '1.0.0'
 ---@field CreateCatalog fun(options:LycheeCatalogOptions):LycheeCatalog?,LycheeError?
 ---@field Score fun(request:LycheeQueryRequest,entries:LycheeEntry[],scope?:LycheeScope):LycheeQueryHit[]?,LycheeError?
+---@field CreateRanker fun(request:LycheeQueryRequest):LycheeRanker?,LycheeError? Compile once per query; rank before truncation.
+---@field SortHits fun(request:LycheeQueryRequest,hits:LycheeQueryHit[],limit?:integer):LycheeQueryHit[]?,LycheeError? New sorted array sharing input hits, at most 276 input hits; optional output limit 1..256.
 ---@field CompileLocales fun(resources:LycheeLocaleResources):table?,LycheeError?
 ---@field WhenSavedVariablesReady fun(addonName:string,callback:fun()):LycheeReadySubscription?,LycheeError?
 ---@field Normalizer table Optional text tools, not a business catalog.

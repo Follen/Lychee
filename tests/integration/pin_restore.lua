@@ -1,5 +1,6 @@
 LycheeInternal={Providers={CanRemember=function() return true end}}
 dofile('addon/Lychee/Core/CharacterStore.lua')
+dofile('addon/Lychee/Core/Boundary.lua')
 dofile('addon/Lychee/Core/UserPreferences.lua')
 local P=LycheeInternal.UserPreferences
 local function pin(id) return {providerID='fixture',entryID=tostring(id),title='Saved title'} end

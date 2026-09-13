@@ -40,7 +40,9 @@
 
 ## 查询回复
 
-request 是普通数据快照：raw、normalized、tokens、limit、generation，以及可选 filter/session/visible/contextToken/preferredEntryID。generation 仅标识当前查询，不持久化。filter 来源和类别限制仍由 Host 执行。
+request 是普通数据快照：raw、normalized、tokens、limit、generation，以及可选 filter/session/visible/contextToken/preferredEntryID/ranking。generation 仅标识当前查询，不持久化。filter 来源和类别限制仍由 Host 执行。
+
+ranking 是本 Provider 的 entryID → 0–38 整数权重，最多 72 项，不含其他 Provider 的偏好；来自已有固定项和最近使用顺序，不保存次数或时间戳。动态来源通过 `SDK.CreateRanker(request)` 在候选截断前排序，Catalog 自动接入。排名函数返回值与原 confidence/evidence 分开；同词记忆优先，普通固定/近期加权最多 0.038。精确规则及复制隔离见[目录与排名](CATALOG.md)。这是 API 1.0.0 的可选能力扩展。
 
 `reply(hits)` 接收至多 256 个 `{entry=Entry,confidence=number,evidence?=table}`；confidence 在 0–1 内。evidence 使用 matchedField、matchedText、matchType、confidence、distance，结构由 Host 校验。可用 `SDK.Score(request,entries,scope?)` 计算证据；它不会替业务筛选条目，未命中的业务候选以 0.75 回退分值保留。最终展示上限仍为 20。
 

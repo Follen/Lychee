@@ -1,7 +1,7 @@
 local I = _G.LycheeInternal
 local D = {}
 I.ProviderData = D
-local function failure(code) return nil,{code=code,retryable=false} end
+local failure=I.Boundary.Failure
 local function keyOK(key)
     return I.Boundary:Validate(key,"key") and type(key)=="string" and #key>0 and #key<=96
 end

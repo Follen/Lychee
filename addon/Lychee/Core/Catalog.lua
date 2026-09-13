@@ -1,7 +1,7 @@
 local I = _G.LycheeInternal
 local Factory = {}
 I.CatalogFactory = Factory
-local function failure(code,field) return nil,{code=code,field=field,retryable=false} end
+local failure=I.Boundary.Failure
 local OPTION_KEYS={id=true,title=true,scope=true,i18n=true,actions=true,drags=true,views=true,active=true,changed=true}
 local function requestOK(request)
     local ok,err=I.Boundary:Validate(request,"query")
@@ -10,17 +10,37 @@ local function requestOK(request)
         or (request.limit~=nil and (type(request.limit)~="number" or request.limit%1~=0 or request.limit<1 or request.limit>256))
         or (request.preferredEntryID~=nil and (type(request.preferredEntryID)~="string" or #request.preferredEntryID>128))
         or (request.filter~=nil and type(request.filter)~="table") then return failure("INVALID_SCHEMA","query") end
+    if request.ranking~=nil then
+        if type(request.ranking)~="table" then return failure("INVALID_SCHEMA","query.ranking") end
+        local count=0
+        for id,weight in pairs(request.ranking) do
+            count=count+1
+            if count>72 or type(id)~="string" or #id>128 or not id:match("^[A-Za-z0-9][A-Za-z0-9%._:/%-]*$")
+                or type(weight)~="number" or weight%1~=0 or weight<0 or weight>38 then return failure("INVALID_SCHEMA","query.ranking") end
+        end
+    end
     return true
 end
-local function array(value,limit)
-    if type(value)~="table" or #value>limit then return false end
-    local count=0
-    for key in pairs(value) do
-        if type(key)~="number" or key%1~=0 or key<1 or key>#value then return false end
-        count=count+1
-    end
-    return count==#value
+
+-- Shared scalar rule; confidence remains the original matching evidence.
+function Factory:RankValue(preferred,weights,id,confidence)
+    if confidence==nil then return nil end
+    return confidence+(preferred~=nil and preferred==id and 2 or 0)+(weights and weights[id] or 0)*0.001
 end
+function Factory:CreateRanker(request)
+    local ok,err=requestOK(request);if not ok then return nil,err end
+    local preferred,weights=request.preferredEntryID
+    if request.ranking then weights={};for id,weight in pairs(request.ranking) do weights[id]=weight end end
+    -- Capture only this Provider's bounded preferences, never the request/context.
+    return function(id,confidence)
+        local valid,why=I.Boundary.Access(id,"rank");if not valid then return nil,why end
+        valid,why=I.Boundary.Access(confidence,"rank");if not valid then return nil,why end
+        if type(id)~="string" or #id==0 or #id>128 or confidence~=nil and
+            (type(confidence)~="number" or confidence~=confidence or confidence<0 or confidence>1) then return failure("INVALID_SCHEMA","rank") end
+        return Factory:RankValue(preferred,weights,id,confidence)
+    end
+end
+local array=I.Boundary.Array
 
 -- Optional SDK factory. Each returned object is owned by its caller; no Host
 -- registry, saved variable, active catalog list, or source subscription retains it.
@@ -39,11 +59,7 @@ function Factory:Create(options)
     if not scopeOK then return nil,scopeError end
     local owned
     -- Public options are validated before copying; callbacks remain caller-owned.
-    local function clone(value)
-        if type(value)~="table" then return value end
-        local out={};for key,child in pairs(value) do out[key]=clone(child) end;return out
-    end
-    owned=clone(options)
+    owned=I.Boundary.CopyPlain(options)
     local localizer
     if owned.i18n then localizer,err=I.ProviderLocales:Compile(owned.i18n);if not localizer then return nil,err end end
     local state={id=owned.id,definition=owned,localizer=localizer}
@@ -116,7 +132,7 @@ function Factory:Create(options)
         valid,why=requestOK(request);if not valid then return nil,why end
         if not index then return {} end
         local preferred=request.preferredEntryID and sourceID..":"..request.preferredEntryID
-        local hits=index:Search(request.normalized,request.limit,request.filter,true,preferred)
+        local hits=index:Search(request.normalized,request.limit,request.filter,true,preferred,request.ranking)
         local out={}
         for at,hit in ipairs(hits) do
             out[at]={entry=I.RecordCodec:Public(hit.entry.record,owned.id),confidence=hit.confidence,evidence=hit.evidence}
@@ -133,7 +149,7 @@ function Factory:Create(options)
         valid,why=requestOK(request);if not valid then return nil,why end
         if type(reply)~="function" then return failure("INVALID_SCHEMA","query.reply") end
         local hits=index and index:Search(request.normalized,request.limit,request.filter,"transfer",
-            request.preferredEntryID and sourceID..":"..request.preferredEntryID) or {}
+            request.preferredEntryID and sourceID..":"..request.preferredEntryID,request.ranking) or {}
         if index then index:ClearQueryCache() end
         local delivered,err=Factory:Deliver(reply,owned,hits)
         if delivered~=false then return delivered,err end
@@ -183,4 +199,35 @@ function Factory:Score(request,entries,scope)
         hits[at]={entry=entry,confidence=match and match.confidence or 0.75,evidence=match}
     end
     return hits
+end
+
+-- Batched counterpart to CreateRanker, including the bounded catalog/dynamic
+-- merge (20 catalog + at most 256 dynamic hits). Sorts a new array, not entries.
+function Factory:SortHits(request,hits,limit)
+    local ok,err=requestOK(request);if not ok then return nil,err end
+    ok,err=I.Boundary:Validate(hits,"sort.hits",{maxFields=276,maxDepth=14})
+    if not ok then return nil,err end
+    ok,err=I.Boundary.Access(limit,"sort.limit");if not ok then return nil,err end
+    if not array(hits,276) or limit~=nil and (type(limit)~="number" or limit%1~=0 or limit<1 or limit>256) then return failure("INVALID_SCHEMA","sort") end
+    local out={}
+    for at,hit in ipairs(hits) do
+        if type(hit)~="table" or type(hit.entry)~="table" or type(hit.entry.id)~="string" or #hit.entry.id==0 or #hit.entry.id>128
+            or type(hit.confidence)~="number" or hit.confidence<0 or hit.confidence>1 then return failure("INVALID_SCHEMA","sort.hit") end
+        out[at]=hit
+    end
+    table.sort(out,function(a,b)
+        if request.preferredEntryID or request.ranking then
+            local ar=self:RankValue(request.preferredEntryID,request.ranking,a.entry.id,a.confidence)
+            local br=self:RankValue(request.preferredEntryID,request.ranking,b.entry.id,b.confidence)
+            if ar~=br then return ar>br end
+        end
+        if a.confidence~=b.confidence then return a.confidence>b.confidence end
+        local ac=type(a.entry.category)=="table" and a.entry.category.order or 0
+        local bc=type(b.entry.category)=="table" and b.entry.category.order or 0
+        if type(ac)~="number" then ac=0 end;if type(bc)~="number" then bc=0 end
+        if ac~=bc then return ac<bc end
+        return a.entry.id<b.entry.id
+    end)
+    for at=#out,(limit or #out)+1,-1 do out[at]=nil end
+    return out
 end

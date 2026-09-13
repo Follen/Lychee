@@ -1,9 +1,10 @@
 local I = _G.LycheeInternal
 local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, limit = 20, debounceSeconds = 0.04 }
 I.Search.Query = Q
-local EMPTY = {} -- private read-only empty view
 
 local function resultLess(left, right)
+    local lr,rr=left.rankingScore or left.confidence or 0,right.rankingScore or right.confidence or 0
+    if lr~=rr then return lr>rr end
     local lc, rc = left.confidence or 0, right.confidence or 0
     if lc ~= rc then return lc > rc end
     local lp = left.sourcePriority or 0
@@ -11,15 +12,11 @@ local function resultLess(left, right)
     if lp ~= rp then return lp > rp end
     local lco, rco = left.categoryOrder or 0, right.categoryOrder or 0
     if lco ~= rco then return lco < rco end
-    return tostring(left.stableID or left._ext or "") .. ":" .. tostring(left.id or "") < tostring(right.stableID or right._ext or "") .. ":" .. tostring(right.id or "")
+    return left.stableID..":"..left.id < right.stableID..":"..right.id
 end
 
 local function appendUnique(out, seen, item)
-    if type(item) ~= "table" then return false end
-    local canonical = item.stableID or (item.searchRecord and item.searchRecord.id) or item.id or item.key
-    local key
-    if item.searchRecord then key = "record:" .. tostring(item._ext or item.sourceID or "") .. ":" .. tostring(item.id)
-    else key = tostring(item._ext or "") .. ":" .. tostring(canonical or item.text or #out + 1) end
+    local key=item.ref.providerID..":"..item.ref.entryID
     if seen[key] then return false end
     seen[key] = true; out[#out + 1] = item
     return true
@@ -36,8 +33,9 @@ end
 -- search generation. Materialization stays identical to normal search results.
 function Q:ResolveRecent(refs, limit)
     local out = {}
+    local context=I.Context and I.Context:Snapshot() or {}
     for index = 1, #refs do
-        local item = I.Providers and I.Providers:Resolve(refs[index], I.Context and I.Context:Snapshot() or {})
+        local item = I.Providers and I.Providers:Resolve(refs[index], context)
         if item then out[#out + 1] = item end
         if #out >= (limit or 5) then break end
     end
@@ -50,10 +48,11 @@ function Q:_BuildRequest(raw, context, generation)
         text,filter=I.Search.ProviderPolicy:Route(text,filter)
     end
     local normalized = I.Search.Normalizer:Normalize(text)
-    return { generation = generation, raw = text, normalized = normalized, preferenceKey=I.Search.Normalizer:Normalize(raw),
+    local request={ generation = generation, raw = text, normalized = normalized, preferenceKey=I.Search.Normalizer:Normalize(raw),
         tokens = I.Search.Normalizer:Terms(normalized), limit = self.limit,
         contextToken = context and context.token, session = context and context.session,
         visible = context and context.visible, filter = filter }
+    return request
 end
 
 
@@ -65,18 +64,6 @@ function Q:_IsCurrent(generation, context)
         return session:IsCurrent(context.session, generation)
     end
     return true
-end
-
-function Q:_Execute(raw, context, generation, request)
-    request = request or self:_BuildRequest(raw, context, generation)
-    local filtered = type(request.filter) == "table" and (request.filter.sourceID or request.filter.categoryID)
-    local out, seen = {}, filtered and EMPTY or {}
-    request.limit = self.limit
-    if I.Search.Personalization then I.Search.Personalization:AddAliases(out,request,context) end
-    table.sort(out, resultLess)
-    if I.Search.Personalization then I.Search.Personalization:Promote(out,request) end
-    while #out > self.limit do out[#out] = nil end
-    return out
 end
 
 function Q:_Commit(generation, results, pending)
@@ -116,17 +103,21 @@ function Q:Query(raw, context, externalGeneration, callback)
         self:_Commit(generation,results)
         return generation,results,operation,false
     end
+    if I.Search.Personalization then request._preferences=I.Search.Personalization:Snapshot(request) end
     local results, pending = {}, false
     if self.operation ~= operation then return generation, {} end
     if I.Providers and (not I.Providers.HasQuery or I.Providers:HasQuery(request.filter)) then
         local publication = 0
         local function merge(dynamic)
             local combined, seen = {}, {}
-            local aliases=self:_Execute(raw,context,generation,request)
+            local aliases={}
+            if I.Search.Personalization then I.Search.Personalization:AddAliases(aliases,request,context) end
             for _, item in ipairs(aliases) do appendUnique(combined, seen, item) end
             for _, item in ipairs(dynamic) do appendUnique(combined, seen, item) end
+            if I.Search.Personalization then
+                for _,item in ipairs(combined) do item.rankingScore=I.Search.Personalization:Rank(request,item.ref,item.confidence or 0) end
+            end
             table.sort(combined, resultLess)
-            if I.Search.Personalization then I.Search.Personalization:Promote(combined,request) end
             while #combined > self.limit do combined[#combined] = nil end
             return combined
         end

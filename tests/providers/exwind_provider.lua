@@ -128,6 +128,13 @@ local function measured()
     drain();assert(result and result[1].title=="Module 100")
 end
 local start=os.clock();measured();local coldMS=(os.clock()-start)*1000
+do
+    local first=query("ex:Setting 100 10")[1].id
+    local second=query("ex:Setting 99 10")[1].id
+    local ranked
+    managedQuery({normalized="setting",limit=20,ranking={[first]=30,[second]=8},filter={sourceID=M.id..":records"}},function(result)ranked=result end)
+    drain();assert(#ranked==20 and ranked[1].id==first and ranked[2].id==second,"EX preferences before 100-module truncation")
+end
 collectgarbage("collect");local base=collectgarbage("count")
 collectgarbage("stop");start=os.clock()
 for i=1,20 do measured() end

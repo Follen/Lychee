@@ -83,6 +83,7 @@ function M:Query(request,reply,context)
     local fields={}
     local limit=math.max(1,math.min(50,tonumber(request.limit) or 20))
     local selected={}
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local length=0
     local function field(kind,value)
         if type(value)~="string" or value=="" then return end
@@ -99,15 +100,17 @@ function M:Query(request,reply,context)
     end
     local function position(id,score)
         if not score then return end
+        local rank=ranker and ranker(id,score) or score
         local at=#selected+1
         for index,row in ipairs(selected) do
-            if score>row.score or score==row.score and id<row.record.id then at=index;break end
+            if rank>row.rank or rank==row.rank and (score>row.score or score==row.score and id<row.record.id) then at=index;break end
         end
         if at<=limit then return at end
     end
     local function consider(at,record,score)
         local row=#selected==limit and table.remove(selected) or {}
         row.record,row.score=record,score
+        row.rank=ranker and ranker(record.id,score) or score
         table.insert(selected,at,row)
     end
     local function work()

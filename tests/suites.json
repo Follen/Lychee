@@ -2,6 +2,18 @@
   "schema": 1,
   "cases": [
     {
+      "id": "sdk.sdk_ranking",
+      "suite": "sdk",
+      "path": "tests/sdk/sdk_ranking.lua",
+      "args": []
+    },
+    {
+      "id": "search.personalized_ranking",
+      "suite": "search",
+      "path": "tests/search/personalized_ranking.lua",
+      "args": []
+    },
+    {
       "id": "contracts.runner",
       "suite": "contracts",
       "path": "tests/contracts/runner.py",

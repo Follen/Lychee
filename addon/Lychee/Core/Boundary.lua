@@ -19,9 +19,10 @@ local RECORD_KEYS = {
 local TEXT_FIELDS = { "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }
 local CATEGORY_KEYS = {id=true,title=true,order=true,color=true}
 
-local function failure(code, field)
-    return nil, { code = code, field = field, retryable = false }
+local function failure(code, field, owner)
+    return nil, { code = code, field = field, providerID=owner, retryable = false }
 end
+Boundary.Failure=failure
 
 local function access(value, field)
     if type(issecretvalue) == "function" then
@@ -33,6 +34,25 @@ local function access(value, field)
         local ok, accessible = pcall(canaccessvalue, value)
         if not ok or accessible == false then return failure("INACCESSIBLE_VALUE", field) end
     end
+    return true
+end
+Boundary.Access = access -- Internal scalar guard; no temporary traversal table.
+-- Internal copies of already validated plain data. Public ingestion uses Copy.
+local function copyPlain(value)
+    if type(value)~="table" then return value end
+    local out={};for key,child in pairs(value) do out[key]=copyPlain(child) end
+    return out
+end
+Boundary.CopyPlain=copyPlain
+function Boundary.Array(value,limit,field)
+    if type(value)~="table" then return failure("INVALID_SCHEMA",field) end
+    if #value>limit then return failure("RESULT_LIMIT",field) end
+    local count=0
+    for key in pairs(value) do
+        if type(key)~="number" or key<1 or key>#value or key%1~=0 then return failure("INVALID_SCHEMA",field) end
+        count=count+1
+    end
+    if count~=#value then return failure("INVALID_SCHEMA",field) end
     return true
 end
 

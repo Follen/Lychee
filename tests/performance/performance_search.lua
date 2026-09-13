@@ -41,7 +41,7 @@ before = collectgarbage("count")
 for n = 1, 128 do N:Normalize(string.rep("Long Mixed 中国:: ", 512) .. n) end
 collectgarbage("collect")
 local longRetained = collectgarbage("count") - before
-local index = I.Search.StaticIndex
+local index = I.Search.StaticIndex:New()
 assert(index:RegisterSource({ id = "performance", enabled = true }))
 before = collectgarbage("count")
 for n = 1, 5000 do assert(index:Invalidate("performance", "entry:" .. n)) end

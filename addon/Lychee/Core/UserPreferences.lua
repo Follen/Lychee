@@ -28,12 +28,9 @@ local function pinBytes(pin)
 end
 local function validate(pins)
     if type(pins) ~= "table" or getmetatable(pins) ~= nil then return end
-    local count, bytes = 0, 0
-    for key in next,pins do
-        count = count + 1
-        if count > LIMIT or type(key) ~= "number" or key % 1 ~= 0 or key < 1 or key > LIMIT then return end
-    end
-    for index=1,count do
+    if not I.Boundary.Array(pins,LIMIT) then return end
+    local bytes = 0
+    for index=1,#pins do
         local pin = rawget(pins,index)
         local cost = pinBytes(pin)
         if not cost then return end
@@ -56,6 +53,19 @@ local function pins()
 end
 function Preferences:Initialize() pins() end
 function Preferences:GetPins() return pins() end
+function Preferences:GetRecent()
+    local saved=I.CharacterStore:Palette()
+    if type(saved.recent)~="table" then saved.recent={} end
+    return saved.recent
+end
+function Preferences:TouchRecent(item)
+    if not self:CanPin(item) then return false end
+    local refs,ref=self:GetRecent(),item.ref
+    for index=#refs,1,-1 do if matches(refs[index],ref) then table.remove(refs,index) end end
+    table.insert(refs,1,{providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID})
+    while #refs>8 do refs[#refs]=nil end
+    return true
+end
 function Preferences:GetRecoveryError() pins(); return recovery end
 function Preferences:CanPin(item)
     return item and item.ref

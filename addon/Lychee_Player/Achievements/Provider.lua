@@ -341,6 +341,7 @@ M.query=function(request,reply)
     local terms=N:Terms(query)
     local numericID=tonumber(query)
     local selected,position={},1
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local limit=math.min(50,tonumber(request.limit) or 50)
     local timer,cancelled,result,records
     local function cancel()
@@ -368,6 +369,7 @@ M.query=function(request,reply)
                 end
                 if match then
                     local rank=(numericID==id or query==title) and 3 or (query~="" and title:find(query,1,true)==1 and 2 or 1)
+                    if ranker then rank=ranker("achievement:"..id,rank==3 and 1 or rank==2 and 0.90 or 0.74) end
                     local at=#selected+1
                     for i,item in ipairs(selected) do if rank>item.rank or (rank==item.rank and id<item.id) then at=i;break end end
                     if at<=limit then

@@ -70,6 +70,7 @@ function M:Query(request,reply,context)
     local awaiting,scanning,closed,loadedDuringScan=0,false,false,false
     local eventToken,deadline,task
     local limit=math.max(1,math.min(20,request.limit or 20))
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local function dispose()
         closed=true;selected,pending,fields,scratch,aliases=nil,nil,nil,nil,nil
         if eventToken then eventToken:Cancel();eventToken=nil end
@@ -92,6 +93,7 @@ function M:Query(request,reply,context)
     local function add(enemy,dungeon,rank,spellID)
         if not rank then return end
         local key=dungeon.id.."/"..enemy.id..(spellID and "/"..spellID or "")
+        if ranker and rank<=1 then rank=ranker(key,rank) end
         local at=#selected+1
         for index,row in ipairs(selected) do
             if rank>row.rank or rank==row.rank and key<row.key then at=index;break end
@@ -135,6 +137,7 @@ function M:Query(request,reply,context)
             local base=#fields
             local rank=query=="" and 0 or N:ScoreCompiled(query,fields,terms,false)
             local best,bestSpell=rank,nil
+            local bestRank=ranker and ranker(dungeon.id.."/"..enemy.id,rank) or rank
             if scanSkills then for spellText in enemy.spellIDs:gmatch("%d+") do
                 local spellID=tonumber(spellText)
                 if not numeric or numeric==spellID then
@@ -146,7 +149,8 @@ function M:Query(request,reply,context)
                     end
                     field("alias",name);field("alias",spellText)
                     local score=query~="" and N:ScoreCompiled(query,fields,terms,false) or nil
-                    if score and (not best or score>best) then best,bestSpell=score,spellID end
+                    local weighted=score and (ranker and ranker(dungeon.id.."/"..enemy.id.."/"..spellID,score) or score)
+                    if weighted and (not bestRank or weighted>bestRank) then best,bestSpell,bestRank=score,spellID,weighted end
                     for i=#fields,base+1,-1 do fields[i]=nil end
                 end
                 checkpoint()

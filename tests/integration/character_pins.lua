@@ -3,7 +3,7 @@ LycheeInternal={Providers={CanRemember=function() return true end}}
 local legacy={providerID="spells",entryID="portal"}
 LycheeDB={palette={pinned={legacy},reduceMotion=true}}
 LycheeCharacterDB=nil
-dofile("addon/Lychee/Core/CharacterStore.lua");dofile("addon/Lychee/Core/UserPreferences.lua")
+dofile("addon/Lychee/Core/CharacterStore.lua");dofile("addon/Lychee/Core/Boundary.lua");dofile("addon/Lychee/Core/UserPreferences.lua")
 local P=LycheeInternal.UserPreferences
 assert(#P:GetPins()==0,"new character must not inherit the account's mage portal pin")
 assert(#P:GetPins()==0,"account pins are never used")

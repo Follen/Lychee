@@ -110,6 +110,28 @@ local function query(input)
     for _,item in ipairs(result or initial) do out[#out+1]=assert(I.Providers.entries[M.id].dynamic[item.id]) end
     return out
 end
+
+do
+    -- Choose a late monster's SECOND skill; it must survive both per-monster
+    -- representative selection and the global twenty-candidate limit.
+    local target
+    for _,did in ipairs(M.dungeonIDs) do
+        M:ScanDungeon(did,function(enemy,dungeon)
+            local _,second=enemy.spellIDs:match("^(%d+),(%d+)")
+            if not second then
+                local count=0
+                for spell in enemy.spellIDs:gmatch('%d+') do count=count+1;if count==2 then second=spell;break end end
+            end
+            if second and second~='1287798' then target=dungeon.id..'/'..enemy.id..'/'..second end
+        end,{})
+    end
+    assert(target)
+    local resources=I.Resources:Create(function()return true end,function(code)error(code)end)
+    local ranked
+    M:Query({normalized='ability',limit=20,ranking={[target]=30}},function(rows)ranked=rows end,{resources=resources})
+    drain();I.Resources:Close(resources,'complete')
+    assert(ranked and #ranked==20 and ranked[1].id==target,'LDT preferred skill survives representative and TopK truncation')
+end
 do
     local function equal(a,b,path)
         assert(type(a)==type(b),"transcript type "..path)

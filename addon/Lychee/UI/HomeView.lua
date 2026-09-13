@@ -29,11 +29,6 @@ end
 local function cropIcon(texture)
     if texture and type(texture.SetTexCoord) == "function" then texture:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
 end
-local function recentRefs()
-    local db = I.CharacterStore:Palette()
-    db.recent = type(db.recent) == "table" and db.recent or {}
-    return db.recent
-end
 
 function HomeView:Create(parent, controller)
     local frame = CreateFrame("ScrollFrame", nil, parent)
@@ -424,19 +419,7 @@ function HomeView:GetContentHeight() return self.content:GetHeight() end
 function HomeView:EnsureSavedCapacity()
     if InCombatLockdown and InCombatLockdown() then return false end
     local pins = I.UserPreferences and I.UserPreferences:GetPins() or {}
-    self:EnsureCapacity(HOME_HEADER_COUNT, math.max(1, #pins) + math.max(1, #recentRefs()) + 5)
-    return true
-end
-
-function HomeView:TouchRecent(item)
-    if not item or not item.ref or not I.Providers or not I.Providers:CanRemember(item) then return false end
-    local refs, ref = recentRefs(), item.ref
-    for index = #refs, 1, -1 do
-        if refs[index].providerID == ref.providerID and refs[index].entryID == ref.entryID then table.remove(refs, index) end
-    end
-    table.insert(refs, 1, { providerID = ref.providerID, entryID = ref.entryID, sourceID = ref.sourceID })
-    while #refs > 8 do refs[#refs] = nil end
-    self:Invalidate()
+    self:EnsureCapacity(HOME_HEADER_COUNT, math.max(1, #pins) + math.max(1, #I.UserPreferences:GetRecent()) + 5)
     return true
 end
 
@@ -452,7 +435,7 @@ local function restore(self, allowExpand)
         end
     end
     local query = I.Search.Query
-    local items = query and query:ResolveRecent(recentRefs(), RECENT_LIMIT) or {}
+    local items = query and query:ResolveRecent(I.UserPreferences:GetRecent(), RECENT_LIMIT) or {}
     for index = 1, #items do
         local item = items[index]
         sections[#sections + 1] = { id = "saved:" .. item.ref.providerID .. ":" .. item.id, groupID = "recent",

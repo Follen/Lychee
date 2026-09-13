@@ -24,6 +24,8 @@ setmetatable(SDK.Normalizer,{__index=function(_,key)
 end})
 function SDK.CreateCatalog(options) return I.CatalogFactory:Create(options) end
 function SDK.Score(request,entries,scope) return I.CatalogFactory:Score(request,entries,scope) end
+function SDK.CreateRanker(request) return I.CatalogFactory:CreateRanker(request) end
+function SDK.SortHits(request,hits,limit) return I.CatalogFactory:SortHits(request,hits,limit) end
 function SDK.CompileLocales(resources) return I.ProviderLocales:Compile(resources) end
 for name,fn in pairs(I.Search.Normalizer) do
     if type(fn)=="function" then

@@ -301,7 +301,7 @@ function Palette:MarkHomeDirty()
 end
 
 function Palette:TouchRecent(item)
-    if not self.homeView or not self.homeView:TouchRecent(item) then return false end
+    if not I.UserPreferences:TouchRecent(item) then return false end
     if I.Search.Personalization and self.input and not self.settingsOpen then
         I.Search.Personalization:Remember(self.input:GetText(), item)
     end

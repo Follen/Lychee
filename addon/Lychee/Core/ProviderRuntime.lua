@@ -7,15 +7,8 @@ local catalogReplies, catalogToken = {}, {}
 local weakRecords = { __mode = "k" }
 local function resolvedRecords() return setmetatable({}, weakRecords) end
 
-local function copy(value)
-    if type(value) ~= "table" then return value end
-    local result = {}
-    for key, child in pairs(value) do result[key] = copy(child) end
-    return result
-end
-local function failure(code, field, owner)
-    return nil, { code = code, field = field, providerID = owner, retryable = false }
-end
+local copy=I.Boundary.CopyPlain
+local failure=I.Boundary.Failure
 local function publicQueryRequest(request)
     local result={}
     for key,value in pairs(request) do
@@ -25,7 +18,7 @@ local function publicQueryRequest(request)
                 if field~="excludedSources" and field~="policyVersion" then filter[field]=copy(setting) end
             end
             if next(filter) then result.filter=filter end
-        else result[key]=copy(value) end
+        elseif key~="_preferences" then result[key]=copy(value) end
     end
     return result
 end
@@ -41,16 +34,7 @@ local function keys(value, allowed, field)
     for key in pairs(value) do if not allowed[key] then return failure("INVALID_SCHEMA", field .. "." .. tostring(key)) end end
     return true
 end
-local function array(value, limit, field)
-    if type(value) ~= "table" then return failure("INVALID_SCHEMA", field) end
-    if #value > limit then return failure("RESULT_LIMIT", field) end
-    local count = 0
-    for key in pairs(value) do
-        if type(key) ~= "number" or key < 1 or key > #value or key ~= math.floor(key) then return failure("INVALID_SCHEMA", field) end
-        count = count + 1
-    end
-    return count == #value and true or failure("INVALID_SCHEMA", field)
-end
+local array=I.Boundary.Array
 
 local function records(entry,input,limit)
     local list,map=I.RecordCodec:Receive(entry,input,limit or P.queryLimit)
@@ -401,6 +385,7 @@ function P:Search(request, context, onChange)
     -- this boundary; a cancel callback may reenter and start an even newer query.
     local epoch = self:CancelQueries("query-replaced")
     if epoch ~= self.queryEpoch then return {} end
+    local preferences=request._preferences or (I.Search.Personalization and I.Search.Personalization:Snapshot(request))
     local output, collecting = {}, true
     local function gather()
         local result = {}
@@ -488,8 +473,11 @@ function P:Search(request, context, onChange)
             ok=false
         else
             local publicRequest=publicQueryRequest(request)
-            local preferred=I.Search.Personalization and I.Search.Personalization:Preferred(request)
-            if preferred and preferred.providerID==id then publicRequest.preferredEntryID=preferred.entryID end
+            local personal=preferences and preferences.providers[id]
+            if personal then
+                publicRequest.preferredEntryID=personal.preferredEntryID
+                publicRequest.ranking=copy(personal.ranking)
+            end
             ok,cancel=pcall(entry.definition.query,publicRequest,reply,queryContext)
         end
         if not ok then
@@ -531,8 +519,10 @@ function I.CatalogFactory:Deliver(reply,definition,hits)
     if not target then return nil,{code="STALE_REQUEST"} end
     local actual=target.entry.definition
     if definition.id~=actual.id then return false end
-    for _,field in ipairs({"scope","actions","drags","views"}) do
-        if not equal(definition[field],actual[field]) then return false end
+    if #hits>0 then
+        for _,field in ipairs({"scope","actions","drags","views"}) do
+            if not equal(definition[field],actual[field]) then return false end
+        end
     end
     return reply(hits,catalogToken)
 end

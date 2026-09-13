@@ -87,6 +87,7 @@ function P:Remember(query,item)
 end
 function P:ClearChoices() self:Data().choices={} end
 function P:Preferred(request)
+    if request._preferences then return request._preferences.choice end
     local product,locale=identity()
     for _,choice in ipairs(self:Data().choices) do
         if choice.product==product and choice.locale==locale and choice.query==(request.preferenceKey or request.normalized) then
@@ -94,19 +95,31 @@ function P:Preferred(request)
         end
     end
 end
-function P:Promote(results,request)
-    local preferred=self:Preferred(request)
-    if not preferred then return end
-    for index,item in ipairs(results) do
-        if same(preferred,item.ref) then
-            if index>1 then table.remove(results,index);table.insert(results,1,item) end
-            return
-        end
+function P:Snapshot(request)
+    local snapshot={providers={},choice=copyRef(self:Preferred(request))}
+    local function add(ref,weight)
+        if type(ref)~="table" or not validString(ref.providerID,64) or not validString(ref.entryID,128)
+            or not ref.entryID:match("^[A-Za-z0-9][A-Za-z0-9%._:/%-]*$") then return end
+        local row=snapshot.providers[ref.providerID]
+        if not row then row={ranking={}};snapshot.providers[ref.providerID]=row end
+        if weight==0 then row.preferredEntryID=ref.entryID
+        else row.ranking[ref.entryID]=math.min(38,(row.ranking[ref.entryID] or 0)+weight) end
     end
+    if I.UserPreferences then
+        for _,ref in ipairs(I.UserPreferences:GetPins()) do add(ref,30) end
+        local recent=I.UserPreferences:GetRecent()
+        for index=1,8 do add(recent[index],9-index) end
+    end
+    add(snapshot.choice,0)
+    return snapshot
 end
-local function aliasLess(left,right,scores,preferred)
-    local lp,rp=same(left.ref,preferred),same(right.ref,preferred)
-    if lp~=rp then return lp end
+function P:Rank(request,ref,confidence)
+    local row=request._preferences.providers[ref.providerID]
+    return I.CatalogFactory:RankValue(row and row.preferredEntryID,row and row.ranking,ref.entryID,confidence)
+end
+local function aliasLess(left,right,scores,request)
+    local lr,rr=P:Rank(request,left.ref,scores[left]),P:Rank(request,right.ref,scores[right])
+    if lr~=rr then return lr>rr end
     if scores[left]~=scores[right] then return scores[left]>scores[right] end
     local a,b=left.ref,right.ref
     if a.providerID~=b.providerID then return a.providerID<b.providerID end
@@ -118,7 +131,6 @@ function P:AddAliases(results,request,context)
     local candidates,scores={},{}
     local filter=type(request.filter)=="table" and request.filter or nil
     for _,row in ipairs(self:Aliases()) do
-        local provider=I.Providers and I.Providers.entries[row.ref.providerID]
         if row.product==product
             and not (filter and filter.excludedSources and filter.excludedSources[row.ref.providerID..":records"])
             and (not filter or not filter.sourceID or filter.sourceID==row.ref.providerID..":records") then
@@ -130,8 +142,7 @@ function P:AddAliases(results,request,context)
     end
     -- Rank the bounded declaration set before resolving records. Missing,
     -- disabled or filtered references must not consume visible result slots.
-    local preferred=self:Preferred(request)
-    table.sort(candidates,function(left,right) return aliasLess(left,right,scores,preferred) end)
+    table.sort(candidates,function(left,right) return aliasLess(left,right,scores,request) end)
     local resolved=0
     for _,row in ipairs(candidates) do
         if resolved>=request.limit then break end

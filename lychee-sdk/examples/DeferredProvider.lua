@@ -11,15 +11,26 @@ return function(SDK, providerID, entries, onOpen)
         i18n={enUS={TITLE="Deferred catalog",OPEN="Open"},zhCN={TITLE="延迟目录",OPEN="打开"}},
         actions={open={title={key="OPEN"},run=onOpen}},
         query=function(request,reply)
+            local rank=assert(SDK.SDK.CreateRanker(request))
             local timer=C_Timer.NewTimer(0.1,function()
-                local results={}
+                local results,weights={},{}
                 for _, entry in ipairs(entries) do
-                    if type(entry.title)=="string" and entry.title:lower():find(request.raw:lower(),1,true) then
-                        results[#results+1]=entry
-                        if #results>=request.limit then break end
+                    local match=SDK.SDK.Normalizer:MatchRecord(request.normalized,entry)
+                    if match then
+                        local value=rank(entry.id,match.confidence)
+                        local at=#results+1
+                        for index,hit in ipairs(results) do
+                            if value>weights[index] or value==weights[index] and
+                                (match.confidence>hit.confidence or match.confidence==hit.confidence and entry.id<hit.entry.id) then at=index;break end
+                        end
+                        if at<=request.limit then
+                            table.insert(results,at,{entry=entry,confidence=match.confidence,evidence=match})
+                            table.insert(weights,at,value)
+                            if #results>request.limit then results[#results]=nil;weights[#weights]=nil end
+                        end
                     end
                 end
-                reply(assert(SDK.SDK.Score(request,results)))
+                reply(results)
             end)
             return function() timer:Cancel() end
         end,

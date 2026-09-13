@@ -2,24 +2,7 @@ local I = _G.LycheeInternal
 I.Search = I.Search or {}
 
 local Index = {
-    sources = {},
     entries = {},
-    exact = {},
-    prefix = {},
-    tokens = {},
-    grams = {},
-    categories = {},
-    version = 0,
-    sourceGeneration = 0,
-    candidateLimit = 200,
-    resultLimit = 20,
-    fuzzyLimit = 48,
-    fuzzyBudgetMS = 1.5,
-    diagnostics = {},
-    previousQuery = nil,
-    previousCandidates = nil,
-    previousFilterKey = nil,
-    listeners = {},
 }
 I.Search.StaticIndex = Index
 
@@ -72,22 +55,15 @@ local function grams(text)
     return out
 end
 
-local function categoryID(record)
-    local category = record and record.category
-    if type(category) == "table" then return category.id end
-    return category
-end
-
-local function categoryOrder(record)
-    return type(record and record.category) == "table" and tonumber(record.category.order) or 0
-end
-
 local function addText(entry, field, value, scope)
     I.Search.Normalizer:AppendFields(entry.fields, field, value, scope)
 end
 
 local function buildEntry(source, record)
     local key = source.id .. ":" .. record.id
+    local category=record.category
+    local categoryKey=category
+    if type(category)=="table" then categoryKey=category.id end
     local entry = {
         key = key,
         sourceID = source.id,
@@ -95,15 +71,14 @@ local function buildEntry(source, record)
         record = record,
         stableID = (source.extensionID or source.id) .. ":" .. record.id,
         fields = {},
-        categoryID = categoryID(record),
-        categoryOrder = categoryOrder(record),
+        categoryID = categoryKey,
+        categoryOrder = type(category)=="table" and tonumber(category.order) or 0,
     }
     if not source.enabled or source.searchable==false then entry.fields = nil; return entry end
     addText(entry, "title", record.title, record.scope or source.scope)
     addText(entry, "alias", record.aliases, record.scope or source.scope)
     addText(entry, "keyword", record.keywords, record.scope or source.scope)
     addText(entry, "description", record.description, record.scope or source.scope)
-    local category = record.category
     addText(entry, "category", type(category) == "table" and (category.title or category.id) or category, record.scope or source.scope)
     return entry
 end
@@ -181,17 +156,12 @@ local function diagnose(self, code)
     self.diagnostics[code] = (self.diagnostics[code] or 0) + 1
 end
 
-local function validateSourceDescriptor(descriptor)
-    return type(descriptor) == "table" and type(descriptor.id) == "string" and descriptor.id ~= ""
-end
-
 function Index:New()
-    local value = {version=0,sourceGeneration=0}
+    local value = {version=0,sourceGeneration=0,candidateLimit=200,resultLimit=20,fuzzyLimit=48,fuzzyBudgetMS=1.5}
     value.sources, value.entries = {}, {}
     value.exact, value.prefix, value.tokens, value.grams, value.categories = {}, {}, {}, {}, {}
     value.diagnostics = {}
     value.listeners = {}
-    value.previousQuery, value.previousCandidates, value.previousFilterKey = nil, nil, nil
     return setmetatable(value, { __index = self })
 end
 
@@ -213,7 +183,7 @@ function Index:Clear()
 end
 
 function Index:RegisterSource(descriptor)
-    if not validateSourceDescriptor(descriptor) then return nil, "INVALID_SCHEMA" end
+    if type(descriptor)~="table" or type(descriptor.id)~="string" or descriptor.id=="" then return nil,"INVALID_SCHEMA" end
     if self.sources[descriptor.id] then return nil, "DUPLICATE_ID" end
     self.sourceGeneration = self.sourceGeneration + 1
     local source = {
@@ -452,6 +422,8 @@ end
 
 local function resultLess(left, right)
     if left.preferred ~= right.preferred then return left.preferred==true end
+    local lr,rr=left.rank or left.confidence,right.rank or right.confidence
+    if lr~=rr then return lr>rr end
     if left.confidence ~= right.confidence then return left.confidence > right.confidence end
     local le,re=left.entry,right.entry
     local lp,rp=le and le.source.priority or left.sourcePriority,re and re.source.priority or right.sourcePriority
@@ -461,7 +433,7 @@ local function resultLess(left, right)
     return (le and le.stableID or left.stableID) < (re and re.stableID or right.stableID)
 end
 
-function Index:Search(query, limit, filter, compact, preferredKey)
+function Index:Search(query, limit, filter, compact, preferredKey, weights)
     local normalized = I.Search.Normalizer:Normalize(query)
     if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
@@ -494,10 +466,12 @@ function Index:Search(query, limit, filter, compact, preferredKey)
                 local co=ce and ce.categoryOrder or (candidate and candidate.categoryOrder)
                 local cs=ce and ce.stableID or (candidate and candidate.stableID)
                 local preferred=entry.key==preferredKey
-                local wins = not candidate or preferred and not candidate.preferred or preferred==candidate.preferred and (bestScore > candidate.confidence
-                    or bestScore == candidate.confidence and (entry.source.priority > cp
+                local rank=weights and I.CatalogFactory:RankValue(nil,weights,entry.record.id,bestScore) or bestScore
+                local candidateRank=candidate and (candidate.rank or candidate.confidence)
+                local wins = not candidate or preferred and not candidate.preferred or preferred==candidate.preferred and (rank > candidateRank
+                    or rank == candidateRank and (bestScore>candidate.confidence or bestScore==candidate.confidence and (entry.source.priority > cp
                     or entry.source.priority == cp and (entry.categoryOrder < co
-                    or entry.categoryOrder == co and entry.stableID < cs)))
+                    or entry.categoryOrder == co and entry.stableID < cs))))
                 if wins then
                     local result, position = previous, #out + 1
                     if previous then
@@ -520,6 +494,7 @@ function Index:Search(query, limit, filter, compact, preferredKey)
                         result.stableID = entry.stableID
                     end
                     result.confidence = bestScore
+                    result.rank=rank
                     result.preferred=preferred
                     local evidence = compact=="transfer" and result or result.evidence
                     evidence.matchedField, evidence.matchedText, evidence.matchType = bestField, bestText, bestType

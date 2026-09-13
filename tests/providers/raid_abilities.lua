@@ -59,6 +59,18 @@ end
 local function find(rows,boss,spell)
  for _,r in ipairs(rows)do if r.payload and r.payload.encounterID==boss and r.payload.spellID==spell then return r end end
 end
+do
+ local data=TestPackages.namespaces.Lychee_Encounters.Modules.JournalCatalog
+ local saved=data.abilities[11]
+ local encoded={}
+ for spell=201,240 do encoded[#encoded+1]=spell..':'..(spell+1000)..':96' end
+ data.abilities[11]=table.concat(encoded,';')
+ local resources=I.Resources:Create(function()return true end,function(code)error(code)end)
+ local ranked
+ m:Query({normalized='ability',limit=20,ranking={['boss-11-spell-240-14']=30,['boss-11-spell-239-14']=8}},function(rows)ranked=rows end,{resources=resources})
+ drain();I.Resources:Close(resources,'complete');data.abilities[11]=saved
+ assert(ranked and #ranked==20 and ranked[1].id=='boss-11-spell-240-14' and ranked[2].id=='boss-11-spell-239-14','raid preferences before skill truncation')
+end
 local list=query("Fire Nova")
 local a=assert(find(list,11,101));assert(a.payload.difficultyID==14 and a.payload.sectionID==1001)
 assert(find(list,11,103) and find(list,12,101),"same names do not erase separate spells/encounters")

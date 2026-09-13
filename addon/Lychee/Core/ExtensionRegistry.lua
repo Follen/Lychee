@@ -5,9 +5,7 @@ local Registry = {
 }
 I.Registry = Registry
 
-function Registry:ValidateBoundary(value, field)
-    return I.Boundary:Validate(value, field)
-end
+Registry.ValidateBoundary=I.Boundary.Validate
 function Registry:ValidateSchema(value, schema, field)
     return I.Boundary:ValidateSchema(value, schema, field)
 end
@@ -20,12 +18,7 @@ local descriptorCallbacks = {
 local function failure(code, field, extensionID)
     return { code=code, field=field, extensionID=extensionID, retryable=false }
 end
-local function copyValue(value)
-    if type(value) ~= "table" then return value end
-    local copy = {}
-    for key, child in pairs(value) do copy[key] = copyValue(child) end
-    return copy
-end
+local copyValue=I.Boundary.CopyPlain
 
 local function validID(value)
     return type(value)=="string" and #value<=64 and value:match("^[a-z0-9][a-z0-9%.%-]*$")~=nil

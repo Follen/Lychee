@@ -43,13 +43,6 @@ function S:Available(definition,product)
     end
     return true
 end
-local function less(a,b)
-    if a.confidence~=b.confidence then return a.confidence>b.confidence end
-    local ac=type(a.entry.category)=="table" and a.entry.category.order or 0
-    local bc=type(b.entry.category)=="table" and b.entry.category.order or 0
-    if ac~=bc then return ac<bc end
-    return a.entry.id<b.entry.id
-end
 function S:Register(definition)
     local metadata=I.Modules.Presentation[definition.id]
     definition.source,definition.description,definition.icon,definition.order=
@@ -85,9 +78,7 @@ function S:Register(definition)
             local seen={}
             for _,hit in ipairs(base) do seen[hit.entry.id]=true end
             for _,hit in ipairs(hits) do if not seen[hit.entry.id] then base[#base+1]=hit;seen[hit.entry.id]=true end end
-            table.sort(base,less)
-            while #base>256 do base[#base]=nil end
-            return reply(base)
+            return reply(assert(SDK.SortHits(request,base,256)))
         end,context)
     end
     if catalog or resolve then

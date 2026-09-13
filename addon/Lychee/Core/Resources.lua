@@ -6,7 +6,7 @@ local Methods = {}
 local meta = {__index=Methods, __metatable="Lychee resources"}
 local hub, subscriptions = nil, {}
 
-local function failure(code) return nil, {code=code, retryable=false} end
+local failure=I.Boundary.Failure
 local function keyOK(key)
     local ok = I.Boundary:Validate(key,"resource.key")
     return ok and type(key)=="string" and #key>0 and #key<=96
@@ -40,9 +40,11 @@ local function own(scope,key,cleanup)
     if not alive(state) then return failure("RESOURCE_CLOSED") end
     if type(key)~="string" or #key>160 or type(cleanup)~="function" then return failure("INVALID_SCHEMA") end
     local old=state.items[key]
-    if old then cancel(old,"replaced") end
-    if not alive(state) then return failure("RESOURCE_CLOSED") end
-    if state.items[key] then return failure("RESOURCE_REENTRANT") end
+    if old then
+        cancel(old,"replaced")
+        if not alive(state) then return failure("RESOURCE_CLOSED") end
+        if state.items[key] then return failure("RESOURCE_REENTRANT") end
+    end
     if state.root.count>=R.limit then return failure("RESOURCE_LIMIT") end
     local resource={owner=state,key=key,cleanup=cleanup}
     state.items[key]=resource;state.root.count=state.root.count+1

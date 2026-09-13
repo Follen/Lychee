@@ -18,6 +18,8 @@ SDK 1.0.0，Provider API 1.0.0，UI Runtime 1。协议以 [SDK](../lychee-sdk/do
 
 输入 → SearchSession 管理代次 → ProviderPolicy 解释入口与用户选择 → 各 Provider.query → 有界候选 → Host 校验/排序/渲染 → 当前身份下执行动作。
 
+Host 在每次查询入口冻结角色固定项、最近使用顺序和同词选择记忆，只把本来源的 ranking/preferredEntryID 发给 Provider。SDK Catalog 和动态来源的 CreateRanker 在候选截断前应用偏好，Host 最终用自己的快照重算排名；原始匹配证据不变。UserPreferences 负责固定和最近使用记录，首页消费这些有界引用；不保存次数/时间戳。规则与成本见[个性化排序设计](architecture/2026-09-13-personalized-ranking.md)。
+
 ProviderRuntime 将候选与仍在等待的状态一起交付 Query；Query 的同步返回与异步通知保持相同进度语义，合并中的外部别名解析若重入发布，以更新的发布为准。SearchSession 通过 Palette:ApplySearchState 一次交付会话、查询代次、等待标志及结果，不再旁路读取 Provider 作业或直接修改界面字段。取消回调重入后，旧操作停止后续提交；筛选与来源刷新沿用同一发布路径。这是内部协作，不改变公开 SDK，也不把查询进度写入每条 ResultSnapshot。
 
 目录型 Provider 可以创建自己的 SDK Catalog，Update 原子提交具名普通记录；动态来源可独立查询。Host 不再接受全量 entries 注册或 handle:Update，不保存第二份完整业务目录。Catalog:Search 返回副本，Catalog:Query 可直接向当前回复交付已校验候选；后者仍对实际注册能力进行比较，未知能力回到完整公开校验。

@@ -142,6 +142,13 @@ for m=1,10 do
 end
 local start=os.clock();rows=query("eui:Setting 10 100");local warmMS=(os.clock()-start)*1000
 assert(rows[1].title=="Setting 10 100")
+do
+    local first=rows[1].id
+    local second=query("eui:Setting 10 99")[1].id
+    local ranked
+    managedQuery({normalized="setting",limit=20,ranking={[first]=30,[second]=8},filter={sourceID=M.id..":records"}},function(result)ranked=result end)
+    drain();assert(#ranked==20 and ranked[1].id==first and ranked[2].id==second,"EUI preferences before 1000-page truncation")
+end
 collectgarbage("collect");local base=collectgarbage("count")
 collectgarbage("stop")
 for i=1,20 do query("eui:Setting 10 100") end

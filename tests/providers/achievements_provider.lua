@@ -102,6 +102,11 @@ print(string.format("Achievement query20 allocated_KiB=%.1f retained_growth_KiB=
 assert(#result==1 and result[1].payload.achievementID==6001 and result[1].subtitle:find("25/100",1,true))
 assert(#query("测试 成就6002")==1,"multiple search terms")
 assert(#query("成就")==50,"broad result count is bounded")
+do
+    local ranked
+    M.query({normalized="测试",limit=20,ranking={["achievement:6002"]=30,["achievement:6001"]=8}},function(rows)ranked=rows end)
+    drain();assert(#ranked==20 and ranked[1].id=="achievement:6002" and ranked[2].id=="achievement:6001","achievement preferences before 6002-record truncation")
+end
 local hostResults
 I.Providers:Search({normalized="6001",limit=50,filter={sourceID=M.id..":records"}},{},function(v) hostResults=v end)
 drain();assert(hostResults and #hostResults==1 and hostResults[1].text=="测试成就6001","real Host dynamic search")
