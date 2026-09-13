@@ -70,11 +70,10 @@ function Social:Create(owner,controller)
         button.frame:SetPoint("LEFT",bar,"LEFT",(index-1)*36,0)
         local icon=button.frame:CreateTexture(nil,"ARTWORK");icon:SetSize(18,18);icon:SetPoint("CENTER")
         icon:SetTexture(media..entry.icon..".tga");button.feedbackIcon=icon;UI.Theme:SetVertexColor(icon,"textMuted")
-        button.frame:HookScript("OnEnter",function(self) if not view.active then UI.ResultList:ShowTextTooltip(entry.title,self) end end)
-        button.frame:HookScript("OnLeave",function() UI.Theme:SetVertexColor(icon,"textMuted");UI.ResultList:HideTooltip() end)
+        button.frame:HookScript("OnLeave",function() UI.Theme:SetVertexColor(icon,"textMuted") end)
         view.buttons[index]=button
     end
-    owner:HookScript("OnHide",function() view:Close();bar:Hide();UI.ResultList:HideTooltip() end)
+    owner:HookScript("OnHide",function() view:Close();bar:Hide() end)
     function view:Show()
         for _,button in ipairs(self.buttons) do UI.Theme:SetVertexColor(button.feedbackIcon,"textMuted") end
         bar:SetScale(controller.frame:GetEffectiveScale()/UIParent:GetEffectiveScale())
