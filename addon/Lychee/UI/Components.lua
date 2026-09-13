@@ -393,7 +393,7 @@ local function tooltipLine(tip, index, text, y, gap)
         label:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
         label._y = y
     end
-    return y + math.max(label:GetStringHeight(), index == 1 and 20 or 16)
+    return y + math.max(label:GetStringHeight(), index == 1 and 22 or index == 3 and 18 or 14)
 end
 
 local function scoreTable(tip, rows, y, headers)
@@ -436,8 +436,8 @@ function Components:ShowTooltip(owner, content)
         tip:SetScript("OnHide", Components.HideTooltip)
         tip.labels = {}
         for index = 1, 5 do
-            local label = tooltipLabel(tip, index == 1 and "title" or index == 3 and "body" or "meta",
-                index == 1 and "text" or index == 4 and "accentHover" or index == 3 and "textMuted" or "textDim")
+            local label = tooltipLabel(tip, index == 1 and "tooltipTitle" or index == 3 and "body" or "tooltipMeta",
+                index == 1 and "text" or index == 4 and "tooltipAccent" or index == 3 and "textMuted" or "textDim")
             label:SetJustifyH("LEFT")
             label:SetWordWrap(true)
             if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
@@ -476,11 +476,11 @@ function Components:ShowTooltip(owner, content)
         tip._width=width
     end
     local y = tooltipLine(tip, 1, title, 14)
-    y = tooltipLine(tip, 2, kind, y, 4)
+    y = tooltipLine(tip, 2, kind, y, 2)
     local top=y
     local label=tip.labels[3]
     if tip.reading then label:SetParent(tip);label:SetWidth(width-28);label._y=nil;tip.reading:Hide() end
-    y = tooltipLine(tip, 3, wide and "" or description, y, 10)
+    y = tooltipLine(tip, 3, wide and "" or description, y, 12)
     local limit=content.scrollable and math.max(60,math.min(240,UIParent:GetHeight()/scale-160))
     if content.scrollable and y-top>limit then
         local reading=tip.reading
@@ -489,16 +489,16 @@ function Components:ShowTooltip(owner, content)
             reading.body=CreateFrame("Frame",nil,reading);reading:SetScrollChild(reading.body)
             reading.bar=Components:CreateScrollbar(reading,function(value) reading:SetVerticalScroll(value) end)
         end
-        reading:ClearAllPoints();reading:SetPoint("TOPLEFT",tip,"TOPLEFT",14,-top-10);reading:SetSize(width-28,limit)
+        reading:ClearAllPoints();reading:SetPoint("TOPLEFT",tip,"TOPLEFT",14,-top-12);reading:SetSize(width-28,limit)
         label:SetParent(reading.body);label:ClearAllPoints();label:SetPoint("TOPLEFT");label:SetWidth(width-42);label._y=nil
         local height=label:GetStringHeight();reading.body:SetSize(width-42,height)
         reading:SetVerticalScroll(0);reading.bar:SetRange(height,limit,0);reading:Show()
-        y=top+10+limit
+        y=top+12+limit
     end
     if wide then y=scoreTable(tip,scoreRows,y+14,content.headers)
     elseif tip.scoreLabels then scoreTable(tip,nil,y) end
     y = tooltipLine(tip, 4, clickHint, y, 12)
-    y = tooltipLine(tip, 5, dragHint, y, clickHint and clickHint ~= "" and 4 or 12)
+    y = tooltipLine(tip, 5, dragHint, y, clickHint and clickHint ~= "" and 2 or 12)
     if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
     tip:UpdatePosition()
     if not tip:IsShown() then

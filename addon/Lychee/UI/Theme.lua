@@ -27,6 +27,7 @@ Theme.Colors = {
     borderStrong = { 0.285, 0.290, 0.315, 1 },
     accent = { 0.835, 0.235, 0.285, 1 },
     accentHover = { 0.950, 0.350, 0.400, 1 },
+    tooltipAccent = { 0.780, 0.460, 0.500, 1 },
     transparent = { 0, 0, 0, 0 },
     accentMuted = { 0.440, 0.155, 0.185, 1 },
     text = { 0.940, 0.932, 0.910, 1 },
@@ -40,7 +41,7 @@ Theme.Colors = {
     tooltip = { 0.065, 0.065, 0.075, 1 },
 }
 
-Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11 }
+Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11, tooltipTitle = 16, tooltipMeta = 10 }
 
 -- Style our own regions once; never mutate shared GameFont/tooltip objects.
 function Theme:SetFont(region, role)
