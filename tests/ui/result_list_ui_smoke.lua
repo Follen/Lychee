@@ -118,10 +118,10 @@ dofile("addon/Lychee/UI/Components.lua")
 dofile("addon/Lychee/Core/InteractionBinding.lua")
 dofile("addon/Lychee/UI/ResultList.lua")
 
-local activatedRow, activatedAction, draggedRow
+local activatedRow, menuRow, draggedRow
 local controller = {
     ActivateRow = function(_, row) activatedRow = row end,
-    ActivateRowAction = function(_, row, actionID) activatedAction = { row, actionID } end,
+    ShowRowActions = function(_, row) menuRow = row end,
     BeginRowDrag = function(_, row) draggedRow = row end,
 }
 local parent = CreateFrame("Frame", nil, UIParent)
@@ -136,7 +136,7 @@ assert(list.gridColumns == 1 and list.frame:GetHeight() == 410, "result list use
 for index = 1, 8 do
     local row = list.rows[index]
     assert(row:GetHeight() == 46, "row height remains fixed")
-    assert(row.primaryTarget and row.secondary, "primary and secondary interaction targets are precreated")
+    assert(row.primaryTarget and not row.secondary, "row has one click target and no ellipsis shortcut")
     assert(not row:IsShown(), "new row starts cleared")
 end
 
@@ -195,9 +195,8 @@ assert(rowOne.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim and ro
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")
 assert(rowOne.dragger:IsShown() and rowOne.dragDescriptor.spellID == 393256, "drag area binds descriptor")
 assert(rowOne.primaryAction.id == "cast" and rowOne.primaryHint:GetText() == "", "primary action label stays out of the compact row")
-assert(rowOne.secondaryAction.id == "detail" and rowOne.secondary:IsShown(), "first non-primary action is exposed as secondary")
-assert(rowOne._categoryInset == 42, "visible secondary button keeps label clear")
-assert(rowTwo._categoryInset == 12, "label without visible secondary button matches icon inset")
+assert(not rowOne.secondary and not rowOne.secondaryAction, "multiple actions do not create a secondary shortcut")
+local categoryPoints = #rowOne.category.points
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
 assert(rowOne.bg._lycheeColorToken==Lychee.UI.Theme.Colors.surfaceSelected,"selected row uses the shared subtle fill")
@@ -207,6 +206,7 @@ assert(not rowOne.accent:IsShown() and rowTwo.accent:IsShown(), "only the hovere
 rowTwo.scripts.OnLeave(rowTwo)
 list:Move(-1)
 assert(list.selected == 1 and rowOne._selected and not rowTwo._selected, "keyboard movement uses the same selection")
+assert(#rowOne.category.points == categoryPoints, "hover and keyboard selection leave the source column fixed")
 
 rowOne.scripts.OnEnter(rowOne)
 list:Move(1)
@@ -289,9 +289,9 @@ rowOne.primaryTarget.scripts.OnLeave(rowOne.primaryTarget)
 assert(not tip:IsShown() and tip._owner == nil, "leave hides tooltip and releases owner")
 assert(tip.scripts.OnUpdate == nil, "leave stops cursor updates")
 list:Select(1)
-rowOne.secondary.scripts.OnMouseDown(rowOne.secondary,"LeftButton")
-rowOne.secondary.scripts.OnClick(rowOne.secondary)
-assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
+rowOne.primaryTarget.scripts.OnMouseDown(rowOne.primaryTarget,"RightButton")
+rowOne.primaryTarget.scripts.OnClick(rowOne.primaryTarget,"RightButton")
+assert(menuRow == rowOne, "right-click exposes the action menu for the same row")
 rowOne.dragger.scripts.OnMouseDown(rowOne.dragger,"LeftButton")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)
 assert(draggedRow == rowOne, "drag area delegates its owning row")
@@ -509,7 +509,7 @@ list:SetItems({{id="long-kind",text="首领名称",kindTitle="荔枝大米助手
 local sourceLabel=list.rows[1].category
 assert(sourceLabel:GetWidth()==160 and measures==0,"source column is ready before native font metrics exist")
 assert(sourceLabel:GetWidth()<=160,"source column cannot consume unbounded title space")
-assert(list.rows[1]._categoryInset==42,"selected secondary action remains outside source text")
+assert(not list.rows[1].secondary and list.rows[1].category.points[1][4]==-12,"multiple actions keep the source column at its fixed right inset")
 list:SetItems({{id="huge-kind",text="名称",kindTitle=string.rep("很长的来源",50)}},12,25)
 assert(list.rows[1].category:GetWidth()<=160 and list.rows[1].category.maxLines==1,"overlong source clips on one line")
 list:SetItems({{id="short-kind",text="名称",kindTitle="成就"}},12,26)

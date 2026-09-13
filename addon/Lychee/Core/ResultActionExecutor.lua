@@ -277,9 +277,6 @@ function Executor:PrepareVisibleRows(rows)
                         local targetLevel = target:GetFrameLevel()
                         if type(targetLevel) == "number" and button:GetFrameLevel() ~= targetLevel + 1 then button:SetFrameLevel(targetLevel + 1) end
                     end
-                    if row.secondary and row.secondary.SetFrameLevel and row.secondary:GetFrameLevel() ~= button:GetFrameLevel() + 1 then
-                        row.secondary:SetFrameLevel(button:GetFrameLevel() + 1)
-                    end
                     if row.dragger and row.dragger:IsShown() then row.dragger:Hide() end
                     if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then
                         row.primaryTarget:EnableMouse(false)

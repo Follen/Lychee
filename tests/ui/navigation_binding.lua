@@ -18,7 +18,8 @@ local function start()
 end
 local by=start()
 local function publish(item) assert(p:ApplyResults({item},p.generation,p.session)) end
-for _,field in ipairs({'primaryTarget','secondary'}) do
+do
+    local field='primaryTarget'
     publish(by.a)
     local button=p.list.rows[1][field];local before=calls
     button.scripts.OnMouseDown(button,'LeftButton')
@@ -27,6 +28,21 @@ for _,field in ipairs({'primaryTarget','secondary'}) do
     assert(calls==before,'rebound '..field..' must not execute B')
     button.scripts.OnMouseDown(button,'LeftButton');button.scripts.OnClick(button,'LeftButton')
     assert(calls==before+1 and last=='b','fresh '..field..' click remains usable')
+end
+do
+    by=start();publish(by.a)
+    local target=p.list.rows[1].primaryTarget
+    target.scripts.OnMouseDown(target,'RightButton');target.scripts.OnClick(target,'RightButton')
+    local secondary=p.actionMenu.buttons[2].frame;local before=calls
+    secondary.scripts.OnMouseDown(secondary,'LeftButton')
+    publish(by.b)
+    secondary.scripts.OnClick(secondary)
+    assert(calls==before,'rebound result cancels the old secondary menu action')
+    target.scripts.OnMouseDown(target,'RightButton');target.scripts.OnClick(target,'RightButton')
+    secondary=p.actionMenu.buttons[2].frame
+    secondary.scripts.OnMouseDown(secondary,'LeftButton');secondary.scripts.OnClick(secondary)
+    assert(calls==before+1 and last=='b','secondary action remains available through right-click')
+    by=start()
 end
 publish(by.a)
 local row=p.list.rows[1];local button=row.primaryTarget;local before=calls
@@ -126,7 +142,7 @@ assert(not p:OpenView({create=function() error('replace') end},{},{}))
 local target=assert(overlay(),'replacement failure restores physical secure target')
 target.scripts.OnMouseDown(target,'LeftButton');target.scripts.PreClick(target)
 assert(target.pendingCast);broker:ReleaseAll();p:Hide('test-end')
-print('Navigation/binding PASS: rebind/normal/hidden/reopen/home/secondary, page create+Mount failure, focus and cancellation')
+print('Navigation/binding PASS: rebind/normal/hidden/reopen/home/secondary menu, page create+Mount failure, focus and cancellation')
 
 -- View resize commits only for the current owner and cannot leak into a replacement.
 p:Show();p:SetQueryMode("")

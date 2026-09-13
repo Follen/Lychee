@@ -149,15 +149,6 @@ local function primaryAction(interaction)
     return actions[1]
 end
 
-local function secondaryAction(interaction)
-    local actions, primary = interaction and interaction.actions, primaryAction(interaction)
-    if type(actions) ~= "table" then return nil end
-    for index = 1, #actions do
-        local action = actions[index]
-        if action ~= primary then return action end
-    end
-end
-
 local function renderRowState(row)
     if Lychee.UI.Motion then
         setTextureColor(row.bg,"rowSelected")
@@ -166,13 +157,6 @@ local function renderRowState(row)
     else
         setTextureColor(row.bg,row._selected and "rowSelected" or "row")
         setShown(row.accent,row._selected==true)
-    end
-    local showSecondary = row.secondaryAction and row._selected or false
-    setShown(row.secondary, showSecondary)
-    local categoryInset = showSecondary and 42 or 12
-    if row.category and row._categoryInset ~= categoryInset then
-        row.category:SetPoint("RIGHT", row, "RIGHT", -categoryInset, 0)
-        row._categoryInset = categoryInset
     end
     setShown(row.dragHighlight, row._selected and row._dragHovered == true or false)
 end
@@ -188,7 +172,7 @@ local function clearRow(row)
         if row.accent then row.accent._lycheeSelectedMotion=nil end
     end
     row.item, row.index, row.session, row.generation, row.extensionID, row.stableID = nil, nil, nil, nil, nil, nil
-    row.primaryAction, row.secondaryAction, row.dragDescriptor = nil, nil, nil
+    row.primaryAction, row.dragDescriptor = nil, nil
     row._hovered, row._dragHovered, row._selected, row._pressed = false, false, false, false
     if row.textProps then
         row.textProps.title,row.textProps.subtext,row.textProps.category=nil,nil,nil
@@ -201,7 +185,6 @@ local function clearRow(row)
     cachedText(row, "primaryHint", row.primaryHint, "")
     if row._icon ~= nil and row.icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
     row._icon = nil
-    if row.secondary then row.secondary.actionID, row.secondary.action, row.secondary.tooltip = nil, nil, nil end
     setShown(row.icon, false); setShown(row.dragger, false); renderRowState(row); setShown(row, false)
 end
 
@@ -304,25 +287,9 @@ function ResultList:Create(parent, controller)
             {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT","category","LEFT",-14,0}}},bind={text="subtext"}},
         }})
         row.textProps={}
-        assert(row.ui:Update(EMPTY_UI_PROPS));row.category,row.title,row.subtext=row.ui:Get("category"),row.ui:Get("title"),row.ui:Get("subtext");row._categoryInset=12
+        assert(row.ui:Update(EMPTY_UI_PROPS));row.category,row.title,row.subtext=row.ui:Get("category"),row.ui:Get("title"),row.ui:Get("subtext")
         row.description = row.subtext
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
-
-        row.secondary = CreateFrame("Button", nil, row); row.secondary:SetSize(24, 24); row.secondary:SetPoint("RIGHT", row, "RIGHT", -9, 0); row.secondary:RegisterForClicks("LeftButtonUp")
-        row.secondary.bg = row.secondary:CreateTexture(nil, "BACKGROUND"); row.secondary.bg:SetAllPoints(); setTextureColor(row.secondary.bg, "action")
-        row.secondary.label = row.secondary:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.secondary.label:SetAllPoints(); row.secondary.label:SetJustifyH("CENTER"); setText(row.secondary.label, "..."); setTextColor(row.secondary.label, "text")
-        binding:Attach(row.secondary, row)
-        row.secondary:SetScript("OnClick", function(button)
-            if not binding:Consume(button, button:GetParent(), "LeftButton") then return end
-            local owner = button:GetParent()
-            local actions = owner.item and owner.item.interaction and owner.item.interaction.actions or {}
-            if #actions > 2 and self.controller and self.controller.ShowRowActions then self.controller:ShowRowActions(owner); return end
-            if actionEnabled(owner.secondaryAction) and self.controller then self.controller:ActivateRowAction(owner, owner.secondaryAction.id) end
-        end)
-        row.secondary:SetScript("OnEnter", function(button)
-            local owner = button:GetParent(); self:SetHover(owner, true); setTextureColor(button.bg, "actionHover"); showTooltip(button, actionLabel(owner.secondaryAction), owner.secondaryAction and owner.secondaryAction.description)
-        end)
-        row.secondary:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); setTextureColor(button.bg, "action"); hideTooltip() end)
 
         row:SetScript("OnClick", function(button) if not binding:Consume(button, button, "LeftButton") then return end; self:SelectRow(button); if self.controller then self.controller:ActivateRow(button) end end)
         row:SetScript("OnMouseDown", function(button, mouseButton) binding:Press(button, button, mouseButton); button._pressed = true; renderRowState(button) end)
@@ -399,10 +366,9 @@ function ResultList:SetItems(items, session, generation, offset)
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); cropIcon(row.icon); row._icon = icon end
         setShown(row.icon, icon ~= nil)
         local interaction = item.interaction
-        row.primaryAction, row.secondaryAction, row.dragDescriptor = primaryAction(interaction), secondaryAction(interaction), interaction and interaction.drag
+        row.primaryAction, row.dragDescriptor = primaryAction(interaction), interaction and interaction.drag
         if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then row.primaryTarget:EnableMouse(true) end
         cachedText(row, "primaryHint", row.primaryHint, "")
-        row.secondary.actionID, row.secondary.action, row.secondary.tooltip = row.secondaryAction and row.secondaryAction.id, row.secondaryAction, actionLabel(row.secondaryAction)
         setShown(row.dragger, row.dragDescriptor ~= nil)
         renderRowState(row); setShown(row, true)
         if changedIdentity and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(row.title,"feedback");Lychee.UI.Motion:Reveal(row.subtext,"feedback") end
