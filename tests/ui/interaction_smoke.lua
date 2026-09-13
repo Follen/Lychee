@@ -727,17 +727,23 @@ end
 assert(palette:Show())
 local fixtureTile = findEntry(palette.homeView.tiles, "fixture-item-12345")
 local menuEntries = {}
-MenuUtil = { CreateContextMenu=function(_, generator)
-    generator(nil, { CreateButton=function(_, title, callback)
-        local entry = {title=title,callback=callback}
-        menuEntries[#menuEntries+1] = entry
-        return {AddInitializer=function(_, initializer) entry.initializer = initializer end, SetOnEnter=function(_, fn) entry.onEnter=fn end, SetOnLeave=function(_, fn) entry.onLeave=fn end}
-    end })
-end }
+function GetCursorPosition() return 200,300 end
+function UIParent:GetHeight() return self.height end
+local showOwnedMenu=Lychee.UI.Components.ShowActionMenu
+function Lychee.UI.Components:ShowActionMenu(owner,generator)
+    local result=showOwnedMenu(self,owner,generator)
+    menuEntries={}
+    for index=1,result.count do
+        local button=result.buttons[index]
+        menuEntries[index]={title=button.label:GetText(),callback=button.callback}
+    end
+    return result
+end
+MenuUtil={CreateContextMenu=function() error("owned menus must bypass global native skins") end}
 fixtureTile.scripts.OnMouseDown(fixtureTile, "RightButton")
 fixtureTile.scripts.OnClick(fixtureTile, "RightButton")
 assertEq(#menuEntries, 4, "recent Provider entry exposes all actions, alias and pin")
-assert(fixtureTile.menuMixin and menuEntries[1].initializer, "recent action menu receives Lychee styling")
+assert(palette.actionMenu==Lychee.UI.Components.actionMenu, "recent actions use the owned shared menu")
 local originalMouseOver = palette.frame.IsMouseOver
 palette.frame.IsMouseOver = function() return false end
 palette.actionMenu = { IsShown=function() return true end, IsMouseOver=function() return true end }
@@ -1189,12 +1195,6 @@ do
     controller:Show();typeQuery("别名测试物品")
     local row=findEntry(controller.list.rows,"one")
     menuEntries={}
-    MenuUtil={CreateContextMenu=function(_,generator)
-        generator(nil,{CreateButton=function(_,title,callback)
-            menuEntries[#menuEntries+1]={title=title,callback=callback}
-            return {AddInitializer=function() end,SetOnEnter=function() end,SetOnLeave=function() end}
-        end})
-    end}
     controller:ShowRowActions(row)
     local aliasAction
     for _,entry in ipairs(menuEntries) do if entry.title=="设置别名" then aliasAction=entry end end

@@ -4,45 +4,19 @@ Lychee.UI = Lychee.UI or {}
 
 local Components = {}
 
-local function getTheme()
-    return Lychee.UI and Lychee.UI.Theme
-end
+local Theme = Lychee.UI.Theme
 
 local function setShown(region, shown)
     shown = shown == true
-    if region and type(region.IsShown) == "function" and region:IsShown() ~= shown then
+    if region and region:IsShown() ~= shown then
         region:SetShown(shown)
     end
 end
 
 local function setText(label, value)
     value = value or ""
-    if label and type(label.GetText) == "function" and label:GetText() == value then return false end
-    if label and type(label.SetText) == "function" then label:SetText(value); return true end
-    return false
-end
-
-local function setColorTexture(texture, token)
-    local theme = getTheme()
-    if theme and type(theme.SetColorTexture) == "function" then
-        return theme:SetColorTexture(texture, token)
-    end
-    return false
-end
-
-local function setTextColor(label, token)
-    local theme = getTheme()
-    if theme and type(theme.SetTextColor) == "function" then
-        return theme:SetTextColor(label, token)
-    end
-    return false
-end
-
-local function setTexture(texture, asset)
-    if not texture or type(texture.SetTexture) ~= "function" or texture._lycheeTextureAsset == asset then return false end
-    texture:SetTexture(asset)
-    texture._lycheeTextureAsset = asset
-    return true
+    if not label or label:GetText() == value then return false end
+    label:SetText(value); return true
 end
 
 local function anchorBand(frame, parent, top)
@@ -65,7 +39,7 @@ function Components:CreateBand(parent, options)
     local component = { frame = frame, bg = bg, _color = false }
     function component:SetColor(token)
         if self._color == token then return false end
-        local changed = setColorTexture(self.bg, token)
+        local changed = Theme:SetColorTexture(self.bg, token)
         self._color = token
         return changed
     end
@@ -82,7 +56,7 @@ function Components:CreateSurface(parent, options)
     local component = { frame = frame, bg = bg, _color = false }
     function component:SetColor(token)
         if self._color == token then return false end
-        local changed = setColorTexture(self.bg, token)
+        local changed = Theme:SetColorTexture(self.bg, token)
         self._color = token
         return changed
     end
@@ -91,14 +65,14 @@ function Components:CreateSurface(parent, options)
 end
 
 function Components:CreateToggle(parent)
-    local theme=getTheme();local metrics=theme.Metrics
+    local metrics=Theme.Metrics
     local frame=CreateFrame("Button",nil,parent)
     frame:SetSize(metrics.switchWidth,metrics.switchHeight)
-    theme:CreateRoundedSurface(frame,"switchOff",8)
+    Theme:CreateRoundedSurface(frame,"switchOff",8)
     frame.bg=CreateFrame("Frame",nil,frame);frame.bg:SetAllPoints(frame)
-    theme:CreateRoundedSurface(frame.bg,"accent",8)
+    Theme:CreateRoundedSurface(frame.bg,"accent",8)
     frame.knob=CreateFrame("Frame",nil,frame);frame.knob:SetSize(14,14)
-    theme:CreateRoundedSurface(frame.knob,"text",6.9)
+    Theme:CreateRoundedSurface(frame.knob,"text",6.9)
     -- Thumb must not inherit the accent overlay's fading alpha.
     if frame.knob.SetFrameLevel then frame.knob:SetFrameLevel(frame.bg:GetFrameLevel()+1) end
     function frame:SetChecked(checked,instant)
@@ -134,23 +108,23 @@ function Components:CreateBrand(parent, options)
     icon:SetSize(iconSize, iconSize)
     icon:SetPoint("LEFT", frame, "LEFT", 0, 0)
     if type(icon.SetTexCoord) == "function" then icon:SetTexCoord(0, 1, 0, 1) end
-    setTexture(icon, asset)
+    icon:SetTexture(asset)
 
     local label
     if options.label and options.label ~= "" then
         label = frame:CreateFontString(nil, "OVERLAY", options.font or "GameFontNormalLarge")
         label:SetPoint("LEFT", icon, "RIGHT", options.labelGap or 8, 0)
         setText(label, options.label)
-        setTextColor(label, options.textColor or "text")
+        Theme:SetTextColor(label, options.textColor or "text")
     end
 
     local component = { frame = frame, icon = icon, label = label, _texture = asset, _label = options.label }
     function component:SetTexture(asset)
         if self._texture == asset then return false end
         self:StopMotion()
-        local changed = setTexture(self.icon, asset)
+        self.icon:SetTexture(asset)
         self._texture = asset
-        return changed
+        return true
     end
     function component:SetLabel(value)
         if self._label == value then return false end
@@ -182,7 +156,7 @@ function Components:CreateButton(parent, options)
     local rounded
     if options.radius then
         bg:Hide()
-        rounded=getTheme():CreateRoundedSurface(frame,"transparent",options.radius)
+        rounded=Theme:CreateRoundedSurface(frame,"transparent",options.radius)
     end
     local label = frame:CreateFontString(nil, "OVERLAY", options.font or "GameFontNormal")
     label:SetAllPoints()
@@ -197,13 +171,14 @@ function Components:CreateButton(parent, options)
         local token = options.colors and options.colors[state]
         if not token then token = options.colors and options.colors.normal end
         if token then
-            if rounded then rounded:SetColor(token) else setColorTexture(self.bg, token) end
+            if rounded then rounded:SetColor(token) else Theme:SetColorTexture(self.bg, token) end
         end
         local textToken = options.textColors and options.textColors[state]
         if not textToken then textToken = options.textColors and options.textColors.normal end
-        if textToken then setTextColor(self.label, textToken) end
+        if textToken then Theme:SetTextColor(self.label, textToken) end
+        if self.icon and textToken then Theme:SetVertexColor(self.icon,textToken) end
         if self.strokes and textToken then
-            for index = 1, #self.strokes do setColorTexture(self.strokes[index], textToken) end
+            for index = 1, #self.strokes do Theme:SetColorTexture(self.strokes[index], textToken) end
         end
         self._state = state
         return true
@@ -284,12 +259,11 @@ end
 -- commit behavior. One surface and three event callbacks, created only once.
 function Components:StyleEditBox(input)
     if input._lycheeField then return input._lycheeField end
-    local theme=getTheme()
-    theme:CreateSurface(input,"field","fieldBorder")
+    Theme:CreateSurface(input,"field","fieldBorder")
     local style={focused=false,invalid=false}
     input._lycheeField=style
     function style:Apply()
-        theme:ApplySurface(input,"field",self.invalid and "danger" or self.focused and "accentHover" or "fieldBorder")
+        Theme:ApplySurface(input,"field",self.invalid and "danger" or self.focused and "accentHover" or "fieldBorder")
     end
     function style:SetInvalid(invalid)
         self.invalid=invalid==true;self:Apply()
@@ -309,7 +283,7 @@ function Components:CreateScrollbar(parent, onChanged)
     frame:EnableMouse(true)
     local thumb = frame:CreateTexture(nil, "ARTWORK")
     thumb:SetWidth(3)
-    setColorTexture(thumb, "accent")
+    Theme:SetColorTexture(thumb, "accent")
     local bar = { frame = frame, thumb = thumb, maximum = 0, value = 0, total = 0, viewport = 0 }
     function bar:StopDrag()
         if self.dragOffset == nil then return end
@@ -368,7 +342,7 @@ function Components:CreateStatus(parent, options)
     label:SetPoint("LEFT", parent, "LEFT", options.left or 16, 0)
     label:SetPoint("RIGHT", parent, "RIGHT", -(options.right or 16), 0)
     if label.SetJustifyH then label:SetJustifyH(options.justifyH or "LEFT") end
-    setTextColor(label, options.textColor or "textMuted")
+    Theme:SetTextColor(label, options.textColor or "textMuted")
     local component = { frame = label, label = label, _text = nil }
     function component:SetText(value)
         if self._text == value then return false end
@@ -386,13 +360,12 @@ function Components:CreateEmptyState(parent, options)
     frame:SetAllPoints(parent)
     local title = frame:CreateFontString(nil, "OVERLAY", options.titleFont or "GameFontNormalLarge")
     title:SetPoint("CENTER", frame, "CENTER", 0, options.titleY or 12)
-    setTextColor(title, options.titleColor or "text")
-    local theme = getTheme()
-    if theme then theme:SetFont(title, "title") end
+    Theme:SetTextColor(title, options.titleColor or "text")
+    Theme:SetFont(title, "title")
     local detail = frame:CreateFontString(nil, "OVERLAY", options.detailFont or "GameFontHighlightSmall")
     detail:SetPoint("TOP", title, "BOTTOM", 0, options.detailGap or -8)
-    setTextColor(detail, options.detailColor or "textMuted")
-    if theme then theme:SetFont(detail, "body") end
+    Theme:SetTextColor(detail, options.detailColor or "textMuted")
+    Theme:SetFont(detail, "body")
     local component = { frame = frame, title = title, detail = detail, _title = nil, _detail = nil }
     function component:SetTitle(value)
         if self._title == value then return false end
@@ -424,13 +397,12 @@ end
 
 local function acquireTooltip()
     if Components.tooltip then return Components.tooltip end
-    local theme = Lychee.UI.Theme
     local tip = CreateFrame("Frame", nil, UIParent)
     tip:SetWidth(280)
     tip:SetFrameStrata("TOOLTIP")
     tip:SetClampedToScreen(true)
     tip:EnableMouse(false)
-    theme:CreateRoundedSurface(tip, "tooltip", 8)
+    Theme:CreateRoundedSurface(tip, "tooltip", 8)
     tip.labels = {}
     for index = 1, 5 do
         local label = tip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -438,8 +410,8 @@ local function acquireTooltip()
         label:SetJustifyH("LEFT")
         label:SetWordWrap(true)
         if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
-        theme:SetFont(label, index == 1 and "title" or index == 2 and "meta" or "body")
-        theme:SetTextColor(label, index == 1 and "text" or "textMuted")
+        Theme:SetFont(label, index == 1 and "title" or index == 2 and "meta" or "body")
+        Theme:SetTextColor(label, index == 1 and "text" or "textMuted")
         tip.labels[index] = label
     end
     tip:Hide()
@@ -500,7 +472,7 @@ function Components:ShowTooltip(owner, content)
     if not owner or (InCombatLockdown and InCombatLockdown()) then return end
     local tip = acquireTooltip()
     local entering=not tip:IsShown()
-    local scale=Lychee.UI.Theme.scale or Lychee.UI.Theme.Metrics.uiScale
+    local scale=Theme.scale or Theme.Metrics.uiScale
     if tip._scale~=scale then tip:SetScale(scale);tip._scale=scale end
     if tip._owner ~= owner then
         tip:ClearAllPoints()
@@ -510,7 +482,7 @@ function Components:ShowTooltip(owner, content)
     end
     local title,kind,description,clickHint,dragHint,scoreRows=content.title,content.meta,content.description,content.hint,content.dragHint,content.rows
     local wide=type(scoreRows)=="table" and #scoreRows>0
-    local width=wide and 416 or 280
+    local width=wide and 416 or content.scrollable and 400 or 280
     if tip._width~=width then
         tip:SetWidth(width)
         for _,label in ipairs(tip.labels) do label:SetWidth(width-28) end
@@ -518,7 +490,24 @@ function Components:ShowTooltip(owner, content)
     end
     local y = tooltipLine(tip, 1, title, 14)
     y = tooltipLine(tip, 2, kind, y, 3)
+    local top=y
+    local label=tip.labels[3]
+    if tip.reading then label:SetParent(tip);label:SetWidth(width-28);label._y=nil;tip.reading:Hide() end
     y = tooltipLine(tip, 3, wide and "" or description, y, 10)
+    local limit=content.scrollable and math.max(60,math.min(240,UIParent:GetHeight()/scale-160))
+    if content.scrollable and y-top>limit then
+        local reading=tip.reading
+        if not reading then
+            reading=CreateFrame("ScrollFrame",nil,tip);tip.reading=reading
+            reading.body=CreateFrame("Frame",nil,reading);reading:SetScrollChild(reading.body)
+            reading.bar=Components:CreateScrollbar(reading,function(value) reading:SetVerticalScroll(value) end)
+        end
+        reading:ClearAllPoints();reading:SetPoint("TOPLEFT",tip,"TOPLEFT",14,-top-10);reading:SetSize(width-28,limit)
+        label:SetParent(reading.body);label:ClearAllPoints();label:SetPoint("TOPLEFT");label:SetWidth(width-42);label._y=nil
+        local height=label:GetStringHeight();reading.body:SetSize(width-42,height)
+        reading:SetVerticalScroll(0);reading.bar:SetRange(height,limit,0);reading:Show()
+        y=top+10+limit
+    end
     if wide then y=scoreTable(tip,scoreRows,y+14,content.headers)
     elseif tip.scoreLabels then scoreTable(tip,nil,y) end
     local hasActions = clickHint ~= nil or dragHint ~= nil
@@ -530,51 +519,72 @@ function Components:ShowTooltip(owner, content)
     if entering and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
 end
 
-local actionMenuInset = { left = 8, right = 8, top = 8, bottom = 8 }
-local actionMenuPadding = { width = 0, height = 0 }
-local actionMenuStyle = {}
-function actionMenuStyle:GetInset() return actionMenuInset end
-function actionMenuStyle:GetChildExtentPadding() return actionMenuPadding end
-function actionMenuStyle:Generate()
-    local theme=getTheme()
-    self:SetScale(theme.scale or theme.Metrics.uiScale)
-    theme:CreateRoundedSurface(self,"tooltip",8)
+function Components:ScrollTooltip(owner,delta)
+    local tip=self.tooltip
+    if not tip or tip._owner~=owner or not tip.reading or not tip.reading:IsShown() then return false end
+    tip.reading.bar:SetValue(tip.reading:GetVerticalScroll()-delta*24)
+    return true
 end
 
-local function initializeActionMenuButton(button)
-    local theme = getTheme()
-    local label = button.fontString
-    label:SetFont(STANDARD_TEXT_FONT, theme.FontSizes.body, "")
-    label:SetShadowOffset(0, 0)
-    label:SetTextColor(unpack(theme.Colors.text))
-    local width = math.max(168, math.min(280, label:GetStringWidth() + 28))
-    label:ClearAllPoints()
-    label:SetPoint("LEFT", button, "LEFT", 12, 0)
-    label:SetPoint("RIGHT", button, "RIGHT", -12, 0)
-    label:SetHeight(20)
-    label:SetJustifyH("LEFT")
-    label:SetWordWrap(false)
-    button.highlight:SetBlendMode("BLEND")
-    button.highlight:SetColorTexture(0, 0, 0, 0)
-    return width, 30
+-- Owned menus are deliberately outside Blizzard's globally reskinned menu pool.
+function Components:HideActionMenu()
+    local menu=self.actionMenu
+    if not menu or not menu.owner then return false end
+    menu.owner=nil;menu:Hide();menu:ClearAllPoints()
+    for _,button in ipairs(menu.buttons) do
+        button.callback=nil;button.pressed=nil;button.frame:Hide();button:SetText("")
+    end
+    return true
 end
 
-local function enterActionMenu(button)
-    button.fontString:SetTextColor(unpack(getTheme().Colors.accentHover))
-end
-
-local function leaveActionMenu(button)
-    button.fontString:SetTextColor(unpack(getTheme().Colors.text))
-end
-
-function Components:StyleActionMenuOwner(owner)
-    if owner.menuMixin ~= actionMenuStyle then owner.menuMixin = actionMenuStyle end
-end
-
-function Components:StyleActionMenuButton(description)
-    description:AddInitializer(initializeActionMenuButton)
-    description:SetOnEnter(enterActionMenu)
-    description:SetOnLeave(leaveActionMenu)
+function Components:ShowActionMenu(owner, generator)
+    if not owner or (InCombatLockdown and InCombatLockdown()) then return end
+    self:HideActionMenu();self:HideTooltip()
+    local menu=self.actionMenu
+    if not menu then
+        menu=CreateFrame("Frame",nil,UIParent);self.actionMenu=menu
+        menu:SetFrameStrata("FULLSCREEN_DIALOG");menu:SetClampedToScreen(true);menu:EnableMouse(true)
+        Theme:CreateRoundedSurface(menu,"tooltip",8)
+        menu.buttons={}
+        function menu:CreateButton(title,callback)
+            local index=self.count+1;assert(index<=18,"action menu capacity exceeded")
+            self.count=index
+            local button=self.buttons[index]
+            if not button then
+                button=Components:CreateNavigationButton(self,{width=168,height=30,text=""})
+                Theme:SetFont(button.label,"body")
+                button.label:ClearAllPoints();button.label:SetPoint("LEFT",12,0);button.label:SetPoint("RIGHT",-12,0)
+                button.label:SetJustifyH("LEFT");button.label:SetWordWrap(false)
+                local y=-8-(index-1)*30
+                button.frame:SetPoint("TOPLEFT",8,y);button.frame:SetPoint("TOPRIGHT",-8,y)
+                button.frame:HookScript("OnMouseDown",function(_,mouse) button.pressed=mouse=="LeftButton" and button.callback or nil end)
+                button.frame:SetScript("OnClick",function()
+                    local callback=button.callback
+                    if not callback or button.pressed~=callback or not self.owner or not self.owner:IsShown() then return end
+                    Components:HideActionMenu()
+                    if not (InCombatLockdown and InCombatLockdown()) then return callback() end
+                end)
+                self.buttons[index]=button
+            end
+            button.callback=callback;button:SetText(title);button.frame:Show();button:RefreshPointerState()
+            self.width=math.max(self.width,math.min(280,button.label:GetStringWidth()+24))
+            return button
+        end
+    end
+    menu.owner=owner;menu.count=0;menu.width=168
+    if not owner._lycheeMenuHook then
+        owner._lycheeMenuHook=true
+        owner:HookScript("OnHide",function() if menu.owner==owner then Components:HideActionMenu() end end)
+    end
+    generator(owner,menu)
+    if menu.count==0 then self:HideActionMenu();return end
+    local height=16+menu.count*30
+    menu:SetSize(menu.width+16,height)
+    menu:SetScale(math.min(Theme.scale or Theme.Metrics.uiScale,(UIParent:GetHeight()-32)/height))
+    local x,y=GetCursorPosition();local scale=menu:GetEffectiveScale()
+    menu:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x/scale,y/scale)
+    menu:Show()
+    return menu
 end
 
 Lychee.UI.Components = Components

@@ -133,6 +133,7 @@ print(string.format("UI motion PASS frames=%d groups=%d alpha2000_KiB=%.2f cpu_m
 LycheeInternal={Search={}}
 Lychee.UI.Theme={Metrics={rowHeight=46}}
 Lychee.UI.ResultList={HideTooltip=function() end}
+Lychee.UI.Components={HideActionMenu=function() return false end}
 dofile("addon/Lychee/Search/Normalizer.lua")
 local createFrameForMotion=CreateFrame
 CreateFrame=nil

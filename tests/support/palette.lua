@@ -21,6 +21,7 @@ local function object(kind, parent)
     local o = { kind = kind, parent = parent, shown = true, width = 800, height = 600, scripts = {}, attrs = {} }
     function o:SetMaxBytes(value) self.maxBytes=value end
     function o:GetScript(event) return self.scripts[event] end
+    function o:HookScript(key,fn) local old=self.scripts[key];self.scripts[key]=function(...) if old then old(...) end;fn(...) end end
     function o:SetJustifyV(value) self.justifyV=value end
     function o:SetWordWrap(value) self.wordWrap=value end
     function o:SetNonSpaceWrap(value) self.nonSpaceWrap=value end

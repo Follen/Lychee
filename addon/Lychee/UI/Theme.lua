@@ -7,17 +7,18 @@ Theme.MatchColorCode = "|cffff9aa2"
 
 -- Canonical tokens are immutable by convention. Their table identity is also
 -- used as the native-setter cache key, so callers should reference, not copy.
+local window = { 0.055, 0.055, 0.063, 1 }
 Theme.Colors = {
-    window = { 0.055, 0.055, 0.063, 1 },
-    header = { 0.055, 0.055, 0.063, 1 },
-    content = { 0.055, 0.055, 0.063, 1 },
-    footer = { 0.055, 0.055, 0.063, 1 },
-    surface = { 0.055, 0.055, 0.063, 1 },
+    window = window,
+    header = window,
+    content = window,
+    footer = window,
+    surface = window,
     surfaceHover = { 0.090, 0.090, 0.090, 1 },
     surfaceSelected = { 0.085, 0.085, 0.085, 1 },
-    input = { 0.055, 0.055, 0.063, 1 },
-    inputHover = { 0.055, 0.055, 0.063, 1 },
-    inputFocus = { 0.055, 0.055, 0.063, 1 },
+    input = window,
+    inputHover = window,
+    inputFocus = window,
     field = { 0.085, 0.085, 0.095, 1 },
     fieldBorder = { 0.400, 0.400, 0.420, 1 },
     action = { 0.075, 0.078, 0.088, 1 },
@@ -189,12 +190,6 @@ end
 -- Seven reusable regions keep the corner radius fixed as the window grows.
 function Theme:CreateRoundedSurface(frame, token, radius)
     radius = radius or 10
-    local function region()
-        local texture=frame.AttachTexture and frame:AttachTexture() or frame:CreateTexture(nil,"BACKGROUND")
-        texture._lycheeColorToken,texture._lycheeVertexToken=nil,nil
-        if frame.AttachTexture then texture:SetDrawLayer("BACKGROUND",0) end
-        return texture
-    end
     local surface={regions={}}
     function surface:SetColor(color)
         for _,region in ipairs(self.regions) do
@@ -202,13 +197,13 @@ function Theme:CreateRoundedSurface(frame, token, radius)
             else Theme:SetColorTexture(region,color) end
         end
     end
-    local middle = region()
+    local middle = frame:CreateTexture(nil,"BACKGROUND")
     middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius, 0)
     middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius, 0)
     self:SetColorTexture(middle, token)
     surface.regions[#surface.regions+1]=middle
     for _, side in ipairs({ "LEFT", "RIGHT" }) do
-        local strip = region()
+        local strip = frame:CreateTexture(nil,"BACKGROUND")
         strip:SetPoint("TOP" .. side, frame, "TOP" .. side, 0, -radius)
         strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, 0, radius)
         strip:SetWidth(radius)
@@ -221,7 +216,7 @@ function Theme:CreateRoundedSurface(frame, token, radius)
     }
     for index = 1, #corners do
         local corner = corners[index]
-        local texture = region()
+        local texture = frame:CreateTexture(nil,"BACKGROUND")
         texture:SetSize(radius, radius)
         texture:SetPoint(corner[1], frame, corner[1], 0, 0)
         texture:SetTexture("Interface\\AddOns\\Lychee\\Media\\rounded-corner.tga")

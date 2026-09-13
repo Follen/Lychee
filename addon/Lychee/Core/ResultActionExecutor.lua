@@ -201,18 +201,16 @@ end
 function Executor:ShowActions(row)
     local valid, err = self:Validate(row)
     if not valid then return false, err end
-    if not MenuUtil or type(MenuUtil.CreateContextMenu) ~= "function" then return false, "MENU_UNAVAILABLE" end
     local item, session, generation = row.item, row.session, row.generation
     local actions = item.interaction and item.interaction.actions or {}
     local canPin = I.UserPreferences and I.UserPreferences:CanPin(item)
     if #actions == 0 and not canPin then return false, "NO_ACTION" end
     local components = _G.Lychee and _G.Lychee.UI and _G.Lychee.UI.Components
-    if components then components:StyleActionMenuOwner(row) end
     local menu
-    menu = MenuUtil.CreateContextMenu(row, function(_, root)
+    menu = components:ShowActionMenu(row, function(_, root)
         for index = 1, #actions do
             local actionID, title = actions[index].id, actions[index].title
-            local description = root:CreateButton(title or actionID, function()
+            root:CreateButton(title or actionID, function()
                 if self.palette and self.palette.actionMenu == menu then self.palette.actionMenu = nil end
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
@@ -220,17 +218,15 @@ function Executor:ShowActions(row)
                 if self.palette then self.palette:ReportActionResult(result, actionError) end
                 return result
             end)
-            if components then components:StyleActionMenuButton(description) end
         end
         if canPin then
-            local aliasButton=root:CreateButton(L["设置别名"],function()
+            root:CreateButton(L["设置别名"],function()
                 local current,reason=self:Validate(row,session,generation,item)
                 if not current then return false,reason end
                 return self.palette:EditAlias(item)
             end)
-            if components then components:StyleActionMenuButton(aliasButton) end
             local pinned = I.UserPreferences:PinIndex(item.ref) ~= nil
-            local description = root:CreateButton(pinned and L["取消固定"] or L["固定到首页"], function()
+            root:CreateButton(pinned and L["取消固定"] or L["固定到首页"], function()
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
                 local ok, pinError = self.palette:SetPinned(item, not pinned)
@@ -238,7 +234,6 @@ function Executor:ShowActions(row)
                 else self.palette:ReportActionResult(false, pinError) end
                 return ok
             end)
-            if components then components:StyleActionMenuButton(description) end
         end
     end)
     if self.palette then self.palette.actionMenu = menu end

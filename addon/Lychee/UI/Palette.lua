@@ -109,36 +109,24 @@ function Palette:Create()
     Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
     Lychee.UI.Theme:SetTextColor(self.settingsTitle, "text")
     self.settingsTitle:SetText(L["荔枝设置"]); self.settingsTitle:Hide()
-    self.settingsBack = components:CreateNavigationButton(self.header, {
-        width = 90, height = 28, point = "RIGHT", relativePoint = "RIGHT", x = -66,
-        text = L["返回搜索"],
-        onClick = function() self:CloseSettings() end,
-    })
-    local backLabel = self.settingsBack.label
-    Lychee.UI.Theme:SetFont(backLabel, "body")
-    backLabel:ClearAllPoints()
-    backLabel:SetPoint("LEFT", self.settingsBack.frame, "LEFT", 26, 0)
-    backLabel:SetPoint("RIGHT", self.settingsBack.frame, "RIGHT", -10, 0)
-    backLabel:SetJustifyH("LEFT")
-    self.settingsBack.strokes = {}
-    for direction = -1, 1, 2 do
-        local stroke = self.settingsBack.frame:CreateTexture(nil, "ARTWORK")
-        stroke:SetSize(6, 1.25)
-        stroke:SetPoint("CENTER", self.settingsBack.frame, "LEFT", 13, direction * 1.9)
-        Lychee.UI.Theme:SetColorTexture(stroke, "textMuted")
-        stroke:SetRotation(direction * math.pi / 4)
-        self.settingsBack.strokes[#self.settingsBack.strokes + 1] = stroke
-    end
-    self.settingsBack.frame:Hide()
     self.closeComponent = components:CreateButton(self.header, {
-        width = 38, height = 26, point = "RIGHT", relativePoint = "RIGHT", x = -16,
+        width = 38, height = 30, point = "RIGHT", relativePoint = "RIGHT", x = -16,
         text = "Esc",
         colors = { normal = "transparent" },
         textColors = { normal = "accent", hover = "accentHover", pressed = "accentHover" },
-        onClick = function() self:Hide("close") end,
+        onClick = function()
+            if self.settingsOpen then self:CloseSettings()
+            elseif self.viewHost:IsActive() then self:CloseView("header-back")
+            else self:Hide("close") end
+        end,
     })
     self.close = self.closeComponent.frame
     Lychee.UI.Theme:SetFont(self.closeComponent.label, "body")
+    self.backIcon=self.close:CreateTexture(nil,"ARTWORK")
+    self.backIcon:SetSize(28,28);self.backIcon:SetPoint("CENTER")
+    self.backIcon:SetTexture("Interface\\AddOns\\Lychee\\Media\\back-search.tga");self.backIcon:Hide()
+    self.closeComponent.icon=self.backIcon
+    Lychee.UI.Theme:SetVertexColor(self.backIcon,"accent")
     self.statusComponent = components:CreateStatus(self.footer, { textColor = "textMuted", left=LIST_METRICS.footerInset, right=LIST_METRICS.footerInset })
     self.status = self.statusComponent.label
     Lychee.UI.Theme:SetFont(self.status, "meta")
@@ -188,6 +176,7 @@ function Palette:Create()
         elseif event == "GLOBAL_MOUSE_DOWN" then
             local menu = self.actionMenu
             if menu and menu.IsShown and menu:IsShown() and menu.IsMouseOver and menu:IsMouseOver() then return end
+            Lychee.UI.Components:HideActionMenu()
             self.actionMenu = nil
             -- EditBox 的键盘焦点不会因点击游戏世界自动释放；沿用 Blizzard
             -- ColorPickerFrame 的外部点击判定（事件在 Show 注册、Hide 注销），
@@ -229,6 +218,10 @@ function Palette:Create()
     return self
 end
 
+function Palette:SetBackNavigation(back)
+    setShown(self.backIcon,back);setShown(self.closeComponent and self.closeComponent.label,not back)
+end
+
 function Palette:SetStatusText(value)
     setText(self.status, value); setText(self.footerHint, "")
 end
@@ -239,6 +232,7 @@ function Palette:OpenSettings(tab)
     self._motionMode="settings"
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     if not self.visible then self:Show() end
+    Lychee.UI.Components:HideActionMenu()
     self.settingsOpen = true
     if I.Search.Session then I.Search.Session:Stop("settings") end
     Lychee.UI.ResultList:HideTooltip()
@@ -249,7 +243,7 @@ function Palette:OpenSettings(tab)
     if not self.settingsView then self.settingsView = Lychee.UI.SettingsView:Create(self.content, self) end
     self.settingsView.frame:Show(); self.settingsView:SetTab(tab or "providers")
     if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.settingsView.frame,"page") end
-    self.settingsTitle:Show(); self.settingsBack.frame:Show()
+    self.settingsTitle:Show(); self:SetBackNavigation(true)
     self:ResizeForMode("settings"); self:SetStatusText(L["更改即时生效"])
     return true
 end
@@ -259,7 +253,7 @@ function Palette:CloseSettings(clearQuery)
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     self.settingsOpen = false
     if self.settingsView then self.settingsView.frame:Hide() end
-    self.settingsTitle:Hide(); self.settingsBack.frame:Hide(); self.input:Show()
+    self.settingsTitle:Hide(); self:SetBackNavigation(false); self.input:Show()
     if I.Search.Session then I.Search.Session:Start() end
     if clearQuery then self.input:SetText("") end
     if self.onQuery then self.onQuery(self.input:GetText()) end
@@ -435,6 +429,7 @@ function Palette:SetQueryMode(text)
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
     self._navigationRevision = (self._navigationRevision or 0) + 1
     if self._openingView then self.viewHost:Unmount("query-navigation") end
+    Lychee.UI.Components:HideActionMenu();self:SetBackNavigation(false)
     local empty = I.Search.Normalizer:IsBlank(text)
     local nextMode=empty and not self.activeFilter and "home" or "search"
     local changedMode=self._motionMode~=nextMode
@@ -574,6 +569,11 @@ function Palette:Show()
     return true
 end
 function Palette:Hide(reason)
+    if reason=="escape" and Lychee.UI.Components:HideActionMenu() then
+        self.actionMenu=nil
+        if self.escapeFrame then self.escapeFrame:Show() end
+        return true
+    end
     if self._motionClosing and not self.visible and not (InCombatLockdown and InCombatLockdown()) then return true end
     Lychee.UI.ResultList:HideTooltip()
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
@@ -582,6 +582,7 @@ function Palette:Hide(reason)
     self.visible = false
     if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(false) end
     self.searchPending=false
+    Lychee.UI.Components:HideActionMenu()
     self.actionMenu = nil
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Stop(reason or "hide") end
@@ -615,7 +616,7 @@ function Palette:FinishHide(reason)
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll() end
     self.settingsOpen = false
     if self.settingsView then self.settingsView.frame:Hide() end
-    self.settingsTitle:Hide(); self.settingsBack.frame:Hide()
+    self.settingsTitle:Hide(); self:SetBackNavigation(false)
     self.list:Clear(); setShown(self.emptyState, false)
     if self.viewHost then self.viewHost:Unmount(reason or "hide") end
     if self.secureBroker and self.secureBroker.ReleaseAll then self.secureBroker:ReleaseAll() end
@@ -649,18 +650,16 @@ function Palette:ActivateRowAction(row, actionID)
 end
 function Palette:ShowRowActions(row)
     Lychee.UI.ResultList:HideTooltip()
-    if row and not row.item and row.section and row.section.pinnedRef and MenuUtil and MenuUtil.CreateContextMenu then
+    if row and not row.item and row.section and row.section.pinnedRef then
         if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
         local pin = row.section.pinnedRef
-        Lychee.UI.Components:StyleActionMenuOwner(row)
-        self.actionMenu = MenuUtil.CreateContextMenu(row, function(_, root)
-            local description = root:CreateButton(L["取消固定"], function()
+        self.actionMenu = Lychee.UI.Components:ShowActionMenu(row, function(_, root)
+            root:CreateButton(L["取消固定"], function()
                 if not self.visible or self.settingsOpen or InCombatLockdown() then return false end
                 for index, current in ipairs(I.UserPreferences:GetPins()) do
                     if current == pin then I.UserPreferences:Remove(index); self:MarkHomeDirty(); return true end
                 end
             end)
-            Lychee.UI.Components:StyleActionMenuButton(description)
         end)
         return true
     end
@@ -721,6 +720,7 @@ function Palette:OpenView(factory, context, state)
         return false, "PANEL_CANCELLED"
     end
     if mounted then
+        Lychee.UI.Components:HideActionMenu();self:SetBackNavigation(true)
         if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
         if self.secureBroker then self.secureBroker:ReleaseAll(); self._searchActionsSuspended = true end
         setShown(self.homeView and self.homeView.frame, false); setShown(self.list and self.list.frame, false); setShown(self.emptyState, false)

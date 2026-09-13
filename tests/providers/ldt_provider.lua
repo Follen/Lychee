@@ -28,6 +28,7 @@ function methods:SetWidth(w) self.width=w end
 function methods:SetHeight(h) self.height=h end
 function methods:GetWidth() return self.width or 616 end
 function methods:GetHeight() return self.height or 360 end
+UIParent=setmetatable({width=1920,height=1080},{__index=methods})
 function methods:IsMouseOver() return false end
 for _,name in ipairs({'SetPoint','ClearAllPoints','SetAllPoints','SetFont','SetTextColor','SetColorTexture','SetShadowOffset','SetShadowColor','SetJustifyH','SetJustifyV','SetFacing','SetPortraitZoom','SetCamDistanceScale','Enable','Disable','SetAlpha','SetVertexColor','SetRotation','SetHitRectInsets','SetDrawLayer','EnableMouse','RegisterForClicks'}) do methods[name]=function() end end
 function CreateFrame(kind,name,parent)
@@ -232,17 +233,30 @@ local function mount() view:Mount({contentFrame=parent,resources=resources,
     SetFooter=function(_,value) return true end,Resize=function(_,height) parent.requestedHeight=height;return true end,
     ClearFocus=function() return true end,Close=function() return true end},{dungeonID=164,npcID=259446,spellID=1287798}) end
 mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
-view.enemy.characteristics={Stun=true,["Shackle Undead"]=true,Fear=false}
-view:ShowTraits()
+assert(not view.traits and not view.back and not view.descriptionScroll,"detail removes traits, duplicate back and bottom reading area")
+view.rows[1].frame.scripts.OnEnter()
 assert(not GameTooltip.owner and not GameTooltip.shown,"Lychee details do not alter the global game tooltip")
-assert(Lychee.UI.Components.tooltip.labels[3]:GetText():find("昏迷",1,true) and Lychee.UI.Components.tooltip.labels[3]:GetText():find("束缚亡灵",1,true) and not Lychee.UI.Components.tooltip.labels[3]:GetText():find("恐惧",1,true))
+assert(Lychee.UI.Components.tooltip.labels[3]:GetText()~="","skill description is in tooltip")
+local delayedRow=view.rows[1]
+local delayedID=delayedRow.spellID
+local descriptionAPI=C_Spell.GetSpellDescription
+local ready=false
+C_Spell.GetSpellDescription=function(id) if id==delayedID and not ready then return nil end;return descriptionAPI(id) end
+delayedRow.frame.IsMouseOver=function() return true end
+view.pending[delayedID]=nil
+delayedRow.frame.scripts.OnEnter()
+assert(Lychee.UI.Components.tooltip.labels[3]:GetText()=="技能资料暂未加载")
+ready=true;drain()
+assert(Lychee.UI.Components.tooltip._owner==delayedRow.frame and Lychee.UI.Components.tooltip.labels[3]:GetText()==M:FormatDescription(descriptionAPI(delayedID)),"late data refreshes the currently hovered skill tooltip")
+C_Spell.GetSpellDescription=descriptionAPI
+delayedRow.frame.IsMouseOver=function() return false end
 local row=view.rows[2]
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick(row.frame)
 assert(view.selected==row.spellID,"normal click selects bound skill")
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton");view.page=2;view:RenderSkills()
 local selected=view.selected;row.frame.scripts.OnClick(row.frame);assert(view.selected==selected,"stale press after rebind ignored")
 view:Unmount();assert(not view.enemy and not view.selected and not view.model.displayID and not view.active)
-assert(not Lychee.UI.Components.tooltip:IsShown(),"owned traits tooltip closes with view")
+assert(not Lychee.UI.Components.tooltip:IsShown(),"owned skill tooltip closes with view")
 -- Duplicate spell names collapse without losing any IDs; unrelated unknown names stay separate.
 mount()
 local originalName=C_Spell.GetSpellName
@@ -303,33 +317,36 @@ local tooltipRow=view.rows[2]
 tooltipRow.frame.scripts.OnEnter(tooltipRow.frame)
 assert(Lychee.UI.Components.tooltip:IsShown() and Lychee.UI.Components.tooltip.labels[1]:GetText()=="技能 900008" and Lychee.UI.Components.tooltip.labels[2]:GetText()=="ID 900008")
 view:RenderSkills();assert(not Lychee.UI.Components.tooltip:IsShown(),"rebind closes the old skill tooltip")
-view.description:SetText(string.rep("long description ",200));view:UpdateDescriptionSize()
-view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
-assert(view.descriptionScroll:GetVerticalScroll()>0,"long descriptions remain readable by scrolling")
-view.selected=nil;view:Describe();assert(view.descriptionScroll:GetVerticalScroll()==0,"selection description starts at the top")
 -- The sixth group expands inline rather than pushing its children onto another page.
 view.enemy={spells={}};for i=1,9 do view.enemy.spells[i]={id=910000+i} end
 C_Spell.GetSpellName=function(id) return (id==910006 or id==910007) and "同步毒液" or ("技能 "..id) end
 view.expanded={};view.selected=910006;view:BuildGroups(true);view:RenderSkills()
-local oldSection=view.sectionEnd
+local oldHeight=parent.requestedHeight
 local sixth=view.rows[6]
 sixth.expand.frame.scripts.OnMouseDown(sixth.expand.frame,"LeftButton");sixth.expand.frame.scripts.OnClick(sixth.expand.frame)
 assert(view.page==1 and view.rows[7].spellID==910006 and view.rows[8].spellID==910007,"both children of the last group are immediately visible")
-assert(view.rows[7].frame:IsShown() and view.rows[8].frame:IsShown() and view.sectionEnd>oldSection)
+assert(view.rows[7].frame:IsShown() and view.rows[8].frame:IsShown() and parent.requestedHeight==oldHeight)
 sixth.expand.frame.scripts.OnMouseDown(sixth.expand.frame,"LeftButton");sixth.expand.frame.scripts.OnClick(sixth.expand.frame)
-assert(view.sectionEnd==oldSection and not view.rows[7].frame:IsShown(),"collapse restores layout")
+assert(parent.requestedHeight==oldHeight and not view.rows[7].frame:IsShown(),"collapse keeps the enlarged model layout stable")
 C_Spell.GetSpellName=function(id) return "全部同名" end
 view.expanded={};view:BuildGroups(true);view:RenderSkills()
 view.expanded["全部同名"]=true;view:Flatten(false);view:RenderSkills()
 assert(view.skillBar.maximum>0)
 local originalDescription=C_Spell.GetSpellDescription
 C_Spell.GetSpellDescription=function() return string.rep("description 123 ",200) end
-view:Describe();view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
-local readingOffset=view.descriptionScroll:GetVerticalScroll()
-assert(readingOffset>0)
+local readingRow=view.rows[1]
+readingRow.frame.scripts.OnEnter()
+local tip=Lychee.UI.Components.tooltip
+assert(tip.reading:IsShown() and tip.reading.bar.maximum>0,"long skill description gets bounded tooltip scrolling")
+readingRow.frame.scripts.OnMouseWheel(nil,-1)
+assert(tip.reading:GetVerticalScroll()>0,"wheel over the hovered skill reads its long tooltip")
+assert(tip.labels[3]:GetText():gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")==C_Spell.GetSpellDescription(),"tooltip preserves complete long text")
 view.skillArea.scripts.OnMouseWheel(view.skillArea,-1)
-assert(view.descriptionScroll:GetVerticalScroll()==readingOffset,"skill list scrolling preserves description reading position")
+assert(not tip:IsShown(),"skill list scrolling closes stale tooltip")
 C_Spell.GetSpellDescription=originalDescription
+readingRow.frame.scripts.OnEnter()
+assert(not tip.reading:IsShown() and tip.labels[3]:GetParent()==tip and tip.labels[3]:GetWidth()==372,"short descriptions leave the scroll child and restore full text width")
+readingRow.frame.scripts.OnLeave()
 
 view.skillArea.scripts.OnMouseWheel(view.skillArea,-100)
 assert(view.rows[8].spellID==910009 and #view.rows==8,"scroll reaches the final child without allocating more rows")
@@ -357,7 +374,7 @@ view.reset.frame.scripts.OnEnter(view.reset.frame)
 assert(Lychee.UI.Components.tooltip:IsShown() and Lychee.UI.Components.tooltip.labels[1]:GetText()=="重置视角")
 view.model.scripts.OnMouseDown(view.model,"LeftButton");view:Unmount()
 assert(not view.model.scripts.OnUpdate and not view.groups and not view.flat and not view.expanded and not view.resources)
-assert(not Lychee.UI.Components.tooltip:IsShown() and not view.detailIcon.texture and not view.hintText,"closing clears owned tooltip, reading icon and footer reference")
+assert(not Lychee.UI.Components.tooltip:IsShown() and not view.hintText,"closing clears owned tooltip, and footer reference")
 mouseHeld=false
 local high=#frames
 

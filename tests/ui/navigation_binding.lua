@@ -170,3 +170,20 @@ local failedFooter,failedFooterReason=p:OpenView({create=function() return {
 assert(not failedFooter and failedFooterReason=="PANEL_ERROR")
 assert(p.status:GetText()==originalStatus and p.footerHint:GetText()==originalHint,"failed Mount cannot publish provisional footer")
 print("Failed view footer rollback PASS")
+
+-- One Host return icon replaces Esc for all Provider pages and settings.
+p:Show();p:CloseSettings();p.input:SetText("binding")
+assert(p:OpenView({create=function() return {} end},{},{}))
+assert(p.backIcon:IsShown() and not p.closeComponent.label:IsShown())
+p.close.scripts.OnClick()
+assert(not p.viewHost:IsActive() and p.visible and not p.backIcon:IsShown() and p.closeComponent.label:IsShown())
+assert(p.input:GetText()=="binding","header return preserves the query")
+p:OpenSettings();assert(p.backIcon:IsShown() and not p.closeComponent.label:IsShown())
+p.close.scripts.OnClick();assert(not p.settingsOpen and p.visible and p.closeComponent.label:IsShown())
+p:Hide("test-end")
+function GetCursorPosition() return 100,200 end
+function UIParent:GetHeight() return 600 end
+p:Show()
+p.actionMenu=Lychee.UI.Components:ShowActionMenu(p.frame,function(_,menu) menu:CreateButton("Action",function() end) end)
+assert(p:Hide("escape") and p.visible and not Lychee.UI.Components.actionMenu.owner,"Escape closes the menu before the window")
+assert(p:Hide("escape") and not p.visible,"next Escape closes the window")

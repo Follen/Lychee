@@ -23,6 +23,8 @@ local function object(kind, parent)
     function value:ClearAllPoints() self.points = {} end
     function value:SetParent(parentValue) self.parent = parentValue end
     function value:SetScale(scale) self.scale=scale end
+    function value:GetEffectiveScale() return self.scale or 1 end
+    function value:HookScript(key,fn) local old=self.scripts[key];self.scripts[key]=function(...) if old then old(...) end;fn(...) end end
     function value:SetFrameStrata(strata) self.strata = strata end
     function value:SetClampedToScreen(enabled) self.clamped = enabled end
     function value:EnableMouse(enabled) self.mouseEnabled = enabled end
@@ -339,45 +341,38 @@ list:Clear()
 
 dofile("addon/Lychee/UI/Runtime.lua")
 
-local menuOwner = {}
-Lychee.UI.Components:StyleActionMenuOwner(menuOwner)
-local menuFrame = object("Frame")
-local attachments,cursor = {},0
-function menuFrame:AttachTexture()
-    cursor=cursor+1
-    local texture=attachments[cursor]
-    if not texture then
-        texture=object("Texture",self);attachments[cursor]=texture
-        function texture:SetDrawLayer(layer,level) self.layer,self.level=layer,level end
-    end
-    return texture
+-- Real owned menu: a global native reskin must never receive its frame.
+local menuOwner=object("Frame")
+local nativeOpens=0
+MenuUtil={CreateContextMenu=function() nativeOpens=nativeOpens+1;error("global menu reskin reached") end}
+function GetCursorPosition() return 100,200 end
+local actions=0
+local function populate(_,root)
+    root:CreateButton("Action",function() actions=actions+1;return true end)
+    root:CreateButton(string.rep("Long title ",50),function() actions=actions+10 end)
 end
-menuOwner.menuMixin.Generate(menuFrame)
-assert(#attachments == 7 and attachments[2].color[4] == 1, "menu has an opaque pooled background")
-assert(menuOwner.menuMixin:GetInset().left == menuOwner.menuMixin:GetInset().right, "menu padding is symmetric")
-attachments[1].color={1,0,1,0};cursor=0
-menuOwner.menuMixin.Generate(menuFrame)
-assert(#attachments==7 and attachments[1].color[1]==Lychee.UI.Theme.Colors.tooltip[1] and attachments[1].color[4]==1,
-    "native pooled attachments restore their style without creating another surface")
-local menuInitializer, menuEnter, menuLeave
-Lychee.UI.Components:StyleActionMenuButton({AddInitializer=function(_, fn) menuInitializer=fn end, SetOnEnter=function(_, fn) menuEnter=fn end, SetOnLeave=function(_, fn) menuLeave=fn end})
-local menuButton = object("Button")
-menuButton.fontString = object("FontString", menuButton)
-function menuButton.fontString:GetStringWidth() return self.measuredWidth or 100 end
-menuButton.highlight = object("Texture", menuButton)
-function menuButton.highlight:SetBlendMode(mode) self.blendMode = mode end
-local menuWidth, menuHeight = menuInitializer(menuButton)
-assert(menuWidth == 168 and menuHeight == 30, "single action retains comfortable menu dimensions")
-assert(menuButton.fontString.font[2] == 12 and menuButton.fontString.wordWrap == false, "menu uses readable single-line body text")
-assert(menuButton.highlight.blendMode == "BLEND", "menu removes additive gold highlight")
-menuButton.fontString.measuredWidth = 600
-local longMenuWidth = menuInitializer(menuButton)
-assert(longMenuWidth == 280, "long action text cannot create an unbounded menu")
-menuEnter(menuButton)
-assert(menuButton.fontString.textColor[1] == Lychee.UI.Theme.Colors.accentHover[1], "menu hover changes text")
-menuLeave(menuButton)
-assert(menuButton.fontString.textColor[1] == Lychee.UI.Theme.Colors.text[1], "menu leave restores text")
-assert(menuButton.highlight.color[4] == 0, "menu never adds a hover background")
+local menu=Lychee.UI.Components:ShowActionMenu(menuOwner,populate)
+assert(nativeOpens==0 and menu.owner==menuOwner and menu:IsShown())
+assert(menu:GetWidth()<=296 and menu.count==2 and menu.buttons[2].label.wordWrap==false)
+local button=menu.buttons[1]
+button.frame.scripts.OnClick();assert(actions==0,"click requires a physical press")
+button.frame.scripts.OnMouseDown(nil,"LeftButton")
+assert(button.frame.scripts.OnClick() and actions==1)
+assert(not menu.owner and not menu:IsShown() and not button.callback,"closing releases all captured actions")
+local allocated=#created
+for _=1,20 do
+    assert(Lychee.UI.Components:ShowActionMenu(menuOwner,populate)==menu)
+    button.frame.scripts.OnMouseDown(nil,"LeftButton")
+    Lychee.UI.Components:ShowActionMenu(menuOwner,populate)
+    button.frame.scripts.OnClick();assert(actions==1,"reopening cancels stale presses")
+    menuOwner.scripts.OnHide();assert(not menu.owner,"owner hide closes menu")
+end
+assert(#created==allocated,"menu and buttons are reused")
+Lychee.UI.Components:ShowActionMenu(menuOwner,function(_,root)
+    for _=1,18 do root:CreateButton("Action",function() end) end
+end)
+assert(menu.count==18 and menu:GetHeight()*menu.scale<=UIParent:GetHeight()-32,"all supported actions fit the viewport")
+Lychee.UI.Components:HideActionMenu()
 
 -- Real pointer-to-range behavior, including scale and release outside the track.
 local cursorY, mouseDown, combat = 0, true, false
