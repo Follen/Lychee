@@ -182,7 +182,13 @@ function M:CreateView()
         local edit=chat.GetActiveWindow and chat.GetActiveWindow()
         if edit then edit:Insert(link);edit:SetFocus()
         elseif chat.OpenChat then chat.OpenChat(link) end
-        self:SetHint(L["Shift + 左键：贴入聊天框"])
+        self:SetHint("")
+    end
+    function panel:ToggleGroup(group)
+        local key=group.key
+        self.expanded[key]=not self.expanded[key]
+        self.revealGroup=key
+        self:Flatten(false);self:RenderSkills()
     end
     function panel:RenderSkills()
         if not self.active then return end
@@ -190,14 +196,14 @@ function M:CreateView()
         self.page=math.max(1,math.min(self.page,pages))
         self:LayoutSkills()
         for i,row in ipairs(self.rows) do
-            row.frame:Hide();row.spellID=nil;row.group=nil
+            row.frame:Hide();row.spellID=nil;row.group=nil;row.child=nil
             row.binding=(row.binding or 0)+1
             local entry=i<=self.visibleRows and self.pageItems[self.rowOffset+i]
             if entry then
                 local group=entry.group
                 local expanded=self.expanded[group.key]
                 local id=not entry.child and not expanded and group.ids[self.selected] and self.selected or entry.spellID
-                row.spellID,row.group=id,group
+                row.spellID,row.group,row.child=id,group,entry.child
                 row.label:SetText(group.name or (L["技能"].." "..id))
                 row.label:ClearAllPoints();row.label:SetPoint("LEFT",entry.child and 60 or 48,0)
                 row.label:SetPoint("RIGHT",-70,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
@@ -263,6 +269,7 @@ function M:CreateView()
                 if not self.active or not row.spellID or row.pressed~=row.binding then return end
                 row.pressed=nil
                 if IsShiftKeyDown and IsShiftKeyDown() then self:LinkSpell(row.spellID);return end
+                if not row.child and #row.group.entries>1 then self:ToggleGroup(row.group);return end
                 self.selected=row.spellID;self:RenderSkills()
             end)
             row.frame:SetPoint("TOPLEFT",0,-(i-1)*ROW_HEIGHT);row.frame:SetPoint("RIGHT",-14,0);row.frame:SetHeight(ROW_HEIGHT)
@@ -276,7 +283,7 @@ function M:CreateView()
             row.expand=nav(row.frame,"",44,function()
                 if not self.active or row.expandPressed~=row.binding or not row.group then return end
                 row.expandPressed=nil
-                local key=row.group.key;self.expanded[key]=not self.expanded[key];self.revealGroup=key;self:Flatten(false);self:RenderSkills()
+                self:ToggleGroup(row.group)
             end,"right");row.expand.frame:SetPoint("RIGHT",0,0)
             row.expand.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" then row.expandPressed=row.binding end end)
             row.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" and self.active then row.pressed=row.binding end end)
@@ -300,7 +307,7 @@ function M:CreateView()
         self.page,self.facing,self.zoom,self.rowOffset,self.renderedPage=1,0,0,0,nil
         self.title:SetText(M:Name(enemy))
         self.subtitle:SetText(M:Name(dungeon).."  ·  "..L[enemy.isBoss and "首领" or "小怪"].."  ·  "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or ""))
-        self:SetHint(L["Shift + 左键：贴入聊天框"])
+        self:SetHint("")
         self.event=context.resources:OnEvent("SPELL_DATA_LOAD_RESULT",function(_,id)
             if self.active and self.pending[id]==true then
                 self.pending[id]=false
@@ -326,7 +333,7 @@ function M:CreateView()
         self.active=false;self:StopDrag()
         if self.event then self.event:Cancel();self.event=nil end
         if self.refreshToken then self.refreshToken:Cancel();self.refreshToken=nil end
-        for _,row in ipairs(self.rows) do row.spellID=nil;row.group=nil;row.frame:Hide();row.label:SetText("");row.meta:SetText("");row.icon:SetTexture(nil) end
+        for _,row in ipairs(self.rows) do row.spellID=nil;row.group=nil;row.child=nil;row.frame:Hide();row.label:SetText("");row.meta:SetText("");row.icon:SetTexture(nil) end
         self.enemy,self.dungeon,self.pending,self.selected,self.groups,self.flat,self.expanded,self.resources=nil,nil,nil,nil,nil,nil,nil,nil
         self.pageItems,self.anchorID,self.anchorChild,self.revealID,self.revealGroup,self.renderedPage=nil,nil,nil,nil,nil,nil
         self.hintText=nil

@@ -83,6 +83,7 @@ local function drain()
 end
 C_Spell={GetSpellLink=function(id) return not missing[id] and ("|Hspell:"..id.."|h[Ability]|h") or nil end,GetSpellName=function(id)
     assert(not forbidSpellReads,"exact creature lookup must not touch unrelated spell data")
+    assert(id~=1221063,"excluded spell must never reach game name lookup")
     spellCalls=spellCalls+1
     if missing[id] then return nil end
     if id==1287798 then return locale=="zhCN" and "缠绕测试" or "Coil Test" end
@@ -116,6 +117,9 @@ local function query(input)
     return out
 end
 
+assert(not M:Find(160,236091,1221063) and not M:Resolve("160/236091/1221063"),"excluded saved spell reference cannot reopen")
+assert(M:Find(160,236091,1216589),"ordinary creature spells remain available")
+assert(#query("1221063")==0 and #query("萨拉塔斯的赠礼")==0,"excluded spell has no search results")
 do
     -- Choose a late monster's SECOND skill; it must survive both per-monster
     -- representative selection and the global twenty-candidate limit.
@@ -230,9 +234,10 @@ local view=M:CreateView()
 local parent=CreateFrame("Frame")
 local resources=assert(I.Resources:Create(function()return true end,nil,assert(M.handle:Resources())))
 local function mount() view:Mount({contentFrame=parent,resources=resources,
-    SetFooter=function(_,value) return true end,Resize=function(_,height) parent.requestedHeight=height;return true end,
+    SetFooter=function(_,value) parent.footer=value;return true end,Resize=function(_,height) parent.requestedHeight=height;return true end,
     ClearFocus=function() return true end,Close=function() return true end},{dungeonID=164,npcID=259446,spellID=1287798}) end
 mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
+assert(parent.footer=="","detail has no permanent footer hint")
 assert(not view.traits and not view.back and not view.descriptionScroll,"detail removes traits, duplicate back and bottom reading area")
 view.rows[1].frame.scripts.OnEnter()
 assert(not GameTooltip.owner and not GameTooltip.shown,"Lychee details do not alter the global game tooltip")
@@ -266,6 +271,20 @@ view.selected=first;view:BuildGroups(true);view:RenderSkills()
 local group=view.groups[1]
 assert(#group.entries==2 and #view.groups==#view.enemy.spells-1 and not view.expanded[group.key])
 local groupRow=view.rows[1]
+local function clickSkill(row)
+    row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick(row.frame)
+end
+clickSkill(groupRow)
+assert(view.expanded[group.key],"whole group heading expands")
+clickSkill(view.rows[3])
+assert(view.selected==second and view.expanded[group.key],"child selects its exact ID without collapsing")
+clickSkill(groupRow)
+assert(not view.expanded[group.key] and view.selected==second and groupRow.spellID==second,"heading collapses and retains exact selection")
+shiftHeld=true;clickSkill(groupRow);shiftHeld=false
+assert(opened==C_Spell.GetSpellLink(second) and not view.expanded[group.key],"shift heading links exact selection without toggling")
+groupRow.frame.scripts.OnMouseDown(groupRow.frame,"LeftButton");view:RenderSkills();groupRow.frame.scripts.OnClick(groupRow.frame)
+assert(not view.expanded[group.key],"stale heading press cannot toggle a rebound group")
+view.selected=first;view:RenderSkills()
 groupRow.expand.frame.scripts.OnMouseDown(groupRow.expand.frame,"LeftButton");groupRow.expand.frame.scripts.OnClick(groupRow.expand.frame)
 assert(view.expanded[group.key] and view.flat[2].spellID==first and view.flat[3].spellID==second)
 local child=view.rows[3]
@@ -275,12 +294,15 @@ assert(opened==C_Spell.GetSpellLink(second) and view.selected==first,"shift clic
 activeChat={Insert=function(_,value) linked=value end,SetFocus=function(self) self.focused=true end}
 child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
 assert(linked==C_Spell.GetSpellLink(second) and activeChat.focused,"existing chat receives link")
+assert(parent.footer=="","successful links keep the footer empty")
 linked=nil;child.frame.scripts.OnMouseDown(child.frame,"LeftButton");view:RenderSkills();child.frame.scripts.OnClick(child.frame)
 assert(not linked,"rebound row cannot insert a stale link")
 missing[second]=true
 child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
 assert(not linked and view.hintText=="链接暂不可用，请稍后重试")
 drain();assert(not linked,"late spell load never inserts a link automatically")
+clickSkill(child)
+assert(linked==C_Spell.GetSpellLink(second) and parent.footer=="","retry success clears the temporary failure hint")
 shiftHeld=false;activeChat=nil
 view.selected=second;view:BuildGroups(true);view:RenderSkills()
 assert(view.expanded[group.key] and view.selected==second,"deep-linked member is revealed")

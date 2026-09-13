@@ -1285,17 +1285,17 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==234647 then return {bossOrder=3,count=0,creatureType="Demon",displayId=140268,health=23648734,id=234647,isBoss=true,journalID=2681,level=92,name="Xathuux the Annihilator",nameZh="歼灭者萨祖克斯",spells={{id=473898},{id=474197},{id=474231},{id=474234},{id=1214637},{id=1214641},{id=1214647},{id=1214663},{id=1295453},{id=1295455}}},dungeon end
         if visit then
-            enemy.id=234648;enemy.name="Kystia Manaheart";enemy.nameZh="凯斯媞亚·魔力之心";enemy.isBoss=true;enemy.bossOrder=1;enemy.spellIDs="474238,474240,1214959,1217464,1217989,1221063,1223906,1230298,1264095"
+            enemy.id=234648;enemy.name="Kystia Manaheart";enemy.nameZh="凯斯媞亚·魔力之心";enemy.isBoss=true;enemy.bossOrder=1;enemy.spellIDs="474238,474240,1214959,1217464,1217989,1223906,1230298,1264095"
             visit(enemy,dungeon)
-        elseif npc==234648 then return {bossOrder=1,count=0,creatureType="Humanoid",displayId=124578,health=20270343,id=234648,isBoss=true,journalID=2679,level=92,name="Kystia Manaheart",nameZh="凯斯媞亚·魔力之心",spells={{id=474238},{id=474240},{id=1214959},{id=1217464},{id=1217989},{id=1221063},{id=1223906},{id=1230298},{id=1264095}}},dungeon end
+        elseif npc==234648 then return {bossOrder=1,count=0,creatureType="Humanoid",displayId=124578,health=20270343,id=234648,isBoss=true,journalID=2679,level=92,name="Kystia Manaheart",nameZh="凯斯媞亚·魔力之心",spells={{id=474238},{id=474240},{id=1214959},{id=1217464},{id=1217989},{id=1223906},{id=1230298},{id=1264095}}},dungeon end
         if visit then
-            enemy.id=234649;enemy.name="Zaen Bladesorrow";enemy.nameZh="赞恩·刃悲";enemy.isBoss=true;enemy.bossOrder=2;enemy.spellIDs="474478,474483,474515,474545,474740,474763,734276,1214352,1214355,1214357,1217123,1218347,1221063,1222598,1222795,1223939"
+            enemy.id=234649;enemy.name="Zaen Bladesorrow";enemy.nameZh="赞恩·刃悲";enemy.isBoss=true;enemy.bossOrder=2;enemy.spellIDs="474478,474483,474515,474545,474740,474763,734276,1214352,1214355,1214357,1217123,1218347,1222598,1222795,1223939"
             visit(enemy,dungeon)
-        elseif npc==234649 then return {bossOrder=2,count=0,creatureType="Humanoid",displayId=124592,health=23648734,id=234649,isBoss=true,journalID=2680,level=92,name="Zaen Bladesorrow",nameZh="赞恩·刃悲",spells={{id=474478},{id=474483},{id=474515,poison=true},{id=474545},{bleed=true,id=474740},{id=474763},{id=734276,interruptible=true},{id=1214352},{id=1214355},{id=1214357},{id=1217123},{id=1218347},{id=1221063},{id=1222598},{id=1222795},{id=1223939,poison=true}}},dungeon end
+        elseif npc==234649 then return {bossOrder=2,count=0,creatureType="Humanoid",displayId=124592,health=23648734,id=234649,isBoss=true,journalID=2680,level=92,name="Zaen Bladesorrow",nameZh="赞恩·刃悲",spells={{id=474478},{id=474483},{id=474515,poison=true},{id=474545},{bleed=true,id=474740},{id=474763},{id=734276,interruptible=true},{id=1214352},{id=1214355},{id=1214357},{id=1217123},{id=1218347},{id=1222598},{id=1222795},{id=1223939,poison=true}}},dungeon end
         if visit then
-            enemy.id=234660;enemy.name="Nibbles";enemy.nameZh="咬咬";enemy.isBoss=true;enemy.bossOrder=nil;enemy.spellIDs="1217464,1221063,1228198,1230289,1230304,1253811,1253813"
+            enemy.id=234660;enemy.name="Nibbles";enemy.nameZh="咬咬";enemy.isBoss=true;enemy.bossOrder=nil;enemy.spellIDs="1217464,1228198,1230289,1230304,1253811,1253813"
             visit(enemy,dungeon)
-        elseif npc==234660 then return {count=0,creatureType="Beast",displayId=126199,health=20270343,id=234660,isBoss=true,level=92,name="Nibbles",nameZh="咬咬",spells={{id=1217464},{id=1221063},{id=1228198,magic=true},{id=1230289},{id=1230304},{id=1253811},{id=1253813}}},dungeon end
+        elseif npc==234660 then return {count=0,creatureType="Beast",displayId=126199,health=20270343,id=234660,isBoss=true,level=92,name="Nibbles",nameZh="咬咬",spells={{id=1217464},{id=1228198,magic=true},{id=1230289},{id=1230304},{id=1253811},{id=1253813}}},dungeon end
         if visit then
             enemy.id=234763;enemy.name="Lithiel Cinderfury";enemy.nameZh="利希尔·烬怒";enemy.isBoss=true;enemy.bossOrder=4;enemy.spellIDs="474375,474408,474457,474462,1214675,1214730,1214740,1216945,1217345,1217384,1217415,1217881,1226469,1287627"
             visit(enemy,dungeon)
@@ -1321,29 +1321,29 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==234984 then return {count=0,creatureType="Humanoid",displayId=136524,health=648651,id=234984,level=90,name="Silvermoon Patron",nameZh="银月城主顾",spells={{id=44427},{id=1214260},{id=1214487}}},dungeon end
         if visit then
-            enemy.id=235257;enemy.name="Demon Fly";enemy.nameZh="魔蝇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1293022"
+            enemy.id=235257;enemy.name="Demon Fly";enemy.nameZh="魔蝇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1293022"
             visit(enemy,dungeon)
-        elseif npc==235257 then return {count=1,creatureType="Demon",displayId=77024,health=1621628,id=235257,level=90,name="Demon Fly",nameZh="魔蝇",spells={{id=1221063},{id=1293022}}},dungeon end
+        elseif npc==235257 then return {count=1,creatureType="Demon",displayId=77024,health=1621628,id=235257,level=90,name="Demon Fly",nameZh="魔蝇",spells={{id=1293022}}},dungeon end
         if visit then
-            enemy.id=235261;enemy.name="Trained Felhunter";enemy.nameZh="驯服的地狱猎犬";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1217881,1217930,1221063,1293101"
+            enemy.id=235261;enemy.name="Trained Felhunter";enemy.nameZh="驯服的地狱猎犬";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1217881,1217930,1293101"
             visit(enemy,dungeon)
-        elseif npc==235261 then return {count=5,creatureType="Demon",displayId=1913,health=3405418,id=235261,level=90,name="Trained Felhunter",nameZh="驯服的地狱猎犬",spells={{id=1217881},{id=1217930,magic=true},{id=1221063},{id=1293101}}},dungeon end
+        elseif npc==235261 then return {count=5,creatureType="Demon",displayId=1913,health=3405418,id=235261,level=90,name="Trained Felhunter",nameZh="驯服的地狱猎犬",spells={{id=1217881},{id=1217930,magic=true},{id=1293101}}},dungeon end
         if visit then
-            enemy.id=235265;enemy.name="Corrupted Warlock";enemy.nameZh="腐化的术士";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1217973,1221063,1294789,1297682,1297683,1297684,1297686"
+            enemy.id=235265;enemy.name="Corrupted Warlock";enemy.nameZh="腐化的术士";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1217973,1294789,1297682,1297683,1297684,1297686"
             visit(enemy,dungeon)
-        elseif npc==235265 then return {count=25,creatureType="Humanoid",displayId=124763,health=5027045,id=235265,level=91,name="Corrupted Warlock",nameZh="腐化的术士",spells={{curse=true,id=1217973},{id=1221063},{id=1294789},{id=1297682},{id=1297683},{id=1297684},{id=1297686}}},dungeon end
+        elseif npc==235265 then return {count=25,creatureType="Humanoid",displayId=124763,health=5027045,id=235265,level=91,name="Corrupted Warlock",nameZh="腐化的术士",spells={{curse=true,id=1217973},{id=1294789},{id=1297682},{id=1297683},{id=1297684},{id=1297686}}},dungeon end
         if visit then
-            enemy.id=235267;enemy.name="Wrathguard Flayer";enemy.nameZh="愤怒卫士掠夺者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1214922,1221063,1295426,1295427"
+            enemy.id=235267;enemy.name="Wrathguard Flayer";enemy.nameZh="愤怒卫士掠夺者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1214922,1295426,1295427"
             visit(enemy,dungeon)
-        elseif npc==235267 then return {count=5,creatureType="Demon",displayId=63968,health=3405418,id=235267,level=90,name="Wrathguard Flayer",nameZh="愤怒卫士掠夺者",spells={{enrage=true,id=1214922,interruptible=true},{id=1221063},{id=1295426},{id=1295427}}},dungeon end
+        elseif npc==235267 then return {count=5,creatureType="Demon",displayId=63968,health=3405418,id=235267,level=90,name="Wrathguard Flayer",nameZh="愤怒卫士掠夺者",spells={{enrage=true,id=1214922,interruptible=true},{id=1295426},{id=1295427}}},dungeon end
         if visit then
-            enemy.id=235268;enemy.name="Fel Invoker";enemy.nameZh="邪能祈求者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1214980,1221063,1297693,1297695,1309970"
+            enemy.id=235268;enemy.name="Fel Invoker";enemy.nameZh="邪能祈求者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1214980,1297693,1297695,1309970"
             visit(enemy,dungeon)
-        elseif npc==235268 then return {count=7,creatureType="Humanoid",displayId=124770,health=5513534,id=235268,level=90,name="Fel Invoker",nameZh="邪能祈求者",spells={{id=1214980,interruptible=true},{id=1221063},{id=1297693},{id=1297695},{id=1309970}}},dungeon end
+        elseif npc==235268 then return {count=7,creatureType="Humanoid",displayId=124770,health=5513534,id=235268,level=90,name="Fel Invoker",nameZh="邪能祈求者",spells={{id=1214980,interruptible=true},{id=1297693},{id=1297695},{id=1309970}}},dungeon end
         if visit then
-            enemy.id=235322;enemy.name="Defiled Golem";enemy.nameZh="亵渎傀儡";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1215872,1215961,1215985,1218187,1221063,1294824,1294827,1294836,1294870"
+            enemy.id=235322;enemy.name="Defiled Golem";enemy.nameZh="亵渎傀儡";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1215872,1215961,1215985,1218187,1294824,1294827,1294836,1294870"
             visit(enemy,dungeon)
-        elseif npc==235322 then return {count=35,creatureType="Mechanical",displayId=137564,health=8432463,id=235322,level=91,name="Defiled Golem",nameZh="亵渎傀儡",spells={{id=1215872},{id=1215961},{id=1215985},{id=1218187},{id=1221063},{id=1294824},{id=1294827},{id=1294836},{id=1294870}}},dungeon end
+        elseif npc==235322 then return {count=35,creatureType="Mechanical",displayId=137564,health=8432463,id=235322,level=91,name="Defiled Golem",nameZh="亵渎傀儡",spells={{id=1215872},{id=1215961},{id=1215985},{id=1218187},{id=1294824},{id=1294827},{id=1294836},{id=1294870}}},dungeon end
         if visit then
             enemy.id=235465;enemy.name="Shivan Punisher";enemy.nameZh="破坏魔惩罚者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1294770,1294774,1297676,1297691"
             visit(enemy,dungeon)
@@ -1357,33 +1357,33 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==235841 then return {count=0,creatureType="Humanoid",displayId=105873,health=648651,id=235841,level=90,name="Selenar Sunshy",nameZh="赛勒纳·避日",spells={{id=1216074}}},dungeon end
         if visit then
-            enemy.id=236071;enemy.name="Bribed Guard";enemy.nameZh="被买通的守卫";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216529,1221063,1295035"
+            enemy.id=236071;enemy.name="Bribed Guard";enemy.nameZh="被买通的守卫";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216529,1295035"
             visit(enemy,dungeon)
-        elseif npc==236071 then return {count=25,creatureType="Humanoid",displayId=126157,health=5189208,id=236071,level=91,name="Bribed Guard",nameZh="被买通的守卫",spells={{id=1216529},{id=1221063},{id=1295035}}},dungeon end
+        elseif npc==236071 then return {count=25,creatureType="Humanoid",displayId=126157,health=5189208,id=236071,level=91,name="Bribed Guard",nameZh="被买通的守卫",spells={{id=1216529},{id=1295035}}},dungeon end
         if visit then
-            enemy.id=236073;enemy.name="Row Hooligan";enemy.nameZh="径巷流氓";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216300,1221063"
+            enemy.id=236073;enemy.name="Row Hooligan";enemy.nameZh="径巷流氓";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216300"
             visit(enemy,dungeon)
-        elseif npc==236073 then return {count=3,creatureType="Humanoid",displayId=136939,health=1945953,id=236073,level=90,name="Row Hooligan",nameZh="径巷流氓",spells={{bleed=true,id=1216300},{id=1221063}}},dungeon end
+        elseif npc==236073 then return {count=3,creatureType="Humanoid",displayId=136939,health=1945953,id=236073,level=90,name="Row Hooligan",nameZh="径巷流氓",spells={{bleed=true,id=1216300}}},dungeon end
         if visit then
             enemy.id=236082;enemy.name="Seductive Sayaad";enemy.nameZh="诱惑的萨亚德";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1201554"
             visit(enemy,dungeon)
         elseif npc==236082 then return {count=6,creatureType="Demon",displayId=77400,health=2270279,id=236082,level=90,name="Seductive Sayaad",nameZh="诱惑的萨亚德",spells={{id=1201554,interruptible=true,magic=true}}},dungeon end
         if visit then
-            enemy.id=236084;enemy.name="Felonious Mage";enemy.nameZh="凶邪的法师";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216570,1216571,1221063,1229433"
+            enemy.id=236084;enemy.name="Felonious Mage";enemy.nameZh="凶邪的法师";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216570,1216571,1229433"
             visit(enemy,dungeon)
-        elseif npc==236084 then return {count=7,creatureType="Humanoid",displayId=129784,health=2854064,id=236084,level=90,name="Felonious Mage",nameZh="凶邪的法师",spells={{id=1216570},{id=1216571,interruptible=true},{id=1221063},{id=1229433,magic=true}}},dungeon end
+        elseif npc==236084 then return {count=7,creatureType="Humanoid",displayId=129784,health=2854064,id=236084,level=90,name="Felonious Mage",nameZh="凶邪的法师",spells={{id=1216570},{id=1216571,interruptible=true},{id=1229433,magic=true}}},dungeon end
         if visit then
-            enemy.id=236085;enemy.name="Felwyrm";enemy.nameZh="邪能浮龙";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1214966,1216538,1221063"
+            enemy.id=236085;enemy.name="Felwyrm";enemy.nameZh="邪能浮龙";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1214966,1216538"
             visit(enemy,dungeon)
-        elseif npc==236085 then return {count=1,creatureType="Beast",displayId=139997,health=1297302,id=236085,level=90,name="Felwyrm",nameZh="邪能浮龙",spells={{id=1214966},{id=1216538,magic=true},{id=1221063}}},dungeon end
+        elseif npc==236085 then return {count=1,creatureType="Beast",displayId=139997,health=1297302,id=236085,level=90,name="Felwyrm",nameZh="邪能浮龙",spells={{id=1214966},{id=1216538,magic=true}}},dungeon end
         if visit then
             enemy.id=236088;enemy.name="Masked Noble";enemy.nameZh="蒙面贵族";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1219468"
             visit(enemy,dungeon)
         elseif npc==236088 then return {count=0,creatureType="Humanoid",displayId=140207,health=10000,id=236088,level=90,name="Masked Noble",nameZh="蒙面贵族",spells={{id=1219468}}},dungeon end
         if visit then
-            enemy.id=236091;enemy.name="Street Sneak";enemy.nameZh="街头扒手";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216284,1216589,1216590,1221063"
+            enemy.id=236091;enemy.name="Street Sneak";enemy.nameZh="街头扒手";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216284,1216589,1216590"
             visit(enemy,dungeon)
-        elseif npc==236091 then return {count=3,creatureType="Humanoid",displayId=137441,health=2918930,id=236091,level=90,name="Street Sneak",nameZh="街头扒手",spells={{id=1216284},{id=1216589},{id=1216590,poison=true},{id=1221063}}},dungeon end
+        elseif npc==236091 then return {count=3,creatureType="Humanoid",displayId=137441,health=2918930,id=236091,level=90,name="Street Sneak",nameZh="街头扒手",spells={{id=1216284},{id=1216589},{id=1216590,poison=true}}},dungeon end
         if visit then
             enemy.id=236525;enemy.name="Rowdy Patron";enemy.nameZh="吵闹的主顾";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1213658"
             visit(enemy,dungeon)
@@ -1405,21 +1405,21 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==236905 then return {count=30,creatureType="Humanoid",displayId=138787,health=6486510,id=236905,level=91,name="Felmaster Lucsei",nameZh="邪能主宰鲁科西",spells={{id=1216954},{id=1216955},{id=1217930,magic=true},{id=1217937},{id=1302007},{id=1302010}}},dungeon end
         if visit then
-            enemy.id=237626;enemy.name="Wild Imp";enemy.nameZh="野生小鬼";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1223204,1226469"
+            enemy.id=237626;enemy.name="Wild Imp";enemy.nameZh="野生小鬼";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1223204,1226469"
             visit(enemy,dungeon)
-        elseif npc==237626 then return {count=0,creatureType="Demon",displayId=77406,health=459705,id=237626,level=90,name="Wild Imp",nameZh="野生小鬼",spells={{id=1221063},{id=1223204,interruptible=true},{id=1226469}}},dungeon end
+        elseif npc==237626 then return {count=0,creatureType="Demon",displayId=77406,health=459705,id=237626,level=90,name="Wild Imp",nameZh="野生小鬼",spells={{id=1223204,interruptible=true},{id=1226469}}},dungeon end
         if visit then
-            enemy.id=238414;enemy.name="Infernal";enemy.nameZh="地狱火";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1231256,1231262,1231353"
+            enemy.id=238414;enemy.name="Infernal";enemy.nameZh="地狱火";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1231256,1231262,1231353"
             visit(enemy,dungeon)
-        elseif npc==238414 then return {count=0,creatureType="Demon",displayId=103096,health=202703433,id=238414,level=93,name="Infernal",nameZh="地狱火",spells={{id=1221063},{id=1231256},{id=1231262},{id=1231353}}},dungeon end
+        elseif npc==238414 then return {count=0,creatureType="Demon",displayId=103096,health=202703433,id=238414,level=93,name="Infernal",nameZh="地狱火",spells={{id=1231256},{id=1231262},{id=1231353}}},dungeon end
         if visit then
             enemy.id=240289;enemy.name="Nauseous Patron";enemy.nameZh="作呕的主顾";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216076"
             visit(enemy,dungeon)
         elseif npc==240289 then return {count=0,creatureType="Humanoid",displayId=136524,health=648651,id=240289,level=90,name="Nauseous Patron",nameZh="作呕的主顾",spells={{id=1216076}}},dungeon end
         if visit then
-            enemy.id=252529;enemy.name="Bribed Captain";enemy.nameZh="受贿的队长";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216529,1221063,1256276,1295035"
+            enemy.id=252529;enemy.name="Bribed Captain";enemy.nameZh="受贿的队长";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1216529,1256276,1295035"
             visit(enemy,dungeon)
-        elseif npc==252529 then return {count=35,creatureType="Humanoid",displayId=137450,health=7783812,id=252529,level=91,name="Bribed Captain",nameZh="受贿的队长",spells={{id=1216529},{id=1221063},{id=1256276},{id=1295035}}},dungeon end
+        elseif npc==252529 then return {count=35,creatureType="Humanoid",displayId=137450,health=7783812,id=252529,level=91,name="Bribed Captain",nameZh="受贿的队长",spells={{id=1216529},{id=1256276},{id=1295035}}},dungeon end
         if visit then
             enemy.id=253081;enemy.name="Influentual Reviewer";enemy.nameZh="走红的评论家";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1257877"
             visit(enemy,dungeon)
@@ -1448,49 +1448,49 @@ local loaders={
     [161]=function(npc,visit,enemy)
         local dungeon={id=161,mapID=586,name="Den of Nalorakk",nameZh="纳洛拉克的洞穴",shortZh="纳洛",total=729}
         if visit then
-            enemy.id=241808;enemy.name="Territorial Matriarch";enemy.nameZh="领地主母";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1238053,1241219"
+            enemy.id=241808;enemy.name="Territorial Matriarch";enemy.nameZh="领地主母";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1238053,1241219"
             visit(enemy,dungeon)
-        elseif npc==241808 then return {count=8,creatureType="Beast",displayId=14316,health=3729743,id=241808,level=90,name="Territorial Matriarch",nameZh="领地主母",spells={{id=1221063},{enrage=true,id=1238053},{id=1241219}}},dungeon end
+        elseif npc==241808 then return {count=8,creatureType="Beast",displayId=14316,health=3729743,id=241808,level=90,name="Territorial Matriarch",nameZh="领地主母",spells={{enrage=true,id=1238053},{id=1241219}}},dungeon end
         if visit then
             enemy.id=241809;enemy.name="Curious Yearling";enemy.nameZh="好奇的幼崽";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1238053"
             visit(enemy,dungeon)
         elseif npc==241809 then return {count=0,creatureType="Beast",displayId=141179,health=778381,id=241809,level=90,name="Curious Yearling",nameZh="好奇的幼崽",spells={{enrage=true,id=1238053}}},dungeon end
         if visit then
-            enemy.id=241812;enemy.name="The Hoardmonger";enemy.nameZh="囤宝狂人";enemy.isBoss=true;enemy.bossOrder=1;enemy.spellIDs="1221063,1232012,1234021,1234233,1234681,1234734,1234846,1235072,1235075,1235076,1235079,1235105,1235125,1235129,1235405,1245593"
+            enemy.id=241812;enemy.name="The Hoardmonger";enemy.nameZh="囤宝狂人";enemy.isBoss=true;enemy.bossOrder=1;enemy.spellIDs="1232012,1234021,1234233,1234681,1234734,1234846,1235072,1235075,1235076,1235079,1235105,1235125,1235129,1235405,1245593"
             visit(enemy,dungeon)
-        elseif npc==241812 then return {bossOrder=1,count=0,creatureType="Humanoid",displayId=129344,health=23648734,id=241812,isBoss=true,journalID=2776,level=92,name="The Hoardmonger",nameZh="囤宝狂人",spells={{id=1221063},{id=1232012},{id=1234021},{id=1234233},{id=1234681},{id=1234734},{id=1234846,poison=true},{id=1235072},{id=1235075},{id=1235076},{id=1235079},{id=1235105},{id=1235125},{id=1235129},{id=1235405},{id=1245593}}},dungeon end
+        elseif npc==241812 then return {bossOrder=1,count=0,creatureType="Humanoid",displayId=129344,health=23648734,id=241812,isBoss=true,journalID=2776,level=92,name="The Hoardmonger",nameZh="囤宝狂人",spells={{id=1232012},{id=1234021},{id=1234233},{id=1234681},{id=1234734},{id=1234846,poison=true},{id=1235072},{id=1235075},{id=1235076},{id=1235079},{id=1235105},{id=1235125},{id=1235129},{id=1235405},{id=1245593}}},dungeon end
         if visit then
-            enemy.id=241813;enemy.name="Thornclaw Gatherer";enemy.nameZh="棘爪收集者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1241217,1297699,1297701"
+            enemy.id=241813;enemy.name="Thornclaw Gatherer";enemy.nameZh="棘爪收集者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1241217,1297699,1297701"
             visit(enemy,dungeon)
-        elseif npc==241813 then return {count=5,creatureType="Humanoid",displayId=141213,health=3243255,id=241813,level=90,name="Thornclaw Gatherer",nameZh="棘爪收集者",spells={{id=1221063},{id=1241217},{disease=true,id=1297699},{id=1297701}}},dungeon end
+        elseif npc==241813 then return {count=5,creatureType="Humanoid",displayId=141213,health=3243255,id=241813,level=90,name="Thornclaw Gatherer",nameZh="棘爪收集者",spells={{id=1241217},{disease=true,id=1297699},{id=1297701}}},dungeon end
         if visit then
-            enemy.id=241814;enemy.name="Earthwhisper Tender";enemy.nameZh="地语看护者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1241214,1297696"
+            enemy.id=241814;enemy.name="Earthwhisper Tender";enemy.nameZh="地语看护者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1241214,1297696"
             visit(enemy,dungeon)
-        elseif npc==241814 then return {count=7,creatureType="Humanoid",displayId=128080,health=3729743,id=241814,level=90,name="Earthwhisper Tender",nameZh="地语看护者",spells={{id=1221063},{id=1241214,interruptible=true},{id=1297696,interruptible=true,magic=true}}},dungeon end
+        elseif npc==241814 then return {count=7,creatureType="Humanoid",displayId=128080,health=3729743,id=241814,level=90,name="Earthwhisper Tender",nameZh="地语看护者",spells={{id=1241214,interruptible=true},{id=1297696,interruptible=true,magic=true}}},dungeon end
         if visit then
-            enemy.id=241816;enemy.name="Keen-Eyed Striker";enemy.nameZh="锐眼掠击鹰";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1238439,1238440"
+            enemy.id=241816;enemy.name="Keen-Eyed Striker";enemy.nameZh="锐眼掠击鹰";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1238439,1238440"
             visit(enemy,dungeon)
-        elseif npc==241816 then return {count=7,creatureType="Beast",displayId=124212,health=2918930,id=241816,level=90,name="Keen-Eyed Striker",nameZh="锐眼掠击鹰",spells={{id=1221063},{bleed=true,id=1238439},{id=1238440}}},dungeon end
+        elseif npc==241816 then return {count=7,creatureType="Beast",displayId=124212,health=2918930,id=241816,level=90,name="Keen-Eyed Striker",nameZh="锐眼掠击鹰",spells={{bleed=true,id=1238439},{id=1238440}}},dungeon end
         if visit then
-            enemy.id=241869;enemy.name="Avatar of Determination";enemy.nameZh="决意化身";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1240280,1241463,1241464"
+            enemy.id=241869;enemy.name="Avatar of Determination";enemy.nameZh="决意化身";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1240280,1241463,1241464"
             visit(enemy,dungeon)
-        elseif npc==241869 then return {count=28,creatureType="Undead",displayId=128095,health=6486510,id=241869,level=91,name="Avatar of Determination",nameZh="决意化身",spells={{id=1221063},{id=1240280},{id=1241463},{id=1241464}}},dungeon end
+        elseif npc==241869 then return {count=28,creatureType="Undead",displayId=128095,health=6486510,id=241869,level=91,name="Avatar of Determination",nameZh="决意化身",spells={{id=1240280},{id=1241463},{id=1241464}}},dungeon end
         if visit then
-            enemy.id=241872;enemy.name="Frigid Mauler";enemy.nameZh="酷寒重殴者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1309919"
+            enemy.id=241872;enemy.name="Frigid Mauler";enemy.nameZh="酷寒重殴者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1309919"
             visit(enemy,dungeon)
-        elseif npc==241872 then return {count=9,creatureType="Beast",displayId=141288,health=3567581,id=241872,level=90,name="Frigid Mauler",nameZh="酷寒重殴者",spells={{id=1221063},{id=1309919,interruptible=true}}},dungeon end
+        elseif npc==241872 then return {count=9,creatureType="Beast",displayId=141288,health=3567581,id=241872,level=90,name="Frigid Mauler",nameZh="酷寒重殴者",spells={{id=1309919,interruptible=true}}},dungeon end
         if visit then
-            enemy.id=241874;enemy.name="Frostfang";enemy.nameZh="霜牙";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1241226,1265400,1265402"
+            enemy.id=241874;enemy.name="Frostfang";enemy.nameZh="霜牙";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1241226,1265400,1265402"
             visit(enemy,dungeon)
-        elseif npc==241874 then return {count=5,creatureType="Beast",displayId=141223,health=2789199,id=241874,level=90,name="Frostfang",nameZh="霜牙",spells={{id=1221063},{id=1241226},{id=1265400},{id=1265402}}},dungeon end
+        elseif npc==241874 then return {count=5,creatureType="Beast",displayId=141223,health=2789199,id=241874,level=90,name="Frostfang",nameZh="霜牙",spells={{id=1241226},{id=1265400},{id=1265402}}},dungeon end
         if visit then
-            enemy.id=241876;enemy.name="Glacial Revenant";enemy.nameZh="冰川亡魂";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1239860,1239871,1266178"
+            enemy.id=241876;enemy.name="Glacial Revenant";enemy.nameZh="冰川亡魂";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1239860,1239871,1266178"
             visit(enemy,dungeon)
-        elseif npc==241876 then return {count=7,creatureType="Elemental",displayId=103213,health=3081092,id=241876,level=90,name="Glacial Revenant",nameZh="冰川亡魂",spells={{id=1221063},{id=1239860,magic=true},{id=1239871},{id=1266178}}},dungeon end
+        elseif npc==241876 then return {count=7,creatureType="Elemental",displayId=103213,health=3081092,id=241876,level=90,name="Glacial Revenant",nameZh="冰川亡魂",spells={{id=1239860,magic=true},{id=1239871},{id=1266178}}},dungeon end
         if visit then
-            enemy.id=241911;enemy.name="Terra Rumbler";enemy.nameZh="撼地奔行者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1296518,1296519"
+            enemy.id=241911;enemy.name="Terra Rumbler";enemy.nameZh="撼地奔行者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1296518,1296519"
             visit(enemy,dungeon)
-        elseif npc==241911 then return {count=7,creatureType="Elemental",displayId=73034,health=2918930,id=241911,level=90,name="Terra Rumbler",nameZh="撼地奔行者",spells={{id=1221063},{id=1296518},{id=1296519}}},dungeon end
+        elseif npc==241911 then return {count=7,creatureType="Elemental",displayId=73034,health=2918930,id=241911,level=90,name="Terra Rumbler",nameZh="撼地奔行者",spells={{id=1296518},{id=1296519}}},dungeon end
         if visit then
             enemy.id=244100;enemy.name="Sentinel of Winter";enemy.nameZh="寒冬哨兵";enemy.isBoss=true;enemy.bossOrder=2;enemy.spellIDs="1235548,1235549,1235623,1235635,1235656,1235658,1235783,1235795,1236289,1297749"
             visit(enemy,dungeon)
@@ -1512,9 +1512,9 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==245076 then return {count=0,creatureType="Not specified",displayId=129498,health=457907,id=245076,level=90,name="The Pale Eye",nameZh="苍白之眼",spells={{id=1250805}}},dungeon end
         if visit then
-            enemy.id=245139;enemy.name="Stormbound Mystic";enemy.nameZh="雷缚秘法师";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1246687,1297778"
+            enemy.id=245139;enemy.name="Stormbound Mystic";enemy.nameZh="雷缚秘法师";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1246687,1297778"
             visit(enemy,dungeon)
-        elseif npc==245139 then return {count=7,creatureType="Humanoid",displayId=129562,health=2918930,id=245139,level=90,name="Stormbound Mystic",nameZh="雷缚秘法师",spells={{id=1221063},{id=1246687,interruptible=true},{id=1297778,interruptible=true}}},dungeon end
+        elseif npc==245139 then return {count=7,creatureType="Humanoid",displayId=129562,health=2918930,id=245139,level=90,name="Stormbound Mystic",nameZh="雷缚秘法师",spells={{id=1246687,interruptible=true},{id=1297778,interruptible=true}}},dungeon end
         if visit then
             enemy.id=245143;enemy.name="Ruthless Totemcaller";enemy.nameZh="冷酷的图腾召唤者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1246820"
             visit(enemy,dungeon)
@@ -1524,9 +1524,9 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==245145 then return {count=6,creatureType="Humanoid",displayId=129581,health=3081092,id=245145,level=90,name="Bonded Beasttamer",nameZh="羁绊驯兽师",spells={{id=1246847,interruptible=true},{id=1246860},{enrage=true,id=1246865},{id=1246877},{id=1266207}}},dungeon end
         if visit then
-            enemy.id=245146;enemy.name="Grizzled Warbringer";enemy.nameZh="老练的战争使者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1246957,1246986"
+            enemy.id=245146;enemy.name="Grizzled Warbringer";enemy.nameZh="老练的战争使者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1246957,1246986"
             visit(enemy,dungeon)
-        elseif npc==245146 then return {count=25,creatureType="Beast",displayId=131630,health=5513534,id=245146,level=91,name="Grizzled Warbringer",nameZh="老练的战争使者",spells={{id=1221063},{id=1246957},{id=1246986}}},dungeon end
+        elseif npc==245146 then return {count=25,creatureType="Beast",displayId=131630,health=5513534,id=245146,level=91,name="Grizzled Warbringer",nameZh="老练的战争使者",spells={{id=1246957},{id=1246986}}},dungeon end
         if visit then
             enemy.id=245148;enemy.name="Grizzled Warbringer";enemy.nameZh="老练的战争使者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1247030,1311572"
             visit(enemy,dungeon)
@@ -1536,21 +1536,21 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==245190 then return {count=5,creatureType="Beast",displayId=124949,health=2594604,id=245190,level=90,name="Loyal Saberfang",nameZh="忠诚的刃牙山猫",spells={{enrage=true,id=1246865},{id=1246882}}},dungeon end
         if visit then
-            enemy.id=245567;enemy.name="Starvation Effigy";enemy.nameZh="饥荒雕像";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1238801"
+            enemy.id=245567;enemy.name="Starvation Effigy";enemy.nameZh="饥荒雕像";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1238801"
             visit(enemy,dungeon)
-        elseif npc==245567 then return {count=0,creatureType="Not specified",displayId=129707,health=589867,id=245567,level=90,name="Starvation Effigy",nameZh="饥荒雕像",spells={{id=1221063},{curse=true,id=1238801}}},dungeon end
+        elseif npc==245567 then return {count=0,creatureType="Not specified",displayId=129707,health=589867,id=245567,level=90,name="Starvation Effigy",nameZh="饥荒雕像",spells={{curse=true,id=1238801}}},dungeon end
         if visit then
             enemy.id=245752;enemy.name="Keen-Eyed Striker";enemy.nameZh="锐眼掠击鹰";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="110960,1238439,1238440,1239394"
             visit(enemy,dungeon)
         elseif npc==245752 then return {count=7,creatureType="Beast",displayId=124212,health=2918930,id=245752,level=90,name="Keen-Eyed Striker",nameZh="锐眼掠击鹰",spells={{id=110960},{bleed=true,id=1238439},{id=1238440},{id=1239394,interruptible=true}}},dungeon end
         if visit then
-            enemy.id=245855;enemy.name="Spirit of Hunger";enemy.nameZh="饥渴之灵";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1238687,1238725,1238760,1249737"
+            enemy.id=245855;enemy.name="Spirit of Hunger";enemy.nameZh="饥渴之灵";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1238687,1238725,1238760,1249737"
             visit(enemy,dungeon)
-        elseif npc==245855 then return {count=25,creatureType="Undead",displayId=26857,health=4864883,id=245855,level=91,name="Spirit of Hunger",nameZh="饥渴之灵",spells={{id=1221063},{id=1238687},{id=1238725},{id=1238760},{id=1249737}}},dungeon end
+        elseif npc==245855 then return {count=25,creatureType="Undead",displayId=26857,health=4864883,id=245855,level=91,name="Spirit of Hunger",nameZh="饥渴之灵",spells={{id=1238687},{id=1238725},{id=1238760},{id=1249737}}},dungeon end
         if visit then
-            enemy.id=246404;enemy.name="Nalorakk";enemy.nameZh="纳洛拉克";enemy.isBoss=true;enemy.bossOrder=3;enemy.spellIDs="1221063,1242860,1242869,1242887,1243002,1243011,1243273,1243408,1243569,1254622,1261976,1297792,1297793,1297796,1297797"
+            enemy.id=246404;enemy.name="Nalorakk";enemy.nameZh="纳洛拉克";enemy.isBoss=true;enemy.bossOrder=3;enemy.spellIDs="1242860,1242869,1242887,1243002,1243011,1243273,1243408,1243569,1254622,1261976,1297792,1297793,1297796,1297797"
             visit(enemy,dungeon)
-        elseif npc==246404 then return {bossOrder=3,count=0,creatureType="Beast",displayId=129989,health=21891972,id=246404,isBoss=true,journalID=2778,level=92,name="Nalorakk",nameZh="纳洛拉克",spells={{id=1221063},{id=1242860},{id=1242869},{id=1242887},{id=1243002},{id=1243011},{id=1243273},{id=1243408},{id=1243569},{id=1254622},{id=1261976},{id=1297792},{id=1297793},{id=1297796},{id=1297797}}},dungeon end
+        elseif npc==246404 then return {bossOrder=3,count=0,creatureType="Beast",displayId=129989,health=21891972,id=246404,isBoss=true,journalID=2778,level=92,name="Nalorakk",nameZh="纳洛拉克",spells={{id=1242860},{id=1242869},{id=1242887},{id=1243002},{id=1243011},{id=1243273},{id=1243408},{id=1243569},{id=1254622},{id=1261976},{id=1297792},{id=1297793},{id=1297796},{id=1297797}}},dungeon end
         if visit then
             enemy.id=246409;enemy.name="Zul'jarra";enemy.nameZh="祖尔加拉";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1243018,1243078,1243856,1249186,1261776,1262253,1270826"
             visit(enemy,dungeon)
@@ -1564,9 +1564,9 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==248666 then return {count=0,creatureType="Not specified",displayId=30762,health=589867,id=248666,level=90,name="Magma Totem",nameZh="熔岩图腾",spells={{id=1246821},{id=1246825}}},dungeon end
         if visit then
-            enemy.id=250478;enemy.name="The Winter Squall";enemy.nameZh="寒冬暴风雪";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1309947,1309964"
+            enemy.id=250478;enemy.name="The Winter Squall";enemy.nameZh="寒冬暴风雪";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1309947,1309964"
             visit(enemy,dungeon)
-        elseif npc==250478 then return {count=50,creatureType="Elemental",displayId=138885,health=3243255,id=250478,level=91,name="The Winter Squall",nameZh="寒冬暴风雪",spells={{id=1221063},{id=1309947},{id=1309964}}},dungeon end
+        elseif npc==250478 then return {count=50,creatureType="Elemental",displayId=138885,health=3243255,id=250478,level=91,name="The Winter Squall",nameZh="寒冬暴风雪",spells={{id=1309947},{id=1309964}}},dungeon end
         if visit then
             enemy.id=251189;enemy.name="Snow Orb Stalker";enemy.nameZh="冰雪之珠追踪者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1253083"
             visit(enemy,dungeon)
@@ -1833,41 +1833,41 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==261550 then return {count=1,creatureType="Beast",displayId=146598,health=1945953,id=261550,level=90,name="Venom Leech",nameZh="毒液水蛭",spells={{id=1294432},{id=1305637},{id=1306232},{id=1306235},{id=1307098},{id=1307144}}},dungeon end
         if visit then
-            enemy.id=261552;enemy.name="Bloodletter";enemy.nameZh="放血者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1307526"
+            enemy.id=261552;enemy.name="Bloodletter";enemy.nameZh="放血者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1307526"
             visit(enemy,dungeon)
-        elseif npc==261552 then return {count=5,creatureType="Beast",displayId=146661,health=3243255,id=261552,level=90,name="Bloodletter",nameZh="放血者",spells={{id=1221063},{id=1307526}}},dungeon end
+        elseif npc==261552 then return {count=5,creatureType="Beast",displayId=146661,health=3243255,id=261552,level=90,name="Bloodletter",nameZh="放血者",spells={{id=1307526}}},dungeon end
         if visit then
-            enemy.id=261553;enemy.name="Ravenous Descendant";enemy.nameZh="贪婪的后裔";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1306308,1306333,1306338"
+            enemy.id=261553;enemy.name="Ravenous Descendant";enemy.nameZh="贪婪的后裔";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1306308,1306333,1306338"
             visit(enemy,dungeon)
-        elseif npc==261553 then return {count=5,creatureType="Humanoid",displayId=146654,health=3567581,id=261553,level=90,name="Ravenous Descendant",nameZh="贪婪的后裔",spells={{id=1221063},{enrage=true,id=1306308},{id=1306333},{id=1306338}}},dungeon end
+        elseif npc==261553 then return {count=5,creatureType="Humanoid",displayId=146654,health=3567581,id=261553,level=90,name="Ravenous Descendant",nameZh="贪婪的后裔",spells={{enrage=true,id=1306308},{id=1306333},{id=1306338}}},dungeon end
         if visit then
-            enemy.id=261554;enemy.name="Twinfang Harrower";enemy.nameZh="双牙蹂躏者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1294567,1294568,1294569,1294570,1294572,1306668,1306669,1307269"
+            enemy.id=261554;enemy.name="Twinfang Harrower";enemy.nameZh="双牙蹂躏者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1294567,1294568,1294569,1294570,1294572,1306668,1306669,1307269"
             visit(enemy,dungeon)
-        elseif npc==261554 then return {count=25,creatureType="Beast",displayId=147569,health=5513534,id=261554,level=91,name="Twinfang Harrower",nameZh="双牙蹂躏者",spells={{id=1221063},{id=1294567},{id=1294568},{id=1294569,magic=true},{id=1294570},{id=1294572},{id=1306668},{id=1306669},{id=1307269}}},dungeon end
+        elseif npc==261554 then return {count=25,creatureType="Beast",displayId=147569,health=5513534,id=261554,level=91,name="Twinfang Harrower",nameZh="双牙蹂躏者",spells={{id=1294567},{id=1294568},{id=1294569,magic=true},{id=1294570},{id=1294572},{id=1306668},{id=1306669},{id=1307269}}},dungeon end
         if visit then
-            enemy.id=261556;enemy.name="Hatchling";enemy.nameZh="幼体";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1306383"
+            enemy.id=261556;enemy.name="Hatchling";enemy.nameZh="幼体";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1306383"
             visit(enemy,dungeon)
-        elseif npc==261556 then return {count=0,creatureType="Beast",displayId=146662,health=972977,id=261556,level=90,name="Hatchling",nameZh="幼体",spells={{id=1221063},{id=1306383}}},dungeon end
+        elseif npc==261556 then return {count=0,creatureType="Beast",displayId=146662,health=972977,id=261556,level=90,name="Hatchling",nameZh="幼体",spells={{id=1306383}}},dungeon end
         if visit then
-            enemy.id=261557;enemy.name="High Evolutionist";enemy.nameZh="高阶进化者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1287544,1289416,1292904,1306385,1307567,1307571,1307602"
+            enemy.id=261557;enemy.name="High Evolutionist";enemy.nameZh="高阶进化者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1287544,1289416,1292904,1306385,1307567,1307571,1307602"
             visit(enemy,dungeon)
-        elseif npc==261557 then return {count=7,creatureType="Humanoid",displayId=146663,health=2918930,id=261557,level=90,name="High Evolutionist",nameZh="高阶进化者",spells={{id=1221063},{id=1287544},{id=1289416,interruptible=true,poison=true},{id=1292904},{id=1306385},{id=1307567,interruptible=true},{id=1307571,poison=true},{id=1307602}}},dungeon end
+        elseif npc==261557 then return {count=7,creatureType="Humanoid",displayId=146663,health=2918930,id=261557,level=90,name="High Evolutionist",nameZh="高阶进化者",spells={{id=1287544},{id=1289416,interruptible=true,poison=true},{id=1292904},{id=1306385},{id=1307567,interruptible=true},{id=1307571,poison=true},{id=1307602}}},dungeon end
         if visit then
-            enemy.id=261560;enemy.name="Primal Serpent";enemy.nameZh="原始毒蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1294557,1306381"
+            enemy.id=261560;enemy.name="Primal Serpent";enemy.nameZh="原始毒蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1294557,1306381"
             visit(enemy,dungeon)
-        elseif npc==261560 then return {count=7,creatureType="Beast",displayId=146653,health=2918930,id=261560,level=90,name="Primal Serpent",nameZh="原始毒蛇",spells={{id=1221063},{id=1294557,interruptible=true},{id=1306381}}},dungeon end
+        elseif npc==261560 then return {count=7,creatureType="Beast",displayId=146653,health=2918930,id=261560,level=90,name="Primal Serpent",nameZh="原始毒蛇",spells={{id=1294557,interruptible=true},{id=1306381}}},dungeon end
         if visit then
-            enemy.id=261573;enemy.name="Ascendant Serpent";enemy.nameZh="晋升之蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1293420,1294934,1294958,1295055,1295073,1308864,1308865,1309382,1309398,1309415,1309416"
+            enemy.id=261573;enemy.name="Ascendant Serpent";enemy.nameZh="晋升之蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1293420,1294934,1294958,1295055,1295073,1308864,1308865,1309382,1309398,1309415,1309416"
             visit(enemy,dungeon)
-        elseif npc==261573 then return {count=30,creatureType="Beast",displayId=146299,health=8173003,id=261573,level=91,name="Ascendant Serpent",nameZh="晋升之蛇",spells={{id=1221063},{id=1293420},{id=1294934},{id=1294958},{id=1295055},{id=1295073},{id=1308864},{id=1308865},{id=1309382},{id=1309398},{id=1309415},{id=1309416}}},dungeon end
+        elseif npc==261573 then return {count=30,creatureType="Beast",displayId=146299,health=8173003,id=261573,level=91,name="Ascendant Serpent",nameZh="晋升之蛇",spells={{id=1293420},{id=1294934},{id=1294958},{id=1295055},{id=1295073},{id=1308864},{id=1308865},{id=1309382},{id=1309398},{id=1309415},{id=1309416}}},dungeon end
         if visit then
-            enemy.id=262011;enemy.name="Rattling Writhe";enemy.nameZh="振响的扭缠蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1294845,1294849,1294859"
+            enemy.id=262011;enemy.name="Rattling Writhe";enemy.nameZh="振响的扭缠蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1294845,1294849,1294859"
             visit(enemy,dungeon)
-        elseif npc==262011 then return {count=25,creatureType="Beast",displayId=146664,health=5513534,id=262011,level=91,name="Rattling Writhe",nameZh="振响的扭缠蛇",spells={{id=1221063},{id=1294845,poison=true},{id=1294849},{id=1294859}}},dungeon end
+        elseif npc==262011 then return {count=25,creatureType="Beast",displayId=146664,health=5513534,id=262011,level=91,name="Rattling Writhe",nameZh="振响的扭缠蛇",spells={{id=1294845,poison=true},{id=1294849},{id=1294859}}},dungeon end
         if visit then
-            enemy.id=262398;enemy.name="Uncoiled Writhe";enemy.nameZh="溃散的扭缠蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1300503,1300618,1300698,1305368,1305393,1310666"
+            enemy.id=262398;enemy.name="Uncoiled Writhe";enemy.nameZh="溃散的扭缠蛇";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1300503,1300618,1300698,1305368,1305393,1310666"
             visit(enemy,dungeon)
-        elseif npc==262398 then return {count=0,creatureType="Beast",displayId=142361,health=33783904,id=262398,level=92,name="Uncoiled Writhe",nameZh="溃散的扭缠蛇",spells={{id=1221063},{id=1300503},{id=1300618},{id=1300698},{id=1305368,poison=true},{id=1305393},{id=1310666,interruptible=true}}},dungeon end
+        elseif npc==262398 then return {count=0,creatureType="Beast",displayId=142361,health=33783904,id=262398,level=92,name="Uncoiled Writhe",nameZh="溃散的扭缠蛇",spells={{id=1300503},{id=1300618},{id=1300698},{id=1305368,poison=true},{id=1305393},{id=1310666,interruptible=true}}},dungeon end
         if visit then
             enemy.id=263109;enemy.name="Ula'tek's Chosen";enemy.nameZh="乌拉特克神选者";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1289416,1292892,1306852,1306853,1306856,1307567,1307571"
             visit(enemy,dungeon)
@@ -1885,9 +1885,9 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==268358 then return {count=0,creatureType="Beast",displayId=11686,health=10000,id=268358,level=90,name="Ritual Snake",nameZh="仪式毒蛇",spells={{id=1300885}}},dungeon end
         if visit then
-            enemy.id=270306;enemy.name="Ritual Chieftain";enemy.nameZh="仪式首领";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1306517,1306550,1306641,1306844,1306893,1306911"
+            enemy.id=270306;enemy.name="Ritual Chieftain";enemy.nameZh="仪式首领";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1306517,1306550,1306641,1306844,1306893,1306911"
             visit(enemy,dungeon)
-        elseif npc==270306 then return {count=25,creatureType="Humanoid",displayId=146680,health=5189208,id=270306,level=91,name="Ritual Chieftain",nameZh="仪式首领",spells={{id=1221063},{id=1306517},{id=1306550},{id=1306641},{id=1306844},{id=1306893},{id=1306911}}},dungeon end
+        elseif npc==270306 then return {count=25,creatureType="Humanoid",displayId=146680,health=5189208,id=270306,level=91,name="Ritual Chieftain",nameZh="仪式首领",spells={{id=1306517},{id=1306550},{id=1306641},{id=1306844},{id=1306893},{id=1306911}}},dungeon end
         if visit then
             enemy.id=270378;enemy.name="Ritual Spirit";enemy.nameZh="仪式精魂";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1306657"
             visit(enemy,dungeon)
@@ -1897,9 +1897,9 @@ local loaders={
             visit(enemy,dungeon)
         elseif npc==270417 then return {count=0,creatureType="Beast",displayId=142361,health=32432550,id=270417,level=92,name="Uncoiled Writhe",nameZh="溃散的扭缠蛇",spells={{id=1300618},{id=1300698},{id=1305393}}},dungeon end
         if visit then
-            enemy.id=271453;enemy.name="Blade of the Altar";enemy.nameZh="祭坛利刃";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1221063,1308518"
+            enemy.id=271453;enemy.name="Blade of the Altar";enemy.nameZh="祭坛利刃";enemy.isBoss=nil;enemy.bossOrder=nil;enemy.spellIDs="1308518"
             visit(enemy,dungeon)
-        elseif npc==271453 then return {count=5,creatureType="Humanoid",displayId=147577,health=3243255,id=271453,level=90,name="Blade of the Altar",nameZh="祭坛利刃",spells={{id=1221063},{id=1308518}}},dungeon end
+        elseif npc==271453 then return {count=5,creatureType="Humanoid",displayId=147577,health=3243255,id=271453,level=90,name="Blade of the Altar",nameZh="祭坛利刃",spells={{id=1308518}}},dungeon end
     end,
 }
 function M:ScanDungeon(id,visit,scratch)

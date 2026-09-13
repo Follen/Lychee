@@ -12,6 +12,9 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 SNAPSHOT = ROOT / "assets/data/enemies.json"
 OUTPUT = ROOT / "addon/Lychee_Encounters/LDT/Data.lua"
+# Xal'atath's Gift is affix noise, not a creature ability to expose in Lychee.
+# Filter both the search index and full details; keep the factual snapshot intact.
+EXCLUDED_SPELL_IDS = frozenset({1221063})
 
 EXTRACT = r'''
 local root=arg[1]..'/'
@@ -112,6 +115,7 @@ def render(data):
                   "        local dungeon="+lua({k:v for k,v in d.items() if k!="enemies"})]
         for e in d["enemies"]:
             fields = {k:e.get(k) for k in ("id","name","nameZh","isBoss","bossOrder")}
+            e = {**e, "spells": [s for s in e["spells"] if s["id"] not in EXCLUDED_SPELL_IDS]}
             fields["spellIDs"] = ",".join(str(s["id"]) for s in e["spells"])
             lines += ["        if visit then",
                       "            "+";".join("enemy."+k+"="+lua(v) for k,v in fields.items()),

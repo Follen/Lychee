@@ -106,7 +106,7 @@ function Palette:Create()
     end)
     self.settingsTitle = self.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     self.settingsTitle:SetPoint("LEFT", self.header, "LEFT", 82, 0)
-    Lychee.UI.Theme:SetFont(self.settingsTitle, "body")
+    Lychee.UI.Theme:SetFont(self.settingsTitle, "input")
     Lychee.UI.Theme:SetTextColor(self.settingsTitle, "text")
     self.settingsTitle:SetText(L["荔枝设置"]); self.settingsTitle:Hide()
     self.closeComponent = components:CreateButton(self.header, {

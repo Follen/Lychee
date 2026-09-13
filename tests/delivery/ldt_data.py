@@ -32,7 +32,16 @@ bad=json.loads(json.dumps(d));bad['dungeons'][0]['enemies'][0]['displayId']=0
 try:g.render(bad)
 except AssertionError:pass
 else:raise AssertionError('generator accepted invalid display ID')
-# Compare generated execution to the independent factual JSON, including all details.
+# Compare every remaining fact and spell against an independently filtered snapshot.
+assert sum(s['id']==1221063 for e in enemies for s in e['spells'])==44
+expected=json.loads(json.dumps(d['dungeons']))
+for dungeon in expected:
+    for enemy in dungeon['enemies']:
+        enemy['spells']=[s for s in enemy['spells'] if s['id']!=1221063]
+assert len({s['id'] for dungeon in expected for e in dungeon['enemies'] for s in e['spells']})==1538
+original=json.dumps(d,sort_keys=True)
+g.render(d)
+assert json.dumps(d,sort_keys=True)==original,'generation must preserve the factual snapshot'
 # Test-owned full tables are not part of the runtime catalogue or search cache.
 probe = '''
 local ns={Modules={}}
@@ -44,7 +53,7 @@ local function equal(a,b)
  for k,v in pairs(a) do equal(v,b[k]) end
  for k in pairs(b) do assert(a[k]~=nil) end
 end
-local expected='''+g.lua(d['dungeons'])+'''
+local expected='''+g.lua(expected)+'''
 for _,dungeon in ipairs(expected) do
  local index,scratch=0,{}
  M:ScanDungeon(dungeon.id,function(row,header)
@@ -64,4 +73,4 @@ end
 assert(not M:LoadEnemy(-1,1))
 '''
 subprocess.run(['lua','-'],input=probe,text=True,encoding='utf-8',cwd=ROOT,check=True)
-print('LDT data PASS: 16 dungeons, 462 creatures, 1539 spell IDs, retail only')
+print('LDT data PASS: 16 dungeons, 462 creatures, 1538 runtime spell IDs; 44 excluded references; factual snapshot unchanged')
