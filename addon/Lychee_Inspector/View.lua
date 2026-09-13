@@ -26,9 +26,7 @@ function I.CreateInspectorView(owner)
     }})
     assert(view.display:Update({}))
     for _,key in ipairs({"heading","confidence","name","detailMeta","sourceLabel","details","parentLabel","parents","footer"}) do view[key]=view.display:Get(key) end
-    view.divider=frame:CreateTexture(nil,"BACKGROUND")
-    view.divider:SetHeight(1);view.divider:SetPoint("TOPLEFT",16,-84);view.divider:SetPoint("TOPRIGHT",-16,-84)
-    T:SetColorTexture(view.divider,"border")
+
     view.heading:SetMaxLines(1);view.heading:SetWordWrap(false)
     view.name:SetMaxLines(2);view.details:SetMaxLines(3);view.parents:SetMaxLines(2)
     local function button(title,x,y,width,action,rounded)
@@ -103,7 +101,7 @@ function I.CreateInspectorView(owner)
         self.heading:SetWidth(self.width-86);self.confidence:SetWidth(self.width-32)
         self.close.frame:ClearAllPoints();self.close.frame:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-10)
         self.heading:SetText(self.copying and L["检查报告"] or (owner.data and owner.data.title or L["插件识别"]))
-        for _,region in ipairs({self.name,self.details,self.detailMeta,self.sourceLabel,self.parentLabel,self.parents,self.divider}) do
+        for _,region in ipairs({self.name,self.details,self.detailMeta,self.sourceLabel,self.parentLabel,self.parents}) do
             region:SetShown(expanded and self.hasTarget and not self.copying)
         end
         self.confidence:SetShown(not self.copying)
@@ -155,7 +153,7 @@ function I.CreateInspectorView(owner)
         local width,height=UIParent:GetWidth(),UIParent:GetHeight()
         if type(width)~="number" or type(height)~="number" or width<=32 or height<=32 then return end
         local panelWidth=self.width or 320
-        local scale=math.min(1,(width-32)/panelWidth,(height-32)/frame:GetHeight())
+        local scale=math.min(T.Metrics.uiScale,(width-32)/panelWidth,(height-32)/frame:GetHeight())
         if self.scale~=scale then frame:SetScale(scale);self.scale=scale;force=true end
         local w,h=panelWidth*scale,frame:GetHeight()*scale
         local x,top=self.anchorX,self.anchorTop

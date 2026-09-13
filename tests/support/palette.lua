@@ -111,7 +111,7 @@ function RegisterStateDriver(frame, state, condition)
 end
 
 local function tooltipText()
-    local tip = Lychee.UI.ResultList.tooltip
+    local tip = Lychee.UI.Components.tooltip
     local lines = {}
     for index = 1, 5 do lines[index] = tip.labels[index]:GetText() end
     return table.concat(lines, "\n")

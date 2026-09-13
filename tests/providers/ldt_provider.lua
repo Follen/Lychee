@@ -2,6 +2,10 @@
 local locale,combat="zhCN",false
 local clock,frames,timers,spellCalls,requests=0,{},{},0,0
 local methods={}
+function methods:SetWordWrap(value) self.wordWrap=value end
+function methods:SetFrameStrata(value) self.strata=value end
+function methods:SetClampedToScreen(value) self.clamped=value end
+function methods:SetScale(value) self.scale=value end
 function methods:SetScript(key,fn) self.scripts[key]=fn end
 function methods:GetScript(key) return self.scripts[key] end
 function methods:HookScript(key,fn) local old=self.scripts[key];self.scripts[key]=function(...) if old then old(...) end;fn(...) end end
@@ -230,14 +234,15 @@ local function mount() view:Mount({contentFrame=parent,resources=resources,
 mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
 view.enemy.characteristics={Stun=true,["Shackle Undead"]=true,Fear=false}
 view:ShowTraits()
-assert(GameTooltip.lines[2]:find("昏迷",1,true) and GameTooltip.lines[2]:find("束缚亡灵",1,true) and not GameTooltip.lines[2]:find("恐惧",1,true))
+assert(not GameTooltip.owner and not GameTooltip.shown,"Lychee details do not alter the global game tooltip")
+assert(Lychee.UI.Components.tooltip.labels[3]:GetText():find("昏迷",1,true) and Lychee.UI.Components.tooltip.labels[3]:GetText():find("束缚亡灵",1,true) and not Lychee.UI.Components.tooltip.labels[3]:GetText():find("恐惧",1,true))
 local row=view.rows[2]
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick(row.frame)
 assert(view.selected==row.spellID,"normal click selects bound skill")
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton");view.page=2;view:RenderSkills()
 local selected=view.selected;row.frame.scripts.OnClick(row.frame);assert(view.selected==selected,"stale press after rebind ignored")
 view:Unmount();assert(not view.enemy and not view.selected and not view.model.displayID and not view.active)
-assert(not GameTooltip.shown,"owned traits tooltip closes with view")
+assert(not Lychee.UI.Components.tooltip:IsShown(),"owned traits tooltip closes with view")
 -- Duplicate spell names collapse without losing any IDs; unrelated unknown names stay separate.
 mount()
 local originalName=C_Spell.GetSpellName
@@ -296,8 +301,8 @@ C_Spell.GetSpellName=function(id) return "技能 "..id end
 view.expanded={};view.selected=900008;view:BuildGroups(true);view:RenderSkills()
 local tooltipRow=view.rows[2]
 tooltipRow.frame.scripts.OnEnter(tooltipRow.frame)
-assert(GameTooltip.shown and GameTooltip.lines[1]=="技能 900008" and GameTooltip.lines[2]=="ID 900008")
-view:RenderSkills();assert(not GameTooltip.shown,"rebind closes the old skill tooltip")
+assert(Lychee.UI.Components.tooltip:IsShown() and Lychee.UI.Components.tooltip.labels[1]:GetText()=="技能 900008" and Lychee.UI.Components.tooltip.labels[2]:GetText()=="ID 900008")
+view:RenderSkills();assert(not Lychee.UI.Components.tooltip:IsShown(),"rebind closes the old skill tooltip")
 view.description:SetText(string.rep("long description ",200));view:UpdateDescriptionSize()
 view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
 assert(view.descriptionScroll:GetVerticalScroll()>0,"long descriptions remain readable by scrolling")
@@ -349,10 +354,10 @@ view.reset.frame.scripts.OnClick(view.reset.frame)
 assert(view.facing==0 and view.zoom==0 and not view.model.scripts.OnUpdate,"icon reset restores the model camera and ends dragging")
 assert(view.reset.label:GetText()=="" and view.reset.icon.texture=="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\reload.tga")
 view.reset.frame.scripts.OnEnter(view.reset.frame)
-assert(GameTooltip.shown and GameTooltip.lines[1]=="重置视角")
+assert(Lychee.UI.Components.tooltip:IsShown() and Lychee.UI.Components.tooltip.labels[1]:GetText()=="重置视角")
 view.model.scripts.OnMouseDown(view.model,"LeftButton");view:Unmount()
 assert(not view.model.scripts.OnUpdate and not view.groups and not view.flat and not view.expanded and not view.resources)
-assert(not GameTooltip.shown and not view.detailIcon.texture and not view.hintText,"closing clears owned tooltip, reading icon and footer reference")
+assert(not Lychee.UI.Components.tooltip:IsShown() and not view.detailIcon.texture and not view.hintText,"closing clears owned tooltip, reading icon and footer reference")
 mouseHeld=false
 local high=#frames
 

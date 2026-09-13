@@ -104,104 +104,10 @@ local function kindText(item)
     return labelText(category) or labelText(item and item.sourceTitle) or (UI_CHINESE and L["内容"] or "Content")
 end
 
-local function hideTooltip()
-    local tip = ResultList.tooltip
-    if not tip then return end
-    if Lychee.UI.Motion then Lychee.UI.Motion:Cancel(tip,true) end
-    setShown(tip, false)
-    if tip._owner then
-        tip:ClearAllPoints()
-        tip._owner = nil
-    end
-end
+local function hideTooltip() Lychee.UI.Components:HideTooltip() end
 
-local function acquireTooltip()
-    if ResultList.tooltip then return ResultList.tooltip end
-    local theme = Lychee.UI.Theme
-    local tip = CreateFrame("Frame", nil, UIParent)
-    tip:SetWidth(280)
-    tip:SetFrameStrata("TOOLTIP")
-    tip:SetClampedToScreen(true)
-    tip:EnableMouse(false)
-    theme:CreateRoundedSurface(tip, "tooltip", 8)
-    tip.labels = {}
-    for index = 1, 5 do
-        local label = tip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        label:SetWidth(252)
-        label:SetJustifyH("LEFT")
-        label:SetWordWrap(true)
-        if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
-        theme:SetFont(label, index == 1 and "title" or index == 2 and "meta" or "body")
-        theme:SetTextColor(label, index == 1 and "text" or "textMuted")
-        tip.labels[index] = label
-    end
-    tip.divider = tip:CreateTexture(nil, "ARTWORK")
-    tip.divider:SetSize(252, 1)
-    theme:SetColorTexture(tip.divider, "border")
-    tip:Hide()
-    ResultList.tooltip = tip
-    return tip
-end
-
-local function tooltipLine(tip, index, text, y, gap)
-    local label = tip.labels[index]
-    text = text or ""
-    setText(label, text)
-    setShown(label, text ~= "")
-    if text == "" then return y end
-    y = y + (gap or 0)
-    if label._y ~= y then
-        label:ClearAllPoints()
-        label:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
-        label._y = y
-    end
-    return y + math.max(label:GetStringHeight(), index == 1 and 18 or 15)
-end
-
-local function scoreTable(tip, rows, y)
-    tip.scoreLabels=tip.scoreLabels or {}
-    local count=rows and math.min(#rows,16) or 0
-    for index=1,count+1 do
-        if count==0 then break end
-        local labels=tip.scoreLabels[index]
-        if not labels then
-            labels={};tip.scoreLabels[index]=labels
-            for column=1,3 do
-                local label=tip:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-                label:SetWidth(column==1 and 210 or column==2 and 98 or 64)
-                label:SetJustifyH(column==1 and "LEFT" or "RIGHT")
-                label:SetWordWrap(false)
-                Lychee.UI.Theme:SetFont(label,"body")
-                Lychee.UI.Theme:SetTextColor(label,index==1 and "textMuted" or "text")
-                labels[column]=label
-            end
-        end
-        local row=index>1 and rows[index-1]
-        for column,label in ipairs(labels) do
-            local value=row and row[column] or (column==1 and L["当季副本"] or column==2 and L["成绩"] or L["分数"])
-            setText(label,value);setShown(label,true)
-            local top=y+(index-1)*25
-            if label._y~=top then
-                label:ClearAllPoints();label:SetPoint("TOPLEFT",tip,"TOPLEFT",column==1 and 14 or column==2 and 232 or 338,-top);label._y=top
-            end
-        end
-    end
-    for index=count>0 and count+2 or 1,#tip.scoreLabels do
-        for _,label in ipairs(tip.scoreLabels[index]) do setShown(label,false);setText(label,"") end
-    end
-    return count>0 and y+(count+1)*25 or y
-end
-
-local function showTooltip(owner, title, detail)
-    if not owner or (InCombatLockdown and InCombatLockdown()) then return end
-    local tip = acquireTooltip()
-    local entering=not tip:IsShown()
-    if tip._owner ~= owner then
-        tip:ClearAllPoints()
-        -- Anchor to the entry, but stay outside its clipping ScrollFrame tree.
-        tip:SetPoint("BOTTOMLEFT", owner, "TOPRIGHT", 8, 8)
-        tip._owner = owner
-    end
+local scoreHeaders
+local function showTooltip(owner,title,detail)
     local kind, description, clickHint, dragHint
     if type(detail) == "table" then
         kind = kindText(detail)
@@ -225,35 +131,10 @@ local function showTooltip(owner, title, detail)
     elseif detail and detail ~= "" and detail ~= title then
         description = detail
     end
-    local scoreRows=type(detail)=="table" and detail.searchRecord and detail.searchRecord.tooltipRows
-    local wide=type(scoreRows)=="table" and #scoreRows>0
-    local width=wide and 416 or 280
-    if tip._width~=width then
-        tip:SetWidth(width)
-        for _,label in ipairs(tip.labels) do label:SetWidth(width-28) end
-        tip.divider:SetWidth(width-28);tip._width=width
-    end
-    local y = tooltipLine(tip, 1, title, 14)
-    y = tooltipLine(tip, 2, kind, y, 3)
-    y = tooltipLine(tip, 3, wide and "" or description, y, 10)
-    if wide then y=scoreTable(tip,scoreRows,y+14)
-    elseif tip.scoreLabels then scoreTable(tip,nil,y) end
-    local hasActions = clickHint ~= nil or dragHint ~= nil
-    setShown(tip.divider, hasActions)
-    if hasActions then
-        y = y + 10
-        if tip.divider._y ~= y then
-            tip.divider:ClearAllPoints()
-            tip.divider:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
-            tip.divider._y = y
-        end
-        y = y + 8
-    end
-    y = tooltipLine(tip, 4, clickHint, y)
-    y = tooltipLine(tip, 5, dragHint, y, clickHint and 4 or 0)
-    if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
-    setShown(tip, true)
-    if entering and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
+    local rows=type(detail)=="table" and detail.searchRecord and detail.searchRecord.tooltipRows
+    if rows and not scoreHeaders then scoreHeaders={L["当季副本"],L["成绩"],L["分数"]} end
+    Lychee.UI.Components:ShowTooltip(owner,{title=title,meta=kind,description=description,hint=clickHint,dragHint=dragHint,
+        rows=rows,headers=scoreHeaders})
 end
 
 function ResultList:HideTooltip() hideTooltip() end

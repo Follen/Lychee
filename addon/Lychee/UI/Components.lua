@@ -411,24 +411,134 @@ function Components:CreateEmptyState(parent, options)
     return component
 end
 
-local actionMenuInset = { left = 6, right = 6, top = 6, bottom = 6 }
+function Components:HideTooltip(owner)
+    local tip = Components.tooltip
+    if not tip or not tip._owner or owner and tip._owner~=owner then return end
+    if Lychee.UI.Motion then Lychee.UI.Motion:Cancel(tip,true) end
+    setShown(tip, false)
+    if tip._owner then
+        tip:ClearAllPoints()
+        tip._owner = nil
+    end
+end
+
+local function acquireTooltip()
+    if Components.tooltip then return Components.tooltip end
+    local theme = Lychee.UI.Theme
+    local tip = CreateFrame("Frame", nil, UIParent)
+    tip:SetWidth(280)
+    tip:SetFrameStrata("TOOLTIP")
+    tip:SetClampedToScreen(true)
+    tip:EnableMouse(false)
+    theme:CreateRoundedSurface(tip, "tooltip", 8)
+    tip.labels = {}
+    for index = 1, 5 do
+        local label = tip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        label:SetWidth(252)
+        label:SetJustifyH("LEFT")
+        label:SetWordWrap(true)
+        if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
+        theme:SetFont(label, index == 1 and "title" or index == 2 and "meta" or "body")
+        theme:SetTextColor(label, index == 1 and "text" or "textMuted")
+        tip.labels[index] = label
+    end
+    tip:Hide()
+    Components.tooltip = tip
+    return tip
+end
+
+local function tooltipLine(tip, index, text, y, gap)
+    local label = tip.labels[index]
+    text = text or ""
+    setText(label, text)
+    setShown(label, text ~= "")
+    if text == "" then return y end
+    y = y + (gap or 0)
+    if label._y ~= y then
+        label:ClearAllPoints()
+        label:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
+        label._y = y
+    end
+    return y + math.max(label:GetStringHeight(), index == 1 and 18 or 15)
+end
+
+local function scoreTable(tip, rows, y, headers)
+    tip.scoreLabels=tip.scoreLabels or {}
+    local count=rows and math.min(#rows,16) or 0
+    for index=1,count+1 do
+        if count==0 then break end
+        local labels=tip.scoreLabels[index]
+        if not labels then
+            labels={};tip.scoreLabels[index]=labels
+            for column=1,3 do
+                local label=tip:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+                label:SetWidth(column==1 and 210 or column==2 and 98 or 64)
+                label:SetJustifyH(column==1 and "LEFT" or "RIGHT")
+                label:SetWordWrap(false)
+                Lychee.UI.Theme:SetFont(label,"body")
+                Lychee.UI.Theme:SetTextColor(label,index==1 and "textMuted" or "text")
+                labels[column]=label
+            end
+        end
+        local row=index>1 and rows[index-1]
+        for column,label in ipairs(labels) do
+            local value=row and row[column] or headers and headers[column] or ""
+            setText(label,value);setShown(label,true)
+            local top=y+(index-1)*25
+            if label._y~=top then
+                label:ClearAllPoints();label:SetPoint("TOPLEFT",tip,"TOPLEFT",column==1 and 14 or column==2 and 232 or 338,-top);label._y=top
+            end
+        end
+    end
+    for index=count>0 and count+2 or 1,#tip.scoreLabels do
+        for _,label in ipairs(tip.scoreLabels[index]) do setShown(label,false);setText(label,"") end
+    end
+    return count>0 and y+(count+1)*25 or y
+end
+
+function Components:ShowTooltip(owner, content)
+    if not owner or (InCombatLockdown and InCombatLockdown()) then return end
+    local tip = acquireTooltip()
+    local entering=not tip:IsShown()
+    local scale=Lychee.UI.Theme.scale or Lychee.UI.Theme.Metrics.uiScale
+    if tip._scale~=scale then tip:SetScale(scale);tip._scale=scale end
+    if tip._owner ~= owner then
+        tip:ClearAllPoints()
+        -- Anchor to the entry, but stay outside its clipping ScrollFrame tree.
+        tip:SetPoint("BOTTOMLEFT", owner, "TOPRIGHT", 8, 8)
+        tip._owner = owner
+    end
+    local title,kind,description,clickHint,dragHint,scoreRows=content.title,content.meta,content.description,content.hint,content.dragHint,content.rows
+    local wide=type(scoreRows)=="table" and #scoreRows>0
+    local width=wide and 416 or 280
+    if tip._width~=width then
+        tip:SetWidth(width)
+        for _,label in ipairs(tip.labels) do label:SetWidth(width-28) end
+        tip._width=width
+    end
+    local y = tooltipLine(tip, 1, title, 14)
+    y = tooltipLine(tip, 2, kind, y, 3)
+    y = tooltipLine(tip, 3, wide and "" or description, y, 10)
+    if wide then y=scoreTable(tip,scoreRows,y+14,content.headers)
+    elseif tip.scoreLabels then scoreTable(tip,nil,y) end
+    local hasActions = clickHint ~= nil or dragHint ~= nil
+    if hasActions then y=y+14 end
+    y = tooltipLine(tip, 4, clickHint, y)
+    y = tooltipLine(tip, 5, dragHint, y, clickHint and 4 or 0)
+    if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
+    setShown(tip, true)
+    if entering and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
+end
+
+local actionMenuInset = { left = 8, right = 8, top = 8, bottom = 8 }
 local actionMenuPadding = { width = 0, height = 0 }
 local actionMenuStyle = {}
 function actionMenuStyle:GetInset() return actionMenuInset end
 function actionMenuStyle:GetChildExtentPadding() return actionMenuPadding end
 function actionMenuStyle:Generate()
-    local colors = getTheme().Colors
-    -- Native menu attachments are pooled and reset by its compositor. Apply
-    -- directly here: cached theme stamps must not survive pool reinitialization.
-    local border = self:AttachTexture()
-    border:SetAllPoints()
-    border:SetDrawLayer("BACKGROUND", -1)
-    border:SetColorTexture(unpack(colors.border))
-    local background = self:AttachTexture()
-    background:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1)
-    background:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -1, 1)
-    background:SetDrawLayer("BACKGROUND", 0)
-    background:SetColorTexture(unpack(colors.window))
+    local theme=getTheme()
+    self:SetScale(theme.scale or theme.Metrics.uiScale)
+    theme:CreateRoundedSurface(self,"tooltip",8)
 end
 
 local function initializeActionMenuButton(button)
@@ -437,7 +547,7 @@ local function initializeActionMenuButton(button)
     label:SetFont(STANDARD_TEXT_FONT, theme.FontSizes.body, "")
     label:SetShadowOffset(0, 0)
     label:SetTextColor(unpack(theme.Colors.text))
-    local width = math.max(156, math.min(280, label:GetStringWidth() + 24))
+    local width = math.max(168, math.min(280, label:GetStringWidth() + 28))
     label:ClearAllPoints()
     label:SetPoint("LEFT", button, "LEFT", 12, 0)
     label:SetPoint("RIGHT", button, "RIGHT", -12, 0)
@@ -446,7 +556,7 @@ local function initializeActionMenuButton(button)
     label:SetWordWrap(false)
     button.highlight:SetBlendMode("BLEND")
     button.highlight:SetColorTexture(0, 0, 0, 0)
-    return width, 32
+    return width, 30
 end
 
 local function enterActionMenu(button)

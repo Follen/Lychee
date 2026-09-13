@@ -22,6 +22,7 @@ local function object(kind, parent)
     end
     function value:ClearAllPoints() self.points = {} end
     function value:SetParent(parentValue) self.parent = parentValue end
+    function value:SetScale(scale) self.scale=scale end
     function value:SetFrameStrata(strata) self.strata = strata end
     function value:SetClampedToScreen(enabled) self.clamped = enabled end
     function value:EnableMouse(enabled) self.mouseEnabled = enabled end
@@ -233,7 +234,7 @@ end
 assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
 
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-local tip = Lychee.UI.ResultList.tooltip
+local tip = Lychee.UI.Components.tooltip
 assert(tip:IsShown() and tip.labels[1]:GetText() == longText, "hover keeps the item title")
 assert(tip.labels[2]:GetText() == "自定义类型", "tooltip keeps useful type without internal search diagnostics")
 assert(tip.labels[4]:GetText():find("施放",1,true), "tooltip shows the declared primary action")
@@ -242,7 +243,7 @@ assert(tip.clamped and not tip.mouseEnabled, "tooltip stays on screen without in
 assert(tip.labels[1].font[2] > tip.labels[2].font[2] and tip.labels[1].shadow[1] == 0, "owned fonts preserve hierarchy without inherited shadows")
 frameCount = #created
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-assert(#created == frameCount and Lychee.UI.ResultList.tooltip == tip, "repeat hover reuses all tooltip objects")
+assert(#created == frameCount and Lychee.UI.Components.tooltip == tip, "repeat hover reuses all tooltip objects")
 tip.labels[3].measuredHeight = 60
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
 local expandedHeight = tip:GetHeight()
@@ -296,7 +297,7 @@ local scrollContent = CreateFrame("Frame", nil, viewport)
 local recentOwner = CreateFrame("Button", nil, scrollContent)
 recentOwner.top = 556
 Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
-local recentTip = Lychee.UI.ResultList.tooltip
+local recentTip = Lychee.UI.Components.tooltip
 local tooltipTop = recentOwner.top + 8 + recentTip:GetHeight()
 local clipTop = 900
 local ancestor = recentTip:GetParent()
@@ -337,20 +338,27 @@ assert(#created==createdBeforeTypes, "type labels reuse existing rows and region
 list:Clear()
 
 dofile("addon/Lychee/UI/Runtime.lua")
-dofile("addon/Lychee/UI/Components.lua")
+
 local menuOwner = {}
 Lychee.UI.Components:StyleActionMenuOwner(menuOwner)
 local menuFrame = object("Frame")
-local attachments = {}
+local attachments,cursor = {},0
 function menuFrame:AttachTexture()
-    local texture = object("Texture", self)
-    function texture:SetDrawLayer(layer, level) self.layer, self.level = layer, level end
-    attachments[#attachments + 1] = texture
+    cursor=cursor+1
+    local texture=attachments[cursor]
+    if not texture then
+        texture=object("Texture",self);attachments[cursor]=texture
+        function texture:SetDrawLayer(layer,level) self.layer,self.level=layer,level end
+    end
     return texture
 end
 menuOwner.menuMixin.Generate(menuFrame)
-assert(#attachments == 2 and attachments[2].color[4] == 1, "menu has an opaque pooled background")
+assert(#attachments == 7 and attachments[2].color[4] == 1, "menu has an opaque pooled background")
 assert(menuOwner.menuMixin:GetInset().left == menuOwner.menuMixin:GetInset().right, "menu padding is symmetric")
+attachments[1].color={1,0,1,0};cursor=0
+menuOwner.menuMixin.Generate(menuFrame)
+assert(#attachments==7 and attachments[1].color[1]==Lychee.UI.Theme.Colors.tooltip[1] and attachments[1].color[4]==1,
+    "native pooled attachments restore their style without creating another surface")
 local menuInitializer, menuEnter, menuLeave
 Lychee.UI.Components:StyleActionMenuButton({AddInitializer=function(_, fn) menuInitializer=fn end, SetOnEnter=function(_, fn) menuEnter=fn end, SetOnLeave=function(_, fn) menuLeave=fn end})
 local menuButton = object("Button")
@@ -359,7 +367,7 @@ function menuButton.fontString:GetStringWidth() return self.measuredWidth or 100
 menuButton.highlight = object("Texture", menuButton)
 function menuButton.highlight:SetBlendMode(mode) self.blendMode = mode end
 local menuWidth, menuHeight = menuInitializer(menuButton)
-assert(menuWidth == 156 and menuHeight == 32, "single action retains comfortable menu dimensions")
+assert(menuWidth == 168 and menuHeight == 30, "single action retains comfortable menu dimensions")
 assert(menuButton.fontString.font[2] == 12 and menuButton.fontString.wordWrap == false, "menu uses readable single-line body text")
 assert(menuButton.highlight.blendMode == "BLEND", "menu removes additive gold highlight")
 menuButton.fontString.measuredWidth = 600

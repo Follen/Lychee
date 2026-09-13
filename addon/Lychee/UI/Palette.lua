@@ -31,8 +31,8 @@ function Palette:ApplyBoundedScale()
     local parentWidth = UIParent and UIParent.GetWidth and UIParent:GetWidth()
     local parentHeight = UIParent and UIParent.GetHeight and UIParent:GetHeight()
     if not parentWidth or not parentHeight or parentWidth <= 0 or parentHeight <= 0 then return end
-    local scale = math.min(1, (parentWidth - 48) / WIDTH, (parentHeight - 48) / 600)
-    if self._scale ~= scale then self.frame:SetScale(scale); self._scale = scale end
+    local scale = math.min(LIST_METRICS.uiScale, (parentWidth - 48) / WIDTH, (parentHeight - 48) / 600)
+    if self._scale ~= scale then self.frame:SetScale(scale); self._scale = scale; Lychee.UI.Theme.scale=scale end
     local inset = math.max(24, (parentHeight - 600 * scale) / 2)
     self._presenceSpec.y = -inset / scale
     if self._topInset ~= inset then
@@ -146,15 +146,7 @@ function Palette:Create()
     self.footerHint:SetPoint("RIGHT", self.footer, "RIGHT", -LIST_METRICS.footerInset, 0)
     Lychee.UI.Theme:SetTextColor(self.footerHint, Lychee.UI.Theme:GetColor("textMuted"))
     Lychee.UI.Theme:SetFont(self.footerHint, "meta")
-    local footerLine = self.footer:CreateTexture(nil, "BORDER")
-    footerLine:SetPoint("TOPLEFT", self.footer, "TOPLEFT", LIST_METRICS.footerInset, 0)
-    footerLine:SetPoint("TOPRIGHT", self.footer, "TOPRIGHT", -LIST_METRICS.footerInset, 0)
-    footerLine:SetHeight(1)
-    Lychee.UI.Theme:SetColorTexture(footerLine,"footerDivider")
-    local divider = self.header:CreateTexture(nil, "BORDER")
-    divider:SetPoint("LEFT", self.header, "LEFT", 62, 0)
-    divider:SetSize(1, 18)
-    Lychee.UI.Theme:SetColorTexture(divider, Lychee.UI.Theme:GetColor("border"))
+
 
     self.emptyStateComponent = components:CreateEmptyState(self.content, {
         title = L["没有找到结果"],

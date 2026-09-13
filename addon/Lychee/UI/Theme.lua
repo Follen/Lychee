@@ -23,7 +23,6 @@ Theme.Colors = {
     action = { 0.075, 0.078, 0.088, 1 },
     actionHover = { 0.175, 0.115, 0.125, 1 },
     border = { 0.110, 0.110, 0.125, 1 },
-    footerDivider = { 0.140, 0.140, 0.140, 0.5 },
     borderStrong = { 0.285, 0.290, 0.315, 1 },
     accent = { 0.835, 0.235, 0.285, 1 },
     accentHover = { 0.950, 0.350, 0.400, 1 },
@@ -55,6 +54,7 @@ end
 
 Theme.Metrics = {
     paletteWidth = 640,
+    uiScale = 1.15,
     paletteHeight = 220,
     headerHeight = 56,
     footerHeight = 32,
@@ -82,6 +82,7 @@ Theme.Metrics = {
     iconSize = 28,
     border = 1,
 }
+
 
 Theme.Spacing = {
     tight = 6,
@@ -188,6 +189,12 @@ end
 -- Seven reusable regions keep the corner radius fixed as the window grows.
 function Theme:CreateRoundedSurface(frame, token, radius)
     radius = radius or 10
+    local function region()
+        local texture=frame.AttachTexture and frame:AttachTexture() or frame:CreateTexture(nil,"BACKGROUND")
+        texture._lycheeColorToken,texture._lycheeVertexToken=nil,nil
+        if frame.AttachTexture then texture:SetDrawLayer("BACKGROUND",0) end
+        return texture
+    end
     local surface={regions={}}
     function surface:SetColor(color)
         for _,region in ipairs(self.regions) do
@@ -195,13 +202,13 @@ function Theme:CreateRoundedSurface(frame, token, radius)
             else Theme:SetColorTexture(region,color) end
         end
     end
-    local middle = frame:CreateTexture(nil, "BACKGROUND")
+    local middle = region()
     middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius, 0)
     middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius, 0)
     self:SetColorTexture(middle, token)
     surface.regions[#surface.regions+1]=middle
     for _, side in ipairs({ "LEFT", "RIGHT" }) do
-        local strip = frame:CreateTexture(nil, "BACKGROUND")
+        local strip = region()
         strip:SetPoint("TOP" .. side, frame, "TOP" .. side, 0, -radius)
         strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, 0, radius)
         strip:SetWidth(radius)
@@ -214,7 +221,7 @@ function Theme:CreateRoundedSurface(frame, token, radius)
     }
     for index = 1, #corners do
         local corner = corners[index]
-        local texture = frame:CreateTexture(nil, "BACKGROUND")
+        local texture = region()
         texture:SetSize(radius, radius)
         texture:SetPoint(corner[1], frame, corner[1], 0, 0)
         texture:SetTexture("Interface\\AddOns\\Lychee\\Media\\rounded-corner.tga")

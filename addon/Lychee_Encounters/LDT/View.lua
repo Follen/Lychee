@@ -69,16 +69,12 @@ function M:CreateView()
         button.icon:SetAlpha(0.85)
         local function leave()
             button.icon:SetAlpha(0.85)
-            if GameTooltip and GameTooltip:GetOwner()==button.frame then GameTooltip:Hide() end
+            Components:HideTooltip(button.frame)
         end
         button.frame:HookScript("OnEnter",function()
             if not panel.active then return end
             button.icon:SetAlpha(1)
-            if GameTooltip then
-                GameTooltip:SetOwner(button.frame,"ANCHOR_LEFT");GameTooltip:ClearLines();GameTooltip:AddLine(caption,1,1,1)
-                if detail then GameTooltip:AddLine(detail,0.71,0.705,0.69,true) end
-                GameTooltip:Show()
-            end
+            Components:ShowTooltip(button.frame,{title=caption,description=detail})
         end)
         button.frame:HookScript("OnLeave",leave);button.frame:HookScript("OnHide",leave)
         button.frame:HookScript("OnMouseDown",function() button.icon:SetAlpha(0.55) end)
@@ -94,18 +90,16 @@ function M:CreateView()
         if self.model then self.model:SetScript("OnUpdate",nil) end
     end
     function panel:ShowTraits()
-        if not self.active or not GameTooltip then return end
+        if not self.active then return end
         local enemy=self.enemy
         local affected={}
         for _,item in ipairs(controls) do if enemy.characteristics and enemy.characteristics[item[1]] then affected[#affected+1]=L[item[2]] end end
-        GameTooltip:SetOwner(self.traits.frame,"ANCHOR_LEFT");GameTooltip:ClearLines()
-        GameTooltip:AddLine(M:Name(enemy),1,1,1)
-        GameTooltip:AddLine(L["可受控制"].."："..(#affected>0 and table.concat(affected," / ") or L["未记录"]),0.85,0.85,0.85,true)
-        GameTooltip:AddLine("NPC "..enemy.id,0.71,0.705,0.69)
-        GameTooltip:AddLine(L["基础生命"].." "..(enemy.health or "—").."  ·  "..L["基础进度"].." "..(enemy.count or "—"),0.85,0.85,0.85,true)
-        if enemy.stealth then GameTooltip:AddLine(L["隐形"],0.85,0.85,0.85) end
-        if enemy.stealthDetect then GameTooltip:AddLine(L["侦测隐形"],0.85,0.85,0.85) end
-        GameTooltip:AddLine(L["基础资料，随难度和变体变化"],0.7,0.7,0.7,true);GameTooltip:Show()
+        local lines={L["可受控制"].."："..(#affected>0 and table.concat(affected," / ") or L["未记录"]),
+            L["基础生命"].." "..(enemy.health or "—").."  ·  "..L["基础进度"].." "..(enemy.count or "—")}
+        if enemy.stealth then lines[#lines+1]=L["隐形"] end
+        if enemy.stealthDetect then lines[#lines+1]=L["侦测隐形"] end
+        Components:ShowTooltip(self.traits.frame,{title=M:Name(enemy),meta="NPC "..enemy.id,
+            description=table.concat(lines,"\n"),hint=L["基础资料，随难度和变体变化"]})
     end
     function panel:Request(id)
         if self.pending[id]~=nil or not C_Spell or not C_Spell.RequestLoadSpellData then return end
@@ -190,12 +184,10 @@ function M:CreateView()
         local sectionEnd=math.max(244,LIST_TOP+self.visibleRows*ROW_HEIGHT+12)
         if self.sectionEnd~=sectionEnd then
             self.sectionEnd=sectionEnd
-            self.divider:ClearAllPoints();self.divider:SetPoint("TOPLEFT",16,-sectionEnd);self.divider:SetPoint("RIGHT",-16,0)
             self.detailIcon:ClearAllPoints();self.detailIcon:SetPoint("TOPLEFT",16,-sectionEnd-16)
             self.detailTitle:ClearAllPoints();self.detailTitle:SetPoint("TOPLEFT",58,-sectionEnd-13);self.detailTitle:SetPoint("RIGHT",-16,0)
             self.detailMeta:ClearAllPoints();self.detailMeta:SetPoint("TOPLEFT",58,-sectionEnd-35);self.detailMeta:SetPoint("RIGHT",-16,0)
             self.descriptionScroll:ClearAllPoints();self.descriptionScroll:SetPoint("TOPLEFT",16,-sectionEnd-READING_TOP);self.descriptionScroll:SetPoint("RIGHT",-16,0)
-            self.columnRule:ClearAllPoints();self.columnRule:SetPoint("TOPLEFT",244,-62);self.columnRule:SetHeight(sectionEnd-76)
         end
         local readingHeight=math.min(READING_HEIGHT,430-sectionEnd-READING_TOP-16)
         if self.descriptionScroll:GetHeight()~=readingHeight then self.descriptionScroll:SetHeight(readingHeight);self:UpdateDescriptionSize() end
@@ -289,11 +281,6 @@ function M:CreateView()
         end,"left");self.back.frame:SetPoint("TOPRIGHT",-12,-2)
         self.traits=iconButton(self.frame,"skull",L["特性"],function() self:ShowTraits() end)
         self.traits.frame:SetPoint("TOPRIGHT",-120,-2)
-        local function line(y)
-            local f=self.frame:CreateTexture(nil,"BORDER");f:SetPoint("TOPLEFT",16,y);f:SetPoint("RIGHT",-16,0);f:SetHeight(1);Theme:SetColorTexture(f,"border");return f
-        end
-        line(-52);self.divider=line(-244)
-        self.columnRule=self.frame:CreateTexture(nil,"BORDER");self.columnRule:SetWidth(1);Theme:SetColorTexture(self.columnRule,"border")
         self.model=CreateFrame("PlayerModel",nil,self.frame);self.model:SetPoint("TOPLEFT",16,-62);self.model:SetSize(214,168)
         self.model:EnableMouse(true);self.model:EnableMouseWheel(true)
         local function drag()
@@ -352,16 +339,14 @@ function M:CreateView()
             row.expand.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" then row.expandPressed=row.binding end end)
             row.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" and self.active then row.pressed=row.binding end end)
             row.frame:HookScript("OnEnter",function()
-                if not self.active or not row.spellID or not GameTooltip then return end
-                GameTooltip:SetOwner(row.frame,"ANCHOR_LEFT");GameTooltip:ClearLines()
-                GameTooltip:AddLine(M:SpellName(row.spellID) or (L["技能"].." "..row.spellID),1,1,1,true)
-                GameTooltip:AddLine("ID "..row.spellID,0.71,0.705,0.69)
-                GameTooltip:AddLine(L["Shift + 左键：贴入聊天框"],0.71,0.705,0.69);GameTooltip:Show()
+                if not self.active or not row.spellID then return end
+                Components:ShowTooltip(row.frame,{title=M:SpellName(row.spellID) or (L["技能"].." "..row.spellID),
+                    meta="ID "..row.spellID,hint=L["Shift + 左键：贴入聊天框"]})
             end)
-            row.frame:HookScript("OnLeave",function() if GameTooltip and GameTooltip:GetOwner()==row.frame then GameTooltip:Hide() end end)
+            row.frame:HookScript("OnLeave",function() Components:HideTooltip(row.frame) end)
             row.frame:HookScript("OnHide",function()
                 row.pressed=nil;row.expandPressed=nil
-                if GameTooltip and GameTooltip:GetOwner()==row.frame then GameTooltip:Hide() end
+                Components:HideTooltip(row.frame)
             end)
             self.rows[i]=row
         end
@@ -413,7 +398,7 @@ function M:CreateView()
         self.pageItems,self.anchorID,self.anchorChild,self.revealID,self.revealGroup,self.renderedPage=nil,nil,nil,nil,nil,nil
         self.describedID,self.descriptionRaw,self.detailTexture,self.hintText=nil,nil,nil,nil
         if self.frame then
-            if GameTooltip and (GameTooltip:GetOwner()==self.traits.frame or GameTooltip:GetOwner()==self.reset.frame) then GameTooltip:Hide() end
+            Components:HideTooltip(self.traits.frame);Components:HideTooltip(self.reset.frame)
             self.title:SetText("");self.subtitle:SetText("");self.detailTitle:SetText("");self.detailMeta:SetText("");self.description:SetText("")
             self.detailIcon:SetTexture(nil);self.reset.frame:Hide();self.traits.frame:Hide()
             self.descriptionBar:StopDrag();self.skillBar:StopDrag();self.model:Hide();pcall(self.model.ClearModel,self.model);self.frame:Hide()
