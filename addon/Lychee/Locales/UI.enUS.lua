@@ -1,6 +1,7 @@
 local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
+    ["菜单"] = "Menu",
     ["暂不可用"] = "Unavailable",
     ["该功能已断开连接，配置已保留"] = "This feature disconnected; settings were kept",
     ["固定项数据异常，原始存档已保留"] = "Saved pins need attention; original data preserved",

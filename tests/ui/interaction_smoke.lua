@@ -918,8 +918,8 @@ for tick=1,8 do
         "background, input and content must share one motion root without an outer clipping viewport")
     assert(not palette.presenceViewport and not palette.presenceSurface and not palette.presenceContent,
         "presence must not split the window into separately moving or clipped layers")
-    assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001,"search text must keep its effective font scale during opening")
-    assert(math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"placeholder must share the stable cursor/text scale")
+    assert(math.abs(palette.input.frame:GetEffectiveScale()-palette._scale*UIParent:GetEffectiveScale())<0.000001,"search text must keep its effective font scale during opening")
+    assert(math.abs(palette.input.placeholder:GetEffectiveScale()-palette.input.frame:GetEffectiveScale())<0.000001,"placeholder must share the stable cursor/text scale")
 end
 finishPresence()
 local exitStyle=palette.input._visualState
@@ -937,7 +937,7 @@ assert(palette.input._visualState==exitStyle,"hover changes during exit cannot r
 assert(not palette.input.frame.focused and not palette.input:IsEnabled() and not palette.escapeFrame:IsShown(),"exit releases input and Escape receiver immediately")
 for tick=1,8 do
     motion.presenceDriver.scripts.OnUpdate(motion.presenceDriver,0.02)
-    assert(math.abs(palette.input.frame:GetEffectiveScale()-1)<0.000001 and math.abs(palette.input.placeholder:GetEffectiveScale()-1)<0.000001,"closing must not rescale the search glyphs or caret")
+    assert(math.abs(palette.input.frame:GetEffectiveScale()-palette._scale*UIParent:GetEffectiveScale())<0.000001 and math.abs(palette.input.placeholder:GetEffectiveScale()-palette.input.frame:GetEffectiveScale())<0.000001,"closing must not rescale the search glyphs or caret")
 end
 finishPresence()
 assert(not palette.frame:IsShown() and not palette._motionClosing,"native Escape eventually hides the rendered window")

@@ -23,7 +23,7 @@ local function object(kind, parent)
     function value:ClearAllPoints() self.points = {} end
     function value:SetParent(parentValue) self.parent = parentValue end
     function value:SetScale(scale) self.scale=scale end
-    function value:GetEffectiveScale() return self.scale or 1 end
+    function value:GetEffectiveScale() return (self.scale or 1) * (self.parent and self.parent:GetEffectiveScale() or 1) end
     function value:HookScript(key,fn) local old=self.scripts[key];self.scripts[key]=function(...) if old then old(...) end;fn(...) end end
     function value:SetFrameStrata(strata) self.strata = strata end
     function value:SetClampedToScreen(enabled) self.clamped = enabled end
@@ -95,6 +95,8 @@ end
 
 STANDARD_TEXT_FONT = "Fonts/test.ttf"
 UIParent = object("UIParent")
+local cursorX, cursorY = 100, 200
+function GetCursorPosition() return cursorX, cursorY end
 function GetLocale() return "zhCN" end
 function CreateFrame(kind, _, parent) return object(kind, parent or UIParent) end
 
@@ -242,6 +244,36 @@ assert(tip.labels[2]:GetText() == "自定义类型", "tooltip keeps useful type 
 assert(tip.labels[4]:GetText():find("施放",1,true), "tooltip shows the declared primary action")
 assert(not GameTooltip.shown and GameTooltip.text == nil, "result tooltip never changes the global tooltip")
 assert(tip.clamped and not tip.mouseEnabled, "tooltip stays on screen without intercepting clicks")
+local beforeMove = tip.points[1]
+local beforeX, beforeY = beforeMove[4], beforeMove[5]
+cursorX, cursorY = 140, 230
+if tip.scripts.OnUpdate then tip.scripts.OnUpdate(tip, 0.016) end
+local afterMove = tip.points[1]
+assert(afterMove[4] ~= beforeX and afterMove[5] ~= beforeY, "tooltip must follow cursor movement within the same hovered entry")
+assert(afterMove[2] == UIParent and afterMove[4] == cursorX / tip:GetEffectiveScale() + 12,
+    "cursor position uses tooltip effective scale outside the scroll tree")
+tip.scripts.OnUpdate(tip, 0.016)
+assert(tip.points[1] == afterMove, "stationary cursor does not repeat anchor setters")
+UIParent:SetScale(0.75)
+tip.scripts.OnUpdate(tip, 0.016)
+assert(tip.points[1][4] == cursorX / tip:GetEffectiveScale() + 12, "root UI scale changes refresh cursor coordinates")
+UIParent:SetScale(1)
+tip.scripts.OnUpdate(tip, 0.016)
+local trackingObjects = #created
+collectgarbage("collect"); collectgarbage("stop")
+local trackingMemory = collectgarbage("count")
+for _ = 1, 1000 do tip.scripts.OnUpdate(tip, 0.016) end
+local trackingAllocation = collectgarbage("count") - trackingMemory
+collectgarbage("restart")
+assert(trackingAllocation < 64 and #created == trackingObjects, "stationary tracking stays bounded without new UI objects")
+print(string.format("Tooltip tracking: 1000 stationary frames %.2f KiB allocation, 0 new objects", trackingAllocation))
+cursorX, cursorY = 710, 490
+tip.scripts.OnUpdate(tip, 0.016)
+local edge = tip.points[1]
+assert(edge[4] + tip:GetWidth() < cursorX / tip:GetEffectiveScale()
+    and edge[5] + tip:GetHeight() < cursorY / tip:GetEffectiveScale(), "screen edge flips tooltip away from pointer")
+cursorX, cursorY = 140, 230
+tip.scripts.OnUpdate(tip, 0.016)
 assert(tip.labels[1].font[2] > tip.labels[2].font[2] and tip.labels[1].shadow[1] == 0, "owned fonts preserve hierarchy without inherited shadows")
 frameCount = #created
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
@@ -255,6 +287,7 @@ rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
 assert(tip:GetHeight() < expandedHeight, "tooltip shrinks again when measured content shortens")
 rowOne.primaryTarget.scripts.OnLeave(rowOne.primaryTarget)
 assert(not tip:IsShown() and tip._owner == nil, "leave hides tooltip and releases owner")
+assert(tip.scripts.OnUpdate == nil, "leave stops cursor updates")
 list:Select(1)
 rowOne.secondary.scripts.OnMouseDown(rowOne.secondary,"LeftButton")
 rowOne.secondary.scripts.OnClick(rowOne.secondary)
@@ -314,6 +347,23 @@ for index = 1, 5 do
 end
 assert(visibleLines == 5, "recent tooltip clipped by scroll ancestor: only " .. visibleLines .. "/5 lines visible")
 assert(recentTip:GetParent() == UIParent, "tooltip keeps a non-clipping root parent")
+Lychee.UI.Components:HideTooltip(rowOne)
+assert(recentTip:IsShown(), "stale owner leave cannot close the current tooltip")
+recentOwner:Hide()
+recentTip.scripts.OnUpdate(recentTip, 0.016)
+assert(not recentTip:IsShown() and not recentTip.scripts.OnUpdate, "hidden owner stops root-owned tooltip tracking")
+recentOwner:Show()
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
+local originalCombat = InCombatLockdown
+InCombatLockdown = function() return true end
+recentTip.scripts.OnUpdate(recentTip, 0.016)
+assert(not recentTip:IsShown() and not recentTip.scripts.OnUpdate, "combat interrupts cursor tracking")
+InCombatLockdown = originalCombat
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
+recentTip.scripts.OnHide(recentTip)
+assert(not recentTip._owner and not recentTip.scripts.OnUpdate, "direct hide releases tracking and owner")
+recentTip:Hide()
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
 list.frame.scripts.OnHide(list.frame)
 assert(not recentTip:IsShown() and recentTip._owner == nil, "hiding the result view clears the root-owned tooltip")
 Lychee.UI.ResultList:HideTooltip()
@@ -373,6 +423,7 @@ local function populate(_,root)
 end
 local menu=Lychee.UI.Components:ShowActionMenu(menuOwner,populate)
 assert(nativeOpens==0 and menu.owner==menuOwner and menu:IsShown())
+assert(menu.heading:GetText():find("菜单",1,true) and menu.heading:GetText():find("game-menu.tga",1,true), "menu has a distinct localized identity")
 assert(menu:GetWidth()<=296 and menu.count==2 and menu.buttons[2].label.wordWrap==false)
 local button=menu.buttons[1]
 button.frame.scripts.OnClick();assert(actions==0,"click requires a physical press")

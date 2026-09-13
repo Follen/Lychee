@@ -3,6 +3,10 @@ function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- without pretending to validate the real WoW secure-click implementation.
 _G = _G or {}
 UIParent = { width = 800, height = 600 }
+function UIParent:GetWidth() return self.width end
+function UIParent:GetHeight() return self.height end
+function UIParent:GetEffectiveScale() return self.scale or 1 end
+function GetCursorPosition() return 200, 300 end
 function GetLocale() return "zhCN" end
 function InCombatLockdown() return _G.__combat == true end
 function geterrorhandler() return function(err) return err end end

@@ -9,6 +9,7 @@ for _, locale in ipairs({"zhCN", "zhTW", "enUS", "enGB", "deDE"}) do
     local L = LycheeInternal.Locale
     local chinese = locale == "zhCN" or locale == "zhTW"
     assert(L:IsChinese() == chinese)
+    assert(L["菜单"] == (chinese and "菜单" or "Menu"))
     dofile("addon/Lychee/Core/ProviderLocales.lua")
     local namespace={ProviderLocaleData={}}
     assert(loadfile("addon/Lychee_Inspector/Locales.lua"))("Lychee_Inspector",namespace)
