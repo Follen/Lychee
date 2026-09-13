@@ -598,6 +598,12 @@
       "suite": "ui",
       "path": "tests/ui/home_lifecycle.lua",
       "args": []
+    },
+    {
+      "id": "ui.popup_geometry",
+      "suite": "ui",
+      "path": "tests/ui/popup_geometry.lua",
+      "args": []
     }
   ]
 }

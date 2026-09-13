@@ -84,6 +84,7 @@ function Broker:_Acquire()
     -- indistinguishable from an ordinary primary action.
     button:SetScript("OnEnter", function(current)
         local token, controller = current.token, current.token and current.token.controller
+        if controller and controller.DeferRowHover and controller:DeferRowHover(current) then return end
         local list = token and (token.row.ownerView or (controller and controller.list))
         if token and list and list.SetHover then list:SetHover(token.row, true) end
         if current.armedSecondary and controller and controller.list and controller.list.ShowActionTooltip then

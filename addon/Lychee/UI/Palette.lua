@@ -528,6 +528,26 @@ function Palette:SetResults(items, generation, session)
     return self:ApplyResults(items, generation, session)
 end
 
+function Palette:DeferRowHover(owner)
+    if not self.visible then return true end
+    local presence=Lychee.UI.Motion and Lychee.UI.Motion.presence
+    if self._openingLayout or presence and presence.region==self.frame then
+        self._deferredHover,self._deferredHoverRevision=owner,(owner._pressBindingOwner or owner)._bindingRevision
+        return true
+    end
+    return false
+end
+
+function Palette:FinishShow()
+    local owner,revision=self._deferredHover,self._deferredHoverRevision
+    self._openingLayout,self._deferredHover,self._deferredHoverRevision=nil,nil,nil
+    local menu=Lychee.UI.Components.actionMenu
+    if self.visible and not (menu and menu:IsShown()) and owner and (owner._pressBindingOwner or owner)._bindingRevision==revision and owner:IsVisible() and owner:IsMouseOver() then
+        local entered=owner:GetScript("OnEnter")
+        if entered then entered(owner) end
+    end
+end
+
 function Palette:Show()
     if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(true) end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
@@ -545,15 +565,18 @@ function Palette:Show()
     self.input:SetVisualFrozen(false)
     self.input:SetText("")
     self:ApplyBoundedScale()
-    self.visible = true
+    self.visible,self._openingLayout = true,true
     self.frame:RegisterEvent("GLOBAL_MOUSE_DOWN")
-    self:ResizeForMode("home")
     local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
     if searchSession then searchSession:Start() end
     if I.Search.Normalizer:IsBlank(self.input:GetText()) and not self.activeFilter then self:RefreshHomeSections(true) end
+    -- Restore the actual home layout while hidden; entrance only moves it.
+    self:ResizeForMode("home")
     self.frame:Show(); self.input:SetText(self.input:GetText()); self:SetQueryMode(self.input:GetText()); self.input:Show()
     if self.escapeFrame then self.escapeFrame:Show() end
-    if motion then motion:Presence(self.frame,true,nil,initialPhase,self) end
+    if motion then motion:Presence(self.frame,true,function() self:FinishShow() end,initialPhase,self)
+    else self:FinishShow() end
+    self._openingLayout=nil
     self.brandComponent:PlayMotion()
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
@@ -580,6 +603,7 @@ function Palette:Hide(reason)
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
+    self._openingLayout,self._deferredHover,self._deferredHoverRevision=nil,nil,nil
     if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(false) end
     self.searchPending=false
     Lychee.UI.Components:HideActionMenu()

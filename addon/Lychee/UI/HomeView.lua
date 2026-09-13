@@ -119,7 +119,7 @@ function HomeView:Create(parent, controller)
     end
     function view:SetScroll(value)
         if InCombatLockdown and InCombatLockdown() then return end
-        local viewport = math.max(0, frame:GetHeight() - 20)
+        local viewport = math.max(0, frame:GetHeight())
         self.scroll = math.max(0, math.min(math.max(0, content:GetHeight() - viewport), value))
         if self._appliedScroll ~= self.scroll then
             frame:SetVerticalScroll(self.scroll); self._appliedScroll = self.scroll
@@ -208,6 +208,7 @@ function HomeView:Create(parent, controller)
             end
         end)
         tile:SetScript("OnEnter", function(button)
+            if controller.DeferRowHover and controller:DeferRowHover(button) then return end
             view:SetHover(button, true)
             view:ShowTooltip(button)
         end)
@@ -378,13 +379,13 @@ function HomeView:Create(parent, controller)
         for index = headerCount + 1, #self.headers do setShown(self.headers[index], false) end
         local height = math.max(1, cursorY + 14)
         if self.content:GetHeight() ~= height then self.content:SetHeight(height) end
-        local maxScroll = math.max(0, height - (self.frame:GetHeight() or 0) + 20)
+        local maxScroll = math.max(0, height - (self.frame:GetHeight() or 0))
         self.scroll = math.min(self.scroll or 0, maxScroll)
         if self.frame.SetVerticalScroll and self._appliedScroll ~= self.scroll then
             self.frame:SetVerticalScroll(self.scroll)
             self._appliedScroll = self.scroll
         end
-        self.scrollbar:SetRange(height, math.max(0, self.frame:GetHeight() - 20), self.scroll)
+        self.scrollbar:SetRange(height, math.max(0, self.frame:GetHeight()), self.scroll)
         if not self.sections[self.selected] or self.sections[self.selected].enabled == false then
             local firstEnabled
             for index = 1, #self.sections do if self.sections[index].enabled ~= false then firstEnabled = index; break end end

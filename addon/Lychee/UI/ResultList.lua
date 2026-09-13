@@ -260,6 +260,7 @@ function ResultList:Create(parent, controller)
             if button:GetParent().dragDescriptor and self.controller then self.controller:BeginRowDrag(button:GetParent()) end
         end)
         row.dragger:SetScript("OnEnter", function(button)
+            if self.controller and self.controller.DeferRowHover and self.controller:DeferRowHover(button) then return end
             local owner = button:GetParent(); owner._dragHovered = true; self:SetHover(owner, true); renderRowState(owner)
             showTooltip(button, owner.item and owner.item.text, owner.item)
         end)
@@ -277,6 +278,7 @@ function ResultList:Create(parent, controller)
             if self.controller then self.controller:ActivateRow(owner) end
         end)
         row.primaryTarget:SetScript("OnEnter", function(button)
+            if self.controller and self.controller.DeferRowHover and self.controller:DeferRowHover(button) then return end
             local owner = button:GetParent(); self:SetHover(owner, true); showTooltip(button, owner.item and owner.item.text, owner.item)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
@@ -294,7 +296,10 @@ function ResultList:Create(parent, controller)
         row:SetScript("OnClick", function(button) if not binding:Consume(button, button, "LeftButton") then return end; self:SelectRow(button); if self.controller then self.controller:ActivateRow(button) end end)
         row:SetScript("OnMouseDown", function(button, mouseButton) binding:Press(button, button, mouseButton); button._pressed = true; renderRowState(button) end)
         row:SetScript("OnMouseUp", function(button) button._pressed = false; renderRowState(button) end)
-        row:SetScript("OnEnter", function(button) self:SetHover(button, true) end)
+        row:SetScript("OnEnter", function(button)
+            if self.controller and self.controller.DeferRowHover and self.controller:DeferRowHover(button) then return end
+            self:SetHover(button, true)
+        end)
         row:SetScript("OnLeave", function(button)
             self:SetHover(button, false)
             if not button.IsMouseOver or not button:IsMouseOver() then hideTooltip() end
