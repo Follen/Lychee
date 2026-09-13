@@ -11,28 +11,17 @@
 - **先读通用规则**：1–6 节（成本、事件、UI、内存、模块边界）。
 - **选验证与交付**：7–10 节（测量口径、角色、SDK 和职责收敛）。
 - **查具体数字与历史坑**：11–13 节（专项预算、功能容量、回归映射）。
+- **查功能与装配专项**：14–16 节（LDT、团本技能、五包统计与 API 边界）。
+- **维护测试门禁**：第 17 节（统一入口、用例隔离与结果报告）。
 - 全项目静默常驻低于 1 MiB 的目标已撤销；现行目标是用户体验和扩展性不变，尽可能降低实际成本。特定离线测试中的 1 MiB 预算仍有效。
 - 不以默认关闭自带 Provider、减少搜索数据、频繁 GC、把同一功能拆成统计口径不同的插件来获得表面收益。
-- 本次集中整理不修改测试阈值。离线预算是固定场景门禁；没有新增游戏内测量，不宣称实机达标。
+- 文档整理不构成修改测试阈值的理由。离线预算是固定场景门禁；没有对应的游戏内测量，不宣称实机达标。
 
-## 1. 来源与适用范围
+## 1. 适用范围
 
-规则参考 EllesmereUI 实际源码，并结合 Lychee 的搜索、Provider 和 SDK 契约制定。上游代码不是无条件复制模板；下面标注为 Lychee 门禁的要求，不代表上游全部已经实现。
+本文件适用于 Lychee、Lychee_Player、Lychee_Encounters、Lychee_Integrations、Lychee_Inspector 五个运行包，以及 SDK 的公共契约、托管资源和接入实现。整体成本按五包合计，功能专项成本另行列明。
 
-近期核对基线：`8da5dfe182c7809e3f61b5a9ca856d16b891726f`（2026-09-09）。
-
-| 上游证据 | 可借鉴的机制 |
-| --- | --- |
-| [贡献验收标准](https://github.com/EllesmereGaming/EllesmereUI/blob/8da5dfe182c7809e3f61b5a9ca856d16b891726f/.github/CONTRIBUTING.md#L26-L46) | 未启用零活动成本、首次启用时创建、可选设置默认关闭、事件驱动、限制热路径分配、避免 taint |
-| [共享驱动](https://github.com/EllesmereGaming/EllesmereUI/blob/8da5dfe182c7809e3f61b5a9ca856d16b891726f/EllesmereUI_Ticker.lua#L62-L120) | 幂等订阅、密集数组、交换删除、零订阅时隐藏驱动 |
-| [搜索索引](https://github.com/EllesmereGaming/EllesmereUI/blob/8da5dfe182c7809e3f61b5a9ca856d16b891726f/EllesmereUI_GlobalSearch.lua#L385-L411) | 用轻量控件替身提取搜索文字，避免为索引预建整页 UI；少数自定义框架仍存在 |
-| [分批预处理](https://github.com/EllesmereGaming/EllesmereUI/blob/8da5dfe182c7809e3f61b5a9ca856d16b891726f/EllesmereUI_GlobalSearch.lua#L646-L718) | 首次使用触发，每批一个页面、间隔 0.05 秒，战斗中暂停 |
-| [结果行复用](https://github.com/EllesmereGaming/EllesmereUI/blob/8da5dfe182c7809e3f61b5a9ca856d16b891726f/EllesmereUI_GlobalSearch.lua#L815-L894) | 搜索 UI 创建一次，复用固定数量结果行 |
-| [主题刷新](https://github.com/EllesmereGaming/EllesmereUI/blob/8da5dfe182c7809e3f61b5a9ca856d16b891726f/EllesmereUI_UICore.lua#L344-L379) | 重控件约 15 Hz 刷新、结束时局部更新，完整 GC 延后两帧 |
-
-原有准则还参考了 `1b37158d7533deb2d5b0a74292438a8ea2191588`（v8.9.1）：[AuraKit](https://github.com/EllesmereGaming/EllesmereUI/blob/1b37158d7533deb2d5b0a74292438a8ea2191588/EllesmereUI_AuraKit.lua)、[aura 容器](https://github.com/EllesmereGaming/EllesmereUI/blob/1b37158d7533deb2d5b0a74292438a8ea2191588/EllesmereUIRaidFrames/EUI_RaidFrames_AuraContainers.lua)、[皮肤契约](https://github.com/EllesmereGaming/EllesmereUI/blob/1b37158d7533deb2d5b0a74292438a8ea2191588/SKINNING_API.md)，保留其缓存、池化、幂等 setter 和成功后写状态戳原则。
-
-上游 12.1 专用、ASCII 限制等产品或打包政策不自动成为 Lychee 要求。API 以本项目 wowdoc 版本证据为准。上游搜索采用平铺扫描，仍有临时结果表；不能据此认定其算法适合 Lychee 的全部数据规模。
+规则依据本项目的行为契约、测量与回归制定。WoW API 以目标客户端的 wowdoc 版本证据为准；具体功能的支持范围不自动扩大到其他客户端。外部实现仅作研究参考，来源见[历史记录](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-13-performance-sources.md)，不构成额外门禁。
 
 ## 2. 开始实现前：先写成本与生命周期
 
@@ -113,8 +102,8 @@
 - 搜索索引必须测量空间收益与查询成本。禁止未经测量叠加 exact、prefix、token 和多长度字符片段等冗余结构；不能为中文无条件退化成整库复杂评分。
 - 结果只需要前 K 项时，优先维护有界候选结果，避免为全部命中创建结果对象后再截断。模糊匹配须有候选数和时间预算，并说明准确性取舍。
 - 更改候选筛选、排序或匹配算法必须用独立全扫描/参考算法检查正确性，覆盖中文、宽泛查询、多字段、多词、数据源切换和增删。
-- 大目录与预处理拆成有界批次，移出登录峰值和输入同步路径；涉及受限 UI 或重工作时战斗暂停，结束恢复，禁用取消。批次间隔参考上游 0.05 秒，单批时长仍需实测。
-- **不得靠频繁强制 GC 掩盖分配或保活问题。** 不在输入、战斗或定时循环中追加完整 GC。确有测量依据需要完整 GC 时避开重绘峰值，记录收益和停顿；上游延后两帧的做法不构成新增 GC 的理由。
+- 大目录与预处理拆成有界批次，移出登录峰值和输入同步路径；涉及受限 UI 或重工作时战斗暂停，结束恢复，禁用取消。批次间隔按首次结果延迟、总耗时和单批时长实测确定，不能仅凭等待间隔判定达标。
+- **不得靠频繁强制 GC 掩盖分配或保活问题。** 不在输入、战斗或定时循环中追加完整 GC。确有测量依据需要完整 GC 时避开重绘峰值，记录收益和停顿；延后执行不能替代新增 GC 的测量依据。
 
 ### 5.1 缓存与所有权审查表
 
@@ -150,6 +139,15 @@
 - 模块使用窄接口，广播明确变更 key；禁止为一个字段刷新全页、整组或所有单位。
 - 稳定本地化、纹理路径、过滤器、曲线等按输入缓存，避免战斗中反复拼接和生成。
 
+### 6.1 Provider 与外部回调边界
+
+- 更新明确区分增量与全量替换；一条记录变化不得默认重建整个 Provider 索引。事务失败不能留下记录、索引和 UI 版本不一致的半更新状态。
+- 读取目录、计算差异和提交索引分别计量。无变化刷新应跳过提交与广播，但不能据此宣称没有读取/扫描；只有提交成功才能更新本地已提交快照，失败后保留可重试状态。
+- 动态提供者只在必要的查询/上下文变化时解析；避免渲染、排序、tooltip 各自重复解析同一条记录。
+- 缓存优化不能改变 SDK 的外部修改隔离、动作权限、稳定 ID、排序或结果寿命契约。隐藏复制改为共享前必须增加相应边界验证。
+- 宿主只能限制调用次数和自有工作量，不能保证任意第三方同步回调在预算内完成。慢调用需要可关闭的归因测量，不能把计时检查写成已经具备抢占中断能力。
+- 错误重试必须分类且有界；同一故障避免重复弹窗和刷日志。常态日志关闭，诊断使用有限容量记录，禁用后停止采集。
+
 ### 6.2 Host 与子插件存储所有权
 
 - Host 只持久化框架偏好、Provider 开关/搜索策略及固定、历史、别名、记忆所需的有界稳定引用和显示回退；不新增 Provider 内部设置、业务目录或业务缓存。存量业务字段迁出必须经过所有者验证，不能在 Host 中留下第二份权威副本。
@@ -160,15 +158,6 @@
 - 已加载 SV 仍常驻 Lua 堆。迁移字段、拆分 AddOn、禁用 Provider 都不等于卸载；同时报告全部功能包的总成本。SDK 无法阻止第三方绕过工具自行写全局表，自有包通过依赖/TOC/集成门禁约束，不能声称具备内存沙箱。
 
 接口与归属清单见 [SDK 子插件存储](https://github.com/Follen/Lychee/blob/main/lychee-sdk/docs/STORAGE.md)；拆包落地进度见[实施记录](https://github.com/Follen/Lychee/blob/main/docs/architecture/2026-09-13-provider-sdk-1.0.0.md)。本节是目标硬约束，未完成的包级迁移不能以 SDK 单模块测试代替。
-
-### 6.1 Provider 与外部回调边界
-
-- 更新明确区分增量与全量替换；一条记录变化不得默认重建整个 Provider 索引。事务失败不能留下记录、索引和 UI 版本不一致的半更新状态。
-- 读取目录、计算差异和提交索引分别计量。无变化刷新应跳过提交与广播，但不能据此宣称没有读取/扫描；只有提交成功才能更新本地已提交快照，失败后保留可重试状态。
-- 动态提供者只在必要的查询/上下文变化时解析；避免渲染、排序、tooltip 各自重复解析同一条记录。
-- 缓存优化不能改变 SDK 的外部修改隔离、动作权限、稳定 ID、排序或结果寿命契约。隐藏复制改为共享前必须增加相应边界验证。
-- 宿主只能限制调用次数和自有工作量，不能保证任意第三方同步回调在预算内完成。慢调用需要可关闭的归因测量，不能把计时检查写成已经具备抢占中断能力。
-- 错误重试必须分类且有界；同一故障避免重复弹窗和刷日志。常态日志关闭，诊断使用有限容量记录，禁用后停止采集。
 
 ## 7. 验证与交付门禁
 
@@ -186,13 +175,13 @@
 
 累计分配不等于峰值内存；截图读数不直接等于泄漏；离线结果不得冒充游戏内插件内存。仅在受控测量中操作 GC，并恢复测试前设置。
 
-当前搜索回归基线与命令：
+搜索与交互回归入口如下；固定场景数值统一见第 11 节，避免在多处维护同一预算：
 
-- `lua tests/performance/performance_memory.lua --check`：2,025 条当前固定数据（原2,689条，团本来源已排除地下城）常驻低于 7 MiB、48 次查询累计分配低于 4 MiB、重复查询保留增长低于 512 KiB。常驻门槛由 9 MiB 经 7.25 MiB 收紧至 7 MiB，依据见 [启动常驻内存压缩](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-10-resident-memory.md)。
+- `lua tests/performance/performance_memory.lua --check`：组合目录常驻、固定查询累计分配与重复查询保留增长。预算收紧依据见[启动常驻内存压缩](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-10-resident-memory.md)；当前样本范围见[团本验证记录](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-13-raid-search.md)，不同规模不直接比较收益。
 - `lua tests/performance/performance_memory.lua --stress`：扩展规模测量；`--disable`：停用与恢复数据源测量。
 - `lua tests/search/search_memory_regression.lua`：匹配正确性、缓存界限和索引生命周期检查。
-- `lua tests/performance/performance_search.lua`：2,048 次规范化分配低于 1 MiB、长文本缓存保留增量低于 512 KiB、取消后旧候选归零。
-- `lua tests/performance/performance_ui.lua --check`：固定 400 高视口、1,000 来源场景不超过 10 行，新增替身保留低于 1 MiB、20 次刷新分配低于 512 KiB，并检查重绑点击身份。
+- `lua tests/performance/performance_search.lua`：规范化分配、长文本缓存保留增量及取消后旧候选归零。
+- `lua tests/performance/performance_ui.lua --check`：固定视口与来源规模下的行数、替身保留、刷新分配及重绑点击身份。
 - `lua tests/performance/performance_core.lua`、`lua tests/performance/provider_updates.lua`：固定校验/增量更新分配预算及调度、取消、回复代次检查；`performance_builtin_secure.lua`、`perf_builtin_secure_events.lua` 验证事件与启停生命周期。详见 [全项目测量与覆盖](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-10-project-performance.md)。
 - `powershell -NoProfile -File tests/check_contract.ps1`：完整契约验证；运行时改动另需 Lua/XML/TOC 静态检查、wowdoc 验证和 `git diff --check`。
 
@@ -225,9 +214,9 @@
 - 分配、保留、延迟与正确性分别验收。为取消、重入或身份保护增加的固定成本需与收益一起报告；未被生产调用的调度器微基准不计入游戏帧率收益。专项改善后至少保留一组代表性整体负载，检查是否把成本转移到其他模块。
 - 区分“离线回归预算通过”和“游戏场景通过”。提交或同步不是实机验证证据；未完成的客户端场景继续列为待验证，不在后续报告中自动转成通过。
 
-本轮实践依据：[全项目性能审查与优化](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-10-project-performance.md)。这些规则约束测量与行为，不把某一次机器上的耗时固化为通用门槛。
+测量实践依据：[全项目性能审查与优化](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-10-project-performance.md)。这些规则约束测量与行为，不把某一次机器上的耗时固化为通用门槛。
 
-插件统计工具的归因口径、进程内存、Lua 堆和纹理/引擎对象成本不同。跨插件比较必须注明模块拆分、数据规模和采样口径；不能仅凭 EllesmereUI 主模块的一个数字证明 Lychee 应达到同样总内存。
+插件统计工具的归因口径、进程内存、Lua 堆和纹理/引擎对象成本不同。跨插件比较必须注明模块拆分、数据规模和采样口径；不能仅凭其他插件主模块的一个数字证明 Lychee 应达到同样总内存。
 
 ### 7.3 变更记录模板
 
@@ -254,11 +243,11 @@
 当前架构见 [五包架构](https://github.com/Follen/Lychee/blob/main/docs/ARCHITECTURE.md)，历史测量背景见 [角色存储与生命周期](https://github.com/Follen/Lychee/blob/main/docs/architecture/2026-09-12-runtime-lifecycle.md)，检查映射见 [验收清单](https://github.com/Follen/Lychee/blob/main/tests/LIFECYCLE_ACCEPTANCE.md)。用户已取消严格 1 MiB 要求，改为保持体验下尽可能降低整体保留；不以拆包、默认禁用、删目录或强制 GC 获得收益。
 
 - 自带 Provider 默认全部开启，包括 EUI/EX；角色显式关闭必须在恢复/重新注册后保留。Host 通用设置、历史、别名、搜索策略由 CharacterStore 管理；子插件业务设置与成就缓存归所属包的角色 SV，禁止写回账号域或为了方便集中进 Host。
-- 2689 条固定离线目录保留上限收紧至 7168 KiB（7 MiB）；48 次查询分配仍低于 4096 KiB、保留增长低于 512 KiB。数据/解释器不同另行报告，不能将离线数值当作客户端内存。
+- 组合目录与查询预算统一见第 11 节。数据规模、查询样本或解释器不同须另行报告，不能将离线数值当作客户端内存。
 - 6002 条成就目录单角色保留低于 1024 KiB；10 次温恢复累计分配低于 2048 KiB、保留增长低于 64 KiB、成就枚举调用为 0。禁用停止工作，事件增量/分类变化、缓存损坏重建与角色隔离同时通过。
 - 输入访问安全、隔离复制与最终语义必须完整；内部一次性凭据不能由公开字段伪造。元数据池至多 128 个短键（每键≤256字节），键/弱值/辅助结构均有界，大值不缓存但正常处理。
 - 首页和视图关闭释放活动条目/回调/context，原生控件复用；开关不新增常驻 timer/OnUpdate，动画几何和动作身份门禁继续执行。
-- SDK 1.0.0 / API 1.0.0 保留已有 Provider 业务与隔离门禁。旧私有 Command/Capability/Intent 路径按本轮授权移除，不能据此放松搜索或安全测试。
+- SDK 1.0.0 / API 1.0.0 保留已有 Provider 业务与隔离门禁。已移除的私有 Command/Capability/Intent 路径不作为接入契约，搜索与安全测试继续执行。
 - 游戏内冷/热/关闭、所有已访问页面、角色切换及全来源默认开启的整体成本另行采样，报告 sourceCommit/dirty/hash。旧客户端报告、私有副本差额和提交同步均不能充当新实现实机达标证据。
 
 - [ ] 成本预算、对象上限、所有权、创建和退出路径已记录。
@@ -301,7 +290,9 @@
 
 | 场景与规模 | 预算 | 可执行依据 |
 | --- | --- | --- |
-| TOC 首次加载，不含真实游戏引擎内存 | 原功能回收后保留 <1346 KiB；CPU <46 ms；新增正式服内容见第14–15节 | tests/performance/performance_loading.lua |
+| TOC 加载，不含 LDT 与团本技能关系的组合 | 回收后保留 <1346 KiB；CPU <46 ms | tests/performance/performance_loading.lua，按客户端与实际加载内容选择 |
+| TOC 加载，正式服团本技能关系、不含 LDT | 回收后保留 <1474 KiB；CPU <46 ms | tests/performance/performance_loading.lua Mainline addon/Lychee --baseline |
+| TOC 加载，完整正式服、包含 LDT | 回收后保留 <1858 KiB；CPU <61 ms | tests/performance/performance_loading.lua Mainline |
 | 内置启动及重建 | 首次累计分配 <15000 KiB、保留 <7424 KiB；重建分配 <4500 KiB；重建保留增长 <128 KiB | tests/performance/performance_startup.lua |
 | 2025 条组合目录、48 次查询 | 常驻 <7168 KiB；分配 <4096 KiB；增长 <512 KiB | tests/performance/performance_memory.lua --check |
 | 2048 次规范化及超长文本 | 分配 <1024 KiB；超长缓存保留 <512 KiB；取消候选清空 | tests/performance/performance_search.lua |
@@ -406,7 +397,7 @@
 - 静态事实最多64副本、4096怪物、每副本256怪物、每怪64技能。具名数据，不复制地图、坐标、路线；普通构建只读取版本控制内的 JSON 快照。
 - 不建立全量技能名称缓存或重复索引、不写入SV。查询动态读取名称，使用不缓存的规范化；只物化每次最多20候选。精确怪物/序号/ID优先完成，不为它加载无关技能。未知技能名匹配有逐条API读取及游戏加载成本，不能把延后成本说成消除。
 - 每128个候选/技能或1ms检查让出；单次游戏API或副本事实展开不可抢占。待加载技能仅活在查询作用域，事件驱动、最多2秒等待后最后重扫；总查询仍受SDK5秒限制。取消、关闭、战斗、禁用释放临时数据、任务和事件，不保留轮询。
-- LDT加入时原83文件加载预算为<1346 KiB/<46ms；后续团本技能新增成本见第15节，通过 performance_loading 的 --baseline 检查不含LDT的组合。新增功能独立加载<512 KiB，总加载<1858 KiB/<61ms；新预算为新增内容制定，原有目录及其他性能门禁未放宽。其他客户端仍执行原加载预算。
+- LDT 独立加载 <512 KiB；五包总加载按第 11 节的实际功能组合验收。`performance_loading` 的 `--baseline` 仅排除 LDT，仍包含正式服团本技能关系，不能当作未增加团本技能前的旧基线。其他客户端按实际加载组合执行原门禁，目录与搜索预算不放宽。
 - 搜索仅借用当前查询独占的具名临时记录逐怪扫描，不展开整副本详情；临时记录可随该协程让出，候选不得保留其引用。至多20个候选复制必要字段，详情按NPC ID单独创建。不得以跨查询全量目录缓存或强制GC消除重复展开成本。
 - ldt_provider 固定20次混合查询累计分配<4096 KiB（由32768收紧）、回收后增长<128 KiB，任务回调最大<8ms；单批1ms是让出检查阈值，8ms为离线端到端回调上限，两者不可混淆。44组双语言旧版完整业务结果对照，以及JSON对生成器全部怪物/技能/详情执行对照，防止以少查数据或改变排名降低成本。
 - 详情仅对当前怪物的最多64技能分组，展开列表最多128项、每页六个技能组，最多八行控件复用；不建立全量名称缓存。未知名称独立显示，同帧加载事件只排一个托管刷新，卸载取消；刷新保持可见选择或具体行锚点。展开子项属于原技能组，不参与组分页；超过八行使用有界滚动，不按全部技能创建控件。新增两行用于页尾展开即时可见，原内存/CPU预算不放宽。
@@ -419,14 +410,14 @@
 
 - 正式服 `lychee.bosses` 从首领入口扩展到技能与难度；仅使用游戏内指南团本页完整导出，不在普通玩家搜索时遍历或切换整个指南。构建期拒绝截断、缺结束标志、校验和不符、非法难度或悬空关系。
 - 数据最多256个团本入口、1024位首领、32768条捕获关系、少于16384个首领/技能组。当前490位首领、5813个技能组、14392个难度关系；仅保留 ID/关系及原有中文首领回退名，不打包技能全文、不建全量技能名称缓存、不写SV。紧凑关系串限于 Provider 自有生成数据，不改变具名公开记录和 SDK。
-- 新功能增加约100 KiB回收后常驻（同路径离线基线1716.8→1818.1 KiB）。为完整技能/难度功能单列128 KiB增量额度：不含LDT组合由1346变为1474 KiB，仍<46ms；完整正式服总预算保持1858 KiB/<61ms，其他客户端与原有搜索预算不变。此为新增产品能力的明确代价，不宣称内存优化或零成本；详见验证记录。
+- 团本技能/难度功能采用单列的 128 KiB 增量额度，完整正式服总预算、其他客户端与原有搜索预算不变；现行加载上限统一见第 11 节。新增能力的内存代价及同路径前后测量见[团本验证记录](https://github.com/Follen/Lychee/blob/main/docs/validation/2026-09-13-raid-search.md)，不宣称内存优化或零成本。
 - 查询仅在活动 query 作用域运行，每128技能组/1ms检查让出；离线端到端回调<8ms。精确首领/团本/首领ID先返回，不读全量技能名；其他查询逐组读取游戏名称，最多20候选物化。原生API不可抢占，首次未缓存名称的引擎成本另行实测。
 - 待加载ID按查询去重，上限由16384技能组约束；事件订阅先于请求，同步完成也不漏。初扫结束最多等待1.5秒，随后最后重扫，不重复请求失败ID；总查询受 SDK 5秒deadline约束。输入替换、关闭、战斗、禁用、错误均取消任务/事件/deadline并清候选引用；空闲无新增活动驱动。
 - 20次完整目录混合查询累计分配<8192 KiB、回收后增长<128 KiB；同时测单批峰值。`tests/providers/raid_abilities.lua` 的 zhCN/enUS 覆盖跨难度去重、不同ID同名、完整技能名与难度词歧义、准确section、异步/同步/失败/迟到加载、取消、禁用恢复和战斗。
 - `tests/delivery/journal_catalog.py` 独立解析原始导出并逐一比较全部首领/技能/难度/section，不能只验证生成器自洽。更新快照时记录client/build、ticket、完整性、原始sha与覆盖范围；导出工具及原始SV不进入运行目录。
 
 
-## API 1.0.0 子插件边界与加载统计
+## 16. API 1.0.0 子插件边界与加载统计
 
 - 所有加载、空闲和首次使用数字按五个运行时包合计，禁止只报告 Host 来掩盖搬家后的业务内存。SV 是加载进 Lua 内存的持久数据，不是运行时按页读取磁盘。
 - Host 不接收完整 entries，不保存 Provider 业务 DB 或全量搜索索引。子插件拥有目录、事实资料、事件和缓存；可选 SDK Catalog 只由调用方持有。查询最多 256 候选、最终最多 20，既有容量和延迟门禁保持。
@@ -435,10 +426,10 @@
 - Catalog:Query 只能向真实当前 reply 交付；能力定义不一致重新经过普通校验。公开 Search 返回副本，结束清掉候选缓存；普通 reply 和 resolve 的一次性校验凭证及时消费，避免弱表容量在重复操作中增长。
 - 首领只读关系采用内部 base36 差值字符串，必须与独立游戏导出逐条比较，不能删关系或改变难度换内存。这个构建格式不进入 SDK Entry。
 - TOC 阶段仍最多 2 个 Frame；共享 ADDON_LOADED 就绪监听使事件登记上限为 4（原 3 加一个明确的存储就绪事件），没有新增轮询。最后一个等待者完成/取消即撤销监听。
-- 原冷加载基线 1474 KiB / 46 ms、含 LDT 总计 1858 KiB / 61 ms 不提高；Player 设置与成就计入自己的包，未知/未来版存档不破坏。角色业务设置不得再默认写入 Host。
+- 五包拆分不提高第 11 节各组合的加载上限；Player 设置与成就计入自己的包，未知/未来版存档不破坏。角色业务设置不得写入 Host。
 - 测试必须直接验证原始公开输入，不能由夹具补齐必填字段后宣称边界通过；多路径比较须断言确实存在命中，避免用两个空结果通过等价测试。
 
-## 测试门禁的维护方式
+## 17. 测试门禁的维护方式
 
 - 完整入口为 `python tests/run.py`；`pwsh -File tests/check_contract.ps1` 委托同一入口。`tests/suites.json` 是唯一命令清单，包含原加载基线、双语言团本、默认启用等参数变体。漏登记、重复命令、缺失文件和空选择必须失败。
 - 所有原性能场景与阈值继续执行；目录整理不构成调整预算的理由。业务用例中的对象/内存/峰值断言也是硬门禁，不能只跑 performance 分组就宣称全量通过。
