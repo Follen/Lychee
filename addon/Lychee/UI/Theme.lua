@@ -41,7 +41,7 @@ Theme.Colors = {
     tooltip = { 0.065, 0.065, 0.075, 1 },
 }
 
-Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11, tooltipTitle = 16, tooltipMeta = 10 }
+Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11, tooltipTitle = 16, tooltipMeta = 10, aboutBrand = 20 }
 
 -- Style our own regions once; never mutate shared GameFont/tooltip objects.
 function Theme:SetFont(region, role)
@@ -76,8 +76,8 @@ Theme.Metrics = {
     listTitleInset = 48,
     sourceLabelWidth = 160,
     settingsTabsHeight = 42,
-    aboutHeight = 176,
-    aboutEnglishHeight = 124,
+    aboutHeight = 152,
+    aboutEnglishHeight = 112,
     switchWidth = 32,
     switchHeight = 18,
     selectionWidth = 2,

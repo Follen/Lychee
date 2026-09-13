@@ -41,8 +41,12 @@ local dedication,intro,author=false,false,false
 for _,label in ipairs(strings) do
  if label:GetText():find('9.8.7',1,true) then found=true end
  if label:GetText()=='谨献给爱人：荔枝小月亮' then dedication=true end
- if label:GetText()==I.Locale['少一点翻找，多一点冒险。'] then intro=true end
- if label:GetText()=='Follen' then author=true end
+ if label:GetText()==I.Locale['在游戏里搜技能、物品和插件设置。'] then intro=true end
+ if label:GetText():find('Follen',1,true) then author=true end
+ if label.parent==settings.about then
+  assert(label.point[4]==0,'about copy shares a single reading edge')
+  assert(-label.point[5]+label:GetHeight()<=settings.about:GetHeight(),'all about text fits above the shared footer')
+ end
 end
 assert(found and metadataReads==1,'version must come from installed metadata')
 assert(intro and author and dedication==I.Locale:IsChinese(),'brand introduction, author and Chinese-only dedication')

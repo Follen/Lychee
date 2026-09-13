@@ -229,13 +229,11 @@ function Settings:Create(parent, controller)
                     region:SetWidth(width);region:SetHeight(height or 18)
                     region:SetJustifyV("TOP");region:SetText(value)
                 end
-                copy(L.name,0,0,376,"input","text",22)
-                copy(L["少一点翻找，多一点冒险。"],0,32,376,"title","text",22)
-                copy(L["将技能、物品与插件入口，收进一个搜索框。\n常用的入口、熟悉的名字，都按你的习惯留下。"],0,66,376,"body","textMuted",48)
-                copy(L["作者"],432,2,140,"meta","textMuted")
-                copy("Follen",432,24,140,"title","text",22)
-                copy(L["版本"].."  "..version,432,54,140,"meta","textMuted",32)
-                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],0,144,rowWidth-20,"title","tooltipAccent",24) end
+                copy(L.name,0,0,rowWidth-20,"aboutBrand","text",28)
+                copy("Follen  ·  "..L["版本"].." "..version,0,32,rowWidth-20,"meta","textMuted",18)
+                copy(L["在游戏里搜技能、物品和插件设置。"],0,64,rowWidth-20,"title","textMuted",22)
+                copy(L["常用的可以固定到首页，也能设置好记的别名。"],0,86,rowWidth-20,"title","textMuted",22)
+                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],0,124,rowWidth-20,"title","tooltipAccent",24) end
             end
             return
         end
