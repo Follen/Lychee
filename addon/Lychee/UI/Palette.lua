@@ -159,6 +159,16 @@ function Palette:Create()
         elseif section and section.id and self.onHomeCategory then self.onHomeCategory(section.id) end
     end
     self.viewHost = Lychee.UI.ViewHost:Create(self.content)
+    self.input:SetCompositionCallback(function()
+        if not self.visible or (InCombatLockdown and InCombatLockdown()) then return end
+        Lychee.UI.Motion:StopHeight(false)
+        Lychee.UI.Components:HideTooltip()
+        Lychee.UI.Components:HideActionMenu()
+        self.actionMenu = nil
+        if self.secureBroker then self.secureBroker:ReleaseAll() end
+        self._searchActionsSuspended = true
+        if I.Search.Session then I.Search.Session:SuspendInput() end
+    end)
     self.input:SetChangedCallback(function(text)
         self.activeFilter = nil
         if self.onQuery then self.onQuery(text) end
@@ -324,7 +334,7 @@ function Palette:RefreshHomeSections(allowExpand)
 end
 
 function Palette:PrepareHome(allowExpand)
-    if not self.visible or not self.homeView then return false end
+    if not self.visible or not self.homeView or self.input.composing then return false end
     local prepared = self.homeView:Prepare(self.session, self.generation, allowExpand)
     if prepared and self:IsHomeVisible() then self:ResizeForMode("home") end
     return prepared

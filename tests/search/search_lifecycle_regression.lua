@@ -137,14 +137,14 @@ assert(delayed:Unregister())
 print("Search lifecycle PASS: operation reentry, invalid replies, sync/async completion, timeout and close")
 
 palette.visible=true;S:Start()
-for _,operation in ipairs({"filter","invalidate"}) do
+for _,operation in ipairs({"filter","invalidate","suspend"}) do
     local armed,entered=false,false
     local handle=register("lifecycle.session-reentry",function(request,reply)
         if request.normalized=="newest" then assert(reply({{id="newest",title="Newest"}})) end
         return function()
             if armed and not entered then
                 entered=true;assert(S:Input("newest"))
-                if operation=="invalidate" then assert(Q:Flush()) end
+                if operation~="filter" then assert(Q:Flush()) end
             end
         end
     end)
@@ -153,6 +153,7 @@ for _,operation in ipairs({"filter","invalidate"}) do
         S:Filter({sourceID="lifecycle.session-reentry:records"})
         assert(Q.pending and Q.pending.raw=="newest","old filter must preserve reentrant input")
         fire(Q.timer)
+    elseif operation=="suspend" then S:SuspendInput()
     else S:Invalidate("test") end
     assert(entered and #palette.items==1 and palette.items[1].id=="newest",operation.." cannot clear a newer publication")
     idle();assert(handle:Unregister())

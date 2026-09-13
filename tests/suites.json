@@ -662,6 +662,12 @@
       ]
     },
     {
+      "id": "ui.input_composition",
+      "suite": "ui",
+      "path": "tests/ui/input_composition.lua",
+      "args": []
+    },
+    {
       "id": "delivery.about_assets",
       "suite": "delivery",
       "path": "tests/delivery/about_assets.py",

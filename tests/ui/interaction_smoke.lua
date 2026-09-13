@@ -944,7 +944,7 @@ assert(not palette.frame:IsShown() and not palette._motionClosing,"native Escape
 assert(not palette.input.visualFrozen,"hidden input releases its visual freeze")
 palette:Show();finishPresence();palette.input:Focus()
 local focusedStyle=palette.input._visualState
-palette.input.frame.scripts.OnEscapePressed()
+palette.input.frame.scripts.OnEscapePressed(palette.input.frame)
 assert(palette.input.visualFrozen and palette.input._visualState==focusedStyle and not palette.input:IsEnabled(),
     "focused EditBox Escape preserves styling while releasing input")
 finishPresence()

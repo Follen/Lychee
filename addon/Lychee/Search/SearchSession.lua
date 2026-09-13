@@ -39,6 +39,7 @@ end
 function Session:Start()
     if self.visible then return self.session, self.generation end
     self.visible = true
+    self.inputSuspended = nil
     self.session = self.session + 1
     self.generation = self.generation + 1
     self:_Publish(nil, false)
@@ -59,6 +60,7 @@ function Session:Invalidate(reason)
 end
 
 function Session:Stop(reason)
+    self.inputSuspended = nil
     if not self.visible then
         if I.Search.Query and (I.Search.Query.pending or I.Search.Query.timer) then self:Invalidate(reason or "hidden") end
         return self.session, self.generation
@@ -70,7 +72,7 @@ function Session:Stop(reason)
 end
 
 function Session:IsCurrent(session, generation)
-    if not self.visible then return false, "STALE_GENERATION" end
+    if not self.visible or self.inputSuspended then return false, "STALE_GENERATION" end
     if session and session ~= self.session then return false, "STALE_GENERATION" end
     if generation and generation ~= self.generation then return false, "STALE_GENERATION" end
     return true
@@ -84,11 +86,26 @@ function Session:_Accept(results, generation, session, pending)
     return self:_Publish(results, pending)
 end
 
+-- Preedit is not a query. Cancel outstanding work without replacing the view.
+function Session:SuspendInput()
+    if not self.visible or self.inputSuspended then return false end
+    self.inputSuspended = true
+    self:CancelSourceRefresh()
+    self.generation = self.generation + 1
+    local session, generation = self.session, self.generation
+    local query = I.Search.Query
+    if query and not query:Cancel("ime-composition", generation) then return false end
+    if session ~= self.session or generation ~= self.generation then return false end
+    self:_Publish(nil, false)
+    return true
+end
+
 function Session:Input(raw)
     if not self.visible then return false, "HIDDEN" end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
     local query = I.Search.Query
     if not query then return false, "SEARCH_UNAVAILABLE" end
+    self.inputSuspended = nil
     self:CancelSourceRefresh()
     self.raw = raw or ""
 
@@ -119,6 +136,7 @@ function Session:Filter(filter)
     if type(filter) ~= "table" or (not filter.categoryID and not filter.sourceID) then return false, "INVALID_FILTER" end
     local query = I.Search.Query
     if not query then return false, "SEARCH_UNAVAILABLE" end
+    self.inputSuspended = nil
     self:CancelSourceRefresh()
     self.raw = ""
 
@@ -145,7 +163,7 @@ end
 function Session:RefreshSource()
     if not self.sourceRefreshPending then return false end
     self.sourceRefreshPending = nil
-    if not self.visible or not self.palette or not self.palette.visible or (InCombatLockdown and InCombatLockdown()) then return false end
+    if not self.visible or self.inputSuspended or not self.palette or not self.palette.visible or (InCombatLockdown and InCombatLockdown()) then return false end
     local currentSession, generation = self.session, self.generation
     local context = contextSnapshot(currentSession, generation, self.activeFilter)
     local token, results, operation, pending = I.Search.Query:Query(self.raw or "", context, generation, function(items, completed, waiting)
@@ -163,7 +181,7 @@ function Session:SourceChanged(reason)
     end
     self:_Publish(nil, self.pending)
     if palette and type(palette.MarkHomeDirty) == "function" then palette:MarkHomeDirty() end
-    if not self.visible then return end
+    if not self.visible or self.inputSuspended then return end
     self.sourceRefreshPending = true
     if not self.sourceRefreshTimer and C_Timer and C_Timer.NewTimer then
         local timer
