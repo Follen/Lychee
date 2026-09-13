@@ -423,7 +423,7 @@ local function populate(_,root)
 end
 local menu=Lychee.UI.Components:ShowActionMenu(menuOwner,populate)
 assert(nativeOpens==0 and menu.owner==menuOwner and menu:IsShown())
-assert(menu.heading:GetText():find("菜单",1,true) and menu.heading:GetText():find("game-menu.tga",1,true), "menu has a distinct localized identity")
+assert(menu.title:GetText():find("菜单",1,true) and menu.title:GetText():find("game-menu.tga",1,true), "menu has a distinct localized identity")
 assert(menu:GetWidth()<=296 and menu.count==2 and menu.buttons[2].label.wordWrap==false)
 local button=menu.buttons[1]
 button.frame.scripts.OnClick();assert(actions==0,"click requires a physical press")

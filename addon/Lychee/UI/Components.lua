@@ -534,21 +534,21 @@ function Components:ShowActionMenu(owner, generator)
     local menu=self.actionMenu
     if not menu then
         menu=floatingFrame("FULLSCREEN_DIALOG",true);self.actionMenu=menu
-        menu.heading=tooltipLabel(menu,"meta","textMuted")
-        menu.heading:SetPoint("TOPLEFT",20,-14);menu.heading:SetPoint("TOPRIGHT",-20,-14)
-        menu.heading:SetJustifyH("LEFT");menu.heading:SetWordWrap(false)
-        menu.heading:SetText("|TInterface\\AddOns\\Lychee\\Media\\MenuIcons\\game-menu.tga:20:20|t  ".._G.LycheeInternal.Locale["菜单"])
+        menu.title=tooltipLabel(menu,"title","text")
+        menu.title:SetPoint("TOPLEFT",20,-12);menu.title:SetPoint("TOPRIGHT",-20,-12)
+        menu.title:SetJustifyH("LEFT");menu.title:SetWordWrap(false)
+        menu.title:SetText("|TInterface\\AddOns\\Lychee\\Media\\MenuIcons\\game-menu.tga:14:14|t  ".._G.LycheeInternal.Locale["操作菜单"])
         menu.buttons={}
         function menu:CreateButton(title,callback)
             local index=self.count+1;assert(index<=18,"action menu capacity exceeded")
             self.count=index
             local button=self.buttons[index]
             if not button then
-                button=Components:CreateNavigationButton(self,{width=168,height=30,text=""})
+                button=Components:CreateNavigationButton(self,{width=144,height=30,text=""})
                 Theme:SetFont(button.label,"body")
                 button.label:ClearAllPoints();button.label:SetPoint("LEFT",12,0);button.label:SetPoint("RIGHT",-12,0)
                 button.label:SetJustifyH("LEFT");button.label:SetWordWrap(false)
-                local y=-44-(index-1)*30
+                local y=-36-(index-1)*30
                 button.frame:SetPoint("TOPLEFT",8,y);button.frame:SetPoint("TOPRIGHT",-8,y)
                 button.frame:HookScript("OnMouseDown",function(_,mouse) button.pressed=mouse=="LeftButton" and button.callback or nil end)
                 button.frame:SetScript("OnClick",function()
@@ -564,14 +564,14 @@ function Components:ShowActionMenu(owner, generator)
             return button
         end
     end
-    menu.owner=owner;menu.count=0;menu.width=168
+    menu.owner=owner;menu.count=0;menu.width=144
     if not owner._lycheeMenuHook then
         owner._lycheeMenuHook=true
         owner:HookScript("OnHide",function() if menu.owner==owner then Components:HideActionMenu() end end)
     end
     generator(owner,menu)
     if menu.count==0 then self:HideActionMenu();return end
-    local height=52+menu.count*30
+    local height=44+menu.count*30
     menu:SetSize(menu.width+16,height)
     menu:SetScale(math.min(Theme.scale or Theme.Metrics.uiScale,(UIParent:GetHeight()-32)/height))
     local x,y=GetCursorPosition();local scale=menu:GetEffectiveScale()
