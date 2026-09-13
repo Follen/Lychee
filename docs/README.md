@@ -16,7 +16,8 @@
 | 接入第三方 Provider | [SDK 首页](../lychee-sdk/README.md) |
 | 确定 Host / 子插件数据归属、存档升级 | [子插件存储](../lychee-sdk/docs/STORAGE.md) · [拆包实施状态](architecture/2026-09-13-provider-sdk-1.0.0.md) |
 | 查看产品范围 | [产品](../PRODUCT.md) · [功能来源](PROVIDER_FEATURES.md) |
-| 查看参数化调用与 Provider 自建操作面板方案 | [设计提案](architecture/2026-09-13-invocations-and-provider-panels.md)，尚未实施 |
+| 查看子插件加载、搜索等待与参数调用整体方案 | [统一实施计划](architecture/2026-09-13-loading-search-and-invocations-plan.md)，尚未实施；含来源开关语义及独立审核 |
+| 查看参数化调用与 Provider 自建操作面板细节 | [设计提案](architecture/2026-09-13-invocations-and-provider-panels.md)，尚未实施；加载与搜索开关按统一计划对齐 |
 | 找历史决策和测量证据 | [设计记录](architecture/README.md) · [验收记录](validation/README.md) |
 
 ## 一项规则只维护一份
