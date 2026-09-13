@@ -514,4 +514,23 @@ list:SetItems({{id="huge-kind",text="名称",kindTitle=string.rep("很长的来�
 assert(list.rows[1].category:GetWidth()<=160 and list.rows[1].category.maxLines==1,"overlong source clips on one line")
 list:SetItems({{id="short-kind",text="名称",kindTitle="成就"}},12,26)
 assert(sourceLabel:GetWidth()==160 and measures==0,"short source does not move the title boundary or measure text")
+-- Missing or empty hints must not leave a phantom footer when reusing the tooltip.
+local plain = {title="Title", meta="Source", description="Body"}
+Lychee.UI.Components:ShowTooltip(parent, plain)
+local plainHeight=tip:GetHeight()
+plain.hint,plain.dragHint="",""
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip:GetHeight()==plainHeight and not tip.labels[4]:IsShown() and not tip.labels[5]:IsShown(),
+    "empty hints collapse exactly like absent hints")
+plain.dragHint="Drag to an action bar"
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip.labels[5]._y>tip.labels[3]._y+tip.labels[3]:GetStringHeight(),
+    "drag-only footer keeps its separation from the description")
+plain.hint="Click to open"
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip.labels[5]._y>=tip.labels[4]._y+tip.labels[4]:GetStringHeight(), "two footer hints do not overlap")
+plain.hint,plain.dragHint=nil,nil
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip:GetHeight()==plainHeight, "reused tooltip releases footer space")
+Lychee.UI.Components:HideTooltip()
 print("Lychee result list UI smoke PASS")

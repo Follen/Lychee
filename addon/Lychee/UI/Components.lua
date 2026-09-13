@@ -393,7 +393,7 @@ local function tooltipLine(tip, index, text, y, gap)
         label:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
         label._y = y
     end
-    return y + math.max(label:GetStringHeight(), index == 1 and 18 or 15)
+    return y + math.max(label:GetStringHeight(), index == 1 and 20 or 16)
 end
 
 local function scoreTable(tip, rows, y, headers)
@@ -405,7 +405,7 @@ local function scoreTable(tip, rows, y, headers)
         if not labels then
             labels={};tip.scoreLabels[index]=labels
             for column=1,3 do
-                local label=tooltipLabel(tip,"body",index==1 and "textMuted" or "text")
+                local label=tooltipLabel(tip,index==1 and "meta" or "body",index==1 and "textDim" or "text")
                 label:SetWidth(column==1 and 210 or column==2 and 98 or 64)
                 label:SetJustifyH(column==1 and "LEFT" or "RIGHT")
                 label:SetWordWrap(false)
@@ -433,12 +433,11 @@ function Components:ShowTooltip(owner, content)
     local tip = Components.tooltip
     if not tip then
         tip = floatingFrame("TOOLTIP", false)
-        tip:SetWidth(280)
         tip:SetScript("OnHide", Components.HideTooltip)
         tip.labels = {}
         for index = 1, 5 do
-            local label = tooltipLabel(tip, index == 1 and "title" or index == 2 and "meta" or "body", index == 1 and "text" or "textMuted")
-            label:SetWidth(252)
+            local label = tooltipLabel(tip, index == 1 and "title" or index == 3 and "body" or "meta",
+                index == 1 and "text" or index == 4 and "accentHover" or index == 3 and "textMuted" or "textDim")
             label:SetJustifyH("LEFT")
             label:SetWordWrap(true)
             if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
@@ -465,7 +464,6 @@ function Components:ShowTooltip(owner, content)
             end
         end
     end
-    local entering=not tip:IsShown()
     local scale=Theme.scale or Theme.Metrics.uiScale
     if tip._scale~=scale then tip:SetScale(scale);tip._scale=scale end
     tip._owner = owner
@@ -478,7 +476,7 @@ function Components:ShowTooltip(owner, content)
         tip._width=width
     end
     local y = tooltipLine(tip, 1, title, 14)
-    y = tooltipLine(tip, 2, kind, y, 3)
+    y = tooltipLine(tip, 2, kind, y, 4)
     local top=y
     local label=tip.labels[3]
     if tip.reading then label:SetParent(tip);label:SetWidth(width-28);label._y=nil;tip.reading:Hide() end
@@ -499,15 +497,15 @@ function Components:ShowTooltip(owner, content)
     end
     if wide then y=scoreTable(tip,scoreRows,y+14,content.headers)
     elseif tip.scoreLabels then scoreTable(tip,nil,y) end
-    local hasActions = clickHint ~= nil or dragHint ~= nil
-    if hasActions then y=y+14 end
-    y = tooltipLine(tip, 4, clickHint, y)
-    y = tooltipLine(tip, 5, dragHint, y, clickHint and 4 or 0)
+    y = tooltipLine(tip, 4, clickHint, y, 12)
+    y = tooltipLine(tip, 5, dragHint, y, clickHint and clickHint ~= "" and 4 or 12)
     if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
     tip:UpdatePosition()
-    setShown(tip, true)
-    if entering then tip:SetScript("OnUpdate", tip.UpdatePosition) end
-    if entering and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
+    if not tip:IsShown() then
+        tip:Show()
+        tip:SetScript("OnUpdate", tip.UpdatePosition)
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
+    end
 end
 
 function Components:ScrollTooltip(owner,delta)
