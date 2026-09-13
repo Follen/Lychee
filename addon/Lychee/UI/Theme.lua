@@ -73,6 +73,7 @@ Theme.Metrics = {
     listTitleInset = 48,
     sourceLabelWidth = 160,
     settingsTabsHeight = 42,
+    settingsFooterHeight = 56,
     switchWidth = 32,
     switchHeight = 18,
     selectionWidth = 2,

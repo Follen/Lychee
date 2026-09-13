@@ -5,7 +5,7 @@ local media="Interface\\AddOns\\Lychee\\Media\\About\\"
 
 function Social:Create(owner,controller)
     local bar=CreateFrame("Frame",nil,UIParent)
-    bar:SetSize(112,28);bar:SetPoint("RIGHT",controller.footer,"RIGHT",-20,0);bar:Hide()
+    bar:SetSize(100,28);bar:SetPoint("RIGHT",controller.footer,"RIGHT",-UI.Theme.Metrics.footerInset,0);bar:Hide()
     local view={frame=bar,buttons={}}
     function view:Close()
         if not self.backdrop or not self.backdrop:IsShown() then return false end
@@ -28,28 +28,28 @@ function Social:Create(owner,controller)
             popup:EnableMouse(true);popup:SetClampedToScreen(true)
             UI.Theme:CreateRoundedSurface(popup,"window",10)
             local title=popup:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");self.title=title
-            UI.Theme:SetFont(title,"title");UI.Theme:SetTextColor(title,"text")
-            title:SetPoint("TOPLEFT",popup,"TOPLEFT",16,-16);title:SetJustifyH("LEFT")
+            UI.Theme:SetFont(title,"body");UI.Theme:SetTextColor(title,"text")
+            title:SetPoint("TOPLEFT",popup,"TOPLEFT",16,-12);title:SetJustifyH("LEFT")
             local close=UI.Components:CreateNavigationButton(popup,{width=24,height=24,direction="left",onClick=function() view:Close() end})
-            close.frame:SetPoint("TOPRIGHT",popup,"TOPRIGHT",-10,-10)
+            close.frame:SetPoint("TOPRIGHT",popup,"TOPRIGHT",-8,-6)
             local hint=popup:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall");self.hint=hint
             UI.Theme:SetFont(hint,"meta");UI.Theme:SetTextColor(hint,"textMuted")
-            hint:SetPoint("BOTTOM",popup,"BOTTOM",0,14)
+            hint:SetPoint("BOTTOM",popup,"BOTTOM",0,12)
             local input=CreateFrame("EditBox",nil,popup);self.input=input
-            input:SetAutoFocus(false);input:SetHeight(32);input:SetTextInsets(10,10,0,0)
-            input:SetPoint("TOPLEFT",popup,"TOPLEFT",16,-46);input:SetPoint("RIGHT",popup,"RIGHT",-16,0)
+            input:SetAutoFocus(false);input:SetHeight(28);input:SetTextInsets(8,8,0,0)
+            input:SetPoint("TOPLEFT",popup,"TOPLEFT",16,-38);input:SetPoint("RIGHT",popup,"RIGHT",-16,0)
             UI.Components:StyleEditBox(input);UI.Theme:SetFont(input,"body");UI.Theme:SetTextColor(input,"text")
             input:SetScript("OnMouseUp",function(box) box:HighlightText() end)
             input:SetScript("OnEscapePressed",function() view:Close() end)
             input:HookScript("OnHide",function(box) box:ClearFocus() end)
             local code=popup:CreateTexture(nil,"ARTWORK");self.code=code
-            code:SetSize(256,256);code:SetPoint("TOP",popup,"TOP",0,-46)
+            code:SetSize(176,176);code:SetPoint("TOP",popup,"TOP",0,-40)
         end
         self.active=entry
         self.popup:SetScale(controller.frame:GetEffectiveScale()/UIParent:GetEffectiveScale())
-        self.popup:SetSize(entry.code and 288 or 380,entry.code and 338 or 112)
-        self.popup:ClearAllPoints();self.popup:SetPoint("BOTTOM",anchor,"TOP",0,10)
-        self.title:SetText(entry.title);self.title:SetWidth(entry.code and 230 or 322)
+        self.popup:SetSize(entry.code and 208 or 316,entry.code and 252 or 100)
+        self.popup:ClearAllPoints();self.popup:SetPoint("BOTTOMRIGHT",bar,"TOPRIGHT",0,8)
+        self.title:SetText(entry.title);self.title:SetWidth(entry.code and 156 or 264)
         self.hint:SetText(entry.code and L["使用微信扫一扫"] or L["Ctrl+C 复制 · Esc 退出"])
         self.input:SetShown(not entry.code);self.code:SetShown(entry.code~=nil)
         if entry.code then self.code:SetTexture(media..entry.code..".tga") else self.input:SetText(entry.url) end
@@ -67,8 +67,8 @@ function Social:Create(owner,controller)
     }
     for index,entry in ipairs(entries) do
         local button=UI.Components:CreateNavigationButton(bar,{width=28,height=28,onClick=function(self) view:Open(entry,self) end})
-        button.frame:SetPoint("LEFT",bar,"LEFT",(index-1)*42,0)
-        local icon=button.frame:CreateTexture(nil,"ARTWORK");icon:SetSize(22,22);icon:SetPoint("CENTER")
+        button.frame:SetPoint("LEFT",bar,"LEFT",(index-1)*36,0)
+        local icon=button.frame:CreateTexture(nil,"ARTWORK");icon:SetSize(18,18);icon:SetPoint("CENTER")
         icon:SetTexture(media..entry.icon..".tga");button.feedbackIcon=icon;UI.Theme:SetVertexColor(icon,"textMuted")
         button.frame:HookScript("OnEnter",function(self) if not view.active then UI.ResultList:ShowTextTooltip(entry.title,self) end end)
         button.frame:HookScript("OnLeave",function() UI.Theme:SetVertexColor(icon,"textMuted");UI.ResultList:HideTooltip() end)

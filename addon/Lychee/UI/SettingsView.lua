@@ -187,7 +187,7 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
-        controller:SetStatusText(tab=="about" and L["关于"] or L["更改即时生效"])
+        controller:SetStatusText(tab=="about" and L["感谢使用荔枝"] or L["更改即时生效"])
         self.social:Close();self.social:Show()
         if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
@@ -220,14 +220,22 @@ function Settings:Create(parent, controller)
             for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
             if not self.about then
                 local about=CreateFrame("Frame",nil,frame);self.about=about
-                about:SetSize(rowWidth,100)
+                about:SetSize(rowWidth,L:IsChinese() and 216 or 188)
                 about:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset+10,-metrics.settingsTabsHeight-12)
                 local version=C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Lychee","Version") or L["暂不可用"]
-                for index,value in ipairs({L.name,L["魔兽世界万用启动器"],L["版本"].."  "..version.."    ·    "..L["作者"].."  Follen"}) do
-                    local title=label(about,index==1 and "input" or index==2 and "body" or "meta",index==1 and "text" or "textMuted")
-                    title:SetPoint("TOPLEFT",about,"TOPLEFT",0,-(index-1)*30)
-                    title:SetWidth(rowWidth-20);title:SetText(value)
+                local function copy(value,y,role,color,height)
+                    local region=label(about,role,color)
+                    region:SetPoint("TOPLEFT",about,"TOPLEFT",0,-y)
+                    region:SetWidth(rowWidth-20);region:SetHeight(height or 18)
+                    region:SetJustifyV("TOP");region:SetText(value)
                 end
+                copy(L.name,0,"input","text",22)
+                copy(L["魔兽世界万用启动器"],26,"body","textMuted")
+                copy(L["在一个搜索框里，找到技能、物品、成就和插件入口。"],50,"body","textMuted",32)
+                copy(L["使用方式"],98,"body","text")
+                copy(L["搜索后点击使用，右键查看更多操作。\n常用内容可固定到首页，也可以设置自己的别名。"],122,"meta","textMuted",32)
+                copy(L["版本"].."  "..version.."    ·    "..L["作者"].."  Follen",166,"meta","textDim")
+                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],196,"meta","tooltipAccent") end
             end
             return
         end

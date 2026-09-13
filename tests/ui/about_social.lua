@@ -1,9 +1,8 @@
-local env=dofile('tests/support/palette.lua')
 local locale=arg[1] or 'zhCN'
-GetLocale=function() return locale end
+local env=assert(loadfile('tests/support/palette.lua'))(locale)
 local I=LycheeInternal
-I.Locale.IsChinese=function() return locale=='zhCN' or locale=='zhTW' end
 dofile('addon/Lychee/Locales/UI.enUS.lua')
+assert(I.Locale.code==locale and I.Locale.name:find(I.Locale:IsChinese() and '荔枝' or 'Lychee',1,true),'brand and language must be initialized for the actual client locale')
 I.Registry:SetReady(true)
 local metadataReads=0
 C_AddOns={GetAddOnMetadata=function(name,key)
@@ -21,18 +20,28 @@ CreateFrame=function(...)
  return frame
 end
 local p=Lychee.UI.Palette
+Lychee.UI.Motion:SetReduced(true)
 assert(p:Show());assert(not p.settingsView)
 assert(p:OpenSettings('providers'))
+local listHeight=p.frame:GetHeight()
 local settings=p.settingsView
 assert(settings.tabs.about and not settings.about and metadataReads==0,'about must be lazy')
 local social=settings.social
 assert(social.frame:IsShown() and #social.buttons==3 and not social.popup)
+assert(p.footer:GetHeight()>=social.frame:GetHeight()+24,'footer must leave space above and below the icon hit areas')
 settings.tabs.about.frame.scripts.OnClick(settings.tabs.about.frame)
 assert(settings.tab=='about' and settings.about:IsShown() and not settings.scrollFrame:IsShown())
+assert(p.frame:GetHeight()<listHeight-80,'about must not retain the tall provider list shell')
 local found=false
-for _,label in ipairs(strings) do if label:GetText():find('9.8.7',1,true) then found=true end end
+local dedication,usage=false,false
+for _,label in ipairs(strings) do
+ if label:GetText():find('9.8.7',1,true) then found=true end
+ if label:GetText()=='谨献给爱人：荔枝小月亮' then dedication=true end
+ if label:GetText()==I.Locale['使用方式'] then usage=true end
+end
 assert(found and metadataReads==1,'version must come from installed metadata')
-assert(p.status:GetText()==I.Locale['关于'])
+assert(usage and dedication==I.Locale:IsChinese(),'useful about copy and Chinese-only dedication')
+assert(p.status:GetText()==I.Locale['感谢使用荔枝'])
 local function click(index)
  local b=social.buttons[index].frame;b.scripts.OnClick(b)
 end
@@ -46,6 +55,8 @@ else
  assert(social.input.selectedText==social.input:GetText() and not social.code:IsShown())
 end
 local popup=social.popup
+assert(popup:GetWidth()<p.frame:GetWidth()*0.5,'social popup must stay secondary to the main panel')
+assert(popup.point[1]=='BOTTOMRIGHT' and popup.point[2]==social.frame and popup.point[3]=='TOPRIGHT','popup opens inward with the footer right edge')
 click(2)
 assert(social.popup==popup and social.input:GetText()=='https://github.com/Follen/Lychee')
 assert(social.input.selectedText==social.input:GetText() and social.input:HasFocus())
@@ -69,9 +80,15 @@ end
 assert(env.state.createdFrames==frames and metadataReads==1,'warm visits reuse objects and metadata')
 click(2);p:CloseSettings(true);settings.frame.scripts.OnHide(settings.frame)
 assert(not social.frame:IsShown() and not social.backdrop:IsShown() and not social.input:HasFocus())
+assert(p.footer:GetHeight()==Lychee.UI.Theme.Metrics.footerHeight and p.content.point[5]==Lychee.UI.Theme.Metrics.footerHeight,'search restores its own footer and content bounds')
 assert(p:OpenSettings('about'));click(2)
 _G.__combat=true;p:Hide('combat');_G.__combat=false
 settings.frame.scripts.OnHide(settings.frame)
 assert(not social.frame:IsShown() and not social.backdrop:IsShown() and not social.input:HasFocus())
 assert(social.input:GetText()=='' and not social.code.texture)
+assert(p:Show());assert(p:OpenSettings('about'))
+p.input.frame:SetText('pending')
+p:SetQueryCallback(function() p.searchPending=true;p.list.items={} end)
+p:CloseSettings()
+assert(p.searchPending and p.footer:GetHeight()==Lychee.UI.Theme.Metrics.footerHeight,'pending empty results must also restore the search footer')
 print('About/social PASS '..locale..': lazy metadata, localized footer, links/QR, Escape/backdrop/toggle, switching, reuse, combat cleanup')

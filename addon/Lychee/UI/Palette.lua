@@ -85,6 +85,7 @@ function Palette:Create()
     self.headerComponent.bg:Hide()
     self.footerComponent = components:CreateBand(frame, { height = FOOTER_HEIGHT, top = false, color = "footer" })
     self.footer = self.footerComponent.frame
+    self._footerHeight = FOOTER_HEIGHT
     self.footerComponent.bg:Hide()
     self.contentComponent = components:CreateSurface(frame, { allPoints = false, color = "content" })
     self.content = self.contentComponent.frame
@@ -358,11 +359,17 @@ function Palette:SetStatus(mode, count)
 end
 
 function Palette:ResizeForMode(mode, count)
-    if mode=="search" and self.searchPending and (tonumber(count) or 0)==0 then return true end
     if not self.frame or not self.frame.SetHeight then return false end
     if InCombatLockdown and InCombatLockdown() then return false end
     local theme = Lychee.UI and Lychee.UI.Theme
     local metrics = theme and theme.Metrics or {}
+    local footerHeight=(mode=="settings" or mode=="settings-detail") and metrics.settingsFooterHeight or FOOTER_HEIGHT
+    if self._footerHeight~=footerHeight then
+        self.footer:SetHeight(footerHeight)
+        self.content:SetPoint("BOTTOMRIGHT",self.frame,"BOTTOMRIGHT",-12,footerHeight)
+        self._footerHeight=footerHeight
+    end
+    if mode=="search" and self.searchPending and (tonumber(count) or 0)==0 then return true end
     local minHeight = metrics.paletteMinHeight or 220
     local maxHeight = metrics.paletteMaxHeight or HEIGHT
     local rowHeight = metrics.rowHeight or 56
@@ -379,9 +386,14 @@ function Palette:ResizeForMode(mode, count)
     if mode == "panel" then
         if count then listHeight=math.max(0,tonumber(count) or 0);padding=0 else listHeight=360 end
     end
-    if mode == "settings" then listHeight = metrics.resultTiles * rowHeight + (metrics.resultTiles - 1) * rowGap end
+    if mode == "settings" then
+        listHeight = metrics.resultTiles * rowHeight + (metrics.resultTiles - 1) * rowGap
+        if self.settingsView and self.settingsView.tab=="about" then
+            listHeight=metrics.settingsTabsHeight+12+(L:IsChinese() and 216 or 188)
+        end
+    end
     if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end
-    local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
+    local desired = HEADER_HEIGHT + footerHeight + padding + listHeight
     desired = math.max(minHeight, math.min(maxHeight, desired))
     local growOnly=mode=="search" and self.searchPending
     if Lychee.UI.Motion then
