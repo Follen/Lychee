@@ -111,7 +111,7 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','ui/settings_controls','ui/volume_result_refresh')) {
+    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','providers/settings_memory','ui/settings_controls','ui/volume_result_refresh')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }

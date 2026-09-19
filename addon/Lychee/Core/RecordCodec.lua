@@ -41,7 +41,31 @@ local function internStrings(entry, field, value)
     if count ~= #value then return value end
     return internMetadata(entry, field .. ":" .. count .. ":" .. table.concat(value, "\0"), value)
 end
+-- Share only already-owned, validated data. Public callbacks still receive
+-- deep copies. Target sharing is bounded to one record (at most 16 actions).
+local function shareInvocationData(entry,record)
+    local first=record.invocation or record.command or record.targetRef
+    for _,action in ipairs(record.actions or {}) do
+        local ref=type(action)=="table" and action.invocation
+        if ref then
+            if first and ref.target and first.target and ref.target.version==first.target.version
+                and type(ref.target.key)=="table" and type(first.target.key)=="table"
+                and sameMetadata(ref.target.key,first.target.key) then
+                ref.target=first.target
+            elseif not first then first=ref end
+            if type(ref.args)=="table" then
+                local key,value=next(ref.args)
+                if key==nil then ref.args=internMetadata(entry,"invocation:empty-args",ref.args)
+                elseif type(key)=="string" and type(value)=="boolean" and next(ref.args,key)==nil then
+                    ref.args=internMetadata(entry,"invocation:boolean-arg:"..tostring(value)..":"..key,ref.args)
+                end
+            end
+        end
+    end
+end
+
 local function shareMetadata(entry, record)
+    shareInvocationData(entry,record)
     record.aliases = internStrings(entry, "aliases", record.aliases)
     record.keywords = internStrings(entry, "keywords", record.keywords)
     local category = record.category
