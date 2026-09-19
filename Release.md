@@ -166,7 +166,7 @@ By Follen. Free to use. Redistribution and modifications are subject to the proj
 
 ## 配图素材（编辑时选用，不属于详情正文）
 
-- [中文发布封面](docs/media/release-cover-zh-v1.png)：荔枝红与深色背景，突出搜索器定位和快捷键。右侧为宣传示意，非实机截图。
+- [中文发布封面](docs/media/release-cover-zh-v2.png)：文字快捷键与荔枝红深色背景；右侧以真实奥术搜索截图为素材生成合成，并非原始截图的逐像素复制。
 - [技能搜索](docs/media/search-spells.png)：主图，展示搜索列表与命中高亮。
 - [成就搜索](docs/media/search-achievements.png)：展示完成状态和分享入口。
 - [来源设置](docs/media/provider-settings.png)：展示搜索范围管理。
