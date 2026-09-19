@@ -190,35 +190,39 @@ function M:Query(request,reply,context)
             if count>=128 or debugprofilestop()-started>=1 then coroutine.yield();count,started=0,debugprofilestop() end
         end
         local data=I.Builtin.JournalCatalog
-        for offset=1,#data.encounters,3 do
+        -- One accumulator/closure per scan, not per encounter. These locals
+        -- belong to this query's coroutine and are never shared across queries.
+        local offset,base,current,total,section,diff,fallbackDiff,fallbackSection
+        local function flush()
+            if not current then return end
+            if diff or family then
+                local name=C_Spell.GetSpellName(current)
+                if not name and loadMissing and pending[current]==nil and event and C_Spell.RequestLoadSpellData then
+                    pending[current]=true;awaiting=awaiting+1
+                    local ok=pcall(C_Spell.RequestLoadSpellData,current)
+                    if not ok and pending[current]==true then pending[current]=false;awaiting=awaiting-1 end
+                end
+                field("title",name);field("alias",tostring(current))
+                -- A full spell name wins over an ambiguous leading difficulty word.
+                local literal=family and name and N:Normalize(name,false)==original
+                local rank=N:ScoreCompiled(literal and original or query,fields,literal and N:Terms(original) or terms,false)
+                add(offset,current,total,literal and fallbackSection or section,literal and fallbackDiff or diff,rank)
+                for i=#fields,base+1,-1 do fields[i]=nil end
+            end
+            checkpoint()
+        end
+        for encounterOffset=1,#data.encounters,3 do
+            offset=encounterOffset
             local id=data.encounters[offset]
             local boss,instance=M:Names(offset)
             for i=#fields,1,-1 do fields[i]=nil end
             field("alias",boss);field("alias",instance);field("alias",tostring(id))
-            local base=#fields
+            base=#fields
             if family then local mask=bossMask(id);add(offset,nil,mask,0,choose(mask,family),N:ScoreCompiled(query,fields,terms,false)) end
             if not skills then
                 if query==fields[3] or query==fields[6] or query==tostring(id) then exact=true end
             else
-                local current,total,section,diff,fallbackDiff,fallbackSection
-                local function flush()
-                    if not current then return end
-                    if diff or family then
-                        local name=C_Spell.GetSpellName(current)
-                        if not name and loadMissing and pending[current]==nil and event and C_Spell.RequestLoadSpellData then
-                            pending[current]=true;awaiting=awaiting+1
-                            local ok=pcall(C_Spell.RequestLoadSpellData,current)
-                            if not ok and pending[current]==true then pending[current]=false;awaiting=awaiting-1 end
-                        end
-                        field("title",name);field("alias",tostring(current))
-                        -- A full spell name wins over an ambiguous leading difficulty word.
-                        local literal=family and name and N:Normalize(name,false)==original
-                        local rank=N:ScoreCompiled(literal and original or query,fields,literal and N:Terms(original) or terms,false)
-                        add(offset,current,total,literal and fallbackSection or section,literal and fallbackDiff or diff,rank)
-                        for i=#fields,base+1,-1 do fields[i]=nil end
-                    end
-                    checkpoint()
-                end
+                current,total,section,diff,fallbackDiff,fallbackSection=nil,nil,nil,nil,nil,nil
                 for spellText,sectionText,maskText in (data.abilities[id] or ""):gmatch("(%d+):(%d+):(%d+)") do
                     local spell,mask=tonumber(spellText),tonumber(maskText)
                     if spell~=current then flush();current,total,section,diff,fallbackDiff,fallbackSection=spell,0,nil,nil,nil,nil end

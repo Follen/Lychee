@@ -38,3 +38,18 @@ Boundary.Validate 和 Copy 共用有界遍历；只读校验也累计节点与�
 ## 实机状态
 
 本轮实机性能和功能覆盖待运行。上一轮 14.032 MiB 的 Ticket 对应旧提交，不能作为本轮收益证据；待用相同全量查询序列复测。真实动作点击、战斗及英文客户端不因离线测试通过而自动视为通过。
+
+
+## 团本扫描的第二处大分配
+
+继续审查全量来源后，发现每次技能扫描按 490 个首领分别创建 flush 闭包及其八个捕获状态。改为每次扫描一个闭包，每进入下个首领清空技能/难度累计状态；各查询仍有独立协程和变量，不共享跨查询 scratch，不改变让出点、名称加载、等待或候选排序。
+
+相同完整目录 20 查询：累计分配 6459.9 → 2939.6 KiB（约 -54.5%），中文 CPU 1295 → 1298ms、最大批次 2ms、回收后增长 0.7 KiB。英文分配 2943.5 KiB；两个语言的难度、同技能去重、查询取消、异步/同步/失败加载及动作跳转断言均通过。固定场景的防回归分配检查由 8192 收紧到 4096 KiB，不放宽 CPU 或容量。此项不增加常驻大表。
+
+WoW 名称读取契约核对：同一 wow-ui-source / retail / 12.1.0 固定 commit，查询 C_Spell.GetSpellName，证据路径 `Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua:477`；本轮只是移动闭包作用域，没有改 API 调用语义。
+
+## 039eaec 实机中间验收
+
+该提交仅含 SDK/标识优化，尚不包含后续团本闭包修改。性能 Ticket `LYCHEE-20260919-233208-0010`，request `req-single-port-039eaec-perf-01` / revision `039eaec-perf-1`；完整报告 219981 字节，SHA-256 `a2c466aa2d7542a0a90e42c2d6bb58d63f043807acb85a95638b242aef07c83f`。Retail 12.1.0.69875、zhCN、MAGE；角色与上轮 PALADIN 不同，禁止直接归因整体差额。81 行全部 complete，无 incomplete / unavailable；结束 jobs=0、pending=false、窗口关闭、计时器归零。三轮关闭回收后 14.166 / 14.107 / 14.126 MiB，自然关闭 36.619 / 32.751 / 32.690 MiB。
+
+功能 Ticket `LYCHEE-20260919-233402-0011`，request `req-single-port-039eaec-func-01` / revision `039eaec-func-1`；报告 32469 字节，SHA-256 `9cb40d83d8a805e360573751e4b249b1ce70115861bc7b2a8558d36dacc9ea7a`。52 项 pass、0 fail、3 skip；跳过项为无历史存档的两次恢复检查，以及样本未出现 4/5 条结果的回缩检查。状态 complete_with_gaps，正常与无参数/超范围自然语言、SDK 声明及清理路径通过；无最近使用存档的恢复项跳过，真实业务写入/安全点击、战斗及英文客户端不在该只读探针覆盖内。确认命令被自动输入误发到说频道，已停止后续自动输入；报告在此之前由自动重载完整保存，误发不构成客户端功能通过证据。

@@ -103,7 +103,7 @@ local started=os.clock()
 for i=1,20 do query(i%2==0 and "Ability 1229327" or "mythic Ability 1230087") end
 local allocated=collectgarbage("count")-base
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-base
-assert(allocated<8192,"20 raid queries allocation budget")
+assert(allocated<4096,"20 raid queries must not rebuild per-encounter closures")
 assert(retained<128,"raid query retained growth")
 assert(maxBatch<8,"raid callback must stay below 8 ms")
 print(string.format("Raid query20 PASS cpu_ms=%.2f allocated_KiB=%.1f retained_KiB=%.1f max_batch_ms=%.2f",(os.clock()-started)*1000,allocated,retained,maxBatch))
