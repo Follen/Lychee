@@ -15,7 +15,7 @@
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r7-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
 [![许可](https://img.shields.io/badge/license-非商业%20·%20署名-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -39,11 +39,12 @@
 | 找角色已学会的技能 | `变形术` | 点击施放，也能拖到动作栏 |
 | 找背包里的东西 | `炉石` | 点击使用；右键可定位背包格子 |
 | 打开游戏页面 | `传家宝` | 直接打开传家宝收藏 |
+| 调整主音量 | `把音量设置到30` | 确认搜索结果后执行；也可搜索对应设置，右键选择调整动作 |
 | 分享一个成就 | `引领潮流` | 找到成就，Shift + 左键贴入聊天框 |
 | 看小队钥匙 | `key`、`钥匙` 或 `分数` | 显示队伍钥匙和分数（正式服） |
 | 只找技能，不混入其他内容 | `技能：变形术` | 仅显示玩家技能中的匹配项 |
 
-技能、背包和成就的结果取决于当前角色及客户端；首次整理成就目录时会显示“搜索中”，准备好后自动更新。
+技能、背包和成就的结果取决于当前角色及客户端。慢来源准备期间会显示轻量等待状态；已有的当前搜索结果先显示，不必等所有来源一起完成。
 
 ### 常用的，留在手边
 
@@ -61,6 +62,8 @@
 | 普通搜索 | 直接输入内容名称，就能找到这个功能的结果 |
 | 搜索前缀 | 输入 `技能：变形术`，只查玩家技能 |
 | 快捷关键词 | 将 `abc` 设为入口，完整输入 `abc` 时直接显示该功能的结果 |
+
+功能来源开关只决定该来源是否参与搜索，不会卸载插件或关闭它的后台功能。已有固定项、最近记录等明确引用仍可尝试恢复；来源实际不可用时会说明原因。
 
 三种入口可以同时存在。**别名对应一个条目，快捷关键词对应整个功能来源**；例如 `回家` 找一个传送门，`key` 查看队伍钥匙。
 
@@ -128,6 +131,8 @@ Interface/
         └── …
 ```
 
+本分支的自带功能合并在一个 `Lychee` 插件内。曾安装多包开发版的用户，请按[转换交付步骤](docs/guides/DELIVERY.md#从多包开发版转换)备份并隔离旧的自带包，避免重复注册；独立第三方插件不在清理范围。
+
 **不要把解压后的整个仓库放进 AddOns。** `lychee-sdk`、`docs` 和 `assets` 都不需要安装。仓库 ZIP 是当前开发版本。
 
 快捷键已被其他功能占用时，荔枝不会覆盖它；可在游戏的按键设置里重新绑定。
@@ -167,7 +172,9 @@ Interface/
 
 ## 把你的插件接进来
 
-一个 Provider 提供内容和动作，荔枝负责搜索、排序和展示。你可以声明支持的客户端、注册自己的中英文文案，并为不同客户端提供不同实现。
+SDK / Provider API 为 **1.0.0**，不兼容 API 2。一个 Provider 提供内容和动作，荔枝负责搜索、排序和展示。简单接入可提交 `entries` 和动作；有按需加载、参数调用或大目录需求时再使用相应能力。第三方仍是独立插件，维护自己的代码、存档和媒体，不读取 Host 私有模块。
+
+你可以声明支持的客户端、注册自己的中英文文案，并为不同客户端提供不同实现。[加载约定](lychee-sdk/docs/LOADING.md)说明未加载插件如何被发现，[参数调用](lychee-sdk/docs/INVOCATIONS.md)说明如何把具体参数交给动作执行。
 
 **[从 SDK 接入开始 →](lychee-sdk/docs/GETTING_STARTED.md)** · [协议参考](lychee-sdk/docs/PROTOCOLS.md) · [示例与类型定义](lychee-sdk/README.md)
 

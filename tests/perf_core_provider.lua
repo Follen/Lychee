@@ -12,7 +12,7 @@ I.Registry:SetReady(true)
 local entries={}
 for n=1,500 do entries[n]={id='item'..n,title='Entry '..n,payload={value=n}} end
 local replies={}
-local handle=assert(Lychee:RegisterProvider({id='perf.core',title='Core',version='1.0',apiVersion=2,entries=entries,
+local handle=assert(Lychee:RegisterProvider({id='perf.core',title='Core',version='1.0',apiVersion="1.0.0",entries=entries,
     query=function(_,reply) replies[#replies+1]=reply end}))
 for run=1,5 do
     collectgarbage('collect'); collectgarbage('stop')
@@ -40,7 +40,7 @@ I.Providers:CancelQueries('test')
 assert(next(I.Providers.jobs)==nil)
 assert(handle:Unregister())
 local reentered=false
-local reentrant=assert(Lychee:RegisterProvider({id='perf.reentrant',title='Reentrant',version='1',apiVersion=2,
+local reentrant=assert(Lychee:RegisterProvider({id='perf.reentrant',title='Reentrant',version='1',apiVersion="1.0.0",
     query=function() return function()
         if not reentered then reentered=true; I.Providers:Search({normalized='new'}, {}) end
     end end}))

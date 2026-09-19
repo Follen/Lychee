@@ -13,7 +13,7 @@ local function query(text,filter)
     return rows
 end
 local function register(id,entries)
-    return assert(Lychee:RegisterProvider({id=id,apiVersion=2,version="1",title="Ranking test",entries=entries}))
+    return assert(Lychee:RegisterProvider({id=id,apiVersion="1.0.0",version="1",title="Ranking test",entries=entries}))
 end
 local entries={}
 for index=1,21 do entries[index]={id=string.format("%03d",index),title="Neutral item "..index} end
@@ -33,9 +33,9 @@ assert(handle:Update({upsert={{id="000",title="New aliased item"}}}))
 assert(P:SetAlias({providerID="ranking.alias",entryID="000"},"destination entry new"))
 assert(query("destination")[1].id==remembered,"alias preference participates before candidate truncation")
 assert(#query("destination",{sourceID="other:records"})==0,"aliases respect source routes")
-assert(handle:SetEnabled(false))
+assert(handle:SetAvailability(false))
 assert(#query("destination")==0,"aliases cannot resurrect a disabled source")
-assert(handle:SetEnabled(true))
+assert(handle:SetAvailability(true))
 assert(handle:Unregister())
 
 -- Historical aliases may outlive their records. Missing matches do not spend
@@ -74,7 +74,7 @@ assert(handle:Unregister())
 print("Search ranking regression passed: alias quality, stale references, route/lifecycle and remembered TopK")
 
 local static=register("ranking.static",{{id="x",title="Neutral",aliases={"destination"}}})
-local dynamic=assert(Lychee:RegisterProvider({id="ranking.dynamic",apiVersion=2,version="1",title="Dynamic",query=function(request,reply)
+local dynamic=assert(Lychee:RegisterProvider({id="ranking.dynamic",apiVersion="1.0.0",version="1",title="Dynamic",query=function(request,reply)
  reply({{id="x",title="Neutral",aliases={"destination"}}})
 end}))
 local hits=query("destination")

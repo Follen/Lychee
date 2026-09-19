@@ -3,9 +3,10 @@ local Boundary = { MAX_DEPTH = 8, MAX_FIELDS = 128 }
 I.Boundary = Boundary
 -- Immutable validation vocabulary; never allocate it per record/action.
 local DEFAULT_OPTIONS = {}
-local ACTION_KEYS = { id=true, title=true, kind=true, panel=true, state=true, spellID=true, itemID=true }
+local ACTION_KEYS = { id=true, title=true, kind=true, panel=true, state=true, spellID=true, itemID=true, invocation=true }
 local ACTION_KIND_KEYS = {
     provider={id=true,title=true,kind=true},
+    invocation={id=true,title=true,kind=true,invocation=true},
     ["open-panel"]={id=true,title=true,kind=true,panel=true,state=true},
     ["secure-item"]={id=true,title=true,kind=true,itemID=true},
     ["secure-spell"]={id=true,title=true,kind=true,spellID=true},
@@ -14,13 +15,14 @@ local ACTION_KIND_KEYS = {
 local RECORD_KEYS = {
     id=true,kind=true,kindTitle=true,category=true,title=true,subtitle=true,subtext=true,
     aliases=true,keywords=true,description=true,icon=true,scope=true,actions=true,
-    primaryActionID=true,drag=true,payload=true,availability=true,_extensionID=true,
+    primaryActionID=true,drag=true,payload=true,availability=true,rememberable=true,tooltipRows=true,_extensionID=true,
+    invocation=true,command=true,targetRef=true,invocationError=true,
 }
 local TEXT_FIELDS = { "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }
 local CATEGORY_KEYS = {id=true,title=true,order=true,color=true}
 
-local function failure(code, field)
-    return nil, { code = code, field = field, retryable = false }
+local function failure(code, field, owner)
+    return nil, { code = code, field = field, providerID=owner, retryable = false }
 end
 
 local function access(value, field)
@@ -35,6 +37,9 @@ local function access(value, field)
     end
     return true
 end
+
+Boundary.Failure = failure
+Boundary.Access = access
 
 local function visit(value, options, seen, depth, field, parentKey, copying, budget)
     local ok, why = access(value, field)
@@ -104,8 +109,8 @@ local receivedRecords = setmetatable({}, { __mode = "k" })
 function Boundary:_HasRecordReceipt(records) return receivedRecords[records] == true end
 function Boundary:_ConsumeRecordReceipt(records) receivedRecords[records] = nil end
 
-function Boundary:ReceiveRecords(input, prepare, context, limit, share)
-    local list, why = self:Copy(input, "entries", { maxFields = limit, maxDepth = 10 })
+function Boundary:ReceiveRecords(input, prepare, context, limit, share, identity)
+    local list, why = self:Copy(input, "entries", { maxFields = math.max(limit, self.MAX_FIELDS), maxDepth = 10 })
     if why then return nil, why end
     if type(list) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
     if #list > limit then return failure("RESULT_LIMIT", "entries") end
@@ -122,9 +127,10 @@ function Boundary:ReceiveRecords(input, prepare, context, limit, share)
         -- with the stricter per-record limits before issuing a batch receipt.
         local ok, invalid = self:ValidateSearchRecord(record, "entries[" .. index .. "]")
         if not ok then return nil, invalid end
-        if map[record.id] then return nil, {code="DUPLICATE_ID",field="entry.id",providerID=context.id,retryable=false} end
+        local key=identity and identity(record,context) or record.id
+        if map[key] then return nil, {code="DUPLICATE_ID",field="entry.id",providerID=context.id,retryable=false} end
         if share then share(context, record) end
-        list[index], map[record.id] = record, record
+        list[index], map[key] = record, record
     end
     receivedRecords[list] = true
     return list, map
@@ -226,13 +232,16 @@ local function validateSearchAction(action, field, checked)
     if not keyOK then return nil, keyErr end
     if not stableID(action.id, 64) then return schemaFailure(field .. ".id") end
     local kind = action.kind
-    if kind ~= "provider" and kind ~= "open-panel" and kind ~= "secure-spell" and kind ~= "secure-item" and kind ~= "drag-spell" then
+    if not ACTION_KIND_KEYS[kind] then
         return schemaFailure(field .. ".kind")
     end
     keyOK, keyErr = allowedKeys(action, ACTION_KIND_KEYS[kind], field)
     if not keyOK then return nil, keyErr end
     if action.title ~= nil and type(action.title) ~= "string" and type(action.title) ~= "table" then
         return schemaFailure(field .. ".title")
+    end
+    if kind == "invocation" and (type(action.invocation) ~= "table" or action.invocation.kind ~= "invocation") then
+        return schemaFailure(field .. ".invocation")
     end
     if kind == "open-panel" and not stableID(action.panel, 96) then return schemaFailure(field .. ".panel") end
     if kind == "open-panel" and action.state ~= nil then
@@ -295,6 +304,30 @@ function Boundary:ValidateSearchRecord(record, field)
     if not ok then return nil, why end
     local keyOK, keyErr = allowedKeys(record, RECORD_KEYS, field)
     if not keyOK then return nil, keyErr end
+    local references=0
+    for _,name in ipairs({"invocation","command","targetRef"}) do
+        if record[name]~=nil then
+            references=references+1
+            local value,err
+            if I.Invocations then value,err=I.Invocations:NormalizeStoredRef(record[name]) end
+            local kind=name=="targetRef" and "target" or name
+            if not value or value.kind~=kind then return nil,err or {code="INVALID_REFERENCE",field=field.."."..name} end
+        end
+    end
+    if references>1 then return schemaFailure(field..".invocation") end
+    if record.invocationError~=nil then
+        local problem=record.invocationError
+        if type(problem)~="table" or type(problem.code)~="string" or #problem.code>128
+            or problem.field~=nil and (type(problem.field)~="string" or #problem.field>128) then return schemaFailure(field..".invocationError") end
+        for key in pairs(problem) do if key~="code" and key~="field" and key~="span" then return schemaFailure(field..".invocationError") end end
+        if problem.span~=nil then
+            local span=problem.span
+            if type(span)~="table" or type(span.start)~="number" or type(span.finish)~="number"
+                or span.start<1 or span.start>1025 or span.start%1~=0 or span.finish<0 or span.finish>1024 or span.finish%1~=0
+                or span.finish<span.start-1 then return schemaFailure(field..".invocationError.span") end
+            for key in pairs(span) do if key~="start" and key~="finish" then return schemaFailure(field..".invocationError.span") end end
+        end
+    end
     if not stableID(record.id) or type(record.kind) ~= "string" or record.kind == "" then
         return schemaFailure(field)
     end
@@ -347,6 +380,22 @@ function Boundary:ValidateSearchRecord(record, field)
         if record.drag.title ~= nil and type(record.drag.title) ~= "string" then return schemaFailure(field .. ".drag.title") end
         for key in pairs(record.drag) do if key ~= "type" and key ~= "spellID" and key ~= "handler" and key ~= "title" then return schemaFailure(field .. ".drag." .. tostring(key)) end end
     end
+    if record.rememberable~=nil and type(record.rememberable)~="boolean" then return schemaFailure(field..".rememberable") end
+    if record.tooltipRows~=nil then
+        if type(record.tooltipRows)~="table" or #record.tooltipRows>16 then return schemaFailure(field..".tooltipRows") end
+        local count=0
+        for key,row in pairs(record.tooltipRows) do
+            count=count+1
+            if type(key)~="number" or key%1~=0 or key<1 or key>#record.tooltipRows or type(row)~="table" or #row~=3 then return schemaFailure(field..".tooltipRows") end
+            local columns=0
+            for column,value in pairs(row) do
+                columns=columns+1
+                if type(column)~="number" or column%1~=0 or column<1 or column>3 or type(value)~="string" or #value>512 then return schemaFailure(field..".tooltipRows") end
+            end
+            if columns~=3 then return schemaFailure(field..".tooltipRows") end
+        end
+        if count~=#record.tooltipRows then return schemaFailure(field..".tooltipRows") end
+    end
     if record.availability ~= nil then
         if type(record.availability) ~= "table" or type(record.availability.contextKey) ~= "string" then
             return schemaFailure(field .. ".availability")
@@ -355,6 +404,24 @@ function Boundary:ValidateSearchRecord(record, field)
             if key ~= "contextKey" and key ~= "equals" then return schemaFailure(field .. ".availability." .. tostring(key)) end
         end
     end
+    return true
+end
+
+-- Internal copies only; external values must pass Boundary:Copy first.
+function Boundary.CopyPlain(value)
+    if type(value)~="table" then return value end
+    local out={};for key,child in pairs(value) do out[key]=Boundary.CopyPlain(child) end
+    return out
+end
+function Boundary.Array(value,limit,field)
+    if type(value)~="table" then return nil,{code="INVALID_SCHEMA",field=field} end
+    local n,count=#value,0
+    if n>limit then return nil,{code="RESULT_LIMIT",field=field} end
+    for key in pairs(value) do
+        if type(key)~="number" or key%1~=0 or key<1 or key>n then return nil,{code="INVALID_SCHEMA",field=field} end
+        count=count+1
+    end
+    if count~=n then return nil,{code="INVALID_SCHEMA",field=field} end
     return true
 end
 

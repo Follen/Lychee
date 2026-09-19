@@ -50,7 +50,7 @@ foreach ($marker in @('RegisterProvider','actions=','views=','drags=','ADDON_LOA
     if ($fixture -notmatch [regex]::Escape($marker)) { throw "Third-party fixture marker missing: $marker" }
 }
 if ($fixture -match 'match\s*=\s*\{\s*type\s*=\s*"ambient"') { throw 'Stable fixture entities must not duplicate SearchSource through ambient Command' }
-if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on API 2' }
+if ($fixture -match 'LycheeInternal|RegisterExtension') { throw 'Fixture must depend only on public API 1.0.0' }
 $provider = Get-Content (Join-Path $root 'addon/Lychee/Core/ProviderRuntime.lua') -Raw
 if ($provider -match 'OnUpdate') { throw 'Provider runtime must not add idle OnUpdate work' }
 $sdk = Get-Content (Join-Path $root 'addon/Lychee/PublicAPI/SDK.lua') -Raw
@@ -71,6 +71,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'LDT Provider lifecycle/performance checks failed' }
     & python 'tools/build_release.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Release archive checks failed' }
+    & python 'tests/single_addon_save_migration.py'
+    if ($LASTEXITCODE -ne 0) { throw 'Saved reference migration checks failed' }
     & python 'tests/repository_delivery.py'
     if ($LASTEXITCODE -ne 0) { throw 'Repository delivery regression failed' }
     & python 'tools/build_sdk.py' '--check'
@@ -78,6 +80,10 @@ try {
     & python 'tests/sdk_delivery.py'
     if ($LASTEXITCODE -ne 0) { throw 'SDK delivery mutation checks failed' }
     foreach ($test in @('pin_restore','navigation_binding','catalog_ledger','result_snapshot','provider_management')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
+    foreach ($test in @('bootstrap_storage_preservation','ui/search_presentation','sdk/sdk_storage','sdk/compact_store','sdk/cold_example','sdk/metadata','search/preference_candidates','search/invocation_preferences')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
@@ -105,6 +111,12 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
+    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','ui/settings_controls')) {
+        & $lua.Source "tests/$test.lua"
+        if ($LASTEXITCODE -ne 0) { throw "$test failed" }
+    }
+    & $lua.Source 'tests/providers/settings_invocations.lua' 'enUS'
+    if ($LASTEXITCODE -ne 0) { throw 'English settings invocations failed' }
     & $lua.Source 'tests/provider_sdk_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider SDK smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/framework_sdk_smoke.lua'

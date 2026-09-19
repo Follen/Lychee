@@ -66,18 +66,25 @@ function M:Query(request,reply,context)
     local numeric=tonumber(query)
     local exactEntity=false
     local selected,pending,fields={},{},{}
+    local queryLocale=N.locale
     local scratch,aliases={},{} -- Borrowed only by this query, including across coroutine yields.
     local awaiting,scanning,closed,loadedDuringScan=0,false,false,false
     local eventToken,deadline,task
     local limit=math.max(1,math.min(20,request.limit or 20))
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local function dispose()
         closed=true;selected,pending,fields,scratch,aliases=nil,nil,nil,nil,nil
         if eventToken then eventToken:Cancel();eventToken=nil end
         if deadline then deadline:Cancel();deadline=nil end
         if task then task:Cancel();task=nil end
     end
+    local function fail(code)
+        if closed then return end
+        dispose()
+        context.fail({code=code,field="query"})
+    end
     local owned=resources:Own("reference-query",dispose)
-    if not owned then reply({});return end
+    if not owned then fail("RESOURCE_UNAVAILABLE");return end
     local function finish()
         if closed then return end
         local rows={}
@@ -92,6 +99,7 @@ function M:Query(request,reply,context)
     local function add(enemy,dungeon,rank,spellID)
         if not rank then return end
         local key=dungeon.id.."/"..enemy.id..(spellID and "/"..spellID or "")
+        if ranker and rank<=1 then rank=ranker(key,rank) end
         local at=#selected+1
         for index,row in ipairs(selected) do
             if rank>row.rank or rank==row.rank and key<row.key then at=index;break end
@@ -111,8 +119,10 @@ function M:Query(request,reply,context)
         selected={}
         local batch,started=0,now()
         local function checkpoint()
+            if closed or N.locale~=queryLocale then error("NAME_QUERY_INVALIDATED") end
             batch=batch+1
             if batch>=128 or now()-started>=1 then coroutine.yield();batch,started=0,now() end
+            if closed or N.locale~=queryLocale then error("NAME_QUERY_INVALIDATED") end
         end
         local finalEnemy,finalInfo,finalOrder
         local function visit(enemy,dungeon)
@@ -135,6 +145,7 @@ function M:Query(request,reply,context)
             local base=#fields
             local rank=query=="" and 0 or N:ScoreCompiled(query,fields,terms,false)
             local best,bestSpell=rank,nil
+            local bestRank=ranker and ranker(dungeon.id.."/"..enemy.id,rank) or rank
             if scanSkills then for spellText in enemy.spellIDs:gmatch("%d+") do
                 local spellID=tonumber(spellText)
                 if not numeric or numeric==spellID then
@@ -146,7 +157,8 @@ function M:Query(request,reply,context)
                     end
                     field("alias",name);field("alias",spellText)
                     local score=query~="" and N:ScoreCompiled(query,fields,terms,false) or nil
-                    if score and (not best or score>best) then best,bestSpell=score,spellID end
+                    local weighted=score and (ranker and ranker(dungeon.id.."/"..enemy.id.."/"..spellID,score) or score)
+                    if weighted and (not bestRank or weighted>bestRank) then best,bestSpell,bestRank=score,spellID,weighted end
                     for i=#fields,base+1,-1 do fields[i]=nil end
                 end
                 checkpoint()
@@ -171,14 +183,14 @@ function M:Query(request,reply,context)
                 elseif not requestMissing or awaiting==0 then finish()
                 else
                     deadline=resources:After("reference-load-deadline",2,function() run(true,false) end)
-                    if not deadline then finish() end
+                    if not deadline then fail("RESOURCE_UNAVAILABLE") end
                 end
             end,
-            error=function() dispose();reply({}) end,
-            combat=function() dispose();reply({}) end,
+            error=function() fail("CALLBACK_ERROR") end,
+            combat=function() fail("COMBAT_LOCKED") end,
         })
         task=token
-        if not token then dispose();reply({}) end
+        if not token then fail("RESOURCE_UNAVAILABLE") end
     end
     eventToken=resources:OnEvent("SPELL_DATA_LOAD_RESULT",function(_,id)
         if closed or pending[id]~=true then return end
@@ -189,6 +201,7 @@ function M:Query(request,reply,context)
             run(true,false)
         end
     end)
+    if not eventToken then fail("RESOURCE_UNAVAILABLE");return end
     run(false,false)
     return dispose
 end

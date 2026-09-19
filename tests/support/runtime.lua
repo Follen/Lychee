@@ -15,6 +15,9 @@ function M.Load(profile,extra,options)
     if profile then for _,path in ipairs(assert(profiles[profile],"Unknown test profile")) do selected[path]=true end end
     for _,path in ipairs(extra or {}) do selected[path]=true end
     if selected["UI/ResultList.lua"] or selected["Secure/SecureActionBroker.lua"] then selected["Core/InteractionBinding.lua"]=true end
+    if selected["UI/Palette.lua"] then selected["UI/HomeView.lua"]=true;selected["UI/SocialLinks.lua"]=true end
+    if profile=="provider" then selected["SDK/CompactStore.lua"]=true;selected["Core/Catalog.lua"]=true;selected["Core/RecordCodec.lua"]=true;selected["Core/InvocationRuntime.lua"]=true;selected["PublicAPI/Invocation.lua"]=true end
+    if selected["Core/Preparation.lua"] then selected["Search/SourceAccess.lua"]=true;selected["Search/ProviderPolicy.lua"]=true;selected["Core/AddonDiscovery.lua"]=true;selected["Core/AddonLoader.lua"]=true end
     local loaded={}
     for line in io.lines(root..(options.toc or "Lychee_Mainline.toc")) do
         local path=line:gsub("\r$","")
@@ -29,7 +32,7 @@ function M.Load(profile,extra,options)
     assert(not next(selected),"Requested test module absent from TOC: "..tostring(next(selected)))
     for _,path in ipairs(loaded) do
         if options.load then options.load(path)
-        else dofile(options.overrides and options.overrides[path] or root..path) end
+        else assert(loadfile(options.overrides and options.overrides[path] or root..path))("Lychee",_G.LycheeInternal) end
     end
     return loaded
 end

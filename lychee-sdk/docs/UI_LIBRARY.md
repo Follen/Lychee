@@ -2,9 +2,9 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-当前 SDK 为 API 2 / revision 7，UI Runtime 仍为 1。新增公共资源生命周期、角色设置和有界缓存，见 [托管资源协议](MANAGED_RESOURCES.md)；旧 revision 1–6 的 Provider 保持兼容。
+当前 SDK 为 1.0.0 / API 1.0.0，UI Runtime 为 1。不兼容 API 2；资源与独立存储见 [托管资源协议](MANAGED_RESOURCES.md)。
 
-UI Runtime 1 位于 `Lychee.UI`，与 Provider API 2.6 的注册协议独立。先检查
+UI Runtime 1 位于 `Lychee.UI`，与 Provider API 1.0.0 的注册协议独立。先检查
 `Lychee.UI and Lychee.UI.RuntimeVersion == 1`。声明结构只创建一次并视为只读；
 `Create` 不创建 Frame，首次 `Update` 才创建，后续复用固定树。没有 VirtualDOM、
 后台渲染循环或隐式完整 GC。
@@ -112,9 +112,9 @@ Native 必须返回含 frame 的 table。Update/Release 可选；列表复用原
 ## 成本与验证
 
 创建结构数等于声明树大小；未挂载零 Frame，热更新无新增 Frame/script，关闭零活动任务。
-1000次无变化 Update 的新增累计分配预算64 KiB；`lua tests/ui_runtime.lua` 当前离线替身
+1000次无变化 Update 的新增累计分配预算64 KiB；`lua tests/ui/ui_runtime.lua` 当前离线替身
 结果为0.00 KiB。该结果不代表游戏引擎的纹理、字体或 Frame 原生内存。
-既有虚拟列表预算继续由 `lua tests/performance_ui.lua --check` 验证。
+既有虚拟列表预算继续由 `lua tests/performance/performance_ui.lua --check` 验证。
 测试覆盖 props 原表修改、状态、按下后重绑/重开、部分失败、重入、战斗、Native 清理及
 AsView。真实客户端像素表现、战斗安全和插件内存统计仍需实机验证。
 

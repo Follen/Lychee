@@ -6,8 +6,7 @@ function InCombatLockdown() return combat end
 dofile("tests/support/runtime.lua").Load("provider", {"Search/ProviderPolicy.lua", "Core/ProviderManagement.lua"})
 local I, M = LycheeInternal, LycheeInternal.ProviderManagement
 local function definition(id)
-    return {id=id,title="Management fixture",version="1",apiVersion=2,minApiRevision=6,
-        scope={products={"retail"}},i18n={enUS={},zhCN={}},
+    return {id=id,title="Management fixture",version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={},zhCN={}},
         searchGlobal=true,searchPrefixes={"fixture"},searchKeywords={},
         entries={{id="one",title="Example record"}}}
 end
@@ -46,12 +45,16 @@ assert(M:Read("management.fixture",token,detail).products[1]=="retail", "detail 
 assert(M:SetUserEnabled("management.fixture",token,false))
 M:FillList(rows);M:Read("management.fixture",token,detail)
 assert(rows[1].status=="user-disabled" and detail.status==rows[1].status)
-assert(not detail.userEnabled and detail.ownerEnabled and not detail.effectiveEnabled)
+assert(not detail.userEnabled and detail.ownerEnabled and detail.effectiveEnabled)
 assert(M:IsCurrent("management.fixture",token), "disable preserves registration identity")
+local _, hidden=I.Search.Query:Query("Example record",{visible=true})
+assert(#hidden==0,"user preference removes the source from search")
+assert(I.Providers:Resolve({providerID="management.fixture",entryID="one"},{}),"explicit fixed references still resolve")
+
 assert(M:ToggleUserEnabled("management.fixture",token))
-assert(handle:SetEnabled(false));M:Read("management.fixture",token,detail)
+assert(handle:SetAvailability(false));M:Read("management.fixture",token,detail)
 assert(detail.status=="owner-disabled" and detail.userEnabled and not detail.ownerEnabled)
-assert(handle:SetEnabled(true))
+assert(handle:SetAvailability(true))
 
 assert(M:SetConfiguration("management.fixture",token,false,{"fixture"},{"showfixture"}))
 local global,prefixes,keywords=M:GetConfiguration("management.fixture",token)
@@ -92,8 +95,32 @@ d.onDisable=function()
 end
 reentrant=assert(Lychee:RegisterProvider(d))
 local reentrantToken=assert(M:GetInstance("management.reentrant"))
-expect("STALE_HANDLE",M:SetUserEnabled("management.reentrant",reentrantToken,false))
+assert(M:SetUserEnabled("management.reentrant",reentrantToken,false))
+assert(not replacement and M:IsCurrent("management.reentrant",reentrantToken),"search exclusion never invokes owner shutdown")
+assert(reentrant:SetAvailability(false))
 assert(replacement and not M:IsCurrent("management.reentrant",reentrantToken))
 assert(replacement:Unregister())
 assert(#M:FillList(rows)==0)
 print(string.format("Provider management PASS: private snapshots, 1000 warm fills %.1f KiB, pending/effective/user/owner states, configuration, combat, stale and reentrant instances",allocated))
+
+-- Cold declarations can be managed without evaluating the addon. Registration
+-- replaces the declaration identity, so a stale editor cannot mutate it.
+local declaration={id="cold.fixture",title="Cold",selected=true,searchGlobal=false,searchPrefixes={"cold"},scope={products={"retail"}}}
+I.AddonDiscovery={Get=function(_,id) if id==declaration.id then return declaration end end,Definitions=function() return {declaration} end}
+local coldToken=assert(M:GetInstance(declaration.id))
+assert(M:Read(declaration.id,coldToken,{}).status=="pending")
+assert(M:SetUserEnabled(declaration.id,coldToken,false))
+assert(I.CharacterStore:DisabledProviders()[declaration.id])
+assert(M:SetConfiguration(declaration.id,coldToken,true,{"customcold"},{}))
+local global,prefixes=M:GetConfiguration(declaration.id,coldToken)
+assert(global and prefixes[1]=="customcold")
+local listed=false
+for _,row in ipairs(M:FillList({})) do if row.id==declaration.id then listed=true;assert(row.instanceToken==coldToken and not row.userEnabled) end end
+assert(listed and I.Providers.entries[declaration.id]==nil,"management never loads a cold addon")
+local replacement=definition(declaration.id)
+I.AddonDiscovery.ValidateRegistration=function() return true end
+I.AddonDiscovery.Registered=function() end
+assert(Lychee:RegisterProvider(replacement))
+assert(not M:IsCurrent(declaration.id,coldToken),"registration invalidates cold editor token")
+expect("STALE_HANDLE",M:SetUserEnabled(declaration.id,coldToken,true))
+print("Cold provider management PASS: routes, search preference, no loading, stale identity")

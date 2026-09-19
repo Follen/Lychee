@@ -1,5 +1,6 @@
 -- Replay character SavedVariables swaps; the account DB remains the same.
 LycheeInternal={Providers={CanRemember=function() return true end}}
+dofile("addon/Lychee/Core/Boundary.lua")
 local legacy={providerID="spells",entryID="portal"}
 LycheeDB={palette={pinned={legacy},reduceMotion=true}}
 LycheeCharacterDB=nil

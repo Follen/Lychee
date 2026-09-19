@@ -102,7 +102,7 @@ end
 function M:Init()
     if self.handle then return true end
     local handle, err = _G.Lychee:RegisterProvider({
-        id="builtin.crests", apiVersion=2,minApiRevision=2,i18n=L.resources, version="1.0.0", title=L["纹章"], scope=I.Builtin.Support:Scope("builtin.crests"),
+        id="builtin.crests", apiVersion="1.0.0",i18n=L.resources, version="1.0.0", title=L["纹章"], scope=I.Builtin.Support:Scope("builtin.crests"),
         entries={{ id="crests", title=L["纹章"], kindTitle=L["角色货币"], icon=7734060,
             subtitle=L["查看当前角色的迷雾纹章数量"], aliases={"神话", "英雄", "勇士", "老兵", "冒险者", "迷雾", "crest", "crests", "纹章数量",
                 "神话迷雾纹章", "迷雾神话纹章", "英雄迷雾纹章", "勇士迷雾纹章", "老兵迷雾纹章", "冒险者迷雾纹章"}, actions={"open"} }},

@@ -20,10 +20,15 @@ function palette:ApplyResults(items)
     self.items, self.applied=items, self.applied+1
     return true
 end
+function palette:ApplySearchState(session,generation,pending,items,incomplete)
+    self.session,self.generation,self.searchPending,self.incomplete=session,generation,pending,incomplete
+    if items then return self:ApplyResults(items) end
+    return true
+end
 S:BindPalette(palette)
 S:Start()
 local function register(id, query)
-    return assert(Lychee:RegisterProvider({id=id, apiVersion=2, version="1", title=id, query=query}))
+    return assert(Lychee:RegisterProvider({id=id, apiVersion="1.0.0", version="1", title=id, query=query}))
 end
 local function fire(timer)
     assert(timer and not timer.cancelled, "expected a live timer")

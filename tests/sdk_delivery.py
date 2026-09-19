@@ -25,7 +25,7 @@ class DeliveryContractTests(unittest.TestCase):
         assert self.root.parent == Path(tempfile.gettempdir()).resolve()
         self.addCleanup(self.temporary.cleanup)
         shutil.copytree(ROOT / "lychee-sdk", self.root / "lychee-sdk")
-        for name in ("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "PERFORMANCE.md"):
+        for name in ("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "addon/Lychee/SDK/CompactStore.lua", "addon/Lychee/PublicAPI/SDK.lua", "PERFORMANCE.md"):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
@@ -44,28 +44,36 @@ class DeliveryContractTests(unittest.TestCase):
         self.assertEqual(builder.run(ROOT), [])
 
     def test_generated_performance_drift(self):
-        self.change("lychee-sdk/docs/PERFORMANCE.md", "性能硬门禁", "错误副本")
+        self.change("lychee-sdk/docs/PERFORMANCE.md", "性能规范与验收", "错误副本")
         self.reject("PERFORMANCE.md")
 
     def test_host_only_drift(self):
-        self.change("addon/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
+        self.change("addon/Lychee/Bootstrap.lua", 'api = "1.0.0"', 'api = "1.0.1"')
         self.reject("Bootstrap.lua")
 
     def test_types_only_drift(self):
-        self.change("lychee-sdk/ApiStubs.lua", "---@field API_REVISION 7", "---@field API_REVISION 6")
+        self.change("lychee-sdk/ApiStubs.lua", '---@field API_VERSION "1.0.0"', '---@field API_VERSION "1.0.1"')
         self.reject("ApiStubs.lua")
 
     def test_helper_only_drift(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "API_REVISION=7", "API_REVISION=6")
+        self.change("lychee-sdk/LycheeAPI.lua", 'API_VERSION="1.0.0"', 'API_VERSION="1.0.1"')
         self.reject("LycheeAPI.lua")
 
-    def test_helper_floor_drift(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "MIN_API_REVISION=6", "MIN_API_REVISION=7")
-        self.reject("LycheeAPI.lua")
+    def test_facade_only_drift(self):
+        self.change("addon/Lychee/PublicAPI/SDK.lua", 'VERSION="1.0.0"', 'VERSION="1.0.1"')
+        self.reject("SDK.lua")
 
     def test_helper_default_behavior_drift(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "minRevision=API.MIN_API_REVISION", "minRevision=API.API_REVISION")
+        self.change("lychee-sdk/LycheeAPI.lua", "apiVersion=API.API_VERSION", "apiVersion=API.RETIRED_VERSION")
         self.reject("LycheeAPI.lua")
+
+    def test_retired_revision_contract_is_rejected(self):
+        path = self.root / "tools/sdk_contract.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["apiRevision"] = 7
+        path.write_text(json.dumps(data), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "retired revision"):
+            builder.run(self.root)
 
     def test_helper_error_code_drift(self):
         self.change("lychee-sdk/LycheeAPI.lua", '"RESOURCE_LIMIT"', '"LOST_RESOURCE_LIMIT"')
@@ -94,36 +102,38 @@ class DeliveryContractTests(unittest.TestCase):
 
     def test_write_repairs_declarations_without_changing_other_host_code(self):
         host = self.root / "addon/Lychee/Bootstrap.lua"
-        self.change("addon/Lychee/Bootstrap.lua", "api = 2, revision = 7", "api = 2, revision = 6")
+        self.change("addon/Lychee/Bootstrap.lua", 'api = "1.0.0"', 'api = "1.0.1"')
         host.write_text(host.read_text(encoding="utf-8") + "\n-- preserved fixture marker\n", encoding="utf-8")
         self.assertEqual(builder.run(self.root, write=True), [])
         self.assertEqual(builder.run(self.root), [])
         self.assertTrue(host.read_text(encoding="utf-8").endswith("-- preserved fixture marker\n"))
 
     def test_check_is_read_only(self):
-        self.change("lychee-sdk/LycheeAPI.lua", "API_REVISION=7", "API_REVISION=6")
+        self.change("lychee-sdk/LycheeAPI.lua", 'API_VERSION="1.0.0"', 'API_VERSION="1.0.1"')
         before = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         self.reject("LycheeAPI.lua")
         after = {p.relative_to(self.root): p.read_bytes() for p in self.root.rglob("*") if p.is_file()}
         self.assertEqual(before, after)
 
-    def test_legal_floor_six_with_real_lua_helper(self):
+    def test_exact_semver_with_real_lua_helper(self):
         self.assertEqual(builder.run(self.root), [])
         helper_path = json.dumps((self.root / "lychee-sdk/LycheeAPI.lua").as_posix())
         script = f"""
 local helper=dofile({helper_path})
-assert(helper.API_VERSION==2 and helper.API_REVISION==7 and helper.MIN_API_REVISION==6)
+assert(helper.API_VERSION=="1.0.0" and helper.API_REVISION==nil and helper.MIN_API_REVISION==nil)
 local requested
-local old={{Supports=function(_,version,revision) requested=revision;return version==2 and revision<=6 end}}
-assert(helper.Supports(old) and requested==6)
-local ok,err=helper.Supports(old,2,7)
-assert(not ok and err.code=='UNSUPPORTED_API' and requested==7)
-assert(helper.Supports({{Supports=function(_,version,revision) return version==2 and revision<=7 end}},2,7))
+local host={{Supports=function(_,version,...) requested=version;return version=="1.0.0" and select("#",...)==0 end}}
+assert(helper.Supports(host) and requested=="1.0.0")
+local ok,err=helper.Supports(host,2,7)
+assert(not ok and err.code=='UNSUPPORTED_API')
+assert(not helper.Supports(host,"1.0.1"))
+assert(not helper.Supports(host,"1.0.0",1))
+assert(helper.Supports(host,"1.0.0"))
 for _,code in ipairs({{'RESOURCE_CLOSED','RESOURCE_REENTRANT','RESOURCE_LIMIT','RESOURCE_UNAVAILABLE',
  'INVALID_EVENT','INVALID_SETTINGS','DATA_LIMIT','SECRET_VALUE','INACCESSIBLE_VALUE'}}) do
  assert(helper.ERROR_CODES[code]==code)
 end
-print('SDK helper current 7 / default floor 6 / explicit feature requirement PASS')
+print('SDK helper exact semantic version / retired numeric API rejection PASS')
 """
         result = subprocess.run(["lua", "-"], input=script, text=True, encoding="utf-8", capture_output=True, cwd=self.root)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

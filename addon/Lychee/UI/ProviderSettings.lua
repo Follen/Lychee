@@ -266,7 +266,7 @@ function P:Create(parent,controller,onBack)
         self.reset:SetEnabled(not independent);self.error:SetText("")
         local clients={}
         for _,product in ipairs(self.info.products) do clients[#clients+1]=L[CLIENTS[product] or product] end
-        self.technical:SetText(L["版本"].." "..tostring(self.info.version).."  ·  "..table.concat(clients,", "));self:Layout()
+        self.technical:SetText((self.info.version and L["版本"].." "..self.info.version.."  ·  " or "")..table.concat(clients,", "));self:Layout()
     end
     function view:Show(id,icon,description)
         local info=management:Read(id,nil,self.info)

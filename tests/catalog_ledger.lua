@@ -8,7 +8,7 @@ dofile("tests/support/runtime.lua").Load("provider")
 dofile("addon/Lychee/Builtin/Shared/CatalogLedger.lua")
 local I=LycheeInternal
 I.Registry:SetReady(true)
-local handle=assert(Lychee:RegisterProvider({id="ledger.fixture",title="Ledger",version="1",apiVersion=2,entries={}}))
+local handle=assert(Lychee:RegisterProvider({id="ledger.fixture",title="Ledger",version="1",apiVersion="1.0.0",entries={}}))
 local ledger=I.Builtin.CatalogLedger:New()
 local function build(values)
     local rows={}
@@ -82,7 +82,7 @@ local compact=I.Builtin.CatalogLedger:New({
     recordID=function(id) return "record:"..id end,
     key=function(row) return row.payload.id end,
 })
-handle=assert(Lychee:RegisterProvider({id="ledger.compact",title="Compact",version="1",apiVersion=2,entries={}}))
+handle=assert(Lychee:RegisterProvider({id="ledger.compact",title="Compact",version="1",apiVersion="1.0.0",entries={}}))
 local function named(values)
     local rows={};for id,v in pairs(values) do rows[#rows+1]={id="record:"..id,title=v.title,payload={id=id}} end
     return rows

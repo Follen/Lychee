@@ -9,7 +9,7 @@ local I=LycheeInternal
 I.Registry:SetReady(true)
 local P=I.Search.Personalization
 local function query(text,context) local _,rows=I.Search.Query:Query(text,context or {visible=true});return rows end
-local handle=assert(Lychee:RegisterProvider({id="personal.test",apiVersion=2,version="1.0.0",title="Test",
+local handle=assert(Lychee:RegisterProvider({id="personal.test",apiVersion="1.0.0",version="1.0.0",title="Test",
     entries={{id="a",title="Common Alpha",category={id="tools",title="Tools"}},
         {id="b",title="Common Beta",category={id="tools",title="Tools"}}}}))
 local original=query("Common")
@@ -31,8 +31,8 @@ assert(#query("回家",{visible=true,searchFilter={categoryID="personal.test:too
 assert(P:SetAlias(rows[1].ref,"Common","Common Beta"))
 assert(#query("Common")==2,"alias and normal match are deduplicated")
 assert(P:SetAlias(rows[1].ref,"回家","Common Beta"))
-assert(handle:SetEnabled(false));assert(#query("回家")==0,"disabled provider not resurrected")
-assert(handle:SetEnabled(true));assert(#query("回家")==1)
+assert(handle:SetAvailability(false));assert(#query("回家")==0,"disabled provider not resurrected")
+assert(handle:SetAvailability(true));assert(#query("回家")==1)
 local saved=LycheeCharacterDB.palette.searchPersonalization
 LycheeCharacterDB={palette={searchPersonalization=saved}}
 assert(#query("回家")==1,"reload migration retains valid aliases")
@@ -61,7 +61,7 @@ assert(handle:Unregister())
 LycheeCharacterDB={palette={}}
 local entries={}
 for index=1,128 do entries[index]={id=tostring(index),title="Performance "..index} end
-local perf=assert(Lychee:RegisterProvider({id="personal.perf",apiVersion=2,version="1.0.0",title="Perf",entries=entries}))
+local perf=assert(Lychee:RegisterProvider({id="personal.perf",apiVersion="1.0.0",version="1.0.0",title="Perf",entries=entries}))
 for index=1,128 do assert(P:SetAlias({providerID="personal.perf",entryID=tostring(index)},"共同别名"..index,"Performance")) end
 local function measure(enabled)
     I.Search.Personalization=enabled and P or nil
@@ -83,14 +83,14 @@ print(string.format("Alias capacity benchmark (200 queries, Lua 5.1): off mean=%
 assert(perf:Unregister())
 do
     local function definition(value,revision)
-        return {id="restricted",apiVersion=2,minApiRevision=revision or 3,version="1",title="Restricted",
+        return {id="restricted",apiVersion="1.0.0",minApiRevision=revision,version="1",title="Restricted",
             scope={products={"retail"}},i18n={enUS={TITLE="Restricted"}},searchable=value,
             entries={{id="row",title="Hidden title",aliases={"hiddenalias"}}},
             query=function(request,reply)
                 reply(request.normalized=="trigger" and {{id="row",title="Dynamic title"}} or {})
             end}
     end
-    assert(Lychee:Supports(2,3))
+    assert(Lychee:Supports("1.0.0"))
     assert(not Lychee:RegisterProvider(definition("false")))
     assert(not Lychee:RegisterProvider(definition(false,2)))
     local restricted=assert(Lychee:RegisterProvider(definition(false)))
@@ -103,8 +103,8 @@ do
     assert(#query("privatealias")==0,"user aliases cannot bypass searchable=false")
     assert(restricted:Update({upsert={{id="row",title="Updated hidden"}}}))
     assert(#query("Updated")==0 and I.Providers:Resolve(ref,{}).text=="Updated hidden")
-    assert(restricted:SetEnabled(false));assert(#query("trigger")==0)
-    assert(restricted:SetEnabled(true));assert(#query("Updated")==0 and #query("trigger")==1)
+    assert(restricted:SetAvailability(false));assert(#query("trigger")==0)
+    assert(restricted:SetAvailability(true));assert(#query("Updated")==0 and #query("trigger")==1)
     local indexed=I.Search.StaticIndex.entries["restricted:records:row"]
     assert(indexed and indexed.fields==nil and not indexed.indexed,"no search postings retained")
     assert(restricted:Update({remove={"row"}}));assert(not I.Providers:Resolve(ref,{}))
@@ -118,10 +118,10 @@ print("Search personalization PASS: real query, aliases, filtering, disable/relo
 do
     local policy=I.Search.ProviderPolicy
     local function definition(id)
-        return {id=id,apiVersion=2,minApiRevision=6,version="1",title="Combined",scope={products={"retail"}},i18n={enUS={TITLE="Combined"}},
+        return {id=id,apiVersion="1.0.0",version="1",title="Combined",scope={products={"retail"}},i18n={enUS={TITLE="Combined"}},
             searchGlobal=true,searchPrefixes={"inside"},searchKeywords={"openlist"},entries={{id="one",title="Unique target"}}}
     end
-    assert(Lychee:Supports(2,6))
+    assert(Lychee:Supports("1.0.0"))
     local bad=definition("combined.bad");bad.minApiRevision=5;assert(not Lychee:RegisterProvider(bad))
     bad=definition("combined.bad");bad.searchMode="global";assert(not Lychee:RegisterProvider(bad))
     bad=definition("combined.bad");bad.searchGlobal=false;bad.searchPrefixes={};bad.searchKeywords={};assert(not Lychee:RegisterProvider(bad))
@@ -137,22 +137,22 @@ do
     assert(#query("Unique target")==1 and #query("within:target")==0 and #query("showlist")==0,"empty tables remove shortcuts")
     LycheeCharacterDB={palette=LycheeCharacterDB.palette};policy.owner=nil;assert(#query("within:target")==0,"empty tables survive reload")
     assert(policy:Set("combined.test",nil,nil,nil));assert(#query("inside:target")==1 and #query("openlist")==1)
-    assert(handle:SetEnabled(false));assert(#query("openlist")==0)
-    assert(handle:SetEnabled(true));assert(#query("openlist")==1)
+    assert(handle:SetAvailability(false));assert(#query("openlist")==0)
+    assert(handle:SetAvailability(true));assert(#query("openlist")==1)
     assert(handle:Unregister());assert(#query("openlist")==0)
-    print("Combined search policy PASS: coexistence, exact route priority, revision, saved false/empty, reset, lifecycle")
+    print("Combined search policy PASS: coexistence, exact route priority, retired revision rejection, saved false/empty, reset, lifecycle")
 end
 do
     local policy=I.Search.ProviderPolicy
     local calls=0
     local function definition(id,list)
-        return {id=id,apiVersion=2,minApiRevision=4,version="1",title="Scoped",
+        return {id=id,apiVersion="1.0.0",version="1",title="Scoped",
             scope={products={"retail"}},i18n={enUS={TITLE="Scoped"}},searchMode="prefix",searchPrefixes=list,
             entries={{id="one",title="限定目标"}},query=function(_,reply) calls=calls+1;reply({}) end}
     end
     local handle=assert(Lychee:RegisterProvider(definition("prefix.test",{"限定","scope"})))
     local legacyCalled,legacyFilter=0,nil
-    local legacy=assert(Lychee:RegisterProvider({id="prefix.legacy",apiVersion=2,version="1",title="Legacy",
+    local legacy=assert(Lychee:RegisterProvider({id="prefix.legacy",apiVersion="1.0.0",version="1",title="Legacy",
         query=function(request,reply) legacyCalled=legacyCalled+1;legacyFilter=request.filter;reply({}) end}))
     local before=calls
     assert(#query("限定目标")==0 and calls==before,"global search excludes static and dynamic provider work")
@@ -167,12 +167,14 @@ do
     assert(policy:Set("prefix.test","prefix",{"newprefix"}))
     assert(policy:Effective("prefix.test",{searchable=false})=="global","old override cannot constrain independent query")
     assert(#query("限定目标")==0 and #query("newprefix:目标")==1 and #query("scope:目标")==0)
+    local reserved=assert(Lychee:RegisterProvider(definition("prefix.owner",{"key"})))
     assert(not policy:Set("prefix.test","prefix",{"key"}))
+    assert(reserved:Unregister())
     assert(policy:Set("prefix.test",nil,nil));assert(#query("scope:目标")==1)
     local saved=LycheeCharacterDB.palette;LycheeCharacterDB={palette=saved};policy.owner=nil
     assert(#query("scope:目标")==1,"reload normalization retains declaration")
-    assert(handle:SetEnabled(false));assert(#query("scope:目标")==0)
-    assert(handle:SetEnabled(true));assert(#query("scope:目标")==1)
+    assert(handle:SetAvailability(false));assert(#query("scope:目标")==0)
+    assert(handle:SetAvailability(true));assert(#query("scope:目标")==1)
     assert(handle:Unregister());assert(#query("scope:目标")==0)
     print("Prefix policy PASS: global exclusion, routed search, dynamic guard, override, conflict, reset, lifecycle")
 end
@@ -180,13 +182,13 @@ do
     local policy=I.Search.ProviderPolicy
     local calls,last=0,nil
     local function definition(id,words)
-        return {id=id,apiVersion=2,minApiRevision=5,version="1",title="Triggered",scope={products={"retail"}},i18n={enUS={TITLE="Triggered"}},
+        return {id=id,apiVersion="1.0.0",version="1",title="Triggered",scope={products={"retail"}},i18n={enUS={TITLE="Triggered"}},
             searchMode="keyword",searchKeywords=words,searchPrefixes={(id:gsub("%.",""))},entries={{id="one",title="Hidden dungeon"}},
             query=function(request,reply) calls=calls+1;last=request;reply({{id="live",title="Live result"}}) end}
     end
-    assert(Lychee:Supports(2,5))
+    assert(Lychee:Supports("1.0.0"))
     local old=definition("keyword.old",{"show"});old.minApiRevision=4
-    assert(not Lychee:RegisterProvider(old),"keyword declarations require revision 5")
+    assert(not Lychee:RegisterProvider(old),"retired revision declarations are rejected")
     local missing=definition("keyword.missing",nil);assert(not Lychee:RegisterProvider(missing))
     local handle,registrationError=Lychee:RegisterProvider(definition("keyword.test",{"KEYWORD","触发"}))
     assert(handle,registrationError and tostring(registrationError.code)..":"..tostring(registrationError.field))
@@ -211,8 +213,8 @@ do
     assert(#query("触发")==0 and #query("新的")==2,"override replaces declaration trigger")
     local saved=LycheeCharacterDB.palette;LycheeCharacterDB={palette=saved};policy.owner=nil
     assert(#query("新的")==2,"keyword overrides survive reload")
-    assert(handle:SetEnabled(false));assert(#query("新的")==0)
-    assert(handle:SetEnabled(true));assert(#query("新的")==2)
+    assert(handle:SetAvailability(false));assert(#query("新的")==0)
+    assert(handle:SetAvailability(true));assert(#query("新的")==2)
     assert(handle:Update({upsert={{id="one",title="Changed dungeon"}}}));assert(#query("新的")==2)
     assert(policy:Set("keyword.test","global",nil,nil));assert(#query("Changed dungeon")>=1)
     assert(policy:Set("keyword.test","prefix",{"scoped"},nil));assert(#query("scoped:Changed")>=1 and #query("触发")==0)

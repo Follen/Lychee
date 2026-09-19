@@ -28,9 +28,9 @@ dofile("tests/support/runtime.lua").Load("provider",{"UI/ViewHost.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local function definition(id)
-    return {id=id,title=id,version="1",apiVersion=2,minApiRevision=7,scope={products={"retail"}},i18n={enUS={NAME="Test"}},entries={}}
+    return {id=id,title=id,version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={NAME="Test"}},entries={}}
 end
-assert(Lychee:Supports(2,7))
+assert(Lychee:Supports("1.0.0"))
 local def=definition("test.resources")
 local scope,queryScope,viewScope
 def.onEnable=function(handle) scope=assert(handle:Resources()) end
@@ -101,11 +101,11 @@ while true do
     count=count+1;assert(count<=64)
 end
 assert(handle:GetDiagnostics().providerResources==64)
-handle:SetEnabled(false)
+handle:SetAvailability(false)
 assert(not scope:IsActive() and handle:GetDiagnostics().providerResources==0)
 assert(not cache:Set("x",1) and not scope:After("x",0,function() end))
 assert(settings:Get("choice").text=="hello","settings survive disable")
-handle:SetEnabled(true);assert(scope:IsActive())
+handle:SetAvailability(true);assert(scope:IsActive())
 local closed=0
 local panel=Lychee.UI.ViewHost:Create({})
 local ok=panel:Mount({create=function(context)
@@ -167,13 +167,13 @@ local starts,stops=0,{}
 local restart=definition("test.restart")
 restart.onEnable=function(h)
     starts=starts+1;local generation=starts
-    if generation==1 then h:Resources():Own("restart",function() h:SetEnabled(true) end) end
+    if generation==1 then h:Resources():Own("restart",function() h:SetAvailability(true) end) end
     return function() stops[generation]=(stops[generation] or 0)+1 end
 end
 local restarting=assert(Lychee:RegisterProvider(restart))
-restarting:SetEnabled(false)
+restarting:SetAvailability(false)
 assert(restarting:GetState().enabled and starts==2 and stops[1]==1 and not stops[2])
-restarting:SetEnabled(false);assert(stops[2]==1)
+restarting:SetAvailability(false);assert(stops[2]==1)
 
 -- Old reply cleanup searches again; a subsequent old error cannot erase it.
 local query=definition("test.reentrant-query")
@@ -199,7 +199,7 @@ local fullScope=assert(full:Resources())
 for n=1,64 do assert(fullScope:Own("slot"..n,function() end)) end
 I.Providers:Search({normalized="",filter={sourceID=unavailable.id..":records"}},{})
 assert(entered==0 and full:GetState().lastError.code=="RESOURCE_LIMIT" and not I.Providers:HasPendingQuery())
-full:SetEnabled(false);full:SetEnabled(true)
+full:SetAvailability(false);full:SetAvailability(true)
 C_Timer.NewTimer=function() error("deadline unavailable") end
 I.Providers:Search({normalized="",filter={sourceID=unavailable.id..":records"}},{})
 C_Timer.NewTimer=factory
@@ -211,7 +211,7 @@ local example=assert(dofile("lychee-sdk/examples/ManagedProvider.lua")(Lychee,"e
 local rows
 I.Providers:Search({normalized="demo",filter={sourceID="example.managed:records"}},{},function(value) rows=value end)
 drain();assert(rows and #rows==1 and rows[1].id=="demo")
-example:SetEnabled(false);assert(example:GetDiagnostics().providerResources==0)
+example:SetAvailability(false);assert(example:GetDiagnostics().providerResources==0)
 assert(example:Unregister())
 -- Retention gate uses a drained external timer queue, separately from allocations.
 local function cycle()
@@ -229,7 +229,7 @@ collectgarbage("collect")
 local growth=collectgarbage("count")-retainedBefore
 assert(growth<64 and #frames==framesBefore,"1000 scope cycles retain <64 KiB and create no frame")
 assert(isolated:GetDiagnostics().providerResources==1,"only explicitly retained cache remains")
-fresh:SetEnabled(false)
+fresh:SetAvailability(false)
 assert(isolated:GetDiagnostics().providerResources==0 and not next(hub.events) and hub.OnEvent==nil)
 print(string.format("Managed lifecycle 1000 cycles: retained_growth_kib=%.3f, new_frames=0, resources_after_disable=0",growth))
 print("SDK managed resources PASS: replace/late/reentry/event/query/view/disable/quota/settings/cache/identity")

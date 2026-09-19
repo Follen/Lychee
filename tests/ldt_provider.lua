@@ -26,6 +26,10 @@ function methods:GetWidth() return self.width or 616 end
 function methods:GetHeight() return self.height or 360 end
 function methods:IsMouseOver() return false end
 for _,name in ipairs({'SetPoint','ClearAllPoints','SetAllPoints','SetFont','SetTextColor','SetColorTexture','SetShadowOffset','SetShadowColor','SetJustifyH','SetJustifyV','SetFacing','SetPortraitZoom','SetCamDistanceScale','Enable','Disable','SetAlpha','SetVertexColor','SetRotation','SetHitRectInsets','SetDrawLayer','EnableMouse','RegisterForClicks'}) do methods[name]=function() end end
+function methods:SetWordWrap(value) self.wordWrap=value end
+function methods:SetFrameStrata(value) self.strata=value end
+function methods:SetClampedToScreen(value) self.clamped=value end
+function methods:SetScale(value) self.scale=value end
 function CreateFrame(kind,name,parent)
     local f=setmetatable({kind=kind,parent=parent,scripts={},events={}},{__index=methods});frames[#frames+1]=f;return f
 end
@@ -89,7 +93,7 @@ RequestLoadSpellData=function(id)
     if synchronous then loaded() else C_Timer.NewTimer(0.1,loaded) end
 end}
 local loader=dofile("tests/support/runtime.lua")
-loader.Load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","UI/Theme.lua","UI/Components.lua"})
+loader.Load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","UI/Theme.lua","UI/Motion.lua","UI/Presence.lua","UI/Runtime.lua","UI/Components.lua","UI/Components.lua"})
 local I=LycheeInternal
 collectgarbage("collect");local before=collectgarbage("count")
 loader.Load(nil,{"Builtin/LDT/Locales.lua","Builtin/LDT/Data.lua","Builtin/LDT/Catalog.lua","Builtin/LDT/View.lua","Builtin/LDT/Provider.lua"})
@@ -110,6 +114,34 @@ local function query(input)
     for _,item in ipairs(result or initial) do out[#out+1]=assert(I.Providers.entries[M.id].dynamic[item.id]) end
     return out
 end
+assert(not M:Find(160,236091,1221063) and not M:Resolve("160/236091/1221063"),"excluded affix cannot restore from a saved reference")
+assert(#query("1221063")==0,"excluded affix cannot appear in search")
+do
+    local target
+    for _,did in ipairs(M.dungeonIDs) do
+        M:ScanDungeon(did,function(enemy,dungeon)
+            local _,second=enemy.spellIDs:match("^(%d+),(%d+)")
+            if second and second~="1287798" then target=dungeon.id.."/"..enemy.id.."/"..second end
+        end,{})
+    end
+    assert(target)
+    local resources=assert(I.Resources:Create(function() return true end))
+    local ranked
+    M:Query({normalized="ability",limit=20,ranking={[target]=30}},function(rows) ranked=rows end,
+        {resources=resources,fail=function(problem) error(problem.code) end})
+    drain();I.Resources:Close(resources,"complete")
+    assert(ranked and #ranked==20 and ranked[1].id==target,"preferred second skill survives representative choice and Top20")
+    local failure,called
+    M:Query({normalized="ability",limit=20},function()called=true end,
+        {resources={Own=function()return {} end,OnEvent=function()return nil end},fail=function(problem) failure=problem.code end})
+    assert(failure=="RESOURCE_UNAVAILABLE" and not called,"resource failure cannot masquerade as successful empty search")
+    I.Search.Query:Query("ability",{visible=true})
+    I.Search.Normalizer.locale="enUS"
+    drain()
+    assert(I.Search.Query.last.incomplete,"locale change invalidates in-flight name search")
+    I.Search.Normalizer.locale=locale
+end
+
 do
     local function equal(a,b,path)
         assert(type(a)==type(b),"transcript type "..path)
@@ -190,8 +222,10 @@ locale="enUS";I.Search.Normalizer.locale=locale
 assert(query("Coil Test")[1].payload.spellID==1287798)
 locale="zhCN";I.Search.Normalizer.locale=locale
 combat=true;assert(#query("毒牙老二")==0);combat=false
-assert(I.Registry:SetUserEnabled(M.id,false));assert(not M.active and not M:Resolve(boss.id))
-assert(I.Registry:SetUserEnabled(M.id,true));assert(query("毒牙老二")[1].id==boss.id)
+assert(I.Registry:SetUserEnabled(M.id,false));assert(M.active and M:Resolve(boss.id) and #query("毒牙老二")==0,"search opt-out preserves explicit restoration")
+assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(false));assert(not M.active and not M:Resolve(boss.id))
+assert(M.handle:SetAvailability(true));assert(query("毒牙老二")[1].id==boss.id)
 I.Providers:CancelQueries("warmup-end");drain()
 collectgarbage("collect");before=collectgarbage("count");collectgarbage("stop")
 for i=1,20 do query(i%2==0 and "缠绕测试" or "毒牙老二");I.Providers:CancelQueries("close") end
@@ -199,21 +233,42 @@ local allocated=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect");local growth=collectgarbage("count")-before
 assert(allocated<4096 and growth<128,"query allocation and retention budget")
 assert(maxBatch<8,"bounded task maximum callback budget")
+UIParent=CreateFrame("Frame");UIParent:SetSize(1000,800)
+function UIParent:GetEffectiveScale() return 1 end
+function methods:GetEffectiveScale() return self.scale or 1 end
+function methods:SetScale(value) self.scale=value end
 local view=M:CreateView()
 local parent=CreateFrame("Frame")
 local resources=assert(I.Resources:Create(function()return true end,nil,assert(M.handle:Resources())))
-local function mount() view:Mount({contentFrame=parent,resources=resources},{dungeonID=164,npcID=259446,spellID=1287798}) end
+local function mount() view:Mount({contentFrame=parent,resources=resources,
+    SetFooter=function(_,value) parent.footer=value;return true end,Resize=function(_,height) parent.requestedHeight=height;return true end,
+    ClearFocus=function() return true end,Close=function() return true end},{dungeonID=164,npcID=259446,spellID=1287798}) end
 mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
-view.enemy.characteristics={Stun=true,["Shackle Undead"]=true,Fear=false}
-view:ShowTraits()
-assert(GameTooltip.lines[2]:find("昏迷",1,true) and GameTooltip.lines[2]:find("束缚亡灵",1,true) and not GameTooltip.lines[2]:find("恐惧",1,true))
+assert(parent.footer=="","detail has no permanent footer hint")
+assert(not view.traits and not view.back and not view.descriptionScroll,"detail removes traits, duplicate back and bottom reading area")
+view.rows[1].frame.scripts.OnEnter()
+assert(not GameTooltip.owner and not GameTooltip.shown,"Lychee details do not alter the global game tooltip")
+assert(Lychee.UI.Components.tooltip.labels[3]:GetText()~="","skill description is in tooltip")
+local delayedRow=view.rows[1]
+local delayedID=delayedRow.spellID
+local descriptionAPI=C_Spell.GetSpellDescription
+local ready=false
+C_Spell.GetSpellDescription=function(id) if id==delayedID and not ready then return nil end;return descriptionAPI(id) end
+delayedRow.frame.IsMouseOver=function() return true end
+view.pending[delayedID]=nil
+delayedRow.frame.scripts.OnEnter()
+assert(Lychee.UI.Components.tooltip.labels[3]:GetText()=="技能资料暂未加载")
+ready=true;drain()
+assert(Lychee.UI.Components.tooltip._owner==delayedRow.frame and Lychee.UI.Components.tooltip.labels[3]:GetText()==M:FormatDescription(descriptionAPI(delayedID)),"late data refreshes the currently hovered skill tooltip")
+C_Spell.GetSpellDescription=descriptionAPI
+delayedRow.frame.IsMouseOver=function() return false end
 local row=view.rows[2]
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick(row.frame)
 assert(view.selected==row.spellID,"normal click selects bound skill")
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton");view.page=2;view:RenderSkills()
 local selected=view.selected;row.frame.scripts.OnClick(row.frame);assert(view.selected==selected,"stale press after rebind ignored")
 view:Unmount();assert(not view.enemy and not view.selected and not view.model.displayID and not view.active)
-assert(not GameTooltip.shown,"owned traits tooltip closes with view")
+assert(not Lychee.UI.Components.tooltip:IsShown(),"owned skill tooltip closes with view")
 -- Duplicate spell names collapse without losing any IDs; unrelated unknown names stay separate.
 mount()
 local originalName=C_Spell.GetSpellName
@@ -223,6 +278,20 @@ view.selected=first;view:BuildGroups(true);view:RenderSkills()
 local group=view.groups[1]
 assert(#group.entries==2 and #view.groups==#view.enemy.spells-1 and not view.expanded[group.key])
 local groupRow=view.rows[1]
+local function clickSkill(row)
+    row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick(row.frame)
+end
+clickSkill(groupRow)
+assert(view.expanded[group.key],"whole group heading expands")
+clickSkill(view.rows[3])
+assert(view.selected==second and view.expanded[group.key],"child selects its exact ID without collapsing")
+clickSkill(groupRow)
+assert(not view.expanded[group.key] and view.selected==second and groupRow.spellID==second,"heading collapses and retains exact selection")
+shiftHeld=true;clickSkill(groupRow);shiftHeld=false
+assert(opened==C_Spell.GetSpellLink(second) and not view.expanded[group.key],"shift heading links exact selection without toggling")
+groupRow.frame.scripts.OnMouseDown(groupRow.frame,"LeftButton");view:RenderSkills();groupRow.frame.scripts.OnClick(groupRow.frame)
+assert(not view.expanded[group.key],"stale heading press cannot toggle a rebound group")
+view.selected=first;view:RenderSkills()
 groupRow.expand.frame.scripts.OnMouseDown(groupRow.expand.frame,"LeftButton");groupRow.expand.frame.scripts.OnClick(groupRow.expand.frame)
 assert(view.expanded[group.key] and view.flat[2].spellID==first and view.flat[3].spellID==second)
 local child=view.rows[3]
@@ -232,12 +301,15 @@ assert(opened==C_Spell.GetSpellLink(second) and view.selected==first,"shift clic
 activeChat={Insert=function(_,value) linked=value end,SetFocus=function(self) self.focused=true end}
 child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
 assert(linked==C_Spell.GetSpellLink(second) and activeChat.focused,"existing chat receives link")
+assert(parent.footer=="","successful links keep the footer empty")
 linked=nil;child.frame.scripts.OnMouseDown(child.frame,"LeftButton");view:RenderSkills();child.frame.scripts.OnClick(child.frame)
 assert(not linked,"rebound row cannot insert a stale link")
 missing[second]=true
 child.frame.scripts.OnMouseDown(child.frame,"LeftButton");child.frame.scripts.OnClick(child.frame)
 assert(not linked and view.hintText=="链接暂不可用，请稍后重试")
 drain();assert(not linked,"late spell load never inserts a link automatically")
+clickSkill(child)
+assert(linked==C_Spell.GetSpellLink(second) and parent.footer=="","retry success clears the temporary failure hint")
 shiftHeld=false;activeChat=nil
 view.selected=second;view:BuildGroups(true);view:RenderSkills()
 assert(view.expanded[group.key] and view.selected==second,"deep-linked member is revealed")
@@ -272,35 +344,38 @@ C_Spell.GetSpellName=function(id) return "技能 "..id end
 view.expanded={};view.selected=900008;view:BuildGroups(true);view:RenderSkills()
 local tooltipRow=view.rows[2]
 tooltipRow.frame.scripts.OnEnter(tooltipRow.frame)
-assert(GameTooltip.shown and GameTooltip.lines[1]=="技能 900008" and GameTooltip.lines[2]=="ID 900008")
-view:RenderSkills();assert(not GameTooltip.shown,"rebind closes the old skill tooltip")
-view.description:SetText(string.rep("long description ",200));view:UpdateDescriptionSize()
-view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
-assert(view.descriptionScroll:GetVerticalScroll()>0,"long descriptions remain readable by scrolling")
-view.selected=nil;view:Describe();assert(view.descriptionScroll:GetVerticalScroll()==0,"selection description starts at the top")
+assert(Lychee.UI.Components.tooltip:IsShown() and Lychee.UI.Components.tooltip.labels[1]:GetText()=="技能 900008" and Lychee.UI.Components.tooltip.labels[2]:GetText()=="ID 900008")
+view:RenderSkills();assert(not Lychee.UI.Components.tooltip:IsShown(),"rebind closes the old skill tooltip")
 -- The sixth group expands inline rather than pushing its children onto another page.
 view.enemy={spells={}};for i=1,9 do view.enemy.spells[i]={id=910000+i} end
 C_Spell.GetSpellName=function(id) return (id==910006 or id==910007) and "同步毒液" or ("技能 "..id) end
 view.expanded={};view.selected=910006;view:BuildGroups(true);view:RenderSkills()
-local oldSection=view.sectionEnd
+local oldHeight=parent.requestedHeight
 local sixth=view.rows[6]
 sixth.expand.frame.scripts.OnMouseDown(sixth.expand.frame,"LeftButton");sixth.expand.frame.scripts.OnClick(sixth.expand.frame)
 assert(view.page==1 and view.rows[7].spellID==910006 and view.rows[8].spellID==910007,"both children of the last group are immediately visible")
-assert(view.rows[7].frame:IsShown() and view.rows[8].frame:IsShown() and view.sectionEnd>oldSection)
+assert(view.rows[7].frame:IsShown() and view.rows[8].frame:IsShown() and parent.requestedHeight==oldHeight)
 sixth.expand.frame.scripts.OnMouseDown(sixth.expand.frame,"LeftButton");sixth.expand.frame.scripts.OnClick(sixth.expand.frame)
-assert(view.sectionEnd==oldSection and not view.rows[7].frame:IsShown(),"collapse restores layout")
+assert(parent.requestedHeight==oldHeight and not view.rows[7].frame:IsShown(),"collapse keeps the enlarged model layout stable")
 C_Spell.GetSpellName=function(id) return "全部同名" end
 view.expanded={};view:BuildGroups(true);view:RenderSkills()
 view.expanded["全部同名"]=true;view:Flatten(false);view:RenderSkills()
 assert(view.skillBar.maximum>0)
 local originalDescription=C_Spell.GetSpellDescription
 C_Spell.GetSpellDescription=function() return string.rep("description 123 ",200) end
-view:Describe();view.descriptionScroll.scripts.OnMouseWheel(view.descriptionScroll,-1)
-local readingOffset=view.descriptionScroll:GetVerticalScroll()
-assert(readingOffset>0)
+local readingRow=view.rows[1]
+readingRow.frame.scripts.OnEnter()
+local tip=Lychee.UI.Components.tooltip
+assert(tip.reading:IsShown() and tip.reading.bar.maximum>0,"long skill description gets bounded tooltip scrolling")
+readingRow.frame.scripts.OnMouseWheel(nil,-1)
+assert(tip.reading:GetVerticalScroll()>0,"wheel over the hovered skill reads its long tooltip")
+assert(tip.labels[3]:GetText():gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")==C_Spell.GetSpellDescription(),"tooltip preserves complete long text")
 view.skillArea.scripts.OnMouseWheel(view.skillArea,-1)
-assert(view.descriptionScroll:GetVerticalScroll()==readingOffset,"skill list scrolling preserves description reading position")
+assert(not tip:IsShown(),"skill list scrolling closes stale tooltip")
 C_Spell.GetSpellDescription=originalDescription
+readingRow.frame.scripts.OnEnter()
+assert(not tip.reading:IsShown() and tip.labels[3]:GetParent()==tip and tip.labels[3]:GetWidth()==372,"short descriptions leave the scroll child and restore full text width")
+readingRow.frame.scripts.OnLeave()
 
 view.skillArea.scripts.OnMouseWheel(view.skillArea,-100)
 assert(view.rows[8].spellID==910009 and #view.rows==8,"scroll reaches the final child without allocating more rows")
@@ -325,16 +400,16 @@ view.reset.frame.scripts.OnClick(view.reset.frame)
 assert(view.facing==0 and view.zoom==0 and not view.model.scripts.OnUpdate,"icon reset restores the model camera and ends dragging")
 assert(view.reset.label:GetText()=="" and view.reset.icon.texture=="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\reload.tga")
 view.reset.frame.scripts.OnEnter(view.reset.frame)
-assert(GameTooltip.shown and GameTooltip.lines[1]=="重置视角")
+assert(Lychee.UI.Components.tooltip:IsShown() and Lychee.UI.Components.tooltip.labels[1]:GetText()=="重置视角")
 view.model.scripts.OnMouseDown(view.model,"LeftButton");view:Unmount()
 assert(not view.model.scripts.OnUpdate and not view.groups and not view.flat and not view.expanded and not view.resources)
-assert(not GameTooltip.shown and not view.detailIcon.texture and not view.hintText,"closing clears owned tooltip, reading icon and footer reference")
+assert(not Lychee.UI.Components.tooltip:IsShown() and not view.hintText,"closing clears owned tooltip, and footer reference")
 mouseHeld=false
 local high=#frames
 
 for _=1,20 do mount();view:Unmount() end
 assert(#frames==high,"views reuse frames and model")
-I.Resources:Close(resources,"done");assert(I.Registry:SetUserEnabled(M.id,false));drain()
+I.Resources:Close(resources,"done");assert(M.handle:SetAvailability(false));drain()
 for _,frame in ipairs(frames) do assert(not frame.events.SPELL_DATA_LOAD_RESULT,"no idle spell subscription") end
 assert(#timers==0 and not M.data and not M.nameCache,"no runtime catalogue/name cache retained")
 print(string.format("LDT PASS: module=%.1f KiB query20_alloc=%.1f KiB growth=%.1f KiB max_batch=%.2f ms spell_calls=%d models=1",moduleMemory,allocated,growth,maxBatch,spellCalls))

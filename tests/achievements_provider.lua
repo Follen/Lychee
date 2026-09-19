@@ -62,7 +62,7 @@ local M=I.Builtin.Achievements
 local baseFrames,baseTimers=frames,#timers
 collectgarbage("collect");local baseline=collectgarbage("count")
 M:Init();assert(M.active and reads==0 and frames==baseFrames+1,"default enabled; catalogue collection is scheduled, not synchronous")
-assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(true))
 local coldResults
 local timersBeforeQuery=#timers
 I.Providers:Search({normalized="引领潮流",limit=20},{},function(items) coldResults=items end)
@@ -121,15 +121,15 @@ local replied=false
 local cancel=M.query({normalized="测试",limit=50},function() replied=true end)
 cancel();drain();assert(not replied and not M.cancelQuery)
 M.query({normalized="测试",limit=50},function() error("late reply") end)
-assert(I.Registry:SetUserEnabled(M.id,false));drain()
+assert(M.handle:SetAvailability(false));drain()
 assert(not M.ids and not M.texts and not M.job and not M.timer and not M.cancelQuery and next(M.frame.events)==nil)
-assert(I.Registry:SetUserEnabled(M.id,true));combat=true;M:MarkDirty();assert(not M.timer)
+assert(M.handle:SetAvailability(true));combat=true;M:MarkDirty();assert(not M.timer)
 combat=false;M:MarkDirty();drain();assert(#M.ids==6002 and frames==baseFrames+1)
-assert(I.Registry:SetUserEnabled(M.id,false));drain()
+assert(M.handle:SetAvailability(false));drain()
 local saved=LycheeCharacterDB.achievementCatalog
 assert(saved and #LycheeCharacterDB.achievementCatalog.ids==6002,"character cache persists while disabled")
 local beforeWarm=apiReads
-assert(I.Registry:SetUserEnabled(M.id,true));drain()
+assert(M.handle:SetAvailability(true));drain()
 assert(apiReads==beforeWarm and M.ids==LycheeCharacterDB.achievementCatalog.ids,"warm enable reuses the owned character arrays without enumeration or array copies")
 local beforeIdle=reads
 combat=true;M.frame.onEvent(M.frame,"PLAYER_REGEN_DISABLED")
@@ -140,37 +140,37 @@ combat=true;M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",6000)
 assert(apiReads==beforeGain and M.pendingCount==1 and not M.timer,"combat queues ID only")
 combat=false;M.frame.onEvent(M.frame,"PLAYER_REGEN_ENABLED");drain()
 assert(apiReads==beforeGain+1 and M.pendingCount==0 and reads==beforeIdle,"combat recovery is incremental")
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(false)
 LycheeCharacterDB.achievementCatalog.ids[2]=LycheeCharacterDB.achievementCatalog.ids[1]
 local beforeCorrupt=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(apiReads>beforeCorrupt and #M.ids==6002,"duplicate historical IDs trigger rebuild")
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(false)
 serverTime=serverTime+604801
 local beforeExpired=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeExpired,"expired cache gets full audit")
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(true);drain();assert(apiReads>beforeExpired,"expired cache gets full audit")
+M.handle:SetAvailability(false)
 character="Player-other"
 local beforeCharacter=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeCharacter,"character visibility is isolated")
-I.Registry:SetUserEnabled(M.id,false);drain()
+M.handle:SetAvailability(true);drain();assert(apiReads>beforeCharacter,"character visibility is isolated")
+M.handle:SetAvailability(false);drain()
 local beforeCounts=apiReads
 LycheeCharacterDB.achievementCatalog.counts[1]=5999
-I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeCounts,"offline category drift rebuilds")
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(true);drain();assert(apiReads>beforeCounts,"offline category drift rebuilds")
+M.handle:SetAvailability(false)
 I.Search.RuntimeIdentity.build="next-build"
 local beforeBuild=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain();assert(apiReads>beforeBuild,"build signature invalidates cache")
+M.handle:SetAvailability(true);drain();assert(apiReads>beforeBuild,"build signature invalidates cache")
 combat=true
 for id=1,257 do M.frame.onEvent(M.frame,"ACHIEVEMENT_EARNED",id) end
 assert(M.pendingCount==256 and M.forceFull and not M.timer,"bounded event queue falls back to one full rebuild")
 combat=false;M.frame.onEvent(M.frame,"PLAYER_REGEN_ENABLED");drain()
 assert(M.pendingCount==0 and not M.forceFull)
-I.Registry:SetUserEnabled(M.id,false);drain()
+M.handle:SetAvailability(false);drain()
 collectgarbage("collect");local warmBase=collectgarbage("count")
 local infoBefore,started=apiReads,os.clock()
 collectgarbage("stop")
-for n=1,10 do I.Registry:SetUserEnabled(M.id,true);drain();I.Registry:SetUserEnabled(M.id,false);drain() end
+for n=1,10 do M.handle:SetAvailability(true);drain();M.handle:SetAvailability(false);drain() end
 local warmAlloc=collectgarbage("count")-warmBase
 local warmMs=(os.clock()-started)*1000
 collectgarbage("restart");collectgarbage("collect");local warmGrowth=collectgarbage("count")-warmBase
@@ -190,26 +190,26 @@ function GetAchievementInfo(id,index)
     end
     return sourceInfo(id)
 end
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(#M.ids==6002)
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(false)
 categoryTwo=99;categoryReads={[1]=0,[2]=0}
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(categoryReads[1]==0 and categoryReads[2]==99 and not M.positions[6000] and #M.ids==6001,"only changed category is read; deleted ID removed")
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(false)
 categoryTwo=100;categoryReads={[1]=0,[2]=0}
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(categoryReads[1]==0 and categoryReads[2]==100 and M.positions[6000],"new item appears without unchanged category reads")
 for id=1,6002 do assert(M.positions[id],"independent expected ID set") end
-I.Registry:SetUserEnabled(M.id,false)
+M.handle:SetAvailability(false)
 -- Real character SV swaps: only current role exists in the loaded root.
 local characters={}
 local function switch(id)
-    I.Registry:SetUserEnabled(M.id,false);drain()
+    M.handle:SetAvailability(false);drain()
     characters[character]=LycheeCharacterDB
     character=id
     LycheeCharacterDB=characters[id] or {}
-    I.Registry:SetUserEnabled(M.id,true);drain()
+    M.handle:SetAvailability(true);drain()
 end
 switch("Player-A")
 local cacheA=LycheeCharacterDB.achievementCatalog
@@ -220,7 +220,7 @@ assert(M.ids~=idsA and LycheeCharacterDB.achievementCatalog~=cacheA)
 local beforeSwitch=apiReads
 switch("Player-A")
 assert(apiReads==beforeSwitch and M.ids==idsA,"return to current role reuses its persisted authority")
-assert(LycheeDB.achievementCatalog==nil,"account no longer retains other character caches")
+assert(not LycheeDB or LycheeDB.achievementCatalog==nil,"account no longer retains other character caches")
 local function serialize(value)
     if type(value)=="number" then return tostring(value) end
     if type(value)=="string" then return string.format("%q",value) end
@@ -229,11 +229,11 @@ local function serialize(value)
     for k,v in pairs(value) do out[#out+1]="["..serialize(k).."]="..serialize(v).."," end
     out[#out+1]="}";return table.concat(out)
 end
-I.Registry:SetUserEnabled(M.id,false);drain()
+M.handle:SetAvailability(false);drain()
 local encoded=serialize(LycheeCharacterDB.achievementCatalog)
 LycheeCharacterDB.achievementCatalog=assert(loadstring("return "..encoded))()
 local beforeReload=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(apiReads==beforeReload and #M.ids==6002,"SV roundtrip avoids directory rescan")
 local fixtureInfo=GetAchievementInfo
 function GetAchievementInfo(id,index)
@@ -252,25 +252,26 @@ switch("Player-B")
 assert(#query("角色甲变更名称")==0,"another role did not acquire changed text")
 switch("Player-A")
 assert(#query("角色甲变更名称")==1,"current role incremental change survives switch")
-I.Registry:SetUserEnabled(M.id,false);drain()
+M.handle:SetAvailability(false);drain()
 local raw=LycheeCharacterDB.achievementCatalog
 raw.texts[1]=string.rep("x",513)
 local beforeBad=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(apiReads>beforeBad and #M.ids==6002,"oversized persisted text rebuilds rather than truncating results")
 -- Migrate a valid v3 role once, including sparse updates; no API full scan.
-I.Registry:SetUserEnabled(M.id,false);drain()
+M.handle:SetAvailability(false);drain()
 raw=LycheeCharacterDB.achievementCatalog
+LycheeDB=LycheeDB or {}
 LycheeDB.achievementCatalog={schema=3,domain=M.cacheDomain,
     base={ids=raw.ids,texts=raw.texts,categories=raw.categories},entries={{key=raw.key,
     builtAt=raw.builtAt,counts=raw.counts,ops={1,#raw.ids},
     extra={ids={},texts={},categories={}},updates={ids={2},texts={"旧缓存更新"},categories={1}}}}}
 LycheeCharacterDB.achievementCatalog=nil
 local beforeMigration=apiReads
-I.Registry:SetUserEnabled(M.id,true);drain()
+M.handle:SetAvailability(true);drain()
 assert(apiReads==beforeMigration and M.texts[M.positions[2]]=="旧缓存更新")
 assert(LycheeDB.achievementCatalog==nil and LycheeCharacterDB.achievementCatalog.schema==4)
-I.Registry:SetUserEnabled(M.id,false);drain()
+M.handle:SetAvailability(false);drain()
 assert(not M.ids and not M.positions and not M.cache and not M.timer and next(M.frame.events)==nil)
 print("Achievement character authority PASS default-on/role-isolation/roundtrip/increment/legacy-migration/budget")
 print(string.format("Achievements PASS records=6002 retained_KiB=%.1f peak_batch_ms=%.2f frames=%d disabled_work=0",retained,peak,frames))

@@ -17,7 +17,7 @@ assert(type(readyToken.Cancel) == "function" and readyToken:Cancel(), "ready sub
 I.Registry:SetReady(true)
 assert(readyCalls == 0, "cancelled ready callback does not run")
 local function descriptor(id)
-    return { id = id, title = "SDK contract", version = "1.0.0", apiVersion = 2, minApiRevision = 1, invalidationKeys = { "refresh" } }
+    return { id = id, title = "SDK contract", version = "1.0.0", apiVersion="1.0.0", invalidationKeys = { "refresh" } }
 end
 local function register(id, title)
     local draft = assert(I.Registry:Begin(descriptor(id), { public = true }))
@@ -82,7 +82,7 @@ assert(ownedHandle:Unregister())
 
 local supportOK, supported = pcall(SDK.Supports, SDK, 2, "bad")
 assert(supportOK and supported == false, "Supports treats malformed version input as unsupported")
-assert(SDK:Supports(2, 1) and not SDK:Supports(2, -1), "version compatibility validates positive revisions")
+assert(SDK:Supports("1.0.0") and not SDK:Supports("1.0.1") and not SDK:Supports(2, 7) and not SDK:Supports("1.0.0", 1), "only the exact semantic version without revision arguments is supported")
 
 local many = {}
 for index = 1, 129 do many[index] = { id = "entry-" .. index, kind = "custom", title = "Bulk entry " .. index } end

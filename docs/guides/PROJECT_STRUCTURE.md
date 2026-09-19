@@ -11,7 +11,8 @@
 | `addon/Lychee/Builtin/Init.lua` | 按生成声明启动功能，不维护另一张功能名单 |
 | `addon/Lychee/Core/`、`Search/` | Host 的注册、调度、搜索与记录生命周期 |
 | `addon/Lychee/UI/`、`Secure/` | 界面交互与受保护动作执行 |
-| `addon/Lychee/PublicAPI/SDK.lua` | 游戏里真正使用的公开入口，必须保留 |
+| `addon/Lychee/PublicAPI/` | 游戏里真正使用的 SDK、Invocation 与 Preparation 入口 |
+| `addon/Lychee/SDK/` | 随 Host 加载的可选工具实现；可嵌入交付源见 `lychee-sdk` |
 | `addon/Lychee/Locales/` | Host 界面文案；不收纳 Provider 文案 |
 | `lychee-sdk/` | 第三方开发文档、类型和示例，不是第二个运行时插件 |
 | `tools/` | 构建期生成工具和输入清单，不进入游戏 |
@@ -42,6 +43,14 @@ Elles的上游版本敏感访问放在`Builtin/Ellesmere/Adapter.lua`，Provider
 
 `requires` 是启动前的函数存在性检查，例如 `C_EquipmentSet.UseEquipmentSet`，不调用该函数、不扫描数据。它不能代替版本化源码证据，也不替代动作执行时的条件检查。注册仍走现有 `_G.Lychee:RegisterProvider`，生成支持表不是另一个注册或启停系统。
 
+## 第三方边界与搜索路径
+
+本仓库 Builtin 装配只服务自带功能，不是第三方模板。第三方独立 AddOn 通过公开 SDK 注册；需要冷加载时按 [加载合同](../../lychee-sdk/docs/LOADING.md) 声明。Host 通过声明发现，不能硬编码第三方名称或读取其私有数据库。第三方自己交付媒体，不依赖 Host 私有路径。
+
+`Core/AddonDiscovery.lua` / `AddonLoader.lua` 负责发现与加载协调，`Core/Preparation.lua` 负责有界准备，`Search/SourceAccess.lua` 将需求接到原有查询路径；`StaticIndex`、`QueryOrchestrator` 和 `SearchSession` 保留渐进结果发布。`Core/InvocationRuntime.lua` 与动作执行器处理参数调用；UI 只呈现状态和绑定当前操作。
+
+简单 Provider 可以继续提交 entries/Update；自有 query、Catalog、documents 和 CompactStore 是可选工具，不能作为普通接入的必修步骤。数据所有权、初始化时序和容量见 [SDK 存储](../../lychee-sdk/docs/STORAGE.md)。
+
 ## 不同客户端的不同实现
 
 支持范围回答“能在哪用”，功能内部的实现选择回答“在这里怎么做”。现有技能书和游戏菜单已有真实分支；选择在各自功能内完成，不移到 Host。只有确实不同的业务才拆实现文件，不创建四份空实现。
@@ -52,7 +61,7 @@ Elles的上游版本敏感访问放在`Builtin/Ellesmere/Adapter.lua`，Provider
 
 共享 CatalogProvider 管理单任务、取消、战斗暂停、分批读取、差量提交和完成通知。功能保留自己的缓存与业务判断，通过 `hasWork`、`onPause`、`onReady` 等内部协作点参与，不覆盖共享 MarkDirty，也不直接通知 Search.Session。`onReady` 返回 true 表示已经恢复等待查询，共享代码无需再次通知。
 
-禁用目录时停止事件和任务，只保留最多 4096 个已提交 ID（值置 false），供恢复时删除过期记录；注销清空。这里不保留条目 payload，也不再读取 Host 私有 recordMap。新增目录类型必须验证禁用后数据删除、迟到任务和重新启用。
+所有者停用目录时停止事件和任务，只保留最多 4096 个已提交 ID（值置 false），供恢复时删除过期记录；注销清空。这里不保留条目 payload，也不再读取 Host 私有 recordMap。新增目录类型必须验证所有者停用后数据删除、迟到任务和重新启用。用户的参与搜索开关不等于所有者停用，不能用它关闭独立后台功能。
 
 各功能的 `Locales.lua` 发布独立资源。同一个内置 ID 共用一个翻译器缓存，名单来自生成声明；资源根表、语言表或语言选择变化会失效。发布后的资源不可原地修改，更新时替换表。第三方注册继续使用独立编译和输入隔离，不进入这个内置缓存。
 

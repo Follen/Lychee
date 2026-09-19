@@ -69,14 +69,13 @@ def check(root: Path) -> list[str]:
         if p.name.lower() in {"perfermance.md", "pefermance.md", "perfermes.md", "desgin.md"}:
             errors.append("duplicate misspelled policy: " + p.name)
     contract = json.loads((root / "tools/sdk_contract.json").read_text(encoding="utf-8"))
-    version, revision = contract["apiVersion"], contract["apiRevision"]
+    version = contract["apiVersion"]
     for p in (root / "README.md", root / "README.en.md"):
-        badges = re.findall(r"API%20(\d+)%20r(\d+)", p.read_text(encoding="utf-8"))
-        if badges != [(str(version), str(revision))]:
+        badges = re.findall(r"API%20([0-9]+\.[0-9]+\.[0-9]+)", p.read_text(encoding="utf-8"))
+        if badges != [version]:
             errors.append(p.name + ": SDK version badge differs from contract")
     protocol = root / "lychee-sdk/docs/PROTOCOLS.md"
-    declared = re.findall(r"Host 版本：API_VERSION=(\d+)，API_REVISION=(\d+)", protocol.read_text(encoding="utf-8"))
-    if declared != [(str(version), str(revision))]:
+    if f'API_VERSION="{version}"' not in protocol.read_text(encoding="utf-8"):
         errors.append("SDK protocol current version differs from contract")
     # Historical evidence and workflow state intentionally retain the original paths.
     scan = current_documents(root)

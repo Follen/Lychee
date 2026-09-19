@@ -1,0 +1,15 @@
+## Interface: 120100
+## Title: Cold Provider Example
+## Title-zhCN: 按需加载示例
+## Notes: SDK 1.0.0 independent cold-loading example (Retail only)
+## Version: 1.0.0
+## Author: Lychee SDK example
+## Dependencies: Lychee
+## LoadOnDemand: 1
+## SavedVariables: ColdProviderDB
+## X-Lychee-Protocol: 1
+## X-Lychee-Package: ColdProvider
+## X-Lychee-Providers: example.cold
+## X-Lychee-Provider-example.cold: title=Cold example;title.zhCN=冷加载示例;global=0;prefixes=cold;keywords=coldexample;ranges=retail:120100:120199:1:9999999;icon=file:134400;requires=Lychee
+
+ColdProvider.lua

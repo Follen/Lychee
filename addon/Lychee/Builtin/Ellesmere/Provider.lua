@@ -42,7 +42,7 @@ local function optionID(key)
     return "option/"..a.."/"..b
 end
 function M:Capture(eui,label,labelLoc,tooltip,folder,page,section,setter,selector,isSection)
-    if not self.active or self.hooked~=eui or A.Suppressed(eui) then return end
+    if not self.active or self.hooked~=eui or A.Get()~=eui or A.Suppressed(eui) then return end
     if type(label)~="string" or type(folder)~="string" or type(page)~="string" then return end
     label=label:match("^%s*(.-)%s*$")
     if label=="" or #label>256 or #folder>64 or #page>128 then return end
@@ -62,6 +62,12 @@ function M:Capture(eui,label,labelLoc,tooltip,folder,page,section,setter,selecto
     self.optionCount,self.optionBytes=self.optionCount+1,self.optionBytes+bytes
 end
 function M:Attach()
+    local eui=A.Get()
+    if eui and self.hooked and self.hooked~=eui then
+        self.options=self.active and {} or nil
+        self.optionCount,self.optionBytes,self.overflow=0,0,nil
+        self.hooked=nil
+    end
     A.Observe(self)
 end
 local function optionRecord(eui,option,config)
@@ -83,6 +89,7 @@ function M:Query(request,reply,context)
     local fields={}
     local limit=math.max(1,math.min(50,tonumber(request.limit) or 20))
     local selected={}
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local length=0
     local function field(kind,value)
         if type(value)~="string" or value=="" then return end
@@ -99,15 +106,16 @@ function M:Query(request,reply,context)
     end
     local function position(id,score)
         if not score then return end
+        local rank=ranker and ranker(id,score) or score
         local at=#selected+1
         for index,row in ipairs(selected) do
-            if score>row.score or score==row.score and id<row.record.id then at=index;break end
+            if rank>row.rank or rank==row.rank and (score>row.score or score==row.score and id<row.record.id) then at=index;break end
         end
         if at<=limit then return at end
     end
     local function consider(at,record,score)
         local row=#selected==limit and table.remove(selected) or {}
-        row.record,row.score=record,score
+        row.record,row.score,row.rank=record,score,ranker and ranker(record.id,score) or score
         table.insert(selected,at,row)
     end
     local function work()
@@ -121,7 +129,11 @@ function M:Query(request,reply,context)
         if not context.resources:IsActive() or not self.active then return {} end
         if not eui then return {statusRecord(why)} end
         self:Attach()
+        local function checkOwner()
+            if A.Get()~=eui then self:Attach();error("EUI_UPSTREAM_CHANGED") end
+        end
         coroutine.yield() -- Give the upstream one-time load its own execution.
+        checkOwner()
         local unlock=unlockRecord()
         local unlockScore=scoreText(unlock.title,"解锁","unlock","unlock mode")
         local unlockAt=position(unlock.id,unlockScore)
@@ -147,7 +159,7 @@ function M:Query(request,reply,context)
                         end
                     end
                     if batch>=32 or clock()-started>=1 then
-                        coroutine.yield();batch,started=0,clock()
+                        coroutine.yield();checkOwner();batch,started=0,clock()
                     end
                 end
             end
@@ -161,8 +173,9 @@ function M:Query(request,reply,context)
                 if at then consider(at,optionRecord(eui,option,config),score) end
             end
             batch=batch+1
-            if batch>=32 or clock()-started>=1 then coroutine.yield();batch,started=0,clock() end
+            if batch>=32 or clock()-started>=1 then coroutine.yield();checkOwner();batch,started=0,clock() end
         end
+        checkOwner()
         local records={}
         if self.overflow then records[#records+1]=statusRecord("Ellesmere UI 设置目录超出限制") end
         for _,row in ipairs(selected) do records[#records+1]=row.record end
@@ -183,6 +196,7 @@ end
 function M:Resolve(id)
     if not self.active then return end
     if id=="unlock" then return unlockRecord() end
+    self:Attach()
     local option=self.options and self.options[id]
     if option and A.Get() then return optionRecord(A.Get(),option) end
     if type(id)~="string" then return end
@@ -195,8 +209,10 @@ function M:Resolve(id)
 end
 local actions={
     open={title=L["打开设置"],run=function(entry)
+        M:Attach()
         local eui,why=ready()
         if not eui then return failure(why) end
+        if A.Get()~=eui then M:Attach();return failure("Ellesmere UI 设置暂不可用") end
         local p=entry.payload
         if not p or not exists(eui,p.module,p.page) then return failure("此设置页面已不可用") end
         -- EUI owns first-open deferral and page construction; no filter or value mutation.
@@ -214,7 +230,7 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=7,version="1.0.0",title="Ellesmere UI",
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",version="1.0.0",title="Ellesmere UI",
         scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
         entries={},actions=actions,query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,

@@ -31,7 +31,7 @@ local M=I.Builtin.Exwind
 local baseFrames=frames
 M:Init()
 assert(M.active and #timers==0 and frames==baseFrames,"Exwind defaults enabled without idle tasks")
-assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(true))
 assert(M.active and #timers==0 and frames==baseFrames)
 local definition=I.Providers.entries[M.id].definition
 assert(#definition.scope.products==1 and definition.scope.products[1]=="retail")
@@ -110,8 +110,8 @@ local replied=false
 local cancel=managedQuery({normalized="x",filter={sourceID=M.id..":records"}},function() replied=true end)
 cancel();drain();assert(not replied and not M.cancel)
 managedQuery({normalized="x",filter={sourceID=M.id..":records"}},function() replied=true end)
-assert(I.Registry:SetUserEnabled(M.id,false));drain();assert(not replied and not M.cancel)
-assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(false));drain();assert(not replied and not M.cancel)
+assert(M.handle:SetAvailability(true))
 -- One hundred modules, ten actual static settings each. No UI/callback work.
 I.Providers:CancelQueries("performance")
 ExwindTools.ModuleList={};ExwindTools.RegisteredLayouts={};ExwindTools.ModuleDefinitions={};ExBoss.ModuleList={}
@@ -122,6 +122,10 @@ for module=1,100 do
     for field=1,10 do layout[field]={label="Setting "..module.." "..field,type="checkbox",set=forbidden} end
     ExwindTools.RegisteredLayouts[key]=layout
 end
+local preferredID=query("ex:setting 99 10")[1].id
+local preferredRows
+managedQuery({normalized="setting",limit=20,filter={sourceID=M.id..":records"},ranking={[preferredID]=30}},function(rows)preferredRows=rows end)
+drain();assert(#preferredRows==20 and preferredRows[1].id==preferredID,"Exwind preference survives Top20 truncation")
 local function measured()
     local result
     managedQuery({normalized="setting 100 10",limit=20,filter={sourceID=M.id..":records"}},function(rows) result=rows end)

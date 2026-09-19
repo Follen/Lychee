@@ -176,6 +176,15 @@
       ]
     },
     {
+      "path": "Search/SourceAccess.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Search/QueryOrchestrator.lua",
       "products": [
         "retail",
@@ -186,6 +195,69 @@
     },
     {
       "path": "Search/SearchSession.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/AddonDiscovery.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/AddonLoader.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/Preparation.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/InvocationRuntime.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "SDK/CompactStore.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/RecordCodec.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/Catalog.lua",
       "products": [
         "retail",
         "classic",
@@ -231,6 +303,24 @@
     },
     {
       "path": "PublicAPI/SDK.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "PublicAPI/Invocation.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "PublicAPI/Preparation.lua",
       "products": [
         "retail",
         "classic",
@@ -402,6 +492,24 @@
     },
     {
       "path": "UI/AddonInspector.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/HomeView.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/SocialLinks.lua",
       "products": [
         "retail",
         "classic",
@@ -673,7 +781,18 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/BlizzardSettings/Provider.lua"
+        "Builtin/BlizzardSettings/Provider.lua",
+        "Builtin/Audio/Locales.lua",
+        "Builtin/Audio/Language.lua",
+        "Builtin/Audio/Adapter.lua",
+        "Builtin/Audio/View.lua",
+        "Builtin/Audio/Provider.lua",
+        "Builtin/BlizzardSettings/Graphics.lua",
+        "Builtin/BlizzardSettings/Adapter.lua",
+        "Builtin/BlizzardSettings/Aliases.lua",
+        "Builtin/BlizzardSettings/Language.lua",
+        "Builtin/BlizzardSettings/View.lua",
+        "Builtin/BlizzardSettings/Invocations.lua"
       ],
       "requires": [],
       "locales": "Builtin/BlizzardSettings/Locales.lua"

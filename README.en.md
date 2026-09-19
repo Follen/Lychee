@@ -15,7 +15,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%202%20r7-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
 [![License](https://img.shields.io/badge/license-noncommercial%20·%20attribution-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -39,11 +39,12 @@ You remember a spell's name, but not which action bar it is on. You know which s
 | Find a spell your character knows | `Polymorph` | Click to cast, or drag it onto an action bar |
 | Find something in your bags | `Hearthstone` | Click to use; right-click for bag location actions |
 | Open a game panel | `Heirlooms` | Open the heirloom collection directly |
+| Adjust master volume | `set volume to 30` | Review the result and execute it; a setting result also offers adjustment actions in its right-click menu |
 | Share an achievement | `Ahead of the Curve` | Shift + left-click the result to insert its link into chat |
 | Check the group's keys | `key` | See group keystones and scores (Retail) |
 | Search only your spells | `spell: Polymorph` | See matching player spells without other sources |
 
-Spell, bag and achievement results depend on your character and client. While the initial achievement catalog is being prepared, Lychee shows “Searching” and refreshes the results when ready.
+Spell, bag and achievement results depend on your character and client. A small status message indicates sources that are still preparing. Results for the current query appear as they become ready; one slow source does not hold back every other source.
 
 ### Keep the useful things close
 
@@ -61,6 +62,8 @@ Open **Settings → Providers → select a provider** to adjust these independen
 | General search | Includes this provider when you type a content name |
 | Search prefixes | `spell: Polymorph` searches only player spells |
 | Shortcut keywords | Assign `abc`; typing exactly `abc` shows that provider's results |
+
+A provider’s search switch only controls whether it participates in searches. It does not unload its addon or stop background features. Explicit references such as pins and recent entries can still be restored when the provider is available.
 
 All three can coexist. **An alias names one result; a shortcut keyword opens a provider's results.** For example, `home` can find one portal, while `key` shows group keystones.
 
@@ -128,6 +131,8 @@ Interface/
         └── …
 ```
 
+This branch bundles its built-in features into one `Lychee` addon. If you installed the multi-addon development version, back up and isolate its old built-in packages using the [conversion checklist](docs/guides/DELIVERY.md#从多包开发版转换) to avoid duplicate registration. Leave independent third-party addons untouched.
+
 **Do not put the entire repository in AddOns.** Players do not need `lychee-sdk`, `docs`, or `assets`. The repository ZIP contains the current development version.
 
 If another binding already uses Alt + Space, Lychee leaves it alone. Assign a different shortcut in the game's key bindings.
@@ -167,7 +172,9 @@ The interface supports **English and Simplified Chinese**, following the game lo
 
 ## Make your addon searchable
 
-A Provider supplies content and actions; Lychee handles searching, ranking and display. Declare your supported clients, register your own English and Chinese text, and use different implementations where clients differ.
+The SDK and Provider API are **1.0.0**; API 2 is not supported. A Provider supplies content and actions; Lychee handles searching, ranking and display. Start with entries and actions. Loading declarations, parameterized calls and catalog tools are optional capabilities for providers that need them.
+
+Third-party addons keep their own code, SavedVariables and media and use the public SDK rather than Host internals. Declare supported clients, register your own English and Chinese text, and provide different implementations where clients differ. See the [loading contract](lychee-sdk/docs/LOADING.md) and [Invocation guide](lychee-sdk/docs/INVOCATIONS.md) for those flows.
 
 **[Start with the SDK →](lychee-sdk/docs/GETTING_STARTED.md)** · [Protocol reference](lychee-sdk/docs/PROTOCOLS.md) · [Examples and type definitions](lychee-sdk/README.md)
 

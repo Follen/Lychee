@@ -22,10 +22,20 @@ local function object(kind, parent)
     end
     function value:ClearAllPoints() self.points = {} end
     function value:SetParent(parentValue) self.parent = parentValue end
+    function value:SetScale(scale) self.scale=scale end
+    function value:GetEffectiveScale() return (self.scale or 1) * (self.parent and self.parent:GetEffectiveScale() or 1) end
+    function value:HookScript(key,fn) local old=self.scripts[key];self.scripts[key]=function(...) if old then old(...) end;fn(...) end end
     function value:SetFrameStrata(strata) self.strata = strata end
     function value:SetClampedToScreen(enabled) self.clamped = enabled end
     function value:EnableMouse(enabled) self.mouseEnabled = enabled end
     function value:GetStringHeight() return self.measuredHeight or 15 end
+    function value:GetStringWidth()
+        local width = 0
+        for char in (self:GetText()):gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+            width = width + (#char > 1 and 11 or 6)
+        end
+        return width
+    end
     function value:SetFont(path, size, flags) self.font = {path, size, flags}; return true end
     function value:SetShadowOffset(x, y) self.shadow = {x, y} end
     function value:SetVertexColor() end
@@ -85,6 +95,8 @@ end
 
 STANDARD_TEXT_FONT = "Fonts/test.ttf"
 UIParent = object("UIParent")
+local cursorX, cursorY = 100, 200
+function GetCursorPosition() return cursorX, cursorY end
 function GetLocale() return "zhCN" end
 function CreateFrame(kind, _, parent) return object(kind, parent or UIParent) end
 
@@ -106,10 +118,10 @@ dofile("addon/Lychee/UI/Components.lua")
 dofile("addon/Lychee/Core/InteractionBinding.lua")
 dofile("addon/Lychee/UI/ResultList.lua")
 
-local activatedRow, activatedAction, draggedRow
+local activatedRow, menuRow, draggedRow
 local controller = {
     ActivateRow = function(_, row) activatedRow = row end,
-    ActivateRowAction = function(_, row, actionID) activatedAction = { row, actionID } end,
+    ShowRowActions = function(_, row) menuRow = row end,
     BeginRowDrag = function(_, row) draggedRow = row end,
 }
 local parent = CreateFrame("Frame", nil, UIParent)
@@ -124,7 +136,7 @@ assert(list.gridColumns == 1 and list.frame:GetHeight() == 410, "result list use
 for index = 1, 8 do
     local row = list.rows[index]
     assert(row:GetHeight() == 46, "row height remains fixed")
-    assert(row.primaryTarget and row.secondary, "primary and secondary interaction targets are precreated")
+    assert(row.primaryTarget and not row.secondary, "row has one click target and no ellipsis shortcut")
     assert(not row:IsShown(), "new row starts cleared")
 end
 
@@ -142,9 +154,9 @@ local items = {
         description = longText,
         category = "技能",
         categoryColor = { 0.455, 0.670, 0.925, 1 },
-        source = "builtin.player-spells:records",
+        source = "lychee.player-spells:records",
         icon = 4578416,
-        _ext = "builtin.player-spells",
+        _ext = "lychee.player-spells",
         confidence = 0.98,
         evidence = { matchedField = "alias", matchType = "exact" },
         interaction = {
@@ -171,19 +183,20 @@ local items = {
 list:SetItems(items, 11, 23)
 assert(#created == frameCount, "query update does not create frames or regions")
 assert(rowOne:IsShown() and rowTwo:IsShown() and not list.rows[3]:IsShown(), "only populated rows are shown")
-assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "builtin.player-spells", "freshness fields bind to row")
+assert(rowOne.session == 11 and rowOne.generation == 23 and rowOne.extensionID == "lychee.player-spells", "freshness fields bind to row")
 assert(rowOne.title:GetText() == longText and rowOne.subtext:GetText() == longText, "name and description remain separately constrained")
 assert(#rowOne.title.points == titlePointCount and rowOne:GetHeight() == 46, "long text cannot mutate row geometry")
 assert(rowOne.title.maxLines == 1 and rowOne.title.wordWrap == false, "title is constrained to one line")
 assert(rowOne.category:GetText() == "自定义类型", "type label takes precedence over category")
+assert(rowOne.category.nonSpaceWrap == false and rowOne.category.wordWrap == false and rowOne.category.maxLines == 1,
+    "source labels must disable both word and non-space wrapping")
 assert(rowOne.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim and rowTwo.category._lycheeTextToken == Lychee.UI.Theme.Colors.textDim,
     "all result labels use the same subdued theme color, including colored provider categories")
 assert(rowOne.icon:IsShown() and rowOne.icon.texture == 4578416, "icon is rendered in reserved slot")
 assert(rowOne.dragger:IsShown() and rowOne.dragDescriptor.spellID == 393256, "drag area binds descriptor")
 assert(rowOne.primaryAction.id == "cast" and rowOne.primaryHint:GetText() == "", "primary action label stays out of the compact row")
-assert(rowOne.secondaryAction.id == "detail" and rowOne.secondary:IsShown(), "first non-primary action is exposed as secondary")
-assert(rowOne._categoryInset == 42, "visible secondary button keeps label clear")
-assert(rowTwo._categoryInset == 12, "label without visible secondary button matches icon inset")
+assert(not rowOne.secondary and not rowOne.secondaryAction, "multiple actions do not create a secondary shortcut")
+local categoryPoints = #rowOne.category.points
 
 assert(list.selected == 1 and rowOne._selected, "first result is keyboard-selected")
 assert(rowOne.bg._lycheeColorToken==Lychee.UI.Theme.Colors.surfaceSelected,"selected row uses the shared subtle fill")
@@ -193,6 +206,7 @@ assert(not rowOne.accent:IsShown() and rowTwo.accent:IsShown(), "only the hovere
 rowTwo.scripts.OnLeave(rowTwo)
 list:Move(-1)
 assert(list.selected == 1 and rowOne._selected and not rowTwo._selected, "keyboard movement uses the same selection")
+assert(#rowOne.category.points == categoryPoints, "hover and keyboard selection leave the source column fixed")
 
 rowOne.scripts.OnEnter(rowOne)
 list:Move(1)
@@ -224,16 +238,46 @@ end
 assert(list.selected == 2 and rowTwo._selected and rowOne._hovered, "changed fields preserve independent selection and hover state")
 
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-local tip = Lychee.UI.ResultList.tooltip
+local tip = Lychee.UI.Components.tooltip
 assert(tip:IsShown() and tip.labels[1]:GetText() == longText, "hover keeps the item title")
 assert(tip.labels[2]:GetText() == "自定义类型", "tooltip keeps useful type without internal search diagnostics")
 assert(tip.labels[4]:GetText():find("施放",1,true), "tooltip shows the declared primary action")
 assert(not GameTooltip.shown and GameTooltip.text == nil, "result tooltip never changes the global tooltip")
 assert(tip.clamped and not tip.mouseEnabled, "tooltip stays on screen without intercepting clicks")
+local beforeMove = tip.points[1]
+local beforeX, beforeY = beforeMove[4], beforeMove[5]
+cursorX, cursorY = 140, 230
+if tip.scripts.OnUpdate then tip.scripts.OnUpdate(tip, 0.016) end
+local afterMove = tip.points[1]
+assert(afterMove[4] ~= beforeX and afterMove[5] ~= beforeY, "tooltip must follow cursor movement within the same hovered entry")
+assert(afterMove[2] == UIParent and afterMove[4] == cursorX / tip:GetEffectiveScale() + 12,
+    "cursor position uses tooltip effective scale outside the scroll tree")
+tip.scripts.OnUpdate(tip, 0.016)
+assert(tip.points[1] == afterMove, "stationary cursor does not repeat anchor setters")
+UIParent:SetScale(0.75)
+tip.scripts.OnUpdate(tip, 0.016)
+assert(tip.points[1][4] == cursorX / tip:GetEffectiveScale() + 12, "root UI scale changes refresh cursor coordinates")
+UIParent:SetScale(1)
+tip.scripts.OnUpdate(tip, 0.016)
+local trackingObjects = #created
+collectgarbage("collect"); collectgarbage("stop")
+local trackingMemory = collectgarbage("count")
+for _ = 1, 1000 do tip.scripts.OnUpdate(tip, 0.016) end
+local trackingAllocation = collectgarbage("count") - trackingMemory
+collectgarbage("restart")
+assert(trackingAllocation < 64 and #created == trackingObjects, "stationary tracking stays bounded without new UI objects")
+print(string.format("Tooltip tracking: 1000 stationary frames %.2f KiB allocation, 0 new objects", trackingAllocation))
+cursorX, cursorY = 710, 490
+tip.scripts.OnUpdate(tip, 0.016)
+local edge = tip.points[1]
+assert(edge[4] + tip:GetWidth() < cursorX / tip:GetEffectiveScale()
+    and edge[5] + tip:GetHeight() < cursorY / tip:GetEffectiveScale(), "screen edge flips tooltip away from pointer")
+cursorX, cursorY = 140, 230
+tip.scripts.OnUpdate(tip, 0.016)
 assert(tip.labels[1].font[2] > tip.labels[2].font[2] and tip.labels[1].shadow[1] == 0, "owned fonts preserve hierarchy without inherited shadows")
 frameCount = #created
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
-assert(#created == frameCount and Lychee.UI.ResultList.tooltip == tip, "repeat hover reuses all tooltip objects")
+assert(#created == frameCount and Lychee.UI.Components.tooltip == tip, "repeat hover reuses all tooltip objects")
 tip.labels[3].measuredHeight = 60
 rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
 local expandedHeight = tip:GetHeight()
@@ -243,10 +287,11 @@ rowOne.primaryTarget.scripts.OnEnter(rowOne.primaryTarget)
 assert(tip:GetHeight() < expandedHeight, "tooltip shrinks again when measured content shortens")
 rowOne.primaryTarget.scripts.OnLeave(rowOne.primaryTarget)
 assert(not tip:IsShown() and tip._owner == nil, "leave hides tooltip and releases owner")
+assert(tip.scripts.OnUpdate == nil, "leave stops cursor updates")
 list:Select(1)
-rowOne.secondary.scripts.OnMouseDown(rowOne.secondary,"LeftButton")
-rowOne.secondary.scripts.OnClick(rowOne.secondary)
-assert(activatedAction and activatedAction[1] == rowOne and activatedAction[2] == "detail", "secondary action delegates stable action ID")
+rowOne.primaryTarget.scripts.OnMouseDown(rowOne.primaryTarget,"RightButton")
+rowOne.primaryTarget.scripts.OnClick(rowOne.primaryTarget,"RightButton")
+assert(menuRow == rowOne, "right-click exposes the action menu for the same row")
 rowOne.dragger.scripts.OnMouseDown(rowOne.dragger,"LeftButton")
 rowOne.dragger.scripts.OnDragStart(rowOne.dragger)
 assert(draggedRow == rowOne, "drag area delegates its owning row")
@@ -287,7 +332,7 @@ local scrollContent = CreateFrame("Frame", nil, viewport)
 local recentOwner = CreateFrame("Button", nil, scrollContent)
 recentOwner.top = 556
 Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
-local recentTip = Lychee.UI.ResultList.tooltip
+local recentTip = Lychee.UI.Components.tooltip
 local tooltipTop = recentOwner.top + 8 + recentTip:GetHeight()
 local clipTop = 900
 local ancestor = recentTip:GetParent()
@@ -302,6 +347,23 @@ for index = 1, 5 do
 end
 assert(visibleLines == 5, "recent tooltip clipped by scroll ancestor: only " .. visibleLines .. "/5 lines visible")
 assert(recentTip:GetParent() == UIParent, "tooltip keeps a non-clipping root parent")
+Lychee.UI.Components:HideTooltip(rowOne)
+assert(recentTip:IsShown(), "stale owner leave cannot close the current tooltip")
+recentOwner:Hide()
+recentTip.scripts.OnUpdate(recentTip, 0.016)
+assert(not recentTip:IsShown() and not recentTip.scripts.OnUpdate, "hidden owner stops root-owned tooltip tracking")
+recentOwner:Show()
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
+local originalCombat = InCombatLockdown
+InCombatLockdown = function() return true end
+recentTip.scripts.OnUpdate(recentTip, 0.016)
+assert(not recentTip:IsShown() and not recentTip.scripts.OnUpdate, "combat interrupts cursor tracking")
+InCombatLockdown = originalCombat
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
+recentTip.scripts.OnHide(recentTip)
+assert(not recentTip._owner and not recentTip.scripts.OnUpdate, "direct hide releases tracking and owner")
+recentTip:Hide()
+Lychee.UI.ResultList:ShowItemTooltip(items[1], recentOwner)
 list.frame.scripts.OnHide(list.frame)
 assert(not recentTip:IsShown() and recentTip._owner == nil, "hiding the result view clears the root-owned tooltip")
 Lychee.UI.ResultList:HideTooltip()
@@ -328,39 +390,60 @@ assert(#created==createdBeforeTypes, "type labels reuse existing rows and region
 list:Clear()
 
 dofile("addon/Lychee/UI/Runtime.lua")
-dofile("addon/Lychee/UI/Components.lua")
-local menuOwner = {}
-Lychee.UI.Components:StyleActionMenuOwner(menuOwner)
-local menuFrame = object("Frame")
-local attachments = {}
-function menuFrame:AttachTexture()
-    local texture = object("Texture", self)
-    function texture:SetDrawLayer(layer, level) self.layer, self.level = layer, level end
-    attachments[#attachments + 1] = texture
-    return texture
+
+-- Artwork is not a state glyph: hovering/pressing a labelled skill changes text only.
+local skillButton=Lychee.UI.Components:CreateNavigationButton(parent,{text="萨拉塔斯的赠礼"})
+skillButton.icon=object("Texture",skillButton.frame)
+local artworkTints=0
+function skillButton.icon:SetVertexColor() artworkTints=artworkTints+1 end
+skillButton.frame.scripts.OnEnter()
+assert(skillButton.label._lycheeTextToken==Lychee.UI.Theme.Colors.accentHover,"hover highlights the skill name")
+skillButton.frame.scripts.OnMouseDown()
+skillButton.frame.scripts.OnLeave()
+skillButton.frame.scripts.OnHide()
+assert(artworkTints==0,"hover, press and leave must preserve the original skill artwork colors")
+skillButton.feedbackIcon=object("Texture",skillButton.frame)
+local glyphTints=0
+function skillButton.feedbackIcon:SetVertexColor() glyphTints=glyphTints+1 end
+skillButton.frame.scripts.OnEnter()
+assert(glyphTints==1 and artworkTints==0,"only an explicitly designated navigation glyph receives state tint")
+assert(skillButton.feedbackIcon._lycheeVertexToken==Lychee.UI.Theme.Colors.accentHover)
+skillButton.frame.scripts.OnLeave()
+assert(skillButton.feedbackIcon._lycheeVertexToken==Lychee.UI.Theme.Colors.text and artworkTints==0,"navigation glyph returns to warm white without tinting artwork")
+
+-- Real owned menu: a global native reskin must never receive its frame.
+local menuOwner=object("Frame")
+local nativeOpens=0
+MenuUtil={CreateContextMenu=function() nativeOpens=nativeOpens+1;error("global menu reskin reached") end}
+function GetCursorPosition() return 100,200 end
+local actions=0
+local function populate(_,root)
+    root:CreateButton("Action",function() actions=actions+1;return true end)
+    root:CreateButton(string.rep("Long title ",50),function() actions=actions+10 end)
 end
-menuOwner.menuMixin.Generate(menuFrame)
-assert(#attachments == 2 and attachments[2].color[4] == 1, "menu has an opaque pooled background")
-assert(menuOwner.menuMixin:GetInset().left == menuOwner.menuMixin:GetInset().right, "menu padding is symmetric")
-local menuInitializer, menuEnter, menuLeave
-Lychee.UI.Components:StyleActionMenuButton({AddInitializer=function(_, fn) menuInitializer=fn end, SetOnEnter=function(_, fn) menuEnter=fn end, SetOnLeave=function(_, fn) menuLeave=fn end})
-local menuButton = object("Button")
-menuButton.fontString = object("FontString", menuButton)
-function menuButton.fontString:GetStringWidth() return self.measuredWidth or 100 end
-menuButton.highlight = object("Texture", menuButton)
-function menuButton.highlight:SetBlendMode(mode) self.blendMode = mode end
-local menuWidth, menuHeight = menuInitializer(menuButton)
-assert(menuWidth == 156 and menuHeight == 32, "single action retains comfortable menu dimensions")
-assert(menuButton.fontString.font[2] == 12 and menuButton.fontString.wordWrap == false, "menu uses readable single-line body text")
-assert(menuButton.highlight.blendMode == "BLEND", "menu removes additive gold highlight")
-menuButton.fontString.measuredWidth = 600
-local longMenuWidth = menuInitializer(menuButton)
-assert(longMenuWidth == 280, "long action text cannot create an unbounded menu")
-menuEnter(menuButton)
-assert(menuButton.fontString.textColor[1] == Lychee.UI.Theme.Colors.accentHover[1], "menu hover changes text")
-menuLeave(menuButton)
-assert(menuButton.fontString.textColor[1] == Lychee.UI.Theme.Colors.text[1], "menu leave restores text")
-assert(menuButton.highlight.color[4] == 0, "menu never adds a hover background")
+local menu=Lychee.UI.Components:ShowActionMenu(menuOwner,populate)
+assert(nativeOpens==0 and menu.owner==menuOwner and menu:IsShown())
+assert(menu.title:GetText():find("菜单",1,true) and menu.title:GetText():find("game-menu.tga",1,true), "menu has a distinct localized identity")
+assert(menu:GetWidth()<=296 and menu.count==2 and menu.buttons[2].label.wordWrap==false)
+local button=menu.buttons[1]
+button.frame.scripts.OnClick();assert(actions==0,"click requires a physical press")
+button.frame.scripts.OnMouseDown(nil,"LeftButton")
+assert(button.frame.scripts.OnClick() and actions==1)
+assert(not menu.owner and not menu:IsShown() and not button.callback,"closing releases all captured actions")
+local allocated=#created
+for _=1,20 do
+    assert(Lychee.UI.Components:ShowActionMenu(menuOwner,populate)==menu)
+    button.frame.scripts.OnMouseDown(nil,"LeftButton")
+    Lychee.UI.Components:ShowActionMenu(menuOwner,populate)
+    button.frame.scripts.OnClick();assert(actions==1,"reopening cancels stale presses")
+    menuOwner.scripts.OnHide();assert(not menu.owner,"owner hide closes menu")
+end
+assert(#created==allocated,"menu and buttons are reused")
+Lychee.UI.Components:ShowActionMenu(menuOwner,function(_,root)
+    for _=1,18 do root:CreateButton("Action",function() end) end
+end)
+assert(menu.count==18 and menu:GetHeight()*menu.scale<=UIParent:GetHeight()-32,"all supported actions fit the viewport")
+Lychee.UI.Components:HideActionMenu()
 
 -- Real pointer-to-range behavior, including scale and release outside the track.
 local cursorY, mouseDown, combat = 0, true, false
@@ -402,7 +485,7 @@ bar.frame.scripts.OnHide()
 assert(bar.frame.scripts.OnUpdate==nil, "hidden viewport stops drag")
 local scores={}
 for index=1,8 do scores[index]={"副本"..index,"限时 +12","|cffaa00ff329.0|r"} end
-local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="builtin.keystones",payload={scoreRows=scores}}
+local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="lychee.keystones",searchRecord={tooltipRows=scores}}
 local beforeScores=#created
 Lychee.UI.ResultList:ShowItemTooltip(keyItem,parent)
 assert(tip:GetWidth()==416 and #tip.scoreLabels==9,"eight dungeon rows and column header")
@@ -417,4 +500,37 @@ for _,labels in ipairs(tip.scoreLabels) do
     for _,label in ipairs(labels) do assert(not label:IsShown() and label:GetText()=="","old scores released") end
 end
 assert(rowOne.accent:GetWidth()==2 and rowOne.accent:GetHeight()==22,"selection matches recent list")
+local measuredLabel=list.rows[1].category
+local measures=0
+measuredLabel.GetStringWidth=function() measures=measures+1;return 0 end
+measuredLabel.GetUnboundedStringWidth=measuredLabel.GetStringWidth
+list:SetItems({{id="long-kind",text="首领名称",kindTitle="荔枝大米助手 · 首领",
+    interaction={actions={{id="open",title="打开"},{id="more",title="更多"}}}}},12,24)
+local sourceLabel=list.rows[1].category
+assert(sourceLabel:GetWidth()==160 and measures==0,"source column is ready before native font metrics exist")
+assert(sourceLabel:GetWidth()<=160,"source column cannot consume unbounded title space")
+assert(not list.rows[1].secondary and list.rows[1].category.points[1][4]==-12,"multiple actions keep the source column at its fixed right inset")
+list:SetItems({{id="huge-kind",text="名称",kindTitle=string.rep("很长的来源",50)}},12,25)
+assert(list.rows[1].category:GetWidth()<=160 and list.rows[1].category.maxLines==1,"overlong source clips on one line")
+list:SetItems({{id="short-kind",text="名称",kindTitle="成就"}},12,26)
+assert(sourceLabel:GetWidth()==160 and measures==0,"short source does not move the title boundary or measure text")
+-- Missing or empty hints must not leave a phantom footer when reusing the tooltip.
+local plain = {title="Title", meta="Source", description="Body"}
+Lychee.UI.Components:ShowTooltip(parent, plain)
+local plainHeight=tip:GetHeight()
+plain.hint,plain.dragHint="",""
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip:GetHeight()==plainHeight and not tip.labels[4]:IsShown() and not tip.labels[5]:IsShown(),
+    "empty hints collapse exactly like absent hints")
+plain.dragHint="Drag to an action bar"
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip.labels[5]._y>tip.labels[3]._y+tip.labels[3]:GetStringHeight(),
+    "drag-only footer keeps its separation from the description")
+plain.hint="Click to open"
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip.labels[5]._y>=tip.labels[4]._y+tip.labels[4]:GetStringHeight(), "two footer hints do not overlap")
+plain.hint,plain.dragHint=nil,nil
+Lychee.UI.Components:ShowTooltip(parent, plain)
+assert(tip:GetHeight()==plainHeight, "reused tooltip releases footer space")
+Lychee.UI.Components:HideTooltip()
 print("Lychee result list UI smoke PASS")

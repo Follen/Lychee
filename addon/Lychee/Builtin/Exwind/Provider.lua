@@ -102,6 +102,7 @@ function M:Query(request,reply,context)
     local terms=N:Terms(query)
     local limit=math.max(1,math.min(50,tonumber(request.limit) or 20))
     local selected,fields={},{}
+    local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local function score(title,alias,owner,description)
         if query=="" then return 0 end
         fields[1],fields[2],fields[3]="title",title,N:Normalize(title)
@@ -112,10 +113,11 @@ function M:Query(request,reply,context)
     end
     local function add(target,rank,label)
         if not rank then return end
+        local weighted=ranker and ranker(target.id,rank) or rank
         local at=#selected+1
-        for index,row in ipairs(selected) do if rank>row.score or rank==row.score and target.id<row.target.id then at=index;break end end
+        for index,row in ipairs(selected) do if weighted>row.weighted or weighted==row.weighted and (rank>row.score or rank==row.score and target.id<row.target.id) then at=index;break end end
         if at<=limit then
-            table.insert(selected,at,{target=target,score=rank,label=label})
+            table.insert(selected,at,{target=target,score=rank,weighted=weighted,label=label})
             if #selected>limit then selected[#selected]=nil end
         end
     end
@@ -217,8 +219,7 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,title="Exwind",version="1.0.0",apiVersion=2,minApiRevision=7,
-        scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},entries={},actions=actions,
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,title="Exwind",version="1.0.0",apiVersion="1.0.0",scope=I.Builtin.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},entries={},actions=actions,
         query=function(request,reply,context) return self:Query(request,reply,context) end,resolve=function(id) return self:Resolve(id) end,
         onEnable=function() self.active=true;return function() self.active=false end end})
 end

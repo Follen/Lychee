@@ -8,7 +8,7 @@
 
 ## 当前 Elles 适配契约
 
-`Builtin/Ellesmere/Adapter.lua`集中版本敏感访问；Provider保留查询、稳定ID、捕获容量、排序与取消。
+`addon/Lychee/Builtin/Ellesmere/Adapter.lua` 在适配插件内部集中版本敏感访问；Provider 保留查询、稳定 ID、捕获容量、排序与取消。此路径仅说明本仓库实现，不是第三方需要遵循或导入的目录契约。
 以下是Lychee内部维护接口，不是第三方SDK的新公开字段：
 
 | 上游能力 | 用途 | 不可用时 |
@@ -24,7 +24,7 @@
 定位参数保持module、page、section、selector callback、label顺序。返回false不是已定义的上游失败契约，
 不会擅自重解释；调用抛错会被隔离。
 
-不可移除的hook只有启用且属于当前上游对象时收集；停用释放捕获记录并短路。
+不可移除的 hook 只有所属插件生命周期有效且属于当前上游对象时收集；所有者结束时释放捕获记录并短路。用户关闭来源的搜索开关，只改变参与搜索的偏好，不停止捕获或清空这些记录。
 只有hook安装成功才记录已绑定，失败允许后续重试。上游在同一对象上替换已hook函数等变化仍需专门适配，
 不能靠反复hook或轮询承诺所有未来版本兼容。
 
@@ -33,7 +33,7 @@
 - 区分不可变代码/声明和上游可变状态；没有可靠版本或失效事件时不跨查询缓存目录。
 - 分批期间上游可能变化，不能仅凭table身份或长度认定内容没变；resolve/动作仍重新校验页面。
 - 查询只为进入前K的候选构造完整记录，评分字段和选中容器有界复用；保留原分数、ID、排序和结果上限。
-- 捕获仍最多4096条/2MiB文本；每批32项或1ms让出。取消/停用释放任务和业务引用，空闲不轮询。
+- 捕获仍最多4096条/2MiB文本；每批32项或1ms让出。查询取消释放该次任务和业务引用；所有者结束才释放后台捕获，空闲不轮询。
 - 相关校验已在同一同步候选处理步骤完成时可复用该结果，不重复遍历一次页面列表。
 
 ## 版本与验收
@@ -46,5 +46,5 @@ resolvedCommit=271ffc30d3265d9f77746b0e15224d918f0fafcb。
 上游升级时：先source check并查对应版本，再跑缺失/异常/重试/页面变化与真实导航参数测试；
 同时比较完整结果、顺序、resolve和动作参数，不能只看“没有报错”。本轮44组对照基于优化前3b0af04。
 
-运行`lua tests/ellesmere_adapter.lua`、`lua tests/ellesmere_equivalence.lua`和`lua tests/ellesmere_provider.lua`。
+运行`lua tests/providers/ellesmere_adapter.lua`、`lua tests/providers/ellesmere_equivalence.lua`和`lua tests/providers/ellesmere_provider.lua`。
 离线通过不证明新版游戏与全部第三方版本可用；游戏内仍需验证首次打开、分区定位、selector及解锁。

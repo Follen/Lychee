@@ -49,6 +49,12 @@ local function equal(a,b)
  for k in pairs(b) do assert(a[k]~=nil) end
 end
 local expected='''+g.lua(d['dungeons'])+'''
+-- Product rule is independently stated; the original factual snapshot is unchanged.
+for _,dungeon in ipairs(expected) do
+ for _,enemy in ipairs(dungeon.enemies) do
+  for at=#enemy.spells,1,-1 do if enemy.spells[at].id==1221063 then table.remove(enemy.spells,at) end end
+ end
+end
 for _,dungeon in ipairs(expected) do
  local index,scratch=0,{}
  M:ScanDungeon(dungeon.id,function(row,header)

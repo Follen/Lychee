@@ -1,5 +1,7 @@
 # Lychee 文档导航
 
+本分支使用一个 `addon/Lychee` 运行包，SDK / Provider API 为 1.0.0；第三方仍独立接入。功能迁移与实机验收状态见[迁移计划](architecture/2026-09-14-single-addon-feature-port.md)，本导航不代表迁移已验收。
+
 这里先列当前规则。带日期的设计与验证是当时的决策和证据，不能单凭文件较新就覆盖现行规范。
 
 ## 我想做什么
@@ -12,14 +14,14 @@
 | 理解当前内部职责 | [架构](ARCHITECTURE.md) · [当前上下文](../CONTEXT.md) |
 | 改名称、翻译、别名或语言回退 | [国际化规则](../i18n.md) |
 | 改页面、控件、动画或图标 | [设计规范](../DESIGN.md) |
-| 改性能、缓存或生命周期 | [性能硬门禁](../PERFORMANCE.md) |
+| 改性能、缓存或生命周期 | [性能规则与内存审查](../PERFORMANCE.md) |
 | 接入第三方 Provider | [SDK 首页](../lychee-sdk/README.md) |
 | 查看产品范围 | [产品](../PRODUCT.md) · [内置功能](PROVIDER_FEATURES.md) |
 | 找历史决策和测量证据 | [设计记录](architecture/README.md) · [验收记录](validation/README.md) |
 
 ## 一项规则只维护一份
 
-- PERFORMANCE.md 管性能规则、数值预算、测量口径和踩坑约束；SDK 中的副本自动生成。
+- PERFORMANCE.md 管性能规则、测量口径与 Agent 内存审查；CPU、容量和生命周期门禁继续执行，SDK 中的副本自动生成。
 - DESIGN.md 管用户看到和操作到的行为，主题值由 UI/Theme.lua 实现，动效参数由对应 Motion 模块实现。
 - SDK 的接入、协议、兼容和示例都在 lychee-sdk；本目录不复制协议正文。
 - API 版本和 SDK 交付清单归 tools/sdk_contract.json；客户端加载清单归 tools/client_manifest.json。

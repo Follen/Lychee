@@ -157,7 +157,7 @@ assert(M:CheckFocus(parentless)==parentless,"absent AuraButtonTooltip global mus
 local beforeFrames,beforeRegions=frames,regions
 M:Init()
 assert(M.enabled and not M.view and frames==beforeFrames and regions==beforeRegions and sourceReads==0,"default enabled without constructing picker")
-assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(true))
 assert(M.enabled and not M.view and not M.timer and sourceReads==0,"enabled idle creates no picker")
 local _,results=I.Search.Query:Query("插件识别",{visible=true})
 assert(results and #results>0,"real Host can search provider entry")
@@ -702,9 +702,9 @@ C_CVar.SetCVar=function() error("blocked") end
 assert(M:EnableSource()==false and reloads==0)
 C_CVar.SetCVar=function(_,value) setting=value end
 assert(M:EnableSource() and reloads==1 and not M.running and setting=="1")
-M:Start();I.Registry:SetUserEnabled(M.id,false)
+M:Start();M.handle:SetAvailability(false)
 assert(not M.running and not M.enabled and not M.timer and not v.frame:IsShown())
-I.Registry:SetUserEnabled(M.id,true)
+M.handle:SetAvailability(true)
 collectgarbage("collect");local warmBase=collectgarbage("count")
 collectgarbage("stop");local started=os.clock()
 for n=1,100 do
@@ -753,4 +753,11 @@ do
     M:Stop();C_System=savedSystem;nativeTarget=nil;SC_CursorFrame=nil;scene({})
     debugprofilestop=savedClock
 end
+-- Opening the search surface must stop picking, its timer and tooltip suppression.
+I.NotifyPaletteVisibility(false)
+M:Start();assert(M.running and M.timer)
+I.NotifyPaletteVisibility(true)
+assert(not M.running and not M.timer and not M.target,"search opening stops inspection")
+I.NotifyPaletteVisibility(false)
+
 print(string.format("Addon inspector PASS exact/guess/parent/secret/avoidance/copy/Esc/combat/stale/disabled frames=%d regions=%d retained_KiB=%.1f cycles100_ms=%.2f allocated_KiB=%.1f growth_KiB=%.1f idle_work=0",frames-beforeFrames,regions-beforeRegions,retained,elapsed,allocated,math.max(0,growth)))

@@ -1,4 +1,4 @@
--- Real Host/index/API 2; deterministic WoW adapters for built-in integrations.
+-- Real Host/index/API 1.0.0; deterministic WoW adapters for built-in integrations.
 function GetLocale() return "zhCN" end
 function GetBuildInfo() return "12.1.0", "69587", "today", 120100 end
 local combat = false
@@ -41,7 +41,7 @@ I.Registry:SetReady(true)
 local initMS=(os.clock()-initStarted)*1000
 collectgarbage("collect")
 local indexKB=collectgarbage("count")-memoryBefore
-assert(I.Builtin.Crests.handle and I.Builtin.GameMenus.handle and I.Builtin.Bosses.handle, "all providers register through API 2")
+assert(I.Builtin.Crests.handle and I.Builtin.GameMenus.handle and I.Builtin.Bosses.handle, "all providers register through API 1.0.0")
 assert(#frames==frameBaseline, "registration/search creates no UI or resident event driver")
 local function query(text)
     local _, items=I.Search.Query:Query(text,{visible=true})
@@ -100,9 +100,9 @@ host:Unmount("close")
 assert(not next(panel.frame.events) and not panel.active and not panel.frame.shown)
 assert(host:Mount(factory,{},{}))
 assert(host.panel.instance==panel and #frames==allocated, "view rows reused across reopen")
-assert(I.Builtin.Crests.handle:SetEnabled(false))
+assert(I.Builtin.Crests.handle:SetAvailability(false))
 assert(not next(panel.frame.events) and not panel.active, "provider disable releases currency events")
-assert(I.Builtin.Crests.handle:SetEnabled(true))
+assert(I.Builtin.Crests.handle:SetAvailability(true))
 host:Unmount("test")
 
 local function shown(name) local f=_G[name] or CreateFrame("Frame",name); f:Show(); return f end

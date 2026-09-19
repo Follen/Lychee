@@ -3,7 +3,7 @@ dofile('tests/interaction_smoke.lua')
 local I=LycheeInternal
 local p=I.Host.PaletteController
 local calls,last=0,nil
-assert(Lychee:RegisterProvider({id='binding.regression',apiVersion=2,title='Binding fixture',version='1',
+assert(Lychee:RegisterProvider({id='binding.regression',apiVersion="1.0.0",title='Binding fixture',version='1',
  entries={{id='a',title='Binding fixture A',actions={'open','other'}},{id='b',title='Binding fixture B',actions={'open','other'}}},
  actions={open={title='Open',run=function(e) calls=calls+1;last=e.id;return {ok=true} end},
  other={title='Other',run=function(e) calls=calls+1;last=e.id;return {ok=true} end}}}))
@@ -16,7 +16,7 @@ local function start()
 end
 local by=start()
 local function publish(item) assert(p:ApplyResults({item},p.generation,p.session)) end
-for _,field in ipairs({'primaryTarget','secondary'}) do
+for _,field in ipairs({'primaryTarget'}) do
     publish(by.a)
     local button=p.list.rows[1][field];local before=calls
     button.scripts.OnMouseDown(button,'LeftButton')
@@ -87,7 +87,7 @@ assert(p:OpenView({create=function()
     return {}
 end},{},{}))
 assert(nesting and p.viewHost:IsActive());p:CloseView('test')
-local updating=assert(Lychee:RegisterProvider({id='navigation.updating',title='Update fixture',version='1',apiVersion=2,
+local updating=assert(Lychee:RegisterProvider({id='navigation.updating',title='Update fixture',version='1',apiVersion="1.0.0",
  entries={{id='one',title='Before'}}}))
 assert(p:OpenView({create=function() return {} end},{},{}))
 assert(p:OpenView({create=function()
@@ -107,7 +107,7 @@ local cancelled,cancelError=p:OpenView({create=function()
 end},{},{})
 assert(not cancelled and cancelError=='PANEL_CANCELLED' and not p.viewHost:IsActive())
 assert(p.list.frame:IsShown() or p.emptyState:IsShown() or p.searchPending,'query navigation wins even when create then throws')
-assert(Lychee:RegisterProvider({id='navigation.secure',title='Secure navigation',version='1',apiVersion=2,
+assert(Lychee:RegisterProvider({id='navigation.secure',title='Secure navigation',version='1',apiVersion="1.0.0",
  entries={{id='spell',title='Secure navigation spell',actions={{id='cast',kind='secure-spell',spellID=31884,title='Cast'}}}}}))
 p.input:SetText('Secure navigation spell');p:SetQueryMode('Secure navigation spell')
 local _,secureItems=I.Search.Query:Query('Secure navigation spell',{},nil)
@@ -124,20 +124,22 @@ assert(not p:OpenView({create=function() error('replace') end},{},{}))
 local target=assert(overlay(),'replacement failure restores physical secure target')
 target.scripts.OnMouseDown(target,'LeftButton');target.scripts.PreClick(target)
 assert(target.pendingCast);broker:ReleaseAll();p:Hide('test-end')
-print('Navigation/binding PASS: rebind/normal/hidden/reopen/home/secondary, page create+Mount failure, focus and cancellation')
+print('Navigation/binding PASS: rebind/normal/hidden/reopen/home/menu, page create+Mount failure, focus and cancellation')
 
 -- View resize commits only for the current owner and cannot leak into a replacement.
 p:Show();p:SetQueryMode("")
 local heightMotion=Lychee.UI.Motion.Height
 Lychee.UI.Motion.Height=function(_,frame,height) frame:SetHeight(height) end
+local metrics=Lychee.UI.Theme.Metrics
+local function panelHeight(content) return math.max(metrics.paletteMinHeight,math.min(metrics.paletteMaxHeight,metrics.headerHeight+metrics.footerHeight+content)) end
 local sized={Mount=function(self)
     local before=p.frame:GetHeight()
     assert(p:ResizeView(self,364));assert(p.frame:GetHeight()==before,"Mount cannot resize before presentation commits")
 end}
 assert(p:OpenView({create=function() return sized end},{},{}))
-assert(p.viewHost.panel.contentHeight==364 and p.frame:GetHeight()==452)
-assert(p:ResizeView(sized,416) and p.viewHost.panel.contentHeight==416 and p.frame:GetHeight()==504)
-assert(p:ResizeView(sized,1000) and p.frame:GetHeight()==518,"Host caps oversized view requests")
+assert(p.viewHost.panel.contentHeight==364 and p.frame:GetHeight()==panelHeight(364))
+assert(p:ResizeView(sized,416) and p.viewHost.panel.contentHeight==416 and p.frame:GetHeight()==panelHeight(416))
+assert(p:ResizeView(sized,1000) and p.frame:GetHeight()==panelHeight(1000),"Host caps oversized view requests")
 assert(not p:ResizeView({},400) and not p:ResizeView(sized,0/0))
 p:CloseView("resize-close")
 assert(not p:ResizeView(sized,416),"unmounted view cannot resize home/search")

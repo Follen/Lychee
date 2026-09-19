@@ -1,6 +1,6 @@
 # 验收记录
 
-当前检查入口见[开发与验证](../guides/DEVELOPMENT.md)，预算见[性能硬门禁](../../PERFORMANCE.md)。此目录的通过结论只适用于报告注明的提交、环境和场景。
+当前检查入口见[开发与验证](../guides/DEVELOPMENT.md)，性能规则与内存审查见[PERFORMANCE.md](../../PERFORMANCE.md)。此目录的通过结论只适用于报告注明的提交、环境和场景。
 
 - [2026-09-12 全局职责收敛](2026-09-12-global-refinement.md)：1–7 的回归及性能代价，实机未验证项仍未验证。
 - [目录与文档整理](2026-09-12-repository-layout.md)：文件迁移、文档门禁、SDK 和发布包检查。

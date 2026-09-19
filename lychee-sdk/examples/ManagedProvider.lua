@@ -1,9 +1,8 @@
 -- Callable SDK example; no automatic registration or load-time game work.
 return function(sdk, id, items)
-    assert(sdk:Supports(2,7),"Lychee SDK revision 7 required")
+    assert(sdk:Supports("1.0.0"),"Lychee SDK 1.0.0 required")
     return sdk:RegisterProvider({
-        id=id,title="Managed example",version="1",apiVersion=2,minApiRevision=7,
-        scope={products={"retail"}},i18n={enUS={NAME="Managed example"}},entries={},
+        id=id,title="Managed example",version="1",apiVersion="1.0.0",scope={products={"retail"}},i18n={enUS={NAME="Managed example"}},entries={},
         onEnable=function(handle)
             local resources=assert(handle:Resources())
             local settings=assert(handle:Settings())

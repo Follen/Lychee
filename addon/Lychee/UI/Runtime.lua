@@ -7,7 +7,7 @@ local EMPTY = {}
 local TYPES = { Fragment=true, Surface=true, Text=true, Icon=true, Button=true, Toggle=true, Input=true, Native=true }
 local EVENTS = { click="OnClick", change="OnTextChanged", enter="OnEnter", leave="OnLeave", enterPressed="OnEnterPressed", escape="OnEscapePressed" }
 for _,name in ipairs({"OnClick","OnTextChanged","OnEnter","OnLeave","OnEnterPressed","OnEscapePressed","OnMouseDown"}) do EVENTS[name]=name end
-local PROPERTIES={text=true,visible=true,enabled=true,checked=true,texture=true,color=true,role=true,width=true,height=true,alpha=true,justifyH=true,justifyV=true,wordWrap=true,maxLines=true,maxBytes=true,multiline=true,autoFocus=true,invalid=true,selected=true}
+local PROPERTIES={text=true,visible=true,enabled=true,checked=true,texture=true,color=true,role=true,width=true,height=true,alpha=true,justifyH=true,justifyV=true,wordWrap=true,nonSpaceWrap=true,maxLines=true,maxBytes=true,multiline=true,autoFocus=true,invalid=true,selected=true}
 local STATIC={point=true,points=true,allPoints=true,textInsets=true,create=true,font=true,primary=true,direction=true,radius=true,colors=true,textColors=true,variant=true}
 local POINTS={TOP=true,BOTTOM=true,LEFT=true,RIGHT=true,CENTER=true,TOPLEFT=true,TOPRIGHT=true,BOTTOMLEFT=true,BOTTOMRIGHT=true}
 local function finite(value) return type(value)=="number" and value==value and value>-math.huge and value<math.huge end
@@ -118,6 +118,7 @@ local function set(node,key,value)
     elseif key=="justifyH" then label:SetJustifyH(value)
     elseif key=="justifyV" then label:SetJustifyV(value)
     elseif key=="wordWrap" then label:SetWordWrap(value)
+    elseif key=="nonSpaceWrap" then label:SetNonSpaceWrap(value)
     elseif key=="maxLines" then label:SetMaxLines(value)
     elseif key=="maxBytes" then frame:SetMaxBytes(value)
     elseif key=="multiline" then frame:SetMultiLine(value)

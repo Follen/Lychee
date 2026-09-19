@@ -148,6 +148,43 @@ function Executor:_OpenPanel(item, row, panelID, state, session, generation)
     if not mounted then return false, mountErr or "PANEL_ERROR" end
     return mounted
 end
+function Executor:_Invocation(row,actionID,actionRef)
+    local item=row.item
+    local record=item.searchRecord or {}
+    if record.invocationError and not actionRef then
+        if self.palette.FocusInvocationError then self.palette:FocusInvocationError(row,record.invocationError) end
+        return false,record.invocationError.code
+    end
+    local ref=actionRef or record.invocation
+    if not ref or ref.actionID~=actionID then return false,"INCOMPLETE_INVOCATION" end
+    local palette=self.palette
+    local session,generation=palette.session,palette.generation
+    local display={entryID=item.id,title=item.text,icon=item.icon,sourceTitle=item.sourceTitle}
+    local result,errorCode,execution
+    local context=I.Context and I.Context:Snapshot() or {};context.searchBound=true;context.deadline=I.Providers:QueryTime()+5
+    local function complete(outcome)
+        result=outcome.status=="succeeded"
+        errorCode=not result and outcome.code or nil
+        if result and I.UserPreferences then
+            I.UserPreferences:TouchInvocation(outcome.invocation,display)
+            if palette.MarkHomeDirty then palette:MarkHomeDirty() end
+        end
+        if palette.visible and palette.session==session and palette.generation==generation and palette.ReportActionResult then
+            palette:ReportActionResult(result,errorCode)
+        end
+    end
+    local _,why,preparation=I.Invocations:PrepareStoredRef(ref,context,function(token,problem)
+        if not token then errorCode=problem and problem.code;return end
+        local valid,reason=self:Validate(row,session,generation,item)
+        if not valid then I.Invocations:Release(token);errorCode=reason;return end
+        local err;execution,err=I.Invocations:Invoke(token,context,complete)
+        if err then errorCode=err.code end
+    end)
+    if not preparation then return false,why and why.code or errorCode end
+    if errorCode then return false,errorCode end
+    if result then return {ok=true,invocation=true} end
+    return {ok=true,pending=true,invocation=true,operation=execution or preparation}
+end
 
 function Executor:Execute(row, actionID)
     local palette = self.palette
@@ -159,7 +196,12 @@ function Executor:Execute(row, actionID)
 
     local action, interaction = actionFor(item, actionID)
 
-    if action and action.kind == "provider" then
+    if action and action.kind == "invocation" then
+        return self:_Invocation(row,action.invocation.actionID,action.invocation)
+    elseif action and action.kind == "provider" then
+        local provider=I.Providers.entries[item.providerID]
+        local definition=provider and provider.definition.actions and provider.definition.actions[actionID]
+        if definition and definition.actionVersion then return self:_Invocation(row,actionID) end
         result, actionErr = I.Providers:Execute(item, actionID, I.Context and I.Context:Snapshot() or {})
         if result then
             result, actionErr = self:_Transition(result, item, row, palette.session, palette.generation)
@@ -190,6 +232,13 @@ end
 function Executor:ExecutePrimary(row)
     local item = row and row.item
     local action = primaryActionFor(item)
+    local problem = item and item.searchRecord and item.searchRecord.invocationError
+    if problem and (problem.span or not action) then
+        local valid, err = self:Validate(row)
+        if not valid then return self.palette:RejectRow(row, err) end
+        if self.palette.FocusInvocationError then self.palette:FocusInvocationError(row, problem) end
+        return false, problem.code
+    end
     if item and item.providerID and not action then return false, "NO_ACTION" end
     -- A protected spell must receive the physical click on its prepared secure
     -- button.  Keyboard submission and scripted row activation stay honest.
@@ -209,18 +258,16 @@ end
 function Executor:ShowActions(row)
     local valid, err = self:Validate(row)
     if not valid then return false, err end
-    if not MenuUtil or type(MenuUtil.CreateContextMenu) ~= "function" then return false, "MENU_UNAVAILABLE" end
     local item, session, generation = row.item, row.session, row.generation
     local actions = item.interaction and item.interaction.actions or {}
     local canPin = I.UserPreferences and I.UserPreferences:CanPin(item)
     if #actions == 0 and not canPin then return false, "NO_ACTION" end
     local components = _G.Lychee and _G.Lychee.UI and _G.Lychee.UI.Components
-    if components then components:StyleActionMenuOwner(row) end
     local menu
-    menu = MenuUtil.CreateContextMenu(row, function(_, root)
+    menu = components:ShowActionMenu(row, function(_, root)
         for index = 1, #actions do
             local actionID, title = actions[index].id, actions[index].title
-            local description = root:CreateButton(title or actionID, function()
+            root:CreateButton(title or actionID, function()
                 if self.palette and self.palette.actionMenu == menu then self.palette.actionMenu = nil end
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
@@ -228,17 +275,15 @@ function Executor:ShowActions(row)
                 if self.palette then self.palette:ReportActionResult(result, actionError) end
                 return result
             end)
-            if components then components:StyleActionMenuButton(description) end
         end
         if canPin then
-            local aliasButton=root:CreateButton(L["设置别名"],function()
+            root:CreateButton(L["设置别名"],function()
                 local current,reason=self:Validate(row,session,generation,item)
                 if not current then return false,reason end
                 return self.palette:EditAlias(item)
             end)
-            if components then components:StyleActionMenuButton(aliasButton) end
             local pinned = I.UserPreferences:PinIndex(item.ref) ~= nil
-            local description = root:CreateButton(pinned and L["取消固定"] or L["固定到首页"], function()
+            root:CreateButton(pinned and L["取消固定"] or L["固定到首页"], function()
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
                 local ok, pinError = self.palette:SetPinned(item, not pinned)
@@ -246,7 +291,6 @@ function Executor:ShowActions(row)
                 else self.palette:ReportActionResult(false, pinError) end
                 return ok
             end)
-            if components then components:StyleActionMenuButton(description) end
         end
     end)
     if self.palette then self.palette.actionMenu = menu end
@@ -260,7 +304,7 @@ function Executor:PrepareVisibleRows(rows)
     for rowIndex = 1, #(rows or {}) do
         local row = rows[rowIndex]
         local current = self:IsRowCurrent(row)
-        if not current and row.section and row.section.pinnedRef and not row.item then
+        if not current and row.section and (row.section.pinnedRef or row.section.recentRef) and not row.item then
             broker:InvalidateRow(row)
         elseif not current then
             palette:InvalidateRow(row)
@@ -289,9 +333,6 @@ function Executor:PrepareVisibleRows(rows)
                     if target and type(target.GetFrameLevel) == "function" and type(button.SetFrameLevel) == "function" then
                         local targetLevel = target:GetFrameLevel()
                         if type(targetLevel) == "number" and button:GetFrameLevel() ~= targetLevel + 1 then button:SetFrameLevel(targetLevel + 1) end
-                    end
-                    if row.secondary and row.secondary.SetFrameLevel and row.secondary:GetFrameLevel() ~= button:GetFrameLevel() + 1 then
-                        row.secondary:SetFrameLevel(button:GetFrameLevel() + 1)
                     end
                     if row.dragger and row.dragger:IsShown() then row.dragger:Hide() end
                     if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then

@@ -27,48 +27,19 @@ local function button(parent, title, width, callback)
     Lychee.UI.Theme:SetFont(control.label,"body")
     return control
 end
-local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
-    ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6,
-    ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
-    ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
-local providerDescriptions = {
-    ["builtin.player-spells"]=L["搜索并施放已学技能"],
-    ["builtin.mounts"]=L["搜索并召唤坐骑"],
-    ["builtin.bosses"]=L["搜索团本首领和技能并查看指南"],
-    ["builtin.game-menus"]=L["快速打开游戏面板"],
-    ["builtin.crests"]=L["查看当前角色的纹章数量"],
-    ["builtin.great-vault"]=L["查看宏伟宝库进度与奖励"],
-    ["builtin.bags"]=L["搜索物品并定位背包"],
-    ["builtin.talent-loadouts"]=L["搜索并切换天赋方案"],
-    ["builtin.equipment-sets"]=L["搜索并切换装备方案"],
-    ["builtin.blizzard-settings"]=L["定位设置、重载界面与冷却管理器"],
-    ["builtin.keystones"]=L["队伍钥匙、分数与副本传送"],
-    ["builtin.achievements"]=L["搜索成就、查看进度与分享链接"],
-    ["builtin.addon-inspector"]=L["指向界面，识别来源插件"],
-    ["builtin.ellesmere"]=L["用 EUI：搜索设置页面或解锁界面"],
-    ["builtin.exwind"]=L["用 EX：搜索设置页面或解锁界面"],
-}
+local function settingRow(parent, index, title, detail)
+    local row=CreateFrame("Frame",nil,parent);row:SetSize(rowWidth,metrics.rowHeight)
+    row:SetPoint("TOPLEFT",parent,"TOPLEFT",0,-rowStride*index)
+    local name=label(row,"body");name:SetPoint("TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7);name:SetText(L[title])
+    local caption=label(row,"meta","textMuted");caption:SetPoint("TOPLEFT",name,"BOTTOMLEFT",0,-3);caption:SetText(L[detail])
+    return row
+end
 local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
-local providerIcons = {
-    ["builtin.player-spells"] = iconRoot .. "spellbook.tga",
-    ["builtin.mounts"] = iconRoot .. "mounts.tga",
-    ["builtin.bosses"] = iconRoot .. "skull.tga",
-    ["builtin.game-menus"] = iconRoot .. "game-menu.tga",
-    ["builtin.crests"] = iconRoot .. "currency.tga",
-    ["builtin.great-vault"] = iconRoot .. "great-vault.tga",
-    ["builtin.bags"] = iconRoot .. "toys.tga",
-    ["builtin.talent-loadouts"] = iconRoot .. "talents.tga",
-    ["builtin.equipment-sets"] = iconRoot .. "character.tga",
-    ["builtin.blizzard-settings"] = iconRoot .. "settings.tga",
-    ["builtin.keystones"] = iconRoot .. "keystone.tga",
-    ["builtin.achievements"] = iconRoot .. "achievements.tga",
-    ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
-}
 local function rowIcon(record)
     local pin = type(record.pin) == "table" and record.pin or nil
     local icon = record.item and record.item.icon or pin and pin.icon
     if type(icon) == "string" and icon ~= "" or type(icon) == "number" and icon > 0 then return icon end
-    return providerIcons[record.id or pin and pin.providerID] or iconRoot .. "settings.tga"
+    return record.icon or iconRoot .. "settings.tga"
 end
 local function displayTitle(value, fallback) return L:Resolve(value, fallback) end
 local function releaseIdentity(row)
@@ -99,13 +70,14 @@ end
 function Settings:Create(parent, controller)
     local view = {controller=controller, rows={}, groups={}, tab="providers",scroll=0}
     local frame=CreateFrame("Frame",nil,parent);frame:SetAllPoints(parent);frame:Hide();view.frame=frame
-    local sourceTab=button(frame,L["功能来源"],86,function() view:SetTab("providers") end)
-    sourceTab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2)
-    local pinsTab=button(frame,L["已固定"],86,function() view:SetTab("pins") end)
-    pinsTab.frame:SetPoint("LEFT",sourceTab.frame,"RIGHT",12,0)
-    local generalTab=button(frame,L["综合设置"],86,function() view:SetTab("general") end)
-    generalTab.frame:SetPoint("LEFT",pinsTab.frame,"RIGHT",12,0)
-    view.tabs={providers=sourceTab,pins= pinsTab,general=generalTab}
+    view.tabs={}
+    local previous
+    for _,entry in ipairs({{"providers","功能来源"},{"pins","已固定"},{"general","综合设置"},{"about","关于"}}) do
+        local tab=button(frame,L[entry[2]],86,function() view:SetTab(entry[1]) end)
+        if previous then tab.frame:SetPoint("LEFT",previous,"RIGHT",12,0)
+        else tab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2) end
+        view.tabs[entry[1]]=tab;previous=tab.frame
+    end
     view.underline=frame:CreateTexture(nil,"ARTWORK");view.underline:SetSize(60,2)
     Lychee.UI.Theme:SetColorTexture(view.underline,"accent")
     view.undo=button(frame,L["撤销"],48,function()
@@ -134,6 +106,9 @@ function Settings:Create(parent, controller)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
+        if controller.settingsDiscovery then
+            local token=controller.settingsDiscovery;controller.settingsDiscovery=nil;token:Cancel()
+        end
         if view.providerView then view.providerView.frame:Hide() end
         if view.aliasView then view.aliasView.frame:Hide() end
         view.dragIndex,view.data=nil,nil
@@ -153,13 +128,13 @@ function Settings:Create(parent, controller)
         local row=CreateFrame("Button",nil,content);row:SetSize(rowWidth,metrics.rowHeight)
         row.icon=row:CreateTexture(nil,"ARTWORK");row.icon:SetSize(metrics.iconSize,metrics.iconSize);row.icon:SetPoint("LEFT",row,"LEFT",metrics.listIconInset,0)
         row.ui=Lychee.UI:Create(row,{type="Fragment",children={
-            {type="Text",key="name",props={role="body",color="text",height=17,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7},{"RIGHT",row,"RIGHT",-188,0}}}},
-            {type="Text",key="detail",props={role="meta",color="textMuted",height=14,points={{"TOPLEFT","name","BOTTOMLEFT",0,-3},{"RIGHT",row,"RIGHT",-180,0}}}},
+            {type="Text",key="name",props={role="body",color="text",height=17,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-7},{"RIGHT",row,"RIGHT",-124,0}}}},
+            {type="Text",key="detail",props={role="meta",color="textMuted",height=14,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT","name","BOTTOMLEFT",0,-3},{"RIGHT",row,"RIGHT",-124,0}}}},
             {type="Text",key="state",props={role="meta",color="textMuted",width=118,justifyH="RIGHT",point={"RIGHT",row,"RIGHT",-54,0}}},
         }})
         assert(row.ui:Update(EMPTY_UI_PROPS));row.name,row.detail,row.state=row.ui:Get("name"),row.ui:Get("detail"),row.ui:Get("state")
         row.toggle=Lychee.UI.Components:CreateToggle(row);row.toggle:SetPoint("RIGHT",row,"RIGHT",-metrics.listIconInset,0)
-        row.manage=button(row,L["点击管理"],54,function()
+        row.manage=button(row,L["设置"],54,function()
             if currentClick(row.manage.frame,row) then self:OpenProvider(row.providerID,row._icon) end
         end)
         row.manage.frame:SetPoint("RIGHT",row,"RIGHT",-52,0)
@@ -215,21 +190,24 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
-        controller:SetStatusText(L["更改即时生效"])
+        controller:SetStatusText(tab=="about" and L["感谢使用荔枝"] or L["更改即时生效"])
+        controller.social:Close(false)
         if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
         if Lychee.UI.Motion then
             Lychee.UI.Motion:Cancel(content,true)
             if self.general then Lychee.UI.Motion:Cancel(self.general,true) end
+            if self.about then Lychee.UI.Motion:Cancel(self.about,true) end
         end
         self.tab=tab;self.scroll=0;scroll:SetVerticalScroll(0);self:Refresh()
-        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or content,"page") end
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or tab=="about" and self.about or content,"page") end
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
         if self.providerView and self.providerView.frame:IsShown() then
-            if management:IsCurrent(self.providerView.id,self.providerView.instanceToken) then return end
+            if management:IsCurrent(self.providerView.id,self.providerView.instanceToken) then self.providerView:RefreshStatus();return end
             self.providerView.frame:Hide()
+            controller:SetStatusText(L["该功能已断开连接，配置已保留"])
         end
         if self.aliasView and self.aliasView.frame:IsShown() then return end
         if frame:IsShown() and controller.ResizeForMode then controller:ResizeForMode("settings") end
@@ -237,18 +215,40 @@ function Settings:Create(parent, controller)
         self.underline:Show()
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
-        shown(scroll,self.tab~="general")
+        shown(scroll,self.tab~="general" and self.tab~="about")
+        if self.general then shown(self.general,self.tab=="general") end
+        if self.about then shown(self.about,self.tab=="about") end
+        if self.tab=="about" then
+            self.data=nil
+            for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
+            if not self.about then
+                local about=CreateFrame("Frame",nil,frame);self.about=about
+                about:SetSize(rowWidth,L:IsChinese() and metrics.aboutHeight or metrics.aboutEnglishHeight)
+                about:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset+10,-metrics.settingsTabsHeight-12)
+                local version=C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("Lychee","Version") or L["暂不可用"]
+                local function copy(value,x,y,width,role,color,height)
+                    local region=label(about,role,color)
+                    region:SetPoint("TOPLEFT",about,"TOPLEFT",x,-y)
+                    region:SetWidth(width);region:SetHeight(height or 18)
+                    region:SetJustifyV("TOP");region:SetText(value)
+                end
+                copy(L.name,0,0,rowWidth-20,"aboutBrand","text",28)
+                copy("Follen  ·  "..L["版本"].." "..version,0,32,rowWidth-20,"meta","textMuted",18)
+                copy(L["在游戏里搜技能、物品和插件设置。"],0,64,rowWidth-20,"title","textMuted",22)
+                copy(L["常用的可以固定到首页，也能设置好记的别名。"],0,86,rowWidth-20,"title","textMuted",22)
+                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],0,124,rowWidth-20,"title","tooltipAccent",24) end
+            end
+            return
+        end
         if self.tab=="general" then
             self.data=nil
             for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
             if not self.general then
-                local general=CreateFrame("Frame",nil,frame);self.general=general
-                general:SetSize(rowWidth,metrics.rowHeight)
+                local general=settingRow(frame,0,"动态效果","窗口、页面与控件的过渡动画");self.general=general
+                general:ClearAllPoints()
                 general:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-metrics.settingsTabsHeight)
                 local icon=general:CreateTexture(nil,"ARTWORK");icon:SetSize(metrics.iconSize,metrics.iconSize)
                 icon:SetPoint("LEFT",general,"LEFT",metrics.listIconInset,0);icon:SetTexture(iconRoot.."settings.tga")
-                local title=label(general,"body");title:SetPoint("TOPLEFT",general,"TOPLEFT",metrics.listTitleInset,-7);title:SetText(L["动态效果"])
-                local detail=label(general,"meta","textMuted");detail:SetPoint("TOPLEFT",title,"BOTTOMLEFT",0,-3);detail:SetText(L["窗口、页面与控件的过渡动画"])
                 local toggle=Lychee.UI.Components:CreateToggle(general)
                 self.motion={frame=toggle,label=label(general,"meta","textMuted")}
                 self.motion.label:SetPoint("RIGHT",toggle,"LEFT",-12,0)
@@ -260,16 +260,10 @@ function Settings:Create(parent, controller)
                     text(view.motion.label,motion:IsReduced() and L["关闭"] or L["开启"])
                 end)
                 self.motion.frame:SetPoint("RIGHT",general,"RIGHT",-metrics.listIconInset,0)
-                local aliases=CreateFrame("Frame",nil,general);aliases:SetSize(rowWidth,metrics.rowHeight)
-                aliases:SetPoint("TOPLEFT",general,"TOPLEFT",0,-rowStride)
-                local aliasTitle=label(aliases,"body");aliasTitle:SetPoint("TOPLEFT",aliases,"TOPLEFT",metrics.listTitleInset,-7);aliasTitle:SetText(L["自定义别名"])
-                local aliasDetail=label(aliases,"meta","textMuted");aliasDetail:SetPoint("TOPLEFT",aliasTitle,"BOTTOMLEFT",0,-3);aliasDetail:SetText(L["用自己熟悉的名字搜索条目"])
+                local aliases=settingRow(general,1,"自定义别名","用自己熟悉的名字搜索条目")
                 self.aliasManage=button(aliases,L["管理别名"],110,function() view:OpenAliases() end)
                 self.aliasManage.frame:SetPoint("RIGHT",aliases,"RIGHT",-metrics.listIconInset,0)
-                local memory=CreateFrame("Frame",nil,general);memory:SetSize(rowWidth,metrics.rowHeight)
-                memory:SetPoint("TOPLEFT",general,"TOPLEFT",0,-rowStride*2)
-                local memoryTitle=label(memory,"body");memoryTitle:SetPoint("TOPLEFT",memory,"TOPLEFT",metrics.listTitleInset,-7);memoryTitle:SetText(L["搜索记忆"])
-                local memoryDetail=label(memory,"meta","textMuted");memoryDetail:SetPoint("TOPLEFT",memoryTitle,"BOTTOMLEFT",0,-3);memoryDetail:SetText(L["相同搜索优先显示上次选择"])
+                local memory=settingRow(general,2,"搜索记忆","相同搜索优先显示上次选择")
                 self.clearChoices=button(memory,L["清空记忆"],110,function()
                     if not frame:IsShown() or view.tab~="general" or InCombatLockdown() then return end
                     I.Search.Personalization:ClearChoices();controller:SetStatusText(L["搜索记忆已清空"])
@@ -286,27 +280,29 @@ function Settings:Create(parent, controller)
         local data,count=self.data or {},0
         if self.tab=="providers" then
             management:FillList(data)
-            for _,record in ipairs(data) do
-                record.builtin,record.order=builtinOrder[record.id]~=nil,builtinOrder[record.id] or 100
-            end
-            table.sort(data,function(a,b) if a.order~=b.order then return a.order<b.order end;return a.id<b.id end)
+            table.sort(data,function(a,b)
+                if a.sourceID~=b.sourceID then return a.sourceID<b.sourceID end
+                if a.order~=b.order then return a.order<b.order end
+                return a.id<b.id
+            end)
         else
             for index,pin in ipairs(I.UserPreferences:GetPins()) do
                 count=count+1
                 local record=data[count] or {};data[count]=record
-                record.id,record.instanceToken,record.title,record.version,record.builtin,record.order=nil,nil,nil,nil,nil,nil
-                record.status,record.lifecycle,record.userEnabled,record.ownerEnabled,record.effectiveEnabled,record.searchable=nil,nil,nil,nil,nil,nil
+                record.id,record.instanceToken,record.title,record.version,record.sourceID,record.order=nil,nil,nil,nil,nil,nil
+                record.sourceTitle,record.description,record.icon,record.groupY=nil,nil,nil,nil
+                record.status,record.lifecycle,record.userEnabled,record.ownerEnabled,record.effectiveEnabled=nil,nil,nil,nil,nil
                 record.pin,record.pinIndex=pin,index
             end
             for index=#data,count+1,-1 do data[index]=nil end
         end
         local y,groupCount,lastGroup=0,0,nil
         for index,record in ipairs(data) do
+            record.groupY=nil
             if self.tab=="providers" then
-                local group=record.builtin and L["内置"] or L["第三方"]
-                if group~=lastGroup then
-                    if lastGroup then y=y+12 end
-                    groupCount=groupCount+1;self:Header(groupCount,group,y);y=y+23;lastGroup=group
+                if record.sourceID~=lastGroup then
+                    if lastGroup then y=y+18 end
+                    record.groupY=y;y=y+26;lastGroup=record.sourceID
                 end
             end
             record.y=y;y=y+rowStride
@@ -330,9 +326,12 @@ function Settings:Create(parent, controller)
             local middle=math.floor((low+high)/2)
             if data[middle].y+metrics.rowHeight<=self.scroll then low=middle+1 else high=middle-1 end
         end
-        local visible=0
+        local visible,visibleGroups=0,0
         for index=low,#data do
             local record=data[index]
+            if record.groupY and record.groupY+20>self.scroll and record.groupY<self.scroll+viewport then
+                visibleGroups=visibleGroups+1;self:Header(visibleGroups,record.sourceTitle,record.groupY)
+            end
             if record.y>=self.scroll+viewport then break end
             visible=visible+1
             local row=self:Acquire(visible)
@@ -359,12 +358,11 @@ function Settings:Create(parent, controller)
             text(row.name,record.title)
             if self.tab=="providers" then
                 local global,prefixes,keywords=management:GetConfiguration(record.id,record.instanceToken)
-                text(row.detail,(not record.searchable and L["独立查询入口"]
-                    or global==false and L["仅通过快捷入口"].." · "..(#keywords>0 and table.concat(keywords," / ") or (prefixes[1] or "").."：")
-                    or providerDescriptions[record.id] or L["全局搜索"]))
+                text(row.detail,(global==false and L["仅通过快捷入口"].." · "..(#keywords>0 and table.concat(keywords," / ") or (prefixes[1] or "").."：")
+                    or record.description or L["全局搜索"]))
                 text(row.state,"")
-                if record.status then
-                    text(row.detail,record.status=="incompatible" and L["版本不兼容"] or record.status=="pending" and L["尚未加载"]
+                if record.status and record.status~="user-disabled" then
+                    text(row.detail,record.statusReason or record.status=="incompatible" and L["版本不兼容"] or record.status=="pending" and L["尚未加载"]
                         or record.status=="user-disabled" and L["已关闭"] or L["扩展自行停用"])
                 end
                 row.toggle:SetChecked(record.userEnabled,rebound)
@@ -383,12 +381,15 @@ function Settings:Create(parent, controller)
             if row._icon~=nil and row.icon:SetTexture(nil)~=false then row._icon=nil end
             shown(row,false)
         end
+        if #data==0 then visibleGroups=1 end
+        for index=visibleGroups+1,#self.groups do shown(self.groups[index],false) end
     end
     function view:OpenAliases(ref,title)
         if not frame:IsShown() or InCombatLockdown() then return false end
         if not self.aliasView then self.aliasView=Lychee.UI.AliasSettings:Create(frame,controller,function() view:SetTab("general") end) end
         if self.providerView then self.providerView.frame:Hide() end
         if self.general then self.general:Hide() end
+        if self.about then self.about:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.aliasView:Show(ref,title)
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
@@ -400,8 +401,9 @@ function Settings:Create(parent, controller)
         if not self.providerView then self.providerView=Lychee.UI.ProviderSettings:Create(frame,controller,function() view:Refresh();controller:SetStatusText(L["更改即时生效"]) end) end
         if self.aliasView then self.aliasView.frame:Hide() end
         if self.general then self.general:Hide() end
+        if self.about then self.about:Hide() end
         scroll:Hide();self.undo.frame:Hide()
-        self.providerView:Show(id,icon,providerDescriptions[id])
+        self.providerView:Show(id,icon)
         if controller.ResizeForMode then controller:ResizeForMode("settings") end
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
         self.underline:Hide()

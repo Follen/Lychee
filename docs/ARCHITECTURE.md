@@ -1,165 +1,72 @@
-# Lychee 通用搜索框架
+# 单插件版架构与职责
 
-运行时低内存重构另见 [角色存储与生命周期设计](architecture/2026-09-12-runtime-lifecycle.md)。它覆盖插件、SDK、构建和验收；以下描述已实现架构；使用普通具名业务记录，不包含全量休眠或伴随包。
+SDK 1.0.0 / Provider API 1.0.0。当前分支在实施[单插件功能迁移](architecture/2026-09-14-single-addon-feature-port.md)，本页规定目标职责与公开合同，不表示全部实机验收已通过。旧版搜索/数据路径作为基础；十包版作为功能参照，不能整套移回其搜索生命周期。
 
-当前契约：Provider API 2 / revision 7。字段定义见 [PROTOCOLS.md](../lychee-sdk/docs/PROTOCOLS.md)，接入见 [SDK.md](../lychee-sdk/docs/GETTING_STARTED.md)。
+## 物理包与逻辑模块
 
-Provider 可声明 `searchable=false` 保留目录与引用能力，同时退出通用搜索索引；独立 query 控制触发范围。该策略由 Host 通用协议处理，查询引擎不判断具体 Provider ID。省略声明保持旧行为。
+发行运行包只有 `addon/Lychee`。自带功能在 `Builtin/<功能>`，与 Host 同包加载；它们仍有清晰的数据、词表、事件和动作所有者。目录拆分不代表原生按需加载，也不能在窗口关闭时卸载已经加载的 Lua/SV。
 
-## 产品模型
+第三方是独立 AddOn，拥有代码、TOC、存档、媒体与许可证。接入只通过 `_G.Lychee` 和可嵌入 SDK；禁止依赖 LycheeInternal、Builtin 或 Host 私有素材。自带业务可以复用项目内部装配，但不能让第三方复制装配才能接入。Host 不硬编码第三方名称。
 
-Provider 是搜索能力的提供者，可以来自 Lychee 自身或第三方 AddOn。条目可以是可执行入口、实体、当前状态或只读信息。业务类别是展示元数据；点击、拖动和视图由显式声明决定，不由 `kind` 推导。
+## 各方负责什么
 
-Host 持有搜索会话、索引、排序、结果行、最近使用和受保护执行器。Provider 持有业务数据、普通回调及可选视图内容。结果布局由 Host 统一决定；第三方不能通过 SDK 获取 Palette 根 frame 或 SecureButton。
+| 角色 | 负责 | 不负责 |
+| --- | --- | --- |
+| Host | 发现声明、路由、加载协调、当前查询、统一排序展示、动作调度、有界偏好与引用 | 解释第三方业务数据、代管全部业务 DB、猜测 Provider 的缓存失效。 |
+| Provider | 事实读取、语言与别名、查询/恢复、动作声明、准备、业务缓存和后台通信 | 控制 Host 根窗口、替 Host 决定其他来源加载、把搜索取消当业务停用。 |
+| 独立第三方 AddOn | 原生依赖、客户端文件、SV 时序、媒体、自身启动 | 修改 Host 源码才能被发现，借用兄弟包私有目录。 |
+| Action | 一个明确行为、参数 schema、资格检查、执行与结果 | 决定通用搜索生命周期。 |
+| Invocation | 某目标 + 某动作/版本 + 规范参数的具体调用 | 以标题或行号代替身份，在预览时执行。 |
+| Widget / View | 显示状态、收集输入、绑定当前动作；关闭解除 UI 资源 | 决定插件加载、业务数据预热及持久缓存。 |
+| SDK | 公共数据边界、校验、取消、资源及可选工具 | 充当 Lua 安全沙箱或万能业务框架。 |
 
-## 模块与数据流
+## 从发现到搜索
 
-```text
-Lychee:RegisterProvider(definition)
-  -> ProviderLocales: per-Provider resources, bounded validation, selected locale
-  -> ProviderRuntime: product scopes, validation, copying, instances, query tasks, resolution
-  -> ExtensionRegistry: registration and enabled/removed lifecycle
-  -> StaticIndex: compiled entries, matching, incremental replacement
-  -> QueryOrchestrator + SearchSession: merging, ranking, cancellation
-  -> ResultList / recent tiles: one presentation and interaction model
-  -> ResultActionExecutor
-       ordinary callback -> ProviderRuntime
-       custom view       -> ViewHost
-       protected spell   -> SecureActionBroker + Policy
-       declared drag     -> Host cursor adapter / Provider callback
+```mermaid
+flowchart TD
+  A[用户打开面板或输入] --> B[Host 建立会话与绝对截止]
+  B --> C[读取已注册来源与第三方 TOC 声明]
+  C --> D[角色路由覆盖默认值，选择本次来源]
+  D --> E[需要时加载明确第三方包]
+  E --> F[核对 SV 就绪和 Provider 注册]
+  F --> G[Provider 按需准备自己的数据]
+  G --> H[普通目录检索 / Provider query]
+  H --> I[Host 校验、合并、渐进发布]
+  I --> J[显示当前结果和轻量等待状态]
 ```
 
-旧 CommandCatalog、CapabilityBroker、IntentRouter 已移除，包括 TOC、注册事务和执行分支。所有业务结果通过 Provider，Registry 仅负责搜索来源与视图的事务发布；不保留第二套命令目录或意图执行入口。
+原生禁用包不自动启用；产品范围、原生 TOC 与 API 存在性一起决定适用性。静态声明使用版本化 TOC 元数据，加载后核对 ID、所有者、路由和资源。声明格式见[加载合同](../lychee-sdk/docs/LOADING.md)。
 
-ProviderRuntime 是统一边界，不建立第二套索引或第二套启用状态。公共句柄提供 Text、Update、SetEnabled、GetState、Unregister，以及 Resources、Settings、GetDiagnostics；内部 generation 和 source token 不交给调用方。
+打开面板不是加载所有第三方的许可。首页先恢复可见固定/最近引用；可选预热只准备已有明确需求的来源。输入前缀定位指定来源；全局搜索则覆盖其真实参与范围，不能静默漏掉慢来源。准备内容由 Provider 定义；Host 限制协调、剩余时间与取消。
 
-## 产品与语言边界
+沿用旧 StaticIndex、QueryOrchestrator 与 SearchSession 的渐进基础。已有当前查询结果可立即发布，不等待所有来源统一完成。SourceAccess 只协调发现和准备，不能成为新的全局放行屏障。普通 entries 仍可交给 Host 的有界索引；自有 query、Catalog 和 documents 都是可选路径。
 
-API 2.2 的 Provider 必须明确 `scope.products`（1–4 个唯一的 retail／classic／titan／anniversary）并注册自己的 `i18n`，不能使用 Host 私有字典代替业务翻译。产品范围与 build／interface 上下界共同决定可用性；不支持的来源不启动功能事件和后台工作。旧 revision 1 无产品声明默认仅正式服。
+## 搜索开关、关闭和停用
 
-ProviderLocales 只编译普通资源表：enUS 是完整基线，zhCN／zhTW／enGB 可部分覆盖，禁止额外键。四个 locale 各最多 256 键，键 96 字节、值 1024 字节，总计 128 KiB；格式参数保持类型和顺序。编译后按当前 locale、同族 zhCN／enUS、enUS 的顺序构建 Provider 自有的选定字典，无全局第三方命名空间。语言资源外部修改与已注册字典隔离，关闭不产生任何语言驱动或事件。
+| 事件 | 含义 |
+| --- | --- |
+| 用户关闭参与搜索 | 排除普通、前缀与快捷词搜索，取消该来源的搜索工作；不停止后台、不调用 onDisable、不阻止明确引用。 |
+| 关闭面板 / 换词 | 撤销旧会话 UI 与查询订阅，拒绝迟到结果；不删除用户设置，不声称卸载代码。 |
+| Provider SetAvailability(false) | 所有者撤销业务可用性，结束该实例资源。 |
+| Unregister | 撤销实例、结果和句柄，旧回调不能复活。 |
+| 原生禁用 AddOn | 下一次客户端加载时由游戏决定；搜索偏好不代替它。 |
 
-严格 `{key="KEY"}` 在注册、更新和动态回复边界解析为显示文本；普通字符串和搜索别名仍按字面处理。引用不能添加 scope／locale 字段。公共 `handle:Text` 支持最多 16 个参数、每个字符串 1024 字节、结果 32768 字节的受限格式化；未知键和非法格式以结构化错误返回。显示文本进入原有索引，不另建翻译索引。客户端语言参与搜索／目录缓存身份，产品支持与语言选择分别判断。
+## 参数动作与界面
 
-Host 自身界面语言由独立基础字典负责，zhTW 暂以简中回退，enGB 使用英语。品牌显示为 `|cffd53c49荔枝|r启动器`／`|cffd53c49Lychee|r Launcher`，描述为“魔兽世界万用启动器”／“Universal launcher for World of Warcraft”；目录名与稳定 AddOn ID 始终是 Lychee。
+搜索给出条目，条目聚合相关 Action。音量属于暴雪设置来源：主音量、音乐、音效等各自是设置目标，设置数值、增减和调整页是该目标的动作分支；不能再多造音量 Provider 或重复普通行。
 
-## 数据与身份
+执行链为：完整引用 → 校验和只读 Prepare → 用户确认/点击 → Invoke → 确认结果 → 写入有界历史。准备与搜索不得修改设置。已提交业务操作有自己的生命周期，关页面只是解除 UI 观察；失败或结果不确定不得自动重试。参数、准备凭据和异步恢复见[Invocation](../lychee-sdk/docs/INVOCATIONS.md)。
 
-每个 Provider 有全局 ID；条目 ID 在 Provider 内稳定且唯一。对外稳定引用为 `{providerID,entryID}`。实例、索引版本、查询 epoch 是临时有效性凭据，不能充当持久化身份。两个 Provider 可以使用相同条目 ID，不会互相去重或覆盖历史。
+空白等待采用轻量状态；旧结果只可作不可操作的视觉过渡，不能计为当前查询首批。零结果、部分失败、超时、加载中分别表达。键盘选择与按下/松开绑定完整身份；不能按行号将旧操作转移给新结果。6→1、1→6、IME、长标题、小视口和关闭重开必须验收。
 
-注册、更新、动态回复、动作结果均经过边界校验。Host 复制输入，不给调用方原表附加私有字段；普通回调接收条目和 context 的副本。整批验证成功后才发布。非法声明、超量、重复 ID、未声明动作或未知执行器返回结构化错误。
+## 数据、国际化和客户端
 
-静态条目通过 Update 更新。编译索引仅移除/重建实际变化的条目，同一帧的来源通知合并为一次当前查询刷新；已有画面保留到替换结果就绪。显示行复用，文本、颜色、纹理和尺寸使用现有 change guard。
+框架偏好、固定、别名与最近记录只存有界稳定引用和必要显示回退。Provider 拥有业务设置与持久缓存；内置模块用自己的命名空间，第三方用自己的 SV。已加载 SV 仍占 Lua 堆。迁移先备份，不能因 API 不兼容丢用户数据，见[存储](../lychee-sdk/docs/STORAGE.md)。
 
-索引保存 UTF-8 字符倒排集合，以最小集合与其余查询字符求交，完整短语和跨字段多词匹配仍由评分器确认。中文搜索不再补扫所有记录，也不再维护重复的整词、前缀和二三字片段映射。单条目集合直接保存键，多条目集合记录数量并在移除后缩回单条目；模糊候选独立限额。排序只维护最终前 20 个结果，匹配失败不分配 evidence/options 表。
+Provider ID 与语种无关。品牌中“荔枝”和“Lychee”用荔枝色，显示为荔枝启动器 / Lychee Launcher；文案与游戏本地化见[i18n](../i18n.md)。Retail / classic / titan / anniversary 各自按生成清单和对应原生 API 证据验证，声明支持不代表实机通过。
 
-Provider 与索引共享 Host 已验证的 canonical 记录；外部输入与动作回调的拷贝隔离不变。来源停用时释放编译字段和倒排关系，保留记录以便恢复。Normalizer 文本缓存采用 1,024 项上限；动态恢复记录使用弱值表，由可见结果维持有效引用。主面板首次非战斗打开时创建，之后复用。测量、正确性对照及游戏内复测边界见 [深度性能优化记录](validation/2026-09-10-deep-memory-optimization.md)。
+## 验证与交付
 
-## 搜索质量与职责边界
+功能覆盖、性能测试、离线契约分别报告，不能互相替代。大改动使用 lychee-dev 做运行时功能覆盖；性能变更按 [PERFORMANCE](../PERFORMANCE.md) 用 lychee-dev 分析时间、全部适用包内存与资源稳定性。无实机证据的项目明确待验证。
 
-`Normalizer` 集中管理字面命中位置与字段评分。静态索引调用 `ScoreCompiled`，动态条目经 `MatchRecord` 将已校验记录适配成相同字段；高亮与成就查询复用 `FindLiteral`。索引只负责候选召回、有效范围和前 20 条选择，不再另外实现跨词评分。
-
-1–2 个 ASCII 英文字母只命中完整词或词首，不参与编辑距离模糊匹配；包含这种短词的多词查询也不能通过模糊匹配绕过边界。3 个及以上英文字母保留词中匹配，中文与数字沿用原规则。空白与标点构成英文词界，紧邻的数字或 UTF-8 文字不构成词界。连续输入仍复用宽候选集合，不能把短词最终命中列表当成下一次输入的候选缓存。
-
-跨词查询要求每个词都命中，以各词最强字段得分中的最低分乘 0.9 评分，再与完整短语得分比较；不再给任意跨字段命中固定 0.82 分。动态条目的标题、别名、关键词、描述、分类沿用静态字段权重；业务 query 返回无字面匹配的合法候选时，保留既有业务置信度回退，不强制过滤。
-
-个性化偏好由 `Personalization` 提供，在静态前 20 条筛选前生效，并在合并后提升；偏好不能复活未命中、已停用或范围外条目。用户别名先比较最多 128 个声明的匹配质量，再恢复最多 20 个有效结果，失效引用不占有效名额。空文本来源／分类浏览比较整个合法候选集合，避免先按无序遍历截取 200 条后遗漏优先结果；候选键数组仍随目录大小增长，最终结果对象仍只维护前 20 条。模糊候选继续受原数量与时间预算约束，不承诺穷尽召回。
-
-实现证据、前后性能和回归覆盖见 [搜索引擎质量验证](validation/2026-09-11-search-engine-quality.md)。这些是 Host 内部优化，不增加 SDK 字段或 API revision。
-
-## 查询生命周期
-
-静态目录不需要 query。动态 Provider 通过 `query(request,reply,context)` 提供候选，reply 最多成功一次，可以同步调用或延迟调用。返回的取消函数在完成、关闭、换词、超时、禁用或注销时调用，最多一次。Host 等待上限为五秒；这不意味着能抢占正在运行的同步 Lua。
-
-结果统一在 Host 去重、排序、限量并展示。scope 和筛选对静态/动态来源都生效。晚到回复、旧实例句柄、旧条目版本和旧菜单回调无法操作新会话或同 ID 的新注册实例。诊断只保留有界的 Provider ID、错误码和阶段，不保存完整业务 payload 或异常栈。
-
-动态最近使用通过独立 `resolve(entryID,context)` 获取当前条目。没有 resolve 的瞬时查询条目不写入历史；静态目录无需实现 resolve。当前版本不提供异步恢复或流式回复。
-
-QueryOrchestrator 的 operation 身份用于隔离嵌套调用，SearchSession generation 用于会话有效性，两者职责不同。调用外部取消函数前先失效并摘除旧任务；回调若启动新查询，旧调用返回后不得再写入 pending、active 或界面。ProviderRuntime 将完成、非法回复、异常与超时集中收尾；异步终态在相同查询 epoch 下通知界面，既不会让“搜索中”悬空，也不会让旧回复刷新新搜索。取消函数仍最多调用一次，不增加计时驱动或常驻轮询。
-
-## 动作与视图
-
-普通业务通过注册的命名 `run` 回调扩展，不为每种业务新增 action kind。结果只引用回调 ID，不携带闭包。普通回调可返回成功/业务错误、关闭搜索或打开本 Provider 的托管视图。
-
-受保护动作使用 Host 已支持的描述符。目前提供技能施放；必须通过真正的硬件点击，不把普通回调包装成安全脚本。其他受保护类型需独立查档、实现适配器和实机验证后才能加入协议。
-
-拖动与点击相互独立。原生 spell cursor 与 Provider 自有非保护拖动各有声明，没有声明就不注册拖动。菜单可访问全部声明动作；搜索行、最近使用图标和安全覆盖层使用同一执行校验。
-
-ViewHost 提供内容容器并管理 create、Mount(initialState)、Update(state)、Unmount、Dispose。revision 7 的 context.resources 在 create 前建立，卸载及构造失败时关闭；Provider 可复用 frame。未登记资源仍由 Provider 清理，隐藏视图不能持续工作。
-
-## 内置 Provider
-
-`Builtin/Init.lua` 在登录后注册玩家技能、坐骑、纹章、游戏菜单、首领与宏伟宝库。新增业务调用公开 `RegisterProvider`，不向结果渲染或动作路由增加具体业务分支。Host API 为 2 / revision 7。
-
-关键词触发归 ProviderPolicy 所有：注册／保存时验证词表，失效后构建有限路由快照；精确命中转为空文本来源查询，复用既有索引和动态查询入口。Index 继续只认识 sourceID/excludedSources 通用条件，不识别模式或 Provider ID。触发词用大小写／首尾空白规范化，与通用模糊搜索的标点处理分离。队伍钥匙使用同一声明，删除独立触发判断和重复查询目录，查询回调仅限频请求刷新。
-
-- `Crests.lua`：一个可搜索条目和一个托管视图；五档当前迷雾纹章首次打开时创建固定行，之后复用。只在显示时注册 `CURRENCY_DISPLAY_UPDATE`，带货币 ID 的事件仅刷新对应行；关闭、禁用、注销均停止事件，读取失败显示“—”并允许重试。
-- `GameMenus.lua`：34 条静态菜单记录，每条引用固定开窗函数和本地透明 TGA 图标；支持分页的界面传明确页签，切换式入口先检查已打开状态。冒险指南的六个入口从实际页签控件读取 ID，复用原生 OnClick 路径同步显示与游戏保存的页签；隐藏、禁用或受限页签返回失败。
-- `Bosses.lua` 与 `Data/JournalCatalog.lua`：由版本化 DB2 快照生成首领/副本关系，副本名作为每个首领的别名。搜索时不加载手册或扫描游戏 API；点击时延迟加载并检查精确 instanceID / encounterID。
-- `Mounts.lua`：缓存已收藏且当前角色可见的坐骑名称与召唤法术 ID，声明已有 `secure-spell` 点击和 `spell` 拖拽。新坐骑事件按 ID 增量更新；不带 ID 的收藏事件合并刷新，未变记录不提交；战斗期间只标记 dirty，脱战恢复。禁用注销事件，重新启用复用同一事件 frame；失败保留旧索引。共享安全策略对技能书之外的法术补充原生坐骑收藏校验，点击和拖拽时重新确认，不信任 Provider 自称可用。
-- `GreatVault.lua`：一个静态条目，名称及“低保”等别名命中；调用原生 `WeeklyRewards_ShowUI`，确认 `WeeklyRewardsFrame` 已显示才返回成功。已打开时保持打开，战斗或原生加载失败不关闭搜索窗口。
-- `InterfaceActions.lua`：内置模块共用的窄封装，处理原生调用失败、已打开窗口和战斗限制；失败不关闭搜索或写入成功历史。
-
-数据版本、更新命令、离线成本与实机验收范围见 [内置 Provider 验证记录](validation/2026-09-10-builtin-providers.md)。
-
-坐骑与宏伟宝库的来源、生命周期及离线压力测试见 [专项验证记录](validation/2026-09-10-mounts-vault.md)。
-
-当前菜单图标由 `tools/build_flat_menu_icons.cjs` 从扁平图集离线导出，原矢量重建工具保留在 tools 作为历史素材工具，运行时只加载 `Media/MenuIcons/*.tga`。资产自带 5 px 透明安全边距，兼容 Host 现有 7% 裁切；不增加特殊图标协议、运行时绘图或回调。
-
-## 启停、性能和存储
-
-onEnable(handle) 可返回清理函数；禁用/注销调用一次。SDK 还提供可取消的 RegisterReady。Provider 必须在其清理函数中释放自身事件与计时器。Host 单独清理查询任务、时限计时器和视图。
-
-不新增 OnUpdate 或空闲轮询。查询等待时才有 deadline timer，来源变化时才有一次合并刷新 timer。静态目录最多 4096 条，动态回复最多 256 条，最终列表最多 20 条；每条最多 16 个动作。同步业务回调应快速返回，重工作由集成方使用游戏事件或异步完成。
-
-游戏原生 SavedVariablesPerCharacter `LycheeCharacterDB` 保存所有当前角色设置：palette、来源开关、固定、历史、别名、搜索偏好及紧凑成就缓存；统一由 Core/CharacterStore 访问。旧账号面板设置只转移到升级角色一次，原有角色字段优先；账号自动禁用不作为角色默认。固定最多64项。搜索索引、动作payload、回调和Frame不持久化。
-
-`UserPreferences` 管理固定引用和顺序，`SettingsView` 复用来源/固定行。设置页打开时暂停搜索会话并释放安全覆盖层；返回恢复搜索。用户开关与 Provider 自身开关由 Registry 合并为有效启用状态，保留原有启动/停止生命周期。来源关闭不删除固定记录，首页刷新时重新解析当前引用。
-
-设置页按可见窗口复用行，滚动使用绝对记录索引；按下后的绑定身份失效会取消旧点击。技能模块复用事件框并只提交有变化的记录；安全代理仅在待确认施法或待脱战清理时监听事件。规范化缓存限制条数和文本长度，关闭查询释放旧候选。核心动态请求与调度轮次明确处理替换、取消和重入。全模块覆盖、收益与必要代价见 [全项目性能审查](validation/2026-09-10-project-performance.md)。
-
-## 验证
-
-公开 API 测试覆盖原子性、可变输入隔离、实例重用、同 ID 跨 Provider、动态取消/恢复、无动作条目、未知适配器、容量和生命周期。UI 测试覆盖真实 Host 渲染、视图初始/更新状态、菜单与安全右键。WoW API 证据和最终静态验证记录位于 `docs/architecture/`、`docs/validation/`。
-
-离线验证不声称测得真实客户端战斗 CPU、帧时间、taint 或安全点击行为。客户端验收需要记录登录、空闲、战斗、峰值对象量和窗口打开/关闭的实际样本。
-
-## Provider 内部的版本适配层
-
-Host 的产品过滤与 Provider 的实现选择分离：前者控制注册实例可用性，后者允许同一业务在不同 product/interface/build 下采用不同数据源、事件与交互。适配器归 Provider 所有，推荐按 TOC 加载，初始化时唯一选择；共享入口仅提交一个普通 descriptor。Host 不依赖具体适配器或新增游戏业务分支。未选中分支不创建业务资源，稳定 ID／缓存版本隔离／清理遵循 [SDK 版本差异约定](../lychee-sdk/docs/CLIENT_VARIANTS.md)。
-
-## 内部结构维护
-
-### 加载、创建与复用
-
-TOC列出的Lua在加载阶段执行，并非所有代码按需加载。Provider初始化、索引构建和Frame创建是另外三个阶段：
-搜索窗口首次打开时创建；具体目录按各Provider既有时序构建，不能以延后业务可用性冒充成本消除。
-首领目录保持原加载阶段与完整数据，仅使用连续三字段数组减少每条记录的小表。
-启动成本由`tests/performance_loading.lua`单独测量，不能用首次UI框体计数替代代码加载统计。
-
-ViewHost串行处理一次挂载会话；create每次调用，实例缓存归Provider，正常Unmount→Dispose顺序不变。
-重入挂载/更新拒绝，回调中请求关闭在回调结束后清理；归属保存在宿主字段中，不从可修改context重新推断。
-模板和完整契约见[SDK视图生命周期](../lychee-sdk/docs/VIEW_LIFECYCLE.md)。
-Elles的版本敏感访问集中在Adapter，不能据此宣称与上游无耦合；详见
-[适配契约](../lychee-sdk/docs/ADAPTER_COMPATIBILITY.md)和[本轮验证](validation/2026-09-11-loading-views-adapters.md)。
-
-内置功能按职责存放在 `addon/Lychee/Builtin/<功能>/`，实现与独立语言资源就近维护。客户端支持声明唯一来源是 `tools/client_manifest.json`，生成 TOC 与 `Builtin/Definitions.lua`；启动和注册读取同一声明。共享 CatalogProvider 负责刷新生命周期，功能不得绕过它读取 Host 私有记录或自行协调搜索完成通知。详见 [项目结构与维护入口](guides/PROJECT_STRUCTURE.md)。
-
-revision 6 将普通搜索 searchGlobal 与两个快捷入口词表解耦。ProviderPolicy.Configuration 把旧声明和旧用户 mode 覆盖映射为原有效能力，新用户组合配置优先；Snapshot 负责独立入口路由与冲突归属。UI 只编辑组合配置，不再暴露互斥模式。旧模式中未启用的词表不会自动激活。
-
-## 公共资源与测试装配
-
-Resources 统一管理 Provider/query/view 三种寿命的任务、普通事件及清理回调；ProviderData 管理角色设置与作用域缓存。EUI/EX 使用 query 作用域的 Run，保留各自枚举、结果和点击逻辑。SDK 不接管第三方同步 Lua 的抢占执行。详细 [设计](architecture/2026-09-12-managed-sdk.md)、[SDK 合同](../lychee-sdk/docs/MANAGED_RESOURCES.md)。
-
-测试公共模块加载在 tests/support/runtime.lua 收敛，实际 TOC 决定顺序；游戏 API 替身、业务断言和参考算法仍相互独立。test_assembly 验证前置依赖和失败时不执行部分加载；client_manifest/client_toc_load 独立验证真实客户端装配。
-
-## 全局职责收敛
-
-- Core/InteractionBinding 管复用目标的按下身份；换绑、隐藏或释放使未完成点击失效，普通/附加/首页/安全目标共用，键盘执行仍走 Executor。安全按钮失败使用统一 Release；页面返回搜索时恢复安全覆盖层。
-- Palette 在 create/Mount 成功后提交展示切换，失败保留首页/搜索与焦点；回调中关闭或改变导航取消旧提交。被 Dispose 的旧自定义页不能复活，替换失败回到当前首页/搜索。
-- UserPreferences 在角色或原始表替换时校验存档，热读不复制。异常数据保留并显示错误，阻止活动列表遍历与覆盖写入；异常 SV 本身仍占内存。
-- CatalogLedger 管成功提交的账本、差异和取消，业务 adapter 管枚举及值比较；通用目录 16 条批次，技能/坐骑保持单次原子 delta。
-- ResultSnapshot 管展示字段；Query 和 ProviderRuntime 单向使用它，后者负责来源标记，不再回调 Query 恢复结果。业务字段和来源身份契约不变。
-- ProviderManagement 管管理状态与注册实例校验，设置页面只持有复用的展示记录，不读取内部注册表。管理权限没有加入公开 SDK。
-
-SDK 版本和文件清单以 tools/sdk_contract.json 为依据，build_sdk.py --check 与 sdk_delivery.py 阻止跨文件漂移。当前版本与 helper 最低兼容版本分开声明。完整成本、异常处理与诊断插件退役范围见 [全局收敛设计](architecture/2026-09-12-global-refinement.md)，领域见 [CONTEXT.md](../CONTEXT.md)。
+现行源码结构见[项目结构](guides/PROJECT_STRUCTURE.md)，交付见[开发](guides/DEVELOPMENT.md)与[交付](guides/DELIVERY.md)。历史架构记录保留当时语义，只作为证据，不能覆盖本页。

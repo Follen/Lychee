@@ -74,13 +74,13 @@ assert(provider.recordMap["boss-"..firstID].subtitle=="Localized instance "..fir
 assert(not m.hasFallback and not m.frame.events.ADDON_LOADED and not m.timer and not m.job)
 m:MarkDirty();step();assert(m.job,"cancel must interrupt a live partial build")
 local stale=m.timer;local staleEvent=m.frame.scripts.OnEvent
-assert(m.handle:SetEnabled(false))
+assert(m.handle:SetAvailability(false))
 assert(not m.active and not m.timer and not m.job and not next(m.frame.events) and activeTimers()==0)
 reads=bossReads;stale.callback();staleEvent(m.frame,"ADDON_LOADED","Blizzard_EncounterJournal");drain()
 assert(bossReads==reads and activeTimers()==0 and not m.active,"late callbacks must not restart disabled catalogue")
-assert(m.handle:SetEnabled(true));drain()
+assert(m.handle:SetAvailability(true));drain()
 assert(#provider.records==65 and #frames==baseFrames+1 and not m.timer and not m.job)
-assert(m.handle:SetEnabled(false));drain()
+assert(m.handle:SetAvailability(false));drain()
 local allocation=collectgarbage("count")-memoryBefore
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-memoryBefore
 assert(peakTimers==1 and activeTimers()==0 and not next(m.frame.events))

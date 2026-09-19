@@ -94,7 +94,7 @@ function M:Init()
         end
     end
     local handle, err = _G.Lychee:RegisterProvider({
-        id="builtin.game-menus", apiVersion=2,minApiRevision=2,i18n=L.resources, version="1.0.0", title=L["游戏菜单"], scope=I.Builtin.Support:Scope("builtin.game-menus"), entries=records,
+        id="builtin.game-menus", apiVersion="1.0.0",i18n=L.resources, version="1.0.0", title=L["游戏菜单"], scope=I.Builtin.Support:Scope("builtin.game-menus"), entries=records,
         actions={open={title=L["打开界面"],run=function(entry)
             local open = opens[entry.payload.menuID]
             if not open then return {ok=false, code="UI_UNAVAILABLE"} end

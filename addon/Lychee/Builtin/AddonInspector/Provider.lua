@@ -317,12 +317,15 @@ function M:EnableSource()
 end
 function M:Init()
     if self.handle then return true end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion=2,minApiRevision=2,i18n=L.resources,version="1.0.0",title=L["插件识别"],scope=I.Builtin.Support:Scope("builtin.addon-inspector"),
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",i18n=L.resources,version="1.0.0",title=L["插件识别"],scope=I.Builtin.Support:Scope("builtin.addon-inspector"),
         entries={{id="inspect",title=L["插件识别"],kindTitle=L["工具"],subtitle=L["指向界面，查看来自哪个插件"],
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\addon-inspector.tga",
             aliases={"这是什么插件","识别插件","框体","界面来源","wtf","inspect","frame"},actions={"inspect"}}},
         actions={inspect={title=L["开始识别"],run=function() return M:Start() end}},
-        onEnable=function() M.enabled=true;return function(reason)
+        onEnable=function() M.enabled=true
+            local observer=assert(_G.Lychee:ObservePalette(function(visible) if visible then M:Stop() end end))
+            return function(reason)
+            observer:Cancel()
             M.enabled=false;M:Stop();if reason=="unregister" then M.handle=nil end
         end end})
     return self.handle~=nil

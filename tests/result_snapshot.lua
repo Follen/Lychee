@@ -30,7 +30,7 @@ local record={id="one",title="Uniform snapshot",subtitle="Same subtitle",descrip
     icon=123,payload={number=7},actions={"open"}}
 local executed=0
 local function definition()
-    return {id="snapshot.fixture",title="Fixture",version="1",apiVersion=2,entries={record},
+    return {id="snapshot.fixture",title="Fixture",version="1",apiVersion="1.0.0",entries={record},
         actions={open={title="Open",run=function(value)
             assert(value.id=="one" and value.payload.number==7);executed=executed+1;return {ok=true}
         end}},query=function(_,reply) assert(reply({record})) end}

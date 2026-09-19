@@ -6,12 +6,25 @@ local LIMIT, BYTES = 64, 65536
 local fields = {providerID=1024,entryID=1024,sourceID=1024,title=4096,sourceTitle=4096,icon=1024}
 local owner, original, active, size, recovery
 local EMPTY = {}
+local recentOwner,recentOriginal,recentActive,recentRecovery
 local function matches(left, right)
+    if type(left)=="table" and type(right)=="table" and (left.kind or right.kind) then
+        if left.kind=="legacy-entry" and not right.kind or right.kind=="legacy-entry" and not left.kind then
+            return left.providerID==right.providerID and left.entryID==right.entryID
+        end
+        return I.Invocations and I.Invocations:Equal(left,right) or false
+    end
     return type(left) == "table" and type(right) == "table"
         and left.providerID == right.providerID and left.entryID == right.entryID
 end
 local function pinBytes(pin)
     if type(pin) ~= "table" or getmetatable(pin) ~= nil then return end
+    if pin.kind~=nil then
+        if not I.Invocations or not I.Invocations:NormalizeStoredRef(pin) then return end
+        local _,err,bytes=I.Boundary:Copy(pin,"reference",{maxDepth=6,maxFields=32,maxNodes=256,maxBytes=16384,scalarKeys=true})
+        if not err then return bytes end
+        return
+    end
     if type(pin.providerID) ~= "string" or pin.providerID == "" or type(pin.entryID) ~= "string" or pin.entryID == "" then return end
     local bytes, count = 16, 0
     for key,value in next,pin do
@@ -28,12 +41,9 @@ local function pinBytes(pin)
 end
 local function validate(pins)
     if type(pins) ~= "table" or getmetatable(pins) ~= nil then return end
-    local count, bytes = 0, 0
-    for key in next,pins do
-        count = count + 1
-        if count > LIMIT or type(key) ~= "number" or key % 1 ~= 0 or key < 1 or key > LIMIT then return end
-    end
-    for index=1,count do
+    if not I.Boundary.Array(pins,LIMIT) then return end
+    local bytes = 0
+    for index=1,#pins do
         local pin = rawget(pins,index)
         local cost = pinBytes(pin)
         if not cost then return end
@@ -56,6 +66,54 @@ local function pins()
 end
 function Preferences:Initialize() pins() end
 function Preferences:GetPins() return pins() end
+function Preferences:GetRecent()
+    local saved=I.CharacterStore:Palette()
+    if saved.recent==nil then saved.recent={} end
+    if saved~=recentOwner or saved.recent~=recentOriginal then
+        recentOwner,recentOriginal=saved,saved.recent
+        local valid=validate(recentOriginal)
+        recentRecovery=not valid or #recentOriginal>8
+        recentActive=not recentRecovery and recentOriginal or EMPTY
+    end
+    return recentActive
+end
+function Preferences:GetRecentRecoveryError() self:GetRecent();return recentRecovery and "RECENT_DATA_INVALID" or nil end
+local function trimRecent(refs)
+    while #refs>8 or not validate(refs) do
+        if #refs==0 then return end
+        refs[#refs]=nil
+    end
+end
+function Preferences:TouchRecent(item)
+    if not self:CanPin(item) then return false end
+    local refs,ref=self:GetRecent(),item.ref
+    if recentRecovery then return false end
+    for index=#refs,1,-1 do if matches(refs[index],ref) then table.remove(refs,index) end end
+    local saved=ref.kind and I.Invocations:NormalizeStoredRef(ref) or {providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID}
+    if not saved then return false end
+    saved.title=type(item.text)=="string" and #item.text<=4096 and item.text or nil
+    saved.sourceTitle=type(item.sourceTitle)=="string" and #item.sourceTitle<=4096 and item.sourceTitle or nil
+    saved.icon=(type(item.icon)=="number" or type(item.icon)=="string" and #item.icon<=1024) and item.icon or nil
+    if not pinBytes(saved) then return false end
+    table.insert(refs,1,saved)
+    trimRecent(refs)
+    return true
+end
+function Preferences:TouchInvocation(ref,display)
+    local normalized=I.Invocations and I.Invocations:NormalizeStoredRef(ref)
+    if not normalized or normalized.kind~="invocation" or normalized.product~=I.Search.RuntimeIdentity:Current().product then return false end
+    if display then
+        normalized.entryID=display.entryID or normalized.entryID
+        normalized.title,normalized.icon,normalized.sourceTitle=display.title,display.icon,display.sourceTitle
+    end
+    if not pinBytes(normalized) then return false end
+    local refs=self:GetRecent()
+    if recentRecovery then return false end
+    if not validate(refs) then return false end
+    for index=#refs,1,-1 do if matches(refs[index],normalized) then table.remove(refs,index) end end
+    table.insert(refs,1,normalized);trimRecent(refs)
+    return true
+end
 function Preferences:GetRecoveryError() pins(); return recovery end
 function Preferences:CanPin(item)
     return item and item.ref and item.ref.providerID ~= "lychee.settings"
@@ -78,6 +136,12 @@ function Preferences:Pin(item)
     if self:GetRecoveryError() then return false,recovery end
     local ref = item.ref
     if self:PinIndex(ref) then return true end
+    if ref.kind then
+        local saved=I.Invocations:NormalizeStoredRef(ref)
+        if not saved then return false,"PIN_DATA_INVALID" end
+        saved.title,saved.icon,saved.sourceTitle=item.text,item.icon,item.sourceTitle
+        return insert(saved)
+    end
     return insert({providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID,
         title=item.text,icon=item.icon,sourceTitle=item.sourceTitle})
 end
@@ -103,7 +167,7 @@ function Preferences:Move(from,to)
     table.insert(list,to,table.remove(list,from))
     return true
 end
-function Preferences:Resolve(pin)
+function Preferences:Resolve(pin,reply)
     if type(pin) ~= "table" then return nil end
-    return I.Providers and I.Providers:Resolve(pin,I.Context and I.Context:Snapshot() or {})
+    if I.Providers then return I.Providers:Resolve(pin,I.Context and I.Context:Snapshot() or {},reply) end
 end

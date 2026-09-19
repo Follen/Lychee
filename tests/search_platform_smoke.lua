@@ -105,7 +105,7 @@ I.Search.RuntimeIdentity:Refresh()
 I.Search.Normalizer.locale = "zhCN"
 I.Search.StaticIndex:Clear()
 I.Registry:SetReady(true)
-local draft = I.Registry:Begin({ id = "test.search", apiVersion = 2, minApiRevision = 1, title = "Search fixture" })
+local draft = I.Registry:Begin({ id = "test.search", apiVersion="1.0.0", title = "Search fixture" })
 assert(draft)
 assert(draft:RegisterSearchSource({
     id = "creatures", version = 1, revision = 1, priority = 50, scope = {}, title = { default = "Creature source", zhCN = "生物来源" },
@@ -167,7 +167,7 @@ assert(sourceHandle:Upsert({ id = "creature:sync-timer", kind = "creature", cate
 assert(sourceHandle:GetState().revision == synchronousBefore + 1, "synchronous timer commits staged mutation")
 C_Timer = nil
 
-local invalidCategoryDraft = I.Registry:Begin({ id = "test.category", apiVersion = 2, minApiRevision = 1, title = "Category" })
+local invalidCategoryDraft = I.Registry:Begin({ id = "test.category", apiVersion="1.0.0", title = "Category" })
 assert(invalidCategoryDraft)
 assert(invalidCategoryDraft:RegisterSearchSource({ id = "records", version = 1, revision = 1, priority = 1, scope = {}, records = { { id = "one", kind = "other", category = { id = "unprefixed" }, title = "Bad" } } }))
 local invalidCategoryHandle, invalidCategoryErr = invalidCategoryDraft:Commit()

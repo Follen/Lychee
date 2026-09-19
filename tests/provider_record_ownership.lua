@@ -2,7 +2,7 @@
 dofile("tests/provider_sdk_smoke.lua")
 local I=LycheeInternal
 local original={id="entry",title="Original",payload={nested={value=1}},aliases={"original alias"}}
-local handle=assert(Lychee:RegisterProvider({id="ownership.transfer",apiVersion=2,version="1",title="Ownership",entries={original}}))
+local handle=assert(Lychee:RegisterProvider({id="ownership.transfer",apiVersion="1.0.0",version="1",title="Ownership",entries={original}}))
 local function current() return I.Search.StaticIndex:GetRecord("ownership.transfer:records","entry") end
 original.title="caller mutation";original.payload.nested.value=99;original.aliases[1]="caller alias"
 assert(current().title=="Original" and current().payload.nested.value==1 and current().aliases[1]=="original alias")
@@ -23,7 +23,7 @@ assert(not ok and current()==before and I.Providers.entries[handle.id].records[1
 assert(handle:Update({upsert={{id="entry",title="Recovered",payload={nested={value=5}}}}}))
 assert(current().payload.nested.value==5,"failed transfer must not poison retry")
 -- A field on public data cannot manufacture the private ownership capability.
-local bad,err=Lychee:RegisterProvider({id="ownership.forged",apiVersion=2,version="1",title="Bad",entries={},_ownedRecords=true})
+local bad,err=Lychee:RegisterProvider({id="ownership.forged",apiVersion="1.0.0",version="1",title="Bad",entries={},_ownedRecords=true})
 assert(not bad and err.code=="INVALID_SCHEMA")
 assert(Lychee._OwnRecords==nil,"private ownership must not enter the SDK facade")
 local reentered=false

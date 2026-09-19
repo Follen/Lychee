@@ -30,6 +30,9 @@ function methods:SetTextColor() setters=setters+1 end
 function methods:SetFont() setters=setters+1;return true end
 function methods:SetShadowOffset() end
 function methods:SetJustifyH() end
+function methods:SetNonSpaceWrap() end
+function methods:SetWordWrap() end
+function methods:SetMaxLines() end
 function methods:EnableMouseWheel() end
 function methods:EnableMouse() end
 function methods:RegisterForDrag() end
@@ -59,12 +62,13 @@ function I.UserPreferences:Move(from,to)
 end
 function I.UserPreferences:Remove(index) mutations=mutations+1;return table.remove(pins,index) end
 function I.Registry:SetUserEnabled(id,value) mutations=mutations+1;self.entries[id].userEnabled=value;return true end
-local controller={MarkHomeDirty=function() end,SetStatusText=function() end}
+local controller={social={Close=function() end},MarkHomeDirty=function() end,SetStatusText=function() end}
 local frameFactory=CreateFrame
 CreateFrame=nil
 dofile(root.."Bootstrap.lua")
 CreateFrame=frameFactory
 I.Search=I.Search or {}
+dofile(root.."Builtin/Definitions.lua")
 dofile(root.."Core/ProviderManagement.lua")
 for _, name in ipairs({"Theme","Runtime","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
 for i=1,1000 do
@@ -179,7 +183,7 @@ if check then
     I.Registry.entries["builtin.mounts"]={userEnabled=true}
     view:SetTab("providers")
     assert(view.rows[1].providerID=="builtin.mounts","built-in ordering survives reuse")
-    assert(view.rows[2]._y==110,"group spacing survives virtualization with shared row gap")
+    assert(view.rows[2]._y==Lychee.UI.Theme.Metrics.rowHeight+Lychee.UI.Theme.Metrics.rowGap+26+18+26,"group spacing survives virtualization with shared row gap")
     for id in pairs(I.Providers.entries) do I.Providers.entries[id]=nil end
     local added={"builtin.bags","builtin.talent-loadouts","builtin.equipment-sets","builtin.blizzard-settings","builtin.keystones"}
     local icons={"toys.tga","talents.tga","character.tga","settings.tga","keystone.tga"}

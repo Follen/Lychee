@@ -1,8 +1,8 @@
 # 开发与验证
 
-当前版本为 Lychee 0.2.0，Provider API 2 / revision 6。运行时唯一来源是 `addon/Lychee`；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
+当前版本为 Lychee 0.2.0，SDK / Provider API 1.0.0。运行时唯一来源是 `addon/Lychee`；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
 
-当前 [生命周期实施设计](../architecture/2026-09-12-runtime-lifecycle.md) 与 [测试框架升级设计](../../tests/LIFECYCLE_ACCEPTANCE.md) 定义本轮角色存储、接收校验和资源释放门禁。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
+本分支执行[单插件功能迁移](../architecture/2026-09-14-single-addon-feature-port.md)。[架构](../ARCHITECTURE.md)定义现行职责；[旧生命周期设计](../architecture/2026-09-12-runtime-lifecycle.md)和[测试框架记录](../../tests/LIFECYCLE_ACCEPTANCE.md)保留历史背景，不覆盖 SDK 1.0.0 的现行合同。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
 
 ## 环境与目录
 
@@ -47,7 +47,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 正式服安装结构为 `Interface/AddOns/Lychee/Lychee.toc`。只安装 `addon/Lychee` 的运行时文件，不复制 SDK、测试、文档或工具状态。仓库开发流程要求检查通过并创建 Git 提交后，才覆盖复制到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，随后核对文件清单和 SHA-256；不自动删除目标旧文件。
 
-新增模块或 TOC 变化后重启客户端；仅已加载文件内容变化时可用 `/reload`。0.2.0 升级不迁移旧 schema，旧 `LycheeDB` 整表重置。系统保存的游戏按键绑定独立于该表；默认 Alt+Space 不覆盖已有绑定。
+新增模块或 TOC 变化后重启客户端；仅已加载文件内容变化时可用 `/reload`。系统保存的游戏按键绑定独立于插件存档；默认 Alt+Space 不覆盖已有绑定。
+
+多包开发版到本分支不能只靠覆盖目录完成。先备份并核对原有账号/角色 SV、Provider ID 与具体引用，按[转换交付步骤](DELIVERY.md#从多包开发版转换)隔离旧自带包。Bootstrap 不再因账号 schema 不同而重置整表；各数据所有者仍需校验自己的字段。这不是跨版本迁移保证，来源 ID、业务设置及具体动作引用必须先完成转换核对。API 2 不兼容不等于允许丢弃用户偏好。
 
 演示 AddOn 可将 `lychee-sdk/examples/ThirdPartyFixture` 复制到 `Interface/AddOns/ThirdPartyFixture`，与 Lychee 同时启用并重启客户端。搜索“示例”或英文 `fixture`，可检查普通动作、只读条目、右键次要动作和详情视图。示例拖动仅记录一次普通回调，不会创建游戏物品光标。该示例用于开发验收，不随 Host 正式服同步自动安装。
 
@@ -59,11 +61,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 1. 登录后能用绑定呼出，搜索结果与最近使用的点击、右键、拖动及提示一致；只读条目不会误执行。
 2. 长名称、不同 UI 缩放、滚动和键盘选择显示正确；详情视图首次状态与后续更新正确。
-3. 快速换词、关闭、Provider 禁用/注销后，旧查询不回流；自身事件和计时器按生命周期停止。
+3. 快速换词、关闭、Provider 所有者停用/注销后，旧查询不回流，相关资源按生命周期停止。另测用户搜索开关：来源不再参与搜索，但后台功能不被误停，明确固定/最近引用按可用性恢复。
 4. 技能必须真实鼠标点击，成功后才进入历史；次要技能菜单选择先准备按钮。进入战斗关闭，脱战不自动重开；检查错误日志与 taint。
 5. 按 AGENTS.md 在登录、空闲、单目标战斗、多目标/团本、姓名板峰值和配置页面打开/关闭场景记录 CPU、Lua 内存、对象数量和帧时间；无配置页面时注明不适用，并记录搜索窗口打开/关闭样本。
 
-在验证记录中区分自动化已通过项、实机测量值和未测项。当前框架交付未取得真实客户端战斗、taint、安全点击和性能采样证据。
+在验证记录中区分自动化已通过项、实机测量值和未测项。历史报告不代表本次迁移通过；未取得本次安装提交对应的真实客户端证据前，战斗、taint、安全点击和性能采样均保持待验收。
 
 ## 版本差异实现的验收
 
@@ -72,3 +74,11 @@ Provider 声明多个客户端或版本区间时，按 [客户端与 build 差�
 测试新增/迁移请使用 [测试装配约定](../../tests/README.md)，保留独立的外部替身、业务参照和断言。SDK 资源契约修改必须同步 MANAGED_RESOURCES、ApiStubs 与可执行示例。
 
 发布产物与游戏同步见[交付指南](DELIVERY.md)。文档改动仅运行链接、版本、SDK生成一致性与差异检查；跨源码目录迁移另执行完整契约及运行字节对比。
+
+## 大改动的功能覆盖
+
+修改搜索、Provider/API、Invocation、生命周期、存档、页面交互或跨模块调用，必须用 lychee-dev 做真实客户端功能覆盖。先列用户流程、环境和预期，再覆盖正常、失败、取消、重试、关闭重开，以及改动涉及的角色、语言和客户端分支。搜索改动还须覆盖慢来源与快速来源同时查询、首批可交互结果、6→5→4→3→2→1 条候选回缩、输入法组合、首页引用冷恢复及搜索开关；设置改动覆盖普通条目、默认/右键动作、自然语言参数和实际写入结果；SDK 改动覆盖独立第三方冷加载、注册失败、取消与重新注册。
+
+记录安装提交、运行文件哈希、Ticket、断言和未覆盖项；不能用离线替身、单纯内存采样或截图代替功能结论。
+
+lychee-dev 在本节负责功能覆盖；运行时内存、CPU、延迟分析与 Agent 性能优化另按 [PERFORMANCE.md](../../PERFORMANCE.md) 执行并单独出结论。常规探针走 lychee-dev，不用 computer use 代替；只有无法判断当前游戏状态时才用界面确认。没有可用客户端时保留待验收状态。

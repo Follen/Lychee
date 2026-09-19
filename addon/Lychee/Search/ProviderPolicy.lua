@@ -65,12 +65,26 @@ function P:Configuration(id,definition,defaults)
     if definition.searchGlobal~=nil and not (row and row.mode) then return definition.searchGlobal,list,words end
     return mode=="global",mode=="keyword" and {} or list,mode=="keyword" and words or {}
 end
+function P:IsParticipating(id)
+    return I.CharacterStore:DisabledProviders()[id]~=true
+end
+function P:Definition(id)
+    local entry=I.Providers.entries[id]
+    if entry then return entry.definition end
+    local row=I.AddonDiscovery and I.AddonDiscovery:Get(id)
+    return row and not row.reason and row.selected and row or nil
+end
 function P:Snapshot()
     self:Data()
     if self.cache then return self.cache end
-    local cache={map={},excluded={},keywords={},keywordSources={},reservedKeywords={}}
-    for prefix,id in pairs(I.Search.Query and I.Search.Query.categoryPrefixes or {}) do cache.map[prefix]=id end
-    for id,entry in pairs(I.Providers and I.Providers.entries or {}) do
+    local cache={map={},excluded={},disabled={},keywords={},keywordSources={},reservedKeywords={}}
+    local definitions={}
+    for id,entry in pairs(I.Providers and I.Providers.entries or {}) do definitions[id]=entry.definition end
+    for _,row in ipairs(I.AddonDiscovery and I.AddonDiscovery:Definitions() or {}) do
+        if not definitions[row.id] and row.selected and not row.reason then definitions[row.id]=row end
+    end
+    for id,definition in pairs(definitions) do
+        local entry={definition=definition}
         local global,list,words=self:Configuration(id,entry.definition)
         local _,_,claimed=self:Effective(id,entry.definition)
         for _,word in ipairs(claimed or {}) do
@@ -88,17 +102,15 @@ function P:Snapshot()
         end
         if #words>0 then cache.keywordSources[id]=true end
         if not global then cache.excluded[id..":records"]=true end
+        if not self:IsParticipating(id) then cache.disabled[id..":records"]=true end
     end
     self.cache=cache;return cache
 end
 function P:ValidateDefinition(definition)
     if definition.searchGlobal~=nil then
-        if (definition.minApiRevision or 1)<6 then return nil,"searchGlobal.minApiRevision" end
         if type(definition.searchGlobal)~="boolean" or definition.searchMode~=nil then return nil,"searchGlobal/searchMode" end
     end
     if definition.searchMode==nil and definition.searchPrefixes==nil and definition.searchKeywords==nil and definition.searchGlobal==nil then return true end
-    if (definition.searchMode=="keyword" or definition.searchKeywords~=nil) and (definition.minApiRevision or 1)<5 then return nil,"searchKeywords.minApiRevision" end
-    if (definition.minApiRevision or 1)<4 then return nil,"searchMode.minApiRevision" end
     if definition.searchMode~=nil and definition.searchMode~="global" and definition.searchMode~="prefix" and definition.searchMode~="keyword" then return nil,"searchMode" end
     if definition.searchable==false then return nil,"searchable/searchMode" end
     local list=definition.searchPrefixes and prefixes(definition.searchPrefixes,false,definition.searchGlobal~=nil)
@@ -113,7 +125,8 @@ function P:ValidateDefinition(definition)
     return true
 end
 function P:SetConfiguration(id,global,input,keywordInput)
-    local entry=I.Providers.entries[id]
+    local definition=self:Definition(id)
+    local entry=definition and {definition=definition}
     if not entry or entry.definition.searchable==false then return false,"不可修改独立查询入口" end
     if type(global)~="boolean" then return false,"搜索方式无效" end
     local list=prefixes(input,false,true);local words=prefixes(keywordInput,true,true)
@@ -131,7 +144,8 @@ function P:SetConfiguration(id,global,input,keywordInput)
     return true
 end
 function P:Set(id,mode,input,keywordInput)
-    local entry=I.Providers.entries[id]
+    local definition=self:Definition(id)
+    local entry=definition and {definition=definition}
     if not entry or entry.definition.searchable==false then return false,"不可修改独立查询入口" end
     if mode~=nil and mode~="global" and mode~="prefix" and mode~="keyword" then return false,"搜索方式无效" end
     local list=input and prefixes(input)
@@ -157,23 +171,28 @@ function P:Set(id,mode,input,keywordInput)
     return true
 end
 function P:Route(text,filter)
+    local offset=0
     local snapshot=self:Snapshot()
     local keywordOwner=next(snapshot.keywords) and snapshot.keywords[literal(text)]
     if not filter and keywordOwner and snapshot.keywordSources[keywordOwner] then
-        text="";filter={sourceID=keywordOwner..":records"}
+        offset=#text;text="";filter={sourceID=keywordOwner..":records"}
     end
     local first,last=text:find(":",1,true)
     local wide,wideLast=text:find("：",1,true)
     if wide and (not first or wide<first) then first,last=wide,wideLast end
     if first then
         local owner=snapshot.map[normalize(text:sub(1,first-1))]
-        if owner then text=text:sub(last+1);filter={sourceID=owner..":records"} end
+        if owner then offset=offset+last;text=text:sub(last+1);filter={sourceID=owner..":records"} end
     end
-    if next(snapshot.excluded) then
+    if next(snapshot.excluded) or next(snapshot.disabled) then
         local copy={}
         for key,value in pairs(filter or {}) do copy[key]=value end
-        copy.excludedSources=not copy.sourceID and snapshot.excluded or nil
+        local excluded={}
+        if not copy.sourceID then for id in pairs(snapshot.excluded) do excluded[id]=true end end
+        for id in pairs(snapshot.disabled) do excluded[id]=true end
+        for id,value in pairs(copy.excludedSources or {}) do excluded[id]=value end
+        copy.excludedSources=excluded
         copy.policyVersion=self.version;filter=copy
     end
-    return text,filter
+    return text,filter,offset
 end

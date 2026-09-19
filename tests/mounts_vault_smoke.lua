@@ -134,14 +134,14 @@ failedList=nil; event("PLAYER_REGEN_ENABLED"); flush()
 
 event("NEW_MOUNT_ADDED",11)
 beforeReads=reads
-assert(M.handle:SetEnabled(false))
+assert(M.handle:SetAvailability(false))
 assert(next(M.eventFrame.events)==nil and M.eventFrame.scripts.OnEvent==nil)
 flush(); assert(reads==beforeReads and not find("无敌","builtin.mounts"), "disabled callback cannot keep working")
 local warmFrames=#frames
-assert(M.handle:SetEnabled(true)); flush()
+assert(M.handle:SetAvailability(true)); flush()
 assert(#frames==warmFrames and find("提交后的无敌","builtin.mounts"), "re-enable reuses event frame")
 event("NEW_MOUNT_ADDED",11)
-assert(M.handle:SetEnabled(false)); assert(M.handle:SetEnabled(true))
+assert(M.handle:SetAvailability(false)); assert(M.handle:SetAvailability(true))
 beforeLists=listReads; flush()
 assert(listReads==beforeLists+1, "obsolete queued callback cannot consume new lifecycle work")
 

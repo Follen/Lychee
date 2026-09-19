@@ -1,5 +1,5 @@
 -- Optional helper; not an AddOn and never a second Host implementation.
-local API = { API_VERSION=2, API_REVISION=7, MIN_API_REVISION=6, ERROR_CODES={} }
+local API = { API_VERSION="1.0.0", ERROR_CODES={} }
 for _, code in ipairs({
     "INVALID_LOCALES", "INVALID_LOCALE_KEY", "INVALID_LOCALE_FORMAT", "LOCALE_LIMIT",
     "SDK_UNAVAILABLE", "UNSUPPORTED_API", "INVALID_SCHEMA", "DUPLICATE_ID",
@@ -14,11 +14,11 @@ for _, code in ipairs({
     API.ERROR_CODES[code]=code
 end
 function API.GetFacade() return _G.Lychee end
-function API.Supports(facade, apiVersion, minRevision)
+function API.Supports(facade, apiVersion, ...)
     if type(facade)~="table" or type(facade.Supports)~="function" then return false,{code="SDK_UNAVAILABLE",retryable=true} end
     if apiVersion==nil then apiVersion=API.API_VERSION end
-    if minRevision==nil then minRevision=API.MIN_API_REVISION end
-    local ok,supported=pcall(facade.Supports,facade,apiVersion,minRevision)
+    if select("#",...)~=0 then return false,{code="UNSUPPORTED_API",retryable=false} end
+    local ok,supported=pcall(facade.Supports,facade,apiVersion)
     if not ok or not supported then return false,{code="UNSUPPORTED_API",retryable=false} end
     return true
 end

@@ -138,7 +138,7 @@ local function build(self,put,checkpoint)
         put({id=id,title=title,kind="keystone",kindTitle=badge,subtitle=subtitle,
             description=#maps==0 and L["赛季副本列表尚未获取"] or L["当季副本成绩"],
             icon=dungeonIcon or "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\keystone.tga",aliases={"钥匙","key","keys","大秘境","分数"},
-            payload={guid=entry.guid,mapID=map,level=level,scoreRows=scoreRows},
+            tooltipRows=scoreRows,payload={guid=entry.guid,mapID=map,level=level},
             actions=spell and {{id="teleport",title=L["传送"],kind="secure-spell",spellID=spell}} or {}},
             title.."\0"..badge.."\0"..description.."\0"..tostring(spell).."\0"..tostring(dungeonIcon))
         checkpoint()

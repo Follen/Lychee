@@ -1,31 +1,9 @@
-# SDK 版本与交付约束
+# SDK 交付合同
 
-性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+SDK 与公开 API 版本统一为 1.0.0；API_VERSION="1.0.0"，helper 默认检查这个完整字符串。不提供修订号或数字版本兼容入口。编辑器声明 ApiStubs.lua 不进入 AddOn TOC。
 
-SDK 开发包只提供协议、编辑器声明、可选 helper 和示例，不是第二个 Host，也不直接安装为 AddOn。
+开发包可单独解压，文档仅引用包内文件或明确远程资料。LycheeAPI.lua 是可选能力检查器；Storage.lua 是可嵌入模块，放进自己的插件并由自己的 TOC 加载。不是把整个 lychee-sdk 安装到 AddOns。
 
-当前 API 为 **2 / revision 7**。可选 `LycheeAPI.lua` 分开声明：
+唯一构建合同是 tools/sdk_contract.json：版本、错误码、全部文件清单。`python tools/build_sdk.py --write` 只更新生成字段和性能文档副本；`--check` 只读检查。完整发布工具另生成五运行时目录组成的 Lychee.zip 和独立 lychee-sdk.zip，校验路径、文件清单、SHA-256 和可重复构建。
 
-- `API_VERSION=2`、`API_REVISION=7`：本开发包描述的当前能力。
-- `MIN_API_REVISION=6`：省略 `API.Supports(facade)` 参数时保留的最低兼容要求。
-
-默认下限 6 保留旧 helper 的行为，不表示 revision 6 提供托管资源。使用 `Resources`、角色设置、有界缓存或 query/view 资源时，必须显式检查 `API.Supports(facade, 2, 7)`，并在 Provider 中声明 `minApiRevision=7`。已接入的旧 Provider 不会被统一强制升级到 revision 7。
-
-## 构建期唯一依据
-
-仓库 `tools/sdk_contract.json` 管理当前版本、helper 兼容下限、错误码和 SDK 文件清单。它不在游戏中加载。
-
-```text
-python tools/build_sdk.py --check
-python tests/sdk_delivery.py
-```
-
-检查器核对 Host 版本行、编辑器声明、helper 版本与默认兼容检查、manifest，以及交付目录中的全部文件。缺少声明文件、新增文件未列入契约、重复路径或声明漂移都会失败。
-
-维护者修改契约后显式执行 `python tools/build_sdk.py --write`，仅更新生成的声明和 manifest；不会创建 ZIP、复制运行时或发布。业务 helper 的转发实现仍在 `LycheeAPI.lua`，不在工具中另写一份运行时。
-
-`manifest.yaml` 自身随开发包保留，`contents` 列出其余全部文档、类型、helper 和示例，包括托管资源与 UI 生命周期示例。示例目录各自的 TOC 只用于示例插件；`ApiStubs.lua` 不得写入运行时 TOC。
-
-自动测试会分别破坏 Host、类型、helper 和交付文件，以确认门禁能识别单边修改；同时验证合法的 revision 6 默认兼容下限与显式 revision 7 要求。
-
-性能规范从项目根PERFORMANCE.md生成到本包docs/PERFORMANCE.md。维护者只编辑根文件，再执行build_sdk.py --write；手改副本会导致--check失败。SDK文档的本地链接必须在本包内闭合，外部仓库资料使用明确网页链接。发布包由仓库tools/build_release.py构建到dist/lychee-sdk.zip。
+测试必须分别破坏 Host、类型、helper、文档、交付文件和统一版本合同，验证单边漂移会失败。不能仅搜索版本字符串，也不能修改输入补齐必填字段后宣称公开边界通过。

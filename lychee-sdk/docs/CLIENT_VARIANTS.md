@@ -2,7 +2,7 @@
 
 性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
 
-本文件是 Provider API 2.2 的实现约定，适用于内置与第三方 Provider。它不增加新的 Host 注册字段或 API。
+本文件是 Provider API 1.0.0 的实现约定，适用于自带模块与独立第三方 Provider。使用基础 Scope 以及可选 `GetClient`/`SupportsFeature` 和静态发现声明；旧未声明包仍可在加载后注册。
 
 ## 支持范围与业务实现
 
@@ -10,7 +10,7 @@
 
 相同业务入口保持相同 Provider ID，例如装备方案一直是 `my-addon.equipment`。只有本身可独立启停、定位不同的业务才拆成不同 Provider，不能仅因为客户端 API 不同就拆出四个设置开关。
 
-Provider 自己拥有兼容层。Host 只接收本次客户端选出的完整普通 descriptor，并继续执行原来的校验、搜索、交互和生命周期约束。禁止依赖 `LycheeInternal`；当前公共 SDK 没有 `GetClient` 或 `RegisterVariant`，接入代码不能假定存在这些方法。
+Provider 自己拥有兼容层。Host 只接收本次客户端选出的完整普通 descriptor，并继续执行原来的校验、搜索、交互和生命周期约束。禁止依赖 `LycheeInternal`；当前公共 SDK 提供 `SDK.GetClient()` 快照；没有 `RegisterVariant`，实现选择与注册仍由接入插件负责。
 
 ## 选择规则
 
@@ -35,7 +35,7 @@ Register.lua 只调用插件已选中的适配模块。以下 `client`、`Select
 
 ```lua
 local function RegisterForClient(SDK, client, SelectAdapter)
-    if not SDK or not SDK:Supports(2, 2) then
+    if not SDK or not SDK:Supports("1.0.0") then
         return nil, { code = "UNSUPPORTED_API" }
     end
     -- SelectAdapter verifies product, numeric ranges and capabilities.
@@ -46,10 +46,9 @@ local function RegisterForClient(SDK, client, SelectAdapter)
     -- This factory builds only declarations and closures. No UI/events/timers.
     local definition = adapter:CreateDefinition(client)
     definition.id = "my-addon.equipment" -- same business identity in all clients
-    definition.apiVersion = 2
-    definition.minApiRevision = 2
+    definition.apiVersion="1.0.0"
     -- definition contains this adapter's version, title, scope, i18n,
-    -- entries/query, actions/views and onEnable cleanup as needed.
+    -- query, actions/views and onEnable cleanup as needed.
     return SDK:RegisterProvider(definition)
 end
 ```
@@ -84,4 +83,19 @@ end
 
 ## Lychee 内置实现的维护入口
 
-上述公开约定保持不变。Lychee 仓库内的内置功能使用 `tools/client_manifest.json` 统一维护产品范围、必需能力和文件归属，由工具生成加载清单与运行时支持表；对应实现和语言资源放在 `addon/Lychee/Builtin/<功能>/`。这是 Host 仓库内部的构建约定，第三方无需依赖 `LycheeInternal`、`Builtin.Support` 或此清单，仍使用自己的实现选择并注册普通 Provider。具体步骤见 [项目结构](https://github.com/Follen/Lychee/blob/main/docs/guides/PROJECT_STRUCTURE.md)。
+本项目自带内容由 tools/client_manifest.json 生成单个 Lychee 包的客户端 TOC；这是项目构建约定，不是 SDK。第三方在自己的 TOC 和代码中选择唯一适配实现，注册普通 API 1.0.0 Provider，不依赖 LycheeInternal 或项目清单。
+
+## 客户端快照与冷声明
+
+`Lychee:GetClient()` 或 `Lychee.SDK.GetClient()` 返回独立 `{product,interface,build,locale}` 普通表，build 为数值；未知产品保持 `unknown`，无法读取的 build 不伪造成已支持版本。修改快照不影响 Host。旧 `SDK.RuntimeIdentity:Current()` 保留其原有字符串 build 形状。
+
+新发现协议的 `ranges` 与热注册 Scope 必须对应；每产品边界独立，热范围只能缩小，不能超出冷声明。版本数字不是能力证明：插件自己的适配器仍须核对实际 API、上游是否就绪和业务限制，选择唯一实现；零匹配或重叠匹配明确失败，不静默选第一项。`SupportsFeature(name,1)` 检查 Host 合同能力，不能代替游戏 API 语义验证。
+
+| product | TOC 后缀 | 当前验证 Interface |
+| --- | --- | --- |
+| retail | Mainline | 120100 |
+| classic | Mists | 50504 |
+| titan | Wrath | 38002 |
+| anniversary | TBC | 20506 |
+
+以上是声明与构建范围，不表示本迁移分支已经完成各客户端实机验证。第三方功能由其自己的客户端输入决定；同一产品的中文/英文构建共用协议和稳定 ID。

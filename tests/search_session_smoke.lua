@@ -34,6 +34,12 @@ function palette:ApplyResults(results, generation, session)
     return true
 end
 
+function palette:ApplySearchState(session, generation, pending, results)
+    self.session,self.generation,self.searchPending=session,generation,pending
+    if results then return self:ApplyResults(results,generation,session) end
+    return true
+end
+
 local session = I.Search.Session
 assert(session:BindPalette(palette))
 local firstSession, initialGeneration = session:Start()

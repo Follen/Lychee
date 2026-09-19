@@ -49,7 +49,7 @@ I.Builtin.JournalCatalog={instances={[1]={"Raid 1",123}},encounters={11,1,"Alpha
  difficulties={[11]="14,15,16",[12]="14,15"},abilities={[11]="101:1001:96;101:1002:128;102:1003:128;103:1004:32;104:1005:64;105:1007:32",[12]="101:1006:96"}}
 dofile("addon/Lychee/Builtin/Bosses/Provider.lua")
 local m=I.Builtin.Bosses;assert(m:Init());I.Registry:SetReady(true);drain()
-assert(I.Providers.entries[m.id].definition.minApiRevision>=7, "all locales receive query resources")
+assert(I.Providers.entries[m.id].definition.apiVersion=="1.0.0", "all locales receive query resources")
 assert(I.Providers.entries[m.id].definition.title==(locale=="zhCN" and "团本首领" or "Raid bosses"))
 local function query(q)
  local result
@@ -81,8 +81,8 @@ drain(function()return requests>beforeRequests end)
 I.Providers:CancelQueries("cancelled-awaiting-load");drain();assert(not called,"late spell event cannot revive a query")
 local callback=false
 I.Search.Query:Query("Shadow Grip",{visible=true},nil,function()callback=true end)
-assert(m.handle:SetEnabled(false));drain();assert(not callback)
-assert(m.handle:SetEnabled(true));drain()
+assert(m.handle:SetAvailability(false));drain();assert(not callback)
+assert(m.handle:SetAvailability(true));drain()
 local currentDiff,opened
 EncounterJournal={instanceID=0,encounterID=0,IsShown=function()return true end}
 function EncounterJournal_OpenJournal(d,i,e,s)currentDiff=d;opened={d,i,e,s};EncounterJournal.instanceID=i;EncounterJournal.encounterID=e end

@@ -4,9 +4,8 @@ kind: development-package
 runtimeAddon: false
 hostAddon: Lychee
 facade: _G.Lychee
-apiVersion: 2
-apiRevision: 7
-helperMinimumRevision: 6
+sdkVersion: 1.0.0
+apiVersion: "1.0.0"
 contents:
   - README.md
   - docs/DELIVERY.md
@@ -33,3 +32,14 @@ contents:
   - docs/PROTOCOLS.md
   - docs/COMPATIBILITY.md
   - docs/PERFORMANCE.md
+  - Storage.lua
+  - CompactStore.lua
+  - docs/CATALOG.md
+  - docs/STORAGE.md
+  - docs/COMPACT_STORAGE.md
+  - docs/LOADING.md
+  - docs/INVOCATIONS.md
+  - examples/ColdProvider/ColdProvider.toc
+  - examples/ColdProvider/ColdProvider_Mainline.toc
+  - examples/ColdProvider/ColdProvider.lua
+  - examples/ColdProvider/README.md

@@ -154,7 +154,7 @@ function UI.CreateAddonInspector(owner)
         local width,height=UIParent:GetWidth(),UIParent:GetHeight()
         if type(width)~="number" or type(height)~="number" or width<=32 or height<=32 then return end
         local panelWidth=self.width or 320
-        local scale=math.min(1,(width-32)/panelWidth,(height-32)/frame:GetHeight())
+        local scale=math.min(T.Metrics.uiScale or 1,(width-32)/panelWidth,(height-32)/frame:GetHeight())
         if self.scale~=scale then frame:SetScale(scale);self.scale=scale;force=true end
         local w,h=panelWidth*scale,frame:GetHeight()*scale
         local x,top=self.anchorX,self.anchorTop

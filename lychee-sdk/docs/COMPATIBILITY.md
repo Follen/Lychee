@@ -1,17 +1,9 @@
-# SDK 版本兼容
+# 版本与兼容性
 
-性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+当前 SDK 与 Provider API 版本统一为 **1.0.0**。公开 API 使用完整字符串，不再单独维护 revision；UI Runtime **1** 是独立的 UI 能力标识。
 
-新接入使用 API 2 / revision 7，UI Runtime 独立版本1。Host继续兼容旧Provider；helper默认最低要求6，使用托管资源必须显式要求7。旧版本是兼容说明，不是新接入步骤。
+API 2 的数字版本及 revision 不兼容；不提供转换桥。当前 1.0.0 保留普通 `entries`、`handle:Update` 和可选 query 接入，不能把 API 版本更新理解为强制目录重写。所有者使用 `SetAvailability`，用户来源开关仅控制参与搜索。旧 Extension/Command 注册不是公共入口。
 
-| Revision | 能力与接入条件 |
-| --- | --- |
-| 1 | 基础Provider；未声明产品范围的旧接口只在正式服启用 |
-| 2 | scope.products与独立i18n；客户端实现仍由Provider选择 |
-| 3 | searchable=false排除通用搜索，保留动作/解析；不与新组合入口混用 |
-| 4 | searchMode global/prefix和searchPrefixes |
-| 5 | searchMode keyword和searchKeywords，精确触发来源查询 |
-| 6 | searchGlobal、searchPrefixes、searchKeywords组合入口；不与旧searchMode混用 |
-| 7 | Provider/query/view资源、角色设置、有界缓存 |
+`LycheeAPI.lua` 默认检查 `Supports("1.0.0")`；当前精确匹配此版本，不推断未来版本兼容，不静默回退旧数字版本。注册声明 `apiVersion="1.0.0"`；不再接受 minApiRevision，也不暴露 API_REVISION。Host 不存在返回 SDK_UNAVAILABLE，版本不匹配返回 UNSUPPORTED_API。SDK 示例不访问 LycheeInternal。
 
-准确字段限制和旧模式映射见[协议参考](PROTOCOLS.md)。新接入见[教程](GETTING_STARTED.md)，同一Provider跨客户端实现见[客户端差异](CLIENT_VARIANTS.md)。API 2不保留旧Extension/Command多角色流程。
+角色存档的数据搬迁属于对应数据所有者，不等于保留旧 SDK 接口。迁移失败保留原数据，不能清空未知或更高版本数据库。当前支持范围需明确声明并验证；参见[客户端差异](CLIENT_VARIANTS.md)。

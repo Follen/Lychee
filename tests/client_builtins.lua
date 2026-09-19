@@ -46,7 +46,7 @@ load("Builtin/Shared/InterfaceActions.lua");load("Builtin/GameMenus/Provider.lua
 for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     product=client;I.Builtin.GameMenus.handle=nil;I.Builtin.GameMenus:Init()
     local def=captured["builtin.game-menus"]
-    assert(def.minApiRevision==2 and def.i18n.enUS and #def.scope.products==4)
+    assert(def.apiVersion=="1.0.0" and def.i18n.enUS and #def.scope.products==4)
     local entries={};for _,entry in ipairs(def.entries) do entries[entry.id]=entry end
     assert(entries.spellbook and entries.talents and entries.settings)
     assert((entries["warband-scenes"]~=nil)==(client=="retail"))

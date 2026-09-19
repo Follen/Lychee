@@ -87,6 +87,7 @@ def render(manifest, product):
         '## Notes-zhCN: 魔兽世界万用启动器',
         '## Notes-zhTW: 魔兽世界万用启动器',
         '## Author: Lychee',
+        r'## IconTexture: Interface\AddOns\Lychee\Media\lychee-logo.tga',
         f'## Version: {manifest["version"]}',
         '## SavedVariables: LycheeDB',
         '## SavedVariablesPerCharacter: LycheeCharacterDB',

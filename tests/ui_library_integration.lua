@@ -2,7 +2,7 @@
 -- check_contract runs this instead of interaction_smoke, not in addition to it.
 dofile("tests/interaction_smoke.lua")
 local UI,I=Lychee.UI,LycheeInternal
-local source=assert(Lychee:RegisterProvider({id="ui.library.integration",apiVersion=2,version="1.0.0",title="UI integration",
+local source=assert(Lychee:RegisterProvider({id="ui.library.integration",apiVersion="1.0.0",version="1.0.0",title="UI integration",
     entries={{id="one",title="UI library first"},{id="two",title="UI library second"}}}))
 local parent=CreateFrame("Frame",nil,UIParent)
 local controller={visible=true,settingsOpen=true,ResizeForMode=function() end,SetStatusText=function() end}

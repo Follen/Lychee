@@ -68,4 +68,46 @@ function R:MatchesScope(scope, textEntry)
     return true
 end
 
+local function referenceKeyLess(left,right)
+    local a,b=type(left),type(right)
+    if a~=b then return a<b end
+    if a=="boolean" then return left==false and right==true end
+    return left<right
+end
+local function encodeReference(value,parts)
+    local kind=type(value)
+    if kind=="string" then
+        parts[#parts+1]="s"..#value..":"..value
+    elseif kind=="number" then
+        parts[#parts+1]="n"..(value==0 and "0" or string.format("%.17g",value))..";"
+    elseif kind=="boolean" then
+        parts[#parts+1]=value and "b1" or "b0"
+    elseif kind=="table" then
+        local keys={}
+        for key in pairs(value) do keys[#keys+1]=key end
+        table.sort(keys,referenceKeyLess)
+        parts[#parts+1]="t"..#keys..":"
+        for _,key in ipairs(keys) do encodeReference(key,parts);encodeReference(value[key],parts) end
+    end
+end
+-- Internal presentation/lookup identity, never an Entry ID or a persisted ref.
+-- NormalizeStoredRef supplies the existing depth/node/byte limits and plain
+-- data boundary; omission rules exactly match Invocations:Equal.
+function R:ReferenceKey(ref)
+    if type(ref)~="table" then return nil,{code="INVALID_REFERENCE"} end
+    if ref.kind==nil then
+        if type(ref.providerID)~="string" or type(ref.entryID)~="string" then return nil,{code="INVALID_REFERENCE"} end
+        return ref.providerID..":"..ref.entryID
+    end
+    if not I.Invocations then return nil,{code="UNSUPPORTED_API"} end
+    local value,err=I.Invocations:NormalizeStoredRef(ref)
+    if not value then return nil,err end
+    value.title,value.icon,value.sourceTitle=nil,nil,nil
+    if value.kind~="legacy-entry" then value.entryID=nil end
+    -- Legal ordinary Provider/Entry IDs cannot start with this separator.
+    local parts={"\0"}
+    encodeReference(value,parts)
+    return table.concat(parts)
+end
+
 R:Refresh()

@@ -18,7 +18,7 @@ for _,client in ipairs({{"retail",1,120100},{"classic",19,50504},{"titan",11,380
         sequence=sequence+1
         local id="matrix."..sequence
         local enabled,disabled=0,0
-        local handle=assert(Lychee:RegisterProvider({id=id,apiVersion=2,minApiRevision=2,version="1",title={key="name"},
+        local handle=assert(Lychee:RegisterProvider({id=id,apiVersion="1.0.0",version="1",title={key="name"},
             scope={products={"retail","classic","titan","anniversary"},minBuild=60000,maxBuild=80000},
             i18n={enUS={name="Shared launcher",entry="Test entry",run="Run",message="Found %d"},zhCN={name="共享启动器",entry="测试条目",run="执行",message="找到 %d"}},
             entries={{id="entry",title={key="entry"},actions={"run"}}},
@@ -47,13 +47,19 @@ locale="zhTW";I.Search.Normalizer.locale=locale;I.Search.RuntimeIdentity:Refresh
 assert(I.Search.Normalizer:Display({zhCN="中文",enUS="English"})=="中文")
 assert(I.Search.Normalizer:Display({zhTW="繁體"})=="繁體")
 for _,scope in ipairs({{products={}},{products={"retail","retail"}},{products={"wrong"}},{product="retail",products={"retail"}},{minBuild=100,maxBuild=10}}) do assert(not I.Boundary:ValidateScope(scope,"scope")) end
-assert(not Lychee:RegisterProvider({id="missing.scope",apiVersion=2,minApiRevision=2,version="1",title="No",entries={},i18n={enUS={}}}))
-assert(not Lychee:RegisterProvider({id="missing.locales",apiVersion=2,minApiRevision=2,version="1",title="No",entries={},scope={products={"retail"}}}))
+local defaultScope=assert(Lychee:RegisterProvider({id="missing.scope",apiVersion="1.0.0",version="1",title="Default scope",entries={{id="one",title="Default retail entry"}},i18n={enUS={}}}))
+assert(I.Providers:Resolve({providerID="missing.scope",entryID="one"}),"scope omission defaults to current retail support")
+assert(defaultScope:Unregister())
+local plain=assert(Lychee:RegisterProvider({id="missing.locales",apiVersion="1.0.0",version="1",title="Plain",entries={{id="one",title="Plain entry"}},scope={products={"retail"}}}))
+assert(I.Providers:Resolve({providerID="missing.locales",entryID="one"}).text=="Plain entry")
+assert(plain:Unregister())
+assert(not Lychee:RegisterProvider({id="invalid.scope",apiVersion="1.0.0",version="1",title="No",entries={},scope="retail"}))
+assert(not Lychee:RegisterProvider({id="invalid.locales",apiVersion="1.0.0",version="1",title="No",entries={},i18n=false}))
 print("Client/locale public registration matrix PASS 7 identities x 4 locales, updates/resolve/disable/namespace release")
 
 locale="enUS";I.Locale.code=locale;I.Search.Normalizer.locale=locale;I.Search.RuntimeIdentity:Refresh()
 local function descriptor(id)
-    return {id=id,apiVersion=2,minApiRevision=2,version="1",title={key="name"},scope={products={"retail"}},i18n={enUS={name="Name"}},entries={}}
+    return {id=id,apiVersion="1.0.0",version="1",title={key="name"},scope={products={"retail"}},i18n={enUS={name="Name"}},entries={}}
 end
 local malformed=descriptor("malformed.actions")
 malformed.entries={{id="one",title={key="name"},actions=3}}
@@ -66,9 +72,9 @@ lifecycle.onDisable=function() stops=stops+1 end
 local h=assert(Lychee:RegisterProvider(lifecycle))
 safe,bad,why=pcall(h.Update,h,{upsert={{id="one",title={key="name"},actions=3}}})
 assert(safe and not bad and why.code=="INVALID_SCHEMA")
-assert(h:SetEnabled(false));assert(h:SetEnabled(false))
+assert(h:SetAvailability(false));assert(h:SetAvailability(false))
 assert(starts==1 and stops==1)
-assert(h:SetEnabled(true));assert(h:SetEnabled(true))
+assert(h:SetAvailability(true));assert(h:SetAvailability(true))
 assert(starts==2 and stops==1)
 assert(h:Unregister());assert(stops==2)
 print("Provider locale/error/lifecycle regressions PASS")

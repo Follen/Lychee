@@ -6,6 +6,7 @@
 ## Notes-zhCN: 魔兽世界万用启动器
 ## Notes-zhTW: 魔兽世界万用启动器
 ## Author: Lychee
+## IconTexture: Interface\AddOns\Lychee\Media\lychee-logo.tga
 ## Version: 0.2.0
 ## SavedVariables: LycheeDB
 ## SavedVariablesPerCharacter: LycheeCharacterDB
@@ -44,13 +45,23 @@ Core/ProviderData.lua
 Core/Scheduler.lua
 Core/ExtensionRegistry.lua
 Search/ResultSnapshot.lua
+Search/SourceAccess.lua
 Search/QueryOrchestrator.lua
 Search/SearchSession.lua
+Core/AddonDiscovery.lua
+Core/AddonLoader.lua
+Core/Preparation.lua
+Core/InvocationRuntime.lua
+SDK/CompactStore.lua
+Core/RecordCodec.lua
+Core/Catalog.lua
 Core/ProviderRuntime.lua
 Core/ProviderManagement.lua
 Core/UserPreferences.lua
 Search/Personalization.lua
 PublicAPI/SDK.lua
+PublicAPI/Invocation.lua
+PublicAPI/Preparation.lua
 Core/InteractionBinding.lua
 Secure/Descriptor.lua
 Secure/Policy.lua
@@ -70,6 +81,8 @@ UI/AliasSettings.lua
 UI/ProviderSettings.lua
 UI/SettingsView.lua
 UI/AddonInspector.lua
+UI/HomeView.lua
+UI/SocialLinks.lua
 UI/Palette.lua
 Builtin/Shared/InterfaceActions.lua
 Builtin/Shared/CatalogLedger.lua
@@ -87,6 +100,17 @@ Builtin/Bags/Provider.lua
 Builtin/TalentLoadouts/Provider.lua
 Builtin/EquipmentSets/Provider.lua
 Builtin/BlizzardSettings/Provider.lua
+Builtin/Audio/Locales.lua
+Builtin/Audio/Language.lua
+Builtin/Audio/Adapter.lua
+Builtin/Audio/View.lua
+Builtin/Audio/Provider.lua
+Builtin/BlizzardSettings/Graphics.lua
+Builtin/BlizzardSettings/Adapter.lua
+Builtin/BlizzardSettings/Aliases.lua
+Builtin/BlizzardSettings/Language.lua
+Builtin/BlizzardSettings/View.lua
+Builtin/BlizzardSettings/Invocations.lua
 Builtin/Keystones/Provider.lua
 Builtin/Achievements/Provider.lua
 Builtin/AddonInspector/Picker.lua

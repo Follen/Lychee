@@ -1,4 +1,4 @@
-local I = _G.LycheeInternal
+local I=_G.LycheeInternal
 local L = I.ProviderLocales:Builtin("builtin.blizzard-settings")
 local C = I.Builtin.CatalogProvider
 local iconRoot="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
@@ -13,6 +13,16 @@ local function build(_,put,checkpoint)
     if I.Search.RuntimeIdentity:Current().product=="retail" then
     put({id="cdm",title=L["暴雪冷却管理器"],kind="setting",kindTitle=L["暴雪设置"],icon=iconRoot.."cooldown-manager.tga",
         subtitle=L["打开冷却管理器设置"],aliases={"cdm","cooldown manager","冷却设置"},actions={"cdm"}},"cdm:1")
+    end
+    if I.Builtin.SettingsInvocations then
+        local adapter=I.Builtin.SettingsAdapter
+        adapter.Scan(checkpoint);I.Builtin.SettingsLanguage.Build(adapter.ordered,checkpoint)
+        for _,spec in ipairs(adapter.ordered) do
+            local record=I.Builtin.SettingsInvocations.Record(spec)
+            put(record,spec.id.."\0"..spec.name.."\0"..spec.categoryName.."\0"..spec.kind.."\0"..tostring(adapter.Staged(spec)))
+            checkpoint()
+        end
+        return
     end
     if not SettingsPanel or not SettingsPanel.GetAllCategories or not Settings then return end
     local count=0
@@ -30,9 +40,18 @@ local function build(_,put,checkpoint)
                         seen[name]=true; count=count+1
                         if count>4094 then error("SETTINGS_LIMIT") end
                         local id="setting:"..categoryID..":"..nameID(name)
+                        local audio=I.Builtin.AudioAdapter
+                        local channel=audio and audio.ChannelForSetting(data)
+                        local aliases={categoryName,"设置","settings"}
+                        if channel then
+                            aliases[#aliases+1],aliases[#aliases+2],aliases[#aliases+3]="音量","volume","audio"
+                            for _,word in ipairs(audio.byID[channel].words) do aliases[#aliases+1]=word end
+                        end
                         put({id=id,title=name,kind="setting",kindTitle=L["暴雪设置"],icon=iconRoot.."settings.tga",
-                            subtitle=L:Format("%s · 点击定位",categoryName),aliases={categoryName,"设置","settings"},
-                            payload={categoryID=categoryID,name=name},actions={"open"}},categoryID.."\0"..categoryName.."\0"..name)
+                            subtitle=L:Format(channel and "%s · 直接调整" or "%s · 点击定位",categoryName),aliases=aliases,
+                            payload={categoryID=categoryID,name=name,channel=channel},
+                            actions=channel and {"adjust-volume","open"} or {"open"},
+                            primaryActionID=channel and "adjust-volume" or "open"},categoryID.."\0"..categoryName.."\0"..name.."\0"..(channel or ""))
                     end
                     checkpoint()
                 end
@@ -67,3 +86,8 @@ function M:onEvent(event,name)
     if event~="ADDON_LOADED" or name=="Blizzard_Settings" or name=="Blizzard_SettingsDefinitions_Frame" then self:MarkDirty() end
 end
 I.Builtin.BlizzardSettings=M
+function M:Init()
+    if I.Builtin.Audio then I.Builtin.Audio:Attach(self) end
+    if I.Builtin.SettingsInvocations then I.Builtin.SettingsInvocations.Attach(self) end
+    return C.Init(self)
+end

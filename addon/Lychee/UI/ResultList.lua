@@ -7,49 +7,14 @@ Lychee.UI = Lychee.UI or {}
 local ResultList = {}
 ResultList.__index = ResultList
 
-local GRID_COLUMNS = 1
-local DEFAULT_TILES = 8
-local TILE_WIDTH, TILE_HEIGHT = 608, 58
+local Theme = Lychee.UI.Theme
 local EMPTY_ITEMS = {}
 local UI_LOCALE = GetLocale and GetLocale() or "enUS"
 local UI_CHINESE = UI_LOCALE == "zhCN" or UI_LOCALE == "zhTW"
-local FALLBACK = {
-    row = { 0.075, 0.078, 0.09, 0.96 }, rowHover = { 0.090, 0.090, 0.090, 1 },
-    rowSelected = { 0.085, 0.085, 0.085, 1 }, outline = { 0.30, 0.19, 0.21, 0.85 },
-    accent = { 0.91, 0.20, 0.30, 1 }, action = { 0.13, 0.135, 0.15, 1 },
-    actionHover = { 0.20, 0.205, 0.23, 1 }, text = { 0.96, 0.945, 0.91, 1 },
-    muted = { 0.62, 0.63, 0.67, 1 }, dim = { 0.45, 0.46, 0.50, 1 },
-}
-local THEME_KEY = {
-    row = "surface", rowHover = "surfaceHover", rowSelected = "surfaceSelected", rowPressed = "surface",
-    outline = "accentMuted", action = "surfaceHover", actionHover = "surfaceSelected", muted = "textMuted", dim = "textDim",
-}
-
-local function color(name)
-    local theme = Lychee.UI and Lychee.UI.Theme
-    local colors = theme and (theme.colors or theme.Colors or theme)
-    local value = colors and colors[THEME_KEY[name] or name]
-    if type(value) == "table" then
-        return value[1] or value.r or 1, value[2] or value.g or 1, value[3] or value.b or 1, value[4] or value.a or 1
-    end
-    local fallback = FALLBACK[name]
-    return fallback[1], fallback[2], fallback[3], fallback[4]
-end
 
 local function setText(fontString, value)
     value = value or ""
     if fontString and fontString:GetText() ~= value then fontString:SetText(value) end
-end
-
-local function setTextColor(fontString, name)
-    if not fontString or type(fontString.SetTextColor) ~= "function" then return end
-    local theme, key = Lychee.UI and Lychee.UI.Theme, THEME_KEY[name] or name
-    if theme and type(theme.SetTextColor) == "function" then theme:SetTextColor(fontString, key); return end
-    local token = FALLBACK[name]
-    if fontString._lycheeResultTextToken ~= token then
-        fontString:SetTextColor(color(name))
-        fontString._lycheeResultTextToken = token
-    end
 end
 
 local function setShown(object, shown)
@@ -58,23 +23,6 @@ end
 
 local function cropIcon(texture)
     if texture and type(texture.SetTexCoord) == "function" then texture:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
-end
-
-local function setTextureColor(texture, name)
-    if not texture or type(texture.SetColorTexture) ~= "function" then return end
-    local theme, key = Lychee.UI and Lychee.UI.Theme, THEME_KEY[name] or name
-    if theme and type(theme.SetColorTexture) == "function" then theme:SetColorTexture(texture, key); return end
-    local token = FALLBACK[name]
-    if texture._lycheeResultColorToken ~= token then
-        texture:SetColorTexture(color(name))
-        texture._lycheeResultColorToken = token
-    end
-end
-
-local function singleLine(fontString)
-    if type(fontString.SetWordWrap) == "function" then fontString:SetWordWrap(false) end
-    if type(fontString.SetNonSpaceWrap) == "function" then fontString:SetNonSpaceWrap(false) end
-    if type(fontString.SetMaxLines) == "function" then fontString:SetMaxLines(1) end
 end
 
 local function extensionID(item) return item and (item._ext) end
@@ -104,104 +52,10 @@ local function kindText(item)
     return labelText(category) or labelText(item and item.sourceTitle) or (UI_CHINESE and L["内容"] or "Content")
 end
 
-local function hideTooltip()
-    local tip = ResultList.tooltip
-    if not tip then return end
-    if Lychee.UI.Motion then Lychee.UI.Motion:Cancel(tip,true) end
-    setShown(tip, false)
-    if tip._owner then
-        tip:ClearAllPoints()
-        tip._owner = nil
-    end
-end
+local function hideTooltip() Lychee.UI.Components:HideTooltip() end
 
-local function acquireTooltip()
-    if ResultList.tooltip then return ResultList.tooltip end
-    local theme = Lychee.UI.Theme
-    local tip = CreateFrame("Frame", nil, UIParent)
-    tip:SetWidth(280)
-    tip:SetFrameStrata("TOOLTIP")
-    tip:SetClampedToScreen(true)
-    tip:EnableMouse(false)
-    theme:CreateRoundedSurface(tip, "tooltip", 8)
-    tip.labels = {}
-    for index = 1, 5 do
-        local label = tip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        label:SetWidth(252)
-        label:SetJustifyH("LEFT")
-        label:SetWordWrap(true)
-        if label.SetNonSpaceWrap then label:SetNonSpaceWrap(true) end
-        theme:SetFont(label, index == 1 and "title" or index == 2 and "meta" or "body")
-        theme:SetTextColor(label, index == 1 and "text" or "textMuted")
-        tip.labels[index] = label
-    end
-    tip.divider = tip:CreateTexture(nil, "ARTWORK")
-    tip.divider:SetSize(252, 1)
-    theme:SetColorTexture(tip.divider, "border")
-    tip:Hide()
-    ResultList.tooltip = tip
-    return tip
-end
-
-local function tooltipLine(tip, index, text, y, gap)
-    local label = tip.labels[index]
-    text = text or ""
-    setText(label, text)
-    setShown(label, text ~= "")
-    if text == "" then return y end
-    y = y + (gap or 0)
-    if label._y ~= y then
-        label:ClearAllPoints()
-        label:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
-        label._y = y
-    end
-    return y + math.max(label:GetStringHeight(), index == 1 and 18 or 15)
-end
-
-local function scoreTable(tip, rows, y)
-    tip.scoreLabels=tip.scoreLabels or {}
-    local count=rows and math.min(#rows,16) or 0
-    for index=1,count+1 do
-        if count==0 then break end
-        local labels=tip.scoreLabels[index]
-        if not labels then
-            labels={};tip.scoreLabels[index]=labels
-            for column=1,3 do
-                local label=tip:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-                label:SetWidth(column==1 and 210 or column==2 and 98 or 64)
-                label:SetJustifyH(column==1 and "LEFT" or "RIGHT")
-                label:SetWordWrap(false)
-                Lychee.UI.Theme:SetFont(label,"body")
-                Lychee.UI.Theme:SetTextColor(label,index==1 and "textMuted" or "text")
-                labels[column]=label
-            end
-        end
-        local row=index>1 and rows[index-1]
-        for column,label in ipairs(labels) do
-            local value=row and row[column] or (column==1 and L["当季副本"] or column==2 and L["成绩"] or L["分数"])
-            setText(label,value);setShown(label,true)
-            local top=y+(index-1)*25
-            if label._y~=top then
-                label:ClearAllPoints();label:SetPoint("TOPLEFT",tip,"TOPLEFT",column==1 and 14 or column==2 and 232 or 338,-top);label._y=top
-            end
-        end
-    end
-    for index=count>0 and count+2 or 1,#tip.scoreLabels do
-        for _,label in ipairs(tip.scoreLabels[index]) do setShown(label,false);setText(label,"") end
-    end
-    return count>0 and y+(count+1)*25 or y
-end
-
-local function showTooltip(owner, title, detail)
-    if not owner or (InCombatLockdown and InCombatLockdown()) then return end
-    local tip = acquireTooltip()
-    local entering=not tip:IsShown()
-    if tip._owner ~= owner then
-        tip:ClearAllPoints()
-        -- Anchor to the entry, but stay outside its clipping ScrollFrame tree.
-        tip:SetPoint("BOTTOMLEFT", owner, "TOPRIGHT", 8, 8)
-        tip._owner = owner
-    end
+local scoreHeaders
+local function showTooltip(owner,title,detail)
     local kind, description, clickHint, dragHint
     if type(detail) == "table" then
         kind = kindText(detail)
@@ -225,35 +79,10 @@ local function showTooltip(owner, title, detail)
     elseif detail and detail ~= "" and detail ~= title then
         description = detail
     end
-    local scoreRows=type(detail)=="table" and detail.providerID=="builtin.keystones" and detail.payload and detail.payload.scoreRows
-    local wide=type(scoreRows)=="table" and #scoreRows>0
-    local width=wide and 416 or 280
-    if tip._width~=width then
-        tip:SetWidth(width)
-        for _,label in ipairs(tip.labels) do label:SetWidth(width-28) end
-        tip.divider:SetWidth(width-28);tip._width=width
-    end
-    local y = tooltipLine(tip, 1, title, 14)
-    y = tooltipLine(tip, 2, kind, y, 3)
-    y = tooltipLine(tip, 3, wide and "" or description, y, 10)
-    if wide then y=scoreTable(tip,scoreRows,y+14)
-    elseif tip.scoreLabels then scoreTable(tip,nil,y) end
-    local hasActions = clickHint ~= nil or dragHint ~= nil
-    setShown(tip.divider, hasActions)
-    if hasActions then
-        y = y + 10
-        if tip.divider._y ~= y then
-            tip.divider:ClearAllPoints()
-            tip.divider:SetPoint("TOPLEFT", tip, "TOPLEFT", 14, -y)
-            tip.divider._y = y
-        end
-        y = y + 8
-    end
-    y = tooltipLine(tip, 4, clickHint, y)
-    y = tooltipLine(tip, 5, dragHint, y, clickHint and 4 or 0)
-    if tip:GetHeight() ~= y + 14 then tip:SetHeight(y + 14) end
-    setShown(tip, true)
-    if entering and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tip,"feedback") end
+    local rows=type(detail)=="table" and detail.searchRecord and detail.searchRecord.tooltipRows
+    if rows and not scoreHeaders then scoreHeaders={L["当季副本"],L["成绩"],L["分数"]} end
+    Lychee.UI.Components:ShowTooltip(owner,{title=title,meta=kind,description=description,hint=clickHint,dragHint=dragHint,
+        rows=rows,headers=scoreHeaders})
 end
 
 function ResultList:HideTooltip() hideTooltip() end
@@ -268,35 +97,20 @@ local function primaryAction(interaction)
     return actions[1]
 end
 
-local function secondaryAction(interaction)
-    local actions, primary = interaction and interaction.actions, primaryAction(interaction)
-    if type(actions) ~= "table" then return nil end
-    for index = 1, #actions do
-        local action = actions[index]
-        if action ~= primary then return action end
-    end
-end
-
 local function renderRowState(row)
     if Lychee.UI.Motion then
-        setTextureColor(row.bg,"rowSelected")
+        Theme:SetColorTexture(row.bg,"surfaceSelected")
         Lychee.UI.Motion:Selection(row.bg,row._selected==true)
         Lychee.UI.Motion:Selection(row.accent,row._selected==true)
     else
-        setTextureColor(row.bg,row._selected and "rowSelected" or "row")
+        Theme:SetColorTexture(row.bg,row._selected and "surfaceSelected" or "surface")
         setShown(row.accent,row._selected==true)
-    end
-    local showSecondary = row.secondaryAction and row._selected or false
-    setShown(row.secondary, showSecondary)
-    local categoryInset = showSecondary and 42 or 12
-    if row.category and row._categoryInset ~= categoryInset then
-        row.category:SetPoint("RIGHT", row, "RIGHT", -categoryInset, 0)
-        row._categoryInset = categoryInset
     end
     setShown(row.dragHighlight, row._selected and row._dragHovered == true or false)
 end
 
 local function clearRow(row)
+    row.snapshotOwner = nil
     _G.LycheeInternal.InteractionBinding:Bind(row, nil, nil, nil)
     row._matchTitle,row._matchSubtitle,row._matchQuery=nil,nil,nil
     row._matchRenderedTitle,row._matchRenderedSubtitle=nil,nil
@@ -307,7 +121,7 @@ local function clearRow(row)
         if row.accent then row.accent._lycheeSelectedMotion=nil end
     end
     row.item, row.index, row.session, row.generation, row.extensionID, row.stableID = nil, nil, nil, nil, nil, nil
-    row.primaryAction, row.secondaryAction, row.dragDescriptor = nil, nil, nil
+    row.primaryAction, row.dragDescriptor = nil, nil
     row._hovered, row._dragHovered, row._selected, row._pressed = false, false, false, false
     if row.textProps then
         row.textProps.title,row.textProps.subtext,row.textProps.category=nil,nil,nil
@@ -320,15 +134,16 @@ local function clearRow(row)
     cachedText(row, "primaryHint", row.primaryHint, "")
     if row._icon ~= nil and row.icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(nil) end
     row._icon = nil
-    if row.secondary then row.secondary.actionID, row.secondary.action, row.secondary.tooltip = nil, nil, nil end
     setShown(row.icon, false); setShown(row.dragger, false); renderRowState(row); setShown(row, false)
 end
 
 function ResultList:SelectRow(row)
+    if self.frozen then return end
     if row and row.index then self:Select(row.index) end
 end
 
 function ResultList:SetHover(row, hovered)
+    if self.frozen then return end
     if not row or row._hovered == (hovered == true) then return end
     row._hovered = hovered == true
     if hovered then self:SelectRow(row) end
@@ -348,15 +163,14 @@ function ResultList:ShowTooltip(row, owner)
 end
 
 function ResultList:Create(parent, controller)
-    local theme = Lychee.UI and Lychee.UI.Theme
-    local metrics = theme and theme.Metrics or {}
-    local columns = metrics.resultColumns or GRID_COLUMNS
-    local tiles, rowHeight, rowGap = metrics.resultTiles or DEFAULT_TILES, metrics.rowHeight or TILE_HEIGHT, metrics.rowGap or 8
-    local tileWidth = (metrics.resultTileWidth or TILE_WIDTH) - 12
-    local iconSize = metrics.iconSize or 32
+    local metrics = Theme.Metrics
+    local columns = metrics.resultColumns
+    local tiles, rowHeight, rowGap = metrics.resultTiles, metrics.rowHeight, metrics.rowGap
+    local tileWidth = metrics.resultTileWidth - 12
+    local iconSize = metrics.iconSize
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetScript("OnHide", hideTooltip)
-    local inset=metrics.listInset or 4
+    local inset=metrics.listInset
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", inset, -10); frame:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -inset, -10)
     local gridRows = math.ceil(tiles / columns)
     frame:SetHeight(gridRows * rowHeight + math.max(0, gridRows - 1) * rowGap)
@@ -383,12 +197,12 @@ function ResultList:Create(parent, controller)
         row:SetPoint("TOPLEFT", frame, "TOPLEFT", column * (tileWidth + rowGap), -gridRow * (rowHeight + rowGap))
         row:RegisterForClicks("LeftButtonUp")
         row.bg = row:CreateTexture(nil, "BACKGROUND")
-        row.bg:SetPoint("TOPLEFT",row,"TOPLEFT",0,-(metrics.selectionInsetY or 2))
-        row.bg:SetPoint("BOTTOMRIGHT",row,"BOTTOMRIGHT",0,metrics.selectionInsetY or 2)
-        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(metrics.selectionWidth or 2, metrics.selectionHeight or 22); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); setTextureColor(row.accent, "accent")
+        row.bg:SetPoint("TOPLEFT",row,"TOPLEFT",0,-metrics.selectionInsetY)
+        row.bg:SetPoint("BOTTOMRIGHT",row,"BOTTOMRIGHT",0,metrics.selectionInsetY)
+        row.accent = row:CreateTexture(nil, "ARTWORK"); row.accent:SetSize(metrics.selectionWidth, metrics.selectionHeight); row.accent:SetPoint("LEFT", row, "LEFT", 0, 0); Theme:SetColorTexture(row.accent, "accent")
 
-        row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", metrics.listIconInset or 12, 0)
-        row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); setTextureColor(row.dragHighlight, "actionHover")
+        row.icon = row:CreateTexture(nil, "ARTWORK"); row.icon:SetSize(iconSize, iconSize); row.icon:SetPoint("LEFT", row, "LEFT", metrics.listIconInset, 0)
+        row.dragHighlight = row:CreateTexture(nil, "BORDER"); row.dragHighlight:SetSize(iconSize + 4, iconSize + 4); row.dragHighlight:SetPoint("CENTER", row.icon, "CENTER"); Theme:SetColorTexture(row.dragHighlight, "surfaceSelected")
         row.dragger = CreateFrame("Button", nil, row); row.dragger:SetSize(iconSize + 6, iconSize + 6); row.dragger:SetPoint("CENTER", row.icon, "CENTER")
         binding:Attach(row.dragger, row)
         row.dragger:SetScript("OnDragStart", function(button)
@@ -396,6 +210,7 @@ function ResultList:Create(parent, controller)
             if button:GetParent().dragDescriptor and self.controller then self.controller:BeginRowDrag(button:GetParent()) end
         end)
         row.dragger:SetScript("OnEnter", function(button)
+            if self.controller and self.controller.DeferRowHover and self.controller:DeferRowHover(button) then return end
             local owner = button:GetParent(); owner._dragHovered = true; self:SetHover(owner, true); renderRowState(owner)
             showTooltip(button, owner.item and owner.item.text, owner.item)
         end)
@@ -413,40 +228,28 @@ function ResultList:Create(parent, controller)
             if self.controller then self.controller:ActivateRow(owner) end
         end)
         row.primaryTarget:SetScript("OnEnter", function(button)
+            if self.controller and self.controller.DeferRowHover and self.controller:DeferRowHover(button) then return end
             local owner = button:GetParent(); self:SetHover(owner, true); showTooltip(button, owner.item and owner.item.text, owner.item)
         end)
         row.primaryTarget:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); hideTooltip() end)
 
         row.ui=Lychee.UI:Create(row,{type="Fragment",children={
-            {type="Text",key="category",props={role="meta",color="textDim",width=80,justifyH="RIGHT",maxLines=1,wordWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
-            {type="Text",key="title",props={role="body",color="text",height=18,maxLines=1,wordWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset or 48,-6},{"RIGHT",row,"RIGHT",-112,0}}},bind={text="title"}},
-            {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT",row,"RIGHT",-112,0}}},bind={text="subtext"}},
+            {type="Text",key="category",props={role="meta",color="textDim",width=metrics.sourceLabelWidth,height=16,justifyH="RIGHT",maxLines=1,wordWrap=false,nonSpaceWrap=false,point={"RIGHT",row,"RIGHT",-12,0}},bind={text="category"}},
+            {type="Text",key="title",props={role="body",color="text",height=18,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT",row,"TOPLEFT",metrics.listTitleInset,-6},{"RIGHT","category","LEFT",-14,0}}},bind={text="title"}},
+            {type="Text",key="subtext",props={role="body",color="textMuted",height=14,maxLines=1,wordWrap=false,nonSpaceWrap=false,points={{"TOPLEFT","title","BOTTOMLEFT",0,-2},{"RIGHT","category","LEFT",-14,0}}},bind={text="subtext"}},
         }})
         row.textProps={}
-        assert(row.ui:Update(EMPTY_UI_PROPS));row.category,row.title,row.subtext=row.ui:Get("category"),row.ui:Get("title"),row.ui:Get("subtext");row._categoryInset=12
+        assert(row.ui:Update(EMPTY_UI_PROPS));row.category,row.title,row.subtext=row.ui:Get("category"),row.ui:Get("title"),row.ui:Get("subtext")
         row.description = row.subtext
         row.primaryHint = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.primaryHint:Hide()
-
-        row.secondary = CreateFrame("Button", nil, row); row.secondary:SetSize(24, 24); row.secondary:SetPoint("RIGHT", row, "RIGHT", -9, 0); row.secondary:RegisterForClicks("LeftButtonUp")
-        row.secondary.bg = row.secondary:CreateTexture(nil, "BACKGROUND"); row.secondary.bg:SetAllPoints(); setTextureColor(row.secondary.bg, "action")
-        row.secondary.label = row.secondary:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); row.secondary.label:SetAllPoints(); row.secondary.label:SetJustifyH("CENTER"); setText(row.secondary.label, "..."); setTextColor(row.secondary.label, "text")
-        binding:Attach(row.secondary, row)
-        row.secondary:SetScript("OnClick", function(button)
-            if not binding:Consume(button, button:GetParent(), "LeftButton") then return end
-            local owner = button:GetParent()
-            local actions = owner.item and owner.item.interaction and owner.item.interaction.actions or {}
-            if #actions > 2 and self.controller and self.controller.ShowRowActions then self.controller:ShowRowActions(owner); return end
-            if actionEnabled(owner.secondaryAction) and self.controller then self.controller:ActivateRowAction(owner, owner.secondaryAction.id) end
-        end)
-        row.secondary:SetScript("OnEnter", function(button)
-            local owner = button:GetParent(); self:SetHover(owner, true); setTextureColor(button.bg, "actionHover"); showTooltip(button, actionLabel(owner.secondaryAction), owner.secondaryAction and owner.secondaryAction.description)
-        end)
-        row.secondary:SetScript("OnLeave", function(button) self:SetHover(button:GetParent(), false); setTextureColor(button.bg, "action"); hideTooltip() end)
 
         row:SetScript("OnClick", function(button) if not binding:Consume(button, button, "LeftButton") then return end; self:SelectRow(button); if self.controller then self.controller:ActivateRow(button) end end)
         row:SetScript("OnMouseDown", function(button, mouseButton) binding:Press(button, button, mouseButton); button._pressed = true; renderRowState(button) end)
         row:SetScript("OnMouseUp", function(button) button._pressed = false; renderRowState(button) end)
-        row:SetScript("OnEnter", function(button) self:SetHover(button, true) end)
+        row:SetScript("OnEnter", function(button)
+            if self.controller and self.controller.DeferRowHover and self.controller:DeferRowHover(button) then return end
+            self:SetHover(button, true)
+        end)
         row:SetScript("OnLeave", function(button)
             self:SetHover(button, false)
             if not button.IsMouseOver or not button:IsMouseOver() then hideTooltip() end
@@ -459,14 +262,42 @@ function ResultList:Create(parent, controller)
 end
 
 function ResultList:Resize(count)
-    count = math.max(0, math.min(tonumber(count) or 0, self.maxRows or DEFAULT_TILES))
+    count = math.max(0, math.min(tonumber(count) or 0, self.maxRows or Theme.Metrics.resultTiles))
     local gridRows = count > 0 and math.ceil(count / self.gridColumns) or 0
     local height = gridRows > 0 and (gridRows * self.rowHeight + (gridRows - 1) * self.rowGap) or 0
     if self.frame and self.frame.GetHeight and self.frame:GetHeight() ~= height then self.frame:SetHeight(height) end
     return height
 end
 
+-- Retain native text/texture regions only, never the previous result's capability.
+function ResultList:FreezePresentation()
+    if self.frozen then return end
+    self.frozen = true
+    hideTooltip()
+    self.scrollbar:StopDrag(); self.scrollbar.frame:EnableMouse(false)
+    Lychee.UI.Motion:Cancel(self.frame, true)
+    self.frame:SetAlpha(0.8)
+    local binding = _G.LycheeInternal.InteractionBinding
+    local executor = _G.LycheeInternal.ResultActionExecutor
+    for _, row in ipairs(self.rows) do
+        row.snapshotOwner = row.extensionID
+        binding:Bind(row, nil, nil, nil)
+        binding:Cancel(row); binding:Cancel(row.primaryTarget); binding:Cancel(row.dragger)
+        row.item, row.primaryAction, row.dragDescriptor = nil, nil, nil
+        row.session, row.generation, row.extensionID = nil, nil, nil
+        row._hovered, row._dragHovered, row._pressed = nil, nil, nil
+        if executor then executor:ConfigureDragTarget(row.dragger, nil) end
+        row:EnableMouse(false); row.primaryTarget:EnableMouse(false)
+        row.dragger:Hide(); row.dragHighlight:Hide()
+    end
+    self.items = EMPTY_ITEMS
+end
+
 function ResultList:Clear()
+    if self.frozen then
+        self.frozen = nil
+        self.frame:SetAlpha(1); self.scrollbar.frame:EnableMouse(true)
+    end
     hideTooltip()
     for index = 1, #self.rows do clearRow(self.rows[index]) end
     self.items = EMPTY_ITEMS; self.session, self.generation, self.selected, self.offset = nil, nil, 1, 0
@@ -474,6 +305,12 @@ function ResultList:Clear()
 end
 
 function ResultList:SetItems(items, session, generation, offset)
+    local wasFrozen = self.frozen
+    self.frozen = nil
+    if wasFrozen then
+        self.frame:SetAlpha(1); self.scrollbar.frame:EnableMouse(true)
+        self.selected = 1
+    end
     hideTooltip()
     local highlight=Lychee.UI.TextHighlight
     local controller=self.controller
@@ -482,7 +319,7 @@ function ResultList:SetItems(items, session, generation, offset)
     local request=highlight and query and query:_BuildRequest(raw)
     local highlightQuery=request and request.normalized or raw
     local selectedRow = self.rows[self.selected or 1]
-    local selectedID = selectedRow and selectedRow.stableID
+    local selectedID = not wasFrozen and selectedRow and selectedRow.stableID
     self.items, self.session, self.generation = items or EMPTY_ITEMS, session, generation
     self.offset = math.max(0, math.min(offset or 0, math.max(0, #self.items - #self.rows)))
     local count = math.min(#self.items - self.offset, #self.rows)
@@ -492,7 +329,8 @@ function ResultList:SetItems(items, session, generation, offset)
         local item, row = self.items[index + self.offset], self.rows[index]
         if type(item) == "table" then
         _G.LycheeInternal.InteractionBinding:Bind(row, item, session, generation)
-        row.item, row.index = item, index
+        row.item, row.index, row.snapshotOwner = item, index, nil
+        row:EnableMouse(true)
         local changedIdentity=row.stableID~=stableItemID(item)
         row.session, row.generation, row.extensionID, row.stableID = session, generation, extensionID(item), stableItemID(item)
         local title=item.text
@@ -511,20 +349,19 @@ function ResultList:SetItems(items, session, generation, offset)
         if row._singleTitle~=single then
             row.title:ClearAllPoints()
             row.title:SetPoint(single and "LEFT" or "TOPLEFT",row,single and "LEFT" or "TOPLEFT",Lychee.UI.Theme.Metrics.listTitleInset,single and 0 or -6)
-            row.title:SetPoint("RIGHT",row,"RIGHT",-112,0)
+            row.title:SetPoint("RIGHT",row.category,"LEFT",-14,0)
             row._singleTitle=single
         end
         local icon = item.icon
         if row._icon ~= icon and type(row.icon.SetTexture) == "function" then row.icon:SetTexture(icon); cropIcon(row.icon); row._icon = icon end
         setShown(row.icon, icon ~= nil)
         local interaction = item.interaction
-        row.primaryAction, row.secondaryAction, row.dragDescriptor = primaryAction(interaction), secondaryAction(interaction), interaction and interaction.drag
+        row.primaryAction, row.dragDescriptor = primaryAction(interaction), interaction and interaction.drag
         if row.primaryTarget and type(row.primaryTarget.EnableMouse) == "function" then row.primaryTarget:EnableMouse(true) end
         cachedText(row, "primaryHint", row.primaryHint, "")
-        row.secondary.actionID, row.secondary.action, row.secondary.tooltip = row.secondaryAction and row.secondaryAction.id, row.secondaryAction, actionLabel(row.secondaryAction)
         setShown(row.dragger, row.dragDescriptor ~= nil)
         renderRowState(row); setShown(row, true)
-        if changedIdentity and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(row.title,"feedback");Lychee.UI.Motion:Reveal(row.subtext,"feedback") end
+        if changedIdentity and not wasFrozen and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(row.title,"feedback");Lychee.UI.Motion:Reveal(row.subtext,"feedback") end
         else
             clearRow(row)
         end
@@ -552,6 +389,7 @@ function ResultList:InvalidateRow(row)
 end
 
 function ResultList:Select(index)
+    if self.frozen then return end
     index = math.max(1, math.min(index or 1, #self.rows))
     if not self.rows[index]:IsShown() then
         local direction, candidate = index >= (self.selected or 1) and 1 or -1, index
@@ -572,6 +410,7 @@ function ResultList:GetSelected()
 end
 
 function ResultList:Move(delta)
+    if self.frozen then return end
     local direction, remaining, index = (delta or 0) < 0 and -1 or 1, math.abs(delta or 0), self.selected
     if remaining == 0 then return self:GetSelected() end
     while remaining > 0 do
@@ -590,6 +429,7 @@ function ResultList:Move(delta)
 end
 
 function ResultList:Scroll(delta)
+    if self.frozen then return false end
     if InCombatLockdown and InCombatLockdown() then return false end
     local offset = math.max(0, math.min(self.offset + delta, math.max(0, #self.items - #self.rows)))
     if offset == self.offset then return false end
@@ -598,6 +438,7 @@ function ResultList:Scroll(delta)
 end
 
 function ResultList:ActivateSelected()
+    if self.frozen then return end
     local row = self.rows[self.selected]
     if row and row:IsShown() and self.controller then self.controller:ActivateRow(row) end
 end

@@ -7,26 +7,27 @@ Theme.MatchColorCode = "|cffff9aa2"
 
 -- Canonical tokens are immutable by convention. Their table identity is also
 -- used as the native-setter cache key, so callers should reference, not copy.
+local window = { 0.055, 0.055, 0.063, 1 }
 Theme.Colors = {
-    window = { 0.055, 0.055, 0.063, 1 },
-    header = { 0.055, 0.055, 0.063, 1 },
-    content = { 0.055, 0.055, 0.063, 1 },
-    footer = { 0.055, 0.055, 0.063, 1 },
-    surface = { 0.055, 0.055, 0.063, 1 },
+    window = window,
+    header = window,
+    content = window,
+    footer = window,
+    surface = window,
     surfaceHover = { 0.090, 0.090, 0.090, 1 },
     surfaceSelected = { 0.085, 0.085, 0.085, 1 },
-    input = { 0.055, 0.055, 0.063, 1 },
-    inputHover = { 0.055, 0.055, 0.063, 1 },
-    inputFocus = { 0.055, 0.055, 0.063, 1 },
+    input = window,
+    inputHover = window,
+    inputFocus = window,
     field = { 0.085, 0.085, 0.095, 1 },
     fieldBorder = { 0.400, 0.400, 0.420, 1 },
     action = { 0.075, 0.078, 0.088, 1 },
     actionHover = { 0.175, 0.115, 0.125, 1 },
     border = { 0.110, 0.110, 0.125, 1 },
-    footerDivider = { 0.140, 0.140, 0.140, 0.5 },
     borderStrong = { 0.285, 0.290, 0.315, 1 },
     accent = { 0.835, 0.235, 0.285, 1 },
     accentHover = { 0.950, 0.350, 0.400, 1 },
+    tooltipAccent = { 0.780, 0.460, 0.500, 1 },
     transparent = { 0, 0, 0, 0 },
     accentMuted = { 0.440, 0.155, 0.185, 1 },
     text = { 0.940, 0.932, 0.910, 1 },
@@ -40,7 +41,7 @@ Theme.Colors = {
     tooltip = { 0.065, 0.065, 0.075, 1 },
 }
 
-Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11 }
+Theme.FontSizes = { input = 16, title = 14, body = 12, meta = 11, tooltipTitle = 16, tooltipMeta = 10, aboutBrand = 20 }
 
 -- Style our own regions once; never mutate shared GameFont/tooltip objects.
 function Theme:SetFont(region, role)
@@ -55,10 +56,14 @@ end
 
 Theme.Metrics = {
     paletteWidth = 640,
+    uiScale = 1.15,
     paletteHeight = 220,
     headerHeight = 56,
-    footerHeight = 32,
+    footerHeight = 56,
     footerInset = 28,
+    footerSocialWidth = 100,
+    footerSocialGap = 20,
+    footerStatusWidth = 144,
     contentPadding = 16,
     inputHeight = 40,
     resultColumns = 1,
@@ -69,7 +74,10 @@ Theme.Metrics = {
     listInset = 12,
     listIconInset = 8,
     listTitleInset = 48,
+    sourceLabelWidth = 160,
     settingsTabsHeight = 42,
+    aboutHeight = 152,
+    aboutEnglishHeight = 112,
     switchWidth = 32,
     switchHeight = 18,
     selectionWidth = 2,
@@ -77,10 +85,11 @@ Theme.Metrics = {
     selectionInsetY = 2,
     resultPadding = 20,
     paletteMinHeight = 164,
-    paletteMaxHeight = 518,
+    paletteMaxHeight = 542,
     iconSize = 28,
     border = 1,
 }
+
 
 Theme.Spacing = {
     tight = 6,
@@ -194,13 +203,13 @@ function Theme:CreateRoundedSurface(frame, token, radius)
             else Theme:SetColorTexture(region,color) end
         end
     end
-    local middle = frame:CreateTexture(nil, "BACKGROUND")
+    local middle = frame:CreateTexture(nil,"BACKGROUND")
     middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius, 0)
     middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius, 0)
     self:SetColorTexture(middle, token)
     surface.regions[#surface.regions+1]=middle
     for _, side in ipairs({ "LEFT", "RIGHT" }) do
-        local strip = frame:CreateTexture(nil, "BACKGROUND")
+        local strip = frame:CreateTexture(nil,"BACKGROUND")
         strip:SetPoint("TOP" .. side, frame, "TOP" .. side, 0, -radius)
         strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, 0, radius)
         strip:SetWidth(radius)
@@ -213,7 +222,7 @@ function Theme:CreateRoundedSurface(frame, token, radius)
     }
     for index = 1, #corners do
         local corner = corners[index]
-        local texture = frame:CreateTexture(nil, "BACKGROUND")
+        local texture = frame:CreateTexture(nil,"BACKGROUND")
         texture:SetSize(radius, radius)
         texture:SetPoint(corner[1], frame, corner[1], 0, 0)
         texture:SetTexture("Interface\\AddOns\\Lychee\\Media\\rounded-corner.tga")

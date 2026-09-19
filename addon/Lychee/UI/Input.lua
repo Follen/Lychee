@@ -13,6 +13,9 @@ local function setShown(region, shown)
 end
 
 local function localizedPlaceholder() return L["搜索技能、插件、命令…"] end
+local function isComposing(box)
+    return box.IsInIMECompositionMode and box:IsInIMECompositionMode()
+end
 
 function Input:_ApplyVisualState()
     if self.visualFrozen then return false end
@@ -64,17 +67,28 @@ function Input:Create(parent, focusController)
         onMove = nil,
     }, Input)
     edit:SetScript("OnTextChanged", function(box, userInput)
-        if not elements.active then return end
+        if not elements.active or not self.enabled then return end
         setShown(placeholder, (box:GetText() or "") == "")
+        if isComposing(box) then
+            if not self.composing then
+                self.composing = true
+                if self.onComposition then self.onComposition() end
+            end
+            return
+        end
+        self.composing = nil
         if self.onChanged then self.onChanged(box:GetText() or "", userInput == true) end
     end)
-    edit:SetScript("OnEnterPressed", function()
+    edit:SetScript("OnEnterPressed", function(box)
+        if isComposing(box) then return end
         if self.onSubmit then self.onSubmit() end
     end)
-    edit:SetScript("OnArrowPressed", function(_, key)
+    edit:SetScript("OnArrowPressed", function(box, key)
+        if isComposing(box) then return end
         if self.onMove and (key == "UP" or key == "DOWN") then self.onMove(key == "UP" and -1 or 1) end
     end)
-    edit:SetScript("OnEscapePressed", function()
+    edit:SetScript("OnEscapePressed", function(box)
+        if isComposing(box) then return end
         local host = _G.LycheeInternal and _G.LycheeInternal.Host
         if host and host.PaletteController then host.PaletteController:Hide("escape") end
     end)
@@ -102,6 +116,7 @@ function Input:Create(parent, focusController)
 end
 
 function Input:SetChangedCallback(callback) self.onChanged = callback end
+function Input:SetCompositionCallback(callback) self.onComposition = callback end
 function Input:SetSubmitCallback(callback) self.onSubmit = callback end
 function Input:SetMoveCallback(callback) self.onMove = callback end
 function Input:SetText(text)
@@ -118,7 +133,7 @@ function Input:SetEnabled(enabled)
     self.enabled = enabled
     if enabled and self.frame.Enable then self.frame:Enable()
     elseif not enabled and self.frame.Disable then self.frame:Disable() end
-    if not enabled then self:ClearFocus() end
+    if not enabled then self.composing=nil; self:ClearFocus() end
     self:_ApplyVisualState()
     return true
 end
@@ -129,6 +144,6 @@ function Input:SetVisualFrozen(frozen)
     if not self.visualFrozen then self:_ApplyVisualState() end
 end
 function Input:Show() self.elements:Update(EMPTY_UI_PROPS);setShown(self.placeholder,self:GetText()=="");self.container:Show() end
-function Input:Hide() self.elements:Release("hide");self.container:Hide();self:SetVisualFrozen(false) end
+function Input:Hide() self.composing=nil;self.elements:Release("hide");self.container:Hide();self:SetVisualFrozen(false) end
 
 Lychee.UI.Input = Input

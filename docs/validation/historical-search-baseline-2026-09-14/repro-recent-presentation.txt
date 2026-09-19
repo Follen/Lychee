@@ -1,0 +1,9 @@
+C:\Program Files (x86)\Lua\5.1\lua.exe: ...rch-redesign/execution/repro-recent-presentation.lua:35: REPRODUCED: recent loses display fields and duplicates pending title/meta in tooltip
+stack traceback:
+	[C]: in function 'assert'
+	...rch-redesign/execution/repro-recent-presentation.lua:35: in main chunk
+	[C]: ?
+recentSavedDisplay	false	title	nil	icon	nil
+pendingTitle	正在恢复…	pendingMeta	正在恢复…	tooltip	正在恢复…
+正在恢复…
+duplicateStatus	true

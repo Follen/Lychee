@@ -133,6 +133,7 @@ print(string.format("UI motion PASS frames=%d groups=%d alpha2000_KiB=%.2f cpu_m
 LycheeInternal={Search={}}
 Lychee.UI.Theme={Metrics={rowHeight=46}}
 Lychee.UI.ResultList={HideTooltip=function() end}
+Lychee.UI.Components={HideActionMenu=function() end}
 dofile("addon/Lychee/Search/Normalizer.lua")
 local createFrameForMotion=CreateFrame
 CreateFrame=nil
@@ -150,10 +151,11 @@ function input:ClearFocus() end
 function input:Focus() end
 function input:Show() end
 function input:Hide() end
-local p=setmetatable({frame=r,input=input,visible=true,list={Clear=function() end},
+local p=setmetatable({social={Show=function() end,Close=function() end},frame=r,input=input,visible=true,list={Clear=function() end},
     brandComponent={PlayMotion=function() end}, -- actual wiring covered by brand_motion.lua
     focus={Restore=function() end,Clear=function() end},settingsTitle=region(),settingsBack={frame=region()}},Lychee.UI.Palette)
 function p:Create() end
+function p:SetBackNavigation() end
 function p:ApplyBoundedScale()
     self.frame:SetScale(self._scale)
     self._presenceSpec.y=-self._topInset/self._scale

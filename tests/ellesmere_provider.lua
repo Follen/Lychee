@@ -34,7 +34,7 @@ I.Registry:SetReady(true)
 local M=I.Builtin.Ellesmere
 M:Init()
 assert(M.active,"Ellesmere defaults enabled")
-assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(true))
 assert(M.active and #timers==0,"enable without loading or polling")
 local definition=I.Providers.entries[M.id].definition
 assert(#definition.scope.products==1 and definition.scope.products[1]=="retail")
@@ -116,11 +116,11 @@ local replied=false
 local cancel=managedQuery({normalized="test",filter={sourceID=M.id..":records"}},function() replied=true end)
 cancel();drain();assert(not replied and not M.cancel,"cancel releases work")
 managedQuery({normalized="test",filter={sourceID=M.id..":records"}},function() replied=true end)
-assert(I.Registry:SetUserEnabled(M.id,false));drain();assert(not replied and not M.cancel)
+assert(M.handle:SetAvailability(false));drain();assert(not replied and not M.cancel)
 assert(M.options==nil,"disabled collector releases callback references")
 EllesmereUI._RegisterSearchEntry("Ignored",nil,nil,"Another","New Page")
 assert(M.options==nil,"disabled hook short circuits")
-assert(I.Registry:SetUserEnabled(M.id,true))
+assert(M.handle:SetAvailability(true))
 assert(hookCount==1,"re-enable must not duplicate hook")
 -- Real Host orchestration, not just direct Provider calls: no leakage to global.
 local function hostQuery(text)
@@ -142,6 +142,10 @@ for m=1,10 do
 end
 local start=os.clock();rows=query("eui:Setting 10 100");local warmMS=(os.clock()-start)*1000
 assert(rows[1].title=="Setting 10 100")
+local favoredID=rows[1].id
+local favored
+managedQuery({normalized="setting",limit=20,filter={sourceID=M.id..":records"},ranking={[favoredID]=30}},function(result)favored=result end)
+drain();assert(#favored==20 and favored[1].id==favoredID,"EUI preference survives Top20 truncation")
 collectgarbage("collect");local base=collectgarbage("count")
 collectgarbage("stop")
 for i=1,20 do query("eui:Setting 10 100") end
@@ -152,6 +156,30 @@ assert(allocated<40960,"query allocation budget")
 assert(retained<256 and not M.cancel and #timers==0,"bounded retention and no idle timers")
 for index=1,4100 do EllesmereUI._RegisterSearchEntry("Captured "..index,nil,nil,"Module1","Setting 1 1","Appearance") end
 assert(M.optionCount==4096 and M.overflow and M.optionBytes<=2097152,"bounded observed catalog")
-assert(I.Registry:SetUserEnabled(M.id,false))
+assert(M.handle:SetAvailability(false))
 assert(M.options==nil and not M.cancel and M.optionCount==0,"release full catalog")
+-- Captured selectors belong to their upstream object, not just the stable label.
+assert(M.handle:SetAvailability(true))
+local oldOwner=EllesmereUI
+local setterCalls=0
+oldOwner._RegisterSearchEntry("Owner selector",nil,nil,"Module1","Setting 1 1","Appearance",function()setterCalls=setterCalls+1 end,"old")
+local optionID,oldOption
+for id,row in pairs(M.options) do if row.label=="Owner selector" then optionID=id;oldOption=M:Resolve(id) end end
+assert(oldOption)
+local nextOwner={}
+for key,value in pairs(oldOwner) do nextOwner[key]=value end
+nextOwner._RegisterSearchEntry=function()end
+EllesmereUI=nextOwner
+local previous=M.optionCount
+oldOwner._RegisterSearchEntry("Late old owner",nil,nil,"Module1","Setting 1 1")
+assert(M.optionCount==previous,"old hook rejects a replaced upstream immediately")
+assert(not M:Resolve(optionID) and not definition.actions.open.run(oldOption).ok and setterCalls==0,"restore cannot revive an old selector")
+nextOwner._RegisterSearchEntry("Owner selector",nil,nil,"Module1","Setting 1 1","Appearance",function()setterCalls=setterCalls+1 end,"fresh")
+assert(M:Resolve(optionID) and definition.actions.open.run(M:Resolve(optionID)).ok and setterCalls==1)
+local completed
+managedQuery({normalized="setting",filter={sourceID=M.id..":records"}},function(result)completed=result end)
+local first=table.remove(timers,1);assert(first and not first.cancelled);virtual=first.due;first.fn()
+EllesmereUI=oldOwner
+drain();assert(completed and #completed==1 and completed[1].id=="status","query cannot publish old-owner candidates after a yield")
+assert(M.handle:SetAvailability(false))
 print(string.format("Ellesmere PASS cold_fixture_ms=%.3f warm_1000_pages_ms=%.3f allocation_20_queries_KiB=%.1f retained_KiB=%.1f",coldMS,warmMS,allocated,retained))

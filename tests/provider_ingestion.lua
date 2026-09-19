@@ -9,7 +9,7 @@
 dofile("tests/provider_sdk_smoke.lua")
 local I=LycheeInternal
 local function definition(id, entries)
-    return {id=id,title=id,version="1",apiVersion=2,entries=entries,
+    return {id=id,title=id,version="1",apiVersion="1.0.0",entries=entries,
         actions={open={title="Open",run=function(record)
             record.aliases[1]="callback mutation"
             record.actions[1]="callback mutation"
@@ -97,7 +97,7 @@ assert(inner:Unregister())
 issecretvalue,canaccessvalue,canaccesstable=oldSecret,oldAccess,oldTable
 
 -- _OwnRecords denotes ownership only. It is not a schema-validation receipt.
-local draft=assert(I.Registry:Begin({id="ingestion.raw",title="Raw",version="1",apiVersion=2,minApiRevision=1},{public=true}))
+local draft=assert(I.Registry:Begin({id="ingestion.raw",title="Raw",version="1",apiVersion="1.0.0"},{public=true}))
 assert(draft:RegisterSearchSource({id="records",title="Raw",version=2,revision=1,priority=0,scope={},
     snapshot=function() return I.Registry:_OwnRecords({{id="bad",kind="entry",title="Bad",actions={{id="x",kind="unknown"}}}},"ingestion.raw") end}))
 local accepted,why=draft:Commit()

@@ -28,7 +28,7 @@ C_SpellBook = {
 }
 local root = "addon/Lychee/"
 dofile("tests/support/runtime.lua").Load("provider", {"Builtin/Achievements/Locales.lua", "Builtin/AddonInspector/Locales.lua", "Builtin/Bags/Locales.lua", "Builtin/BlizzardSettings/Locales.lua", "Builtin/Bosses/Locales.lua", "Builtin/Crests/Locales.lua", "Builtin/EquipmentSets/Locales.lua", "Builtin/GameMenus/Locales.lua", "Builtin/GreatVault/Locales.lua", "Builtin/Keystones/Locales.lua", "Builtin/Mounts/Locales.lua", "Builtin/PlayerSpells/Locales.lua", "Builtin/TalentLoadouts/Locales.lua", "Builtin/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Builtin/PlayerSpells/Aliases.lua", "Builtin/PlayerSpells/Provider.lua", "Builtin/PlayerSpells/Init.lua", "Builtin/Init.lua"})
-assert(_G.Lychee and _G.Lychee:Supports(2, 1))
+assert(_G.Lychee and _G.Lychee:Supports("1.0.0"))
 assert(_G.LycheeInternal.Builtin and _G.LycheeInternal.Builtin.Init)
 _G.LycheeInternal.Builtin:Init()
 _G.LycheeInternal.Registry:SetReady(true)
@@ -83,12 +83,12 @@ local _, reenabledFixtureResults = q:Query("第三方示例条目", {})
 assert(#reenabledFixtureResults == 1 and reenabledFixtureResults[1].sourceID == "third-party-fixture:records")
 assert(results[1].interaction and results[1].interaction.actions[1].kind == "secure-spell")
 assert(results[1].interaction.drag and results[1].interaction.drag.spellID == 31884)
-local badProvider,badProviderErr=Lychee:RegisterProvider({id="test.invalid",title="Bad",version="1",apiVersion=2,
+local badProvider,badProviderErr=Lychee:RegisterProvider({id="test.invalid",title="Bad",version="1",apiVersion="1.0.0",
     entries={{id="bad",title="Bad",actions={"missing"}}}})
 assert(not badProvider and badProviderErr.code=="UNKNOWN_ACTION")
 local oldSecret = issecretvalue
 issecretvalue = function(value) return value == "SECRET" end
-local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion = 2, minApiRevision = 1, title = "SECRET", version = "1.0.0" })
+local secretBad, secretErr = _G.LycheeInternal.Registry:Begin({ id = "test.secret", apiVersion="1.0.0", title = "SECRET", version = "1.0.0" })
 assert(not secretBad and secretErr and secretErr.code == "SECRET_VALUE")
 issecretvalue = oldSecret
 local callbackToken

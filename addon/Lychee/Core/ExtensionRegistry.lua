@@ -67,7 +67,7 @@ local function validateDescriptor(desc, public)
     if type(desc)~="table" then return nil,failure("INVALID_SCHEMA","descriptor") end
     local ok,why=I.Boundary:Validate(desc,"descriptor",{callbacks=descriptorCallbacks})
     if not ok then return nil,why end
-    if not validID(desc.id) or not integer(desc.apiVersion) or not integer(desc.minApiRevision or 1) or not validTitle(desc.title) then
+    if not validID(desc.id) or type(desc.apiVersion)~="string" or desc.minApiRevision~=nil or not validTitle(desc.title) then
         return nil,failure("INVALID_SCHEMA","descriptor",desc.id)
     end
     if public and (type(desc.version)~="string" or desc.version=="") then return nil,failure("INVALID_SCHEMA","version",desc.id) end
@@ -155,7 +155,7 @@ function Registry:RegisterReady(callback)
         return true
     end
     if self.ready then
-        invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
+        invoke(callback,{apiVersion=I.VERSION.api})
         listener.callback = nil
     else
         listener.index = #self.readyListeners + 1
@@ -171,7 +171,7 @@ function Registry:SetReady(ready)
     for i=1,#callbacks do
         local callback = callbacks[i].callback
         callbacks[i].callback, callbacks[i].index = nil, nil
-        if callback then invoke(callback,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision}) end
+        if callback then invoke(callback,{apiVersion=I.VERSION.api}) end
     end
     local pending={}
     for i=1,#self.order do local entry=self.entries[self.order[i]]; if entry and entry.state=="pending" and not entry.incompatible then pending[#pending+1]=entry end end
@@ -209,7 +209,7 @@ function Registry:Begin(desc, options)
         if #draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
         local disabled = I.CharacterStore:DisabledProviders()
         local userEnabled = desc.id == "lychee.settings" or not (type(disabled) == "table" and disabled[desc.id])
-        local entry={id=desc.id,descriptor=desc,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=(desc.minApiRevision or 1)>I.VERSION.revision}
+        local entry={id=desc.id,descriptor=desc,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=false}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
         notify(entry,"pending",entry.incompatible and "INCOMPATIBLE_HOST" or nil)
         local handle=registry:_Handle(entry)
@@ -245,7 +245,7 @@ function Registry:_Publish(entry)
         for i=1,#entry.sources do
             local source=entry.sources[i]
             local sourceID=entry.id..":"..source.id
-            source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled and entry.userEnabled
+            source._extensionID, source._sourceID, source._enabled = entry.id, sourceID, entry.ownerEnabled
             local registered, sourceGeneration = I.Search.StaticIndex:RegisterSource({id=sourceID,version=source.version or 1,priority=source.priority or 0,scope=source.scope,searchable=source.searchable,revision=source.revision,title=source.title,extensionTitle=entry.descriptor.title,_enabled=source._enabled,_extensionID=entry.id})
             if not registered then self:_Rollback(entry); return nil,failure("INVALID_SCHEMA","searchSource",entry.id) end
             local records=source.records
@@ -269,8 +269,8 @@ function Registry:_Publish(entry)
     self.panelsByExtension[entry.id]={}
     for i=1,#entry.panels do local panel=entry.panels[i]; local key=entry.id..":"..panel.id; if self.panels[key] then self:_Rollback(entry); return nil,failure("DUPLICATE_ID","panel",entry.id) end; self.panels[key]={extensionID=entry.id,descriptor=panel}; self.panelsByExtension[entry.id][panel.id]=key end
     notify(entry,"registered")
-    invoke(entry.descriptor.onHostAttached,{apiVersion=I.VERSION.api,apiRevision=I.VERSION.revision})
-    if entry.ownerEnabled and entry.userEnabled then notify(entry,"enabled"); invoke(entry.descriptor.onEnabled)
+    invoke(entry.descriptor.onHostAttached,{apiVersion=I.VERSION.api})
+    if entry.ownerEnabled then notify(entry,"enabled"); invoke(entry.descriptor.onEnabled)
     else
         notify(entry,"disabled")
     end
@@ -291,8 +291,13 @@ function Registry:GetPanel(extensionID,panelID)
 end
 function Registry:IsEnabled(extensionID) local entry=self.entries[extensionID]; return entry~=nil and entry.state=="enabled" end
 
+function Registry:IsSearchEnabled(id)
+    local entry=self.entries[id]
+    return entry~=nil and entry.state=="enabled" and entry.userEnabled~=false
+end
+
 function Registry:_ApplyEnabled(entry, reason)
-    local enabled = entry.ownerEnabled and entry.userEnabled
+    local enabled = entry.ownerEnabled
     if (entry.state ~= "enabled" and entry.state ~= "disabled") or (entry.state == "enabled") == enabled then return true end
     if I.Search and I.Search.StaticIndex then
         for index = 1, #entry.sources do I.Search.StaticIndex:TouchSource(entry.id .. ":" .. entry.sources[index].id, enabled) end
@@ -311,7 +316,11 @@ function Registry:SetUserEnabled(id, enabled)
     local disabled = I.CharacterStore:DisabledProviders()
     if enabled then disabled[id] = nil else disabled[id] = true end
     entry.userEnabled = enabled
-    return self:_ApplyEnabled(entry, "user")
+    if not enabled and I.Preparation then I.Preparation:CancelSearch(id) end
+    if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
+    if I.Providers then I.Providers:CancelQueries("search-preference") end
+    if I.Search.Session then I.Search.Session:SourceChanged("search-preference") end
+    return true
 end
 
 function Registry:_Handle(entry)

@@ -1,4 +1,4 @@
--- Public API 2.2 integration. Lychee is optional; no Host internals are accessed.
+-- Public API 1.0.0 integration. Lychee is optional; no Host internals are accessed.
 local state = { committed=nil, enabled=false, diagnostics={}, opens=0, drags=0 }
 local waitingFrame, cachedPanel
 -- One reusable structure belongs to this Provider; each mount owns its binding.
@@ -14,9 +14,9 @@ local function attach()
     if state.committed then return state.committed end
     local SDK = _G.Lychee
     if not SDK or not SDK.Supports then return nil end
-    if not SDK:Supports(2, 2) then state.diagnostics.UNSUPPORTED_API=true; stopWaiting(); return nil end
+    if not SDK:Supports("1.0.0") then state.diagnostics.UNSUPPORTED_API=true; stopWaiting(); return nil end
     local handle, err = SDK:RegisterProvider({
-        id="third-party-fixture", apiVersion=2, minApiRevision=2, version="2.2.0",
+        id="third-party-fixture", apiVersion="1.0.0", version="2.2.0",
         scope={products={"retail","classic","titan","anniversary"}},
         i18n={
             enUS={PROVIDER="Third-party fixture",ENTRY="Fixture entry",KIND="Example",DESCRIPTION="An ordinary addon entry with independent interactions.",ALIASES="fixture demo",STATUS="Fixture status",READY="Ready",INFO="Information entries need no action.",INSPECT="View details",KEEP="Keep search open",MOVE="Move",ITEM="Item %d"},
@@ -91,7 +91,7 @@ _G.ThirdPartyFixture={
     GetProvider=function() return state.committed end,
     GetDiagnostics=function() return state.diagnostics end,
     GetPanel=function() return cachedPanel end,
-    SetEnabled=function(enabled) if state.committed then return state.committed:SetEnabled(enabled) end end,
+    SetEnabled=function(enabled) if state.committed then return state.committed:SetAvailability(enabled) end end,
     Unregister=function()
         stopWaiting()
         if not state.committed then return true end

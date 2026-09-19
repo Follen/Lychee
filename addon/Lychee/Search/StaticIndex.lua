@@ -543,7 +543,8 @@ end
 
 local function resultLess(left, right)
     if left.preferred ~= right.preferred then return left.preferred==true end
-    if left.confidence ~= right.confidence then return left.confidence > right.confidence end
+    local lr,rr=left.rank or left.confidence,right.rank or right.confidence
+    if lr ~= rr then return lr > rr end
     local le,re=left.entry,right.entry
     local lp,rp=le and le.source.priority or left.sourcePriority,re and re.source.priority or right.sourcePriority
     if lp ~= rp then return lp > rp end
@@ -552,7 +553,7 @@ local function resultLess(left, right)
     return (le and le.stableID or left.stableID) < (re and re.stableID or right.stableID)
 end
 
-function Index:Search(query, limit, filter, compact, preferredKey)
+function Index:Search(query, limit, filter, compact, preferredKey, ranking)
     local normalized = I.Search.Normalizer:Normalize(query)
     if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
@@ -584,9 +585,10 @@ function Index:Search(query, limit, filter, compact, preferredKey)
                 local cp=ce and ce.source.priority or (candidate and candidate.sourcePriority)
                 local co=ce and ce.categoryOrder or (candidate and candidate.categoryOrder)
                 local cs=ce and ce.stableID or (candidate and candidate.stableID)
+                local rank=bestScore+(ranking and (ranking[entry.key] or ranking[entry.record.id]) or 0)*0.001
                 local preferred=entry.key==preferredKey
-                local wins = not candidate or preferred and not candidate.preferred or preferred==candidate.preferred and (bestScore > candidate.confidence
-                    or bestScore == candidate.confidence and (entry.source.priority > cp
+                local wins = not candidate or preferred and not candidate.preferred or preferred==candidate.preferred and (rank > (candidate.rank or candidate.confidence)
+                    or rank == (candidate.rank or candidate.confidence) and (entry.source.priority > cp
                     or entry.source.priority == cp and (entry.categoryOrder < co
                     or entry.categoryOrder == co and entry.stableID < cs)))
                 if wins then
@@ -610,7 +612,7 @@ function Index:Search(query, limit, filter, compact, preferredKey)
                         result.sourcePriority, result.categoryOrder = entry.source.priority, entry.categoryOrder
                         result.stableID = entry.stableID
                     end
-                    result.confidence = bestScore
+                    result.confidence, result.rank = bestScore, rank
                     result.preferred=preferred
                     local evidence = result.evidence
                     evidence.matchedField, evidence.matchedText, evidence.matchType = bestField, bestText, bestType

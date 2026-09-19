@@ -15,9 +15,9 @@ C_Timer = { NewTimer = function(seconds, callback)
     return timer
 end }
 local root = "addon/Lychee/"
-dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua", "Core/ResultActionExecutor.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Search/ProviderPolicy.lua"})
 local I, SDK = LycheeInternal, Lychee
-assert(SDK:Supports(2,1) and not SDK:Supports(1,1))
+assert(SDK:Supports("1.0.0") and not SDK:Supports(1,1))
 assert(SDK.RegisterExtension == nil and SDK.RegisterSearchSource == nil)
 local readyCalls = 0
 local subscription = assert(SDK:RegisterReady(function() readyCalls=readyCalls+1 end))
@@ -26,7 +26,7 @@ I.Registry:SetReady(true)
 assert(readyCalls == 0)
 
 local function definition(id, entries)
-    return { id=id, title=id, version="1.0.0", apiVersion=2, entries=entries or {} }
+    return { id=id, title=id, version="1.0.0", apiVersion="1.0.0", entries=entries or {} }
 end
 local function query(text, callback)
     local _, items = I.Search.Query:Query(text, { visible=true }, nil, callback)
@@ -84,9 +84,9 @@ assert(not alphaRecords.recordMap.one and not alphaRecords.recordMap.two and alp
 for index, record in ipairs(alphaRecords.records) do assert(alphaRecords.recordOrder[record.id]==index) end
 expect("STALE_RESULT",function() return I.Providers:Execute(alpha,"open",{}) end)
 expect("INVALID_SCHEMA",function() return first:Update({replace={},remove={"same"}}) end)
-assert(first:SetEnabled(false) and cleaned==1)
+assert(first:SetAvailability(false) and cleaned==1)
 expect("PROVIDER_DISABLED",function() return first:Update({replace={}}) end)
-assert(first:SetEnabled(true))
+assert(first:SetAvailability(true))
 assert(first:Unregister() and cleaned==2)
 local replacement=assert(SDK:RegisterProvider(definition("test.alpha",{{id="same",title="Replacement"}})))
 expect("STALE_HANDLE",function() return first:Update({replace={}}) end)
@@ -165,9 +165,9 @@ query("scoped")
 assert(I.Providers.diagnostics[#I.Providers.diagnostics].code=="QUERY_TIMEOUT", "wrong scope never invokes callback")
 
 local menuActions, menuCalls={},0
-MenuUtil={CreateContextMenu=function(_,generator)
+SDK.UI={Components={ShowActionMenu=function(_,anchor,generator)
     generator(nil,{CreateButton=function(_,title,callback) menuActions[#menuActions+1]={title=title,callback=callback} end})
-end}
+end}}
 local menuDefinition=definition("test.menu",{{id="menu",title="Menu entity",actions={"one","two","three"}}})
 menuDefinition.actions={}
 for _, id in ipairs({"one","two","three"}) do menuDefinition.actions[id]={title=id,run=function() menuCalls=menuCalls+1; return {ok=true} end} end
@@ -237,8 +237,8 @@ assert(#query("New owner")==1 and swapped:Unregister())
 local helper=dofile("lychee-sdk/LycheeAPI.lua")
 assert(helper.Supports(SDK) and not helper.Supports(SDK,2,false))
 assert(next(I.Providers.jobs)==nil)
-assert(LycheeDB.searchIndex==nil, "executable search data is not persisted")
-print("Lychee Provider API 2 contract PASS")
+assert(not LycheeDB or LycheeDB.searchIndex==nil, "executable search data is not persisted")
+print("Lychee Provider API 1.0.0 contract PASS")
 
 do
     local starts, stops = 0, 0
@@ -246,26 +246,28 @@ do
     local def = definition("test.user-preference", {{id="item",title="User preference fixture"}})
     def.onEnable = function() starts=starts+1; return function() stops=stops+1 end end
     local handle = assert(SDK:RegisterProvider(def))
-    assert(not handle:GetState().enabled and not handle:GetState().userEnabled and starts==0)
+    assert(handle:GetState().enabled and not handle:GetState().userEnabled and starts==1)
     assert(#query("User preference fixture")==0, "saved disable applies before initial publication")
     assert(I.Registry:SetUserEnabled(handle.id,true))
     assert(starts==1 and #query("User preference fixture")==1)
-    assert(handle:SetEnabled(false) and stops==1)
+    assert(handle:SetAvailability(false) and stops==1)
     assert(I.Registry:SetUserEnabled(handle.id,false))
-    assert(handle:SetEnabled(true))
-    assert(not handle:GetState().enabled and starts==1, "owner enable cannot override user disable")
+    assert(handle:SetAvailability(true))
+    assert(handle:GetState().enabled and starts==2, "owner availability resumes independently of search visibility")
+    assert(#query("User preference fixture")==0,"owner enable cannot override search exclusion")
+    assert(I.Providers:Resolve({providerID=handle.id,entryID="item"},{}),"explicit saved references remain usable")
     assert(I.Registry:SetUserEnabled(handle.id,true) and starts==2)
     assert(I.Registry:SetUserEnabled(handle.id,true) and starts==2, "repeat toggle does not restart provider")
-    assert(I.Registry:SetUserEnabled(handle.id,false) and stops==2)
+    assert(I.Registry:SetUserEnabled(handle.id,false) and stops==1,"search exclusion keeps background resources alive")
     assert(handle:Unregister())
     local restored=assert(SDK:RegisterProvider(def))
-    assert(not restored:GetState().enabled and starts==2, "disable survives re-registration")
+    assert(restored:GetState().enabled and not restored:GetState().userEnabled and starts==3, "search exclusion survives re-registration without stopping owner")
     assert(restored:Unregister())
     I.Registry:SetReady(false)
     local pending=assert(SDK:RegisterProvider(definition("test.pending-preference",{{id="item",title="Pending preference"}})))
     LycheeCharacterDB.disabledProviders["test.pending-preference"]=true
     I.Registry:SetReady(true)
-    assert(not pending:GetState().enabled and not pending:GetState().userEnabled, "publication reads restored SavedVariables")
+    assert(pending:GetState().enabled and not pending:GetState().userEnabled, "publication reads search preference without disabling owner")
     assert(pending:Unregister())
     expect("REQUIRED_PROVIDER",function() return I.Registry:SetUserEnabled("lychee.settings",false) end)
     print("Lychee persistent Provider preference PASS")
