@@ -18,9 +18,13 @@ function M.Load(profile,extra,options)
     if selected["UI/Palette.lua"] then selected["UI/HomeView.lua"]=true;selected["UI/SocialLinks.lua"]=true end
     if profile=="provider" then selected["SDK/CompactStore.lua"]=true;selected["Core/Catalog.lua"]=true;selected["Core/RecordCodec.lua"]=true;selected["Core/InvocationRuntime.lua"]=true;selected["PublicAPI/Invocation.lua"]=true end
     if selected["Core/Preparation.lua"] then selected["Search/SourceAccess.lua"]=true;selected["Search/ProviderPolicy.lua"]=true;selected["Core/AddonDiscovery.lua"]=true;selected["Core/AddonLoader.lua"]=true end
+    local settingsProvider=selected["Builtin/BlizzardSettings/Provider.lua"]
     local loaded={}
     for line in io.lines(root..(options.toc or "Lychee_Mainline.toc")) do
         local path=line:gsub("\r$","")
+        -- Settings is one provider with required audio/invocation helpers.
+        -- Follow the production TOC instead of exercising the retired fallback.
+        if settingsProvider and (path:match("^Builtin/Audio/") or path:match("^Builtin/BlizzardSettings/")) then selected[path]=true end
         if profile=="provider" and (path=="Core/Resources.lua" or path=="Core/ProviderData.lua") then selected[path]=true end
         if path=="Search/ResultSnapshot.lua" and selected["Search/QueryOrchestrator.lua"] then selected[path]=true end
         if path=="Core/ProviderManagement.lua" and profile=="provider" then selected[path]=true end

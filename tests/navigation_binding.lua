@@ -52,8 +52,8 @@ p.input:SetText('');p:SetQueryMode('')
 local a={id='a',groupID='pinned',groupTitle='Pins',title='A',item=by.a}
 local b={id='b',groupID='pinned',groupTitle='Pins',title='B',item=by.b}
 p.onHomeSelect=function() calls=calls+1 end
-p:SetHomeSections({a},true);local tile=p.homeView.tiles[1]
-tile.scripts.OnMouseDown(tile,'LeftButton');p:SetHomeSections({b},true);tile.scripts.OnClick(tile,'LeftButton')
+p.homeView:SetSections({a},true);local tile=p.homeView.tiles[1]
+tile.scripts.OnMouseDown(tile,'LeftButton');p.homeView:SetSections({b},true);tile.scripts.OnClick(tile,'LeftButton')
 assert(calls==before,'home tile rebind rejects prior press')
 tile.scripts.OnMouseDown(tile,'LeftButton');tile.scripts.OnClick(tile,'LeftButton');assert(calls==before+1)
 p.onHomeSelect=oldSelect

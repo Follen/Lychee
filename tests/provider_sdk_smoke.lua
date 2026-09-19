@@ -57,9 +57,9 @@ assert(I.Providers.entries["test.alpha"].recordMap.same == I.Search.StaticIndex:
 assert(I.Providers:Execute(alpha,"open",{}).ok and calls==1 and drags==0)
 assert(I.Providers:Execute(alpha,"move",{},true).ok and drags==1 and calls==1)
 assert(query("Shared entity")[1].payload.count~=100, "callbacks cannot mutate indexed records")
-local recent=I.Search.Query:ResolveRecent({{providerID="test.beta",entryID="same"},{providerID="test.alpha",entryID="same"}},5)
+local recent={assert(I.Providers:Resolve({providerID="test.beta",entryID="same"},{})),assert(I.Providers:Resolve({providerID="test.alpha",entryID="same"},{}))}
 assert(#recent==2 and recent[1].providerID=="test.beta" and recent[2].providerID=="test.alpha")
-assert(#I.Search.Query:ResolveRecent({"same"},5)==0, "bare historical IDs are not migrated")
+assert(I.Providers:Resolve("same",{})==nil, "bare historical IDs are not migrated")
 local untouched=I.Search.StaticIndex.entries["test.alpha:records:unchanged"]
 expect("UNKNOWN_ACTION",function() return first:Update({upsert={{id="invalid",title="Invalid",actions={"missing"}}},remove={"same"}}) end)
 assert(#query("Shared entity")==2, "invalid delta did not partially remove records")
@@ -132,9 +132,9 @@ assert(notifications==1 and cancellations[2]=="complete")
 expect("STALE_REQUEST",function() return completed.second({}) end)
 local remote=I.Search.Query.last.results[1]
 assert(I.Providers:CanRemember(remote))
-local restored=I.Search.Query:ResolveRecent({remote.ref},5)
-assert(#restored==1 and restored[1].text=="Restored current data")
-assert(I.Providers:Execute(restored[1],"open",{}).ok)
+local restored=assert(I.Providers:Resolve(remote.ref,{}))
+assert(restored.text=="Restored current data")
+assert(I.Providers:Execute(restored,"open",{}).ok)
 query("timeout")
 local deadline=timers[#timers]
 assert(deadline.seconds==5)
@@ -221,7 +221,7 @@ local cancellingHandle=assert(SDK:RegisterProvider(cancelling))
 assert(#query("cancel peer")==0)
 assert(cancellingHandle:Unregister())
 local scopedEntry=assert(SDK:RegisterProvider(definition("test.scoped-entry",{{id="entry",title="Other client",scope={product="classic"}}})))
-assert(#I.Search.Query:ResolveRecent({{providerID="test.scoped-entry",entryID="entry"}},5)==0)
+assert(I.Providers:Resolve({providerID="test.scoped-entry",entryID="entry"},{})==nil)
 assert(scopedEntry:Unregister())
 local swapping, swapped
 local swapDefinition=definition("test.swap-action",{{id="entry",title="Swap action",actions={"swap"}}})

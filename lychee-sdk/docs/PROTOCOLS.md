@@ -51,7 +51,7 @@
 
 request 是普通数据快照：raw、originalRaw、rawOffset、normalized、tokens、limit、generation，以及可选 filter/session/visible/contextToken/preferredEntryID/ranking。generation 仅标识当前查询，不持久化。filter 来源和类别限制仍由 Host 执行。originalRaw 保留输入框原文；raw 是前缀路由后的查询，rawOffset 为它在原文中的零基 UTF-8 字节偏移，只在确认精确尾切片时提供。不得把字节偏移当字符位置；参数 span 合同见 [Invocation](INVOCATIONS.md)。
 
-ranking 是本 Provider 的 entryID → 0–38 整数权重，最多 72 项，不含其他 Provider 的偏好；来自已有固定项和最近使用顺序，不保存次数或时间戳。动态来源通过 `SDK.CreateRanker(request)` 在候选截断前排序，Catalog 与 Host 的具体排序须由契约测试验证；本次保留旧索引，不声称移植十包版全部内部优化。排名函数返回值与原 confidence/evidence 分开；同词记忆优先，普通固定/近期加权最多 0.038。精确规则及复制隔离见[目录与排名](CATALOG.md)。这是 API 1.0.0 的可选能力扩展。
+ranking 是本 Provider 普通条目的 entryID → 0–38 整数权重，最多 72 项，不含其他 Provider 的偏好；来自已有固定项和最近使用顺序，不保存次数或时间戳。动态来源通过 `SDK.CreateRanker(request)` 在候选截断前排序，Catalog 与 Host 的具体排序须由契约测试验证；本次保留旧索引，不声称移植十包版全部内部优化。排名函数返回值与原 confidence/evidence 分开；同词记忆优先，普通固定/近期加权最多 0.038。精确规则及复制隔离见[目录与排名](CATALOG.md)。具体 target/command/invocation 的偏好由 Host 按完整引用身份处理，不降成 preferredEntryID/ranking 中的标量提示；不能把一个参数调用的选择加权到同 entryID 的所有其他参数。Host 只对实际收到的候选排序，不能从 Provider 已截断的回复中找回被丢弃的调用。这是 API 1.0.0 的可选能力扩展。
 
 `reply(entries)` 接受至多 256 个普通 Entry；`reply(hits)` 也接收至多 256 个 `{entry=Entry,confidence=number,evidence?=table}`；confidence 在 0–1 内。evidence 使用 matchedField、matchedText、matchType、confidence、distance，结构由 Host 校验。可用 `SDK.Score(request,entries,scope?)` 计算证据；它不会替业务筛选条目，未命中的业务候选以 0.75 回退分值保留。最终展示上限仍为 20。
 

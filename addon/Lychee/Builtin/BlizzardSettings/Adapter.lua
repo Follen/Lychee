@@ -1,5 +1,5 @@
 local I=_G.LycheeInternal
--- Native objects remain private to Player. Host receives only stable identities
+-- Native objects remain private to this settings module. Host receives stable identities
 -- and bounded arguments. No setter is called during discovery or parsing.
 local A={byID={},byVariable={},ordered={}}
 I.Builtin.SettingsAdapter=A

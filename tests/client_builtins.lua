@@ -59,6 +59,7 @@ for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     end
 end
 load("Builtin/Shared/CatalogProvider.lua");load("Builtin/BlizzardSettings/Provider.lua")
+load("Builtin/BlizzardSettings/Adapter.lua");load("Builtin/BlizzardSettings/Language.lua");load("Builtin/BlizzardSettings/Invocations.lua")
 for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     product=client;local found={}
     I.Builtin.BlizzardSettings.build({},function(row) found[row.id]=row end,function() end)

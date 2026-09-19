@@ -5,9 +5,6 @@ local Registry = {
 }
 I.Registry = Registry
 
-function Registry:ValidateBoundary(value, field)
-    return I.Boundary:Validate(value, field)
-end
 function Registry:ValidateSchema(value, schema, field)
     return I.Boundary:ValidateSchema(value, schema, field)
 end

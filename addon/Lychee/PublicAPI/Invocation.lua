@@ -1,6 +1,6 @@
 local I = _G.LycheeInternal
 local API = {}
-for _,name in ipairs({"ValidateSchema","NormalizeArgs","ParsePatterns","NormalizeStoredRef","Equal","ToInvocation","Release","Prepare","PrepareStoredRef","Invoke","BeginEdit"}) do
+for _,name in ipairs({"ValidateSchema","NormalizeArgs","ParsePatterns","NormalizeStoredRef","Equal","ToInvocation","Release","Invoke","BeginEdit"}) do
  local method=name
  API[method]=function(_,...) return I.Invocations[method](I.Invocations,...) end
 end

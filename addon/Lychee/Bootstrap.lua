@@ -89,12 +89,17 @@ end
 local frame = CreateFrame and CreateFrame("Frame")
 if frame then
     frame:RegisterEvent("PLAYER_LOGIN")
+    frame:RegisterEvent("PLAYER_LOGOUT")
     frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     frame:RegisterEvent("PLAYER_REGEN_ENABLED")
     frame:SetScript("OnEvent", function(_, event, name)
         if event == "ADDON_LOADED" then if I.DeliverAddonLoaded then I.DeliverAddonLoaded(name) end
         elseif event == "PLAYER_LOGIN" then onLogin()
-        elseif event == "PLAYER_REGEN_DISABLED" and I.Host and I.Host.PaletteController then I.Host.PaletteController:Hide("combat")
+        elseif event == "PLAYER_LOGOUT" then
+            if I.Invocations then I.Invocations:CancelAll("CHARACTER_CHANGED") end
+        elseif event == "PLAYER_REGEN_DISABLED" then
+            if I.Invocations then I.Invocations:CancelAll("COMBAT_LOCKED") end
+            if I.Host and I.Host.PaletteController then I.Host.PaletteController:Hide("combat") end
         elseif event == "PLAYER_REGEN_ENABLED" then
             if I.Host and I.Host.SecureBroker then I.Host.SecureBroker:Flush() end
             onLogin()

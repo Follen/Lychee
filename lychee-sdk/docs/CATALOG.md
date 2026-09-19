@@ -51,7 +51,7 @@ SearchDocument 只含 `id/title/aliases/keywords/description/category/scope/subt
 
 ## 查询、排名和失败
 
-`SDK.Score(request,entries,scope?)` 对有限条目计算匹配；`SDK.CreateRanker(request)` 返回本次查询排名函数；`SDK.SortHits(request,hits,limit?)` 返回排序数组。自己筛选候选时先排序再截断，不能以固定偏好绕过业务资格。偏好仅用于排序，动作身份仍由完整目标、动作、版本与参数决定。
+`SDK.Score(request,entries,scope?)` 对有限条目计算匹配；`SDK.CreateRanker(request)` 返回本次查询排名函数；`SDK.SortHits(request,hits,limit?)` 返回排序数组。自己筛选候选时先排序再截断，不能以固定偏好绕过业务资格。preferredEntryID/ranking 只携带本 Provider 普通条目的偏好；具体参数调用不会被压成同 entryID 的统一加权。Host 收到候选后按完整引用处理参数偏好，但不能恢复 Provider 已经截掉的候选。动作身份仍由完整目标、动作、版本与参数决定。
 
 `context.deadline` 是 SDK.Now() 的绝对秒，发现、加载、准备、查询共享截止，不能每个阶段续五秒。`context.fail(Error)` 表示本来源不完整；`reply({})` 才表示成功零结果。回调完成或取消后释放 request/context/ranker，不缓存跨查询偏好。具体错误边界见[协议](PROTOCOLS.md)。
 

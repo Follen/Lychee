@@ -158,8 +158,7 @@ function Palette:Create()
     self.onHomeSelect = function(section, tile)
         if section and section.item and tile then self:ActivateRow(tile)
         elseif section and section.filter then self:ActivateHomeFilter(section.filter)
-        elseif section and section.query then self.input:SetText(section.query)
-        elseif section and section.id and self.onHomeCategory then self.onHomeCategory(section.id) end
+        elseif section and section.query then self.input:SetText(section.query) end
     end
     self.viewHost = Lychee.UI.ViewHost:Create(self.content)
     self.input:SetCompositionCallback(function()
@@ -314,13 +313,6 @@ function Palette:CloseSettings(clearQuery)
 end
 
 function Palette:SetQueryCallback(callback) self.onQuery = callback end
-function Palette:SetActivateCallback(callback) self.onActivate = callback end
-function Palette:SetDragCallback(callback) self.onDrag = callback end
-function Palette:SetHomeSections(sections, allowExpand)
-    if self.homeView then self.homeView:SetSections(sections or {}, allowExpand) end
-end
-function Palette:SetHomeCategoryCallback(callback) self.onHomeCategory = callback end
-
 function Palette:IsHomeVisible()
     return self.visible and not self.waitingPresentation and not self.settingsOpen and self.homeView and self.homeView.frame:IsShown()
         and not (self.viewHost and self.viewHost:IsActive())
@@ -704,12 +696,6 @@ function Palette:ApplyResults(items, generation, session, offset)
     if wasWaiting and #items > 0 and self.list.frame:IsShown() then Lychee.UI.Motion:Reveal(self.list.frame,"page") end
     return true
 end
-function Palette:SetResults(items, generation, session)
-    local searchSession = _G.LycheeInternal and _G.LycheeInternal.Search and _G.LycheeInternal.Search.Session
-    if searchSession then return searchSession:_Accept(items, generation or searchSession.generation, session or searchSession.session) end
-    return self:ApplyResults(items, generation, session)
-end
-
 function Palette:DeferRowHover(owner)
     if not self.visible or self.waitingPresentation then return true end
     local presence=Lychee.UI.Motion and Lychee.UI.Motion.presence
@@ -853,13 +839,6 @@ function Palette:ActivateRow(row)
     return result, actionErr
 end
 function Palette:ActivateSelected() return self.list:ActivateSelected() end
-function Palette:ActivateRowAction(row, actionID)
-    local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
-    if not executor then return false, "ACTION_UNAVAILABLE" end
-    local result, err = executor:Execute(row, actionID)
-    self:ReportActionResult(result, err)
-    return result, err
-end
 function Palette:ShowRowActions(row)
     Lychee.UI.ResultList:HideTooltip()
     if row and not row.item and row.section and row.section.pinnedRef then

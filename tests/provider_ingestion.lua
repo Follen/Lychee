@@ -52,8 +52,8 @@ local accesses=0
 issecretvalue=function(value) accesses=accesses+1; return value==secret end
 canaccessvalue=function(value) return value~=denied end
 canaccesstable=function(value) return value~=badTable end
-local accessAction,accessError=I.Boundary:ValidateSearchAction({id="x",kind="open-panel",panel="main",state={value=secret}})
-assert(not accessAction and accessError.code=="SECRET_VALUE","standalone action validation still performs its own safety walk")
+local accessAction,accessError=I.Boundary:ValidateSearchRecord({id="secret-action",title="Secret action",actions={{id="x",kind="open-panel",panel="main",state={value=secret}}}})
+assert(not accessAction and accessError.code=="SECRET_VALUE","record action payload receives the complete safety walk")
 local accessText,textError=I.Boundary:ValidateText({{text="alias",scope={locale=secret}}})
 assert(not accessText and textError.code=="SECRET_VALUE","standalone text validation does not inherit private trust")
 local function rejected(value, code)

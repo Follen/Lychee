@@ -29,18 +29,6 @@ function R:Refresh()
     return self
 end
 
-function R:SetSourceRevision(revision)
-    revision = number(revision)
-    if revision <= self.sourceRevision then return self.sourceRevision end
-    self.sourceRevision = revision
-    self.signature = table.concat({ self.schema, "identity-v2", self.product, self.interface, self.build, self.locale, self.sourceRevision }, "|")
-    return self.sourceRevision
-end
-
-function R:BuildSignature(sourceSignature)
-    return table.concat({ self.signature, tostring(sourceSignature or "") }, "|")
-end
-
 function R:Current()
     if self.signature == "" then self:Refresh() end
     return self

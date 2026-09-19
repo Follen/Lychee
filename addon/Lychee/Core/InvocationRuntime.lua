@@ -320,6 +320,7 @@ local function diagnostic(code,providerID)
  V.diagnostics[#V.diagnostics+1]={code=code,providerID=providerID}
  if #V.diagnostics>32 then table.remove(V.diagnostics,1) end
 end
+local live
 local function operation(entry,context,callback,preparing,onFinish)
  local owned,err=plain(context or {},"context");if err then return nil,err end
  if type(owned)~="table" or owned.deadline~=nil and type(owned.deadline)~="number" then return fail("INVALID_SCHEMA","context.deadline") end
@@ -335,6 +336,7 @@ local function operation(entry,context,callback,preparing,onFinish)
  local finish
  local function stop(reason)
   if state.done or state.closing then return false end
+  if state.character~=characterToken() then state.callback=nil;reason="CHARACTER_CHANGED" end
   state.closing=true
   if state.release then state.release();state.release=nil end
   local cancel=state.cancel;state.cancel=nil
@@ -356,7 +358,7 @@ local function operation(entry,context,callback,preparing,onFinish)
   if scope then I.Resources:Close(scope,"complete") end
   if cancel then pcall(cancel,"complete") end
   if result.status~="succeeded" then diagnostic(result.code or result.status,ownerID) end
-  if callback then
+  if callback and state.character==characterToken() then
    if preparing then pcall(callback,token,token and nil or {code=result.code or result.status,field=result.field})
    else pcall(callback,copy(result)) end
   end
@@ -375,15 +377,12 @@ local function operation(entry,context,callback,preparing,onFinish)
  local cleanup;cleanup,err=scope:Own("operation",function(reason) if not state.done then stop(reason or "OWNER_UNAVAILABLE") end end)
  if not cleanup then operations[state]=nil;I.Resources:Close(scope);return nil,err end
  local timer;timer,err=scope:After("deadline",math.max(0,state.deadline-I.Providers:QueryTime()),function()
-  if not state.done then
-   if state.dispatched then stop("OPERATION_TIMEOUT")
-   else finish({status="failed",code="PREPARE_TIMEOUT"}) end
-  end
+  live(state)
  end)
  if not timer then finish({status="failed",code=err.code});return nil,err end
  return state
 end
-local function live(state)
+live=function(state)
  if state.done or state.closing then return false end
  if state.character~=characterToken() then state.callback=nil;state.stop("CHARACTER_CHANGED");return false end
  if not available(state.entry) or state.product~=currentProduct() then state.stop("OWNER_UNAVAILABLE");return false end
@@ -589,7 +588,7 @@ function V:PrepareAvailable(providerID,actionID,target,args,context,reply,action
   local callback,stage=state.callback,state.stage
   state.callback,state.stage,state.context,state.target,state.args=nil,nil,nil,nil,nil
   if stage then stage:Cancel() end
-  if callback then pcall(callback,token,problem) end
+  if callback and state.character==characterToken() then pcall(callback,token,problem) end
  end
  function handle:Cancel(reason)
   if state.done then return false end
@@ -702,6 +701,7 @@ function V:BeginEdit(providerID,actionID,target,options,context)
   return copy({status=state.status,draft=state.draft,lastApplied=state.lastInvocation and state.lastInvocation.args,pending=state.pending==true,code=state.code})
  end
  local function notify()
+  if state.character~=characterToken() then opts.onState=nil end
   if state.notifying or not opts.onState then return end
   state.notifying=true;pcall(opts.onState,snapshot());state.notifying=nil
  end
@@ -718,7 +718,8 @@ function V:BeginEdit(providerID,actionID,target,options,context)
  local dispatch,schedule
  function handle:GetState() return snapshot() end
  function handle:Cancel(reason)
-  if state.closed or state.finished then return false end
+  if state.character~=characterToken() then reason="CHARACTER_CHANGED" end
+  if state.finished or state.closed and reason~="CHARACTER_CHANGED" then return false end
   if reason=="CHARACTER_CHANGED" then opts.onState=nil;state.character=-1;state.pending=false end
   state.closed=true;state.status="cancelled";state.code=reason
   state.queued=nil
@@ -729,6 +730,7 @@ function V:BeginEdit(providerID,actionID,target,options,context)
   finish();return true
  end
  schedule=function()
+  if state.character~=characterToken() then handle:Cancel("CHARACTER_CHANGED");return end
   if state.closed or state.finished then finish();return end
   if state.pending or state.timer then return end
   if not state.queued then if state.finalRequested then state.status="succeeded";finish() end;return end
@@ -738,11 +740,14 @@ function V:BeginEdit(providerID,actionID,target,options,context)
   if not timer then state.status="failed";state.code=why.code;state.closed=true;finish() else state.timer=timer end
  end
  dispatch=function()
+  if state.character~=characterToken() then handle:Cancel("CHARACTER_CHANGED");return end
   if state.closed or state.finished or state.pending or not state.queued then return end
   local args=state.queued;state.queued=nil;state.pending=true;state.phase="preparing";state.dispatchedOnce=true
   local dispatchContext=copy(state.context)
   local now=I.Providers:QueryTime();dispatchContext.deadline=math.min(dispatchContext.deadline or now+5,now+5)
-  notify();if state.closed then state.pending=false;finish();return end
+  notify()
+  if state.character~=characterToken() then handle:Cancel("CHARACTER_CHANGED");return end
+  if state.closed then state.pending=false;finish();return end
   local function completed(result)
    state.pending=false;state.operation=nil;state.phase=nil
    state.nextAllowed=I.Providers:QueryTime()+(opts.interval or 0)
@@ -763,6 +768,7 @@ function V:BeginEdit(providerID,actionID,target,options,context)
   if not preparation and why then completed({status="failed",code=why.code}) end
  end
  function handle:Push(input)
+  if state.character~=characterToken() then self:Cancel("CHARACTER_CHANGED");return fail("EDIT_CLOSED") end
   if state.closed or state.finished or state.finalRequested then return fail("EDIT_CLOSED") end
   if state.pending and opts.mode~="latest" then return fail("OPERATION_BUSY") end
   local args,why=V:NormalizeArgs(action.schema,input)
@@ -770,6 +776,7 @@ function V:BeginEdit(providerID,actionID,target,options,context)
   state.draft=args;state.queued=args;state.code=nil;notify();schedule();return true
  end
  function handle:Finish()
+  if state.character~=characterToken() then self:Cancel("CHARACTER_CHANGED");return false end
   if state.closed or state.finished then return false end
   state.finalRequested=true;schedule();return true
  end

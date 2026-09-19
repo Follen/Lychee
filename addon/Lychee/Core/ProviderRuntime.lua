@@ -5,7 +5,6 @@ I.Providers = P
 -- may resolve the same entry independently. UI/action references keep it alive.
 local weakRecords = { __mode = "k" }
 local function resolvedRecords() return setmetatable({}, weakRecords) end
-local localizedRecordFields = {"title","kindTitle","subtitle","subtext","description","aliases","keywords"}
 
 local function copy(value)
     if type(value) ~= "table" then return value end

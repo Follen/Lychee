@@ -84,7 +84,7 @@ assert(index:Remove("mutation-test", "spell:393256", 3))
 local afterRemoveHits = index:Search("红玉新", 10)
 for removeIndex = 1, #afterRemoveHits do assert(afterRemoveHits[removeIndex].sourceID ~= "mutation-test") end
 assert(index:Invalidate("mutation-test", 4))
-assert(index:GetSignature():find("search%-schema%-2", 1, false))
+assert(I.Search.RuntimeIdentity:Current().signature:find("search%-schema%-2", 1, false))
 
 assert(index:RegisterSource({ id = "generation-test", revision = 2 }))
 assert(index:Upsert("generation-test", { id = "one", title = "代际记录" }, 2))
@@ -130,7 +130,7 @@ assert(typedGeneration and typedResults[1].kindTitle == "生物", "SearchRecord 
 assert(typedResults[1].sourceTitle == "生物来源", "result source title comes from the Source declaration")
 assert(typedResults[1].categoryColor and typedResults[1].categoryColor[1] == 0.8, "category color comes from the SearchRecord")
 
--- Source-local updates preserve unrelated source entries and snapshots restore real records.
+-- Source-local updates preserve unrelated entries; identity rebuild preserves records.
 local sourceB = "test.search:other"
 assert(I.Search.StaticIndex:RegisterSource({ id = sourceB, revision = 1, _extensionID = "test.search" }))
 assert(I.Search.StaticIndex:CommitSnapshot(sourceB, { { id = "other:1", kind = "creature", title = "保留记录" } }, 1))
@@ -138,11 +138,11 @@ local unrelatedKey = sourceB .. ":other:1"
 local unrelatedEntry = I.Search.StaticIndex.entries[unrelatedKey]
 assert(sourceHandle:Upsert({ id = "creature:3", kind = "creature", category = { id = "dungeons", title = "副本" }, title = "局部更新" }))
 assert(I.Search.StaticIndex.entries[unrelatedKey] == unrelatedEntry)
-local exported = I.Search.StaticIndex:ExportSnapshot()
-local restored = I.Search.StaticIndex:New()
-for sourceIndex = 1, #exported.sources do assert(restored:RegisterSource(exported.sources[sourceIndex])) end
-assert(restored:RestoreSnapshot(exported))
-assert(#restored:Search("保留记录", 10) == 1)
+local preservedRecord = unrelatedEntry.record
+I.Search.StaticIndex:Rebuild()
+assert(I.Search.StaticIndex.entries[unrelatedKey].record == preservedRecord)
+assert(#I.Search.StaticIndex:Search("保留记录", 10) == 1)
+assert(#I.Search.StaticIndex:Search("局部更新", 10) == 1)
 
 -- Fuzzy work obeys a millisecond deadline and records a stable diagnostic code.
 local previousProfiler = debugprofilestop

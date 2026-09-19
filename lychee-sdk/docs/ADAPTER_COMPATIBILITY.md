@@ -1,6 +1,6 @@
 # 第三方适配与兼容性
 
-性能、容量与生命周期预算统一见[性能硬门禁](PERFORMANCE.md)；本页说明接口使用方式。
+性能、容量与生命周期规则统一见[性能规范与内存审查](PERFORMANCE.md)；本页说明接口使用方式。
 
 统一Provider入口减少宿主的业务分支，不代表与上游完全解耦。对方没有稳定公开接口时，
 依赖内部字段的代码必须集中在Provider自己的adapter，记录版本证据、缺失能力和维护范围。
@@ -38,13 +38,13 @@
 
 ## 版本与验收
 
-本次证据：sourceId=ellesmereui，product=main，requestedRef=latest，
+已有版本证据：sourceId=ellesmereui，product=main，requestedRef=latest，
 resolvedCommit=271ffc30d3265d9f77746b0e15224d918f0fafcb。
 `EllesmereUI.lua:5565`为EnsureLoaded，`:9316`为NavigateToElementSettings；
 `EllesmereUI_GlobalSearch.lua:22`为_RegisterSearchEntry。实际源位置以验证记录中的wowdoc结果为准。
 
 上游升级时：先source check并查对应版本，再跑缺失/异常/重试/页面变化与真实导航参数测试；
-同时比较完整结果、顺序、resolve和动作参数，不能只看“没有报错”。本轮44组对照基于优化前3b0af04。
+同时比较完整结果、顺序、resolve和动作参数，不能只看“没有报错”。历史44组对照基于优化前3b0af04，不代表本分支或更新后的上游已经通过实机验收。
 
-运行`lua tests/providers/ellesmere_adapter.lua`、`lua tests/providers/ellesmere_equivalence.lua`和`lua tests/providers/ellesmere_provider.lua`。
+在完整源码仓库根目录运行 `lua tests/ellesmere_adapter.lua`、`lua tests/ellesmere_equivalence.lua` 和 `lua tests/ellesmere_provider.lua`；独立 SDK 包不包含这些项目测试。
 离线通过不证明新版游戏与全部第三方版本可用；游戏内仍需验证首次打开、分区定位、selector及解锁。

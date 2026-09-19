@@ -562,19 +562,6 @@ end
 function HomeView:HasPresentation()
     return self.frame:IsShown() and #self.sections>0
 end
-function HomeView:InvalidateOwner(id,callback)
-    if not id then return false end
-    for _,tile in ipairs(self.tiles) do
-        if tile.snapshotOwner==id then
-            tile.snapshotOwner=nil;tile:Hide()
-        elseif tile.extensionID==id then
-            if callback then callback(tile)
-            elseif self.controller and self.controller.InvalidateRow then self.controller:InvalidateRow(tile)
-            else self:InvalidateRow(tile) end
-        end
-    end
-    return true
-end
 function HomeView:ReportDemand()
     if self.frozen or not self.frame:IsShown() then return end
     local session=I.Search and I.Search.Session

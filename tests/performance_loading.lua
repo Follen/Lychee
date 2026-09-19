@@ -4,8 +4,9 @@ local runtimeRoot=arg[2] or "addon/Lychee"
 local measureOnly=arg[3]=="--measure"
 local baselineOnly=arg[3]=="--baseline"
 local frames,events=0,0
+local eventNames={}
 local methods={}
-function methods:RegisterEvent() events=events+1 end
+function methods:RegisterEvent(name) events=events+1;eventNames[name]=(eventNames[name] or 0)+1 end
 function methods:UnregisterAllEvents() end
 function methods:SetScript(key,fn) self[key]=fn end
 function CreateFrame() frames=frames+1;return setmetatable({},{__index=methods}) end
@@ -31,12 +32,12 @@ local allocated=collectgarbage("count")-base
 collectgarbage("restart");collectgarbage("collect")
 local retained=collectgarbage("count")-base
 assert(not (LycheeInternal.Host and LycheeInternal.Host.PaletteController),"TOC execution must not create the search UI")
-assert(frames<=2 and events<=3,"TOC execution adds no eager feature UI or subscriptions")
--- Retained component definitions + presence channel may add at most 64 KiB to
--- the previous 1282 KiB ceiling; startup allocation savings are measured apart.
+assert(frames<=2 and events==4,"TOC execution creates only bounded Host infrastructure")
+local hostEvents={PLAYER_LOGIN=true,PLAYER_LOGOUT=true,PLAYER_REGEN_DISABLED=true,PLAYER_REGEN_ENABLED=true}
+for name,count in pairs(eventNames) do assert(hostEvents[name] and count==1,"unexpected eager subscription: "..name) end
+-- Historical memory references are reviewed under PERFORMANCE.md; lifecycle
+-- ownership, object counts and CPU limits remain mandatory.
 local creature=LycheeInternal.Builtin.LDT~=nil
--- The new captured raid ability relationships have a separate 128 KiB allowance.
--- Full retail loading retains its existing 1858 KiB ceiling (not an additive bump).
 local raid=LycheeInternal.Builtin.JournalCatalog and LycheeInternal.Builtin.JournalCatalog.abilities~=nil
 if not measureOnly then
     assert(elapsed<(creature and 61 or 46),"loading stays below the declared CPU budget")

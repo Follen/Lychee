@@ -207,19 +207,6 @@ function Session:SourceChanged(reason)
     end
 end
 
-function Session:ParticipationChanged(id)
-    if I.Preparation then I.Preparation:CancelSearch(id) end
-    local palette=self.palette
-    if palette and palette.MarkHomeDirty then palette:MarkHomeDirty() end
-    -- Settings and business panels keep their own lifetime. Only an active
-    -- search receives a replacement generation under the updated policy.
-    if not self.visible or self.inputSuspended or not palette or not palette.visible then return end
-    if palette.settingsOpen or palette.viewHost and palette.viewHost:IsActive()
-        or palette.IsHomeVisible and palette:IsHomeVisible() then return end
-    if not self.activeFilter and I.Search.Normalizer:IsBlank(self.raw or "") then return end
-    if self.activeFilter then self:Filter(self.activeFilter) else self:Input(self.raw or "") end
-end
-
 function Session:FinishHomeWarm()
     local token=self.homeWarm;self.homeWarm=nil
     if token then token:Cancel() end

@@ -33,18 +33,6 @@ function Q:_ResolveGeneration(externalGeneration, context)
     return session and session.generation or 0
 end
 
--- Resolve saved identities without running a fuzzy query or changing the active
--- search generation. Materialization stays identical to normal search results.
-function Q:ResolveRecent(refs, limit)
-    local out = {}
-    for index = 1, #refs do
-        local item = I.Providers and I.Providers:Resolve(refs[index], I.Context and I.Context:Snapshot() or {})
-        if item then out[#out + 1] = item end
-        if #out >= (limit or 5) then break end
-    end
-    return out
-end
-
 function Q:_BuildRequest(raw, context, generation)
     local text, filter, rawOffset = tostring(raw or ""), context and context.searchFilter, 0
     if I.Search.ProviderPolicy then

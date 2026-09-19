@@ -27,23 +27,6 @@ local function wipeTable(value)
     for key in pairs(value) do value[key] = nil end
 end
 
-local function copyPlain(value, seen)
-    local kind = type(value)
-    if kind == "nil" or kind == "boolean" or kind == "number" or kind == "string" then return value end
-    if kind ~= "table" or getmetatable(value) ~= nil then return nil end
-    seen = seen or {}
-    if seen[value] then return nil end
-    seen[value] = true
-    local copy = {}
-    for key, child in pairs(value) do
-        local copiedKey, copiedChild = copyPlain(key, seen), copyPlain(child, seen)
-        if copiedKey == nil or (child ~= nil and copiedChild == nil) then seen[value] = nil; return nil end
-        copy[copiedKey] = copiedChild
-    end
-    seen[value] = nil
-    return copy
-end
-
 local function addSet(map, key, entryKey)
     if not key or key == "" then return end
     local set = map[key]
@@ -264,7 +247,6 @@ function Index:UnregisterSource(sourceID)
     clearSourceEntries(self, source)
     bump(self, source, nil, "unregistered")
     self.sources[sourceID] = nil
-    self:Persist()
     return true
 end
 
@@ -283,7 +265,6 @@ function Index:TouchSource(sourceID, enabled)
         end
     end
     local revision, generation = bump(self, source, nil, "enabled")
-    self:Persist()
     return true, generation, revision
 end
 
@@ -305,7 +286,6 @@ function Index:Upsert(sourceID, record, revision, generation)
         installEntry(self, entry)
         source.entryKeys[entry.key] = true
         bump(self, source, revision, "upserted")
-        self:Persist()
         return true
     end
     source.pending.records[record.id] = record
@@ -322,7 +302,6 @@ function Index:Remove(sourceID, recordID, revision, generation)
         removeEntry(self, self.entries[entryKey])
         source.entryKeys[entryKey] = nil
         bump(self, source, revision, "removed")
-        self:Persist()
         return true
     end
     source.pending.records[recordID] = nil
@@ -352,7 +331,6 @@ local function applyChanges(self, source, replacements, removals, revision, reas
         installEntry(self, entry); source.entryKeys[entry.key] = true
     end
     local nextRevision, nextGeneration = bump(self, source, revision, reason)
-    self:Persist()
     return true, nextGeneration, nextRevision, true
 end
 
@@ -408,21 +386,6 @@ function Index:CommitSnapshot(sourceID, records, revision, generation)
     end
     source.pending = nil
     return applyChanges(self, source, replacements, removed, revision, "snapshot")
-end
-
-function Index:AddRecord(sourceID, record, descriptor)
-    if not self.sources[sourceID] then
-        local registered, why = self:RegisterSource(descriptor or { id = sourceID })
-        if not registered then return nil, why end
-    end
-    local source = self.sources[sourceID]
-    local entryKey = sourceID .. ":" .. record.id
-    removeEntry(self, self.entries[entryKey])
-    local entry = buildEntry(source, record)
-    installEntry(self, entry)
-    source.entryKeys[entry.key] = true
-    bump(self, source, nil, "added")
-    return true
 end
 
 function Index:Invalidate(sourceID, key)
@@ -641,82 +604,6 @@ function Index:GetDiagnostics()
     local out = {}
     for code, count in pairs(self.diagnostics) do out[code] = count end
     return out
-end
-
-function Index:BuildSignature()
-    local identity = I.Search.RuntimeIdentity
-    local sourceSignatures = {}
-    for sourceID, source in pairs(self.sources) do
-        if sourceID:find(":records", 1, true) or source.extensionID then
-            sourceSignatures[#sourceSignatures + 1] = table.concat({ sourceID, source.version, source.revision }, ":")
-        end
-    end
-    table.sort(sourceSignatures)
-    local suffix = table.concat(sourceSignatures, ",")
-    return identity and identity:BuildSignature(suffix) or suffix
-end
-
-function Index:GetSignature()
-    return self:BuildSignature()
-end
-
-function Index:ExportSnapshot()
-    local records, sources = {}, {}
-    for sourceID, source in pairs(self.sources) do
-        local sourceRecords = {}
-        for key in pairs(source.entryKeys) do
-            local entry = self.entries[key]
-            if entry and entry.record.kind ~= "command" then
-                local plain = copyPlain(entry.record)
-                if plain then sourceRecords[#sourceRecords + 1] = plain end
-            end
-        end
-        if #sourceRecords > 0 then
-            table.sort(sourceRecords, function(left, right) return left.id < right.id end)
-            sources[#sources + 1] = {
-                id = sourceID, version = source.version, priority = source.priority, scope = copyPlain(source.scope),
-                revision = source.revision, enabled = source.enabled, extensionID = source.extensionID,
-                title = copyPlain(source.title), extensionTitle = copyPlain(source.extensionTitle),
-            }
-            records[sourceID] = sourceRecords
-        end
-    end
-    table.sort(sources, function(left, right) return left.id < right.id end)
-    return { schema = "lychee-search-snapshot-1", signature = self:BuildSignature(), sources = sources, records = records }
-end
-
-function Index:RestoreSnapshot(snapshot)
-    if type(snapshot) ~= "table" or snapshot.schema ~= "lychee-search-snapshot-1" then return nil, "SNAPSHOT_SCHEMA" end
-    if snapshot.signature ~= self:BuildSignature() then return nil, "SNAPSHOT_SIGNATURE" end
-    if type(snapshot.sources) ~= "table" or type(snapshot.records) ~= "table" then return nil, "SNAPSHOT_SCHEMA" end
-    local restored = 0
-    for index = 1, #snapshot.sources do
-        local descriptor = snapshot.sources[index]
-        local source = self.sources[descriptor.id]
-        if source and source.version == descriptor.version and source.revision == descriptor.revision then
-            local records = snapshot.records[descriptor.id]
-            if type(records) ~= "table" then return nil, "SNAPSHOT_SCHEMA" end
-            for recordIndex = 1, #records do
-                local valid = I.Boundary and I.Boundary:ValidateSearchRecord(records[recordIndex], "snapshot.records[" .. recordIndex .. "]", source.extensionID)
-                if not valid then return nil, "SNAPSHOT_SCHEMA" end
-            end
-            clearSourceEntries(self, source)
-            for recordIndex = 1, #records do
-                local entry = buildEntry(source, records[recordIndex])
-                installEntry(self, entry)
-                source.entryKeys[entry.key] = true
-                restored = restored + 1
-            end
-        end
-    end
-    self.version = self.version + 1
-    self.previousQuery, self.previousCandidates = nil, nil
-    return true, restored
-end
-
-function Index:Persist()
-    -- Runtime data and executable descriptors are reconstructed by Providers.
-    return false
 end
 
 function Index:Rebuild()

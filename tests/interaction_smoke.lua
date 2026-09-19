@@ -172,6 +172,13 @@ local hoverTile = palette.homeView.tiles[math.max(1, keyboardSelection - 1)]
 hoverTile.scripts.OnEnter(hoverTile)
 hoverTile.scripts.OnLeave(hoverTile)
 assertEq(palette.homeView.selected, hoverTile.index or keyboardSelection, "home hover shares the current selection")
+-- Follow the real action-menu dispatch path, including presentation feedback.
+local function executeRowAction(row, actionID)
+    local result, err = I.ResultActionExecutor:Execute(row, actionID)
+    palette:ReportActionResult(result, err)
+    return result, err
+end
+
 local palettePanel = {
     create = function()
         return { Mount = function() return true end, Unmount = function() end, Dispose = function() end }
@@ -182,7 +189,7 @@ assertEq(palette.viewHost:IsActive(), true, "palette view host active")
 assertEq(palette.homeView.frame:IsShown(), false, "panel hides home view")
 assertEq(palette.list.frame:IsShown(), false, "panel hides search view")
 assertEq(palette.emptyState:IsShown(), false, "panel hides empty state")
-assert(palette:SetResults({ { id = "panel-result", text = "Panel result" } }, palette.generation, palette.session))
+assert(I.Search.Session:_Accept({ { id = "panel-result", text = "Panel result" } }, palette.generation, palette.session))
 assertEq(palette.viewHost:IsActive(), true, "result callback keeps active panel mounted")
 assertEq(palette.viewHost.frame:IsShown(), true, "result callback keeps panel visible")
 assertEq(palette.homeView.frame:IsShown(), false, "result callback does not reveal home behind panel")
@@ -233,11 +240,11 @@ assert(actionItem.confidence and actionItem.confidence >= 0.85, "search result c
 local categoryGeneration, categoryResults = I.Search.Query:Query("技能 动作", { visible = true })
 assert(categoryGeneration and #categoryResults > 0 and categoryResults[1].category == "技能", "category filter result")
 openPanel=true
-assert(palette:SetResults({ actionItem }, palette.generation, palette.session))
-local routedPanel, routedPanelErr = palette:ActivateRowAction(palette.list.rows[1], "open")
+assert(I.Search.Session:_Accept({ actionItem }, palette.generation, palette.session))
+local routedPanel, routedPanelErr = executeRowAction(palette.list.rows[1], "open")
 assert(routedPanel and panelMounted, "search record intent mounts owner panel: " .. tostring(routedPanelErr))
 openPanel=false
-palette:SetResults(actionResults, actionGeneration, palette.session)
+I.Search.Session:_Accept(actionResults, actionGeneration, palette.session)
 local actionRow = palette.list.rows[1]
 assert(actionRow.primaryAction and actionRow.primaryAction.id == "open", "primary action is rendered from the generic protocol")
 assertEq(actionRow.primaryHint:GetText(), "", "primary action title stays in tooltip")
@@ -328,10 +335,10 @@ palette.homeView:SetSections(stableHomeSections, true)
 palette.activeFilter = nil
 palette:SetQueryMode("")
 local scans = 0
-local originalResolveRecent = palette.PrepareHome
+local originalPrepareHome = palette.PrepareHome
 palette.PrepareHome = function(self, ...)
     scans = scans + 1
-    return originalResolveRecent(self, ...)
+    return originalPrepareHome(self, ...)
 end
 local framesBeforeTyping = env.state.createdFrames
 palette.input.frame:SetText("动")
@@ -356,7 +363,7 @@ palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
 scans = 0
 assert(I.Search.StaticIndex:Invalidate("interaction.actions:records", "search-hidden-home"))
 assertEq(scans, 0, "source lifecycle only marks Home dirty outside Home mode")
-palette.PrepareHome = originalResolveRecent
+palette.PrepareHome = originalPrepareHome
 
 local steadyColorCalls = 0
 local colorTile = palette.homeView.tiles[1]
@@ -374,22 +381,22 @@ palette.input.frame.scripts.OnTextChanged(palette.input.frame, true)
 actionRow = palette.list.rows[1]
 assert(actionRow and actionRow.item and actionRow.item.id == actionItem.id, "action fixture refreshes after source invalidation")
 actionItem = actionRow.item
-local ordinaryResult, ordinaryErr = palette:ActivateRowAction(actionRow, "open")
+local ordinaryResult, ordinaryErr = executeRowAction(actionRow, "open")
 assert(ordinaryResult and ordinaryResult.ok == true and actionCalled, "ordinary action execution: " .. tostring(ordinaryErr))
 assertEq(foreignActionCalls, 0, "SearchRecord rejects foreign same-type Handler")
 local _,foreignActionResults=I.Search.Query:Query("越权动作",{visible=true})
-assert(palette:SetResults(foreignActionResults,palette.generation,palette.session))
-assert(palette:ActivateRowAction(palette.list.rows[1],"open"))
+assert(I.Search.Session:_Accept(foreignActionResults,palette.generation,palette.session))
+assert(executeRowAction(palette.list.rows[1],"open"))
 assertEq(foreignActionCalls,1,"same action ID executes only its owning Provider")
-assert(palette:SetResults({ actionItem }, palette.generation, palette.session))
+assert(I.Search.Session:_Accept({ actionItem }, palette.generation, palette.session))
 actionRow = palette.list.rows[1]
-local panelResult, panelErr = palette:ActivateRowAction(actionRow, "panel")
+local panelResult, panelErr = executeRowAction(actionRow, "panel")
 assert(panelResult and panelMounted, "direct panel action: " .. tostring(panelErr))
 local pickupBefore = _G.__pickup or 0
-local dragResult, dragErr = palette:ActivateRowAction(actionRow, "drag")
+local dragResult, dragErr = executeRowAction(actionRow, "drag")
 assert(dragResult and (_G.__pickup or 0) == pickupBefore + 1, "direct drag action: " .. tostring(dragErr))
 _G.__combat = true
-local combatAction, combatActionErr = palette:ActivateRowAction(actionRow, "open")
+local combatAction, combatActionErr = executeRowAction(actionRow, "open")
 assertEq(combatAction, false, "ordinary combat action")
 assertEq(combatActionErr, "COMBAT_LOCKED", "ordinary combat action error")
 _G.__combat = false
@@ -405,7 +412,7 @@ actionItem.interaction.drag = { type = "spell", spellID = 31884 }
 local unavailableDrag, unavailableDragErr = palette:BeginRowDrag(actionRow)
 assertEq(unavailableDrag, false, "drag availability")
 assertEq(unavailableDragErr, "ACTION_UNAVAILABLE", "drag availability error")
-local unavailableAction, unavailableErr = palette:ActivateRowAction(actionRow, "open")
+local unavailableAction, unavailableErr = executeRowAction(actionRow, "open")
 assertEq(unavailableAction, false, "record availability")
 assertEq(unavailableErr, "ACTION_UNAVAILABLE", "record availability error")
 I.Context:Set("interactionReady", true)
@@ -452,7 +459,7 @@ local interactionItem = { interaction = {
     drag = { type = "not-spell", spellID = 31884 },
 } }
 assert(palette:Show())
-palette:SetResults({ interactionItem }, palette.generation, palette.session)
+I.Search.Session:_Accept({ interactionItem }, palette.generation, palette.session)
 local interactionRow = palette.list.rows[1]
 local preparedSecure = secureBroker.buttons[1]
 assert(preparedSecure and preparedSecure:IsShown(), "secure spell button is prepared for visible row")
@@ -464,7 +471,7 @@ assertEq(combatDragOK, false, "combat drag result")
 assertEq(combatDragErr, "COMBAT_LOCKED", "combat drag error")
 _G.__combat = false
 interactionRow.item.interaction.drag = { type = "not-spell", spellID = 31884 }
-local actionOK, actionErr = palette:ActivateRowAction(interactionRow, "cast")
+local actionOK, actionErr = executeRowAction(interactionRow, "cast")
 assertEq(actionOK, false, "scripted secure click")
 assertEq(actionErr, "ACTION_REQUIRES_HARDWARE_CLICK", "scripted secure error")
 local primaryOK, primaryErr = palette:ActivateRow(interactionRow)
@@ -486,7 +493,7 @@ for _,item in ipairs(staleItems) do if item.providerID=="interaction.stale" then
 assert(staleItem and handle:Unregister())
 assert(palette:Show())
 local staleRow=makeInteractionRow(staleItem,"interaction.stale",palette.session,palette.generation)
-local staleOK,staleErr=palette:ActivateRowAction(staleRow,"open")
+local staleOK,staleErr=executeRowAction(staleRow,"open")
 assert(not staleOK and not called and staleErr=="EXTENSION_DISABLED","unregistered old result cannot execute")
 
 -- Launcher regressions: effective visibility, direct recent clicks, bounded
@@ -606,7 +613,7 @@ for index = 1, #secureBroker.buttons do
 end
 C_Timer = nil
 assert(launcherHandle:SetEnabled(false))
-assertEq(#I.Search.Query:ResolveRecent({ { providerID = "interaction.launcher", entryID = clickedID, sourceID = "interaction.launcher:records" } }, 5), 0, "disabled source is absent from recent launcher")
+assertEq(I.Providers:Resolve({ providerID = "interaction.launcher", entryID = clickedID, sourceID = "interaction.launcher:records" }, {}), nil, "disabled source is absent from recent launcher")
 assert(launcherHandle:Unregister())
 
 -- A mixed source owns actions and drag independently of presentation kind.

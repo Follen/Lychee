@@ -254,8 +254,6 @@ local function validateSearchAction(action, field, checked)
     return true
 end
 
-function Boundary:ValidateSearchAction(action, field) return validateSearchAction(action,field,false) end
-
 local function validateTextField(value, field, checked)
     if value == nil or type(value) == "string" then return true end
     if type(value) ~= "table" then return schemaFailure(field) end
