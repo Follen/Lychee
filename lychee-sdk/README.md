@@ -1,6 +1,6 @@
 # Lychee Provider SDK
 
-SDK **1.0.0** / Provider API **1.0.0** / UI Runtime **1**。这是开发包，不是独立游戏插件。当前分支正在把 SDK 与用户功能迁入单插件版；接口文档不表示全部离线或实机验收已经完成，进度见仓库迁移计划。
+SDK **1.0.0** / Provider API **1.0.0** / UI Runtime **1**。这是开发包，不是独立游戏插件。Host 自带功能作为一个游戏插件发行，第三方保持独立 AddOn。本文描述当前接口；各客户端的实际验证范围见兼容说明，接口存在不代表所有实机场景均已通过。
 
 1. 从[接入教程](docs/GETTING_STARTED.md)开始。普通来源直接交 `entries`，不必学习冷加载、预热或紧凑存储。
 2. 对照[协议](docs/PROTOCOLS.md)定义条目、普通动作和恢复。参数动作按[Invocation](docs/INVOCATIONS.md)声明目标、动作和参数。
@@ -19,4 +19,4 @@ SDK **1.0.0** / Provider API **1.0.0** / UI Runtime **1**。这是开发包，�
 | [ManagedProvider](examples/ManagedProvider.lua) | 托管查询资源示例。 |
 | [ComponentPanel](examples/ComponentPanel/ComponentPanel.lua) | 可复用页面示例。 |
 
-第三方独立拥有代码、媒体、SV 与业务事实，不访问 LycheeInternal。Lychee 自带功能本次装配为一个包，不要求第三方采用其项目结构。支持版本、交付文件和性能说明分别见[兼容](docs/COMPATIBILITY.md)、[交付](docs/DELIVERY.md)、[性能](docs/PERFORMANCE.md)。性能页由仓库根规范生成，不能独立修改。
+第三方独立拥有代码、媒体、SV 与业务事实，不访问 LycheeInternal。Lychee 自带功能装配为一个包，不要求第三方采用其项目结构。支持版本、交付文件和性能说明分别见[兼容](docs/COMPATIBILITY.md)、[交付](docs/DELIVERY.md)、[性能](docs/PERFORMANCE.md)。性能页由仓库根规范生成，不能独立修改。

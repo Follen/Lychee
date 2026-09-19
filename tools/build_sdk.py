@@ -23,6 +23,35 @@ def performance_document(root: Path) -> str:
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 
+# These modules implement public SDK operations. This deliberately does not
+# scan Builtin business errors or Blizzard's open-ended LoadAddOn reasons.
+ERROR_SOURCES = (
+    "addon/Lychee/Core/InvocationRuntime.lua", "addon/Lychee/Core/Catalog.lua",
+    "addon/Lychee/Core/Preparation.lua", "addon/Lychee/Core/ProviderRuntime.lua",
+    "addon/Lychee/PublicAPI/Invocation.lua", "lychee-sdk/Storage.lua",
+    "lychee-sdk/CompactStore.lua",
+)
+
+
+def error_code_errors(root: Path, contract: dict) -> list[str]:
+    """Catch literal public error additions omitted from the shipped helper.
+
+    This is a drift check, not a Lua parser or proof of all possible errors.
+    Dynamic Provider and native errors remain an open set.
+    """
+    known = set(contract["errorCodes"])
+    errors = []
+    pattern = r'''(?:\bcode\s*=\s*|\b(?:failure|fail)\(\s*)["']([A-Z][A-Z_]+)["']'''
+    for name in ERROR_SOURCES:
+        path = root / name
+        if not path.is_file():
+            errors.append(f"SDK error source missing: {name}")
+            continue
+        codes = set(re.findall(pattern, path.read_text(encoding="utf-8")))
+        for code in sorted(codes - known):
+            errors.append(f"{name}: SDK error code absent from contract: {code}")
+    return errors
+
 
 def contract_at(root: Path) -> dict:
     contract = json.loads((root / "tools/sdk_contract.json").read_text(encoding="utf-8"))
@@ -75,6 +104,8 @@ def expected_files(root: Path, contract: dict) -> dict[str, str]:
                         f"-- Editor-only API {version} declarations.", types_path)
     for field in ("API_VERSION", "apiVersion"):
         types = replace_one(types, rf'^---@field {field} "[\d.]+"$', f'---@field {field} "{version}"', types_path)
+    types = replace_one(types, r"^---@field VERSION '[\d.]+'$",
+                        f"---@field VERSION '{contract['sdkVersion']}'", types_path)
     helper_path = "lychee-sdk/LycheeAPI.lua"
     helper = (root / helper_path).read_text(encoding="utf-8")
     helper = replace_one(helper,
@@ -110,7 +141,7 @@ def delivery_errors(root: Path, contract: dict) -> list[str]:
 def run(root: Path, write: bool = False) -> list[str]:
     """Return actionable violations; write only generated fields when explicitly requested."""
     contract = contract_at(root)
-    errors = delivery_errors(root, contract)
+    errors = delivery_errors(root, contract) + error_code_errors(root, contract)
     if errors:
         return errors
     generated = expected_files(root, contract)

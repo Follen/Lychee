@@ -25,7 +25,7 @@ class DeliveryContractTests(unittest.TestCase):
         assert self.root.parent == Path(tempfile.gettempdir()).resolve()
         self.addCleanup(self.temporary.cleanup)
         shutil.copytree(ROOT / "lychee-sdk", self.root / "lychee-sdk")
-        for name in ("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "addon/Lychee/SDK/CompactStore.lua", "addon/Lychee/PublicAPI/SDK.lua", "PERFORMANCE.md"):
+        for name in set(("tools/sdk_contract.json", "addon/Lychee/Bootstrap.lua", "addon/Lychee/SDK/CompactStore.lua", "addon/Lychee/PublicAPI/SDK.lua", "PERFORMANCE.md") + builder.ERROR_SOURCES):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
@@ -55,6 +55,12 @@ class DeliveryContractTests(unittest.TestCase):
         self.change("lychee-sdk/ApiStubs.lua", '---@field API_VERSION "1.0.0"', '---@field API_VERSION "1.0.1"')
         self.reject("ApiStubs.lua")
 
+    def test_sdk_types_version_drift(self):
+        self.change("lychee-sdk/ApiStubs.lua", "---@field VERSION '1.0.0'", "---@field VERSION '1.0.1'")
+        self.reject("ApiStubs.lua")
+        self.assertEqual(builder.run(self.root, write=True), [])
+        self.assertEqual(builder.run(self.root), [])
+
     def test_helper_only_drift(self):
         self.change("lychee-sdk/LycheeAPI.lua", 'API_VERSION="1.0.0"', 'API_VERSION="1.0.1"')
         self.reject("LycheeAPI.lua")
@@ -78,6 +84,21 @@ class DeliveryContractTests(unittest.TestCase):
     def test_helper_error_code_drift(self):
         self.change("lychee-sdk/LycheeAPI.lua", '"RESOURCE_LIMIT"', '"LOST_RESOURCE_LIMIT"')
         self.reject("LycheeAPI.lua")
+
+    def test_implementation_error_missing_from_contract(self):
+        self.change("addon/Lychee/Core/InvocationRuntime.lua", 'code="PENDING"', 'code="NEW_PENDING_ERROR"')
+        self.reject("NEW_PENDING_ERROR")
+
+    def test_missing_public_error_source_rejected(self):
+        (self.root / "addon/Lychee/Core/Catalog.lua").unlink()
+        self.reject("Catalog.lua")
+
+    def test_generated_helper_cannot_hide_missing_contract_code(self):
+        path = self.root / "tools/sdk_contract.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["errorCodes"].remove("STORAGE_CLOSED")
+        path.write_text(json.dumps(data), encoding="utf-8")
+        self.assertTrue(any("STORAGE_CLOSED" in error for error in builder.run(self.root, write=True)))
 
     def test_missing_required_docs_and_example(self):
         for name in ("docs/MANAGED_RESOURCES.md", "examples/ManagedProvider.lua"):

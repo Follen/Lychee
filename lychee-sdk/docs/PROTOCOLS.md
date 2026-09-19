@@ -17,7 +17,7 @@
 | id | 必填，全局唯一，最多 64 字节；小写 ASCII 字母/数字起始，仅含字母、数字、点、短横线。 |
 | apiVersion | 必填字符串 `"1.0.0"`，与 SDK 发行版本一致。无独立修订号。 |
 | version / title | 必填，集成版本和用户显示名。标题可使用所属词典的 `{key=...}`。 |
-| scope | 可选；省略默认 retail。显式声明时必须有 `products`，1–4 个不同的 retail/classic/titan/anniversary；可限制 interface/build/locale。 |
+| scope | 可选；省略默认 retail。可用单数 `product` 或数组 `products`，两者互斥；多产品数组为 1–4 个不同的 retail/classic/titan/anniversary。未指定产品时 Provider 默认 retail；也可限制 interface/build/locale。 |
 | i18n | 可选；纯文字条目无需词典。使用词典时须有完整 enUS，可选 enGB/zhCN/zhTW；最多 256 键，键 96 字节、值 1024 字节、总量 128 KiB。 |
 | description / icon | 可选管理页说明与纹理。description 可使用所属词典的 `{key=...}`。分组和顺序由 Host 管理，不接受 source/order 声明。 |
 | query | 可选 `function(request,reply,context)`，返回 nil 或取消函数。 |
@@ -51,9 +51,9 @@
 
 request 是普通数据快照：raw、originalRaw、rawOffset、normalized、tokens、limit、generation，以及可选 filter/session/visible/contextToken/preferredEntryID/ranking。generation 仅标识当前查询，不持久化。filter 来源和类别限制仍由 Host 执行。originalRaw 保留输入框原文；raw 是前缀路由后的查询，rawOffset 为它在原文中的零基 UTF-8 字节偏移，只在确认精确尾切片时提供。不得把字节偏移当字符位置；参数 span 合同见 [Invocation](INVOCATIONS.md)。
 
-ranking 是本 Provider 普通条目的 entryID → 0–38 整数权重，最多 72 项，不含其他 Provider 的偏好；来自已有固定项和最近使用顺序，不保存次数或时间戳。动态来源通过 `SDK.CreateRanker(request)` 在候选截断前排序，Catalog 与 Host 的具体排序须由契约测试验证；本次保留旧索引，不声称移植十包版全部内部优化。排名函数返回值与原 confidence/evidence 分开；同词记忆优先，普通固定/近期加权最多 0.038。精确规则及复制隔离见[目录与排名](CATALOG.md)。具体 target/command/invocation 的偏好由 Host 按完整引用身份处理，不降成 preferredEntryID/ranking 中的标量提示；不能把一个参数调用的选择加权到同 entryID 的所有其他参数。Host 只对实际收到的候选排序，不能从 Provider 已截断的回复中找回被丢弃的调用。这是 API 1.0.0 的可选能力扩展。
+ranking 是本 Provider 普通条目的 entryID → 0–38 整数权重，最多 72 项，不含其他 Provider 的偏好；来自已有固定项和最近使用顺序，不保存次数或时间戳。动态来源通过 `SDK.CreateRanker(request)` 在候选截断前排序，Catalog 与 Host 的具体排序由契约测试验证。排名函数返回值与原 confidence/evidence 分开；同词记忆优先，普通固定/近期加权最多 0.038。精确规则及复制隔离见[目录与排名](CATALOG.md)。具体 target/command/invocation 的偏好由 Host 按完整引用身份处理，不降成 preferredEntryID/ranking 中的标量提示；不能把一个参数调用的选择加权到同 entryID 的所有其他参数。Host 只对实际收到的候选排序，不能从 Provider 已截断的回复中找回被丢弃的调用。这是 API 1.0.0 的可选能力扩展。
 
-`reply(entries)` 接受至多 256 个普通 Entry；`reply(hits)` 也接收至多 256 个 `{entry=Entry,confidence=number,evidence?=table}`；confidence 在 0–1 内。evidence 使用 matchedField、matchedText、matchType、confidence、distance，结构由 Host 校验。可用 `SDK.Score(request,entries,scope?)` 计算证据；它不会替业务筛选条目，未命中的业务候选以 0.75 回退分值保留。最终展示上限仍为 20。
+`reply(entries)` 接受至多 256 个普通 Entry；`reply(hits)` 也接收至多 256 个 `{entry=Entry,confidence=number,evidence?=table}`；confidence 在 0–1 内。evidence 只能是通过普通数据边界校验的数据；Host 不采用调用方 evidence，而是按当前查询和 Entry 重算匹配证据。显式 confidence 会覆盖匹配分值，但不能覆盖资格、范围或身份检查。可用 `SDK.Score(request,entries,scope?)` 计算证据；它不会替业务筛选条目，未命中的业务候选以 0.75 回退分值保留。最终展示上限仍为 20。
 
 查询最多完成一次，最长五秒；换词、关闭、退出搜索、所有者停用、注销和超时取消旧请求。迟到回复返回 STALE_REQUEST。普通 reply 均校验原始调用方输入。Catalog:Query 的输出仍经过公开回复校验，不承诺内部零复制交付；不能绕过已注册能力或复活过期 Host reply。新增context.deadline是SDK.Now()的绝对秒；失败调用context.fail(Error)，不能用reply({})把失败伪装为成功零结果。详细边界、按需生成Entry与普通回调合同见[目录接口](CATALOG.md)。
 
@@ -117,7 +117,7 @@ view 声明 `{create,stateSchema}`。create(context,initialState) 返回实例�
 
 拒绝 secret、不可访问值、循环、metatable、函数型普通数据、NaN/无穷和未知字段。Host 负责隔离、身份、范围、用户选择、结果数量、查询代次、视图 state 和硬件点击限制。普通动作回调收到公开 Entry 副本；受保护动作由 Host 在真实硬件点击下执行，战斗限制保持。
 
-失败返回 nil, Error，至少 code，可含 field/providerID/retryable。框架稳定错误码见 helper 的 ERROR_CODES；Provider 还可返回自己定义的业务错误码；不能以错误码分支获得 Host 内部对象。LycheeInternal、Index、记录校验凭证、项目 Modules/Manifest、构建模板均为私有实现。
+失败返回 nil, Error，至少 code，可含 field/providerID/retryable。已声明的框架错误码见 helper 的 ERROR_CODES；它不是所有可能错误的封闭枚举，调用方必须保留未知错误的通用处理。Provider 业务码及原生加载失败原因可以扩展此集合；不能以错误码分支获得 Host 内部对象。LycheeInternal、Index、记录校验凭证、项目 Modules/Manifest、构建模板均为私有实现。
 
 
 ### 静态目录的文档模式（1.0.0）

@@ -2,7 +2,7 @@
 
 注册前检查 `Lychee.SDK.Invocation` 是否存在。SDK/API 版本保持 1.0.0；动作和目标的数据版本独立编号。未声明参数 schema 的普通动作使用 `run(entry, context)`，不自动解释为参数调用。
 
-项目内的音量条目属于 `lychee.blizzard-settings`，使用其 `set-volume` 动作；没有独立音量 Provider，也没有旧 Provider ID 的重定向或引用迁移协议。第三方可使用自己的稳定 Provider ID 定义同样的参数动作。
+项目内的音量条目属于 `builtin.blizzard-settings`，动作与目标由设置来源声明；没有独立音量 Provider。下面的 `example.volume` / `set-volume` 是第三方教学示例，不是可直接调用的内置动作。第三方自行定义稳定 Provider ID、目标 key 和参数，不依赖内置业务结构。
 
 ## 动作与参数
 
@@ -39,7 +39,7 @@ actions = {
 
 ```lua
 local invocation = {
-  kind="invocation", product="retail", providerID="lychee.blizzard-settings",
+  kind="invocation", product="retail", providerID="example.volume",
   actionID="set-volume", actionVersion=1,
   target={version=1, key={channel="master"}}, args={percent=30},
 }

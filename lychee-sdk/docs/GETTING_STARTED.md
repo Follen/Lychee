@@ -1,6 +1,6 @@
 # 接入 Lychee SDK 1.0.0
 
-使用 Provider API 1.0.0。不兼容 API 2；运行时入口是 `_G.Lychee`，开发包不是另一个 AddOn。先阅读[协议](PROTOCOLS.md)、[性能硬门禁](PERFORMANCE.md)和[能力边界](CATALOG.md)。
+使用 Provider API 1.0.0。不兼容 API 2；运行时入口是 `_G.Lychee`，开发包不是另一个 AddOn。先阅读[协议](PROTOCOLS.md)、[性能规范与审查](PERFORMANCE.md)和[能力边界](CATALOG.md)。
 
 ## 先选一条路径
 

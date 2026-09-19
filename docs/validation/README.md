@@ -13,3 +13,5 @@
 - [2026-09-19 全量数据结构审查](2026-09-19-structural-memory.md)
 
 - [2026-09-19 查询临时分配优化](2026-09-19-query-allocation.md)
+
+- [2026-09-20 Host、SDK 与文档审计](2026-09-20-host-sdk-audit.md)

@@ -1,6 +1,6 @@
 # 单插件版架构与职责
 
-SDK 1.0.0 / Provider API 1.0.0。当前分支在实施[单插件功能迁移](architecture/2026-09-14-single-addon-feature-port.md)，本页规定目标职责与公开合同，不表示全部实机验收已通过。旧版搜索/数据路径作为基础；十包版作为功能参照，不能整套移回其搜索生命周期。
+SDK 1.0.0 / Provider API 1.0.0。本页描述当前运行结构与公开合同。迁移背景保留在[单插件功能迁移](architecture/2026-09-14-single-addon-feature-port.md)，实际验证范围见[验收记录](validation/README.md)；历史方案不覆盖现行契约。
 
 ## 物理包与逻辑模块
 
