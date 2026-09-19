@@ -541,14 +541,20 @@ local function restore(self, allowExpand)
         end
     end
     local refs=I.UserPreferences:GetRecent()
-    for index=1,math.min(RECENT_LIMIT,#refs) do
+    local seen,recentCount={},0
+    for index=1,#refs do
         local ref=refs[index]
         if type(ref)=="table" and type(ref.providerID)=="string" and (type(ref.entryID)=="string" or type(ref.kind)=="string") then
             local item=session:GetHomeItem(ref)
+            local key=I.Search.RuntimeIdentity:ReferenceKey(item and item.ref or ref)
+            if not seen[key] then
+            seen[key]=true;recentCount=recentCount+1
             local title,icon,recoveredTitle=recoveryDisplay(self,ref,item,#sections+1)
             sections[#sections+1]={id="saved:"..ref.providerID..":"..index,groupID="recent",groupTitle=L["最近使用"],
                 title=title,icon=icon,recoveredTitle=recoveredTitle,item=item,recentRef=ref,
                 enabled=item~=nil,meta=item and historyMeta(item) or self:GetRecoveryText(ref)}
+            if recentCount>=RECENT_LIMIT then break end
+            end
         end
     end
     local broker = self.controller.secureBroker

@@ -68,6 +68,15 @@ assert(palette:ActivateRow(rowFor(fifty)))
 local values={}
 for _,ref in ipairs(I.UserPreferences:GetRecent()) do if ref.kind=="invocation" and ref.providerID=="history.params" then values[ref.args.n]=true end end
 assert(values[30] and values[50],"different arguments merged")
+local recentDB=I.CharacterStore:Palette()
+local originalRecent=recentDB.recent
+recentDB.recent={{providerID="history.params",entryID="n30"},invocation(30),invocation(50)}
+palette:MarkHomeDirty()
+local unique=0
+for _,section in ipairs(palette.homeView.sections) do if section.recentRef then unique=unique+1 end end
+assert(unique==2,"equivalent restored references duplicated the same history action")
+assert(#recentDB.recent==3,"display deduplication rewrote old saved references")
+recentDB.recent=originalRecent;palette:MarkHomeDirty()
 palette:SetStatus("home");assert(palette.status:GetText()=="Provider success","home refresh erased feedback")
 local count=#I.UserPreferences:GetRecent()
 mode="async"

@@ -102,7 +102,7 @@ function Preferences:TouchRecent(item,actionID,outcome)
         local invocationAction=ref.kind=="invocation" and provider and provider.definition.actions[ref.actionID]
         local panel=invocationAction and invocationAction.panel
         local opensArguments=panel and (selected.kind=="open-panel" and selected.panel==panel
-            or outcome and outcome.transition and outcome.transition.panelID==panel)
+            or type(outcome)=="table" and outcome.transition and outcome.transition.panelID==panel)
         -- Ordinary panel/provider actions on a parameterized search result are
         -- entry actions, not execution of that result's default Invocation.
         if opensArguments then saved.kind,saved.args="command",nil

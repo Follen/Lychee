@@ -46,9 +46,12 @@ function M.Record(spec)
  record.kind,record.kindTitle,record.icon="setting",L["暴雪设置"],"Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga"
  record.payload={categoryID=spec.categoryID,name=spec.name,channel=spec.channel}
  record.actions,record.primaryActionID=actions,primary
+ if spec.channel then record.command={kind="command",product=I.Search.RuntimeIdentity:Current().product,providerID="builtin.blizzard-settings",
+  actionID="set-volume",actionVersion=1,target={version=1,key={channel=spec.channel}}} end
  return record
 end
 local function applyInvocation(record,spec,operation,args,invocation)
+ record.command=nil
  record.invocation=invocation or ref(spec,operation,args)
  table.insert(record.actions,1,record.invocation.actionID);record.primaryActionID=record.invocation.actionID
  record.title=L[labels[operation]].." · "..spec.name
