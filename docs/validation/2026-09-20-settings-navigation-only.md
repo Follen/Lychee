@@ -24,3 +24,9 @@ wowdoc source list/check 后查 sourceId `wow-ui-source`、product `retail`、re
 离线验收通过：完整 `tests/check_contract.ps1`、四语言设置导航、SDK Invocation/异步/参数/动作/分配回归、设置目录生命周期和内存预算、Lua 5.1 语法、Bindings.xml、TOC 矩阵、wowdoc 静态验证（111 Lua，零诊断）及 `git diff --check`。
 SDK 分配测试改用独立 500 文档、五参数动作的测试 Provider，继续断言没有多余 reference/schema 复制、每动作仅一次 args 复制；不降低门槛。Provider 扩展测试改用普通 open 执行并验证分类/定位名称。
 实机将覆盖：保留菜单三项、固定/取消固定、别名页打开/取消、各设置族左键定位、历史恢复、旧修改调用拒绝、自然语句不返回修改动作、关闭重开和清理后五路音量不变。实机及同步结果待补记。
+
+## 实机发现的原生可见性问题
+
+第一次功能回执 `LYCHEE-20260920-032217-0027` 失败于字幕背景定位；第二次诊断回执 `LYCHEE-20260920-032449-0028` 完整保留 54 条已通过断言及失败详情（外层任务完成，内部功能断言失败）。`PROXY_MOVIE_SUBTITLE_BACKGROUND` 的 initializer `ShouldShow=false`，普通导航被沿用的修改前置检查阻断。两张回执均已完整接收及 ACK 清理，测试历史/固定/搜索记忆恢复、五路音量不变。
+
+同版本 wowdoc `Interface/AddOns/Blizzard_SettingsDefinitions_Shared/Subtitles.lua:132–138`：注册下拉框后，`ShownPredicate()` 返回 `subtitlesEnabledSetting:GetValue()`。该条件控制控件显示，不应阻止分类导航。修复只保留目标存在、非战斗及原生接口/打开结果检查；隐藏控件打开所属原生分类，不替用户开启字幕。增加 `ShouldShow=false` 仍可导航的回归。

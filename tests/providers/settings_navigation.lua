@@ -33,6 +33,11 @@ local spec=A.byVariable.maxFPSBk
 assert(I.Providers:Resolve({providerID=M.id,entryID=spec.id,actionID="open"},{}),"ordinary open history lost")
 assert(not I.Providers:Resolve({providerID=M.id,entryID=spec.id,actionID="adjust"},{}),"old adjust action silently changed")
 local item=assert(I.Providers:Resolve({providerID=M.id,entryID=spec.id},{}))
+-- Conditional native controls still have a useful category destination.
+local shouldShow=spec.initializer.ShouldShow
+spec.initializer.ShouldShow=function() return false end
+assert(I.Providers:Execute(item,"open",{}).ok,"hidden native control blocked category navigation")
+spec.initializer.ShouldShow=shouldShow
 C_SettingsUtil.OpenSettingsPanel=function() error("unavailable") end
 local failed=I.Providers:Execute(item,"open",{})
 assert(not failed or not failed.ok,"failed native open claimed success")

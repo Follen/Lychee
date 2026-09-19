@@ -12,8 +12,8 @@ local function call(o,k,...)
 end
 A.Call=call
 function A.Available(spec)
- if not spec or InCombatLockdown and InCombatLockdown() then return false end
- return not spec.initializer or call(spec.initializer,"ShouldShow")~=false
+ -- A native control's visibility is not a prerequisite for opening its category.
+ return spec~=nil and not (InCombatLockdown and InCombatLockdown())
 end
 local function hash(text)
  local n=0;for i=1,#text do n=(n*31+text:byte(i))%2147483647 end;return tostring(n)
@@ -79,7 +79,7 @@ function A.Scan(checkpoint)
 end
 function A.Clear() A.byID,A.byVariable,A.ordered={},{},{} end
 function A.Open(spec)
- if not A.Available(spec,false) or not C_SettingsUtil or not C_SettingsUtil.OpenSettingsPanel then return {status="failed",code="SETTINGS_NOT_READY"} end
+ if not A.Available(spec) or not C_SettingsUtil or not C_SettingsUtil.OpenSettingsPanel then return {status="failed",code="SETTINGS_NOT_READY"} end
  local ok=pcall(C_SettingsUtil.OpenSettingsPanel,spec.categoryID,spec.searchName or spec.name)
  local selected=call(SettingsPanel,"GetCurrentCategory")
  if not ok or not selected or call(selected,"GetID")~=spec.categoryID or call(SettingsPanel,"IsShown")~=true then return {status="failed",code="SETTINGS_NOT_READY"} end
