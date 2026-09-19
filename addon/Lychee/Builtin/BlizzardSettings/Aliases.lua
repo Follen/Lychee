@@ -127,12 +127,9 @@ aliases.PROXY_ACTION_TARGETING={"动作瞄准","动作目标","action targeting"
 aliases.RAIDsettingsEnabled={"团队画质开关","使用团队画质","raid graphics enabled"}
 for n=2,8 do aliases["PROXY_SHOW_ACTIONBAR_"..n]={"动作条"..n,"动作条 "..n,"action bar "..n,"actionbar "..n} end
 
--- Command-only target words must not promote switches in bare volume lookups.
--- The grammar still selects switches for explicit on/off/toggle verbs.
-I.Builtin.SettingsCommandAliases={}
-local language=I.Builtin.AudioLanguage
-if language then
- for variable,channel in pairs({Sound_EnableAllSound="master",Sound_EnableMusic="music",Sound_EnableSFX="sfx",Sound_EnableAmbience="ambience",Sound_EnableDialog="dialog"}) do
-  I.Builtin.SettingsCommandAliases[variable]=language.words[channel]
- end
-end
+-- Audio names remain searchable without command parsing or volume writes.
+aliases.Sound_MasterVolume={"主音量","总音量","總音量","全局音量","游戏音量","音量","master volume","game volume","overall volume","sound volume","volume","audio"}
+aliases.Sound_MusicVolume={"音乐音量","音樂音量","背景音乐音量","背景音樂音量","music volume","background music volume","bgm volume"}
+aliases.Sound_SFXVolume={"音效音量","效果音量","sound effects volume","effects volume","sfx volume"}
+aliases.Sound_AmbienceVolume={"环境音量","環境音量","环境声音","环境音","ambience volume","ambient volume","ambient sound volume"}
+aliases.Sound_DialogVolume={"对话音量","對話音量","对白音量","人物语音","dialog volume","dialogue volume","character voice volume"}

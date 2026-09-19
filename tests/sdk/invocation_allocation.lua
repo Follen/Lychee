@@ -1,7 +1,21 @@
 -- Exercise the real reader/codec path; no persistent cache or weakened boundary.
 local f=dofile("tests/support/settings_fixture.lua").Load()
-for n=1,500 do f.add(f.setting("memory_toggle_"..n,"Test toggle "..n,false,true)) end
-f.I.Registry:SetReady(true);assert(f.M:Init());f.advance()
+f.I.Registry:SetReady(true)
+local providerID="allocation.fixture"
+local documents={}
+for n=1,500 do documents[n]={id="setting:memory_toggle_"..n,title="Test toggle "..n} end
+local handle=assert(Lychee:RegisterProvider({id=providerID,title="Allocation fixture",apiVersion="1.0.0",version="1",
+ entryMode="documents",entries=documents,
+ resolveTarget=function(target) return {status="ready",target=target,identity=target.key.setting} end,
+ actions={set={title="Set",actionVersion=1,schema={value={type="boolean",required=true}},run=function() return {status="succeeded"} end}},
+ readEntry=function(id)
+  local actions={}
+  for n,name in ipairs({"toggle","on","off","default","alternate"}) do
+   actions[n]={id=name,title=name,kind="invocation",invocation={kind="invocation",product="retail",providerID=providerID,
+    actionID="set",actionVersion=1,target={version=1,key={setting=id}},args={value=n%2==1}}}
+  end
+  return {id=id,title="Test toggle "..id:match("(%d+)$"),actions=actions,primaryActionID="toggle"}
+ end}))
 local V,B=f.I.Invocations,f.I.Boundary
 local API=Lychee.SDK.Invocation
 local schema={items={type="list",maxItems=4,items={type="integer"},default={3,1,3},set=true}}
@@ -15,7 +29,7 @@ assert(API:NormalizeArgs(schema,{}).items[1]==1)
 schema.items.maxItems=1
 assert(not API:NormalizeArgs(schema,input),"mutable public schema incorrectly cached")
 assert(API._ValidateStoredRef==nil,"Host-only borrowed validation exposed through SDK")
-local ref={kind="invocation",product="retail",providerID=f.M.id,actionID="setting-boolean",actionVersion=1,
+local ref={kind="invocation",product="retail",providerID=providerID,actionID="setting-boolean",actionVersion=1,
  target={version=1,key={setting="setting:memory_toggle_1"}},args={value=true}}
 local owned=assert(API:NormalizeStoredRef(ref));owned.target.key.setting="changed"
 assert(ref.target.key.setting=="setting:memory_toggle_1")
@@ -39,7 +53,7 @@ local function encode(value)
 end
 for _,kind in ipairs({"legacy-entry","target","command","invocation"}) do
  for n=1,100 do
-  local r={kind=kind,product="retail",providerID=f.M.id,entryID="entry-"..n,title="display",sourceTitle="source",icon=123}
+  local r={kind=kind,product="retail",providerID=providerID,entryID="entry-"..n,title="display",sourceTitle="source",icon=123}
   if kind~="legacy-entry" then r.target={version=1,key={id=n,nested={title="keep",entryID=n,flag=n%2==0}}} end
   if kind=="command" or kind=="invocation" then r.actionID="setting-boolean";r.actionVersion=1 end
   if kind=="invocation" then r.args={value=n%2==0} end
@@ -66,7 +80,7 @@ B.Copy=function(self,value,field,...)
  copies[field]=(copies[field] or 0)+1
  return original(self,value,field,...)
 end
-local record=assert(f.I.Providers:ReadEntry(f.M.id,"setting:memory_toggle_1"))
+local record=assert(f.I.Providers:ReadEntry(providerID,"setting:memory_toggle_1"))
 assert(#record.actions==5 and record.primaryActionID=="toggle")
 B.Copy=original
 assert(not copies.reference,"reader copied already-owned invocation references")
@@ -78,4 +92,5 @@ for n=1,10 do local _,hits=f.I.Search.Query:Query("test toggle",{visible=true});
 local elapsed=(os.clock()-start)*1000;local allocation=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect")
 print(string.format("INVOCATION ALLOCATION 10_queries_KiB=%.2f cpu_ms=%.2f retained_growth_KiB=%.2f",allocation,elapsed,collectgarbage("count")-before))
+assert(handle:Unregister())
 print("Invocation allocation PASS: isolated public results, no redundant reader reference/schema copies")

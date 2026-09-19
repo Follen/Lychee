@@ -197,13 +197,9 @@ for _,text in ipairs({"物品512","物品","设置256","冰","not-found"}) do
 end
 debugprofilestop=realProfiler
 local settingResult=find("设置:设置256")
-local openRef
-for _,descriptor in ipairs(settingResult.searchRecord.actions) do
-    if descriptor.id=="open" then openRef=descriptor.invocation end
-end
-local prepared=assert(Lychee.SDK.Invocation:PrepareStoredRef(assert(openRef),{}))
-local opened=assert(Lychee.SDK.Invocation:Invoke(prepared,{}))
-assert(opened:GetState().status=="succeeded" and calls.category==7 and calls.setting=="设置256")
+assert(#settingResult.searchRecord.actions==1 and settingResult.interaction.primaryActionID=="open")
+local opened=assert(I.Providers:Execute(settingResult,"open",{}))
+assert(opened.ok and opened.close and calls.category==7 and calls.setting=="设置256")
 assert(action(I.Builtin.BlizzardSettings,"cdm","cdm").ok and calls.cdm)
 bags[1],bags[2]=bags[2],bags[1]
 assert(action(I.Builtin.Bags,"locate","item:1").ok and calls.bagSearch=="")

@@ -1,8 +1,8 @@
 local f=dofile("tests/support/settings_fixture.lua").Load()
 for n=1,500 do f.add(f.setting("memory_toggle_"..n,"Test toggle "..n,false,true)) end
 local calls=0
-local original=f.I.Builtin.SettingsInvocations.Record
-f.I.Builtin.SettingsInvocations.Record=function(spec) calls=calls+1;return original(spec) end
+local original=f.M.Record
+f.M.Record=function(self,spec) calls=calls+1;return original(self,spec) end
 collectgarbage("collect");local before=collectgarbage("count")
 f.I.Registry:SetReady(true);assert(f.M:Init());f.advance()
 collectgarbage("collect");print(string.format("SETTINGS500 retained_KiB=%.2f",collectgarbage("count")-before))
@@ -12,9 +12,9 @@ assert(owner.recordMap["setting:memory_toggle_1"].actions==nil,"Host retained ea
 local _,hits=f.I.Search.Query:Query("test toggle",{visible=true})
 assert(#hits==20 and calls==20,"reader must materialize only selected results")
 local record=assert(f.M.readEntry("setting:memory_toggle_1"))
-assert(#record.actions==5 and record.primaryActionID=="toggle")
-record.actions[1].invocation.target.key.setting="wrong"
-assert(f.M.readEntry("setting:memory_toggle_1").actions[1].invocation.target.key.setting=="setting:memory_toggle_1")
+assert(#record.actions==1 and record.primaryActionID=="open")
+record.actions[1]="wrong"
+assert(f.M.readEntry("setting:memory_toggle_1").actions[1]=="open")
 assert(f.M.handle:Unregister())
 assert(not next(f.A.byID))
 assert(f.M:Init());f.advance()

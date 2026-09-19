@@ -94,8 +94,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Provider default/scope checks failed: $scenario" }
     }
     foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
-        & $lua.Source 'tests/providers/audio_history.lua' $locale
-        if ($LASTEXITCODE -ne 0) { throw "Audio history/locales checks failed: $locale" }
+        & $lua.Source 'tests/providers/settings_navigation.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "Settings navigation/locales checks failed: $locale" }
         & $lua.Source 'tests/ui/history_actions.lua' $locale
         if ($LASTEXITCODE -ne 0) { throw "History action checks failed: $locale" }
     }
@@ -121,16 +121,10 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/invocation_allocation','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/provider_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','providers/settings_memory','ui/settings_controls','ui/volume_result_refresh')) {
+    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/invocation_allocation','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/provider_documents','sdk/sdk_catalog','search/preparation','providers/settings_memory')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    & $lua.Source 'tests/ui/audio_controls.lua'
-    if ($LASTEXITCODE -ne 0) { throw 'Audio controls initialization failed' }
-    & $lua.Source 'tests/ui/volume_result_refresh.lua' 'enUS'
-    if ($LASTEXITCODE -ne 0) { throw 'English volume result refresh failed' }
-    & $lua.Source 'tests/providers/settings_invocations.lua' 'enUS'
-    if ($LASTEXITCODE -ne 0) { throw 'English settings invocations failed' }
     & $lua.Source 'tests/provider_sdk_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider SDK smoke failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/framework_sdk_smoke.lua'

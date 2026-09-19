@@ -78,4 +78,4 @@ Provider ID 与语种无关。品牌中“荔枝”和“Lychee”用荔枝色�
 
 SDK 1.0.0 支持完整 Entry 和 `entryMode="documents"` 两种有界索引入口，详见 [目录契约](../lychee-sdk/docs/CATALOG.md)。Host 保存校验后的搜索字段；Provider 保存业务事实，reader 只生成当前候选/明确恢复的完整动作。二者共享既有索引流水线，不额外建第二份搜索目录。物化结果使用弱身份登记，目录版本变更后不能继续执行旧动作。
 
-暴雪设置采用文档入口；自然语言 invocation 仍走原来的独立解析分支。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和实测见 [数据结构审查](validation/2026-09-19-structural-memory.md)。
+暴雪设置采用文档入口，只物化普通“打开并定位”动作；不注册设置 Invocation、自然语言解析或直接编辑页面。SDK 的通用 Invocation 协议继续供其他 Provider 使用。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和历史实测见 [数据结构审查](validation/2026-09-19-structural-memory.md)。
