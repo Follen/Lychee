@@ -53,6 +53,8 @@ function V.Create()
                 row.slider:SetHeight(24);row.slider:SetMinMaxValues(0,100);row.slider:SetValueStep(1)
                 local track=row.slider:CreateTexture(nil,"BACKGROUND");track:SetPoint("LEFT",0,0);track:SetPoint("RIGHT",0,0);track:SetHeight(2);track:SetColorTexture(0.40,0.40,0.42,1)
                 local thumb=row.slider:CreateTexture(nil,"ARTWORK");thumb:SetSize(10,18);thumb:SetColorTexture(0.835,0.235,0.285,1);row.slider:SetThumbTexture(thumb)
+                -- Native sliders do not position a new thumb when the initial value stays at zero.
+                thumb:SetPoint("LEFT",row.slider,"LEFT",0,0)
                 row.slider:SetScript("OnMouseDown",function() row.dragging=self:Begin(row) end)
                 row.slider:SetScript("OnValueChanged",function(_,value)
                     if row.updating or not row.dragging or not row.edit then return end

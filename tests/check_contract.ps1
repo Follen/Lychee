@@ -125,6 +125,8 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
+    & $lua.Source 'tests/ui/audio_controls.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Audio controls initialization failed' }
     & $lua.Source 'tests/ui/volume_result_refresh.lua' 'enUS'
     if ($LASTEXITCODE -ne 0) { throw 'English volume result refresh failed' }
     & $lua.Source 'tests/providers/settings_invocations.lua' 'enUS'
