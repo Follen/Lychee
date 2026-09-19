@@ -14,48 +14,46 @@
 
 ### 详情正文
 
-#### 记得名字，就从搜索开始
+#### 荔枝启动器
 
-想用一个技能，却忘了放在哪条动作栏；想改一个设置，又要翻好几层菜单。
+荔枝给魔兽世界加了一个搜索框。按 Alt + 空格，输入技能、物品或设置的名字，就能找到它。点击结果直接使用，右键可以查看更多操作。
 
-按下 **Alt + 空格**，在荔枝启动器里输入名字。找到结果后，可以施放技能、使用物品、打开页面，或查看这个条目还能做什么。
+#### 可以搜什么
 
-#### 不用先学命令，试着搜这些
-
-- **`变形术`**：查找角色已学会的技能，点击施放，也能拖到动作栏。
-- **`炉石`**：查找背包物品，使用物品或从右键菜单定位背包格子。
-- **`传家宝`**：打开对应的游戏页面。
-- **`把音量设置到30`**：查看调整结果，确认后执行。直接搜索“主音量”，也能进入调整界面。
-- **`引领潮流`**：查找成就、查看完成状态，Shift + 左键将链接贴入聊天框。
-- **`钥匙`**：查看小队钥匙和分数，仅正式服提供。
+- `变形术`：查找角色已学会的技能，点击施放，也能拖到动作栏。
+- `炉石`：查找背包物品，使用物品或从右键菜单定位背包格子。
+- `传家宝`：打开对应的游戏页面。
+- `把音量设置到30`：将主音量设为 30%。输入后需要点击执行；也可以搜索“主音量”，打开调整界面。
+- `引领潮流`：查找成就、查看完成状态，Shift + 左键将链接贴入聊天框。
+- `钥匙`：查看小队钥匙和分数，仅正式服提供。
 
 技能、物品及设置的可用内容以当前角色和客户端为准。搜索本身不会修改设置，选中并执行动作后才会生效。
 
-#### 常用内容，不必每次重新找
+#### 固定、别名和最近使用
 
-把常用条目**固定到首页**，空着搜索框就能看到。也可以给条目起一个自己的**别名**，例如把常用传送门叫作“回家”。
+常用的技能或物品可以固定到首页，打开就能看到。名字太长，就给它起个别名：比如把常用传送门叫作“回家”，下次搜“回家”就行。
 
-荔枝会记录最近使用的内容，并在再次输入同一个词时优先照顾你之前选过的结果。匹配文字会高亮，方便从相似名称里找到需要的那一项。
+首页也会显示最近使用的内容。再次搜索同一个词时，之前选过的结果会优先显示；命中的文字会高亮。
 
-想限定范围，可以输入 **`技能：变形术`**，也可以在设置里自定义各来源的前缀和快捷关键词。不想搜索某个来源时，关闭它的“参与搜索”即可，不会因此关闭该来源的后台功能。
+只想找技能，可以输入 `技能：变形术`。各来源的前缀和快捷关键词都能在设置里修改。不想看到某一类结果，就关闭这个来源的“参与搜索”；它的后台功能仍会运行。
 
-#### 副本里的怪物和技能，也能查
+#### 副本资料（正式服）
 
-**荔枝大米助手 · 正式服**
+**荔枝大米助手**
 
-搜索怪物名、Boss 名、技能名，或直接输入 NPC／技能 ID。打开结果后，在荔枝内查看模型、基础资料和技能说明；从技能搜到的结果会定位到对应技能。
+输入怪物名、Boss 名或技能名，可以查看模型、基础资料和技能说明。也支持直接搜 NPC／技能 ID。搜的是技能，打开结果就会定位到那条技能。
 
-资料随插件内置，无需额外安装 MDT。覆盖范围以当前内置副本目录为准，不包含所有历史地下城；基础生命和进度资料不是当前难度下的实时数值。未缓存的游戏技能资料可能需要短暂加载。
+资料已内置，不需要安装 MDT。目前只收录部分副本。生命值和进度等基础资料不代表当前难度下的实时数值；首次查看未缓存的技能时，可能需要等游戏加载资料。
 
-**团本首领 · 正式服**
+**团本首领**
 
-搜索首领或技能，点击直达冒险者指南对应内容。支持用“普通”“英雄”“史诗”限定难度，同一首领的同一技能会合并展示适用难度，也能从附加动作切换。
+搜索首领或技能，点击打开冒险者指南里的对应内容。搜索词里加上“普通”“英雄”或“史诗”，就能限定难度。同一首领的同一技能会合并显示适用难度，也可以在更多操作里切换。
 
-#### 插件设置直达与界面识别
+#### 其他插件的设置与来源识别
 
-正式服安装对应插件后，可以使用 **`EUI:`** 搜索 Ellesmere UI 设置，使用 **`EX:`** 搜索 Exwind 已注册模块的设置。可检索范围取决于对方插件提供的数据，不保证每一个选项都能找到。
+正式服安装对应插件后，可以使用 `EUI:` 搜索 Ellesmere UI 设置，使用 `EX:` 搜索 Exwind 已注册模块的设置。能搜到哪些设置，取决于对方插件提供的数据。
 
-不知道屏幕上的框体属于哪个插件？搜索 **`插件识别`**，把鼠标移到目标上查看来源；按住 Shift 查看详情，Esc 退出。无法准确判定时会显示推测结果。
+不知道屏幕上的框体属于哪个插件？搜索 `插件识别`，把鼠标移到目标上查看来源；按住 Shift 查看详情，Esc 退出。无法准确判定时会显示推测结果。
 
 #### 怎么操作
 
@@ -69,11 +67,11 @@
 
 #### 安装与兼容
 
-自带功能集成在一个 **Lychee** 插件里，不需要分别安装功能子包。手动安装时，将 `Lychee` 文件夹放入对应客户端的 `Interface/AddOns/`，再重启游戏。
+只需安装一个 Lychee 插件，以上自带功能都在里面。手动安装时，将 `Lychee` 文件夹放入对应客户端的 `Interface/AddOns/`，再重启游戏。
 
-界面支持**简体中文和 English**，跟随游戏语言；繁体中文客户端目前使用简体界面。技能、物品等名称取自游戏客户端。
+界面支持简体中文和英文，跟随游戏语言；繁体中文客户端目前使用简体界面。技能、物品等名称取自游戏客户端。
 
-当前提供正式服、熊猫人之谜怀旧服、泰坦重铸「时光」及燃烧的远征周年纪念版的加载配置，各客户端可用功能不同。大米资料、团本指南、小队钥匙和 EUI／EX 集成为正式服功能。其他客户端的适配仍需持续验证，请按下载文件标注的游戏版本安装。
+当前提供正式服、熊猫人之谜怀旧服、泰坦重铸「时光」及燃烧的远征周年纪念版的加载配置，各客户端可用功能不同。大米资料、团本指南、小队钥匙和 EUI／EX 集成为正式服功能。其他客户端尚未完成全部实机验证，请按下载文件标注的游戏版本安装。
 
 #### 反馈
 
@@ -81,7 +79,7 @@
 
 [问题反馈](https://github.com/Follen/Lychee/issues) · [项目主页](https://github.com/Follen/Lychee)
 
-作者：**Follen**。免费使用，分发与修改须遵守项目许可证。
+作者：Follen。免费使用，分发与修改须遵守项目许可证。
 
 ## CurseForge
 
@@ -95,48 +93,46 @@ Press Alt + Space to find spells, bag items, settings and achievements. Pin favo
 
 ### Description
 
-#### Find it by name
+#### Lychee Launcher
 
-You remember the spell, but not its action bar slot. You know which setting you want, but not which menu contains it.
-
-Press **Alt + Space** and type in Lychee Launcher. Select a result to cast a spell, use an item, open a panel or see its available actions.
+Lychee adds a search box to World of Warcraft. Press Alt + Space and type the name of a spell, item or setting. Click a result to use it, or right-click for more actions.
 
 #### Try a search
 
-- **`Polymorph`** — Find a spell your character knows. Click to cast or drag it onto an action bar.
-- **`Hearthstone`** — Find a bag item. Use it or right-click for bag location actions.
-- **`Heirlooms`** — Open the collection directly.
-- **`set volume to 30`** — Review the result, then execute the adjustment. Searching for master volume also gives you access to its controls.
-- **`Ahead of the Curve`** — Find achievements, check completion and Shift-click to insert a link into chat.
-- **`key`** — Check group keystones and scores on Retail.
+- `Polymorph`: Find a spell your character knows. Click to cast or drag it onto an action bar.
+- `Hearthstone`: Find a bag item. Use it or right-click to locate it in your bags.
+- `Heirlooms`: Open the collection directly.
+- `set volume to 30`: Set master volume to 30%. Click to apply the change, or search for master volume to open its controls.
+- `Ahead of the Curve`: Find achievements, check completion and Shift-click to insert a link into chat.
+- `key`: Check group keystones and scores on Retail.
 
 Available results depend on your character and client. Typing a setting request does not change it; you must execute the action.
 
-#### Keep frequent actions close
+#### Pins, aliases and recent actions
 
-**Pin results** to the home screen or give them your own **aliases**. Call a favorite portal `home`, then search for that name next time.
+Pin frequently used spells and items to the home screen. You can also give them aliases: name a favorite portal `home` and search for that next time.
 
-Recent actions are available when the search box is empty. Repeating a query favors your previous choice, and matching text is highlighted in results.
+The home screen also shows your recent actions. Search for the same term again and your previous choice gets priority. Matching text is highlighted in the results.
 
-Use a prefix such as **`spell: Polymorph`** to narrow your search. Each source can have its own prefixes and shortcut keywords. Turning off a source's search participation does not stop its background features.
+Use a prefix such as `spell: Polymorph` to narrow your search. Each source can have its own prefixes and shortcut keywords. You can hide a source from search without stopping its background features.
 
 #### Dungeon creatures and raid abilities
 
-**LDT creature reference — Retail**
+**Dungeon creatures (Retail)**
 
 Search creature names, boss names, ability names or NPC/spell IDs. Open a result to inspect its model, base information and abilities inside Lychee. Ability matches take you to the relevant ability.
 
-The reference is built in; Mythic Dungeon Tools is not required. Coverage follows the included dungeon catalog rather than every historical dungeon. Base statistics are not live difficulty-scaled values, and uncached game data may take a moment to load.
+The creature reference is included with Lychee; you do not need Mythic Dungeon Tools. It covers a selection of dungeons. Base stats do not reflect the current difficulty, and uncached game data may take a moment to load.
 
-**Raid bosses — Retail**
+**Raid bosses (Retail)**
 
-Find a boss or ability and open its Encounter Journal section. Add `normal`, `heroic` or `mythic` to select a difficulty. A boss's ability is grouped across supported difficulties, with additional actions for switching between them.
+Find a boss or ability and open its Encounter Journal section. Add `normal`, `heroic` or `mythic` to select a difficulty. The same ability for a given boss appears as one result with its available difficulties. You can also switch difficulty through the result's additional actions.
 
 #### Addon settings and frame inspection
 
-On Retail, search installed **Ellesmere UI** settings with **`EUI:`** or registered **Exwind** module settings with **`EX:`**. Coverage depends on the data exposed by those addons; not every option may be available.
+On Retail, search installed **Ellesmere UI** settings with `EUI:` or registered **Exwind** module settings with `EX:`. The available settings depend on what those addons expose.
 
-Search **`Addon inspector`** to identify a frame on your screen. Point at it to see its source or a best guess, hold Shift for details, and press Esc to leave.
+Search `Addon inspector` to identify a frame on your screen. Point at it to see its source or a best guess, hold Shift for details, and press Esc to leave.
 
 #### Controls
 
@@ -150,11 +146,11 @@ Search is unavailable in combat. Protected actions such as spell casting require
 
 #### Installation and compatibility
 
-Built-in features ship as one **Lychee** addon. For manual installation, place the `Lychee` folder in your client's `Interface/AddOns/` directory and restart the game. No separate feature packages are required.
+All built-in features come in a single Lychee addon. For manual installation, place the `Lychee` folder in your client's `Interface/AddOns/` directory and restart the game.
 
-The interface supports **English and Simplified Chinese**, following the game locale. Traditional Chinese clients currently use Simplified Chinese interface text. Game content uses names supplied by the client.
+The interface uses English or Simplified Chinese to match your game language. Traditional Chinese clients currently use Simplified Chinese interface text. Game content uses names supplied by the client.
 
-Client load configurations are provided for Retail, Mists of Pandaria Classic, Titan Reforged and Burning Crusade Classic Anniversary Edition. Features vary by client; dungeon references, raid journal search, group keystones and EUI/EX integrations are Retail features. In-game validation is ongoing across clients. Install the file marked for your game version.
+Client load configurations are provided for Retail, Mists of Pandaria Classic, Titan Reforged and Burning Crusade Classic Anniversary Edition. Features vary by client; dungeon references, raid journal search, group keystones and EUI/EX integrations are Retail features. Full in-game testing has not been completed on every client. Install the file marked for your game version.
 
 #### Feedback
 
@@ -162,7 +158,7 @@ Please include your game version, Lychee version, reproduction steps and the com
 
 [Report an issue](https://github.com/Follen/Lychee/issues) · [Project page](https://github.com/Follen/Lychee)
 
-By **Follen**. Free to use. Redistribution and modifications are subject to the project's license.
+By Follen. Free to use. Redistribution and modifications are subject to the project's license.
 
 ## 配图素材（编辑时选用，不属于详情正文）
 
