@@ -62,6 +62,7 @@ function M:Parse(text,explicit)
     local settingsLanguage=I.Builtin.SettingsLanguage
     if settingsLanguage then
         local parsed=settingsLanguage.Parse(text)
+        if parsed and parsed.spec.channel and parsed.code=="MISSING_ARGS" then return parsed.spec.channel,nil,"INCOMPLETE_ARGS" end
         if parsed and parsed.spec.channel and parsed.operation=="number" then
             local value=parsed.args.value
             if value%1==0 and value>=0 and value<=100 then return parsed.spec.channel,value end
@@ -100,8 +101,8 @@ local function entry(channel,percent,reason)
     local spec=A.byID[channel];local value=A.Read(channel)
     local command={kind="command",product="retail",providerID=M.id,actionID="set-volume",actionVersion=1,target=target(channel)}
     local result={id="volume:"..channel..(percent and ":"..percent or ""),title=percent and L:Format("%s设为 %d%%",L[spec.title],percent) or L[spec.title],
-        kind="command",kindTitle=L["音量"],icon=icon,aliases={"音量","volume","audio",spec.title,channel},
-        subtitle=reason=="AMBIGUOUS_TARGET" and L["请选择一个音量通道"] or reason and L["请输入 0–100 的整数百分比"] or value and tostring(value).."%" or L["音量暂不可用"],
+        kind="command",kindTitle=L["暴雪设置"],icon=icon,aliases={"音量","volume","audio",spec.title,channel},
+        subtitle=reason=="AMBIGUOUS_TARGET" and L["请选择一个音量通道"] or reason and L["请输入 0–100 的整数百分比"] or value and (percent and percent~=value and L:Format("当前 %d%% → 设置为 %d%%",value,percent) or L:Format("当前 %d%%",value)) or L["音量暂不可用"],
         payload={channel=channel},actions=percent and {"set-volume","adjust-volume"} or {"adjust-volume"}}
     if percent then
         command.kind="invocation";command.args={percent=percent};result.invocation=command

@@ -14,13 +14,13 @@ local text=arg[1]=="enUS" and "set master volume to 40" or "把音量调节到40
 palette.input:SetText(text)
 I.Search.Session:Input(text);advance()
 local row=palette.list.rows[1]
-assert(row.item and row.item.subtext=="30%","initial volume missing")
+assert(row.item and row.item.subtext==(arg[1]=="enUS" and "Current 30% → Set to 40%" or "当前 30% → 设置为 40%"),"initial volume missing")
 local queries=0;local original=I.Search.Query.Query
 I.Search.Query.Query=function(self,...) queries=queries+1;return original(self,...) end
 assert(I.ResultActionExecutor:ExecutePrimary(row).ok)
 advance()
 assert(value==.4 and writes==1,"volume was not written")
-assert(row.subtext:GetText():gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")=="40%","visible result stayed at "..row.subtext:GetText())
+assert(row.subtext:GetText():gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")==(arg[1]=="enUS" and "Current 40%" or "当前 40%"),"visible result stayed at "..row.subtext:GetText())
 assert(queries==0,"action refresh reran search")
 assert(palette.input:GetText()==text,"refresh changed input")
 print("Volume result refresh PASS: actual write and visible subtitle, no search rerun")
@@ -28,11 +28,11 @@ print("Volume result refresh PASS: actual write and visible subtitle, no search 
 
 local current=row.item
 assert(not palette:RefreshResultDisplay(current,{subtext="wrong"},palette.session,palette.generation-1))
-assert(row.item==current and current.subtext=="40%","stale generation replaced the row")
+assert(row.item==current and current.subtext==(arg[1]=="enUS" and "Current 40%" or "当前 40%"),"stale generation replaced the row")
 C_CVar.SetCVar=function() return false end
 value=.3
 assert(not I.ResultActionExecutor:ExecutePrimary(row))
-assert(row.item==current and current.subtext=="40%","failed action painted an unconfirmed value")
+assert(row.item==current and current.subtext==(arg[1]=="enUS" and "Current 40%" or "当前 40%"),"failed action painted an unconfirmed value")
 palette:Hide("test")
 assert(not palette:RefreshResultDisplay(current,{subtext="wrong"},palette.session,palette.generation))
 assert(queries==0,"cleanup started a search")

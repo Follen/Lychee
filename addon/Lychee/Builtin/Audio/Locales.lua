@@ -1,5 +1,7 @@
 local I=_G.LycheeInternal
 local resources={enUS={
+    ["当前 %d%% → 设置为 %d%%"]="Current %d%% → Set to %d%%",
+    ["当前 %d%%"]="Current %d%%",
     ["音量"]="Volume",
     ["主音量"]="Master volume",
     ["音乐"]="Music",
@@ -17,6 +19,8 @@ local resources={enUS={
     ["音量已由其他操作修改"]="Volume changed elsewhere",
     ["音量修改未确认，请重试"]="Volume change was not confirmed; try again",
 },zhCN={
+    ["当前 %d%% → 设置为 %d%%"]="当前 %d%% → 设置为 %d%%",
+    ["当前 %d%%"]="当前 %d%%",
     ["音量"]="音量",
     ["主音量"]="主音量",
     ["音乐"]="音乐",

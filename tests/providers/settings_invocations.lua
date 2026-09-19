@@ -8,6 +8,9 @@ assert(A.byID["category:1"],"native category must remain available for oversized
 assert(A.byID['setting:PROXY_DISPLAY_MODE'].kind=="choice","boolean dropdown is not a toggle")
 assert(A.byID['setting:PROXY_UI_SCALE'].name=="UI缩放","composite visible label must override internal name")
 for _,s in ipairs(A.ordered) do assert(s.name~="分组标题","section header became an action") end
+for _,text in ipairs({"把后台帧数调到","set background fps to","后台帧数设置为"}) do
+ local p=G.Parse(text);assert(p and p.code=="MISSING_ARGS",text.." must request a value instead of reporting invalid input")
+end
 local positive={
  {"把后台帧数调节到30","maxFPSBk","number",30},{"調節背景音樂音量至30","Sound_MusicVolume","number",30},
  {"把音乐音量调节为30","Sound_MusicVolume","number",30},{"adjust music volume to 30","Sound_MusicVolume","number",30},

@@ -27,7 +27,10 @@ local bools={on=true,enabled=true,enable=true,["true"]=true,["1"]=true,["开"]=t
 local muteCommands={["静音"]=false,["靜音"]=false,mute=false,["取消静音"]=true,["取消靜音"]=true,unmute=true}
 local choiceGroups={{"低","低档","low"},{"中","中等","medium"},{"普通","一般","fair"},{"高","高档","high"},{"超高","极高","ultra"},{"关闭","无","off","none","disabled"},{"开启","on","enabled"},{"自动","自動","auto","automatic"},{"全部","所有","all"}}
 local function remove(text,words)
- for _,word in ipairs(words) do if text:sub(1,#word)==word then return trim(text:sub(#word+1)) end end
+ for _,word in ipairs(words) do
+  if word:sub(-1)==" " and text==trim(word) then return "" end
+  if text:sub(1,#word)==word then return trim(text:sub(#word+1)) end
+ end
  return text
 end
 local function verb(text)
@@ -134,6 +137,7 @@ function G.Parse(raw)
  tail=remove(tail,connectors)
  local spec,why=choose(bucket,mode);if not spec then return nil,why or "AMBIGUOUS_TARGET" end
  mode=mode or "set"
+ if tail=="" and mode=="set" then return {spec=spec,operation="invalid",args={},code="MISSING_ARGS"} end
  if mode=="on" or mode=="off" then
   if spec.kind=="boolean" and tail=="" then return {spec=spec,operation="boolean",args={value=mode=="on"}} end
  elseif mode=="open" and tail=="" then return {spec=spec,operation="open",args={}}

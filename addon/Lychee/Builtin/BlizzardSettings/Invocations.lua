@@ -86,7 +86,7 @@ function M.Attach(owner)
   if parseError=="NEGATED" or parseError=="AMBIGUOUS_TARGET" then reply({},true);return end
   -- Audio owns its established absolute 0..100 action and controls. Other
   -- operations on native audio rows use the same underlying setting identity.
-  if parsed and parsed.spec.channel and parsed.operation=="number" then parsed=nil end
+  if parsed and parsed.spec.channel and (parsed.operation=="number" or parsed.code=="MISSING_ARGS") then parsed=nil end
   if not parsed then if oldQuery then return oldQuery(request,reply) end;reply({},false);return end
   local spec=parsed.spec;local record=M.Record(spec)
   if parsed.operation~="invalid" and parsed.operation~="open" then
@@ -94,7 +94,10 @@ function M.Attach(owner)
    if value==nil then parsed.operation,parsed.code="invalid",why end
   end
   if parsed.operation=="invalid" then
-   record.subtitle=L["无法识别这个值，请打开设置查看可用范围和选项"]
+   if parsed.code=="MISSING_ARGS" then
+    local low,high=A.Limits(spec)
+    record.subtitle=low and high and L:Format("请输入 %s–%s 范围内的数值",tostring(low),tostring(high)) or L["请选择要设置的值"]
+   else record.subtitle=L["无法识别这个值，请打开设置查看可用范围和选项"] end
    record.invocationError={code=parsed.code or "INVALID_ARGS",field="value"}
    -- Invalid text must never activate the setting's default toggle.
    record.actions={descriptor(spec,"open","open")};record.primaryActionID="open"

@@ -10,6 +10,8 @@ do
         ["选择后立即生效"] = "Selections take effect immediately",
         ["应用"] = "Apply",
         ["预填并打开设置"] = "Prefill and open settings",
+        ["请输入 %s–%s 范围内的数值"] = "Enter a value from %s to %s",
+        ["请选择要设置的值"] = "Enter the value to set",
         ["请输入数字"] = "Enter a number",
         ["上一页"] = "Previous",
         ["下一页"] = "Next",
