@@ -166,9 +166,10 @@ By Follen. Free to use. Redistribution and modifications are subject to the proj
 
 ## 配图素材（编辑时选用，不属于详情正文）
 
+- [中文发布封面](docs/media/release-cover-zh-v1.png)：荔枝红与深色背景，突出搜索器定位和快捷键。右侧为宣传示意，非实机截图。
 - [技能搜索](docs/media/search-spells.png)：主图，展示搜索列表与命中高亮。
 - [成就搜索](docs/media/search-achievements.png)：展示完成状态和分享入口。
 - [来源设置](docs/media/provider-settings.png)：展示搜索范围管理。
 - [荔枝 Logo](addon/Lychee/Media/lychee-logo.png)：平台图标素材，上传前按编辑器要求处理尺寸。
 
-以上现有截图来自中文客户端。英文详情使用时标注“Chinese client screenshot”，不要写成英文实机截图。先把图片上传至平台，再在详情编辑器中插入；仓库相对路径不能直接作为平台图片地址。
+技能搜索、成就搜索和来源设置截图来自中文客户端。英文详情使用时标注“Chinese client screenshot”，不要写成英文实机截图。先把图片上传至平台，再在详情编辑器中插入；仓库相对路径不能直接作为平台图片地址。
