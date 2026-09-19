@@ -277,6 +277,7 @@ function M:CreateView()
                 if self.active and not Components:ScrollTooltip(row.frame,delta) then self.skillBar:SetValue((self.rowOffset-delta)*ROW_HEIGHT) end
             end)
             row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetSize(32,32)
+            row.icon:SetTexCoord(0.07,0.93,0.07,0.93)
             row.meta=text(row.frame,"meta","textDim");row.meta:SetPoint("RIGHT",-6,0);row.meta:SetWidth(68);row.meta:SetHeight(16);row.meta:SetJustifyH("RIGHT")
             row.mark=row.frame:CreateTexture(nil,"ARTWORK");Theme:SetColorTexture(row.mark,"accent");row.mark:SetPoint("LEFT",0,0);row.mark:SetSize(2,22)
             row.bg=row.frame:CreateTexture(nil,"BACKGROUND");Theme:SetColorTexture(row.bg,"surfaceSelected");row.bg:SetPoint("TOPLEFT",0,-2);row.bg:SetPoint("BOTTOMRIGHT",0,2)
