@@ -17,7 +17,7 @@ local verbs={
  {"切换","toggle"},{"切換","toggle"},{"toggle ","toggle"},
  {"调高","increase"},{"調高","increase"},{"调大","increase"},{"增大","increase"},{"提高","increase"},{"增加","increase"},{"increase ","increase"},{"raise ","increase"},
  {"调低","decrease"},{"調低","decrease"},{"调小","decrease"},{"降低","decrease"},{"减小","decrease"},{"減小","decrease"},{"减少","decrease"},{"decrease ","decrease"},{"lower ","decrease"},{"reduce ","decrease"},
- {"设置","set"},{"設置","set"},{"设定","set"},{"設定","set"},{"调整","set"},{"調整","set"},{"改为","set"},{"改成","set"},{"设为","set"},{"設為","set"},{"调到","set"},{"調到","set"},{"set ","set"},{"change ","set"},{"adjust ","set"},{"turn ","set"},
+ {"设置","set"},{"設置","set"},{"设定","set"},{"設定","set"},{"调整","set"},{"調整","set"},{"调节","set"},{"調節","set"},{"改为","set"},{"改成","set"},{"设为","set"},{"設為","set"},{"调到","set"},{"調到","set"},{"set ","set"},{"change ","set"},{"adjust ","set"},{"turn ","set"},
 }
 local connectors={"设置为","设置到","设置成","設置為","設置到","调整为","调整到","调整至","調整到","调成","调到","调至","改为","改成","改到","设为","设到","设成","設為","設成","to ","at ","by ","为","為","到","成","至",":","="}
 local units={"percent","per cent","百分比","%","帧每秒","帧","幀","fps","毫秒","ms","倍"}

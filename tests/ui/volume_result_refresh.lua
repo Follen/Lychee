@@ -10,7 +10,7 @@ for _,file in ipairs({"Audio/Locales","BlizzardSettings/Provider","BlizzardSetti
 local I=LycheeInternal
 I.Registry:SetReady(true);assert(I.Builtin.BlizzardSettings:Init());advance()
 local palette=Lychee.UI.Palette:Create();assert(palette:Show())
-local text=arg[1]=="enUS" and "set master volume to 40" or "把主音量调整到40"
+local text=arg[1]=="enUS" and "set master volume to 40" or "把音量调节到40"
 palette.input:SetText(text)
 I.Search.Session:Input(text);advance()
 local row=palette.list.rows[1]
