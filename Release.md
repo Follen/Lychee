@@ -10,7 +10,7 @@
 
 ### 短简介
 
-找炉石、改音量，不用再翻背包和菜单。按 Alt + 空格，输入名字，搜到就能用。常用传送门还能起名叫“回家”；打本遇到不懂的怪物技能，也能直接查（正式服）。
+魔兽世界万用搜索器。Alt + 空格启动，输入你想找的内容，快速获取搜索结果，直接施放技能、使用物品或调整设置。
 
 ### 详情正文
 
@@ -91,7 +91,7 @@ Lychee Launcher
 
 ### Summary
 
-Use your Hearthstone or change the volume without digging through bags and menus. Press Alt + Space, type a name and act on the result. Pin favorites and look up dungeon abilities on Retail.
+An all-in-one search tool for World of Warcraft. Press Alt + Space, type what you need, and quickly find results you can act on: cast spells, use items or change settings.
 
 ### Description
 
