@@ -40,7 +40,7 @@ function M:Init()
     I.Builtin.SettingsInvocations.Attach(self)
     if not self.readEntry then
         local resolve=self.resolve
-        local function read(id)
+        local function read(id,context)
             if id=="reload" then
                 return {id=id,title=L["重载界面"],kind="command",kindTitle=L["系统"],icon=iconRoot.."reload.tga",
                     subtitle=L["重新加载插件与界面"],aliases={"rl","reload","/rl","/reload"},actions={"reload"}}
@@ -48,7 +48,7 @@ function M:Init()
                 return {id=id,title=L["暴雪冷却管理器"],kind="setting",kindTitle=L["暴雪设置"],icon=iconRoot.."cooldown-manager.tga",
                     subtitle=L["打开冷却管理器设置"],aliases={"cdm","cooldown manager","冷却设置"},actions={"cdm"}}
             end
-            return resolve(id)
+            return resolve(id,context)
         end
         self.entryMode,self.readEntry="documents",read
     end

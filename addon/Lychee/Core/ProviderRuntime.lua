@@ -430,7 +430,7 @@ function P:ReadEntry(id,entryID,context)
     local entry=self.entries[id]
     if not entry or not active(entry) or not entry.definition.readEntry then return nil end
     local revision=entry.revision
-    local ok,result,err=pcall(entry.definition.readEntry,entryID,{ref={providerID=id,entryID=entryID},revision=revision,reason=context and context.reason or "query"})
+    local ok,result,err=pcall(entry.definition.readEntry,entryID,{ref=context and context.ref and copy(context.ref) or {providerID=id,entryID=entryID},revision=revision,reason=context and context.reason or "query"})
     if not active(entry) or entry.revision~=revision then return failure("STALE_RESULT") end
     if not ok then report(entry,"CALLBACK_ERROR","readEntry");return failure("CALLBACK_ERROR") end
     if not result then
@@ -480,6 +480,14 @@ function P:Resolve(ref, context, reply)
             local record={id=stored.entryID or stored.actionID or "target",title=stored.title or action and action.title or owner.definition.title,icon=stored.icon,actions={}}
             record[stored.kind=="target" and "targetRef" or stored.kind]=value
             if stored.kind=="invocation" then
+                -- Rebuild presentation from the exact saved invocation, never
+                -- from a same-named entry with different arguments or actions.
+                local current=self:ReadEntry(owner.id,record.id,{reason="resolve",ref=value})
+                if not active(owner) then return failure("STALE_RESULT") end
+                if current and current.invocation and I.Invocations:Equal(current.invocation,value) then
+                    record.title,record.icon=current.title,current.icon
+                    record.subtitle,record.kindTitle,record.description=current.subtitle,current.kindTitle,current.description
+                end
                 record.actions[1]=stored.actionID
                 if action.panel then record.actions[2]={id="panel",kind="open-panel",title=owner.definition.title,panel=action.panel,state=value.target.key} end
             elseif stored.kind=="command" and action.panel then

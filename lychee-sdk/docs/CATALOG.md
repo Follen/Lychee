@@ -82,6 +82,8 @@ local handle = assert(Lychee:RegisterProvider({
 
 Host 使用原有索引、排名和筛选，在最终静态候选上调用 reader；不会先为整库生成动作，也不会额外创建一套 Catalog。`readEntry(id,{ref,revision,reason})` 同步、无副作用、不 yield，不扫描整库、不写设置。reason 为 query 或 resolve。一次查询通常最多读取 20 个静态候选；一次搜索若因动态来源完成而重新合并，可能再次读取。调用次数不是长期缓存承诺。
 
+恢复具体 Invocation 时，Host 可把已验证的完整引用副本放在 `context.ref` 中交给 reader，按原 `entryID`（缺失时为 actionID）请求当前展示。返回 Entry 的 ID 必须一致，且其 Invocation 与保存引用的动作、目标和参数完全相等，Host 才使用新的标题、图标、说明与类别。恢复不执行动作、不改写原存档；reader 缺失、失败或返回其他参数时保留原有显示回退。
+
 reader 返回的 ID 必须一致，完整 Entry 仍经过输入隔离、动作与作用域校验。错误返回 nil,Error；抛错、非法结果、目录版本改变或所有者注销都会拒绝本次读取。命中文档却读不到 Entry 时，本次搜索标记不完整；不会静默显示为成功零结果。当前静态候选窗口不为缺失记录无限补扫。Provider 应通过 Update 删除确定失效的文档，暂时不可用返回明确错误。
 
 Host 只用弱引用登记物化记录的合法身份，不持有全量动作缓存；当前可见行、正在执行的动作或调用方仍可保有记录。Update/Invalidate 使旧身份失效。明确恢复可以读取不在搜索文档中的 ID；关闭“参与搜索”不阻止明确恢复。所有者停用或注销仍拒绝读取。

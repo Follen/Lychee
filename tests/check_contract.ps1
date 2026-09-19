@@ -93,6 +93,10 @@ try {
         & $lua.Source 'tests/provider_defaults.lua' $scenario
         if ($LASTEXITCODE -ne 0) { throw "Provider default/scope checks failed: $scenario" }
     }
+    foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
+        & $lua.Source 'tests/providers/audio_history.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "Audio history/locales checks failed: $locale" }
+    }
     & $lua.Source 'tests/character_pins.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character pin isolation checks failed' }
     & python 'tools/build_client_tocs.py' '--check'

@@ -40,6 +40,10 @@ local resources={enUS={
 }}
 
 for locale,strings in pairs(resources) do
-    local target=I.BuiltinLocaleData["builtin.blizzard-settings"][locale]
+    -- Settings may already have compiled its translator earlier in the TOC.
+    -- Publish a new language table so later consumers see the audio formats.
+    local target={}
+    for key,value in pairs(I.BuiltinLocaleData["builtin.blizzard-settings"][locale]) do target[key]=value end
     for key,value in pairs(strings) do target[key]=value end
+    I.BuiltinLocaleData["builtin.blizzard-settings"][locale]=target
 end

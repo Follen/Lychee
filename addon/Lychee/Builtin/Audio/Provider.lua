@@ -133,7 +133,17 @@ function M:Attach(owner)
         local parsed=channel and reason~="MISSING_ARGS"
         reply(parsed and {entry(channel,percent,reason)} or {},parsed==true)
     end
-    owner.resolve=function(id)
+    owner.resolve=function(id,context)
+        local ref=context and context.ref
+        if ref and ref.kind=="invocation" and ref.actionID=="set-volume" and ref.actionVersion==1
+            and ref.target and ref.target.version==1 and ref.target.key and ref.args then
+            local channel,percent=ref.target.key.channel,ref.args.percent
+            if A.byID[channel] and type(percent)=="number" and percent%1==0 and percent>=0 and percent<=100 then
+                local record=entry(channel,percent)
+                record.id=id
+                return record
+            end
+        end
         local channel,value=id:match("^volume:([a-z]+):(%d+)$")
         if not A.byID[channel] then return nil end
         local percent=tonumber(value)
