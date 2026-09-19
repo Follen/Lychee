@@ -29,4 +29,18 @@ wowdoc source list/check；sourceId `wow-ui-source`、product `retail`、request
 
 离线回归 `lua tests/ui/audio_controls.lua` 覆盖首次 0%/100%、外部更新、同值刷新、拖动不被覆盖、关闭取消及重开复用。替身的原生布局行为依上述实机证据建立，不能替代最后的原生几何及视觉验收。
 
-最终检查、同步及修复后实机结果待补记。
+## 修复后结果与交付
+
+运行时提交 `941a22758e8fb7f71ed55404a2259aeedc15e115`。完整 `tests/check_contract.ps1` 通过（含新增回归），Lua/XML/TOC 检查通过，wowdoc 递归扫描 111 个 Lua 文件 `valid=true`、diagnostics=[]，git diff --check 通过。对基线文件执行同一新增回归失败于 `music thumb unpositioned on first mount`，修复版本通过。
+
+提交后同步 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，173 个清单文件 SHA-256 全部一致；记录 `analyze/audio-thumb-game-sync.json`。后台 `/reload` 后进行最终验收，文档补记不再重复复制游戏资源。
+
+- 最终 Ticket `LYCHEE-20260920-025705-0025`，task `audio-thumb-probe`，requestId/executionId `audio-thumb-settled-20260920`，revision `settled`；环境仍为上述 Retail 12.1.0.69875 / zhCN 与相同角色。
+- 完整 payload：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-025705-0025/content.json`，11954 字节，SHA-256 `f3062eb075573f7b6e762670919c9fdb73cf6a4fe26ac35560d77ed28362e80a`；`status=succeeded`、`complete=true`、`outputTruncated=false`、返回 `passed=true`。
+- 73 项断言全部通过：五行首次打开、显示值 100/0/50、恢复原值、关闭重开后的纹理位置及 10×18 尺寸；实际五路音量保持不变；重开复用原框体；历史/搜索选择恢复，编辑和观察资源清理。
+- 音乐初始值为 0 时，thumb 锚点从基线的 0 个变为 1 个，左坐标与轨道左侧同为约 696.7827。截图 `analyze/audio-thumb-fixed.png` 已确认红色滑块可见；中央游戏菜单遮挡其他部分，不将此截图称为无遮挡全页面验收。
+- 已完成提交、游戏执行、输出 reload、精确 SV 读取与环境核对、ACK received、确认码清理。日志 `ticket_ack_confirmed`/`ticket_ack_cleared` 匹配 nonce `req-20260919-185758-4927a8`，自有 `audio-thumb-probe` 磁盘任务块已移除。
+
+修复后首份 Ticket `LYCHEE-20260920-025500-0024`（725 字节，SHA-256 `a03c6988ea23b83554396cf0978f48ba5c439493b659da0edc0b5ab60ac1b920`）失败于设值后同回调内立即读取的位置断言。只把探针改成跨帧取样，保留同一断言与运行代码，最终全部通过，证实取样读到了原生布局提交前的坐标。该失败报告也完整读取并 ACK/清理，不计入通过结果。
+
+本轮实机只改变控件显示值，未模拟实际鼠标拖动或写入不同音量；拖动提交与取消有离线回归，其他客户端/语言、战斗及不同 UI 缩放未实测。
