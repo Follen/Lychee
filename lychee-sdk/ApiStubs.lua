@@ -330,7 +330,9 @@
 ---@field version string Integration version.
 ---@field title string|table<string,string>|LycheeLocaleKey Legacy localized maps require default.
 ---@field i18n? LycheeLocaleResources Optional for plain text; required when using locale keys. Key <=96 bytes, value <=1024 bytes, total <=128 KiB.
----@field entries? LycheeEntry[] Optional simple static catalog; maximum 4096. Provide entries, query or actions.
+---@field entryMode? 'entries'|'documents' Default entries. Documents keep only search fields in the Host index.
+---@field entries? LycheeEntry[]|LycheeSearchDocument[] Maximum 4096; shape follows entryMode.
+---@field readEntry? fun(entryID:string,context:{ref:table,revision:integer,reason:string}):LycheeEntry?,LycheeError? Required only for documents; synchronous, pure, no yield. Invoked for selected hits or explicit restore.
 ---@field query? fun(request:LycheeQueryRequest,reply:LycheeReply,context:LycheeQueryContext):LycheeCancel?
 ---@field resolve? fun(entryID:string,context:LycheeContext):LycheeEntry?
 ---@field actions? table<string,LycheeProviderAction>

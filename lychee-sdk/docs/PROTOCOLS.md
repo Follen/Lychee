@@ -118,3 +118,8 @@ view 声明 `{create,stateSchema}`。create(context,initialState) 返回实例�
 拒绝 secret、不可访问值、循环、metatable、函数型普通数据、NaN/无穷和未知字段。Host 负责隔离、身份、范围、用户选择、结果数量、查询代次、视图 state 和硬件点击限制。普通动作回调收到公开 Entry 副本；受保护动作由 Host 在真实硬件点击下执行，战斗限制保持。
 
 失败返回 nil, Error，至少 code，可含 field/providerID/retryable。框架稳定错误码见 helper 的 ERROR_CODES；Provider 还可返回自己定义的业务错误码；不能以错误码分支获得 Host 内部对象。LycheeInternal、Index、记录校验凭证、项目 Modules/Manifest、构建模板均为私有实现。
+
+
+### 静态目录的文档模式（1.0.0）
+
+Provider 可声明 `entryMode="documents"` 与 `readEntry(id,context)`，entries/Update 此时接收 SearchDocument。默认仍是完整 Entry。字段、失败、所有权、恢复和生命周期规则统一见 [目录契约](CATALOG.md#在-host-索引中延迟生成动作)。readEntry 只生成可执行描述，不能执行动作；第三方和内置模块遵守相同边界。

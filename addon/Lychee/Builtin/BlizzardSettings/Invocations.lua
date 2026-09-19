@@ -16,12 +16,22 @@ end
 local function descriptor(spec,id,operation,args,title)
  return {id=id,kind="invocation",title=title or L[labels[operation]],invocation=ref(spec,operation,args)}
 end
+local function presentation(spec)
+ local writable=spec.kind~="native" and (not A.Staged(spec) or A.Call(spec.setting,"HasCommitFlag",Settings.CommitFlag.Apply))
+ local adjust=I.Builtin.SettingsView and writable and (spec.kind=="number" or spec.kind=="choice" or spec.kind=="multi")
+ return writable,adjust
+end
+function M.Document(spec)
+ local _,adjust=presentation(spec)
+ return {id=spec.id,title=spec.name,aliases=spec.aliases,
+  subtitle=L:Format((spec.channel or adjust) and "%s · 直接调整" or spec.kind=="boolean" and not A.Staged(spec) and "%s · 切换开关" or "%s · 点击定位",spec.categoryName)}
+end
 function M.Record(spec)
  local actions={};local primary
- local writable=spec.kind~="native" and (not A.Staged(spec) or A.Call(spec.setting,"HasCommitFlag",Settings.CommitFlag.Apply))
+ local writable,adjust=presentation(spec)
  if spec.channel then actions[#actions+1]="adjust-volume";primary="adjust-volume"
  elseif spec.kind=="boolean" and writable and not A.Staged(spec) then actions[#actions+1]=descriptor(spec,"toggle","toggle");primary="toggle"
- elseif I.Builtin.SettingsView and writable and (spec.kind=="number" or spec.kind=="choice" or spec.kind=="multi") then
+ elseif adjust then
   actions[#actions+1]={id="adjust",kind="open-panel",title=L["直接调整"],panel="setting-controls",state={setting=spec.id}};primary="adjust"
  end
  actions[#actions+1]=descriptor(spec,"open","open")
@@ -32,9 +42,11 @@ function M.Record(spec)
   actions[#actions+1]=descriptor(spec,"disable","boolean",{value=false},L["关闭"]..suffix)
  end
  if writable and A.Call(spec.setting,"GetDefaultValue")~=nil then actions[#actions+1]=descriptor(spec,"reset","reset",{},L["恢复默认值"]..(A.Staged(spec) and L["（需应用）"] or "")) end
- return {id=spec.id,title=spec.name,kind="setting",kindTitle=L["暴雪设置"],icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga",
-  subtitle=L:Format((spec.channel or primary=="adjust") and "%s · 直接调整" or spec.kind=="boolean" and not A.Staged(spec) and "%s · 切换开关" or "%s · 点击定位",spec.categoryName),
-  aliases=spec.aliases,payload={categoryID=spec.categoryID,name=spec.name,channel=spec.channel},actions=actions,primaryActionID=primary}
+ local record=M.Document(spec)
+ record.kind,record.kindTitle,record.icon="setting",L["暴雪设置"],"Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga"
+ record.payload={categoryID=spec.categoryID,name=spec.name,channel=spec.channel}
+ record.actions,record.primaryActionID=actions,primary
+ return record
 end
 function M.Attach(owner)
  if owner.settingsAttached then return end;owner.settingsAttached=true

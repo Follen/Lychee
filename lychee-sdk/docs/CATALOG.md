@@ -7,6 +7,7 @@ SDK 1.0.0 / API 1.0.0。当前分支保留单插件版索引，不迁入十包�
 | 场景 | 入口 | 数据所有权 |
 | --- | --- | --- |
 | 少量简单入口 | RegisterProvider 的 entries；变化时 handle:Update | Host 保存有界、校验后的搜索条目；业务事实归 Provider。 |
+| 有界目录、完整动作构造昂贵 | RegisterProvider 的 entryMode="documents" + readEntry | Host 只保存搜索文档；完整 Entry 只活在候选/动作引用中。 |
 | 已有自有检索逻辑 | query / resolve | 只交当前查询候选，Host 不取得业务 DB。 |
 | 希望自己持有可增量搜索目录 | SDK.CreateCatalog，默认 mode="entries" | 调用者持有目录，Host 没有 Catalog 总注册表。 |
 | Entry 构造昂贵且测量证明收益 | 可选 mode="documents" + readEntry | 先索引搜索字段，命中后从本插件事实生成 Entry。 |
@@ -56,3 +57,35 @@ SearchDocument 只含 `id/title/aliases/keywords/description/category/scope/subt
 `context.deadline` 是 SDK.Now() 的绝对秒，发现、加载、准备、查询共享截止，不能每个阶段续五秒。`context.fail(Error)` 表示本来源不完整；`reply({})` 才表示成功零结果。回调完成或取消后释放 request/context/ranker，不缓存跨查询偏好。具体错误边界见[协议](PROTOCOLS.md)。
 
 关闭“参与搜索”只撤搜索工作，不等于所有者停用，不能阻断固定项的明确恢复或必要后台通信。资源和存储分别见[生命周期](RUNTIME_LIFECYCLE.md)及[存储](STORAGE.md)。
+
+## 在 Host 索引中延迟生成动作
+
+SDK / Provider API 固定为 **1.0.0**。`RegisterProvider` 可选 `entryMode="documents"`，必须同时提供 `readEntry`；默认 `entries` 模式保持完整 Entry 接入。两种模式的 `handle:Update` 方法相同，分别接收 SearchDocument 或 Entry，不能混用。容量仍为 4096 条。
+
+```lua
+local facts = { volume = { name = "Volume" } } -- Provider owns business facts
+local handle = assert(Lychee:RegisterProvider({
+    id = "example.settings", title = "Example", apiVersion = "1.0.0", version = "1.0.0",
+    entryMode = "documents",
+    entries = {{ id = "volume", title = facts.volume.name }},
+    actions = { open = { title = "Open", run = function(entry)
+        -- Open this Provider's own setting using entry.payload.key.
+        return { ok = true }
+    end } },
+    readEntry = function(id, context)
+        local fact = facts[id]
+        if not fact then return nil end
+        return { id = id, title = fact.name, payload = { key = id }, actions = { "open" } }
+    end,
+}))
+```
+
+Host 使用原有索引、排名和筛选，在最终静态候选上调用 reader；不会先为整库生成动作，也不会额外创建一套 Catalog。`readEntry(id,{ref,revision,reason})` 同步、无副作用、不 yield，不扫描整库、不写设置。reason 为 query 或 resolve。一次查询通常最多读取 20 个静态候选；一次搜索若因动态来源完成而重新合并，可能再次读取。调用次数不是长期缓存承诺。
+
+reader 返回的 ID 必须一致，完整 Entry 仍经过输入隔离、动作与作用域校验。错误返回 nil,Error；抛错、非法结果、目录版本改变或所有者注销都会拒绝本次读取。命中文档却读不到 Entry 时，本次搜索标记不完整；不会静默显示为成功零结果。当前静态候选窗口不为缺失记录无限补扫。Provider 应通过 Update 删除确定失效的文档，暂时不可用返回明确错误。
+
+Host 只用弱引用登记物化记录的合法身份，不持有全量动作缓存；当前可见行、正在执行的动作或调用方仍可保有记录。Update/Invalidate 使旧身份失效。明确恢复可以读取不在搜索文档中的 ID；关闭“参与搜索”不阻止明确恢复。所有者停用或注销仍拒绝读取。
+
+小目录、简单且已经共享动作的 Entry 通常更省 CPU；不要仅为统一风格迁移。documents 用减少常驻动作换取每个候选的读取与校验开销，必须测冷/热延迟和分配。不要同时向 Host 和 CreateCatalog 提交同一套文档。调用方确需自持目录、独立检索时才用 CreateCatalog。
+
+CreateCatalog 的 documents 查询先取 request.limit 个命中；仅在缺失或完整引用去重导致不足时补查，最多检查 256 个完整候选，无法确认完整性时报 RESULT_LIMIT。托管查询按 1ms 或 256 个检查点让出；暂停时间不消耗模糊匹配 CPU 时间预算。单个第三方 reader 或原生 API 不可抢占。

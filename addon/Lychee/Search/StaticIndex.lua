@@ -441,7 +441,7 @@ local function filteredSet(self, filter)
     return nil
 end
 
-local function candidateKeys(self, normalized, filter)
+local function candidateKeys(self, normalized, filter, checkpoint)
     local out, seen = {}, {}
     local identity = filterIdentity(filter)
     if normalized == "" then
@@ -475,6 +475,7 @@ local function candidateKeys(self, normalized, filter)
         else addCandidates(out, seen, smallest, math.huge) end
         local write, count = 0, #out
         for read = 1, count do
+            if checkpoint then checkpoint() end
             local key, matches = out[read], true
             for index = 1, #queryGrams do
                 local set = self.grams[queryGrams[index]]
@@ -516,17 +517,21 @@ local function resultLess(left, right)
     return (le and le.stableID or left.stableID) < (re and re.stableID or right.stableID)
 end
 
-function Index:Search(query, limit, filter, compact, preferredKey, ranking)
+function Index:Search(query, limit, filter, compact, preferredKey, ranking, checkpoint)
     local normalized = I.Search.Normalizer:Normalize(query)
     if normalized == "" and type(filter) ~= "table" then return {} end
     local maximum = math.min(tonumber(limit) or self.resultLimit, self.resultLimit)
     if maximum < 1 then return {} end
-    local candidates = candidateKeys(self, normalized, filter)
+    local candidates = candidateKeys(self, normalized, filter, checkpoint)
     local queryTerms = I.Search.Normalizer:Terms(normalized)
     local out, byStableID, fuzzyCount = {}, {}, 0
     local started = nowMS()
     local deadline = started and (started + self.fuzzyBudgetMS) or nil
     for candidateIndex = 1, #candidates do
+        if checkpoint then
+            local paused=checkpoint()
+            if deadline and type(paused)=="number" then deadline=deadline+paused end
+        end
         local entry = self.entries[candidates[candidateIndex]]
         if entry and entry.source.enabled and entry.source.searchable~=false and matchesFilter(entry, filter) then
             local normalizer=I.Search.Normalizer

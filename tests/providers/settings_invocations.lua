@@ -43,7 +43,9 @@ for _,path in ipairs({"Core/UserPreferences.lua","Core/ResultActionExecutor.lua"
 local palette={visible=true,session=1,generation=1,RejectRow=function(_,_,err) return false,err end}
 I.ResultActionExecutor:BindPalette(palette)
 local function query(q)
- local ok,items=I.Search.Query:Query(q,{visible=true},1);assert(ok)
+ local completed
+ local ok,items=I.Search.Query:Query(q,{visible=true},1,function(result) completed=result end);assert(ok)
+ advance();items=completed or items
  assert(#items>0,q.." returned nothing")
  return {item=items[1],session=1,generation=1,extensionID=M.id}
 end

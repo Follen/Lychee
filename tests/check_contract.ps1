@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $toc = Join-Path $root 'addon/Lychee/Lychee.toc'
 $tocLines = Get-Content $toc | Where-Object { $_ -and $_ -notmatch '^##' }
@@ -111,7 +111,7 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','providers/settings_memory','ui/settings_controls','ui/volume_result_refresh')) {
+    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/provider_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','providers/settings_memory','ui/settings_controls','ui/volume_result_refresh')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
@@ -147,6 +147,8 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
+    & $lua.Source 'tests/search_checkpoint.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Search checkpoint failed' }
     & $lua.Source 'tests/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
     foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','provider_ingestion','ui_runtime')) {

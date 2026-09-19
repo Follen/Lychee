@@ -56,6 +56,14 @@ end
 local function records(entry,input,limit)
     return I.RecordCodec:Receive(entry,input,limit or P.entryLimit)
 end
+local function catalogRecords(entry,input)
+    if entry.definition.entryMode=="documents" then
+        local list,map=I.RecordCodec:ReceiveDocuments(entry,input,P.entryLimit)
+        if list then for _,record in ipairs(list) do record.kind="entry" end end
+        return list,map
+    end
+    return records(entry,input)
+end
 local function active(entry)
     local identity = I.Search.RuntimeIdentity
     return P.entries[entry.id] == entry and I.Registry:IsEnabled(entry.id)
@@ -87,12 +95,12 @@ end
 function P:Register(definition)
     local ok, err = I.Boundary:Validate(definition, "provider", {
         maxFields = P.entryLimit, maxDepth = 12,
-        callbacks = { query = true, resolve = true, resolveTarget=true, describe=true, observe=true, prepare=true, releaseSearch=true, run = true, begin = true, create = true, onEnable = true, onDisable = true },
+        callbacks = { readEntry = true, query = true, resolve = true, resolveTarget=true, describe=true, observe=true, prepare=true, releaseSearch=true, run = true, begin = true, create = true, onEnable = true, onDisable = true },
     })
     if not ok then return nil, err end
     if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
     ok, err = keys(definition, { id=true, apiVersion=true, version=true, title=true, addon=true, description=true, icon=true, resource=true, targetView=true,
-        entries=true, query=true, resolve=true, resolveTarget=true, describe=true, observe=true, prepare=true, releaseSearch=true, searchable=true, searchMode=true, searchGlobal=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
+        entries=true, entryMode=true, readEntry=true, query=true, resolve=true, resolveTarget=true, describe=true, observe=true, prepare=true, releaseSearch=true, searchable=true, searchMode=true, searchGlobal=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
     if not ok then return nil, err end
     if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
     if not _G.Lychee:Supports(definition.apiVersion) then return failure("UNSUPPORTED_API", "apiVersion") end
@@ -144,9 +152,11 @@ function P:Register(definition)
     if definition.description~=nil and (type(definition.description)~="string" or #definition.description>4096) then
         return failure("INVALID_SCHEMA","provider.description")
     end
+    if definition.entryMode~=nil and definition.entryMode~="entries" and definition.entryMode~="documents" then return failure("INVALID_SCHEMA","entryMode") end
+    if (definition.entryMode=="documents")~=(type(definition.readEntry)=="function") then return failure("INVALID_SCHEMA","readEntry") end
     if definition.entries == nil and type(definition.query) ~= "function" and definition.actions == nil then return failure("INVALID_SCHEMA", "entries/query") end
     if definition.entries ~= nil and type(definition.entries) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
-    for _, field in ipairs({ "query", "resolve", "resolveTarget", "describe", "observe", "prepare", "releaseSearch", "onEnable", "onDisable" }) do
+    for _, field in ipairs({ "readEntry", "query", "resolve", "resolveTarget", "describe", "observe", "prepare", "releaseSearch", "onEnable", "onDisable" }) do
         if definition[field] ~= nil and type(definition[field]) ~= "function" then return failure("INVALID_SCHEMA", field) end
     end
     for _, field in ipairs({ "actions", "drags", "views" }) do
@@ -174,8 +184,8 @@ function P:Register(definition)
         if not valid then return nil,problem end
     end
     self.instanceSequence = self.instanceSequence + 1
-    local entry = { id = definition.id, instanceToken = self.instanceSequence, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
-    local initial, map = records(entry, inputEntries or {})
+    local entry = { id = definition.id, instanceToken = self.instanceSequence, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), readRecords=resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
+    local initial, map = catalogRecords(entry, inputEntries or {})
     if not initial then return nil, map end
     entry.records, entry.recordMap = initial, map
     entry.recordOrder = {}
@@ -257,7 +267,7 @@ function P:Register(definition)
         valid, why = keys(delta, { replace=true, upsert=true, remove=true }, "update"); if not valid then return nil, why end
         if delta.replace ~= nil and (delta.upsert ~= nil or delta.remove ~= nil) then return failure("INVALID_SCHEMA", "update.replace") end
         if delta.replace ~= nil then
-            local nextList, nextMap = records(entry, delta.replace)
+            local nextList, nextMap = catalogRecords(entry, delta.replace)
             if not nextList then return nil, nextMap end
             entry.updating = true
             local committed, commitError, _, changed = source:CommitSnapshot(I.Registry:_OwnRecords(nextList, entry.id))
@@ -268,7 +278,7 @@ function P:Register(definition)
             for index, record in ipairs(nextList) do entry.recordOrder[record.id] = index end
             adoptRecords()
         else
-            local additions, addedMap = records(entry, delta.upsert or {})
+            local additions, addedMap = catalogRecords(entry, delta.upsert or {})
             if not additions then return nil, addedMap end
             valid, why = array(delta.remove or {}, P.entryLimit, "update.remove"); if not valid then return nil, why end
             local removed, count = {}, #entry.records
@@ -374,6 +384,7 @@ function P:Register(definition)
             entry.localizer,entry.settings=nil,nil
             entry.metadataPool, entry.actionRecords, entry.actionLists = nil, nil, nil
             entry.records, entry.recordMap, entry.recordOrder, entry.dynamic, entry.resolved = {}, {}, {}, {}, {}
+            definition.readEntry=nil
             definition.actions, definition.drags, definition.views, definition.query, definition.resolve = nil, nil, nil, nil, nil
             definition.onEnable, definition.onDisable = nil, nil
         end
@@ -402,7 +413,7 @@ function P:Stamp(item, dynamic)
     if record then item.ref=record.invocation or record.command or record.targetRef or item.ref end
     if item.ref.kind then item.stableID=I.Search.RuntimeIdentity:ReferenceKey(item.ref) end
     item._providerInstance, item._providerRevision = entry, entry.revision
-    item._providerRecord = entry.recordMap[item.id]
+    item._providerRecord = record and (entry.resolved[record] or entry.readRecords[record]) and record or entry.recordMap[item.id]
     item._dynamicEpoch = dynamic and entry.dynamicEpoch or nil
     return item
 end
@@ -413,7 +424,29 @@ function P:IsCurrent(item)
     return active(entry) and item._providerRevision == entry.revision
         and record ~= nil and (not identity or identity:MatchesScope(record.scope or entry.definition.scope))
         and (not item._dynamicEpoch or item._dynamicEpoch == entry.dynamicEpoch)
-        and (item._providerRecord == entry.recordMap[item.id] or item._providerRecord == entry.dynamic[item.ref.kind and I.Search.RuntimeIdentity:ReferenceKey(item.ref) or item.id] or entry.resolved[item._providerRecord] == true)
+        and (item._providerRecord == entry.recordMap[item.id] or item._providerRecord == entry.dynamic[item.ref.kind and I.Search.RuntimeIdentity:ReferenceKey(item.ref) or item.id] or entry.resolved[item._providerRecord] == true or entry.readRecords[item._providerRecord] == true)
+end
+function P:ReadEntry(id,entryID,context)
+    local entry=self.entries[id]
+    if not entry or not active(entry) or not entry.definition.readEntry then return nil end
+    local revision=entry.revision
+    local ok,result,err=pcall(entry.definition.readEntry,entryID,{ref={providerID=id,entryID=entryID},revision=revision,reason=context and context.reason or "query"})
+    if not active(entry) or entry.revision~=revision then return failure("STALE_RESULT") end
+    if not ok then report(entry,"CALLBACK_ERROR","readEntry");return failure("CALLBACK_ERROR") end
+    if not result then
+        if err then
+            if not I.Boundary:Validate(err,"readEntry.error",{maxDepth=2,maxFields=8}) or type(err)~="table" or type(err.code)~="string" then err={code="INVALID_RESULT"} end
+            report(entry,err.code,"readEntry")
+        end
+        return nil,err
+    end
+    local list,why=records(entry,{result},1)
+    if not list or list[1].id~=entryID then report(entry,why and why.code or "INVALID_REFERENCE","readEntry");return failure(why and why.code or "INVALID_REFERENCE") end
+    local record=list[1]
+    if not I.Search.RuntimeIdentity:MatchesScope(record.scope or entry.definition.scope) then return failure("PROVIDER_UNAVAILABLE") end
+    record._extensionID=entry.id
+    entry.readRecords[record]=true
+    return record
 end
 local function materialize(entry, record)
     local item = I.Search.ResultSnapshot:Materialize({ record = record, sourceID = entry.id .. ":records",
@@ -489,8 +522,10 @@ function P:Resolve(ref, context, reply)
         return self:Stamp(item)
     end
     if not active(entry) then return nil end
-    local record = entry.recordMap[ref.entryID]
-    if not record and entry.definition.resolve then
+    local record
+    if entry.definition.readEntry then record=self:ReadEntry(entry.id,ref.entryID,{reason="resolve"})
+    else record=entry.recordMap[ref.entryID] end
+    if not record and not entry.definition.readEntry and entry.definition.resolve then
         local ok, result = pcall(entry.definition.resolve, ref.entryID, copy(context or {}))
         if not ok then report(entry, "CALLBACK_ERROR", "resolve"); return nil end
         if not active(entry) then return nil end
@@ -547,7 +582,7 @@ function P:HasPendingQuery()
 end
 
 function P:HasQueryFailure()
-    return self.queryFailures and next(self.queryFailures)~=nil or I.Search.SourceAccess and I.Search.SourceAccess:HasFailure() or false
+    return self.materializationFailed==true or self.queryFailures and next(self.queryFailures)~=nil or I.Search.SourceAccess and I.Search.SourceAccess:HasFailure() or false
 end
 
 function P:HasQuery(filter)

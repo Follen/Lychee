@@ -123,6 +123,7 @@ end
 -- Detach old Host work before invoking Provider cancellation. Cancellation is
 -- external code and may start a newer operation, even within one generation.
 function Q:_BeginOperation(keepAccess)
+    if I.Providers then I.Providers.materializationFailed=nil end
     self.operation = (self.operation or 0) + 1
     local operation = self.operation
     self.pending, self.active = nil, false

@@ -218,8 +218,7 @@ function R:ReceiveDocuments(entry,input,limit)
     end
     return list,map
 end
-function R:Public(record,owner)
-    local result=copy(record)
+local function publicOwned(result,owner)
     result._extensionID=nil
     for index,action in ipairs(result.actions or {}) do
         if type(action)=="table" and action.kind=="provider" then result.actions[index]=action.id end
@@ -227,4 +226,16 @@ function R:Public(record,owner)
     local category=result.category
     if type(category)=="table" and type(category.id)=="string" then category.id=category.id:sub(#owner+2) end
     return result
+end
+function R:Public(record,owner)
+    return publicOwned(copy(record),owner)
+end
+-- A reader result is disposable: validate into isolated ownership, do not
+-- intern its mutable children, then move that graph to the caller. Shared
+-- provider action descriptors become scalar IDs before anything escapes.
+function R:ReceivePublic(entry,record)
+    local list,err=I.Boundary:ReceiveRecords({record},prepareRecord,entry,1)
+    if not list then return nil,err end
+    I.Boundary:_ConsumeRecordReceipt(list)
+    return publicOwned(list[1],entry.id)
 end

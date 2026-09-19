@@ -36,6 +36,11 @@ function R:Materialize(hit)
     local source=indexed and indexed.source
     local sourceID=source and source.id or (hit and hit.sourceID)
     if not record or not sourceID or sourceID == "legacy" then return nil end
+    local owner=indexed and source and I.Providers and I.Providers.entries[source.extensionID]
+    if owner and owner.definition.entryMode=="documents" then
+        record=I.Providers:ReadEntry(owner.id,record.id)
+        if not record then I.Providers.materializationFailed=true;return nil end
+    end
     local item = {
         id = record.id,
         text = displayText(record.title),

@@ -160,7 +160,9 @@ for id,metric in pairs(metrics) do
 end
 collectgarbage("collect"); local retained=collectgarbage("count")-baseKB
 local function query(text)
-    local _,items=I.Search.Query:Query(text,{visible=true});return items
+    local completed
+    local _,items=I.Search.Query:Query(text,{visible=true},nil,function(result) completed=result end)
+    drain();return completed or items
 end
 local function find(text,id)
     for _,item in ipairs(query(text)) do if not id or item.id==id then return item end end

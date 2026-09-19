@@ -155,39 +155,58 @@ local function documentCatalog(owned,state)
         if closed or revision~=expected then return failure("STALE_RESULT","readEntry") end
         if not called then return failure("CALLBACK_ERROR","readEntry") end
         if record==nil then return nil,err end
-        local list,why=I.RecordCodec:Receive(state,{record},1)
-        if not list then return nil,why end
-        I.Boundary:_ConsumeRecordReceipt(list)
-        if list[1].id~=id then return failure("INVALID_REFERENCE","readEntry.id") end
-        return list[1]
+        local result,why=I.RecordCodec:ReceivePublic(state,record)
+        if not result then return nil,why end
+        if result.id~=id then return failure("INVALID_REFERENCE","readEntry.id") end
+        return result
     end
     local function public(hits)
         local out={}
-        for n,hit in ipairs(hits) do out[n]={entry=I.RecordCodec:Public(hit.entry.record,owned.id),confidence=hit.confidence,
-            evidence=I.Boundary.CopyPlain(hit.evidence)} end
+        for n,hit in ipairs(hits) do out[n]={entry=hit.entry.record,confidence=hit.confidence,
+            evidence=hit.evidence} end
         return out
     end
     local function collect(request,context,expected,checkpoint)
         local target=index
-        local hits,more={}
-        if target then hits,more=target:Search(request.normalized,257,request.filter,"transfer",request.preferredEntryID and sourceID..":"..request.preferredEntryID,request.ranking,checkpoint) end
-        more=#hits>256
-        if more then hits[257]=nil end
-        if target then target:ClearQueryCache() end
-        local out,seen={},{};local limit=request.limit or 20
-        for _,hit in ipairs(hits) do
-            if checkpoint then checkpoint() end
-            local record,err=read(hit.entry.record.id,expected,"query",context and context.resources)
-            if err then return nil,err end
-            if record then
-                local ref=record.invocation or record.command or record.targetRef or {providerID=owned.id,entryID=record.id}
-                local key,why=I.Search.RuntimeIdentity:ReferenceKey(ref)
-                if not key then return nil,why end
-                if not seen[key] then
-                    seen[key]=true;hit.entry={record=record};out[#out+1]=hit
-                    if #out>=limit then break end
+        local out,seen,readIDs={},{},{}
+        local limit=request.limit or 20
+        local more=false
+        local function search(maximum)
+            if not target then return {} end
+            local hits=target:Search(request.normalized,maximum,request.filter,"transfer",request.preferredEntryID and sourceID..":"..request.preferredEntryID,request.ranking,checkpoint)
+            target:ClearQueryCache()
+            return hits
+        end
+        local function consume(hits)
+            more=#hits>256
+            for at,hit in ipairs(hits) do
+                if at>256 then break end
+                local id=hit.entry.record.id
+                if not readIDs[id] then
+                    if checkpoint then checkpoint() end
+                    readIDs[id]=true
+                    local record,err=read(id,expected,"query",context and context.resources)
+                    if err then return nil,err end
+                    if record then
+                        local ref=record.invocation or record.command or record.targetRef or {providerID=owned.id,entryID=record.id}
+                        local key,why=I.Search.RuntimeIdentity:ReferenceKey(ref)
+                        if not key then return nil,why end
+                        if not seen[key] then
+                            seen[key]=true;hit.entry={record=record};out[#out+1]=hit
+                            if #out>=limit then break end
+                        end
+                    end
                 end
             end
+            return true
+        end
+        local hits=search(limit)
+        local ok,err=consume(hits);if not ok then return nil,err end
+        -- Most readers are one-to-one. Only missing/duplicate identities need
+        -- the bounded overflow scan; never materialize 257 hit objects by default.
+        if #out<limit and #hits==limit then
+            hits=search(257)
+            ok,err=consume(hits);if not ok then return nil,err end
         end
         if closed or revision~=expected then return failure("STALE_RESULT","catalog.query") end
         if more and #out<limit then return failure("RESULT_LIMIT","catalog.query") end
@@ -241,7 +260,7 @@ local function documentCatalog(owned,state)
                 local now=I.Providers:QueryTime()
                 if now>=job.context.deadline then error({code="QUERY_TIMEOUT"}) end
                 n=n+1
-                if n>=32 or now-started>=0.001 then
+                if n>=256 or now-started>=0.001 then
                     n=0;coroutine.yield();started=I.Providers:QueryTime()
                     if job.done or closed or revision~=job.revision then error({code="STALE_RESULT"}) end
                     if started>=job.context.deadline then error({code="QUERY_TIMEOUT"}) end
@@ -271,7 +290,7 @@ local function documentCatalog(owned,state)
         valid,why=I.Boundary.Access(id,"resolve.id");if not valid then return nil,why end
         if type(id)~="string" or #id==0 or #id>128 then return failure("INVALID_SCHEMA","resolve.id") end
         local record,err=read(id,revision,"resolve");if not record then return nil,err end
-        return I.RecordCodec:Public(record,owned.id)
+        return record
     end
     local function clear(closing)
         if closed then return true end
