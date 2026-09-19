@@ -113,7 +113,12 @@ function M:Attach(owner)
     if owner.audioAttached then return end
     owner.audioAttached=true
     owner.actions["set-volume"]={title=L["设置音量"],actionVersion=1,absolute=true,conflictKey="setting",panel="controls",schema=schema,
-        run=function(invocation) return A.Write(invocation.target.key.channel,invocation.args.percent) end}
+        run=function(invocation)
+            local channel,percent=invocation.target.key.channel,invocation.args.percent
+            local result=A.Write(channel,percent)
+            if result.status=="succeeded" then result.message=L:Format("已将%s设为 %d%%",L[A.byID[channel].title],percent) end
+            return result
+        end}
     owner.actions["adjust-volume"]={title=L["直接调整"],run=function(record)
         local channel=record.payload and record.payload.channel
         if not A.byID[channel] then return {ok=false,code="AUDIO_UNAVAILABLE"} end
@@ -135,10 +140,10 @@ function M:Attach(owner)
     end
     owner.resolve=function(id,context)
         local ref=context and context.ref
-        if ref and ref.kind=="invocation" and ref.actionID=="set-volume" and ref.actionVersion==1
-            and ref.target and ref.target.version==1 and ref.target.key and ref.args then
-            local channel,percent=ref.target.key.channel,ref.args.percent
-            if A.byID[channel] and type(percent)=="number" and percent%1==0 and percent>=0 and percent<=100 then
+        if ref and (ref.kind=="invocation" or ref.kind=="command") and ref.actionID=="set-volume" and ref.actionVersion==1
+            and ref.target and ref.target.version==1 and ref.target.key then
+            local channel,percent=ref.target.key.channel,ref.args and ref.args.percent
+            if A.byID[channel] and (ref.kind=="command" or type(percent)=="number" and percent%1==0 and percent>=0 and percent<=100) then
                 local record=entry(channel,percent)
                 record.id=id
                 return record

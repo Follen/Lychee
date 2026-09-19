@@ -6,9 +6,9 @@ local function identity()
     return current and current.product or "unknown", I.Locale and I.Locale.code or "enUS"
 end
 local function same(a,b)
-    if a and b and (a.kind=="legacy-entry" and not b.kind or b.kind=="legacy-entry" and not a.kind) then return a.providerID==b.providerID and a.entryID==b.entryID end
+    if a and b and (a.kind=="legacy-entry" and not b.kind or b.kind=="legacy-entry" and not a.kind) then return a.providerID==b.providerID and a.entryID==b.entryID and a.actionID==b.actionID end
     if a and b and (a.kind or b.kind) then return I.Invocations and I.Invocations:Equal(a,b) or false end
-    return a and b and a.providerID==b.providerID and a.entryID==b.entryID
+    return a and b and a.providerID==b.providerID and a.entryID==b.entryID and a.actionID==b.actionID
 end
 local function validString(value,limit)
     return type(value)=="string" and #value>0 and #value<=limit and not value:find("[%c|]")
@@ -16,7 +16,8 @@ end
 local function copyRef(ref)
     if type(ref)=="table" and ref.kind then return I.Invocations and I.Invocations:NormalizeStoredRef(ref) end
     if type(ref)~="table" or not validString(ref.providerID,192) or not validString(ref.entryID,192) then return end
-    return {providerID=ref.providerID,entryID=ref.entryID}
+    if ref.actionID~=nil and not validString(ref.actionID,64) then return end
+    return {providerID=ref.providerID,entryID=ref.entryID,actionID=ref.actionID}
 end
 local function safeTitle(value,fallback)
     if type(value)~="string" then return fallback end
@@ -138,7 +139,7 @@ function P:Snapshot(request)
     local snapshot={providers={},indexRanking={},exact={},choice=self:Preferred(request)}
     local seenPins,seenRecent={},{}
     local function add(ref,weight,seen)
-        if type(ref)=="table" and ref.kind and ref.kind~="legacy-entry" then
+        if type(ref)=="table" and (ref.kind and ref.kind~="legacy-entry" or ref.actionID) then
             local key=I.Search.RuntimeIdentity:ReferenceKey(ref)
             if weight==0 then snapshot.preferredExact=key
             elseif not seen[key] then
@@ -169,7 +170,7 @@ function P:Snapshot(request)
 end
 function P:Rank(request,ref,confidence)
     if not ref or not request._preferences then return confidence or 0 end
-    if ref.kind and ref.kind~="legacy-entry" then
+    if ref.kind and ref.kind~="legacy-entry" or ref.actionID then
         local key=I.Search.RuntimeIdentity:ReferenceKey(ref)
         return (confidence or 0)+(request._preferences.exact[key] or 0)*0.001
             +(request._preferences.preferredExact==key and 2 or 0)

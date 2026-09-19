@@ -61,11 +61,21 @@ local r=query("自动拾取");assert(r.item.interaction.primaryActionID=="toggle
 assert(I.ResultActionExecutor:ExecutePrimary(r).ok and loot.value)
 assert(I.ResultActionExecutor:Execute(r,"disable").ok and not loot.value)
 assert(I.UserPreferences:GetRecent()[1].args.value==false)
+local disabled=assert(I.UserPreferences:Resolve(I.UserPreferences:GetRecent()[1]))
+assert(disabled.text==r.item.text and disabled.interaction.actions[1].title==(GetLocale()=="enUS" and "Off" or "关闭"),"restored right-click action lost its specific label")
 r=query("后台帧数30");assert(r.item.ref.actionID=="setting-number")
 assert(I.ResultActionExecutor:ExecutePrimary(r).ok and fps.value==30)
+local thirty=I.UserPreferences:GetRecent()[1]
+local restoreThirty=assert(I.UserPreferences:Resolve(thirty))
+assert(restoreThirty.text:find("30",1,true) and restoreThirty.kindTitle~="","numeric history lost parameters or source")
+local slider={kind="invocation",product="retail",providerID=M.id,actionID="setting-number",actionVersion=1,
+ target=thirty.target,args={value=50},title="Set value"}
+assert(I.UserPreferences:Resolve(slider).text:find("50",1,true),"non-audio slider history lost target/value")
 r=query("后台帧数调高10");assert(I.ResultActionExecutor:ExecutePrimary(r).ok and fps.value==40)
 r=query("显示模式设为窗口");assert(r.item.ref.actionID=="stage-choice")
-assert(I.ResultActionExecutor:ExecutePrimary(r).ok and display.value==true and display.pending==false and state.shown,"staging must not apply")
+local staged=I.ResultActionExecutor:ExecutePrimary(r)
+assert(staged.ok and display.value==true and display.pending==false and state.shown,"staging must not apply")
+assert(staged.message:find(GetLocale()=="enUS" and "Apply" or "应用",1,true),"staged action claimed it already took effect")
 assert(A.Write(A.byVariable.PROXY_GRAPHICS_QUALITY,"number",{value=7},true).status=="succeeded" and gfx.pending==6 and gfx.value==5)
 local rejected=G.Parse("综合阴影设为最高");assert(rejected and rejected.operation=="invalid")
 assert(A.Write(A.byVariable.PROXY_SHADOW_QUALITY,"choice",{choice="number:5"},true).status=="failed")

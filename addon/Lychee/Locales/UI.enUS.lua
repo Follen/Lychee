@@ -255,4 +255,10 @@ L:Add({
     ["指向界面，查看来自哪个插件"] = "Point at a frame to identify its addon",
     ["无需点击 · Esc 退出"] = "No click needed · Esc to exit",
     ["未发现可确认的父级来源"] = "No confirmed parent source",
+    ["已完成"] = "Completed",
+    ["已完成：%s"] = "Completed: %s",
+    ["正在执行…"] = "Working…",
+    ["正在执行：%s"] = "Working: %s",
+    ["已取消"] = "Cancelled",
+    ["结果尚未确认，请检查后再试"] = "Result unconfirmed. Check before retrying.",
 })

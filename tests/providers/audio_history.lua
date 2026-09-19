@@ -40,6 +40,14 @@ owner.definition.readEntry=function() return nil end
 assert(I.Providers:Resolve(ref,{}).text==ref.title,"missing optional presentation must keep saved fallback")
 owner.definition.readEntry=reader
 assert(#f.writes==0,"history restoration changed settings")
+local command={kind="command",product="retail",providerID=f.M.id,actionID="set-volume",actionVersion=1,target={version=1,key={channel="master"}},title="主音量"}
+local controls=assert(I.Providers:Resolve(command,{}))
+assert(controls.interaction.primaryActionID=="adjust-volume" and controls.interaction.actions[1].title==(english and "Adjust directly" or "直接调整"),"old command history lost its controls entrance")
+assert(I.UserPreferences:TouchRecent(controls,"adjust-volume"))
+assert(I.UserPreferences:GetRecent()[1].kind=="command","replaying a saved controls command lost its target")
+assert(I.UserPreferences:TouchRecent(first,"panel",{transition={panelID="controls"}}))
+assert(I.UserPreferences:GetRecent()[1].kind=="command" and I.UserPreferences:GetRecent()[1].args==nil,"opening invocation controls recorded a write")
+assert(I.UserPreferences:Resolve(I.UserPreferences:GetRecent()[1]).interaction.primaryActionID=="adjust-volume")
 local edit=assert(I.Invocations:BeginEdit(f.M.id,"set-volume",{version=1,key={channel="music"}},{mode="latest"},{}))
 assert(edit:Push({percent=0}));f.advance();assert(edit:Finish());f.advance()
 local actual=assert(I.UserPreferences:GetRecent()[1])

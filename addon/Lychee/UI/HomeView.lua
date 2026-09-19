@@ -19,6 +19,19 @@ local function homeLabel(value, fallback)
     if type(value) == "table" then return L:Resolve(value, fallback) end
     return value or fallback
 end
+local function historyMeta(item)
+    local source=homeLabel(item.kindTitle,"")
+    if source=="" then source=homeLabel(item.sourceTitle,"") end
+    local interaction=item.interaction
+    local actions=interaction and interaction.actions or {}
+    local primary=actions[1]
+    for _,action in ipairs(actions) do
+        if action.id==interaction.primaryActionID then primary=action;break end
+    end
+    local title=primary and homeLabel(primary.title,"") or ""
+    if title=="" or title==source then return source end
+    return source~="" and source.." · "..title or title
+end
 local function setShown(object, shown)
     if object and object.IsShown and object:IsShown() ~= shown then object:SetShown(shown) end
 end
@@ -535,7 +548,7 @@ local function restore(self, allowExpand)
             local title,icon,recoveredTitle=recoveryDisplay(self,ref,item,#sections+1)
             sections[#sections+1]={id="saved:"..ref.providerID..":"..index,groupID="recent",groupTitle=L["最近使用"],
                 title=title,icon=icon,recoveredTitle=recoveredTitle,item=item,recentRef=ref,
-                enabled=item~=nil,meta=item and item.kindTitle or self:GetRecoveryText(ref)}
+                enabled=item~=nil,meta=item and historyMeta(item) or self:GetRecoveryText(ref)}
         end
     end
     local broker = self.controller.secureBroker

@@ -517,7 +517,7 @@ function V:Prepare(providerID,actionID,target,args,context,reply)
  end
  return nil,{code="PENDING"},state.handle
 end
-local resultKeys={status=true,code=true,value=true,changed=true}
+local resultKeys={status=true,code=true,value=true,changed=true,message=true}
 local function invoke(handle,context,reply,editing)
  if type(handle)~="table" or not B.Access(handle,"prepared") then return fail("STALE_PREPARED") end
  local grant=prepared[handle]
@@ -560,7 +560,8 @@ local function invoke(handle,context,reply,editing)
    if not active or not live(active) then return false end
    local result,invalid=plain(input,"result")
    if not live(active) then return false end
-   if invalid or not keys(result,resultKeys) or result.code~=nil and type(result.code)~="string" or result.changed~=nil and type(result.changed)~="boolean" then active.finish({status="indeterminate",code="INVALID_RESULT"});return false end
+   if invalid or not keys(result,resultKeys) or result.code~=nil and type(result.code)~="string" or result.changed~=nil and type(result.changed)~="boolean"
+    or result.message~=nil and (type(result.message)~="string" or #result.message>1024) then active.finish({status="indeterminate",code="INVALID_RESULT"});return false end
    if result.status=="pending" then return true end
    if result.status~="succeeded" and result.status~="failed" and result.status~="cancelled" and result.status~="indeterminate" then active.finish({status="indeterminate",code="INVALID_RESULT"});return false end
    result.operationID=active.id

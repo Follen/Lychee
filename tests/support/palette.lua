@@ -130,4 +130,5 @@ dofile("tests/support/runtime.lua").Load("provider", {"Core/Preparation.lua","Bu
     if path=="UI/Palette.lua" then assert(not (LycheeInternal.Host and LycheeInternal.Host.PaletteController),"loading Palette creates no hidden UI") end
 end})
 
+dofile("addon/Lychee/Locales/UI.enUS.lua")
 return {state=env,geometry=homeGeometryCalls,tooltipText=tooltipText}

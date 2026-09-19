@@ -456,6 +456,20 @@ local function materialize(entry, record)
     item._providerRecord = record
     return item
 end
+local function restoreEntryAction(item,ref)
+    if not item or not ref.actionID then return item end
+    local interaction=item.interaction
+    for _,action in ipairs(interaction and interaction.actions or {}) do
+        if action.id==ref.actionID then
+            -- Materialize owns the interaction table; never alter the catalog.
+            interaction.primaryActionID=action.id
+            item.ref={providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID,actionID=action.id}
+            item.stableID=I.Search.RuntimeIdentity:ReferenceKey(item.ref)
+            return item
+        end
+    end
+    return failure("ACTION_UNAVAILABLE")
+end
 function P:CanRemember(item)
     local entry = item and self.entries[item.providerID]
     if entry then
@@ -477,21 +491,35 @@ function P:Resolve(ref, context, reply)
         if stored.kind~="target" and (not action or action.actionVersion~=stored.actionVersion) then return failure("INCOMPATIBLE_ACTION_VERSION") end
         local function resolved(value)
             if not active(owner) then return failure("STALE_RESULT") end
-            local record={id=stored.entryID or stored.actionID or "target",title=stored.title or action and action.title or owner.definition.title,icon=stored.icon,actions={}}
+            local record={id=stored.entryID or stored.actionID or "target",title=stored.title or action and action.title or owner.definition.title,icon=stored.icon,kindTitle=owner.definition.title,actions={}}
             record[stored.kind=="target" and "targetRef" or stored.kind]=value
             if stored.kind=="invocation" then
                 -- Rebuild presentation from the exact saved invocation, never
                 -- from a same-named entry with different arguments or actions.
                 local current=self:ReadEntry(owner.id,record.id,{reason="resolve",ref=value})
                 if not active(owner) then return failure("STALE_RESULT") end
-                if current and current.invocation and I.Invocations:Equal(current.invocation,value) then
+                local matched
+                for _,candidate in ipairs(current and current.actions or {}) do
+                    if candidate.kind=="invocation" and I.Invocations:Equal(candidate.invocation,value) then matched=candidate;break end
+                end
+                if current and (matched or current.invocation and I.Invocations:Equal(current.invocation,value)) then
                     record.title,record.icon=current.title,current.icon
                     record.subtitle,record.kindTitle,record.description=current.subtitle,current.kindTitle,current.description
                 end
-                record.actions[1]=stored.actionID
+                record.actions[1]=matched or stored.actionID
+                record.primaryActionID=matched and matched.id or stored.actionID
                 if action.panel then record.actions[2]={id="panel",kind="open-panel",title=owner.definition.title,panel=action.panel,state=value.target.key} end
             elseif stored.kind=="command" and action.panel then
                 record.actions[1]={id="panel",kind="open-panel",title=owner.definition.title,panel=action.panel,state=value.target and value.target.key or {}}
+                local current=self:ReadEntry(owner.id,record.id,{reason="resolve",ref=value})
+                if not active(owner) then return failure("STALE_RESULT") end
+                if current and current.command and I.Invocations:Equal(current.command,value) then
+                    record.title,record.icon=current.title,current.icon
+                    record.subtitle,record.kindTitle,record.description=current.subtitle,current.kindTitle,current.description
+                    record.actions={}
+                    for index,declared in ipairs(current.actions or {}) do record.actions[index]=declared.kind=="provider" and declared.id or declared end
+                    record.primaryActionID,record.payload=current.primaryActionID,current.payload
+                end
             elseif stored.kind=="target" and owner.definition.targetView then
                 record.actions[1]={id="panel",kind="open-panel",title=owner.definition.title,panel=owner.definition.targetView,state={target=value.target}}
             else return failure("TARGET_VIEW_UNAVAILABLE") end
@@ -527,7 +555,7 @@ function P:Resolve(ref, context, reply)
         if not source or source.extensionID ~= ref.providerID or not I.Registry:IsEnabled(ref.providerID) or not source.enabled then return nil end
         local item = I.Search.ResultSnapshot:Materialize({ record = indexed.record, sourceID = source.id, sourceExtensionID = ref.providerID,
             sourceTitle = source.title or source.extensionTitle, sourceGeneration = source.generation, sourceRevision = source.revision, stableID = indexed.stableID })
-        return self:Stamp(item)
+        return restoreEntryAction(self:Stamp(item),ref)
     end
     if not active(entry) then return nil end
     local record
@@ -544,7 +572,7 @@ function P:Resolve(ref, context, reply)
     end
     local identity = I.Search.RuntimeIdentity
     if record and identity and not identity:MatchesScope(record.scope or entry.definition.scope) then return nil end
-    return record and materialize(entry, record)
+    return restoreEntryAction(record and materialize(entry, record),ref)
 end
 function P:PublicRecord(record,owner)
     local publicRecord = copy(record)

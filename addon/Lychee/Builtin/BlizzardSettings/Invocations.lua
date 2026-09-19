@@ -48,6 +48,22 @@ function M.Record(spec)
  record.actions,record.primaryActionID=actions,primary
  return record
 end
+local function applyInvocation(record,spec,operation,args,invocation)
+ record.invocation=invocation or ref(spec,operation,args)
+ table.insert(record.actions,1,record.invocation.actionID);record.primaryActionID=record.invocation.actionID
+ record.title=L[labels[operation]].." · "..spec.name
+ local value=args.value
+ if value~=nil then record.title=record.title.." · "..(type(value)=="boolean" and L[value and "开启" or "关闭"] or tostring(value)..(spec.factor and "%" or "")) end
+ if args.choice then
+  for _,option in ipairs(A.Options(spec) or {}) do
+   if type(option.value)..":"..tostring(option.value)==args.choice then record.title=record.title.." · "..(option.label or option.text or tostring(option.value));break end
+  end
+ end
+ if args.color then record.title=record.title.." · "..args.color end
+ if args.enabled~=nil then record.title=record.title.." · "..L[args.enabled and "开启" or "关闭"] end
+ if A.Staged(spec) and operation~="open" then record.subtitle=L["预填到暴雪设置，点击应用后生效"] end
+ return record
+end
 function M.Attach(owner)
  if owner.settingsAttached then return end;owner.settingsAttached=true
  local oldQuery,oldResolve,oldTarget,oldDescribe=owner.query,owner.resolve,owner.resolveTarget,owner.describe
@@ -62,8 +78,12 @@ function M.Attach(owner)
      absolute=op=="number" or op=="boolean" or op=="choice" or op=="color",conflictKey="setting",schema=schema,
      run=function(invocation)
       local spec=A.byID[invocation.target.key.setting]
-      if op=="open" then return A.Open(spec) end
-      return A.Write(spec,op,invocation.args,staged)
+      local result=op=="open" and A.Open(spec) or A.Write(spec,op,invocation.args,staged)
+      if result.status=="succeeded" then
+       local display=applyInvocation(M.Record(spec),spec,op,invocation.args,invocation)
+       result.message=L:Format(op=="open" and "已打开：%s" or staged and "已预填：%s；点击应用后生效" or "已更新：%s",display.title)
+      end
+      return result
      end}
    end
   end
@@ -115,26 +135,26 @@ function M.Attach(owner)
    record.actions={descriptor(spec,"open","open")};record.primaryActionID="open"
    record.invocationError.span={start=(request.rawOffset or 0)+1,finish=(request.rawOffset or 0)+#(request.raw or "")}
   else
-   record.invocation=ref(spec,parsed.operation,parsed.args)
-   table.insert(record.actions,1,record.invocation.actionID);record.primaryActionID=record.invocation.actionID
-   record.title=L[labels[parsed.operation]].." · "..spec.name
-   local value=parsed.args.value
-   if value~=nil then record.title=record.title.." · "..(type(value)=="boolean" and L[value and "开启" or "关闭"] or tostring(value)..(spec.factor and "%" or "")) end
-   if parsed.args.choice then
-    for _,option in ipairs(A.Options(spec) or {}) do
-     if type(option.value)..":"..tostring(option.value)==parsed.args.choice then
-      record.title=record.title.." · "..(option.label or option.text or tostring(option.value));break
-     end
-    end
-   end
-   if parsed.args.color then record.title=record.title.." · "..parsed.args.color end
-   if A.Staged(spec) and parsed.operation~="open" then record.subtitle=L["预填到暴雪设置，点击应用后生效"] end
+   applyInvocation(record,spec,parsed.operation,parsed.args)
   end
   reply({record},true)
  end
- owner.resolve=function(id,...)
+ owner.resolve=function(id,context,...)
+  local saved=context and context.ref
+  local setting=saved and saved.target and saved.target.key and saved.target.key.setting
+  local spec=setting and A.byID[setting]
+  if spec and saved.kind=="invocation" then
+   local op=saved.actionID:match("^setting%-(.+)$") or saved.actionID:match("^stage%-(.+)$")
+   if schemas[op] and saved.actionVersion==1 then
+    local record=M.Record(spec);record.id=id
+    for _,action in ipairs(record.actions) do
+     if type(action)=="table" and action.invocation and I.Invocations:Equal(action.invocation,saved) then return record end
+    end
+    return applyInvocation(record,spec,op,saved.args,saved)
+   end
+  end
   if A.byID[id] then return M.Record(A.byID[id]) end
-  if oldResolve then return oldResolve(id,...) end
+  if oldResolve then return oldResolve(id,context,...) end
  end
  local oldStop=owner.onStop
  function owner:onStop(...)

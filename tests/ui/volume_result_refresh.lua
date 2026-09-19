@@ -17,12 +17,13 @@ local row=palette.list.rows[1]
 assert(row.item and row.item.subtext==(arg[1]=="enUS" and "Current 30% → Set to 40%" or "当前 30% → 设置为 40%"),"initial volume missing")
 local queries=0;local original=I.Search.Query.Query
 I.Search.Query.Query=function(self,...) queries=queries+1;return original(self,...) end
-assert(I.ResultActionExecutor:ExecutePrimary(row).ok)
+assert(palette:ActivateRow(row).ok)
 advance()
 assert(value==.4 and writes==1,"volume was not written")
 assert(row.subtext:GetText():gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r","")==(arg[1]=="enUS" and "Current 40%" or "当前 40%"),"visible result stayed at "..row.subtext:GetText())
 assert(queries==0,"action refresh reran search")
 assert(palette.input:GetText()==text,"refresh changed input")
+assert(palette.status:GetText()==(arg[1]=="enUS" and "Master volume set to 40%" or "已将主音量设为 40%"),"successful action lost Provider feedback: "..palette.status:GetText())
 print("Volume result refresh PASS: actual write and visible subtitle, no search rerun")
 
 

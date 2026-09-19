@@ -148,7 +148,7 @@ function Executor:_OpenPanel(item, row, panelID, state, session, generation)
     if not mounted then return false, mountErr or "PANEL_ERROR" end
     return mounted
 end
-function Executor:_Invocation(row,actionID,actionRef)
+function Executor:_Invocation(row,actionID,actionRef,actionTitle)
     local item=row.item
     local record=item.searchRecord or {}
     if record.invocationError and not actionRef then
@@ -159,18 +159,19 @@ function Executor:_Invocation(row,actionID,actionRef)
     if not ref or ref.actionID~=actionID then return false,"INCOMPLETE_INVOCATION" end
     local palette=self.palette
     local session,generation=palette.session,palette.generation
+    local sequence=self.actionSequence
     local display={entryID=item.id,title=item.text,icon=item.icon,sourceTitle=item.sourceTitle}
-    local result,errorCode,execution
+    local result,errorCode,execution,feedbackResult
     local context=I.Context and I.Context:Snapshot() or {};context.searchBound=true;context.deadline=I.Providers:QueryTime()+5
     local function complete(outcome)
         result=outcome.status=="succeeded"
-        errorCode=not result and outcome.code or nil
+        errorCode=not result and {code=outcome.status=="indeterminate" and "INDETERMINATE" or outcome.status=="cancelled" and "CANCELLED" or outcome.code,message=outcome.status=="failed" and outcome.message or nil} or nil
+        feedbackResult=result and {ok=true,invocation=true,actionTitle=actionTitle,message=outcome.message} or nil
         if result and I.UserPreferences then
             I.UserPreferences:TouchInvocation(outcome.invocation,display)
             if palette.MarkHomeDirty then palette:MarkHomeDirty() end
         end
-        if palette.visible and palette.session==session and palette.generation==generation and palette.ReportActionResult then
-            palette:ReportActionResult(result,errorCode)
+        if palette.visible and palette.session==session and palette.generation==generation and self.actionSequence==sequence and palette.ReportActionResult then
             if result and self:IsRowCurrent(row,session,generation,item) and palette.RefreshResultDisplay then
                 -- Re-read only this entry. Keep the original query/action identity;
                 -- resolving its Invocation ref would produce a history placeholder.
@@ -179,19 +180,26 @@ function Executor:_Invocation(row,actionID,actionRef)
                     palette:RefreshResultDisplay(item,fresh,session,generation)
                 end
             end
+            -- Display refresh can publish search state. Feedback wins only for
+            -- this operation, after that refresh, and never for a newer action.
+            if palette.visible and palette.session==session and palette.generation==generation and self.actionSequence==sequence then
+                palette:ReportActionResult(feedbackResult,errorCode)
+            end
         end
     end
     local _,why,preparation=I.Invocations:PrepareStoredRef(ref,context,function(token,problem)
-        if not token then errorCode=problem and problem.code;return end
+        if not token then complete({status="failed",code=problem and problem.code});return end
         local valid,reason=self:Validate(row,session,generation,item)
-        if not valid then I.Invocations:Release(token);errorCode=reason;return end
+        if not valid then I.Invocations:Release(token);complete({status="failed",code=reason});return end
         local err;execution,err=I.Invocations:Invoke(token,context,complete)
-        if err then errorCode=err.code end
+        if err then complete({status="failed",code=err.code}) end
     end)
     if not preparation then return false,why and why.code or errorCode end
     if errorCode then return false,errorCode end
-    if result then return {ok=true,invocation=true} end
-    return {ok=true,pending=true,invocation=true,operation=execution or preparation}
+    if result then return feedbackResult end
+    local pending={ok=true,pending=true,invocation=true,actionTitle=actionTitle,operation=execution or preparation}
+    if palette.visible and palette.session==session and palette.generation==generation and self.actionSequence==sequence and palette.ReportActionResult then palette:ReportActionResult(pending) end
+    return pending
 end
 
 function Executor:Execute(row, actionID)
@@ -203,13 +211,14 @@ function Executor:Execute(row, actionID)
     local result, actionErr
 
     local action, interaction = actionFor(item, actionID)
+    self.actionSequence=(self.actionSequence or 0)+1
 
     if action and action.kind == "invocation" then
-        return self:_Invocation(row,action.invocation.actionID,action.invocation)
+        return self:_Invocation(row,action.invocation.actionID,action.invocation,action.title)
     elseif action and action.kind == "provider" then
         local provider=I.Providers.entries[item.providerID]
         local definition=provider and provider.definition.actions and provider.definition.actions[actionID]
-        if definition and definition.actionVersion then return self:_Invocation(row,actionID) end
+        if definition and definition.actionVersion then return self:_Invocation(row,actionID,nil,action.title) end
         result, actionErr = I.Providers:Execute(item, actionID, I.Context and I.Context:Snapshot() or {})
         if result then
             result, actionErr = self:_Transition(result, item, row, palette.session, palette.generation)
@@ -233,7 +242,11 @@ function Executor:Execute(row, actionID)
     else
         return false, "ACTION_UNAVAILABLE"
     end
-    if succeeded(result) and not (type(result) == "table" and result.awaitingHardwareClick) and palette.TouchRecent then palette:TouchRecent(item) end
+    if succeeded(result) and not (type(result) == "table" and result.awaitingHardwareClick) then
+        if palette.TouchRecent then palette:TouchRecent(item,actionID,result) end
+        if result==true then result={ok=true} end
+        result.actionTitle=action and action.title
+    end
     return result, actionErr
 end
 

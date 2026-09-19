@@ -90,6 +90,10 @@ function R:ReferenceKey(ref)
     if type(ref)~="table" then return nil,{code="INVALID_REFERENCE"} end
     if ref.kind==nil then
         if type(ref.providerID)~="string" or type(ref.entryID)~="string" then return nil,{code="INVALID_REFERENCE"} end
+        if ref.actionID~=nil then
+            if type(ref.actionID)~="string" or #ref.actionID==0 or #ref.actionID>64 then return nil,{code="INVALID_REFERENCE"} end
+            return "\0entry-action:"..#ref.providerID..":"..ref.providerID..#ref.entryID..":"..ref.entryID..#ref.actionID..":"..ref.actionID
+        end
         return ref.providerID..":"..ref.entryID
     end
     if not I.Invocations then return nil,{code="UNSUPPORTED_API"} end

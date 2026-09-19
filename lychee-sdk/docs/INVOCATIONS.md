@@ -83,7 +83,7 @@ Invoke 重新恢复目标、描述能力、校验参数，再核对先前准备�
 
 ## 完成与取消
 
-新动作 `run(invocation,context,reply)` 接收隔离调用与有界纯 context。它可同步返回结果，或返回取消函数后异步 reply。结果严格字段为 `status`、`code`、`value`、`changed`。
+新动作 `run(invocation,context,reply)` 接收隔离调用与有界纯 context。它可同步返回结果，或返回取消函数后异步 reply。结果严格字段为 `status`、`code`、`value`、`changed`、可选 `message`。`message` 是 Provider 本地化的结果文案（最多 1024 字节），用于宿主底栏；不参与成功判定，也不写入历史。需要原生应用的动作应明确提示仍需应用，不能把预填完成描述为设置已生效。没有文案时宿主按状态和动作名称生成通用反馈；不确定状态不能被成功文案掩盖。
 
 - `pending` 只表示等待，不是成功，允许之后回复终态。
 - 终态为 `succeeded`、`failed`、`cancelled`、`indeterminate`；至多消费一次。
@@ -145,6 +145,8 @@ primaryActionID = "enable",
 旧 `{providerID,entryID,...}` 存档不改写 schema，仍由原 resolve(entryID) 恢复。新引用按完整参数身份区分收藏；同一入口的30与50不会合并。搜索排序只投影稳定 entryID 提示，每个入口最多一份收藏权重和一份近期权重；这些权重不携带或替换当前参数。具体 Invocation 的自定义别名只有完整匹配才恢复保存参数，业务解析始终使用原始 request.raw，不能从会丢弃负号的搜索规范化文本反推数值。
 
 Host 仅在执行确认 succeeded 后记录具体 Invocation。pending、failed、cancelled、indeterminate 不被记为新成功；保存近期最多8项、65536逻辑字节，固定项最多64项、65536逻辑字节。损坏原始记录保留并停止覆盖。SDK 直接 Invoke 只报告结果，搜索执行器和 ViewContext 负责记录历史；业务不得把 Prepare 的成功当作完成。
+
+不同目标、动作或规范参数分别保留；重复同一 Invocation 仅更新最近使用顺序。右键 Invocation 按被选动作保存；普通条目的次要动作由 Host 保存有界 `actionID`，恢复时必须仍有该动作，否则不可执行，不能退回默认动作。旧记录没有动作信息时保持原默认入口，不猜测它曾执行过哪个次要动作。历史右侧显示当前来源类别与实际主动作名称；标题、参数和业务文案归 Provider。普通入口动作即使来自参数化结果，也不等于执行该结果的默认 Invocation。
 
 别名与查询选择分别最多128条、128 KiB总逻辑字节，保存新引用时保留完整身份。写入先检查候选集合，超过容量拒绝且不修改原值；加载时超限保留原存档并进入 PERSONALIZATION_LIMIT 恢复状态，不截断大引用以绕过预算。
 

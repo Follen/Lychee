@@ -3,19 +3,19 @@ local Preferences = {}
 I.UserPreferences = Preferences
 
 local LIMIT, BYTES = 64, 65536
-local fields = {providerID=1024,entryID=1024,sourceID=1024,title=4096,sourceTitle=4096,icon=1024}
+local fields = {providerID=1024,entryID=1024,sourceID=1024,title=4096,sourceTitle=4096,icon=1024,actionID=64}
 local owner, original, active, size, recovery
 local EMPTY = {}
 local recentOwner,recentOriginal,recentActive,recentRecovery
 local function matches(left, right)
     if type(left)=="table" and type(right)=="table" and (left.kind or right.kind) then
         if left.kind=="legacy-entry" and not right.kind or right.kind=="legacy-entry" and not left.kind then
-            return left.providerID==right.providerID and left.entryID==right.entryID
+            return left.providerID==right.providerID and left.entryID==right.entryID and left.actionID==right.actionID
         end
         return I.Invocations and I.Invocations:Equal(left,right) or false
     end
     return type(left) == "table" and type(right) == "table"
-        and left.providerID == right.providerID and left.entryID == right.entryID
+        and left.providerID == right.providerID and left.entryID == right.entryID and left.actionID == right.actionID
 end
 local function pinBytes(pin)
     if type(pin) ~= "table" or getmetatable(pin) ~= nil then return end
@@ -30,7 +30,8 @@ local function pinBytes(pin)
     for key,value in next,pin do
         count = count + 1
         local limit = fields[key]
-        if count > 6 or not limit then return end
+        if count > 7 or not limit then return end
+        if key=="actionID" and (type(value)~="string" or value=="") then return end
         if key == "icon" and type(value) == "number" then
             if value ~= value or value < 0 or value == math.huge or value % 1 ~= 0 then return end
             bytes = bytes + 16
@@ -84,20 +85,40 @@ local function trimRecent(refs)
         refs[#refs]=nil
     end
 end
-function Preferences:TouchRecent(item)
+function Preferences:TouchRecent(item,actionID,outcome)
     if not self:CanPin(item) then return false end
     local refs,ref=self:GetRecent(),item.ref
     if recentRecovery then return false end
-    for index=#refs,1,-1 do if matches(refs[index],ref) then table.remove(refs,index) end end
-    local saved=ref.kind and I.Invocations:NormalizeStoredRef(ref) or {providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID}
+    local saved=ref.kind and I.Invocations:NormalizeStoredRef(ref) or {providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID,actionID=ref.actionID}
     if not saved then return false end
+    if actionID then
+        local record=item.searchRecord or {}
+        local actions=record.actions or record.interaction and record.interaction.actions or {}
+        local primary=record.primaryActionID or record.interaction and record.interaction.primaryActionID or actions[1] and actions[1].id
+        local selected
+        for _,action in ipairs(actions) do if action.id==actionID then selected=action;break end end
+        if not selected then return false end
+        local provider=I.Providers.entries[ref.providerID]
+        local invocationAction=ref.kind=="invocation" and provider and provider.definition.actions[ref.actionID]
+        local panel=invocationAction and invocationAction.panel
+        local opensArguments=panel and (selected.kind=="open-panel" and selected.panel==panel
+            or outcome and outcome.transition and outcome.transition.panelID==panel)
+        -- Ordinary panel/provider actions on a parameterized search result are
+        -- entry actions, not execution of that result's default Invocation.
+        if opensArguments then saved.kind,saved.args="command",nil
+        elseif not ((ref.kind=="target" or ref.kind=="command") and actionID==primary) then
+            saved={providerID=ref.providerID,entryID=item.id,sourceID=ref.sourceID,
+                actionID=(record.invocation or record.command or record.targetRef or actionID~=primary) and actionID or nil}
+        end
+    end
     saved.title=type(item.text)=="string" and #item.text<=4096 and item.text or nil
     saved.sourceTitle=type(item.sourceTitle)=="string" and #item.sourceTitle<=4096 and item.sourceTitle or nil
     saved.icon=(type(item.icon)=="number" or type(item.icon)=="string" and #item.icon<=1024) and item.icon or nil
     if not pinBytes(saved) then return false end
+    for index=#refs,1,-1 do if matches(refs[index],saved) then table.remove(refs,index) end end
     table.insert(refs,1,saved)
     trimRecent(refs)
-    return true
+    return true,saved
 end
 function Preferences:TouchInvocation(ref,display)
     local normalized=I.Invocations and I.Invocations:NormalizeStoredRef(ref)
@@ -142,7 +163,7 @@ function Preferences:Pin(item)
         saved.title,saved.icon,saved.sourceTitle=item.text,item.icon,item.sourceTitle
         return insert(saved)
     end
-    return insert({providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID,
+    return insert({providerID=ref.providerID,entryID=ref.entryID,sourceID=ref.sourceID,actionID=ref.actionID,
         title=item.text,icon=item.icon,sourceTitle=item.sourceTitle})
 end
 local function indexValid(index)

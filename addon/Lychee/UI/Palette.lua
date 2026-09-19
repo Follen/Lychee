@@ -330,10 +330,13 @@ function Palette:MarkHomeDirty()
     return true
 end
 
-function Palette:TouchRecent(item)
-    if not I.UserPreferences:TouchRecent(item) then return false end
+function Palette:TouchRecent(item,actionID,outcome)
+    local ok,ref=I.UserPreferences:TouchRecent(item,actionID,outcome)
+    if not ok then return false end
     if I.Search.Personalization and self.input and not self.settingsOpen then
-        I.Search.Personalization:Remember(self.input:GetText(), item)
+        local remembered=item
+        if ref and (ref.actionID or ref.kind) then remembered={};for key,value in pairs(item) do remembered[key]=value end;remembered.ref=ref end
+        I.Search.Personalization:Remember(self.input:GetText(), remembered)
     end
     return self:MarkHomeDirty()
 end
@@ -386,6 +389,7 @@ function Palette:SetStatus(mode, count)
     elseif self.searchIncomplete then text = L["部分来源暂不可用，请重新搜索"]
     elseif count and count > 0 then text = L["搜索结果："] .. tostring(count)
     else text = L["没有结果"] end
+    if (mode=="home" or mode=="search") and self.actionFeedbackSession==self.session and self.actionFeedbackGeneration==self.generation then text=self.actionFeedback or text end
     local panel=mode=="panel" and self.viewHost and self.viewHost.panel
     if panel and panel.footerHint~=nil then
         self:SetFooterText("",panel.footerHint)
@@ -497,37 +501,46 @@ function Palette:FocusInvocationError(row, problem)
 end
 
 function Palette:ReportActionResult(result, err)
+    local function feedback(text)
+        self.actionFeedback,self.actionFeedbackSession,self.actionFeedbackGeneration=text,self.session,self.generation
+        setText(self.status,text)
+    end
     local ok = result == true or (type(result) == "table" and result.ok == true)
     if ok then
         if type(result) == "table" and result.awaitingHardwareClick then
             local title = type(result.actionTitle) == "string" and (" · " .. result.actionTitle) or ""
-            setText(self.status, L["点击施放"] .. title)
+            feedback(L["点击施放"] .. title)
             return true
         end
-        setText(self.status, "")
+        local title=type(result)=="table" and result.actionTitle
+        local pending=type(result)=="table" and result.pending
+        local message=type(result)=="table" and result.message
+        feedback(type(message)=="string" and message~="" and message or
+            (title and title~="" and L:Format(pending and "正在执行：%s" or "已完成：%s",title) or L[pending and "正在执行…" or "已完成"]))
         return true
     end
     local code = type(err) == "table" and err.code or err
-    if code == "NO_ACTION" then setText(self.status, ""); return false end
-    if type(err) == "table" and type(err.message) == "string" and err.message ~= "" then setText(self.status, err.message); return false end
+    if code == "NO_ACTION" then return false end
+    if type(err) == "table" and type(err.message) == "string" and err.message ~= "" then feedback(err.message); return false end
     local labels = {
         COMBAT_LOCKED = L["战斗中不可用"],
         ACTION_UNAVAILABLE = L["当前不可用"],
         ACTION_REQUIRES_HARDWARE_CLICK = L["请点击施放"],
         HANDLER_UNAVAILABLE = L["功能暂不可用"],
         DRAG_UNSUPPORTED = L["不支持拖动"],
+        CANCELLED = L["已取消"],
+        INDETERMINATE = L["结果尚未确认，请检查后再试"],
+        OPERATION_UNCERTAIN = L["结果尚未确认，请检查后再试"],
     }
     local text = labels[code]
-    setText(self.status, localized(text or L["执行失败"], "Action failed"))
+    feedback(localized(text or L["执行失败"], "Action failed"))
     return false
 end
 
 function Palette:SetActionFeedback(state, actionOrError)
     local title = type(actionOrError) == "table" and (actionOrError.title or actionOrError.label) or nil
-    if state == "pending" then
-        setText(self.status, "")
-    elseif state == "success" then
-        setText(self.status, "")
+    if state == "pending" or state == "success" then
+        self:ReportActionResult({ok=true,pending=state=="pending",actionTitle=title})
     else
         self:ReportActionResult(false, type(actionOrError) == "string" and actionOrError or nil)
     end
@@ -537,6 +550,7 @@ end
 function Palette:SetQueryMode(text)
     if self.settingsOpen then return false end
     if not self.visible or (InCombatLockdown and InCombatLockdown()) then return false end
+    self.actionFeedback,self.actionFeedbackSession,self.actionFeedbackGeneration=nil,nil,nil
     self._navigationRevision = (self._navigationRevision or 0) + 1
     if self._openingView then self.viewHost:Unmount("query-navigation") end
     Lychee.UI.Components:HideActionMenu();self:SetBackNavigation(false)
@@ -608,6 +622,7 @@ end
 -- SearchSession is the sole publisher. Scrolling only re-renders the already
 -- accepted list and never rewrites the query's identity or waiting state.
 function Palette:ApplySearchState(session, generation, pending, items, incomplete)
+    if self.session~=session or self.generation~=generation then self.actionFeedback=nil end
     self.session, self.generation, self.searchPending = session, generation, pending == true
     self.searchIncomplete = incomplete == true
     if not pending then
@@ -873,7 +888,7 @@ function Palette:ShowRowActions(row)
         return true
     end
     local result, err = I.ResultActionExecutor:ShowActions(row)
-    self:ReportActionResult(result, err)
+    if not result then self:ReportActionResult(result, err) end
     return result, err
 end
 function Palette:EditAlias(item)

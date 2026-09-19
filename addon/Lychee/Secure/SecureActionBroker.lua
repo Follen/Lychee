@@ -117,7 +117,7 @@ function Broker:_Acquire()
             local palette=self:EnsureBound()
             local item=current.token and current.token.item
             if palette then
-                if item then palette:TouchRecent(item) end
+                if item then palette:TouchRecent(item,current.action and current.action.id) end
                 palette:Hide("item-click")
             end
             self:Release(current)
@@ -205,12 +205,13 @@ function Broker:FinishCast(event, spellID, reason)
     self:UpdateEventInterest()
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
         local item = button.token and button.token.item
+        local actionID=button.action and button.action.id
         self:Notify("success", button.action)
         self:Release(button)
         local palette = self:EnsureBound()
         if palette then
             palette:Hide("spell-success")
-            if item then palette:TouchRecent(item) end
+            if item then palette:TouchRecent(item,actionID) end
         end
     else
         self:Notify("failed", button.action, reason)

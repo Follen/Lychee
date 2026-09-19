@@ -96,6 +96,8 @@ try {
     foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
         & $lua.Source 'tests/providers/audio_history.lua' $locale
         if ($LASTEXITCODE -ne 0) { throw "Audio history/locales checks failed: $locale" }
+        & $lua.Source 'tests/ui/history_actions.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "History action checks failed: $locale" }
     }
     & $lua.Source 'tests/character_pins.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character pin isolation checks failed' }

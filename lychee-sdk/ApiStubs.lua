@@ -128,7 +128,7 @@
 ---@field view? string A view declared by this Provider.
 ---@field state? table
 ---@field code? string Failure code when ok=false.
----@field message? string User-readable business failure.
+---@field message? string Localized business outcome, displayed on success or failure.
 
 ---@class LycheeProviderAction
 ---@field title string|LycheeLocaleKey
@@ -193,6 +193,7 @@
 ---@field status 'pending'|'succeeded'|'failed'|'cancelled'|'indeterminate'
 ---@field code? string
 ---@field changed? boolean
+---@field message? string Localized outcome text, at most 1024 bytes; never used as execution status.
 ---@field value? any Bounded pure data.
 ---@field invocation? LycheeInvocation Host-added on confirmed success.
 ---@field operationID? integer Temporary Host identity, never persisted.
