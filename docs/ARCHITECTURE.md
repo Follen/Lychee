@@ -37,6 +37,8 @@ flowchart TD
 
 原生禁用包不自动启用；产品范围、原生 TOC 与 API 存在性一起决定适用性。静态声明使用版本化 TOC 元数据，加载后核对 ID、所有者、路由和资源。声明格式见[加载合同](../lychee-sdk/docs/LOADING.md)。
 
+设置管理只展示 scope 匹配当前产品、Interface 和 build 的来源。不适用的来源默认不参与搜索；原有角色偏好保留，不能因切换客户端而覆写。Ellesmere UI / EX 集成的缺省参与状态由 EllesmereUI / ExwindCore 核心包的安装及当前角色启用状态决定，按需加载尚未执行不等于未安装。自动默认值只保存在本次加载会话，角色显式开关由 CharacterStore 保存；未安装或原生禁用时默认关闭，不主动加载依赖插件。
+
 打开面板不是加载所有第三方的许可。首页先恢复可见固定/最近引用；可选预热只准备已有明确需求的来源。输入前缀定位指定来源；全局搜索则覆盖其真实参与范围，不能静默漏掉慢来源。准备内容由 Provider 定义；Host 限制协调、剩余时间与取消。
 
 沿用旧 StaticIndex、QueryOrchestrator 与 SearchSession 的渐进基础。已有当前查询结果可立即发布，不等待所有来源统一完成。SourceAccess 只协调发现和准备，不能成为新的全局放行屏障。普通 entries 仍可交给 Host 的有界索引；自有 query、Catalog 和 documents 都是可选路径。

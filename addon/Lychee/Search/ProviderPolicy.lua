@@ -66,7 +66,11 @@ function P:Configuration(id,definition,defaults)
     return mode=="global",mode=="keyword" and {} or list,mode=="keyword" and words or {}
 end
 function P:IsParticipating(id)
-    return I.CharacterStore:DisabledProviders()[id]~=true
+    local state=I.Registry and I.Registry.entries[id]
+    if state then return state.userEnabled~=false end
+    local definition=self:Definition(id)
+    if definition and not I.Search.RuntimeIdentity:MatchesScope(definition.scope) then return false end
+    return I.CharacterStore:ProviderSearchEnabled(id)
 end
 function P:Definition(id)
     local entry=I.Providers.entries[id]

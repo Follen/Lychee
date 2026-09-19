@@ -6,6 +6,9 @@ function GetBuildInfo() return "12.1.0","69587","fixture",120100 end
 function InCombatLockdown() return combat end
 function debugprofilestop() return os.clock()*1000 end
 function GetTime() return 100 end
+function UnitGUID() return "Player-1-fixture" end
+C_AddOns={GetAddOnInfo=function(name) if name=="ExwindCore" then return name end end,
+    GetAddOnEnableState=function() return 2 end}
 function hooksecurefunc() error("Exwind adapter must not install hooks") end
 function CreateFrame()
     frames=frames+1

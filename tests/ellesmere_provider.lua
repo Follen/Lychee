@@ -6,6 +6,9 @@ function GetBuildInfo() return "12.1.0","69587","fixture",120100 end
 function InCombatLockdown() return combat end
 function debugprofilestop() return os.clock()*1000 end
 function GetTime() return 100 end
+function UnitGUID() return "Player-1-fixture" end
+C_AddOns={GetAddOnInfo=function(name) if name=="EllesmereUI" then return name end end,
+    GetAddOnEnableState=function() return 2 end}
 local hookCount=0
 function hooksecurefunc(owner,name,callback)
     hookCount=hookCount+1

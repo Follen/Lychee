@@ -60,6 +60,18 @@ local function notify(entry, state, reason)
     for i=1,#Registry.listeners do pcall(Registry.listeners[i],entry,state,reason) end
 end
 
+local function searchEnabled(id, sources)
+    if id == "lychee.settings" then return true end
+    local supported = #sources == 0
+    for _, source in ipairs(sources) do
+        if I.Search.RuntimeIdentity:MatchesScope(source.scope) then supported=true;break end
+    end
+    if not supported then return false end
+    local support = I.Builtin and I.Builtin.Support
+    local defaultEnabled = not support or support:DefaultSearchEnabled(id)
+    return I.CharacterStore:ProviderSearchEnabled(id, defaultEnabled)
+end
+
 local function validateDescriptor(desc, public)
     if type(desc)~="table" then return nil,failure("INVALID_SCHEMA","descriptor") end
     local ok,why=I.Boundary:Validate(desc,"descriptor",{callbacks=descriptorCallbacks})
@@ -204,8 +216,7 @@ function Registry:Begin(desc, options)
         if draft.state~="draft" then return nil,failure("REGISTRATION_CLOSED",nil,desc.id) end
         if desc.apiVersion~=I.VERSION.api then draft.state="removed"; registry.drafts[desc.id]=nil; return nil,failure("UNSUPPORTED_API",nil,desc.id) end
         if #draft.panels+#draft.sources>256 then draft.state="invalid"; registry.drafts[desc.id]=nil; return nil,failure("INVALID_SCHEMA","declarations",desc.id) end
-        local disabled = I.CharacterStore:DisabledProviders()
-        local userEnabled = desc.id == "lychee.settings" or not (type(disabled) == "table" and disabled[desc.id])
+        local userEnabled = searchEnabled(desc.id, draft.sources)
         local entry={id=desc.id,descriptor=desc,panels=draft.panels,sources=draft.sources,ownerEnabled=true,userEnabled=userEnabled,state="pending",incompatible=false}
         draft.state="closed"; registry.drafts[desc.id]=nil; registry.entries[entry.id]=entry; registry.order[#registry.order+1]=entry.id
         notify(entry,"pending",entry.incompatible and "INCOMPATIBLE_HOST" or nil)
@@ -236,8 +247,7 @@ end
 function Registry:_Publish(entry)
     if entry.state~="pending" then return nil,failure("INVALID_STATE",nil,entry.id) end
     -- Pending providers may register before WoW restores SavedVariables.
-    local disabled = I.CharacterStore:DisabledProviders()
-    entry.userEnabled = entry.id == "lychee.settings" or not (type(disabled) == "table" and disabled[entry.id])
+    entry.userEnabled = searchEnabled(entry.id, entry.sources)
     if I.Search and I.Search.StaticIndex and entry.sources then
         for i=1,#entry.sources do
             local source=entry.sources[i]
@@ -311,7 +321,7 @@ function Registry:SetUserEnabled(id, enabled)
     if not entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("INVALID_STATE", nil, id) end
     if type(enabled) ~= "boolean" then return nil, failure("INVALID_SCHEMA", "enabled", id) end
     local disabled = I.CharacterStore:DisabledProviders()
-    if enabled then disabled[id] = nil else disabled[id] = true end
+    disabled[id] = not enabled
     entry.userEnabled = enabled
     if not enabled and I.Preparation then I.Preparation:CancelSearch(id) end
     if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end

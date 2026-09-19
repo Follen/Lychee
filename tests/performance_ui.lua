@@ -68,6 +68,7 @@ CreateFrame=nil
 dofile(root.."Bootstrap.lua")
 CreateFrame=frameFactory
 I.Search=I.Search or {}
+dofile(root.."Search/RuntimeIdentity.lua")
 dofile(root.."Builtin/Definitions.lua")
 dofile(root.."Core/ProviderManagement.lua")
 for _, name in ipairs({"Theme","Runtime","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end

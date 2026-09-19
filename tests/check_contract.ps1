@@ -89,6 +89,10 @@ try {
     }
     & $lua.Source 'tests/character_settings.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character settings/defaults checks failed' }
+    foreach ($scenario in @('absent','disabled','installed','error','classic')) {
+        & $lua.Source 'tests/provider_defaults.lua' $scenario
+        if ($LASTEXITCODE -ne 0) { throw "Provider default/scope checks failed: $scenario" }
+    }
     & $lua.Source 'tests/character_pins.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character pin isolation checks failed' }
     & python 'tools/build_client_tocs.py' '--check'

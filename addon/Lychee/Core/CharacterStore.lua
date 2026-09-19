@@ -18,6 +18,11 @@ function Store:DisabledProviders()
     if type(data.disabledProviders) ~= "table" then data.disabledProviders = {} end
     return data.disabledProviders
 end
+function Store:ProviderSearchEnabled(id, defaultEnabled)
+    local disabled = self:DisabledProviders()[id]
+    if disabled ~= nil then return not disabled end
+    return defaultEnabled ~= false
+end
 function Store:Initialize()
     local data = self:Data()
     if data.settingsVersion == 1 then return end

@@ -13,7 +13,7 @@ local function cold(id)
         entry={definition=row,instanceToken=row,cold=true,state={state="pending",ownerEnabled=true}}
         coldEntries[id]=entry
     end
-    entry.state.userEnabled=I.CharacterStore:DisabledProviders()[id]~=true
+    entry.state.userEnabled=I.CharacterStore:ProviderSearchEnabled(id)
     return entry,entry.state
 end
 local function current(id, token)
@@ -22,6 +22,7 @@ local function current(id, token)
     if not entry then entry,state=cold(id) end
     if not entry or not state or state.state == "removed" or state.state == "retiring"
         or token ~= nil and entry.instanceToken ~= token then return nil end
+    if not I.Search.RuntimeIdentity:MatchesScope(entry.definition.scope) then return nil end
     return entry, state
 end
 
@@ -107,7 +108,8 @@ function M:FillList(out)
     local count = 0
     for id, entry in pairs(I.Providers.entries) do
         local state = I.Registry.entries[id]
-        if id ~= "lychee.settings" and state and state.state ~= "removed" and state.state ~= "retiring" then
+        if id ~= "lychee.settings" and state and state.state ~= "removed" and state.state ~= "retiring"
+            and I.Search.RuntimeIdentity:MatchesScope(entry.definition.scope) then
             count = count + 1
             local row = out[count] or {}; out[count] = row
             row.pin, row.pinIndex, row.item = nil, nil, nil
@@ -117,7 +119,7 @@ function M:FillList(out)
     for _, definition in ipairs(I.AddonDiscovery and I.AddonDiscovery:Definitions() or EMPTY) do
         if not I.Providers.entries[definition.id] then
             local entry,state=cold(definition.id)
-            if entry then
+            if entry and I.Search.RuntimeIdentity:MatchesScope(entry.definition.scope) then
                 count=count+1
                 local row=out[count] or {};out[count]=row
                 row.pin,row.pinIndex,row.item=nil,nil,nil
@@ -173,7 +175,7 @@ function M:SetUserEnabled(id, token, enabled)
     if not entry then return nil, err end
     if type(enabled)~="boolean" then return failure("INVALID_SCHEMA",id) end
     if entry.cold then
-        I.CharacterStore:DisabledProviders()[id]=not enabled or nil
+        I.CharacterStore:DisabledProviders()[id]=not enabled
         if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
         if I.Search.Session then I.Search.Session:SourceChanged("search-preference") end
         return true
