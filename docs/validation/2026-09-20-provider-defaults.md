@@ -25,4 +25,10 @@
 
 ## 实机与交付
 
-提交后同步单个 Lychee 包，逐文件核对 SHA-256；实机测试结果及未覆盖项在收尾时补记。当前离线替身不代表其他客户端实测，未安装依赖场景不通过修改用户插件安装来构造。
+- 运行提交 `89a0a61030c53c09ae748ea71912aab7c1a09bc6` 已推送 main；仅同步 Lychee 包的 173 个清单文件，SHA-256 全部一致。同步证据保留在本地 `analyze/provider-defaults-game-sync.json`。
+- 使用更新后的 lychee-dev 脚本完成输入 reload、一次运行、匹配二维码、输出 reload、受限 SV 读取及 ACK。后台旧投递未产生结果；新版前台投递在路径格式和焦点校验通过后成功，未重复执行测试。
+- Ticket：`LYCHEE-20260920-012655-0015`；task：`provider-defaults`；request：`provider-defaults-20260920-0140`；revision：`defaults-r1`。来源 `automation_result`，环境 retail `12.1.0.69875` / Interface `120100` / `zhCN`。
+- 完整 payload：`%LOCALAPPDATA%/LycheeDev/automation/received/LYCHEE-20260920-012655-0015/content.json`，2418 字节，SHA-256 `565a03262f27d47a5e77204bea303bde45be50629d8e759feb849015fb574d28`。解析结果 `succeeded`、`complete=true`、`outputTruncated=false`。
+- 27 项功能断言全通过：真实 EUI/EX 核心包已安装且角色启用、无显式偏好时默认参与；显示与搜索一致；显式关闭不停止 owner；重新注册保留偏好并拒绝旧实例凭据；合成未来 build、过期 Interface 和其他 product 来源默认关闭，列表与详情隐藏，搜索排除；测试注册与临时角色键全部清理。
+- 已发送 ACK received，世界画面的聊天回执明确确认该 Ticket 的读取结果；未留下二维码或聊天草稿。磁盘临时任务块已通过工具移除，保留其他任务。
+- 未覆盖：真实未安装/禁用依赖、其他客户端/语言、实机 CPU/内存专项；前两类默认行为有离线场景回归，不能视为相应客户端实测。本次没有禁用用户已安装插件，也没有修改真实 EUI/EX 开关。
