@@ -696,6 +696,24 @@ function Palette:ApplyResults(items, generation, session, offset)
     if wasWaiting and #items > 0 and self.list.frame:IsShown() then Lychee.UI.Motion:Reveal(self.list.frame,"page") end
     return true
 end
+-- An action may change the current value without changing search membership.
+-- Replace only presentation fields; do not re-query, reorder or rebind actions.
+function Palette:RefreshResultDisplay(item,fresh,session,generation)
+    if not self.visible or self.settingsOpen or self.session~=session or self.generation~=generation
+        or self.viewHost and self.viewHost:IsActive() then return false end
+    if item.subtext==fresh.subtext and item.description==fresh.description then return false end
+    local items=self.list and self.list.items
+    for index=1,#(items or {}) do
+        if items[index]==item then
+            local updated={};for key,value in pairs(item) do updated[key]=value end
+            updated.subtext,updated.description=fresh.subtext,fresh.description
+            items[index]=updated
+            return self:ApplyResults(items,generation,session,self.list.offset)
+        end
+    end
+    return false
+end
+
 function Palette:DeferRowHover(owner)
     if not self.visible or self.waitingPresentation then return true end
     local presence=Lychee.UI.Motion and Lychee.UI.Motion.presence

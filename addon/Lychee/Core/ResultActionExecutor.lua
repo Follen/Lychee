@@ -171,6 +171,14 @@ function Executor:_Invocation(row,actionID,actionRef)
         end
         if palette.visible and palette.session==session and palette.generation==generation and palette.ReportActionResult then
             palette:ReportActionResult(result,errorCode)
+            if result and self:IsRowCurrent(row,session,generation,item) and palette.RefreshResultDisplay then
+                -- Re-read only this entry. Keep the original query/action identity;
+                -- resolving its Invocation ref would produce a history placeholder.
+                local fresh=I.Providers:Resolve({providerID=item.providerID,entryID=item.id},context)
+                if fresh and self:IsRowCurrent(row,session,generation,item) then
+                    palette:RefreshResultDisplay(item,fresh,session,generation)
+                end
+            end
         end
     end
     local _,why,preparation=I.Invocations:PrepareStoredRef(ref,context,function(token,problem)

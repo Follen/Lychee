@@ -111,10 +111,12 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','ui/settings_controls')) {
+    foreach ($test in @('sdk/addon_discovery','sdk/addon_loading','sdk/invocations','sdk/host_invocation_lifecycle','sdk/invocation_actions','sdk/invocation_multiplicity','sdk/catalog_documents','sdk/sdk_catalog','search/preparation','providers/settings_invocations','ui/settings_controls','ui/volume_result_refresh')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
+    & $lua.Source 'tests/ui/volume_result_refresh.lua' 'enUS'
+    if ($LASTEXITCODE -ne 0) { throw 'English volume result refresh failed' }
     & $lua.Source 'tests/providers/settings_invocations.lua' 'enUS'
     if ($LASTEXITCODE -ne 0) { throw 'English settings invocations failed' }
     & $lua.Source 'tests/provider_sdk_smoke.lua'
