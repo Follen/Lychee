@@ -10,13 +10,15 @@
 
 ### 短简介
 
-按 Alt + 空格，搜索技能、背包物品、游戏设置和成就。支持常用项固定、自定义别名，以及正式服副本怪物和团本技能查询。
+找炉石、改音量，不用再翻背包和菜单。按 Alt + 空格，输入名字，搜到就能用。常用传送门还能起名叫“回家”；打本遇到不懂的怪物技能，也能直接查（正式服）。
 
 ### 详情正文
 
 #### 荔枝启动器
 
-荔枝给魔兽世界加了一个搜索框。按 Alt + 空格，输入技能、物品或设置的名字，就能找到它。点击结果直接使用，右键可以查看更多操作。
+背包里的炉石、藏在菜单里的设置，都可以直接搜名字找。按 Alt + 空格打开荔枝，搜“炉石”就能点击使用，输入“把音量设置到30”就能确认调整。
+
+常用传送门可以起名叫“回家”，下次搜这两个字就能找到。技能和物品也能固定到首页，打开就能点。正式服还内置副本怪物资料，可以看模型、查技能，团本技能则能直接打开冒险者指南。
 
 #### 可以搜什么
 
@@ -89,13 +91,15 @@ Lychee Launcher
 
 ### Summary
 
-Press Alt + Space to find spells, bag items, settings and achievements. Pin favorites, add aliases, and look up dungeon creatures and raid abilities on Retail.
+Use your Hearthstone or change the volume without digging through bags and menus. Press Alt + Space, type a name and act on the result. Pin favorites and look up dungeon abilities on Retail.
 
 ### Description
 
 #### Lychee Launcher
 
-Lychee adds a search box to World of Warcraft. Press Alt + Space and type the name of a spell, item or setting. Click a result to use it, or right-click for more actions.
+Find your Hearthstone without opening your bags, or change a setting without hunting through menus. Press Alt + Space, search for Hearthstone and click to use it. Type `set volume to 30` and click to apply the change.
+
+Give your usual portal the alias `home`, or pin frequently used spells and items so they are there when you open Lychee. On Retail, you can also inspect dungeon creatures and their abilities, or jump straight to a raid ability in the Encounter Journal.
 
 #### Try a search
 
