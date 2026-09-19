@@ -2,6 +2,7 @@ local I = _G.LycheeInternal
 I.Search = I.Search or {}
 
 local R = { schema = "search-schema-2", sourceRevision = 0, product = "retail", locale = "enUS", version = "", build = "", interface = 0, signature = "" }
+local EMPTY = {} -- read-only defaults; scope checks never mutate inputs
 I.Search.RuntimeIdentity = R
 
 local function number(value)
@@ -35,8 +36,8 @@ function R:Current()
 end
 
 function R:MatchesScope(scope, textEntry)
-    scope = scope or {}
-    textEntry = textEntry or {}
+    scope = scope or EMPTY
+    textEntry = textEntry or EMPTY
     local identity = self:Current()
     -- Scope is an explicit data restriction; translation language is ranked separately.
     if scope.locale and scope.locale~="default" and scope.locale~=identity.locale then return false end
@@ -62,7 +63,7 @@ local function referenceKeyLess(left,right)
     if a=="boolean" then return left==false and right==true end
     return left<right
 end
-local function encodeReference(value,parts)
+local function encodeReference(value,parts,root)
     local kind=type(value)
     if kind=="string" then
         parts[#parts+1]="s"..#value..":"..value
@@ -72,14 +73,18 @@ local function encodeReference(value,parts)
         parts[#parts+1]=value and "b1" or "b0"
     elseif kind=="table" then
         local keys={}
-        for key in pairs(value) do keys[#keys+1]=key end
+        for key in pairs(value) do
+            if not root or key~="title" and key~="icon" and key~="sourceTitle" and (key~="entryID" or value.kind=="legacy-entry") then
+                keys[#keys+1]=key
+            end
+        end
         table.sort(keys,referenceKeyLess)
         parts[#parts+1]="t"..#keys..":"
         for _,key in ipairs(keys) do encodeReference(key,parts);encodeReference(value[key],parts) end
     end
 end
 -- Internal presentation/lookup identity, never an Entry ID or a persisted ref.
--- NormalizeStoredRef supplies the existing depth/node/byte limits and plain
+-- The read-only validator supplies the same depth/node/byte limits and plain
 -- data boundary; omission rules exactly match Invocations:Equal.
 function R:ReferenceKey(ref)
     if type(ref)~="table" then return nil,{code="INVALID_REFERENCE"} end
@@ -88,13 +93,11 @@ function R:ReferenceKey(ref)
         return ref.providerID..":"..ref.entryID
     end
     if not I.Invocations then return nil,{code="UNSUPPORTED_API"} end
-    local value,err=I.Invocations:NormalizeStoredRef(ref)
+    local value,err=I.Invocations:_ValidateStoredRef(ref)
     if not value then return nil,err end
-    value.title,value.icon,value.sourceTitle=nil,nil,nil
-    if value.kind~="legacy-entry" then value.entryID=nil end
     -- Legal ordinary Provider/Entry IDs cannot start with this separator.
     local parts={"\0"}
-    encodeReference(value,parts)
+    encodeReference(value,parts,true)
     return table.concat(parts)
 end
 

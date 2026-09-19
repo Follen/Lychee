@@ -20,6 +20,7 @@ local RECORD_KEYS = {
 }
 local TEXT_FIELDS = { "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }
 local CATEGORY_KEYS = {id=true,title=true,order=true,color=true}
+local REFERENCE_FIELDS={"invocation","command","targetRef"}
 
 local function failure(code, field, owner)
     return nil, { code = code, field = field, providerID=owner, retryable = false }
@@ -87,7 +88,9 @@ local function visit(value, options, seen, depth, field, parentKey, copying, bud
 end
 
 function Boundary:Validate(value, field, options)
-    local ok, why = visit(value, options or DEFAULT_OPTIONS, {}, 0, field, nil)
+    options = options or DEFAULT_OPTIONS
+    local budget = options.maxNodes and options.maxBytes and {nodes=0,bytes=0} or nil
+    local ok, why = visit(value, options, {}, 0, field, nil, false, budget)
     if not ok then return nil, why end
     return true
 end
@@ -303,11 +306,11 @@ function Boundary:ValidateSearchRecord(record, field)
     local keyOK, keyErr = allowedKeys(record, RECORD_KEYS, field)
     if not keyOK then return nil, keyErr end
     local references=0
-    for _,name in ipairs({"invocation","command","targetRef"}) do
+    for _,name in ipairs(REFERENCE_FIELDS) do
         if record[name]~=nil then
             references=references+1
             local value,err
-            if I.Invocations then value,err=I.Invocations:NormalizeStoredRef(record[name]) end
+            if I.Invocations then value,err=I.Invocations:_ValidateStoredRef(record[name]) end
             local kind=name=="targetRef" and "target" or name
             if not value or value.kind~=kind then return nil,err or {code="INVALID_REFERENCE",field=field.."."..name} end
         end

@@ -60,6 +60,8 @@ TargetRef 必须包含正整数 `version` 和非空、有界的具名 `key`。�
 - `Release(prepared)`：放弃尚未消费的凭据，返回是否确实释放。
 - `Invoke(prepared,context,reply)`：返回 `operation,error`；reply 接收终态结果。
 
+上述规范化接口返回隔离数据；调用方修改返回的列表、默认值或 target，不会改写输入或其他调用结果。Host 在已接收的记录内部可使用只读校验，避免仅为检查而再次深拷贝；这不是公开的免校验入口。只读路径仍执行可访问性、纯数据、循环、深度、节点、逻辑字节及字段限制。每次调用仍检查当前 schema，不缓存可变的第三方参数声明。SDK / Provider API 版本保持 1.0.0。
+
 也可用 `Lychee:PrepareInvocation(...)` 和 `Lychee:InvokeInvocation(...)`。公开 Prepare/PrepareStoredRef 为显式请求进行必要的冷加载和 Provider 就绪准备，再调用目标恢复与能力描述；关闭参与搜索不阻止该入口。SDK 不在准备阶段调用 run；Provider 也必须保持这些回调只读。
 
 Prepared 是 SDK 私有弱键表签发的不透明凭据，绑定当前 Provider 注册实例、启用生命周期、角色、目标身份、动作身份/版本和能力描述。全 Host 最多64份有效凭据；超过返回 RESOURCE_LIMIT。用户数据字段不能制造授权。Invoke 消费凭据一次，失败或能力改变后重新准备；不能重复提交或持久化 Prepared。

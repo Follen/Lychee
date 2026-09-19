@@ -2,6 +2,7 @@ local I = _G.LycheeInternal
 local R = {}
 I.RecordCodec = R
 local localizedRecordFields = {"title","kindTitle","subtitle","subtext","description","aliases","keywords"}
+local referenceFields={"invocation","command","targetRef"}
 local copy=I.Boundary.CopyPlain
 local failure=I.Boundary.Failure
 local array=I.Boundary.Array
@@ -89,10 +90,10 @@ local function prepareRecord(entry, record, index)
     if record._extensionID ~= nil then return failure("INVALID_SCHEMA", "entry._extensionID") end
     if record.title == nil or record.title == "" then return failure("INVALID_SCHEMA", "entry.title") end
     if record.payload ~= nil and type(record.payload) ~= "table" then return failure("INVALID_SCHEMA", "entry.payload") end
-    for _,name in ipairs({"invocation","command","targetRef"}) do
+    for _,name in ipairs(referenceFields) do
         if record[name]~=nil then
             if not I.Invocations then return failure("UNSUPPORTED_API","invocation") end
-            local ref;ref,err=I.Invocations:NormalizeStoredRef(record[name]);if not ref then return nil,err end
+            local ref;ref,err=I.Invocations:_ValidateStoredRef(record[name]);if not ref then return nil,err end
             if ref.providerID~=entry.id then return failure("INVALID_REFERENCE",name..".providerID") end
             if ref.kind=="invocation" or ref.kind=="command" then
                 local action=entry.definition.actions and entry.definition.actions[ref.actionID]
@@ -160,7 +161,7 @@ local function prepareRecord(entry, record, index)
             record.actions[actionIndex] = templates[action]
         elseif type(action) == "table" and action.kind == "invocation" then
             if not I.Invocations then return failure("UNSUPPORTED_API", "entry.actions.invocation") end
-            local ref;ref,err=I.Invocations:NormalizeStoredRef(action.invocation)
+            local ref;ref,err=I.Invocations:_ValidateStoredRef(action.invocation)
             if not ref then return nil,err end
             if ref.kind~="invocation" or ref.providerID~=entry.id then return failure("INVALID_REFERENCE", "entry.actions.invocation") end
             local definition=entry.definition.actions and entry.definition.actions[ref.actionID]

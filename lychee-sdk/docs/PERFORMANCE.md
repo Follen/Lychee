@@ -435,6 +435,8 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 
 ## 16. 搜索文档与物化成本
 
+- 已隔离的候选引用做只读校验，不能为检查或生成稳定标识反复深拷贝。只读遍历与复制共用节点/逻辑字节限制；参数规范化仍返回独立结果，默认值展开也计入预算。固定验证词表复用，不引入跨查询记录缓存。`tests/sdk/invocation_allocation.lua` 覆盖 reader 复制次数、可变 schema、结果隔离及旧编码对照。
+
 - 动作结构昂贵的有界目录可采用 SDK 1.0.0 的 documents 入口；普通 Entry 保持具名契约。索引和业务事实分离，禁止同时保留同目录的全量 Entry 与 SearchDocument。
 - 最终候选才生成完整动作，reader 不执行业务、不扫描整库、不 yield。Host 弱登记不等于可见结果立即可回收；分别统计目录、活动行与执行对象。
 - documents 用常驻内存换取候选校验成本，必须同输入比较分配和延迟。不能只报告构建节省。测试覆盖 `sdk/provider_documents`、`providers/settings_memory`、`search_checkpoint` 和全量契约。

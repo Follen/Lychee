@@ -14,6 +14,8 @@ local edits,conflicts,running={},{},{}
 local preparedMeta = {__metatable="Lychee PreparedInvocation"}
 local limits = {maxDepth=6,maxFields=32,maxNodes=256,maxBytes=16384,scalarKeys=true}
 local common = {type=true,required=true,default=true,unit=true}
+local numericConstraints={"min","max","step"}
+local referenceLabels={"title","sourceTitle"}
 local typed = {
  string={minLength=true,maxLength=true}, number={min=true,max=true,step=true,precision=true},
  integer={min=true,max=true,step=true}, boolean={}, enum={values=true},
@@ -30,6 +32,14 @@ local function plain(value,field)
  if err then return nil,err end
  if not boundedStrings(owned) then return fail("DATA_LIMIT",field) end
  return owned
+end
+-- Read-only validation has the same graph/string budgets as copying. Callers
+-- must not publish borrowed values as owned output or yield while using them.
+local function checkedData(value,field)
+ local ok,err=B:Validate(value,field,limits)
+ if not ok then return nil,err end
+ if not boundedStrings(value) then return fail("DATA_LIMIT",field) end
+ return value
 end
 function V:CopyData(value,field) return plain(value,field) end
 local function keys(value,allowed)
@@ -60,13 +70,13 @@ local function schemaField(spec,field,item)
  for key in pairs(spec) do if not common[key] and not typed[spec.type][key] then return fail("INVALID_SCHEMA",field.."."..tostring(key)) end end
  if spec.required~=nil and type(spec.required)~="boolean" or spec.unit~=nil and (type(spec.unit)~="string" or #spec.unit>64) then return fail("INVALID_SCHEMA",field) end
  if spec.type=="number" or spec.type=="integer" then
-  for _,key in ipairs({"min","max","step"}) do
+  for _,key in ipairs(numericConstraints) do
    local value=spec[key]
    if value~=nil and (type(value)~="number" or math.abs(value)>1000000000 or spec.type=="integer" and value~=math.floor(value)) then return fail("INVALID_SCHEMA",field.."."..key) end
   end
   if spec.min and spec.max and spec.min>spec.max or spec.step and spec.step<=0 then return fail("INVALID_SCHEMA",field) end
   if spec.type=="number" and not integer(spec.precision,0,6) then return fail("INVALID_SCHEMA",field..".precision") end
-  for _,key in ipairs({"min","max","step"}) do
+  for _,key in ipairs(numericConstraints) do
    if spec[key]~=nil and not scaled(spec[key],spec.type=="integer" and 0 or spec.precision,field) then return fail("INVALID_SCHEMA",field.."."..key) end
   end
  elseif spec.type=="string" then
@@ -148,8 +158,7 @@ normalizeValue=function(spec,value,field)
  end
  return value
 end
-function V:ValidateSchema(input)
- local schema,err=plain(input,"schema");if err then return nil,err end
+local function checkedSchema(schema)
  if type(schema)~="table" then return fail("INVALID_SCHEMA","schema") end
  for name,spec in pairs(schema) do
   if type(name)~="string" or #name==0 or #name>64 then return fail("INVALID_SCHEMA","schema") end
@@ -157,8 +166,13 @@ function V:ValidateSchema(input)
  end
  return schema
 end
+function V:ValidateSchema(input)
+ local schema,err=plain(input,"schema");if err then return nil,err end
+ return checkedSchema(schema)
+end
 function V:NormalizeArgs(schema,input)
- local checked,err=self:ValidateSchema(schema);if not checked then return nil,err end
+ local checked,err=checkedData(schema,"schema");if err then return nil,err end
+ checked,err=checkedSchema(checked);if not checked then return nil,err end
  local args;args,err=plain(input,"args");if err then return nil,err end
  if type(args)~="table" then return fail("INVALID_ARGUMENT","args") end
  for key in pairs(args) do if not checked[key] then return fail("UNKNOWN_ARGUMENT","args."..tostring(key)) end end
@@ -168,7 +182,7 @@ function V:NormalizeArgs(schema,input)
   out[key]=value
  end
  -- Defaults are data too; expansion cannot exceed the input graph budget.
- return plain(out,"args")
+ return checkedData(out,"args")
 end
 -- Literal segments and named slots only. No pattern engine, target expansion,
 -- backtracking or normalization of the original numeric text.
@@ -246,8 +260,8 @@ local function targetRef(value)
  return value
 end
 local refKeys={kind=true,product=true,providerID=true,actionID=true,actionVersion=true,target=true,args=true,entryID=true,title=true,icon=true,sourceTitle=true}
-function V:NormalizeStoredRef(input)
- local value,err=plain(input,"reference");if err then return nil,err end
+local function checkedReference(value)
+ local err
  if not keys(value,refKeys) or not identifier(value.providerID) or type(value.product)~="string" or #value.product==0 or #value.product>32 then return fail("INVALID_REFERENCE") end
  local kind=value.kind
  if kind~="legacy-entry" and kind~="target" and kind~="command" and kind~="invocation" then return fail("INVALID_REFERENCE","kind") end
@@ -265,9 +279,19 @@ function V:NormalizeStoredRef(input)
    for key in pairs(value.args) do if type(key)~="string" or #key==0 or #key>64 then return fail("INVALID_ARGUMENT","args") end end
   elseif value.args~=nil then return fail("INVALID_REFERENCE","args") end
  end
- for _,key in ipairs({"title","sourceTitle"}) do if value[key]~=nil and type(value[key])~="string" then return fail("INVALID_REFERENCE",key) end end
+ for _,key in ipairs(referenceLabels) do if value[key]~=nil and type(value[key])~="string" then return fail("INVALID_REFERENCE",key) end end
  if value.icon~=nil and not (type(value.icon)=="string" or integer(value.icon,1,2147483647)) then return fail("INVALID_REFERENCE","icon") end
  return value
+end
+function V:NormalizeStoredRef(input)
+ local value,err=plain(input,"reference");if err then return nil,err end
+ return checkedReference(value)
+end
+-- Host-only: validating a reference does not require a disposable deep copy.
+-- RecordCodec owns the input before attaching entryID; other users only read.
+function V:_ValidateStoredRef(input)
+ local value,err=checkedData(input,"reference");if err then return nil,err end
+ return checkedReference(value)
 end
 function V:Equal(left,right)
  local a=self:NormalizeStoredRef(left);local b=self:NormalizeStoredRef(right)
