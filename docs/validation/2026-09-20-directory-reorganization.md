@@ -29,4 +29,12 @@ wowdoc：sourceId `wow-ui-source`，product `retail`，requestedRef/matchedTag `
 
 TOC 路径已变化，按 AGENTS.md 需要完整重启客户端，不能把旧会话或仅重载当成新目录验收。准备好的 lychee-dev 有界探针检查新版本/模块与词典/注册，以及暴雪设置多个类型的实际定位、菜单保留、固定/取消固定、别名打开/取消、历史恢复、关闭重开、退役动作拒绝与清理。隔离并恢复临时历史/固定/偏好，不改变音量。
 
-当前实机待验收：重启后的 Retail zhCN 功能探针与 ACK；其他客户端/语言、受保护动作硬件点击和战斗场景未实测。离线四客户端/四语言通过不能替代这些边界。未宣称全量实机功能或性能通过。
+完整退出后，新进程 PID 39960（启动 2026-09-20 09:31:28 +08:00）已确认角色“晴昼秋岚—白银之手”。Retail 12.1.0.69875 / Interface 120100 / zhCN，0.2.2 新目录加载通过。
+
+Ticket `LYCHEE-20260920-093319-0030`，task `directory-reorganization`，request `req-20260920-directory-01`，revision `r1`：114 项断言全部通过，无失败，报告完整且未截断。16 个 Provider 模块/词典/注册正确；主音量、输出设备、自动拾取、阴影质量、与目标互动绑定、字幕背景六类设置实际定位正确；菜单保留别名和固定入口，固定/取消固定、别名编辑取消、历史恢复、关闭重开与退役动作拒绝通过。临时历史、固定、选择偏好恢复，五项音量值未变。
+
+原始完整 payload：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-093319-0030/content.json`，9265 字节，SHA-256 `90982d5dc6bff1e0d3a8749ca7d67f89a4cf6066eb03d8cb3f1fb4f2942a0cb2`。本次 ACK 首次发送后未观察到回执；查看后台画面后仅补做 ACK，未重跑测试/重载。已记录同 nonce 的 ticket_ack_confirmed 与 ticket_ack_cleared；用户随后要求再次执行 ACK，也确认并清理。临时任务区块已移除。
+
+其他客户端/语言、受保护动作硬件点击、实机失败/重试/战斗以及全部 Provider 的业务流程仍未实测；全量生命周期/失败/取消/重试由离线契约覆盖。实机报告的全客户端自然堆读数包含其他插件，不能用来归因 Lychee 内存；本次不宣称全量实机功能或性能通过。
+
+运行代码提交 `ba9a16f1ccd5eed1d9b090a25f3ce1b4167fa8b2` 已推送 main；游戏同步 166 文件逐一 SHA-256 相符。旧游戏 Builtin 下 57 文件保留，不被任何新 TOC 引用，也不进入新版 ZIP。
