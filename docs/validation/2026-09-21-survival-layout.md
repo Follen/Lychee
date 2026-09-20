@@ -35,3 +35,9 @@ Retail 12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-00
 证据：wow-ui-source/retail requestedRef=12.1.0 resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59；Interface/AddOns/Blizzard_SettingsDefinitions_Frame/Keybindings.lua:25 `local action, cat, binding1, binding2 = GetBinding(bindingIndex)`，189–195分组名称按`_G[cat]`字符串本地化，213–225按该分组收录绑定。SimpleFontStringAPIDocumentation.lua:339–349定义GetStringWidth返回uiUnit；仅测量本插件普通文字，用于标题布局。
 
 客户端加载未确认：reload nonce `req-20260920-171836-738755` 初次45秒与同nonce恢复20秒均无ready回执。没有重发重载，未执行实机任务、无新Ticket；临时任务区块已移除。本轮新标题、分隔线和两个缩小的实机分组仍待验收，不沿用0.3.24实机结论。截图位于本机LycheeDev/automation/reload同nonce目录。
+
+## 0.3.27 生存页视觉层级
+
+运行提交 `48a60ea`，199运行文件SHA-256一致。分类标签聚合靠左，公共Checkbox增加可选左置方式（默认右侧不变）；效果行32高/34节距，结果与标签间隔减少16。移除2个装饰纹理，无新增Frame、timer、事件或OnUpdate。LDT模块离线426.8 KiB，与上一版同量级；50次重开无新增控件、未观察保留增长（-1.03 KiB）。完整契约、Lua语法、wowdoc valid=true与diff检查通过。
+
+实机Retail12.1.0.69875 zhCN，灵止光—死亡之翼；Ticket `LYCHEE-20260921-013023-0082`，request=ldt-layout27-20260921/revision=layout27，complete=true/succeeded；14项功能断言全部通过，包括三组切换、合剂、致死、返回怪物、重开及关闭清理。100次计算1.4368ms，不能等同整插件性能。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-013023-0082/content.json`；WGC `analyze/survival/ui-layout27-5.png` 核对布局无重叠，ACK与自有任务清理完成。真实硬件点击、英文实机、受限失败/战斗和引擎总内存本轮未覆盖，沿用原交互实现并明确边界。
