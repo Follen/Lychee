@@ -230,7 +230,9 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",version="1.0.0",title="Ellesmere UI",
+    local declaredIcon=C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("EllesmereUI","IconTexture")
+    if type(declaredIcon)=="string" and declaredIcon~="" then icon=declaredIcon end
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,icon=icon,apiVersion="1.0.0",version="1.0.0",title="Ellesmere UI",
         scope=I.ProviderModules.Support:Scope(self.id),searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
         entries={},actions=actions,query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,

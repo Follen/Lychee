@@ -219,7 +219,9 @@ local actions={
 }
 function M:Init()
     if self.handle and self.handle:GetState() then return end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,title="Exwind",version="1.0.0",apiVersion="1.0.0",scope=I.ProviderModules.Support:Scope(self.id),searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},entries={},actions=actions,
+    local declaredIcon=C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("ExwindCore","IconTexture")
+    if type(declaredIcon)=="string" and declaredIcon~="" then icon=declaredIcon end
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,icon=icon,title="Exwind",version="1.0.0",apiVersion="1.0.0",scope=I.ProviderModules.Support:Scope(self.id),searchGlobal=false,searchPrefixes={"ex"},searchKeywords={},entries={},actions=actions,
         query=function(request,reply,context) return self:Query(request,reply,context) end,resolve=function(id) return self:Resolve(id) end,
         onEnable=function() self.active=true;return function() self.active=false end end})
 end
