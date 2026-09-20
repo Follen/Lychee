@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.3.20-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.3.21-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@
 
 </div>
 
-0.3.20：生存计算仅保留生命、首段直接承伤和是否致死；自动识别伤害类型，移除DOT和手动参数。
+0.3.21：萨拉斯抗性合剂移到单体外援，提示数值与模拟规则一致。
 
 想用一个技能，却不记得它放在哪条动作栏；想改一个设置，却不记得它藏在哪层菜单。荔枝让你从**名字**出发：找到它，然后施放、使用、切换，或打开对应页面。
 
@@ -243,6 +243,10 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 ### 0.3.3
 
 首次打开主窗口时提示荔枝图标为设置入口；点击设置或“知道了”后按账号记住，不再提示。
+
+### 0.3.21
+
+0.3.21：萨拉斯抗性合剂移到单体外援，提示数值与模拟规则一致。
 
 ### 0.3.20
 

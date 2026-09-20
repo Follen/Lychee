@@ -54,5 +54,6 @@ I.ProviderLocaleData["builtin.ldt"] = {
     ["直接承伤"] = "Damage taken",
     ["是否致死"] = "Survival",
     ["满血估算 · 伤害类型与范围自动识别"] = "Full health · Damage type and area detected automatically",
-    ["模拟增加165点全能等级，已有增益不重复计入"] = "Simulate +165 Versatility rating; existing buff is already included",
+    ["模拟效果：全能提高 %d 点。"] = "Simulated effect: +%d Versatility rating.",
+    ["已有增益自动计入，不重复叠加"] = "An existing buff is included automatically, without stacking twice.",
 }

@@ -140,8 +140,8 @@ function M:CreateSurvivalView(owner)
         row.frame:HookScript("OnHide",function() row.pressed=nil;C:HideTooltip(row.frame) end)
         row.frame:HookScript("OnEnter",function()
             local e=row.effect;if not v.active or not e then return end
-            C:ShowTooltip(row.frame,{title=M:SpellName(e.id) or tostring(e.id),description=C_Spell and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(e.id),
-                hint=v.stats.active[e.id] and L["当前已生效"] or e.flaskRating and L["模拟增加165点全能等级，已有增益不重复计入"] or e.absorb and L["吸收按自身生命与全能估算"] or e.id==357170 and L["只计即时减伤，延后伤害由治疗处理"] or L["勾选模拟此效果"]})
+            C:ShowTooltip(row.frame,{title=M:SpellName(e.id) or tostring(e.id),description=e.flaskRating and L:Format("模拟效果：全能提高 %d 点。",e.flaskRating) or C_Spell and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(e.id),
+                hint=v.stats.active[e.id] and L["当前已生效"] or e.flaskRating and L["已有增益自动计入，不重复叠加"] or e.absorb and L["吸收按自身生命与全能估算"] or e.id==357170 and L["只计即时减伤，延后伤害由治疗处理"] or L["勾选模拟此效果"]})
         end)
         row.frame:HookScript("OnLeave",function() C:HideTooltip(row.frame) end)
         v.rows[i]=row
