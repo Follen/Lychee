@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.2.1-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -39,7 +39,7 @@ You remember a spell's name, but not which action bar it is on. You know which s
 | Find a spell your character knows | `Polymorph` | Click to cast, or drag it onto an action bar |
 | Find something in your bags | `Hearthstone` | Click to use; right-click for bag location actions |
 | Open a game panel | `Heirlooms` | Open the heirloom collection directly |
-| Adjust master volume | `set volume to 30` | Review the result and execute it; a setting result also offers adjustment actions in its right-click menu |
+| Open master volume settings | `Master Volume` | Left-click to open and locate the Blizzard setting; right-click to set an alias or pin it to Home |
 | Share an achievement | `Ahead of the Curve` | Shift + left-click the result to insert its link into chat |
 | Check the group's keys | `key` | See group keystones and scores (Retail) |
 | Search only your spells | `spell: Polymorph` | See matching player spells without other sources |

@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.2.1-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -39,7 +39,7 @@
 | 找角色已学会的技能 | `变形术` | 点击施放，也能拖到动作栏 |
 | 找背包里的东西 | `炉石` | 点击使用；右键可定位背包格子 |
 | 打开游戏页面 | `传家宝` | 直接打开传家宝收藏 |
-| 调整主音量 | `把音量设置到30` | 确认搜索结果后执行；也可搜索对应设置，右键选择调整动作 |
+| 打开主音量设置 | `主音量` | 左键打开暴雪设置并定位；右键可设置别名或固定到首页 |
 | 分享一个成就 | `引领潮流` | 找到成就，Shift + 左键贴入聊天框 |
 | 看小队钥匙 | `key`、`钥匙` 或 `分数` | 显示队伍钥匙和分数（正式服） |
 | 只找技能，不混入其他内容 | `技能：变形术` | 仅显示玩家技能中的匹配项 |
