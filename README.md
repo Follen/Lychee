@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.3.11-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.3.12-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -241,6 +241,12 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 ### 0.3.3
 
 首次打开主窗口时提示荔枝图标为设置入口；点击设置或“知道了”后按账号记住，不再提示。
+
+### 0.3.12
+
+- “最近使用”标题右侧新增“清空”按钮，只清除当前角色的历史。
+- 修复重载后 Ellesmere UI 页面历史和固定项显示“目标暂不可用”；恢复时按需准备页面声明。
+- 仅当前会话可用的 EUI 捕获细项不再写入历史或固定项；页面入口仍可保存，旧存档保留。
 
 ### 0.3.11
 

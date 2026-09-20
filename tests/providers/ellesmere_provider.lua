@@ -31,7 +31,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-dofile("tests/support/runtime.lua").Load("provider", {"Providers/Ellesmere/Locales/enUS.lua", "Providers/Ellesmere/Locales/zhCN.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Ellesmere/Adapter.lua", "Providers/Ellesmere/Provider.lua"}, {overrides={ ["Providers/Ellesmere/Provider.lua"]=arg[1] }})
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Preparation.lua", "Providers/Ellesmere/Locales/enUS.lua", "Providers/Ellesmere/Locales/zhCN.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Ellesmere/Adapter.lua", "Providers/Ellesmere/Provider.lua"}, {overrides={ ["Providers/Ellesmere/Provider.lua"]=arg[1] }})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.ProviderModules.Ellesmere
@@ -76,6 +76,26 @@ end
 assert(#query("悬停施法")==0 and calls.load==0,"no global query")
 local rows=query("EUI：解锁")
 assert(#rows==1 and rows[1].id=="unlock" and calls.load==0,"unlock avoids options loading")
+assert(M:Resolve("unlock") and not M:Resolve("option/1/2") and not M:Resolve("invalid"))
+assert(calls.load==0,"non-page references must not load options")
+combat=true
+assert(not M:Resolve("page/EllesmereUIRaidFrames/HoverCast") and calls.load==0,"cold combat restore cannot load upstream")
+combat=false
+local ensureLoaded=EllesmereUI.EnsureLoaded
+EllesmereUI.EnsureLoaded=function() end
+assert(not I.Providers:Resolve({providerID=M.id,entryID="page/EllesmereUIRaidFrames/HoverCast"},{}),"failed options load stays unavailable")
+EllesmereUI.EnsureLoaded=ensureLoaded
+local restored
+I.Preparation:Ensure({M.id},{scope="restore",intent="visible"},105,function(state)
+    if state.ready[M.id] then restored=I.Providers:Resolve({providerID=M.id,entryID="page/EllesmereUIRaidFrames/HoverCast"},{}) end
+end)
+drain()
+assert(restored and restored.payload.page=="HoverCast","reload history must restore HoverCast before the first EUI search")
+assert(I.Providers:CanRemember(restored) and calls.open==0 and calls.load==1,"cold restore loads declarations once without opening UI")
+for _,page in ipairs({"Frames","HoverCast","Buff-20Manager"}) do
+    assert(I.Providers:Resolve({providerID=M.id,entryID="page/EllesmereUIRaidFrames/"..page},{}),"all saved pages restore")
+end
+assert(calls.load==1,"warm restoration does not reload upstream")
 local firstStart=os.clock()
 rows=query("EUI：悬停施法")
 local coldMS=(os.clock()-firstStart)*1000
@@ -98,6 +118,8 @@ EllesmereUI._searchIndexSuppress=nil
 assert(M.optionCount==1 and #query("eui:排除")==0,"suppression and dedup")
 local option=query("eui:边框样式")[1]
 assert(option and not option.description and definition.actions.open.run(option).ok)
+local transient=assert(I.Providers:Resolve({providerID=M.id,entryID=option.id},{}))
+assert(not I.Providers:CanRemember(transient),"session-only captured options must not create broken saved references")
 assert(calls.section=="Appearance" and calls.label=="Border Style" and selected=="party","precise selector navigation")
 EllesmereUI._modules.EllesmereUIRaidFrames.pages={"Frames"}
 assert(#query("eui:HoverCast")==0 and not M:Resolve(hover.id),"removed page disappears")

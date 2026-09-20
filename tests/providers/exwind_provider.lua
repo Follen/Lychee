@@ -78,6 +78,11 @@ ExwindTools={UnifiedPanel=shell,UI=ui,ModuleList={{Key="ExTools.MiniTools",Name=
 ui.EditModeState.modules.bar={addon="EXBoss",key="timerbar",name="计时条",settingsPage="timerbar",BuildPreview=forbidden}
 ui.EditModeState.modules.unknown={addon="Unknown",key="ignored",name="不可路由",settingsPage="ignored"}
 ExBoss={ModuleList={{Key="ExBoss.Tools.MythicCast",Name="大米怪物施法",PanelTab="mythiccast"}}}
+for _,savedID in ipairs({"app/settings","tool/ExTools.MiniTools","edit/EXBoss/timerbar","unlock"}) do
+    local restored=I.Providers:Resolve({providerID=M.id,entryID=savedID},{})
+    assert(restored and I.Providers:CanRemember(restored),"Exwind cold history: "..savedID)
+end
+assert(not calls.shown and not calls.edit,"cold restore must not navigate or change edit mode")
 local id
 for _,prefix in ipairs({"ex:","Ex:","EX:","ex：","Ex：","EX："}) do
     local rows=query(prefix.."自动修理")

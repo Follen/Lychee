@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.3.11-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.3.12-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -233,6 +233,12 @@ Move the Chinese dedication to the acknowledgements footer, using its existing n
 ### 0.3.3
 
 A first-use bubble identifies the settings icon. Opening settings or choosing Got it dismisses it across characters on the account.
+
+### 0.3.12
+
+- Add a Clear button beside Recent to clear the current character's history.
+- Restore Ellesmere UI page history and pins after reload by preparing upstream page declarations on demand.
+- Session-only captured EUI options no longer create history or pins. Page destinations remain saveable; existing saved references are preserved.
 
 ### 0.3.11
 

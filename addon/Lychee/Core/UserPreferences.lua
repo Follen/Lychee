@@ -82,6 +82,12 @@ function Preferences:GetRecent()
     return recentActive
 end
 function Preferences:GetRecentRecoveryError() self:GetRecent();return recentRecovery and "RECENT_DATA_INVALID" or nil end
+function Preferences:ClearRecent()
+    local refs=self:GetRecent()
+    if recentRecovery then return false end
+    for index=#refs,1,-1 do refs[index]=nil end
+    return true
+end
 local function trimRecent(refs)
     while #refs>8 or not validate(refs) do
         if #refs==0 then return end

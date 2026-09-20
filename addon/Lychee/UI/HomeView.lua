@@ -72,6 +72,10 @@ function HomeView:Create(parent, controller)
         onClick=function() controller:OpenSettings("pins") end})
     Lychee.UI.Theme:SetFont(view.manage.label, "meta")
     view.manage.frame:Hide()
+    view.clearRecent=Lychee.UI.Components:CreateNavigationButton(view.content,{width=48,height=20,text=L["清空"],muted=true,
+        onClick=function() view:ClearRecent() end})
+    Lychee.UI.Theme:SetFont(view.clearRecent.label,"meta")
+    view.clearRecent.frame:Hide()
 
     function view:RenderTileState(tile)
         local selected = tile.index == self.selected and navigable(tile.section)
@@ -422,7 +426,7 @@ function HomeView:Create(parent, controller)
         self:EnsureCapacity(HOME_HEADER_COUNT, 0)
         -- ScrollFrame owns the child origin; keep padding in content anchors.
         local headerCount, cursorY = 0, 10
-        local pinnedHeader
+        local pinnedHeader,recentHeader
         local groupID, column = nil, 0
         for index = 1, #self.sections do
             local section = self.sections[index]
@@ -448,6 +452,13 @@ function HomeView:Create(parent, controller)
                         self.manage.frame:SetPoint("TOPRIGHT", self.content, "TOPRIGHT", -14, -cursorY+3)
                         self._manageY = cursorY
                     end
+                elseif groupID == "recent" then
+                    recentHeader=true
+                    if self._clearRecentY~=cursorY then
+                        self.clearRecent.frame:ClearAllPoints()
+                        self.clearRecent.frame:SetPoint("TOPRIGHT",self.content,"TOPRIGHT",-14,-cursorY+3)
+                        self._clearRecentY=cursorY
+                    end
                 end
                 cursorY = cursorY + 24
             end
@@ -466,6 +477,7 @@ function HomeView:Create(parent, controller)
             end
         end
         setShown(self.manage.frame,pinnedHeader==true)
+        setShown(self.clearRecent.frame,recentHeader==true)
         for index = headerCount + 1, #self.headers do setShown(self.headers[index], false) end
         local height = math.max(1, cursorY + 14)
         if self.content:GetHeight() ~= height then self.content:SetHeight(height) end
@@ -493,6 +505,7 @@ function HomeView:Create(parent, controller)
         frame:SetAlpha(0.8)
         self.scrollbar:StopDrag(); self.scrollbar.frame:EnableMouse(false)
         self.manage.frame:Hide()
+        self.clearRecent.frame:Hide()
         for _,tile in ipairs(self.tiles) do
             local section=tile.section
             local ref=section and (section.pinnedRef or section.recentRef)
@@ -504,6 +517,7 @@ function HomeView:Create(parent, controller)
     end
 
     function view:ReleaseBindings(preserveSnapshot)
+        self.clearRecent.frame:Hide()
         if self.frozen and not preserveSnapshot then
             self.frozen = nil
             frame:SetAlpha(1); self.scrollbar.frame:EnableMouse(true)
@@ -529,6 +543,12 @@ end
 -- The page owns saved-content recovery and live bindings. Palette only supplies
 -- the current search identity and controls which page is presented.
 function HomeView:Invalidate() self.dirty = true end
+function HomeView:ClearRecent()
+    if self.frozen or not self.frame:IsShown() or InCombatLockdown and InCombatLockdown() then return false end
+    if not I.UserPreferences:ClearRecent() then return false end
+    self.controller:MarkHomeDirty()
+    return true
+end
 function HomeView:GetContentHeight() return self.content:GetHeight() end
 
 function HomeView:EnsureSavedCapacity()

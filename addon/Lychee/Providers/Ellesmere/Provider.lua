@@ -75,6 +75,7 @@ local function optionRecord(eui,option,config)
     if not config then return end
     local moduleName=type(config.title)=="string" and config.title or option.module
     return {id=option.id,title=option.labelLoc or translated(eui,option.label),kind="setting",kindTitle="Ellesmere UI",icon=icon,
+        rememberable=false, -- Captured selectors and hashed identities belong to this upstream session.
         subtitle=translated(eui,moduleName).." · "..translated(eui,option.page)..(option.section and " · "..translated(eui,option.section) or ""),
         aliases={option.label,translated(eui,moduleName),translated(eui,option.page)},description=option.tooltip,
         payload={module=option.module,page=option.page},actions={"open"}}
@@ -204,6 +205,13 @@ function M:Resolve(id)
     if not folder then return end
     folder,page=decode(folder),decode(page)
     local eui=A.Get()
+    -- Saved page references can be the first access after reload. Only this
+    -- explicit page demand loads upstream declarations; unlock and unrelated
+    -- searches stay cold. A failed load remains retryable on the next restore.
+    if eui and not eui._deferredLoaded then
+        eui=ready()
+        self:Attach()
+    end
     local config=type(eui)=="table" and exists(eui,folder,page)
     if config then return pageRecord(eui,folder,config,page) end
 end

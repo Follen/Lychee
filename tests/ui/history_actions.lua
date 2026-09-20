@@ -101,6 +101,23 @@ callback({status="indeterminate",code="UNCONFIRMED",message="Misleading success"
 assert(palette.status:GetText():find(english and "unconfirmed" or "尚未确认",1,true),"indeterminate outcome presented as failure/success")
 palette:Hide("reopen");assert(palette:Show())
 assert(not palette.status:GetText():find(english and "unconfirmed" or "尚未确认",1,true),"reopen retained old feedback")
+local home=palette.homeView
+assert(I.UserPreferences:Pin(item))
+palette:MarkHomeDirty()
+local pins=I.UserPreferences:GetPins()
+local pinCount=#pins
+local memory=I.CharacterStore:Palette().searchPersonalization
+assert(home.clearRecent.frame:IsShown() and home.clearRecent.label:GetText()==(english and "Clear" or "清空"))
+home.clearRecent.frame:GetScript("OnMouseDown")(home.clearRecent.frame,"LeftButton")
+home.clearRecent.frame:GetScript("OnClick")(home.clearRecent.frame,"LeftButton")
+assert(#I.UserPreferences:GetRecent()==0 and not home.clearRecent.frame:IsShown(),"clear click empties history and hides control")
+assert(I.UserPreferences:GetPins()==pins and #pins==pinCount and I.CharacterStore:Palette().searchPersonalization==memory,"clear preserves pins and search memory")
+palette:Hide("clear-reopen");assert(palette:Show())
+assert(#I.UserPreferences:GetRecent()==0 and not home.clearRecent.frame:IsShown(),"clear survives reopen")
+I.UserPreferences:TouchRecent(item);palette:MarkHomeDirty()
+assert(home.clearRecent.frame:IsShown(),"new usage restores clear control")
+home:FreezePresentation();assert(not home.clearRecent.frame:IsShown() and not home:ClearRecent() and #I.UserPreferences:GetRecent()==1,"frozen clear cannot mutate history")
+palette:MarkHomeDirty()
 parameterized:Unregister()
 handle:Unregister()
 palette:Hide("done")

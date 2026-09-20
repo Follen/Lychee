@@ -55,7 +55,12 @@ for m=1,8 do
 end
 local function emit(value)
     if type(value)~="table" then return string.format("%q",tostring(value)) end
-    local keys={};for key in pairs(value) do keys[#keys+1]=key end
+    local keys={};for key in pairs(value) do
+        if key=="rememberable" then
+            assert(type(value.id)=="string" and value.id:match("^option/") and value[key]==false,
+                "only captured options may change saved-reference eligibility")
+        else keys[#keys+1]=key end
+    end
     table.sort(keys,function(a,b) return tostring(a)<tostring(b) end)
     local parts={};for _,key in ipairs(keys) do parts[#parts+1]=emit(key).."="..emit(value[key]) end
     return "{"..table.concat(parts,",").."}"
@@ -69,6 +74,9 @@ for _,query in ipairs({"","生命","框体","布局","border","边框","module",
         while #timers>0 do local t=table.remove(timers,1);if not t.cancelled then t.fn() end end
         LycheeInternal.Resources:Close(resources,"complete")
         assert(result)
+        for _,row in ipairs(result) do
+            if row.id:match("^option/") then assert(row.rememberable==false,"captured options are session-only") end
+        end
         write("QUERY\t",query,"\t",limit,"\n",emit(result),"\n")
         for _,row in ipairs(result) do
             assert(emit(definition.resolve(row.id))==emit(row),"resolve preserves full record")

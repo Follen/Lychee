@@ -23,6 +23,7 @@ L:Add({
     ["Ctrl+C 复制 · Esc 退出"] = "Ctrl+C to copy · Esc to exit",
     ["搜索技能、插件、命令…"] = "Search spells, addons, commands…",
     ["管理"] = "Manage",
+    ["清空"] = "Clear",
     ["荔枝设置"] = "Launcher settings",
     ["返回搜索"] = "Back",
     ["设置"] = "Settings",

@@ -33,6 +33,16 @@ dofile("addon/Lychee/Core/CharacterStore.lua");dofile("addon/Lychee/Core/UserPre
 P=LycheeInternal.UserPreferences
 P:Initialize()
 assert(#P:GetPins()==2,"reload keeps this character's saved pins")
+assert(P:TouchRecent(item("holy")))
+local paladinRecent=P:GetRecent()
+LycheeCharacterDB=mage
+assert(P:TouchRecent(item("blink")))
+local mageRecent=P:GetRecent()
+assert(P:ClearRecent() and #mageRecent==0)
+dofile("addon/Lychee/Core/UserPreferences.lua");P=LycheeInternal.UserPreferences
+assert(#P:GetRecent()==0,"cleared history survives module reload")
+LycheeCharacterDB=paladin
+assert(P:GetRecent()==paladinRecent and #paladinRecent==1,"clear cannot affect another character")
 LycheeDB.palette.pinned={legacy}
 P:Initialize()
 assert(#P:GetPins()==2,"legacy data never overwrites character pins")
