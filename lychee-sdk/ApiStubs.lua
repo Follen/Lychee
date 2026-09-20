@@ -295,6 +295,7 @@
 ---Synchronous lifecycle reentry into mount/update returns PANEL_BUSY. A close request cancels after the callback returns.
 ---@field Mount fun(self:LycheeView,context:LycheeViewContext,initialState:table)
 ---@field Update? fun(self:LycheeView,state:table,context:LycheeViewContext)
+---@field Back? fun(self:LycheeView):boolean @Optional internal back; true consumes navigation, false/nil exits to search.
 ---@field Unmount? fun(self:LycheeView,reason:string)
 ---@field Dispose? fun(self:LycheeView,reason:string)
 

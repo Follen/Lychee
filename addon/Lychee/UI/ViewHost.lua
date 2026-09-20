@@ -247,6 +247,17 @@ function ViewHost:Update(state)
     return finish(self, ok, not ok and "PANEL_ERROR" or nil)
 end
 
+-- A view may consume one navigation level without leaking its business to Host.
+function ViewHost:Back()
+    if self.busy then return true end
+    if not self.active or not self.panel then return false end
+    local panel,generation=self.panel,self.generation
+    local ok,handled=invoke(panel,"Back")
+    -- Errors or reentrant navigation must never close a replacement view.
+    if not ok or self.panel~=panel or self.generation~=generation then return true end
+    return handled==true
+end
+
 function ViewHost:IsActive() return self.active end
 function ViewHost:IsOwnedBy(owner)
     return owner ~= nil and ((self.busy and self.pendingOwner == owner)

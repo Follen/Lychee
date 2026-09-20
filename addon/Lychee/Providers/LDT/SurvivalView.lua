@@ -9,23 +9,51 @@ local function amount(value) return value and string.format("%.0f",value) or "�
 function M:CreateSurvivalView(owner)
     if owner.calculator then return owner.calculator end
     local C,Theme=_G.Lychee.UI.Components,_G.Lychee.UI.Theme
-    local v={rows={},fields={},tabs={},selected={},group=1,offset=0,level=10}
+    local v={rows={},fields={},tabs={},selected={},group=1,offset=0,level=10,contentHeight=388}
     owner.calculator=v
-    v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-62);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
-    v.frame=CreateFrame("Frame",nil,v.viewport);v.frame:SetSize(584,526);v.viewport:SetScrollChild(v.frame)
-    v.bar=C:CreateScrollbar(v.viewport,function(value) v.viewport:SetVerticalScroll(value) end)
-    local function resize() v.bar:SetRange(526,v.viewport:GetHeight(),v.bar.value or 0) end
-    v.viewport:SetScript("OnSizeChanged",resize);v.viewport:EnableMouseWheel(true)
-    v.viewport:SetScript("OnMouseWheel",function(_,delta) if v.active then v.bar:SetValue((v.bar.value or 0)-delta*28) end end)
-    local function text(role,x,y,w,h)
-        local f=v.frame:CreateFontString(nil,"ARTWORK","GameFontHighlight")
+    v.toolbar=CreateFrame("Frame",nil,owner.frame);v.toolbar:SetPoint("TOPLEFT",16,-60);v.toolbar:SetPoint("RIGHT",-16,0);v.toolbar:SetHeight(30);v.toolbar:Hide()
+    v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-98);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
+    v.frame=CreateFrame("Frame",nil,v.viewport);v.frame:SetSize(584,v.contentHeight);v.viewport:SetScrollChild(v.frame)
+    v.bar=C:CreateScrollbar(v.viewport,function(value)
+        v.viewport:SetVerticalScroll(value)
+        v.bar:SetRange(v.contentHeight,v.viewport:GetHeight(),value)
+    end)
+    local function resize()
+        v.bar:SetRange(v.contentHeight,v.viewport:GetHeight(),v.bar.value or 0)
+        v.viewport:SetVerticalScroll(v.bar.value)
+    end
+    local function wheel(_,delta)
+        if v.active then C:HideTooltip();v.bar:SetValue((v.bar.value or 0)-delta*32) end
+    end
+    local function scrollable(frame) frame:EnableMouseWheel(true);frame:SetScript("OnMouseWheel",wheel) end
+    v.viewport:SetScript("OnSizeChanged",resize);scrollable(v.viewport);scrollable(v.frame);scrollable(v.bar.frame)
+    local function text(role,x,y,w,h,parent)
+        local f=(parent or v.frame):CreateFontString(nil,"ARTWORK","GameFontHighlight")
         Theme:SetFont(f,role);Theme:SetTextColor(f,"textMuted");f:SetJustifyH("LEFT");f:SetJustifyV("TOP")
         f:SetPoint("TOPLEFT",x,-y);f:SetSize(w,h);return f
     end
-    local function button(caption,x,y,w,fn,direction)
-        local b=C:CreateNavigationButton(v.frame,{text=caption,width=w,height=24,direction=direction,onClick=function()
+    local function button(caption,x,y,w,fn,direction,parent)
+        local b=C:CreateNavigationButton(parent or v.frame,{text=caption,width=w,height=24,direction=direction,onClick=function()
             if v.active and owner.active and not (InCombatLockdown and InCombatLockdown()) then fn() end
-        end});Theme:SetFont(b.label,"body");b.frame:SetPoint("TOPLEFT",x,-y);return b
+        end});Theme:SetFont(b.label,"body");b.frame:SetPoint("TOPLEFT",x,-y);scrollable(b.frame);return b
+    end
+    function v:Layout()
+        local extra=self.editing and 144 or 0
+        self.editor:SetShown(self.editing)
+        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-(168+extra))
+        self.contentHeight=388+extra;self.frame:SetHeight(self.contentHeight)
+        self.editToggle:SetDirection(self.editing and "down" or "right")
+        resize()
+        if owner.context then owner.context:Resize(486) end
+    end
+    function v:ReadFields()
+        for key,field in pairs(self.fields) do self.input[key]=tonumber(field:GetText()) end
+    end
+    function v:Confirm()
+        self:ReadFields();self.manual=true;self.input.confirmed=true
+        for _,field in pairs(self.fields) do field:ClearFocus() end
+        self:Render()
+        if self.result.status~="unknown" then self.editing=false;self:Layout();self.bar:SetValue(0) end
     end
     function v:Refresh()
         if not self.active then return end
@@ -54,12 +82,14 @@ function M:CreateSurvivalView(owner)
         local r=self.result
         self.statsLabel:SetText(stats.valid and L:Format("生命 %s · 全能减伤 %.1f%% · 范围减伤 %.1f%%",amount(stats.health),stats.versDR*100,stats.avoidance*100) or L["属性暂不可用，脱战后刷新"])
         local status=r.status=="lethal" and "首段致死" or r.status=="needsHealing" and "首段可承受，后续需要治疗" or r.status=="survives" and "满血可承受" or "请确认伤害参数"
+        if r.status=="unknown" and input.tick and input.tick>0 and (not input.ticks or input.ticks<1) then status="请补全持续跳数" end
         self.status:SetText(L[status]);Theme:SetTextColor(self.status,r.status=="lethal" and "danger" or r.status=="unknown" and "textMuted" or "text")
         self.summary:SetText(r.health and L:Format("模拟生命 %s · 估算吸收 %s",amount(r.health),amount(r.shield)) or L["从技能说明提取，复杂机制请校正"])
         self.values[1]:SetText(amount(r.first));self.values[2]:SetText(amount(r.tickBeforeAbsorb));self.values[3]:SetText(amount(r.total))
         self.aoe:SetText(L[input.aoe and "范围伤害：开" or "范围伤害：关"])
         self.kind:SetText(L["伤害类型"]..": "..(input.firstSchool==input.tickSchool and L[schoolNames[input.firstSchool] or "未记录"] or L["分段类型"]))
         self.confirm:SetText(L[input.confirmed and "参数已确认" or "确认参数"])
+        self.editToggle:SetText(L[r.status=="unknown" and "补全伤害参数" or "校正伤害参数"])
         self:RenderEffects()
     end
     function v:RenderEffects()
@@ -83,30 +113,30 @@ function M:CreateSurvivalView(owner)
         self.previous:SetEnabled(self.offset>0);self.next:SetEnabled(self.offset+10<#list)
     end
     function v:Open()
-        self.active=true;self.manual=false;self.group,self.offset=1,0
+        self.active=true;self.manual=false;self.editing=false;self.group,self.offset=1,0
         self.stats=S:Snapshot(self.stats,owner.enemy.level)
         self:LoadDamage()
-        self.name:SetText((M:SpellName(owner.selected) or L["技能"]).."  ·  "..owner.selected)
+        self.name:SetText(M:SpellName(owner.selected) or L["技能"]);self.spellIcon:SetTexture(C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(owner.selected))
         owner:StopDrag();owner.model:Hide();owner.modelMessage:Hide();owner.reset.frame:Hide();owner.skillArea:Hide()
         owner.abilities:Hide();owner.previous.frame:Hide();owner.next.frame:Hide();owner.pageLabel:Hide();owner.survivalButton.frame:Hide()
-        self.viewport:Show();self.frame:Show();owner.context:Resize(590);resize();self.bar:SetValue(0);self:Render()
+        self.toolbar:Show();self.viewport:Show();self.frame:Show();self:Layout();self.bar:SetValue(0);self:Render();owner:SetHint(L["勾选外援，比较承伤；右上角返回怪物资料"])
     end
     function v:Close()
-        self.active=false;self.frame:Hide();self.viewport:Hide();self.bar:StopDrag()
+        self.active=false;self.toolbar:Hide();self.spellIcon:SetTexture(nil);self.frame:Hide();self.viewport:Hide();self.bar:StopDrag()
         for _,field in pairs(self.fields) do field:ClearFocus() end
         for _,row in ipairs(self.rows) do row.effect=nil;row.pressed=nil;row.icon:SetTexture(nil);row.label:SetText("");C:HideTooltip(row.frame) end
         for key in pairs(self.selected) do self.selected[key]=nil end
         self.stats,self.input,self.result,self.list=nil,nil,nil,nil
         C:HideTooltip(self.passive.frame)
     end
-    button(L["怪物资料"],0,0,86,function() v:Close();owner.model:Show();owner.modelMessage:Show();owner.reset.frame:Show();owner.skillArea:Show();owner.abilities:Show();owner:RenderSkills() end)
-    button(L["刷新属性"],208,0,90,function() v:Refresh() end)
-    v.levelLabel=text("body",432,5,76,18)
-    button("−",396,0,28,function() v.level=math.max(0,v.level-1);v:Render() end)
-    button("+",510,0,28,function() v.level=math.min(35,v.level+1);v:Render() end)
-    v.name=text("body",0,34,574,18);Theme:SetTextColor(v.name,"text")
-    v.statsLabel=text("meta",0,60,460,30)
-    v.passive=button(L["已计入被动"],470,56,110,function() end)
+    v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(28,28);v.spellIcon:SetPoint("LEFT",0,0);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
+    v.name=text("title",38,5,304,20,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
+    v.levelLabel=text("body",410,6,80,18,v.toolbar);v.levelLabel:SetJustifyH("CENTER")
+    v.minus=button("−",378,0,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.toolbar)
+    v.plus=button("+",496,0,28,function() v.level=math.min(35,v.level+1);v:Render() end,nil,v.toolbar)
+    v.refresh=button(L["刷新"],536,0,48,function() v:Refresh() end,nil,v.toolbar)
+    v.statsLabel=text("meta",0,0,456,24)
+    v.passive=button(L["已计入被动"],464,0,120,function() end)
     v.passive.frame:HookScript("OnEnter",function()
         if not v.active then return end
         local lines={}
@@ -114,41 +144,45 @@ function M:CreateSurvivalView(owner)
         C:ShowTooltip(v.passive.frame,{title=L["已计入被动"],description=#lines>0 and table.concat(lines,"\n") or L["没有匹配的减伤被动"],hint=L["生命、护甲与全能已含自身属性加成"]})
     end)
     v.passive.frame:HookScript("OnLeave",function() C:HideTooltip(v.passive.frame) end)
-    v.status=text("title",0,88,584,22);v.summary=text("meta",0,114,584,18)
+    v.status=text("title",0,32,584,22);v.summary=text("meta",0,58,584,18)
     v.values={}
     for i,caption in ipairs({"首段承伤","每跳承伤（吸收前）","完整承伤（不计治疗）"}) do
-        text("meta",(i-1)*196,146,188,18):SetText(L[caption])
-        v.values[i]=text("title",(i-1)*196,168,188,22);Theme:SetTextColor(v.values[i],"text")
+        text("meta",(i-1)*196,88,188,18):SetText(L[caption])
+        v.values[i]=text("title",(i-1)*196,108,188,22);Theme:SetTextColor(v.values[i],"text")
     end
+    v.editToggle=button(L["校正伤害参数"],0,136,200,function() v.editing=not v.editing;v:Layout() end,"right")
+    v.editor=CreateFrame("Frame",nil,v.frame);v.editor:SetPoint("TOPLEFT",0,-168);v.editor:SetSize(584,136);scrollable(v.editor)
     for i,key in ipairs({"first","tick","ticks"}) do
-        text("meta",(i-1)*196,202,188,18):SetText(L[({"首段基础伤害","每跳基础伤害","持续跳数"})[i]])
-        local edit=CreateFrame("EditBox",nil,v.frame);edit:SetPoint("TOPLEFT",(i-1)*196,-222);edit:SetSize(176,26)
+        text("meta",(i-1)*196,0,188,18,v.editor):SetText(L[({"首段基础伤害","每跳基础伤害","持续跳数"})[i]])
+        local edit=CreateFrame("EditBox",nil,v.editor);edit:SetPoint("TOPLEFT",(i-1)*196,-22);edit:SetSize(176,26)
         edit:SetAutoFocus(false);edit:SetMaxLetters(12);edit:SetFontObject("GameFontHighlight");Theme:SetFont(edit,"body");edit:SetTextInsets(8,8,0,0)
-        C:StyleEditBox(edit);v.fields[key]=edit
-        edit:SetScript("OnTextChanged",function()
-            if not v.active or v.updating then return end
+        C:StyleEditBox(edit);v.fields[key]=edit;scrollable(edit)
+        edit:SetScript("OnTextChanged",function(_,userInput)
+            if not v.active or v.updating or userInput==false then return end
             v.manual=true;v.input[key]=tonumber(edit:GetText());v.input.confirmed=false;v:Render()
         end)
-        edit:SetScript("OnEnterPressed",function() edit:ClearFocus();v.input.confirmed=true;v:Render() end)
+        edit:SetScript("OnEnterPressed",function() v:Confirm() end)
         edit:SetScript("OnEscapePressed",function() edit:ClearFocus() end)
     end
-    v.kind=button("",0,260,194,function()
+    v.kind=button("",0,60,194,function()
         local at=0;for i,k in ipairs(schools) do if k==v.input.firstSchool then at=i end end
         local kind=schools[at%3+1];v.manual=true;v.input.firstSchool,v.input.tickSchool=kind,kind;v.input.confirmed=false;v:Render()
-    end)
-    v.aoe=button("",208,260,150,function() v.manual=true;v.input.aoe=not v.input.aoe;v.input.confirmed=false;v:Render() end)
-    v.confirm=button("",432,260,142,function() for _,f in pairs(v.fields) do f:ClearFocus() end;v.input.confirmed=true;v:Render() end)
+    end,nil,v.editor)
+    v.aoe=button("",208,60,170,function() v.manual=true;v.input.aoe=not v.input.aoe;v.input.confirmed=false;v:Render() end,nil,v.editor)
+    v.confirm=button(L["确认参数"],432,60,142,function() v:Confirm() end,nil,v.editor)
+    text("meta",0,98,574,30,v.editor):SetText(L["填写说明中的基础伤害；持续技能需补全跳数"])
+    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,216);scrollable(v.effects)
     for i,caption in ipairs(groupNames) do
-        v.tabs[i]=button(L[caption],(i-1)*150,300,136,function() v.group=i;v.offset=0;v:RenderEffects() end)
+        v.tabs[i]=button(L[caption],(i-1)*150,0,136,function() v.group=i;v.offset=0;v:RenderEffects() end,nil,v.effects)
     end
-    v.previous=button("",504,300,26,function() v.offset=math.max(0,v.offset-10);v:RenderEffects() end,"left")
-    v.next=button("",544,300,26,function() v.offset=v.offset+10;v:RenderEffects() end,"right")
+    v.previous=button("",504,0,26,function() v.offset=math.max(0,v.offset-10);v:RenderEffects() end,"left",v.effects)
+    v.next=button("",544,0,26,function() v.offset=v.offset+10;v:RenderEffects() end,"right",v.effects)
     for i=1,10 do
         local row
-        row=button("",((i-1)%2)*294,336+math.floor((i-1)/2)*28,284,function()
+        row=button("",((i-1)%2)*294,32+math.floor((i-1)/2)*28,284,function()
             if row.pressed~=row.generation or not row.effect then return end
             row.pressed=nil;local id=row.effect.id;v.selected[id]=not v.selected[id];v:Render()
-        end)
+        end,nil,v.effects)
         row.label:ClearAllPoints();row.label:SetPoint("LEFT",48,0);row.label:SetPoint("RIGHT",-2,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
         row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetPoint("LEFT",20,0);row.icon:SetSize(22,22);row.icon:SetTexCoord(.07,.93,.07,.93)
         local box=row.frame:CreateTexture(nil,"BACKGROUND");box:SetPoint("LEFT",2,0);box:SetSize(10,10);Theme:SetColorTexture(box,"fieldBorder")
@@ -163,6 +197,6 @@ function M:CreateSurvivalView(owner)
         row.frame:HookScript("OnLeave",function() C:HideTooltip(row.frame) end)
         v.rows[i]=row
     end
-    text("meta",0,486,584,30):SetText(L["满血估算 · 吸收使用自身属性 · 不模拟后续治疗与效果到期"])
+    text("meta",0,184,574,32,v.effects):SetText(L["满血估算 · 吸收使用自身属性 · 不模拟后续治疗与效果到期"])
     return v
 end

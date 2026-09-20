@@ -412,6 +412,22 @@ mount()
 view.survivalButton.frame.scripts.OnClick()
 local calculator=assert(view.calculator)
 assert(calculator.active and not view.model:IsShown() and calculator.result.status=="unknown")
+calculator.fields.first.scripts.OnTextChanged(calculator.fields.first,false)
+assert(not calculator.manual,"programmatic text updates do not become user edits")
+calculator.viewport:SetHeight(100)
+calculator.viewport.scripts.OnSizeChanged()
+calculator.viewport.scripts.OnMouseWheel(calculator.viewport,-1)
+local scrollOne=calculator.bar.value
+calculator.viewport.scripts.OnMouseWheel(calculator.viewport,-1)
+assert(scrollOne>0 and calculator.bar.value>scrollOne,"repeated wheel must advance the scroll position")
+calculator.rows[1].frame.scripts.OnMouseWheel(calculator.rows[1].frame,-1)
+assert(calculator.bar.value>scrollOne+32,"effect row forwards wheel")
+local beforeFieldWheel=calculator.bar.value
+calculator.fields.first.scripts.OnMouseWheel(calculator.fields.first,-1)
+assert(calculator.bar.value>beforeFieldWheel,"editor forwards wheel")
+calculator.editToggle.frame.scripts.OnClick()
+assert(calculator.editing and calculator.editor:IsShown())
+assert(calculator.kind.frame:GetParent()==calculator.editor,"school control belongs to folded editor")
 calculator.stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=0,spec=70}
 calculator.input.firstSchool,calculator.input.tickSchool="magic","magic"
 calculator.input.tooltipVers=.2;calculator.level=1
@@ -430,6 +446,12 @@ row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick(
 assert(calculator.selected[465],"current effect click toggles")
 calculator.tabs[3].frame.scripts.OnClick();calculator.next.frame.scripts.OnClick()
 assert(calculator.rows[1].effect,"external pagination stays usable")
+local selectedSpell,savedPage,savedFacing=view.selected,view.page,view.facing
+assert(view:Back() and not calculator.active and view.model:IsShown() and view.skillArea:IsShown())
+assert(view.selected==selectedSpell and view.page==savedPage and view.facing==savedFacing,"back preserves creature state")
+assert(not view:Back(),"creature root delegates back to Host")
+view.survivalButton.frame.scripts.OnClick()
+assert(not calculator.editing and calculator.bar.value==0,"reopen resets editor and scroll")
 view:Unmount()
 assert(not calculator.active and not calculator.stats and not calculator.input and not next(calculator.selected))
 local warmFrames=#frames

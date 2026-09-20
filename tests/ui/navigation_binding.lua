@@ -183,3 +183,15 @@ p:Hide("interrupt-closing",true)
 assert(not p.frame:IsShown() and not p._motionClosing,"immediate close must finish an active close")
 Lychee.UI.Motion.Presence=oldPresence
 print("Generic immediate close PASS cleanup and interruption of active close")
+-- Header back delegates one level to the active view before leaving it.
+p:Hide('reset');p:Show();p:SetQueryMode('')
+local depth,unmounted=1,0
+assert(p:OpenView({create=function() return {
+    Back=function() if depth>0 then depth=depth-1;return true end;return false end,
+    Unmount=function() unmounted=unmounted+1 end,
+} end},{},{}))
+p.close.scripts.OnClick(p.close,'LeftButton')
+assert(depth==0 and p.viewHost:IsActive() and unmounted==0,'header back must return inside the view before exiting')
+p.close.scripts.OnClick(p.close,'LeftButton')
+assert(not p.viewHost:IsActive() and unmounted==1,'root view back returns to search')
+print('View header nested back PASS')

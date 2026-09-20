@@ -107,4 +107,11 @@ I.ProviderLocaleData["builtin.ldt"] = {
     ["勾选模拟此效果"] = "Select to simulate this effect",
     ["满血估算 · 吸收使用自身属性 · 不模拟后续治疗与效果到期"] = "Full health · Absorbs use your stats · No healing or expiry simulation",
     ["物理"] = "Physical",
+    ["计算所选技能"] = "Calculate selected ability",
+    ["刷新"] = "Refresh",
+    ["校正伤害参数"] = "Adjust damage values",
+    ["补全伤害参数"] = "Complete damage values",
+    ["请补全持续跳数"] = "Enter the number of periodic ticks",
+    ["填写说明中的基础伤害；持续技能需补全跳数"] = "Use base tooltip damage; enter ticks for periodic damage",
+    ["勾选外援，比较承伤；右上角返回怪物资料"] = "Select defensives to compare damage; back returns to creature details",
 }

@@ -85,3 +85,6 @@ end
 
 仓库回归：`lua tests/ui/view_lifecycle.lua`与`lua tests/ui/interaction_smoke.lua`。
 离线替身只证明逻辑与计数，布局、保护操作和客户端事件顺序仍需实机验证。
+
+
+视图实例可选实现 `Back()`：返回 `true` 表示已返回内部上一层，Host 保持挂载；返回 `false`/`nil` 或未实现时，右上角返回退出至搜索。异常保留当前视图并报告；回调引发替换/关闭时不再关闭新的视图。`Unmount`/`Dispose`、战斗与直接关闭不经过 `Back`。状态归 Provider；Host 不读取业务页面名。

@@ -57,3 +57,6 @@ This illustrates your own asynchronous controller: initialize generation yoursel
 Check first open/state/parent changes and unchanged action args; 100 reopen cycles with stable Frame/Region counts; zero view events/timers after hide and owner resources after stop; independent background work survives search-off. Cover repeated cleanup, partial Mount, Update errors, late callbacks and unregister/re-register with a new handle. Count allocations, retained Lua heap and native objects separately. GC is not Frame destruction.
 
 Repository tests: `lua tests/ui/view_lifecycle.lua` and `lua tests/ui/interaction_smoke.lua`. Native rendering/protection/event order still requires client validation.
+
+
+A view instance may implement `Back()`. Return `true` to consume the header back action within the mounted view; return `false`/`nil`, or omit it, to return to search. Errors preserve the view and are reported. Reentrant replacement/close never closes the replacement. Unmount/Dispose, combat, and direct close bypass Back. The Provider owns its navigation state; Host does not inspect business page names.

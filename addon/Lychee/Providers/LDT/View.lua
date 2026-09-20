@@ -253,10 +253,12 @@ function M:CreateView()
             end
         end,L["拖动旋转 · 滚轮缩放"])
         self.reset.frame:SetPoint("TOPRIGHT",self.model,"TOPRIGHT",0,0)
-        self.survivalButton=nav(self.frame,L["生存计算"],120,function()
+        self.survivalButton=nav(self.frame,L["计算所选技能"],164,function()
             if self.active and self.selected and not (InCombatLockdown and InCombatLockdown()) then M:CreateSurvivalView(self):Open() end
         end)
-        self.survivalButton.frame:SetPoint("TOPLEFT",16,-368)
+        self.survivalButton.frame:SetPoint("TOPRIGHT",-16,-364)
+        self.survivalButton.label:ClearAllPoints();self.survivalButton.label:SetPoint("RIGHT",-4,0)
+        Theme:SetTextColor(self.survivalButton.label,"accentHover")
         self.abilities=label(self.frame,"body","text",308,-60,160,18)
         self.previous=nav(self.frame,"",20,function() if self.active then self.page=self.page-1;self:RenderSkills() end end,"left")
         self.next=nav(self.frame,"",20,function() if self.active then self.page=self.page+1;self:RenderSkills() end end,"right")
@@ -335,6 +337,13 @@ function M:CreateView()
         local ok=pcall(function() self.model:ClearModel();self.model:SetDisplayInfo(enemy.displayId);self.model:SetPortraitZoom(0);self.model:SetCamDistanceScale(1);self.model:SetFacing(0) end)
         self.modelMessage:SetText(ok and "" or L["模型暂不可用"])
         self:BuildGroups(true);self:RenderSkills()
+    end
+    function panel:Back()
+        if not self.active or not self.calculator or not self.calculator.active then return false end
+        self.calculator:Close()
+        self.model:Show();self.modelMessage:Show();self.reset.frame:Show()
+        self.skillArea:Show();self.abilities:Show();self:RenderSkills();self:SetHint("")
+        return true
     end
     function panel:Unmount()
         self.context=nil

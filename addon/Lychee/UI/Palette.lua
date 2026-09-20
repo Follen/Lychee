@@ -120,7 +120,8 @@ function Palette:Create()
         onClick = function()
             if self.settingsOpen then
                 if not self.settingsView:Back() then self:CloseSettings() end
-            elseif self.viewHost:IsActive() then self:CloseView("header-back")
+            elseif self.viewHost:IsActive() then
+                if not self.viewHost:Back() then self:CloseView("header-back") end
             else self:Hide("close") end
         end,
     })
