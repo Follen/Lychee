@@ -232,7 +232,7 @@ function Components:CreateCheckbox(parent, options)
     local border,fill,short,long,mark
     if choice then
         mark=c.frame:CreateTexture(nil,"OVERLAY")
-        mark:SetSize(20,20);mark:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 8 or -8,0)
+        mark:SetSize(16,16);mark:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
         mark:SetTexture("Interface\\AddOns\\Lychee\\Media\\choice-checkbox.tga")
         c.indicator=mark
     else

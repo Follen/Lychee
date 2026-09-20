@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.3.30-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.3.31-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 </div>
 
-0.3.30: Refine checkbox contours with a shared four-state vector atlas and fewer UI regions.
+0.3.31: Reduce effect checkbox size while keeping the full row clickable.
 
 You remember a spell's name, but not which action bar it is on. You know which setting you want, but not which menu contains it. Lychee starts with **the name**: find it, then cast, use, switch, or open the relevant page.
 
@@ -235,6 +235,10 @@ Move the Chinese dedication to the acknowledgements footer, using its existing n
 ### 0.3.3
 
 A first-use bubble identifies the settings icon. Opening settings or choosing Got it dismisses it across characters on the account.
+
+### 0.3.31
+
+0.3.31: Reduce effect checkbox size while keeping the full row clickable.
 
 ### 0.3.30
 

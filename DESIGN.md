@@ -520,3 +520,5 @@ Checkbox必须使用Components:CreateCheckbox，不在业务页面自行绘制�
 ### 0.3.30 精绘选择标记（覆盖choice的过程绘制）
 
 choice标记使用原创 `assets/ui/choice-checkbox.svg`，由 `tools/build_choice_checkbox.py` 导出共享256×64 RGBA四态图集（64 KiB原始像素）。单元64×64，显示20×20含透明边距，视觉轮廓约16；细线圆角、暗底、圆头连续白勾。四态为未选、未选悬停、选中、已生效禁用；禁用未选复用未选并降透明度。hover使用低饱和荔枝红边框，选中红底白勾；行背景沿用既有语义。每个choice仅一个标记Texture，替代原1 Frame/16 regions，12行减少12 Frame和180 regions；共享纹理新增64 KiB，不能把对象数直接折算内存。默认Checkbox保持原样。状态与透明度均缓存，无新增动画或驱动。
+
+0.3.31尺寸修订：choice图集显示16×16，实际轮廓约12×12，水平锚点从8调整至10以保持中心。整行点击区域与图标/文字位置不变；不增加运行资源。
