@@ -34,6 +34,13 @@ assert(p.valid and p.first==600000 and p.tick==120000 and p.ticks==6 and p.aoe)
 assert(not S:Parse("恢复100000点生命值，持续10秒").valid)
 assert(not S:Parse("造成100000点伤害").valid)
 assert(not S:Parse("造成100000点火焰伤害，然后造成200000点冰霜伤害").valid)
+-- A ground effect has useful per-hit data even when duration is player-dependent.
+local partial=S:Parse("对所有敌人造成600000点火焰伤害，每1秒对进入区域的玩家造成120000点火焰伤害。")
+partial.confirmed=partial.damageValid;partial.level=1;partial.boss=false
+S:Calculate(stats,partial,{},out)
+assert(out.first and out.tickBeforeAbsorb and not out.total and out.status=="needsDuration","missing duration must retain known damage without claiming full survival")
+partial.ticks=6;S:Calculate(stats,partial,{},out)
+assert(out.total and out.complete,"adding ticks completes the calculation")
 -- Snapshot uses only current class/spec/known spells and never duplicates stat passives.
 function UnitHealthMax() return 1000000 end
 function UnitArmor() return 0,1000 end

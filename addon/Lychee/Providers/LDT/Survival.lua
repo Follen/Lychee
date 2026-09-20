@@ -151,7 +151,8 @@ function S:Parse(description,out)
     end
     out.aoe=t:find("所有",1,true)~=nil or t:find("范围",1,true)~=nil or t:find("附近",1,true)~=nil or t:find("all ",1,true)~=nil or t:find("nearby",1,true)~=nil
     if out.tick>0 and interval and duration and interval>0 and duration>=interval then out.ticks=math.floor(duration/interval) end
-    out.valid=count>0 and count<=2 and not out.ambiguous and (out.tick==0 or out.ticks>0 and out.ticks<=1000)
+    out.damageValid=count>0 and count<=2 and not out.ambiguous
+    out.valid=out.damageValid and (out.tick==0 or out.ticks>0 and out.ticks<=1000)
     return out
 end
 local EMPTY={}
@@ -193,7 +194,7 @@ function S:Calculate(stats,input,selected,out)
     if not stats.valid or not input.confirmed then out.status="unknown";return out end
     local multiplier=self:Multiplier(input.level,input.boss,stats.season)
     if not multiplier or not number(input.first) or not number(input.tick) or not number(input.ticks) or input.ticks>1000 or input.ticks%1~=0
-        or (input.first==0 and input.tick==0) or (input.tick>0 and input.ticks==0) then out.status="unknown";return out end
+        or (input.first==0 and input.tick==0) then out.status="unknown";return out end
     local health,vers,versDR=stats.health,stats.vers,stats.versDR
     local active=stats.active or EMPTY
     for _,e in ipairs(self.effects) do
@@ -218,7 +219,13 @@ function S:Calculate(stats,input,selected,out)
     out.firstBeforeAbsorb=out.rawFirst*firstFactor;out.tickBeforeAbsorb=out.rawTick*tickFactor
     out.health,out.shield,out.multiplier=health,absorb+magicAbsorb,multiplier
     out.first,absorb,magicAbsorb=hit(out.firstBeforeAbsorb,input.firstSchool,absorb,magicAbsorb)
-    out.total=out.first;out.remaining=health-out.first
+    out.complete=input.tick==0 or input.ticks>0
+    out.remaining=health-out.first
+    if not out.complete then
+        out.status=out.remaining<=0 and "lethal" or "needsDuration"
+        return out
+    end
+    out.total=out.first
     out.status=out.remaining<=0 and "lethal" or "survives"
     for i=1,input.ticks do
         local value

@@ -425,6 +425,9 @@ assert(calculator.bar.value>scrollOne+32,"effect row forwards wheel")
 local beforeFieldWheel=calculator.bar.value
 calculator.fields.first.scripts.OnMouseWheel(calculator.fields.first,-1)
 assert(calculator.bar.value>beforeFieldWheel,"editor forwards wheel")
+assert(calculator.editing and not calculator.metrics:IsShown(),"missing data opens editor without empty metrics")
+calculator.editToggle.frame.scripts.OnClick()
+assert(not calculator.editing)
 calculator.editToggle.frame.scripts.OnClick()
 assert(calculator.editing and calculator.editor:IsShown())
 assert(calculator.kind.frame:GetParent()==calculator.editor,"school control belongs to folded editor")
@@ -451,9 +454,18 @@ assert(view:Back() and not calculator.active and view.model:IsShown() and view.s
 assert(view.selected==selectedSpell and view.page==savedPage and view.facing==savedFacing,"back preserves creature state")
 assert(not view:Back(),"creature root delegates back to Host")
 view.survivalButton.frame.scripts.OnClick()
-assert(not calculator.editing and calculator.bar.value==0,"reopen resets editor and scroll")
+assert(calculator.editing and calculator.bar.value==0,"reopen shows missing parameters and resets scroll")
 view:Unmount()
 assert(not calculator.active and not calculator.stats and not calculator.input and not next(calculator.selected))
+-- Public controlled checkbox: state painting cannot trigger business callbacks.
+local changes=0
+local checkbox=Lychee.UI.Components:CreateCheckbox(parent,{onClick=function() changes=changes+1 end})
+checkbox:SetChecked(true);assert(checkbox.check:IsShown())
+checkbox:SetEnabled(false);checkbox.frame.scripts.OnClick();assert(changes==0)
+checkbox.frame.scripts.OnEnter();assert(checkbox._state=="disabled")
+checkbox:SetEnabled(true);checkbox.frame.scripts.OnClick();assert(changes==1)
+checkbox:SetChecked(false);assert(not checkbox.check:IsShown())
+checkbox.frame.scripts.OnHide();assert(not checkbox._hovered)
 local warmFrames=#frames
 collectgarbage("collect");local uiBase=collectgarbage("count")
 for _=1,50 do mount();view.survivalButton.frame.scripts.OnClick();view:Unmount() end

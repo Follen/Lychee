@@ -114,4 +114,11 @@ I.ProviderLocaleData["builtin.ldt"] = {
     ["请补全持续跳数"] = "Enter the number of periodic ticks",
     ["填写说明中的基础伤害；持续技能需补全跳数"] = "Use base tooltip damage; enter ticks for periodic damage",
     ["勾选外援，比较承伤；右上角返回怪物资料"] = "Select defensives to compare damage; back returns to creature details",
+    ["说明未提供持续时间，请填写预计承受的跳数"] = "No duration is provided. Enter how many ticks you expect to take.",
+    ["检查下方伤害参数后开始计算"] = "Check the damage values below to calculate.",
+    ["满血估算 · 不计后续治疗"] = "Full-health estimate · No healing included",
+    ["首段可承受，累计伤害待补全"] = "First hit survivable; total needs a tick count",
+    ["待补全跳数"] = "Ticks needed",
+    ["填写跳数"] = "Enter ticks",
+    ["计算依据与校正"] = "Calculation details & adjustments",
 }
