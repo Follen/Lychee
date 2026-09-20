@@ -35,9 +35,6 @@ local function report(entry, code, field)
     P.diagnostics[#P.diagnostics + 1] = entry.lastError
     if #P.diagnostics > 32 then table.remove(P.diagnostics, 1) end
 end
-local function validID(id)
-    return type(id) == "string" and #id > 0 and #id <= 64 and id:match("^[a-z0-9][a-z0-9%.%-]*$")
-end
 local function keys(value, allowed, field)
     for key in pairs(value) do if not allowed[key] then return failure("INVALID_SCHEMA", field .. "." .. tostring(key)) end end
     return true
@@ -92,97 +89,84 @@ function P:CancelQueries(reason, owner)
     return epoch
 end
 
+local function canonical(entry,record)
+    return I.Search.StaticIndex:GetRecord(entry.id..":records",record.id) or record
+end
+local function adoptRecords(entry)
+    for index,record in ipairs(entry.records) do
+        local owned=canonical(entry,record)
+        entry.records[index],entry.recordMap[record.id]=owned,owned
+    end
+end
+function P:UpdateCatalog(entry,source,delta)
+    if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end
+    if entry.updating then return nil, {code="UPDATE_IN_PROGRESS",providerID=entry.id,retryable=true} end
+    if not active(entry) then return failure("PROVIDER_DISABLED", nil, entry.id) end
+    local valid, why = I.Boundary:Validate(delta, "update", { maxFields = P.entryLimit, maxDepth = 12 })
+    if not valid then return nil, why end
+    if type(delta) ~= "table" then return failure("INVALID_SCHEMA", "update") end
+    for _, field in ipairs({ "replace", "upsert", "remove" }) do
+        if delta[field] ~= nil and type(delta[field]) ~= "table" then return failure("INVALID_SCHEMA", "update." .. field) end
+    end
+    valid, why = keys(delta, { replace=true, upsert=true, remove=true }, "update"); if not valid then return nil, why end
+    if delta.replace ~= nil and (delta.upsert ~= nil or delta.remove ~= nil) then return failure("INVALID_SCHEMA", "update.replace") end
+    if delta.replace ~= nil then
+        local nextList, nextMap = catalogRecords(entry, delta.replace)
+        if not nextList then return nil, nextMap end
+        entry.updating = true
+        local committed, commitError, _, changed = source:CommitSnapshot(I.Registry:_OwnRecords(nextList, entry.id))
+        entry.updating = nil
+        if not committed then return nil, commitError end
+        if not changed then return true end
+        entry.records, entry.recordMap, entry.recordOrder = nextList, nextMap, {}
+        for index, record in ipairs(nextList) do entry.recordOrder[record.id] = index end
+        adoptRecords(entry)
+    else
+        local additions, addedMap = catalogRecords(entry, delta.upsert or {})
+        if not additions then return nil, addedMap end
+        valid, why = array(delta.remove or {}, P.entryLimit, "update.remove"); if not valid then return nil, why end
+        local removed, count = {}, #entry.records
+        for _, id in ipairs(delta.remove or {}) do
+            if type(id) ~= "string" or id == "" or addedMap[id] or removed[id] then return failure("INVALID_SCHEMA", "update.remove") end
+            removed[id] = true
+            if entry.recordMap[id] then count = count - 1 end
+        end
+        for _, record in ipairs(additions) do if not entry.recordMap[record.id] then count = count + 1 end end
+        if count > P.entryLimit then return failure("RESULT_LIMIT", "update") end
+        entry.updating = true
+        local committed, commitError, _, changed = source:ApplyDelta(I.Registry:_OwnRecords(additions, entry.id), delta.remove or {})
+        entry.updating = nil
+        if not committed then return nil, commitError end
+        if not changed then return true end
+        for id in pairs(removed) do
+            local index = entry.recordOrder[id]
+            if index then
+                local last = entry.records[#entry.records]
+                entry.records[index], entry.recordOrder[last.id] = last, index
+                entry.records[#entry.records] = nil
+                entry.recordOrder[id], entry.recordMap[id] = nil, nil
+            end
+        end
+        for _, record in ipairs(additions) do
+            record = canonical(entry,record)
+            local index = entry.recordOrder[record.id] or #entry.records + 1
+            entry.records[index], entry.recordMap[record.id], entry.recordOrder[record.id] = record, record, index
+        end
+    end
+    entry.revision = entry.revision + 1
+    local session=I.Search.Session
+    if session and session.HomeOwnerChanged then
+        session:HomeOwnerChanged(entry.id,"updated")
+        session:RefreshHomePresentation()
+    end
+    if not (C_Timer and C_Timer.NewTimer) and I.Search.Session then I.Search.Session:RefreshSource() end
+    return true
+end
+
 function P:Register(definition)
-    local ok, err = I.Boundary:Validate(definition, "provider", {
-        maxFields = P.entryLimit, maxDepth = 12,
-        callbacks = { readEntry = true, query = true, resolve = true, resolveTarget=true, describe=true, observe=true, prepare=true, releaseSearch=true, run = true, begin = true, create = true, onEnable = true, onDisable = true },
-    })
-    if not ok then return nil, err end
-    if type(definition) ~= "table" then return failure("INVALID_SCHEMA", "provider") end
-    ok, err = keys(definition, { id=true, apiVersion=true, version=true, title=true, addon=true, description=true, icon=true, resource=true, targetView=true,
-        entries=true, entryMode=true, readEntry=true, query=true, resolve=true, resolveTarget=true, describe=true, observe=true, prepare=true, releaseSearch=true, searchable=true, searchMode=true, searchGlobal=true, searchPrefixes=true, searchKeywords=true, actions=true, drags=true, views=true, scope=true, i18n=true, onEnable=true, onDisable=true }, "provider")
-    if not ok then return nil, err end
-    if not validID(definition.id) or type(definition.version) ~= "string" or definition.version == "" then return failure("INVALID_SCHEMA", "provider.id/version") end
-    if not _G.Lychee:Supports(definition.apiVersion) then return failure("UNSUPPORTED_API", "apiVersion") end
-    if I.Search.ProviderPolicy then
-        local valid,field=I.Search.ProviderPolicy:ValidateDefinition(definition)
-        if not valid then return failure("INVALID_SCHEMA",field) end
-    end
-    if definition.searchable~=nil then
-        if type(definition.searchable)~="boolean" then return failure("INVALID_SCHEMA","searchable") end
-    end
-    if definition.scope ~= nil and type(definition.scope) ~= "table" then return failure("INVALID_SCHEMA", "scope") end
-    ok, err = I.Boundary:ValidateScope(definition.scope or {},"scope")
-    if not ok then return nil, err end
-    local localizer
-    if definition.i18n~=nil then
-        if not I.ProviderLocales then return failure("UNSUPPORTED_API","i18n") end
-        localizer,err=I.ProviderLocales:Compile(definition.i18n)
-        if not localizer then return nil,err end
-    end
-    local inputEntries,ownedDefinition=definition.entries,{}
-    for key,value in pairs(definition) do if key~="entries" and key~="i18n" then ownedDefinition[key]=copy(value) end end
-    definition=ownedDefinition
-    -- An omitted product scope targets retail; other clients require an explicit declaration.
-    if not definition.scope or (not definition.scope.product and not definition.scope.products) then
-        definition.scope=definition.scope or {};definition.scope.product="retail"
-    end
-    definition.entries=inputEntries
-    if localizer then
-        definition.title,err=localizer:Resolve(definition.title)
-        if not definition.title then
-            if err then return nil,err end
-            return failure("INVALID_SCHEMA","provider.title")
-        end
-        if definition.description~=nil then
-            definition.description,err=localizer:Resolve(definition.description)
-            if not definition.description then return nil,err or {code="INVALID_SCHEMA",field="provider.description"} end
-        end
-        for _,field in ipairs({"actions","drags"}) do
-            if type(definition[field])=="table" then
-                for _,action in pairs(definition[field]) do
-                    if type(action)=="table" and action.title then
-                        action.title,err=localizer:Resolve(action.title)
-                        if not action.title then return nil,err end
-                    end
-                end
-            end
-        end
-    end
-    if definition.description~=nil and (type(definition.description)~="string" or #definition.description>4096) then
-        return failure("INVALID_SCHEMA","provider.description")
-    end
-    if definition.entryMode~=nil and definition.entryMode~="entries" and definition.entryMode~="documents" then return failure("INVALID_SCHEMA","entryMode") end
-    if (definition.entryMode=="documents")~=(type(definition.readEntry)=="function") then return failure("INVALID_SCHEMA","readEntry") end
-    if definition.entries == nil and type(definition.query) ~= "function" and definition.actions == nil then return failure("INVALID_SCHEMA", "entries/query") end
-    if definition.entries ~= nil and type(definition.entries) ~= "table" then return failure("INVALID_SCHEMA", "entries") end
-    for _, field in ipairs({ "readEntry", "query", "resolve", "resolveTarget", "describe", "observe", "prepare", "releaseSearch", "onEnable", "onDisable" }) do
-        if definition[field] ~= nil and type(definition[field]) ~= "function" then return failure("INVALID_SCHEMA", field) end
-    end
-    for _, field in ipairs({ "actions", "drags", "views" }) do
-        if definition[field] ~= nil and type(definition[field]) ~= "table" then return failure("INVALID_SCHEMA", field) end
-        for id, value in pairs(definition[field] or {}) do
-            local callback = field == "actions" and "run" or field == "drags" and "begin" or "create"
-            if not validID(id) or type(value) ~= "table" or type(value[callback]) ~= "function" then return failure("INVALID_SCHEMA", field) end
-            local allowed = field == "views" and { create=true, stateSchema=true } or field=="actions" and {title=true,run=true,schema=true,actionVersion=true,execution=true,absolute=true,conflictKey=true,panel=true} or {title=true,[callback]=true}
-            ok, err = keys(value, allowed, field .. "." .. id); if not ok then return nil, err end
-            if field=="actions" and value.schema~=nil then
-                local schema,problem=I.Invocations:ValidateAction(value)
-                if not schema then return nil,problem end
-                value.schema=schema
-            end
-            if field ~= "views" and (type(value.title) ~= "string" or value.title == "") then return failure("INVALID_SCHEMA", field .. ".title") end
-            if field == "views" and type(value.stateSchema) ~= "table" then return failure("INVALID_SCHEMA", "views.stateSchema") end
-            if field == "views" then
-                ok, err = I.Boundary:Validate(value.stateSchema, "views.stateSchema")
-                if not ok then return nil, err end
-            end
-        end
-    end
-    if definition.addon~=nil or I.AddonDiscovery and I.AddonDiscovery:Get(definition.id) then
-        local valid,problem=I.AddonDiscovery:ValidateRegistration(definition)
-        if not valid then return nil,problem end
-    end
+    local definition,localizer,inputEntries=I.ProviderDefinition:Compile(definition,self.entryLimit)
+    if not definition then return nil,localizer end
+    local ok,err
     self.instanceSequence = self.instanceSequence + 1
     local entry = { id = definition.id, instanceToken = self.instanceSequence, definition = definition, revision = 1, dynamic = {}, resolved = resolvedRecords(), readRecords=resolvedRecords(), dynamicEpoch = 0, localizer=localizer }
     local initial, map = catalogRecords(entry, inputEntries or {})
@@ -192,16 +176,6 @@ function P:Register(definition)
     for index, record in ipairs(initial) do entry.recordOrder[record.id] = index end
     definition.entries = nil
     local handle, internal, enabledBeforeCommit
-    local sourceID = entry.id .. ":records"
-    local function canonical(record)
-        return I.Search.StaticIndex:GetRecord(sourceID, record.id) or record
-    end
-    local function adoptRecords()
-        for index, record in ipairs(entry.records) do
-            local owned = canonical(record)
-            entry.records[index], entry.recordMap[record.id] = owned, owned
-        end
-    end
     local function start()
         if not internal then enabledBeforeCommit = true; return end
         if not active(entry) or entry.started then return end
@@ -238,7 +212,7 @@ function P:Register(definition)
     local draft
     draft, err = I.Registry:Begin({ id = entry.id, title = definition.title, version = definition.version,
         apiVersion="1.0.0",
-        onHostAttached = adoptRecords, onEnabled = start, onDisabled = stop }, { public = true })
+        onHostAttached = function() adoptRecords(entry) end, onEnabled = start, onDisabled = stop }, { public = true })
     if not draft then return nil, err end
     ok, err = draft:RegisterSearchSource({ id = "records", title = definition.title, version = 2, revision = 1,
         priority = 0, scope = definition.scope or {}, searchable=definition.searchable,
@@ -254,70 +228,7 @@ function P:Register(definition)
     if I.Search.ProviderPolicy then I.Search.ProviderPolicy:Invalidate() end
     local source = internal:GetSearchSource("records")
     handle = { id = entry.id }
-    function handle:Update(delta)
-        if P.entries[entry.id] ~= entry then return failure("STALE_HANDLE", nil, entry.id) end
-        if entry.updating then return nil, {code="UPDATE_IN_PROGRESS",providerID=entry.id,retryable=true} end
-        if not active(entry) then return failure("PROVIDER_DISABLED", nil, entry.id) end
-        local valid, why = I.Boundary:Validate(delta, "update", { maxFields = P.entryLimit, maxDepth = 12 })
-        if not valid then return nil, why end
-        if type(delta) ~= "table" then return failure("INVALID_SCHEMA", "update") end
-        for _, field in ipairs({ "replace", "upsert", "remove" }) do
-            if delta[field] ~= nil and type(delta[field]) ~= "table" then return failure("INVALID_SCHEMA", "update." .. field) end
-        end
-        valid, why = keys(delta, { replace=true, upsert=true, remove=true }, "update"); if not valid then return nil, why end
-        if delta.replace ~= nil and (delta.upsert ~= nil or delta.remove ~= nil) then return failure("INVALID_SCHEMA", "update.replace") end
-        if delta.replace ~= nil then
-            local nextList, nextMap = catalogRecords(entry, delta.replace)
-            if not nextList then return nil, nextMap end
-            entry.updating = true
-            local committed, commitError, _, changed = source:CommitSnapshot(I.Registry:_OwnRecords(nextList, entry.id))
-            entry.updating = nil
-            if not committed then return nil, commitError end
-            if not changed then return true end
-            entry.records, entry.recordMap, entry.recordOrder = nextList, nextMap, {}
-            for index, record in ipairs(nextList) do entry.recordOrder[record.id] = index end
-            adoptRecords()
-        else
-            local additions, addedMap = catalogRecords(entry, delta.upsert or {})
-            if not additions then return nil, addedMap end
-            valid, why = array(delta.remove or {}, P.entryLimit, "update.remove"); if not valid then return nil, why end
-            local removed, count = {}, #entry.records
-            for _, id in ipairs(delta.remove or {}) do
-                if type(id) ~= "string" or id == "" or addedMap[id] or removed[id] then return failure("INVALID_SCHEMA", "update.remove") end
-                removed[id] = true
-                if entry.recordMap[id] then count = count - 1 end
-            end
-            for _, record in ipairs(additions) do if not entry.recordMap[record.id] then count = count + 1 end end
-            if count > P.entryLimit then return failure("RESULT_LIMIT", "update") end
-            entry.updating = true
-            local committed, commitError, _, changed = source:ApplyDelta(I.Registry:_OwnRecords(additions, entry.id), delta.remove or {})
-            entry.updating = nil
-            if not committed then return nil, commitError end
-            if not changed then return true end
-            for id in pairs(removed) do
-                local index = entry.recordOrder[id]
-                if index then
-                    local last = entry.records[#entry.records]
-                    entry.records[index], entry.recordOrder[last.id] = last, index
-                    entry.records[#entry.records] = nil
-                    entry.recordOrder[id], entry.recordMap[id] = nil, nil
-                end
-            end
-            for _, record in ipairs(additions) do
-                record = canonical(record)
-                local index = entry.recordOrder[record.id] or #entry.records + 1
-                entry.records[index], entry.recordMap[record.id], entry.recordOrder[record.id] = record, record, index
-            end
-        end
-        entry.revision = entry.revision + 1
-        local session=I.Search.Session
-        if session and session.HomeOwnerChanged then
-            session:HomeOwnerChanged(entry.id,"updated")
-            if session.palette and session.palette.MarkHomeDirty then session.palette:MarkHomeDirty() end
-        end
-        if not (C_Timer and C_Timer.NewTimer) and I.Search.Session then I.Search.Session:RefreshSource() end
-        return true
-    end
+    function handle:Update(delta) return P:UpdateCatalog(entry,source,delta) end
     function handle:Invalidate()
         if P.entries[entry.id]~=entry then return failure("STALE_HANDLE",nil,entry.id) end
         if not active(entry) then return failure("PROVIDER_DISABLED",nil,entry.id) end
@@ -370,7 +281,7 @@ function P:Register(definition)
         local session=I.Search.Session
         if ok and P.entries[entry.id]==entry and session and session.HomeOwnerChanged then
             session:HomeOwnerChanged(entry.id,enabled and "enabled" or "disabled")
-            if session.palette and session.palette.MarkHomeDirty then session.palette:MarkHomeDirty() end
+            session:RefreshHomePresentation()
         end
         return ok,why
     end
@@ -758,3 +669,7 @@ P.CreateOperationResources=P.CreateViewResources
 function P:QueryTime()
     return GetTimePreciseSec and GetTimePreciseSec() or GetTime and GetTime() or 0
 end
+
+-- Internal read-only borrowing. Callers must not mutate or retain across lifecycle callbacks.
+function P:BorrowInstance(id) return self.entries[id] end
+function P:Instances() return next,self.entries,nil end

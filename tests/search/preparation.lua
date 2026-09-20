@@ -61,6 +61,7 @@ local function setup(packages)
     env:Event("PLAYER_LOGIN")
     assert(Lychee:IsReady())
     env.palette={visible=true,home=true,refreshes=0,publications={}}
+    function env.palette:AcceptsSearchState() return self.visible end
     function env.palette:ApplySearchState(_,_,pending,items,incomplete)
         self.pending=pending
         if items then self.publications[#self.publications+1]={items=items,pending=pending,incomplete=incomplete} end
@@ -68,7 +69,7 @@ local function setup(packages)
     end
     function env.palette:IsHomeVisible() return self.home end
     function env.palette:MarkHomeDirty() self.refreshes=self.refreshes+1 end
-    I.Search.Session:BindPalette(env.palette);I.Search.Session:Start()
+    I.Search.Session:BindPresenter(env.palette);I.Search.Session:Start()
     return I,env
 end
 local function inactive(I,env)

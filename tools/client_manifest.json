@@ -1,5 +1,5 @@
 {
-  "version": "0.2.9",
+  "version": "0.3.0",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -266,6 +266,15 @@
       ]
     },
     {
+      "path": "Core/ProviderDefinition.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Core/ProviderRuntime.lua",
       "products": [
         "retail",
@@ -428,6 +437,15 @@
       ]
     },
     {
+      "path": "UI/ActionCooldown.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "UI/Input.lua",
       "products": [
         "retail",
@@ -455,7 +473,25 @@
       ]
     },
     {
+      "path": "Core/ActionOutcome.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
       "path": "Core/ResultActionExecutor.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "Core/ActionStatus.lua",
       "products": [
         "retail",
         "classic",

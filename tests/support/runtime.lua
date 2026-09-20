@@ -15,7 +15,10 @@ function M.Load(profile,extra,options)
     if profile then for _,path in ipairs(assert(profiles[profile],"Unknown test profile")) do selected[path]=true end end
     for _,path in ipairs(extra or {}) do selected[path]=true end
     if selected["UI/ResultList.lua"] or selected["Secure/SecureActionBroker.lua"] then selected["Core/InteractionBinding.lua"]=true end
+    if selected["UI/ActionCooldown.lua"] then selected["Core/ActionStatus.lua"]=true end
     if selected["UI/Palette.lua"] then selected["UI/HomeView.lua"]=true;selected["UI/SocialLinks.lua"]=true end
+    if selected["Core/ProviderRuntime.lua"] then selected["Core/ProviderDefinition.lua"]=true end
+    if selected["Core/InvocationRuntime.lua"] or selected["Core/ResultActionExecutor.lua"] or selected["UI/Palette.lua"] or profile=="provider" then selected["Core/ActionOutcome.lua"]=true end
     if profile=="provider" then selected["SDK/CompactStore.lua"]=true;selected["Core/Catalog.lua"]=true;selected["Core/RecordCodec.lua"]=true;selected["Core/InvocationRuntime.lua"]=true;selected["PublicAPI/Invocation.lua"]=true end
     if selected["Core/Preparation.lua"] then selected["Search/SourceAccess.lua"]=true;selected["Search/ProviderPolicy.lua"]=true;selected["Core/AddonDiscovery.lua"]=true;selected["Core/AddonLoader.lua"]=true end
     local settingsProvider=selected["Providers/BlizzardSettings/Provider.lua"]

@@ -167,6 +167,10 @@ try {
     }
     & $lua.Source 'tests/search/search_checkpoint.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Search checkpoint failed' }
+    & $lua.Source 'tests/ui/cooldown_integration.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Cooldown UI integration failed' }
+    & $lua.Source 'tests/ui/action_cooldown.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Action cooldown/outcome failed' }
     & $lua.Source 'tests/search/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
     foreach ($test in @('performance/performance_startup','search/search_compile_regression','core/provider_record_ownership','core/provider_ingestion','ui/ui_runtime')) {

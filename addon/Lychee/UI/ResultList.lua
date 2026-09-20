@@ -54,7 +54,6 @@ end
 
 local function hideTooltip() Lychee.UI.Components:HideTooltip() end
 
-local scoreHeaders
 local function showTooltip(owner,title,detail)
     local kind, description, clickHint, dragHint
     if type(detail) == "table" then
@@ -80,9 +79,9 @@ local function showTooltip(owner,title,detail)
         description = detail
     end
     local rows=type(detail)=="table" and detail.searchRecord and detail.searchRecord.tooltipRows
-    if rows and not scoreHeaders then scoreHeaders={L["当季副本"],L["成绩"],L["分数"]} end
+    local headers=type(detail)=="table" and detail.searchRecord and detail.searchRecord.tooltipHeaders
     Lychee.UI.Components:ShowTooltip(owner,{title=title,meta=kind,description=description,hint=clickHint,dragHint=dragHint,
-        rows=rows,headers=scoreHeaders})
+        rows=rows,headers=headers})
 end
 
 function ResultList:HideTooltip() hideTooltip() end
@@ -110,6 +109,7 @@ local function renderRowState(row)
 end
 
 local function clearRow(row)
+    if _G.LycheeInternal.ActionCooldown then _G.LycheeInternal.ActionCooldown:Release(row) end
     row.snapshotOwner = nil
     _G.LycheeInternal.InteractionBinding:Bind(row, nil, nil, nil)
     row._matchTitle,row._matchSubtitle,row._matchQuery=nil,nil,nil
@@ -280,6 +280,7 @@ function ResultList:FreezePresentation()
     local binding = _G.LycheeInternal.InteractionBinding
     local executor = _G.LycheeInternal.ResultActionExecutor
     for _, row in ipairs(self.rows) do
+        if _G.LycheeInternal.ActionCooldown then _G.LycheeInternal.ActionCooldown:Release(row) end
         row.snapshotOwner = row.extensionID
         binding:Bind(row, nil, nil, nil)
         binding:Cancel(row); binding:Cancel(row.primaryTarget); binding:Cancel(row.dragger)
@@ -361,6 +362,7 @@ function ResultList:SetItems(items, session, generation, offset)
         cachedText(row, "primaryHint", row.primaryHint, "")
         setShown(row.dragger, row.dragDescriptor ~= nil)
         renderRowState(row); setShown(row, true)
+        if _G.LycheeInternal.ActionCooldown then _G.LycheeInternal.ActionCooldown:BindRow(row) end
         if changedIdentity and not wasFrozen and Lychee.UI.Motion then Lychee.UI.Motion:Reveal(row.title,"feedback");Lychee.UI.Motion:Reveal(row.subtext,"feedback") end
         else
             clearRow(row)

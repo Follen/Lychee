@@ -52,6 +52,8 @@ local pins={}
 for i=1,30 do pins[i]={entryID=tostring(i),title="Pin "..i} end
 LycheeInternal={Providers={entries={}},Registry={entries={}},UserPreferences={}}
 local I=LycheeInternal
+    function I.Providers:BorrowInstance(id) return self.entries[id] end
+    function I.Providers:Instances() return next,self.entries,nil end
 local mutations=0
 function I.UserPreferences:GetPins() return pins end
 function I.UserPreferences:Resolve(pin) resolves=resolves+1;return {text=pin.title,icon=1,sourceTitle="Source"} end
@@ -70,6 +72,7 @@ CreateFrame=frameFactory
 I.Search=I.Search or {}
 dofile(root.."Search/RuntimeIdentity.lua")
 dofile(root.."Providers/Definitions.lua")
+dofile(root.."Providers/Shared/Support.lua")
 dofile(root.."Core/ProviderManagement.lua")
 for _, name in ipairs({"Theme","Runtime","Components","SettingsView"}) do dofile(root.."UI/"..name..".lua") end
 for i=1,1000 do

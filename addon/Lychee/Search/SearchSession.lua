@@ -26,14 +26,14 @@ end
 function Session:_Publish(results, pending, incomplete)
     self.pending = pending == true
     self.incomplete = incomplete == true
-    local palette = self.palette
+    local palette = self.presenter
     if not palette then return false end
     return palette:ApplySearchState(self.session, self.generation, self.pending, results,self.incomplete)
 end
 
-function Session:BindPalette(palette)
+function Session:BindPresenter(palette)
     if not palette then return false end
-    self.palette = palette
+    self.presenter = palette
     self:_Publish(nil, self.pending,self.incomplete)
     return true
 end
@@ -59,8 +59,8 @@ function Session:Invalidate(reason)
     if query and type(query.Cancel) == "function" and not query:Cancel(reason, generation) then return self.generation end
     if session ~= self.session or generation ~= self.generation then return self.generation end
     self.lastInvalidation = reason
-    local palette = self.palette
-    self:_Publish(self.visible and palette and palette.visible and {} or nil, false)
+    local palette = self.presenter
+    self:_Publish(self.visible and palette and palette:AcceptsSearchState() and {} or nil, false)
     return self.generation
 end
 
@@ -87,8 +87,8 @@ end
 function Session:_Accept(results, generation, session, pending, incomplete)
     local current = self:IsCurrent(session, generation)
     if not current then return false end
-    local palette = self.palette
-    if not palette or not palette.visible then return false end
+    local palette = self.presenter
+    if not palette or not palette:AcceptsSearchState() then return false end
     if pending == nil then pending = I.Providers and I.Providers:HasPendingQuery() or false end
     if incomplete == nil then incomplete = I.Providers and I.Providers.HasQueryFailure and I.Providers:HasQueryFailure() or false end
     return self:_Publish(results, pending,incomplete)
@@ -175,7 +175,7 @@ end
 function Session:RefreshSource()
     if not self.sourceRefreshPending then return false end
     self.sourceRefreshPending = nil
-    if not self.visible or self.inputSuspended or not self.palette or not self.palette.visible or (InCombatLockdown and InCombatLockdown()) then return false end
+    if not self.visible or self.inputSuspended or not self.presenter or not self.presenter:AcceptsSearchState() or (InCombatLockdown and InCombatLockdown()) then return false end
     local currentSession, generation = self.session, self.generation
     local context = contextSnapshot(currentSession, generation, self.activeFilter)
     local token, results, operation, pending = I.Search.Query:Query(self.raw or "", context, generation, function(items, completed, waiting)
@@ -185,7 +185,7 @@ function Session:RefreshSource()
 end
 
 function Session:SourceChanged(reason)
-    local palette = self.palette
+    local palette = self.presenter
     if self.homeRefs and self.HomeOwnerChanged then self:HomeOwnerChanged(reason,"updated") end
     self.generation = self.generation + 1
     if I.Search.Query and not I.Search.Query:Cancel("source-" .. tostring(reason or "changed"), self.generation) then
@@ -271,8 +271,8 @@ function Session:QueueHomeRefresh(epoch)
     local ok,timer=pcall(C_Timer.NewTimer,0,function()
         if self.homeEpoch~=epoch then return end
         self.homeRefresh=nil
-        local palette=self.palette
-        if not self:IsCurrent(session,generation) or not palette or not palette.visible then return end
+        local palette=self.presenter
+        if not self:IsCurrent(session,generation) or not palette or not palette:AcceptsSearchState() then return end
         if palette.IsHomeVisible and not palette:IsHomeVisible() then return end
         if palette.MarkHomeDirty then palette:MarkHomeDirty() end
     end)
@@ -282,7 +282,7 @@ function Session:WarmLoaded()
     if not I.Preparation or self.homeWarmStarted or not self.visible or self.inputSuspended then return end
     self.homeWarmStarted=true
     local ids={}
-    for id,entry in pairs(I.Providers.entries) do
+    for id,entry in I.Providers:Instances() do
         if entry.definition.prepare and I.Search.ProviderPolicy:IsParticipating(id) then ids[#ids+1]=id end
     end
     if #ids==0 then return end
@@ -299,7 +299,7 @@ local function cancelHomeOperations(group,reason)
 end
 function Session:HomeReferences(refs)
     if not I.Preparation or not I.AddonLoader or not self.visible or self.inputSuspended or type(refs)~="table" then return end
-    if self.palette and self.palette.IsHomeVisible and not self.palette:IsHomeVisible() then return end
+    if self.presenter and self.presenter.IsHomeVisible and not self.presenter:IsHomeVisible() then return end
     local count=math.min(20,#refs)
     local same=self.homeRefs and #self.homeRefs==count
     if same then for index=1,count do if self.homeRefs[index]~=refs[index] then same=false;break end end end
@@ -315,7 +315,7 @@ function Session:HomeReferences(refs)
         if type(ref)=="table" and type(ref.providerID)=="string" and #ref.providerID<=64 then
             owned[#owned+1]=ref
             local item=previousItems and previousItems[ref]
-            local entry=I.Providers.entries[ref.providerID]
+            local entry=I.Providers:BorrowInstance(ref.providerID)
             if not item and not ref.kind and ((entry and not entry.definition.prepare and not entry.definition.addon) or (not entry and ref.sourceID)) then
                 item=I.Providers:Resolve(ref,contextSnapshot(session,generation))
             end
@@ -414,4 +414,8 @@ end
 
 if I.Search.StaticIndex and I.Search.StaticIndex.OnChange then
     I.Search.StaticIndex:OnChange(function(_, reason) Session:SourceChanged(reason) end)
+end
+
+function Session:RefreshHomePresentation()
+    if self.presenter and self.presenter.MarkHomeDirty then self.presenter:MarkHomeDirty() end
 end

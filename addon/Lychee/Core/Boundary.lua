@@ -15,7 +15,7 @@ local ACTION_KIND_KEYS = {
 local RECORD_KEYS = {
     id=true,kind=true,kindTitle=true,category=true,title=true,subtitle=true,subtext=true,
     aliases=true,keywords=true,description=true,icon=true,scope=true,actions=true,
-    primaryActionID=true,drag=true,payload=true,availability=true,rememberable=true,tooltipRows=true,_extensionID=true,
+    primaryActionID=true,drag=true,payload=true,availability=true,rememberable=true,tooltipRows=true,tooltipHeaders=true,_extensionID=true,
     invocation=true,command=true,targetRef=true,invocationError=true,
 }
 local TEXT_FIELDS = { "kindTitle", "title", "subtitle", "subtext", "aliases", "keywords", "description" }
@@ -382,6 +382,15 @@ function Boundary:ValidateSearchRecord(record, field)
         for key in pairs(record.drag) do if key ~= "type" and key ~= "spellID" and key ~= "handler" and key ~= "title" then return schemaFailure(field .. ".drag." .. tostring(key)) end end
     end
     if record.rememberable~=nil and type(record.rememberable)~="boolean" then return schemaFailure(field..".rememberable") end
+    if record.tooltipHeaders~=nil then
+        if type(record.tooltipHeaders)~="table" or #record.tooltipHeaders~=3 then return schemaFailure(field..".tooltipHeaders") end
+        local count=0
+        for key,value in pairs(record.tooltipHeaders) do
+            count=count+1
+            if type(key)~="number" or key%1~=0 or key<1 or key>3 or type(value)~="string" or #value>512 then return schemaFailure(field..".tooltipHeaders") end
+        end
+        if count~=3 then return schemaFailure(field..".tooltipHeaders") end
+    end
     if record.tooltipRows~=nil then
         if type(record.tooltipRows)~="table" or #record.tooltipRows>16 then return schemaFailure(field..".tooltipRows") end
         local count=0

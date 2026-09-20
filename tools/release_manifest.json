@@ -190,6 +190,10 @@
     "Providers/Toys/Data.lua",
     "Providers/Toys/Provider.lua",
     "Providers/Toys/Locales/enUS.lua",
-    "Providers/Toys/Locales/zhCN.lua"
+    "Providers/Toys/Locales/zhCN.lua",
+    "Core/ActionOutcome.lua",
+    "Core/ActionStatus.lua",
+    "Core/ProviderDefinition.lua",
+    "UI/ActionCooldown.lua"
   ]
 }

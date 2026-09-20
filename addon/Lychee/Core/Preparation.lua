@@ -4,7 +4,7 @@ I.Preparation=P
 local priorities={query=1,visible=2,prewarm=3}
 local function clock() return I.Providers:QueryTime() end
 local function cancel(token,reason) if token and type(token.Cancel)=="function" then pcall(token.Cancel,token,reason) end end
-local function current(id) return I.Providers.entries[id] end
+local function current(id) return I.Providers:BorrowInstance(id) end
 local function enabled(id) return I.Registry:IsEnabled(id) end
 local function identity() return I.Search.RuntimeIdentity:Current() end
 local function diagnostic(job,code)
@@ -259,3 +259,11 @@ function P:CancelSearch(id)
     pruneTimer()
 end
 function P:GetDiagnostics() return {requests=self.requestCount,slots=self.slotCount,queued=self.timer~=nil,diagnostics=#self.diagnostics} end
+function P:IsReady(id,scope)
+    local entry=current(id)
+    if not entry or not enabled(id) then return false end
+    if not entry.definition.prepare then return true end
+    local slots=self.jobs[id]
+    local job=slots and slots[(scope or "search").."\31"..identity().locale]
+    return job~=nil and job.status=="ready" and valid(job)
+end

@@ -485,7 +485,7 @@ bar.frame.scripts.OnHide()
 assert(bar.frame.scripts.OnUpdate==nil, "hidden viewport stops drag")
 local scores={}
 for index=1,8 do scores[index]={"副本"..index,"限时 +12","|cffaa00ff329.0|r"} end
-local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="lychee.keystones",searchRecord={tooltipRows=scores}}
+local keyItem={text="角色 · 副本 +12",kindTitle="分数 2500",providerID="lychee.keystones",searchRecord={tooltipHeaders={"当季副本","成绩","分数"},tooltipRows=scores}}
 local beforeScores=#created
 Lychee.UI.ResultList:ShowItemTooltip(keyItem,parent)
 assert(tip:GetWidth()==416 and #tip.scoreLabels==9,"eight dungeon rows and column header")

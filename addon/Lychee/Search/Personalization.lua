@@ -202,7 +202,7 @@ function P:AddAliases(results,request,context)
     local candidates,scores={},{}
     local filter=type(request.filter)=="table" and request.filter or nil
     for _,row in ipairs(self:Aliases()) do
-        local provider=I.Providers and I.Providers.entries[row.ref.providerID]
+        local provider=I.Providers and I.Providers:BorrowInstance(row.ref.providerID)
         if row.product==product and not (provider and provider.definition.searchable==false)
             and not (filter and filter.excludedSources and filter.excludedSources[row.ref.providerID..":records"])
             and (not filter or not filter.sourceID or filter.sourceID==row.ref.providerID..":records") then

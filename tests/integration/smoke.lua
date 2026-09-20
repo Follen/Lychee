@@ -58,7 +58,7 @@ local fixturePalette = {
     end,
     RejectRow = function(_, _, reason) return false, reason end,
 }
-assert(_G.LycheeInternal.ResultActionExecutor:BindPalette(fixturePalette))
+assert(_G.LycheeInternal.ResultActionExecutor:BindPalette(dofile("tests/support/action_presenter.lua")(fixturePalette)))
 local actionResult, actionErr = _G.LycheeInternal.ResultActionExecutor:Execute({
     item = fixtureItem,
     extensionID = "third-party-fixture",

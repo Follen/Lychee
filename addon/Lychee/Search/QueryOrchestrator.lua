@@ -45,7 +45,7 @@ function Q:_BuildRequest(raw, context, generation)
     if wide and (not first or wide<first) then first,last=wide,wideLast end
     if first then
         local prefix=I.Search.Normalizer:Normalize(text:sub(1,first-1))
-        local source=self.categoryPrefixes and self.categoryPrefixes[prefix]
+        local source=I.ProjectProviders and I.ProjectProviders:PrefixOwner(prefix)
         if source then text=text:sub(last+1); filter={sourceID=source..":records"} end
     end
     end
@@ -58,19 +58,6 @@ function Q:_BuildRequest(raw, context, generation)
     return request
 end
 
-Q.categoryPrefixes={
-    ["技能"]="builtin.player-spells",spell="builtin.player-spells",spells="builtin.player-spells",
-    ["坐骑"]="builtin.mounts",mounts="builtin.mounts",
-    ["背包"]="builtin.bags",["物品"]="builtin.bags",bags="builtin.bags",
-    ["天赋"]="builtin.talent-loadouts",["天赋方案"]="builtin.talent-loadouts",talents="builtin.talent-loadouts",
-    ["装备"]="builtin.equipment-sets",["装备方案"]="builtin.equipment-sets",gear="builtin.equipment-sets",
-    ["设置"]="builtin.blizzard-settings",["暴雪设置"]="builtin.blizzard-settings",settings="builtin.blizzard-settings",
-    ["钥匙"]="builtin.keystones",key="builtin.keystones",keys="builtin.keystones",
-    ["成就"]="builtin.achievements",achievement="builtin.achievements",achievements="builtin.achievements",
-    ["团本首领"]="builtin.bosses",["首领"]="builtin.bosses",bosses="builtin.bosses",["菜单"]="builtin.game-menus",
-    ["玩家技能"]="builtin.player-spells",["背包物品"]="builtin.bags",["队伍钥匙"]="builtin.keystones",
-    ["游戏菜单"]="builtin.game-menus",["纹章"]="builtin.crests",["宏伟宝库"]="builtin.great-vault",["宝库"]="builtin.great-vault",
-}
 
 function Q:_IsCurrent(generation, context)
     if context and context.visible == false then return false, "HIDDEN" end
@@ -90,8 +77,11 @@ function Q:_Execute(raw, context, generation, request)
         local preferred=I.Search.Personalization and I.Search.Personalization:Preferred(request)
         local preferredKey=preferred and (not preferred.kind or preferred.kind=="legacy-entry") and preferred.entryID and (preferred.providerID..":records:"..preferred.entryID)
         local indexed = I.Search.StaticIndex:Search(request.normalized, self.limit, request.filter, true, preferredKey, request._preferences and request._preferences.indexRanking)
+        local stats=self.statistics
+        if stats then stats.candidates=stats.candidates+#indexed end
         for index = 1, #indexed do
             local item = I.Search.ResultSnapshot:Materialize(indexed[index])
+            if stats then stats.materialized=stats.materialized+1 end
             if item and I.Providers then I.Providers:Stamp(item) end
             if item then
                 if filtered then out[#out+1]=item -- index already guarantees unique static records
@@ -109,8 +99,14 @@ function Q:_Execute(raw, context, generation, request)
 end
 
 function Q:_Commit(generation, results)
+    if self.statistics then self.statistics.publications=self.statistics.publications+1;self.statistics.lastVisible=#results end
     self.last = { generation = generation, results = results, incomplete=I.Providers and I.Providers.HasQueryFailure and I.Providers:HasQueryFailure() or false }
     return true
+end
+
+-- Opt-in scalar counters only: no retained records, timings or query text.
+function Q:SetDiagnostics(enabled)
+    self.statistics=enabled and {candidates=0,materialized=0,publications=0,lastVisible=0} or nil
 end
 
 function Q:_CancelTimer()

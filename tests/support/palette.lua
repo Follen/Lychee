@@ -14,7 +14,7 @@ function geterrorhandler() return function(err) return err end end
 function IsPlayerSpell(id) return id == 31884 end
 function PickupSpell() _G.__pickup = (_G.__pickup or 0) + 1 end
 
-local env = {createdFrames=0}
+local env = {createdFrames=0,frames={}}
 local homeGeometryCalls = { ClearAllPoints = 0, SetPoint = 0, SetVerticalScroll = 0 }
 local function protect(o)
     while o and o ~= UIParent do o.protected = true; o = o.parent end
@@ -57,6 +57,9 @@ local function object(kind, parent)
     function o:GetFrameLevel() return self.frameLevel or 0 end
     function o:SetBackdrop() end
     function o:EnableMouse() end
+    function o:SetHideCountdownNumbers() end
+    function o:SetCooldownFromDurationObject(value) self.durationObject=value end
+    function o:SetCooldown(start,duration) self.cooldownStart,self.cooldownDuration=start,duration end
     function o:SetAutoFocus() end
     function o:EnableMouseWheel(value) self.mouseWheel=value end
     function o:SetTextInsets() end
@@ -110,6 +113,7 @@ end
 function CreateFrame(kind, name, parent, template)
     env.createdFrames = env.createdFrames + 1
     local frame = object(kind, parent or UIParent)
+    env.frames[#env.frames+1]=frame
     if name then _G[name] = frame end
     if template and template:find("Secure") then protect(frame) end
     return frame
@@ -125,10 +129,13 @@ local function tooltipText()
     return table.concat(lines, "\n")
 end
 
-dofile("tests/support/runtime.lua").Load("provider", {"Core/Preparation.lua","Providers/Achievements/Locales/enUS.lua", "Providers/Achievements/Locales/zhCN.lua", "Providers/AddonInspector/Locales/enUS.lua", "Providers/AddonInspector/Locales/zhCN.lua", "Providers/Bags/Locales/enUS.lua", "Providers/Bags/Locales/zhCN.lua", "Providers/BlizzardSettings/Locales/enUS.lua", "Providers/BlizzardSettings/Locales/zhCN.lua", "Providers/Bosses/Locales/enUS.lua", "Providers/Bosses/Locales/zhCN.lua", "Providers/Crests/Locales/enUS.lua", "Providers/Crests/Locales/zhCN.lua", "Providers/EquipmentSets/Locales/enUS.lua", "Providers/EquipmentSets/Locales/zhCN.lua", "Providers/GameMenus/Locales/enUS.lua", "Providers/GameMenus/Locales/zhCN.lua", "Providers/GreatVault/Locales/enUS.lua", "Providers/GreatVault/Locales/zhCN.lua", "Providers/Keystones/Locales/enUS.lua", "Providers/Keystones/Locales/zhCN.lua", "Providers/Mounts/Locales/enUS.lua", "Providers/Mounts/Locales/zhCN.lua", "Providers/PlayerSpells/Locales/enUS.lua", "Providers/PlayerSpells/Locales/zhCN.lua", "Providers/TalentLoadouts/Locales/enUS.lua", "Providers/TalentLoadouts/Locales/zhCN.lua", "Providers/Shared/CatalogProvider.lua", "Providers/Shared/CatalogLedger.lua", "Providers/Shared/InterfaceActions.lua", "Providers/Shared/CatalogProvider.lua", "Providers/Shared/CatalogLedger.lua", "Providers/Shared/InterfaceActions.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Search/SearchSession.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua", "UI/FocusController.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua", "UI/ProviderSettings.lua", "UI/SocialLinks.lua", "UI/SettingsView.lua", "UI/HomeView.lua", "UI/Palette.lua"}, {load=function(path)
+dofile("tests/support/runtime.lua").Load("provider", {"Core/Preparation.lua","Providers/Achievements/Locales/enUS.lua", "Providers/Achievements/Locales/zhCN.lua", "Providers/AddonInspector/Locales/enUS.lua", "Providers/AddonInspector/Locales/zhCN.lua", "Providers/Bags/Locales/enUS.lua", "Providers/Bags/Locales/zhCN.lua", "Providers/BlizzardSettings/Locales/enUS.lua", "Providers/BlizzardSettings/Locales/zhCN.lua", "Providers/Bosses/Locales/enUS.lua", "Providers/Bosses/Locales/zhCN.lua", "Providers/Crests/Locales/enUS.lua", "Providers/Crests/Locales/zhCN.lua", "Providers/EquipmentSets/Locales/enUS.lua", "Providers/EquipmentSets/Locales/zhCN.lua", "Providers/GameMenus/Locales/enUS.lua", "Providers/GameMenus/Locales/zhCN.lua", "Providers/GreatVault/Locales/enUS.lua", "Providers/GreatVault/Locales/zhCN.lua", "Providers/Keystones/Locales/enUS.lua", "Providers/Keystones/Locales/zhCN.lua", "Providers/Mounts/Locales/enUS.lua", "Providers/Mounts/Locales/zhCN.lua", "Providers/PlayerSpells/Locales/enUS.lua", "Providers/PlayerSpells/Locales/zhCN.lua", "Providers/TalentLoadouts/Locales/enUS.lua", "Providers/TalentLoadouts/Locales/zhCN.lua", "Providers/Shared/CatalogProvider.lua", "Providers/Shared/CatalogLedger.lua", "Providers/Shared/InterfaceActions.lua", "Providers/Shared/CatalogProvider.lua", "Providers/Shared/CatalogLedger.lua", "Providers/Shared/InterfaceActions.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Search/SearchSession.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "Secure/Descriptor.lua", "Secure/Policy.lua", "Secure/SecureActionBroker.lua", "UI/FocusController.lua", "UI/Theme.lua", "UI/TextHighlight.lua", "UI/Motion.lua", "UI/Presence.lua", "UI/Runtime.lua", "UI/Components.lua", "UI/ActionCooldown.lua", "UI/Input.lua", "UI/ResultList.lua", "UI/ViewHost.lua", "Core/ResultActionExecutor.lua", "UI/AliasSettings.lua", "UI/ProviderSettings.lua", "UI/SocialLinks.lua", "UI/SettingsView.lua", "UI/HomeView.lua", "UI/Palette.lua"}, {load=function(path)
     assert(loadfile("addon/Lychee/"..path))("Lychee",_G.LycheeInternal)
     if path=="UI/Palette.lua" then assert(not (LycheeInternal.Host and LycheeInternal.Host.PaletteController),"loading Palette creates no hidden UI") end
 end})
 
 dofile("addon/Lychee/Locales/UI.enUS.lua")
-return {state=env,geometry=homeGeometryCalls,tooltipText=tooltipText}
+local function event(name)
+    for _,frame in ipairs(env.frames) do if frame.events and frame.events[name] and frame.scripts.OnEvent then frame.scripts.OnEvent(frame,name) end end
+end
+return {state=env,geometry=homeGeometryCalls,tooltipText=tooltipText,event=event}

@@ -61,13 +61,13 @@ local function notify(entry, state, reason)
 end
 
 local function searchEnabled(id, sources)
-    if id == "lychee.settings" then return true end
+    if I.ProjectProviders and I.ProjectProviders:IsRequired(id) then return true end
     local supported = #sources == 0
     for _, source in ipairs(sources) do
         if I.Search.RuntimeIdentity:MatchesScope(source.scope) then supported=true;break end
     end
     if not supported then return false end
-    local support = I.ProviderModules and I.ProviderModules.Support
+    local support = I.ProjectProviders
     local defaultEnabled = not support or support:DefaultSearchEnabled(id)
     return I.CharacterStore:ProviderSearchEnabled(id, defaultEnabled)
 end
@@ -315,7 +315,7 @@ function Registry:_ApplyEnabled(entry, reason)
 end
 
 function Registry:SetUserEnabled(id, enabled)
-    if id == "lychee.settings" then return nil, failure("REQUIRED_PROVIDER", nil, id) end
+    if I.ProjectProviders and I.ProjectProviders:IsRequired(id) then return nil, failure("REQUIRED_PROVIDER", nil, id) end
     if InCombatLockdown and InCombatLockdown() then return nil, failure("COMBAT_LOCKED", nil, id) end
     local entry = self.entries[id]
     if not entry or entry.state == "removed" or entry.state == "retiring" then return nil, failure("INVALID_STATE", nil, id) end

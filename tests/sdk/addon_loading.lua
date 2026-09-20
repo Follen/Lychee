@@ -11,6 +11,8 @@ local function setup(packages)
     for _,row in ipairs(packages) do map[row.name]=row end
     _G.LycheeInternal={Providers={entries={},QueryTime=function() return env.now end},Search={RuntimeIdentity={Current=function() return {product="retail",interface=120100,build=70000,locale="enUS"} end}}}
     local I=LycheeInternal
+    function I.Providers:BorrowInstance(id) return self.entries[id] end
+    function I.Providers:Instances() return next,self.entries,nil end
     UnitGUID=function(unit) assert(unit=="player");return "Player-1-ABC" end
     CreateFrame=function() error("loader may not create a frame") end
     C_Timer={NewTimer=function(delay,callback)

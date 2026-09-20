@@ -123,7 +123,7 @@ local moduleMeta = {__index=function(self,key)
     return self.dictionary[key] or key
 end}
 function P:Module(id)
-    if not (I.ProviderModules and I.ProviderModules.Support and I.ProviderModules.Support:Known(id)) then return failure("INVALID_LOCALE_KEY","i18n."..tostring(id)) end
+    if not (I.ProjectProviders and I.ProjectProviders:Known(id)) then return failure("INVALID_LOCALE_KEY","i18n."..tostring(id)) end
     local dictionary=I.ProviderLocaleData and I.ProviderLocaleData[id]
     local cached=moduleCache[id]
     if cached and cached.dictionary==dictionary then return cached end

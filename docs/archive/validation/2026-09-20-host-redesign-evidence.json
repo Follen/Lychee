@@ -1,0 +1,672 @@
+[
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "BAG_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 513,
+    "excerpt": "513: \t\t\tName = \"BagUpdateCooldown\",\n514: \t\t\tType = \"Event\",\n515: \t\t\tLiteralName = \"BAG_UPDATE_COOLDOWN\",\n516: \t\t\tUniqueEvent = true,\n517: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "C_Container.GetItemCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 292,
+    "excerpt": "292: \t\t\tName = \"GetItemCooldown\",\n293: \t\t\tType = \"Function\",\n294: \t\t\tMayReturnNothing = true,\n295: \n296: \t\t\tArguments =\n297: \t\t\t{\n298: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n299: \t\t\t},\n300: \n301: \t\t\tReturns =\n302: \t\t\t{\n303: \t\t\t\t{ Name = \"startTime\", Type = \"number\", Nilable = false },\n304: \t\t\t\t{ Name = \"duration\", Type = \"number\", Nilable = false },\n305: \t\t\t\t{ Name = \"enable\", Type = \"number\", Nilable = false },\n306: \t\t\t},\n307: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": null,
+    "path": "Interface/AddOns/Blizzard_DeprecatedItemScript/Deprecated_ItemScript.lua",
+    "line": 52,
+    "excerpt": "49: \tUseItemByName = C_Item.UseItemByName;\n50: \tEquipItemByName = C_Item.EquipItemByName;\n51: \tReplaceTradeskillEnchant = C_Item.ReplaceTradeskillEnchant;\n52: \tGetItemCooldown = C_Item.GetItemCooldown;\n53: \tIsCorruptedItem = C_Item.IsCorruptedItem;\n54: \tIsCosmeticItem = C_Item.IsCosmeticItem;\n55:     IsDressableItem = C_Item.IsDressableItem;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "C_Spell.GetSpellChargeDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 76,
+    "excerpt": "76: \t\t\tName = \"GetSpellChargeDuration\",\n77: \t\t\tType = \"Function\",\n78: \t\t\tMayReturnNothing = true,\n79: \t\t\tDocumentation = { \"Returns a duration object describing the active recharge time for a spell.\" },\n80: \n81: \t\t\tArguments =\n82: \t\t\t{\n83: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n84: \t\t\t},\n85: \n86: \t\t\tReturns =\n87: \t\t\t{\n88: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n89: \t\t\t},\n90: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "C_Spell.GetSpellCharges",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 92,
+    "excerpt": "92: \t\t\tName = \"GetSpellCharges\",\n93: \t\t\tType = \"Function\",\n94: \t\t\tMayReturnNothing = true,\n95: \t\t\tDocumentation = { \"Returns a table of info about the charges of a charge-accumulating spell; May return nil if spell is not found or is not charge-based\" },\n96: \n97: \t\t\tArguments =\n98: \t\t\t{\n99: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n100: \t\t\t},\n101: \n102: \t\t\tReturns =\n103: \t\t\t{\n104: \t\t\t\t{ Name = \"chargeInfo\", Type = \"SpellChargeInfo\", Nilable = false },\n105: \t\t\t},\n106: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 108,
+    "excerpt": "108: \t\t\tName = \"GetSpellCooldown\",\n109: \t\t\tType = \"Function\",\n110: \t\t\tMayReturnNothing = true,\n111: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n112: \n113: \t\t\tArguments =\n114: \t\t\t{\n115: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n116: \t\t\t},\n117: \n118: \t\t\tReturns =\n119: \t\t\t{\n120: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n121: \t\t\t},\n122: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "C_Spell.GetSpellCooldownDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 124,
+    "excerpt": "124: \t\t\tName = \"GetSpellCooldownDuration\",\n125: \t\t\tType = \"Function\",\n126: \t\t\tMayReturnNothing = true,\n127: \t\t\tDocumentation = { \"Returns a duration object describing the active cooldown duration for a spell.\" },\n128: \n129: \t\t\tArguments =\n130: \t\t\t{\n131: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n132: \t\t\t\t{ Name = \"ignoreGCD\", Type = \"bool\", Nilable = false, Default = false },\n133: \t\t\t},\n134: \n135: \t\t\tReturns =\n136: \t\t\t{\n137: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n138: \t\t\t},\n139: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 108,
+    "excerpt": "108: \t\t\tName = \"GetSpellCooldown\",\n109: \t\t\tType = \"Function\",\n110: \t\t\tMayReturnNothing = true,\n111: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n112: \n113: \t\t\tArguments =\n114: \t\t\t{\n115: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n116: \t\t\t},\n117: \n118: \t\t\tReturns =\n119: \t\t\t{\n120: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n121: \t\t\t},\n122: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "CooldownSyncRelayMixin:GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 191,
+    "excerpt": "191: function CooldownSyncRelayMixin:GetSpellCooldown(spellID)\n192: \tlocal cooldownInfo = C_Spell.GetSpellCooldown(spellID);\n193: \tif not cooldownInfo then\n194: \t\treturn 0, 0, 1, -1;\n195: \tend\n196: \n197: \tlocal start = cooldownInfo.startTime;\n198: \tlocal duration = cooldownInfo.duration;\n199: \tlocal enabled = cooldownInfo.isEnabled;\n200: \tlocal modRate = cooldownInfo.modRate or 1;\n201: \n202: \tlocal chargeInfo = C_Spell.GetSpellCharges(spellID);\n203: \tlocal currentCharges = chargeInfo and chargeInfo.currentCharges;\n204: \tlocal maxCharges = chargeInfo and chargeInfo.maxCharges;\n205: \tlocal chargeCooldownStart = chargeInfo and chargeInfo.cooldownStartTime;\n206: \tlocal chargeCooldownDuration = chargeInfo and chargeInfo.cooldownDuration;\n207: \tlocal chargeModRate = chargeInfo and chargeInfo.chargeModRate;\n208: \tlocal charges = (maxCharges and maxCharges > 1) and currentCharges or -1;\n209: \n210: \tif maxCharges and currentCharges and maxCharges > currentCharges then\n211: \t\treturn chargeCooldownStart, chargeCooldownDuration, chargeModRate or 1, charges;\n212: \tend\n213: \n214: \tif enabled then\n215: \t\tif start and start > 0 then\n216: \t\t\tif cooldownInfo.isOnGCD then\n217: \t\t\t\treturn nil;\n218: \t\t\tend\n219: \t\t\treturn start, duration, modRate, charges;\n220: \t\tend\n221: \tend\n222: \n223: \treturn 0, 0, 1, charges;\n224: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "SetCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 273,
+    "excerpt": "273: \t\t\tName = \"SetCooldown\",\n274: \t\t\tType = \"Function\",\n275: \n276: \t\t\tArguments =\n277: \t\t\t{\n278: \t\t\t\t{ Name = \"start\", Type = \"DurationSeconds\", Nilable = false },\n279: \t\t\t\t{ Name = \"duration\", Type = \"DurationSeconds\", Nilable = false },\n280: \t\t\t\t{ Name = \"modRate\", Type = \"number\", Nilable = false, Default = 1 },\n281: \t\t\t},\n282: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "CooldownViewerSettingsEditAlertMixin:SetCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettingsAlerts.lua",
+    "line": 25,
+    "excerpt": "25: function CooldownViewerSettingsEditAlertMixin:SetCooldown(cooldownItem)\n26: \t-- NOTE: Cannot save the item here, it comes from a pool that could be refreshed.\n27: \t-- TODO: When the alert is added to the cooldown after clicking the \"Add Alert\" button\n28: \t-- the CooldownViewerSettings frame needs to update the relevant cooldownItem that was modified\n29: \t-- if it's still visible by calling item:RefreshAlertTypeOverlay();\n30: \tself.cooldownID = cooldownItem:GetCooldownID();\n31: \tself.cooldownName = cooldownItem:GetNameText();\n32: \tself.validCooldownAlertTypes  = cooldownItem:GetValidAlertTypes();\n33: \n34: \tself.Icon:SetTexture(cooldownItem:GetSpellTexture());\n35: \tself.CooldownName:SetText(cooldownItem:GetNameText());\n36: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "SetCooldownFromDurationObject",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 294,
+    "excerpt": "294: \t\t\tName = \"SetCooldownFromDurationObject\",\n295: \t\t\tType = \"Function\",\n296: \n297: \t\t\tArguments =\n298: \t\t\t{\n299: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n300: \t\t\t\t{ Name = \"clearIfZero\", Type = \"bool\", Nilable = false, Default = true },\n301: \t\t\t},\n302: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "SPELL_UPDATE_CHARGES",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 198,
+    "excerpt": "198: \t\t\tName = \"SpellUpdateCharges\",\n199: \t\t\tType = \"Event\",\n200: \t\t\tLiteralName = \"SPELL_UPDATE_CHARGES\",\n201: \t\t\tSynchronousEvent = true,\n202: \t\t\tUniqueEvent = true,\n203: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 205,
+    "excerpt": "205: \t\t\tName = \"SpellUpdateCooldown\",\n206: \t\t\tType = \"Event\",\n207: \t\t\tLiteralName = \"SPELL_UPDATE_COOLDOWN\",\n208: \t\t\tUniqueEvent = true,\n209: \t\t\tPayload =\n210: \t\t\t{\n211: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = true, Documentation = { \"Can be a base spell or an override spell. A nil value indicates that all cooldowns should be updated, rather than just a specific one.\" } },\n212: \t\t\t\t{ Name = \"baseSpellID\", Type = \"number\", Nilable = true, Documentation = { \"Will be set to the base spell if the spellID parameter is an override spell.\" } },\n213: \t\t\t\t{ Name = \"category\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown category of the spell. A nil value indicates the spell does not have a cooldown category.\" } },\n214: \t\t\t\t{ Name = \"startRecoveryCategory\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown start recovery category of the spell. A nil value indicates the spell does not have a cooldown start recovery category.\" } },\n215: \t\t\t},\n216: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "anniversary",
+    "requestedRef": "latest",
+    "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+    "name": "CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 436,
+    "excerpt": "436: function CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN(spellID, baseSpellID, category, startRecoveryCategory)\n437: \tif not self.syncEnabled then\n438: \t\treturn;\n439: \tend\n440: \n441: \tif not spellID then\n442: \t\tself:SendSpellCooldownMessage();\n443: \t\treturn;\n444: \tend\n445: \n446: \tlocal matchedSpellID;\n447: \tif self.spellData[spellID] then\n448: \t\tmatchedSpellID = spellID;\n449: \telseif baseSpellID and self.spellData[baseSpellID] then\n450: \t\tmatchedSpellID = baseSpellID;\n451: \tend\n452: \n453: \tif matchedSpellID then\n454: \t\tself:SendSpellCooldownMessage({ [matchedSpellID] = true });\n455: \tend\n456: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "BAG_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 669,
+    "excerpt": "669: \t\t\tName = \"BagUpdateCooldown\",\n670: \t\t\tType = \"Event\",\n671: \t\t\tLiteralName = \"BAG_UPDATE_COOLDOWN\",\n672: \t\t\tUniqueEvent = true,\n673: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "BAG_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 513,
+    "excerpt": "513: \t\t\tName = \"BagUpdateCooldown\",\n514: \t\t\tType = \"Event\",\n515: \t\t\tLiteralName = \"BAG_UPDATE_COOLDOWN\",\n516: \t\t\tUniqueEvent = true,\n517: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "CooldownFrameTemplate",
+    "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Classic/Cooldown.xml",
+    "line": 3,
+    "excerpt": "1: <Ui xmlns=\"http://www.blizzard.com/wow/ui/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.blizzard.com/wow/ui/\n2: ..\\..\\Blizzard_SharedXML\\UI.xsd\">\n3: \t<Cooldown name=\"CooldownFrameTemplate\" setAllPoints=\"true\" hidden=\"true\" virtual=\"true\">\n4: \t\t<SwipeTexture>\n5: \t\t\t<Color r=\"0\" g=\"0\" b=\"0\" a=\"0.8\"/>\n6: \t\t</SwipeTexture>"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "C_Container.GetItemCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 292,
+    "excerpt": "292: \t\t\tName = \"GetItemCooldown\",\n293: \t\t\tType = \"Function\",\n294: \t\t\tMayReturnNothing = true,\n295: \n296: \t\t\tArguments =\n297: \t\t\t{\n298: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n299: \t\t\t},\n300: \n301: \t\t\tReturns =\n302: \t\t\t{\n303: \t\t\t\t{ Name = \"startTime\", Type = \"number\", Nilable = false },\n304: \t\t\t\t{ Name = \"duration\", Type = \"number\", Nilable = false },\n305: \t\t\t\t{ Name = \"enable\", Type = \"number\", Nilable = false },\n306: \t\t\t},\n307: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": null,
+    "path": "Interface/AddOns/Blizzard_DeprecatedItemScript/Deprecated_ItemScript.lua",
+    "line": 52,
+    "excerpt": "49: \tUseItemByName = C_Item.UseItemByName;\n50: \tEquipItemByName = C_Item.EquipItemByName;\n51: \tReplaceTradeskillEnchant = C_Item.ReplaceTradeskillEnchant;\n52: \tGetItemCooldown = C_Item.GetItemCooldown;\n53: \tIsCorruptedItem = C_Item.IsCorruptedItem;\n54: \tIsCosmeticItem = C_Item.IsCosmeticItem;\n55:     IsDressableItem = C_Item.IsDressableItem;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "C_Spell.GetSpellChargeDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 76,
+    "excerpt": "76: \t\t\tName = \"GetSpellChargeDuration\",\n77: \t\t\tType = \"Function\",\n78: \t\t\tMayReturnNothing = true,\n79: \t\t\tDocumentation = { \"Returns a duration object describing the active recharge time for a spell.\" },\n80: \n81: \t\t\tArguments =\n82: \t\t\t{\n83: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n84: \t\t\t},\n85: \n86: \t\t\tReturns =\n87: \t\t\t{\n88: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n89: \t\t\t},\n90: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "C_Spell.GetSpellCharges",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 92,
+    "excerpt": "92: \t\t\tName = \"GetSpellCharges\",\n93: \t\t\tType = \"Function\",\n94: \t\t\tMayReturnNothing = true,\n95: \t\t\tDocumentation = { \"Returns a table of info about the charges of a charge-accumulating spell; May return nil if spell is not found or is not charge-based\" },\n96: \n97: \t\t\tArguments =\n98: \t\t\t{\n99: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n100: \t\t\t},\n101: \n102: \t\t\tReturns =\n103: \t\t\t{\n104: \t\t\t\t{ Name = \"chargeInfo\", Type = \"SpellChargeInfo\", Nilable = false },\n105: \t\t\t},\n106: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 108,
+    "excerpt": "108: \t\t\tName = \"GetSpellCooldown\",\n109: \t\t\tType = \"Function\",\n110: \t\t\tMayReturnNothing = true,\n111: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n112: \n113: \t\t\tArguments =\n114: \t\t\t{\n115: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n116: \t\t\t},\n117: \n118: \t\t\tReturns =\n119: \t\t\t{\n120: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n121: \t\t\t},\n122: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "C_Spell.GetSpellCooldownDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 124,
+    "excerpt": "124: \t\t\tName = \"GetSpellCooldownDuration\",\n125: \t\t\tType = \"Function\",\n126: \t\t\tMayReturnNothing = true,\n127: \t\t\tDocumentation = { \"Returns a duration object describing the active cooldown duration for a spell.\" },\n128: \n129: \t\t\tArguments =\n130: \t\t\t{\n131: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n132: \t\t\t\t{ Name = \"ignoreGCD\", Type = \"bool\", Nilable = false, Default = false },\n133: \t\t\t},\n134: \n135: \t\t\tReturns =\n136: \t\t\t{\n137: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n138: \t\t\t},\n139: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 108,
+    "excerpt": "108: \t\t\tName = \"GetSpellCooldown\",\n109: \t\t\tType = \"Function\",\n110: \t\t\tMayReturnNothing = true,\n111: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n112: \n113: \t\t\tArguments =\n114: \t\t\t{\n115: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n116: \t\t\t},\n117: \n118: \t\t\tReturns =\n119: \t\t\t{\n120: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n121: \t\t\t},\n122: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "CooldownSyncRelayMixin:GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 191,
+    "excerpt": "191: function CooldownSyncRelayMixin:GetSpellCooldown(spellID)\n192: \tlocal cooldownInfo = C_Spell.GetSpellCooldown(spellID);\n193: \tif not cooldownInfo then\n194: \t\treturn 0, 0, 1, -1;\n195: \tend\n196: \n197: \tlocal start = cooldownInfo.startTime;\n198: \tlocal duration = cooldownInfo.duration;\n199: \tlocal enabled = cooldownInfo.isEnabled;\n200: \tlocal modRate = cooldownInfo.modRate or 1;\n201: \n202: \tlocal chargeInfo = C_Spell.GetSpellCharges(spellID);\n203: \tlocal currentCharges = chargeInfo and chargeInfo.currentCharges;\n204: \tlocal maxCharges = chargeInfo and chargeInfo.maxCharges;\n205: \tlocal chargeCooldownStart = chargeInfo and chargeInfo.cooldownStartTime;\n206: \tlocal chargeCooldownDuration = chargeInfo and chargeInfo.cooldownDuration;\n207: \tlocal chargeModRate = chargeInfo and chargeInfo.chargeModRate;\n208: \tlocal charges = (maxCharges and maxCharges > 1) and currentCharges or -1;\n209: \n210: \tif maxCharges and currentCharges and maxCharges > currentCharges then\n211: \t\treturn chargeCooldownStart, chargeCooldownDuration, chargeModRate or 1, charges;\n212: \tend\n213: \n214: \tif enabled then\n215: \t\tif start and start > 0 then\n216: \t\t\tif cooldownInfo.isOnGCD then\n217: \t\t\t\treturn nil;\n218: \t\t\tend\n219: \t\t\treturn start, duration, modRate, charges;\n220: \t\tend\n221: \tend\n222: \n223: \treturn 0, 0, 1, charges;\n224: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "SetCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 273,
+    "excerpt": "273: \t\t\tName = \"SetCooldown\",\n274: \t\t\tType = \"Function\",\n275: \n276: \t\t\tArguments =\n277: \t\t\t{\n278: \t\t\t\t{ Name = \"start\", Type = \"DurationSeconds\", Nilable = false },\n279: \t\t\t\t{ Name = \"duration\", Type = \"DurationSeconds\", Nilable = false },\n280: \t\t\t\t{ Name = \"modRate\", Type = \"number\", Nilable = false, Default = 1 },\n281: \t\t\t},\n282: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "CooldownViewerSettingsEditAlertMixin:SetCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettingsAlerts.lua",
+    "line": 25,
+    "excerpt": "25: function CooldownViewerSettingsEditAlertMixin:SetCooldown(cooldownItem)\n26: \t-- NOTE: Cannot save the item here, it comes from a pool that could be refreshed.\n27: \t-- TODO: When the alert is added to the cooldown after clicking the \"Add Alert\" button\n28: \t-- the CooldownViewerSettings frame needs to update the relevant cooldownItem that was modified\n29: \t-- if it's still visible by calling item:RefreshAlertTypeOverlay();\n30: \tself.cooldownID = cooldownItem:GetCooldownID();\n31: \tself.cooldownName = cooldownItem:GetNameText();\n32: \tself.validCooldownAlertTypes  = cooldownItem:GetValidAlertTypes();\n33: \n34: \tself.Icon:SetTexture(cooldownItem:GetSpellTexture());\n35: \tself.CooldownName:SetText(cooldownItem:GetNameText());\n36: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "SetCooldownFromDurationObject",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 294,
+    "excerpt": "294: \t\t\tName = \"SetCooldownFromDurationObject\",\n295: \t\t\tType = \"Function\",\n296: \n297: \t\t\tArguments =\n298: \t\t\t{\n299: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n300: \t\t\t\t{ Name = \"clearIfZero\", Type = \"bool\", Nilable = false, Default = true },\n301: \t\t\t},\n302: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "SetHideCountdownNumbers",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 425,
+    "excerpt": "425: \t\t\tName = \"SetHideCountdownNumbers\",\n426: \t\t\tType = \"Function\",\n427: \n428: \t\t\tArguments =\n429: \t\t\t{\n430: \t\t\t\t{ Name = \"hideNumbers\", Type = \"bool\", Nilable = false, Default = false },\n431: \t\t\t},\n432: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "SpellChargeInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellSharedDocumentation.lua",
+    "line": 6,
+    "excerpt": "6: \t\t\tName = \"SpellChargeInfo\",\n7: \t\t\tType = \"Structure\",\n8: \t\t\tFields =\n9: \t\t\t{\n10: \t\t\t\t{ Name = \"currentCharges\", Type = \"number\", Nilable = false, Documentation = { \"Number of charges currently available\" } },\n11: \t\t\t\t{ Name = \"maxCharges\", Type = \"number\", Nilable = false, Documentation = { \"Max number of charges that can be accumulated\" } },\n12: \t\t\t\t{ Name = \"cooldownStartTime\", Type = \"number\", Nilable = false, Documentation = { \"If charge cooldown is active, time at which the most recent charge cooldown began; 0 if cooldown is not active\" } },\n13: \t\t\t\t{ Name = \"cooldownDuration\", Type = \"number\", Nilable = false, Documentation = { \"Cooldown duration in seconds required to generate a charge\" } },\n14: \t\t\t\t{ Name = \"chargeModRate\", Type = \"number\", Nilable = false, Documentation = { \"Rate at which cooldown UI should update\" } },\n15: \t\t\t\t{ Name = \"isActive\", Type = \"bool\", Nilable = false, Documentation = { \"False if recharging is not active (ex: at maximum available charges, start time or duration are zero); True otherwise\" } },\n16: \t\t\t},\n17: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "SPELL_UPDATE_CHARGES",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 198,
+    "excerpt": "198: \t\t\tName = \"SpellUpdateCharges\",\n199: \t\t\tType = \"Event\",\n200: \t\t\tLiteralName = \"SPELL_UPDATE_CHARGES\",\n201: \t\t\tSynchronousEvent = true,\n202: \t\t\tUniqueEvent = true,\n203: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 205,
+    "excerpt": "205: \t\t\tName = \"SpellUpdateCooldown\",\n206: \t\t\tType = \"Event\",\n207: \t\t\tLiteralName = \"SPELL_UPDATE_COOLDOWN\",\n208: \t\t\tUniqueEvent = true,\n209: \t\t\tPayload =\n210: \t\t\t{\n211: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = true, Documentation = { \"Can be a base spell or an override spell. A nil value indicates that all cooldowns should be updated, rather than just a specific one.\" } },\n212: \t\t\t\t{ Name = \"baseSpellID\", Type = \"number\", Nilable = true, Documentation = { \"Will be set to the base spell if the spellID parameter is an override spell.\" } },\n213: \t\t\t\t{ Name = \"category\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown category of the spell. A nil value indicates the spell does not have a cooldown category.\" } },\n214: \t\t\t\t{ Name = \"startRecoveryCategory\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown start recovery category of the spell. A nil value indicates the spell does not have a cooldown start recovery category.\" } },\n215: \t\t\t},\n216: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "classic",
+    "requestedRef": "latest",
+    "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+    "name": "CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 436,
+    "excerpt": "436: function CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN(spellID, baseSpellID, category, startRecoveryCategory)\n437: \tif not self.syncEnabled then\n438: \t\treturn;\n439: \tend\n440: \n441: \tif not spellID then\n442: \t\tself:SendSpellCooldownMessage();\n443: \t\treturn;\n444: \tend\n445: \n446: \tlocal matchedSpellID;\n447: \tif self.spellData[spellID] then\n448: \t\tmatchedSpellID = spellID;\n449: \telseif baseSpellID and self.spellData[baseSpellID] then\n450: \t\tmatchedSpellID = baseSpellID;\n451: \tend\n452: \n453: \tif matchedSpellID then\n454: \t\tself:SendSpellCooldownMessage({ [matchedSpellID] = true });\n455: \tend\n456: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "CollectionsSpellButton_UpdateCooldown",
+    "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_CollectionTemplates.lua",
+    "line": 30,
+    "excerpt": "30: function CollectionsSpellButton_UpdateCooldown(self)\n31: \tif (self.itemID == -1 or self.itemID == nil) then\n32: \t\treturn;\n33: \tend\n34: \n35: \tlocal cooldown = self.cooldown;\n36: \tlocal start, duration, enable = C_Container.GetItemCooldown(self.itemID);\n37: \tif (cooldown and start and duration) then\n38: \t\tif (enable) then\n39: \t\t\tcooldown:Hide();\n40: \t\telse\n41: \t\t\tcooldown:Show();\n42: \t\tend\n43: \t\tCooldownFrame_Set(cooldown, start, duration, enable);\n44: \telse\n45: \t\tcooldown:Hide();\n46: \tend\n47: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "CooldownFrameTemplate",
+    "path": "Interface/AddOns/Blizzard_FrameXMLUtil/Mainline/Cooldown.xml",
+    "line": 3,
+    "excerpt": "1: <Ui xmlns=\"http://www.blizzard.com/wow/ui/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.blizzard.com/wow/ui/\n2: ..\\..\\Blizzard_SharedXML\\UI.xsd\">\n3: \t<Cooldown name=\"CooldownFrameTemplate\" setAllPoints=\"true\" hidden=\"true\" virtual=\"true\">\n4: \t\t<SwipeTexture>\n5: \t\t\t<Color r=\"0\" g=\"0\" b=\"0\" a=\"0.64\"/>\n6: \t\t</SwipeTexture>"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "C_Container.GetItemCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 337,
+    "excerpt": "337: \t\t\tName = \"GetItemCooldown\",\n338: \t\t\tType = \"Function\",\n339: \t\t\tMayReturnNothing = true,\n340: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n341: \n342: \t\t\tArguments =\n343: \t\t\t{\n344: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n345: \t\t\t},\n346: \n347: \t\t\tReturns =\n348: \t\t\t{\n349: \t\t\t\t{ Name = \"startTime\", Type = \"number\", Nilable = false },\n350: \t\t\t\t{ Name = \"duration\", Type = \"number\", Nilable = false },\n351: \t\t\t\t{ Name = \"enable\", Type = \"number\", Nilable = false },\n352: \t\t\t},\n353: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "C_Item.GetItemCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+    "line": 412,
+    "excerpt": "412: \t\t\tName = \"GetItemCooldown\",\n413: \t\t\tType = \"Function\",\n414: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n415: \n416: \t\t\tArguments =\n417: \t\t\t{\n418: \t\t\t\t{ Name = \"itemInfo\", Type = \"ItemInfo\", Nilable = false },\n419: \t\t\t},\n420: \n421: \t\t\tReturns =\n422: \t\t\t{\n423: \t\t\t\t{ Name = \"startTimeSeconds\", Type = \"number\", Nilable = false },\n424: \t\t\t\t{ Name = \"durationSeconds\", Type = \"number\", Nilable = false },\n425: \t\t\t\t{ Name = \"enableCooldownTimer\", Type = \"bool\", Nilable = false },\n426: \t\t\t},\n427: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "C_Spell.GetSpellChargeDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 233,
+    "excerpt": "233: \t\t\tName = \"GetSpellChargeDuration\",\n234: \t\t\tType = \"Function\",\n235: \t\t\tMayReturnNothing = true,\n236: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n237: \t\t\tDocumentation = { \"Returns a duration object describing the active recharge time for a spell.\" },\n238: \n239: \t\t\tArguments =\n240: \t\t\t{\n241: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n242: \t\t\t},\n243: \n244: \t\t\tReturns =\n245: \t\t\t{\n246: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n247: \t\t\t},\n248: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "C_Spell.GetSpellCharges",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 250,
+    "excerpt": "250: \t\t\tName = \"GetSpellCharges\",\n251: \t\t\tType = \"Function\",\n252: \t\t\tMayReturnNothing = true,\n253: \t\t\tSecretWhenCooldownsRestricted = true,\n254: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n255: \t\t\tDocumentation = { \"Returns a table of info about the charges of a charge-accumulating spell; May return nil if spell is not found or is not charge-based\" },\n256: \n257: \t\t\tArguments =\n258: \t\t\t{\n259: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n260: \t\t\t},\n261: \n262: \t\t\tReturns =\n263: \t\t\t{\n264: \t\t\t\t{ Name = \"chargeInfo\", Type = \"SpellChargeInfo\", Nilable = false },\n265: \t\t\t},\n266: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 268,
+    "excerpt": "268: \t\t\tName = \"GetSpellCooldown\",\n269: \t\t\tType = \"Function\",\n270: \t\t\tMayReturnNothing = true,\n271: \t\t\tSecretWhenCooldownsRestricted = true,\n272: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n273: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n274: \n275: \t\t\tArguments =\n276: \t\t\t{\n277: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n278: \t\t\t},\n279: \n280: \t\t\tReturns =\n281: \t\t\t{\n282: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n283: \t\t\t},\n284: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "C_Spell.GetSpellCooldownDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 286,
+    "excerpt": "286: \t\t\tName = \"GetSpellCooldownDuration\",\n287: \t\t\tType = \"Function\",\n288: \t\t\tMayReturnNothing = true,\n289: \t\t\tSecretArguments = \"AllowedWhenTainted\",\n290: \t\t\tDocumentation = { \"Returns a duration object describing the active cooldown duration for a spell.\" },\n291: \n292: \t\t\tArguments =\n293: \t\t\t{\n294: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n295: \t\t\t\t{ Name = \"ignoreGCD\", Type = \"bool\", Nilable = false, Default = false },\n296: \t\t\t},\n297: \n298: \t\t\tReturns =\n299: \t\t\t{\n300: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n301: \t\t\t},\n302: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "FrameScript.issecretvalue",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameScriptDocumentation.lua",
+    "line": 263,
+    "excerpt": "263: \t\t\tName = \"issecretvalue\",\n264: \t\t\tType = \"Function\",\n265: \t\t\tSecureHooksAllowed = false,\n266: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n267: \t\t\tDocumentation = { \"Returns true if a supplied value is a secret value.\" },\n268: \n269: \t\t\tArguments =\n270: \t\t\t{\n271: \t\t\t\t{ Name = \"value\", Type = \"LuaValueReference\", Nilable = false },\n272: \t\t\t},\n273: \n274: \t\t\tReturns =\n275: \t\t\t{\n276: \t\t\t\t{ Name = \"isSecret\", Type = \"bool\", Nilable = false },\n277: \t\t\t},\n278: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SetCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 280,
+    "excerpt": "280: \t\t\tName = \"SetCooldown\",\n281: \t\t\tType = \"Function\",\n282: \t\t\tSecretArgumentsAddAspect = { Enum.SecretAspect.Cooldown },\n283: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n284: \n285: \t\t\tArguments =\n286: \t\t\t{\n287: \t\t\t\t{ Name = \"start\", Type = \"DurationSeconds\", Nilable = false },\n288: \t\t\t\t{ Name = \"duration\", Type = \"DurationSeconds\", Nilable = false },\n289: \t\t\t\t{ Name = \"modRate\", Type = \"number\", Nilable = false, Default = 1 },\n290: \t\t\t},\n291: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "CooldownViewerSettingsEditAlertMixin:SetCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettingsAlerts.lua",
+    "line": 8,
+    "excerpt": "8: function CooldownViewerSettingsEditAlertMixin:SetCooldown(cooldownItem)\n9: \t-- NOTE: Cannot save the item here, it comes from a pool that could be refreshed.\n10: \t-- TODO: When the alert is added to the cooldown after clicking the \"Add Alert\" button\n11: \t-- the CooldownViewerSettings frame needs to update the relevant cooldownItem that was modified\n12: \t-- if it's still visible by calling item:RefreshAlertTypeOverlay();\n13: \tself.cooldownID = cooldownItem:GetCooldownID();\n14: \tself.cooldownName = cooldownItem:GetNameText();\n15: \tself.validCooldownAlertTypes  = cooldownItem:GetValidAlertTypes();\n16: \n17: \tself:GetIcon():SetTexture(cooldownItem:GetSpellTexture());\n18: \tself:GetNameLabel():SetText(cooldownItem:GetNameText());\n19: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SetCooldownFromDurationObject",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 305,
+    "excerpt": "305: \t\t\tName = \"SetCooldownFromDurationObject\",\n306: \t\t\tType = \"Function\",\n307: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n308: \n309: \t\t\tArguments =\n310: \t\t\t{\n311: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n312: \t\t\t\t{ Name = \"clearIfZero\", Type = \"bool\", Nilable = false, Default = true },\n313: \t\t\t},\n314: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SetHideCountdownNumbers",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 455,
+    "excerpt": "455: \t\t\tName = \"SetHideCountdownNumbers\",\n456: \t\t\tType = \"Function\",\n457: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n458: \n459: \t\t\tArguments =\n460: \t\t\t{\n461: \t\t\t\t{ Name = \"hideNumbers\", Type = \"bool\", Nilable = false, Default = false },\n462: \t\t\t},\n463: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SpellChargeInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellSharedDocumentation.lua",
+    "line": 6,
+    "excerpt": "6: \t\t\tName = \"SpellChargeInfo\",\n7: \t\t\tType = \"Structure\",\n8: \t\t\tFields =\n9: \t\t\t{\n10: \t\t\t\t{ Name = \"currentCharges\", Type = \"number\", Nilable = false, Documentation = { \"Number of charges currently available\" } },\n11: \t\t\t\t{ Name = \"maxCharges\", Type = \"number\", Nilable = false, NeverSecret = true, Documentation = { \"Max number of charges that can be accumulated\" } },\n12: \t\t\t\t{ Name = \"cooldownStartTime\", Type = \"number\", Nilable = false, Documentation = { \"If charge cooldown is active, time at which the most recent charge cooldown began; 0 if cooldown is not active\" } },\n13: \t\t\t\t{ Name = \"cooldownDuration\", Type = \"number\", Nilable = false, Documentation = { \"Cooldown duration in seconds required to generate a charge\" } },\n14: \t\t\t\t{ Name = \"chargeModRate\", Type = \"number\", Nilable = false, Documentation = { \"Rate at which cooldown UI should update\" } },\n15: \t\t\t\t{ Name = \"isActive\", Type = \"bool\", Nilable = false, NeverSecret = true, Documentation = { \"False if recharging is not active (ex: at maximum available charges, start time or duration are zero); True otherwise\" } },\n16: \t\t\t},\n17: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SpellCooldownInfo",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellSharedDocumentation.lua",
+    "line": 19,
+    "excerpt": "19: \t\t\tName = \"SpellCooldownInfo\",\n20: \t\t\tType = \"Structure\",\n21: \t\t\tFields =\n22: \t\t\t{\n23: \t\t\t\t{ Name = \"startTime\", Type = \"number\", Nilable = false, Documentation = { \"If cooldown is active, time started; 0 if no cooldown; Current time if isEnabled is false\" } },\n24: \t\t\t\t{ Name = \"duration\", Type = \"number\", Nilable = false, Documentation = { \"Cooldown duration in seconds if active; 0 if cooldown is inactive\" } },\n25: \t\t\t\t{ Name = \"isEnabled\", Type = \"bool\", Nilable = false, NeverSecret = true, Documentation = { \"False if cooldown is on hold (ex: some cooldowns only start after an active spell is cancelled); True otherwise\" } },\n26: \t\t\t\t{ Name = \"isActive\", Type = \"bool\", Nilable = false, NeverSecret = true, Documentation = { \"False if cooldown is not active (ex: not enabled, or startTime or duration are 0); True otherwise\" } },\n27: \t\t\t\t{ Name = \"modRate\", Type = \"number\", Nilable = false, Documentation = { \"Rate at which cooldown UI should update\" } },\n28: \t\t\t\t{ Name = \"activeCategory\", Type = \"number\", Nilable = true, Documentation = { \"Indicates which category is responsible for determining the duration. A nil value indicates the duration was determined through some other logic, e.g. the spell is on hold.\" } },\n29: \t\t\t\t{ Name = \"timeUntilEndOfStartRecovery\", Type = \"number\", Nilable = true, Documentation = { \"When this is set it indicates that the spell is in recovery and this is how long it will be until that recovery period is finished\" } },\n30: \t\t\t\t{ Name = \"isOnGCD\", Type = \"bool\", Nilable = true, NeverSecret = true, Documentation = { \"Whether or not this spell is considered to be on the global cooldown, do not trust this field unless responding to a SPELL_UPDATE_COOLDOWN event\" } },\n31: \t\t\t},\n32: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SPELL_UPDATE_CHARGES",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 853,
+    "excerpt": "853: \t\t\tName = \"SpellUpdateCharges\",\n854: \t\t\tType = \"Event\",\n855: \t\t\tLiteralName = \"SPELL_UPDATE_CHARGES\",\n856: \t\t\tSynchronousEvent = true,\n857: \t\t\tUniqueEvent = true,\n858: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 860,
+    "excerpt": "860: \t\t\tName = \"SpellUpdateCooldown\",\n861: \t\t\tType = \"Event\",\n862: \t\t\tLiteralName = \"SPELL_UPDATE_COOLDOWN\",\n863: \t\t\tUniqueEvent = true,\n864: \t\t\tPayload =\n865: \t\t\t{\n866: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = true, Documentation = { \"Can be a base spell or an override spell. A nil value indicates that all cooldowns should be updated, rather than just a specific one.\" } },\n867: \t\t\t\t{ Name = \"baseSpellID\", Type = \"number\", Nilable = true, Documentation = { \"Will be set to the base spell if the spellID parameter is an override spell.\" } },\n868: \t\t\t\t{ Name = \"category\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown category of the spell. A nil value indicates the spell does not have a cooldown category.\" } },\n869: \t\t\t\t{ Name = \"startRecoveryCategory\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown start recovery category of the spell. A nil value indicates the spell does not have a cooldown start recovery category.\" } },\n870: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = true, Documentation = { \"If the itemID parameter is set, it's the itemID associated with the cast of the spell.\" } },\n871: \t\t\t},\n872: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "retail",
+    "requestedRef": "12.1.0",
+    "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+    "name": "CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 457,
+    "excerpt": "457: function CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN(spellID, baseSpellID, category, startRecoveryCategory)\n458: \tif not self.syncEnabled then\n459: \t\treturn;\n460: \tend\n461: \n462: \tif not spellID then\n463: \t\tself:SendSpellCooldownMessage();\n464: \t\treturn;\n465: \tend\n466: \n467: \tlocal matchedSpellID;\n468: \tif self.spellData[spellID] then\n469: \t\tmatchedSpellID = spellID;\n470: \telseif baseSpellID and self.spellData[baseSpellID] then\n471: \t\tmatchedSpellID = baseSpellID;\n472: \tend\n473: \n474: \tif matchedSpellID then\n475: \t\tself:SendSpellCooldownMessage({ [matchedSpellID] = true });\n476: \tend\n477: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "BAG_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 513,
+    "excerpt": "513: \t\t\tName = \"BagUpdateCooldown\",\n514: \t\t\tType = \"Event\",\n515: \t\t\tLiteralName = \"BAG_UPDATE_COOLDOWN\",\n516: \t\t\tUniqueEvent = true,\n517: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "C_Container.GetItemCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ContainerDocumentation.lua",
+    "line": 292,
+    "excerpt": "292: \t\t\tName = \"GetItemCooldown\",\n293: \t\t\tType = \"Function\",\n294: \t\t\tMayReturnNothing = true,\n295: \n296: \t\t\tArguments =\n297: \t\t\t{\n298: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n299: \t\t\t},\n300: \n301: \t\t\tReturns =\n302: \t\t\t{\n303: \t\t\t\t{ Name = \"startTime\", Type = \"number\", Nilable = false },\n304: \t\t\t\t{ Name = \"duration\", Type = \"number\", Nilable = false },\n305: \t\t\t\t{ Name = \"enable\", Type = \"number\", Nilable = false },\n306: \t\t\t},\n307: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": null,
+    "path": "Interface/AddOns/Blizzard_DeprecatedItemScript/Deprecated_ItemScript.lua",
+    "line": 52,
+    "excerpt": "49: \tUseItemByName = C_Item.UseItemByName;\n50: \tEquipItemByName = C_Item.EquipItemByName;\n51: \tReplaceTradeskillEnchant = C_Item.ReplaceTradeskillEnchant;\n52: \tGetItemCooldown = C_Item.GetItemCooldown;\n53: \tIsCorruptedItem = C_Item.IsCorruptedItem;\n54: \tIsCosmeticItem = C_Item.IsCosmeticItem;\n55:     IsDressableItem = C_Item.IsDressableItem;"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "C_Spell.GetSpellChargeDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 76,
+    "excerpt": "76: \t\t\tName = \"GetSpellChargeDuration\",\n77: \t\t\tType = \"Function\",\n78: \t\t\tMayReturnNothing = true,\n79: \t\t\tDocumentation = { \"Returns a duration object describing the active recharge time for a spell.\" },\n80: \n81: \t\t\tArguments =\n82: \t\t\t{\n83: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n84: \t\t\t},\n85: \n86: \t\t\tReturns =\n87: \t\t\t{\n88: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n89: \t\t\t},\n90: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "C_Spell.GetSpellCharges",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 92,
+    "excerpt": "92: \t\t\tName = \"GetSpellCharges\",\n93: \t\t\tType = \"Function\",\n94: \t\t\tMayReturnNothing = true,\n95: \t\t\tDocumentation = { \"Returns a table of info about the charges of a charge-accumulating spell; May return nil if spell is not found or is not charge-based\" },\n96: \n97: \t\t\tArguments =\n98: \t\t\t{\n99: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n100: \t\t\t},\n101: \n102: \t\t\tReturns =\n103: \t\t\t{\n104: \t\t\t\t{ Name = \"chargeInfo\", Type = \"SpellChargeInfo\", Nilable = false },\n105: \t\t\t},\n106: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 108,
+    "excerpt": "108: \t\t\tName = \"GetSpellCooldown\",\n109: \t\t\tType = \"Function\",\n110: \t\t\tMayReturnNothing = true,\n111: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n112: \n113: \t\t\tArguments =\n114: \t\t\t{\n115: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n116: \t\t\t},\n117: \n118: \t\t\tReturns =\n119: \t\t\t{\n120: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n121: \t\t\t},\n122: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "C_Spell.GetSpellCooldownDuration",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 124,
+    "excerpt": "124: \t\t\tName = \"GetSpellCooldownDuration\",\n125: \t\t\tType = \"Function\",\n126: \t\t\tMayReturnNothing = true,\n127: \t\t\tDocumentation = { \"Returns a duration object describing the active cooldown duration for a spell.\" },\n128: \n129: \t\t\tArguments =\n130: \t\t\t{\n131: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n132: \t\t\t\t{ Name = \"ignoreGCD\", Type = \"bool\", Nilable = false, Default = false },\n133: \t\t\t},\n134: \n135: \t\t\tReturns =\n136: \t\t\t{\n137: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n138: \t\t\t},\n139: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "C_Spell.GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua",
+    "line": 108,
+    "excerpt": "108: \t\t\tName = \"GetSpellCooldown\",\n109: \t\t\tType = \"Function\",\n110: \t\t\tMayReturnNothing = true,\n111: \t\t\tDocumentation = { \"Returns nil if spell is not found\" },\n112: \n113: \t\t\tArguments =\n114: \t\t\t{\n115: \t\t\t\t{ Name = \"spellIdentifier\", Type = \"SpellIdentifier\", Nilable = false },\n116: \t\t\t},\n117: \n118: \t\t\tReturns =\n119: \t\t\t{\n120: \t\t\t\t{ Name = \"spellCooldownInfo\", Type = \"SpellCooldownInfo\", Nilable = false },\n121: \t\t\t},\n122: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "CooldownSyncRelayMixin:GetSpellCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 191,
+    "excerpt": "191: function CooldownSyncRelayMixin:GetSpellCooldown(spellID)\n192: \tlocal cooldownInfo = C_Spell.GetSpellCooldown(spellID);\n193: \tif not cooldownInfo then\n194: \t\treturn 0, 0, 1, -1;\n195: \tend\n196: \n197: \tlocal start = cooldownInfo.startTime;\n198: \tlocal duration = cooldownInfo.duration;\n199: \tlocal enabled = cooldownInfo.isEnabled;\n200: \tlocal modRate = cooldownInfo.modRate or 1;\n201: \n202: \tlocal chargeInfo = C_Spell.GetSpellCharges(spellID);\n203: \tlocal currentCharges = chargeInfo and chargeInfo.currentCharges;\n204: \tlocal maxCharges = chargeInfo and chargeInfo.maxCharges;\n205: \tlocal chargeCooldownStart = chargeInfo and chargeInfo.cooldownStartTime;\n206: \tlocal chargeCooldownDuration = chargeInfo and chargeInfo.cooldownDuration;\n207: \tlocal chargeModRate = chargeInfo and chargeInfo.chargeModRate;\n208: \tlocal charges = (maxCharges and maxCharges > 1) and currentCharges or -1;\n209: \n210: \tif maxCharges and currentCharges and maxCharges > currentCharges then\n211: \t\treturn chargeCooldownStart, chargeCooldownDuration, chargeModRate or 1, charges;\n212: \tend\n213: \n214: \tif enabled then\n215: \t\tif start and start > 0 then\n216: \t\t\tif cooldownInfo.isOnGCD then\n217: \t\t\t\treturn nil;\n218: \t\t\tend\n219: \t\t\treturn start, duration, modRate, charges;\n220: \t\tend\n221: \tend\n222: \n223: \treturn 0, 0, 1, charges;\n224: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "SetCooldown",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 273,
+    "excerpt": "273: \t\t\tName = \"SetCooldown\",\n274: \t\t\tType = \"Function\",\n275: \n276: \t\t\tArguments =\n277: \t\t\t{\n278: \t\t\t\t{ Name = \"start\", Type = \"DurationSeconds\", Nilable = false },\n279: \t\t\t\t{ Name = \"duration\", Type = \"DurationSeconds\", Nilable = false },\n280: \t\t\t\t{ Name = \"modRate\", Type = \"number\", Nilable = false, Default = 1 },\n281: \t\t\t},\n282: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "CooldownViewerSettingsEditAlertMixin:SetCooldown",
+    "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerSettingsAlerts.lua",
+    "line": 25,
+    "excerpt": "25: function CooldownViewerSettingsEditAlertMixin:SetCooldown(cooldownItem)\n26: \t-- NOTE: Cannot save the item here, it comes from a pool that could be refreshed.\n27: \t-- TODO: When the alert is added to the cooldown after clicking the \"Add Alert\" button\n28: \t-- the CooldownViewerSettings frame needs to update the relevant cooldownItem that was modified\n29: \t-- if it's still visible by calling item:RefreshAlertTypeOverlay();\n30: \tself.cooldownID = cooldownItem:GetCooldownID();\n31: \tself.cooldownName = cooldownItem:GetNameText();\n32: \tself.validCooldownAlertTypes  = cooldownItem:GetValidAlertTypes();\n33: \n34: \tself.Icon:SetTexture(cooldownItem:GetSpellTexture());\n35: \tself.CooldownName:SetText(cooldownItem:GetNameText());\n36: end"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "SetCooldownFromDurationObject",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/FrameAPICooldownDocumentation.lua",
+    "line": 294,
+    "excerpt": "294: \t\t\tName = \"SetCooldownFromDurationObject\",\n295: \t\t\tType = \"Function\",\n296: \n297: \t\t\tArguments =\n298: \t\t\t{\n299: \t\t\t\t{ Name = \"duration\", Type = \"LuaDurationObject\", Nilable = false },\n300: \t\t\t\t{ Name = \"clearIfZero\", Type = \"bool\", Nilable = false, Default = true },\n301: \t\t\t},\n302: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "SPELL_UPDATE_CHARGES",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 198,
+    "excerpt": "198: \t\t\tName = \"SpellUpdateCharges\",\n199: \t\t\tType = \"Event\",\n200: \t\t\tLiteralName = \"SPELL_UPDATE_CHARGES\",\n201: \t\t\tSynchronousEvent = true,\n202: \t\t\tUniqueEvent = true,\n203: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellBookDocumentation.lua",
+    "line": 205,
+    "excerpt": "205: \t\t\tName = \"SpellUpdateCooldown\",\n206: \t\t\tType = \"Event\",\n207: \t\t\tLiteralName = \"SPELL_UPDATE_COOLDOWN\",\n208: \t\t\tUniqueEvent = true,\n209: \t\t\tPayload =\n210: \t\t\t{\n211: \t\t\t\t{ Name = \"spellID\", Type = \"number\", Nilable = true, Documentation = { \"Can be a base spell or an override spell. A nil value indicates that all cooldowns should be updated, rather than just a specific one.\" } },\n212: \t\t\t\t{ Name = \"baseSpellID\", Type = \"number\", Nilable = true, Documentation = { \"Will be set to the base spell if the spellID parameter is an override spell.\" } },\n213: \t\t\t\t{ Name = \"category\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown category of the spell. A nil value indicates the spell does not have a cooldown category.\" } },\n214: \t\t\t\t{ Name = \"startRecoveryCategory\", Type = \"number\", Nilable = true, Documentation = { \"If the spellID parameter is set, the cooldown start recovery category of the spell. A nil value indicates the spell does not have a cooldown start recovery category.\" } },\n215: \t\t\t},\n216: \t\t},"
+  },
+  {
+    "sourceId": "wow-ui-source",
+    "product": "titan",
+    "requestedRef": "latest",
+    "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+    "name": "CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN",
+    "path": "Interface/AddOns/Blizzard_CooldownBroadcaster/Blizzard_CooldownBroadcaster.lua",
+    "line": 436,
+    "excerpt": "436: function CooldownSyncRelayMixin:SPELL_UPDATE_COOLDOWN(spellID, baseSpellID, category, startRecoveryCategory)\n437: \tif not self.syncEnabled then\n438: \t\treturn;\n439: \tend\n440: \n441: \tif not spellID then\n442: \t\tself:SendSpellCooldownMessage();\n443: \t\treturn;\n444: \tend\n445: \n446: \tlocal matchedSpellID;\n447: \tif self.spellData[spellID] then\n448: \t\tmatchedSpellID = spellID;\n449: \telseif baseSpellID and self.spellData[baseSpellID] then\n450: \t\tmatchedSpellID = baseSpellID;\n451: \tend\n452: \n453: \tif matchedSpellID then\n454: \t\tself:SendSpellCooldownMessage({ [matchedSpellID] = true });\n455: \tend\n456: end"
+  }
+]

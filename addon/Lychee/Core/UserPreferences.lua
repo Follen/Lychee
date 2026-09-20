@@ -98,7 +98,7 @@ function Preferences:TouchRecent(item,actionID,outcome)
         local selected
         for _,action in ipairs(actions) do if action.id==actionID then selected=action;break end end
         if not selected then return false end
-        local provider=I.Providers.entries[ref.providerID]
+        local provider=I.Providers:BorrowInstance(ref.providerID)
         local invocationAction=ref.kind=="invocation" and provider and provider.definition.actions[ref.actionID]
         local panel=invocationAction and invocationAction.panel
         local opensArguments=panel and (selected.kind=="open-panel" and selected.panel==panel
@@ -137,7 +137,7 @@ function Preferences:TouchInvocation(ref,display)
 end
 function Preferences:GetRecoveryError() pins(); return recovery end
 function Preferences:CanPin(item)
-    return item and item.ref and item.ref.providerID ~= "lychee.settings"
+    return item and item.ref and not (I.ProjectProviders and I.ProjectProviders:IsRequired(item.ref.providerID))
         and I.Providers and I.Providers:CanRemember(item) == true
 end
 function Preferences:PinIndex(ref)
@@ -174,6 +174,12 @@ function Preferences:Remove(index)
     if recovery or not indexValid(index) or index < 1 or index > #list then return false end
     local pin = table.remove(list,index); size = size - pinBytes(pin)
     return pin
+end
+function Preferences:RemoveReference(ref)
+    for index,pin in ipairs(pins()) do
+        if pin==ref then return self:Remove(index) end
+    end
+    return false
 end
 function Preferences:Restore(pin,index)
     local list = pins()

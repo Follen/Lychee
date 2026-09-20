@@ -106,8 +106,10 @@ function Settings:Create(parent, controller)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
-        if controller.settingsDiscovery then
-            local token=controller.settingsDiscovery;controller.settingsDiscovery=nil;token:Cancel()
+        view.refreshRevision=(view.refreshRevision or 0)+1
+        if view.refreshTimer then view.refreshTimer:Cancel();view.refreshTimer=nil end
+        if view.discovery then
+            local token=view.discovery;view.discovery=nil;token:Cancel()
         end
         if view.providerView then view.providerView.frame:Hide() end
         if view.aliasView then view.aliasView.frame:Hide() end
@@ -395,6 +397,31 @@ function Settings:Create(parent, controller)
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
         self.underline:Hide()
         return true
+    end
+    function view:QueueRefresh()
+        if self.refreshTimer or not frame:IsShown() or not C_Timer or not C_Timer.NewTimer then return end
+        self.refreshRevision=(self.refreshRevision or 0)+1
+        local revision=self.refreshRevision
+        local ok,timer=pcall(C_Timer.NewTimer,0,function()
+            if self.refreshRevision~=revision then return end
+            self.refreshTimer=nil
+            if frame:IsShown() and not InCombatLockdown() then self:Refresh() end
+        end)
+        if ok then self.refreshTimer=timer end
+    end
+    function view:Discover()
+        if not I.AddonDiscovery or I.AddonDiscovery.complete then return end
+        if self.discovery then self.discovery:Cancel();self.discovery=nil end
+        local complete=false
+        local token=I.AddonDiscovery:Scan(function()
+            complete=true;self.discovery=nil
+            if frame:IsShown() and not InCombatLockdown() then self:Refresh() end
+        end)
+        if not complete then self.discovery=token end
+    end
+    function view:GetContentHeight(default)
+        if self.tab=="about" then return metrics.settingsTabsHeight+12+(L:IsChinese() and metrics.aboutHeight or metrics.aboutEnglishHeight) end
+        return default
     end
     function view:OpenProvider(id,icon)
         if not frame:IsShown() or InCombatLockdown() or not management:GetInstance(id) then return end

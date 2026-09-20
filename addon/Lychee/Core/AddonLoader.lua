@@ -10,7 +10,7 @@ local function loaded(name)
     return ok and complete==true,ok and started==true
 end
 local function current(providerID)
-    return I.Providers and I.Providers.entries and I.Providers.entries[providerID]
+    return I.Providers and I.Providers:BorrowInstance(providerID)
 end
 local function closeOperation(operation)
     if next(operation.requests) then return end

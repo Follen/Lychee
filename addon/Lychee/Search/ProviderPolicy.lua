@@ -44,9 +44,7 @@ end
 function P:Defaults(id,definition,kind)
     if kind=="keyword" then return prefixes(definition.searchKeywords,true) or {} end
     if definition.searchPrefixes then return prefixes(definition.searchPrefixes) or {} end
-    local list={}
-    for prefix,owner in pairs(I.Search.Query and I.Search.Query.categoryPrefixes or {}) do if owner==id then list[#list+1]=prefix end end
-    table.sort(list);return list
+    return I.ProjectProviders and I.ProjectProviders:SearchPrefixes(id) or {}
 end
 function P:Effective(id,definition)
     if definition.searchable==false then return "global",self:Defaults(id,definition) end
@@ -73,7 +71,7 @@ function P:IsParticipating(id)
     return I.CharacterStore:ProviderSearchEnabled(id)
 end
 function P:Definition(id)
-    local entry=I.Providers.entries[id]
+    local entry=I.Providers:BorrowInstance(id)
     if entry then return entry.definition end
     local row=I.AddonDiscovery and I.AddonDiscovery:Get(id)
     return row and not row.reason and row.selected and row or nil
@@ -83,7 +81,7 @@ function P:Snapshot()
     if self.cache then return self.cache end
     local cache={map={},excluded={},disabled={},keywords={},keywordSources={},reservedKeywords={}}
     local definitions={}
-    for id,entry in pairs(I.Providers and I.Providers.entries or {}) do definitions[id]=entry.definition end
+    if I.Providers then for id,entry in I.Providers:Instances() do definitions[id]=entry.definition end end
     for _,row in ipairs(I.AddonDiscovery and I.AddonDiscovery:Definitions() or {}) do
         if not definitions[row.id] and row.selected and not row.reason then definitions[row.id]=row end
     end

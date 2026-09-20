@@ -79,3 +79,15 @@ Provider ID 与语种无关。品牌中“荔枝”和“Lychee”用荔枝色�
 SDK 1.0.0 支持完整 Entry 和 `entryMode="documents"` 两种有界索引入口，详见 [目录契约](../lychee-sdk/docs/zh-CN/CATALOG.md)。Host 保存校验后的搜索字段；Provider 保存业务事实，reader 只生成当前候选/明确恢复的完整动作。二者共享既有索引流水线，不额外建第二份搜索目录。物化结果使用弱身份登记，目录版本变更后不能继续执行旧动作。
 
 暴雪设置采用文档入口，只物化普通“打开并定位”动作；不注册设置 Invocation、自然语言解析或直接编辑页面。SDK 的通用 Invocation 协议继续供其他 Provider 使用。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和历史实测见 [数据结构审查](archive/validation/2026-09-19-structural-memory.md)。
+
+## Host 0.3.0 内部边界
+
+项目装配 `ProjectProviders` 提供自带来源的展示、默认前缀、必需资格和设置入口；通用查询、管理与 Registry 不维护这些业务 ID 表。`Preparation:IsReady` 拥有准备状态键，消费者不拼接内部键。ProviderRuntime 的 `BorrowInstance` / `Instances` 是可信内部同步借用接口，公开 SDK 仍隔离对象，不新增镜像目录。
+
+`ProviderDefinition:Compile` 负责定义校验和归一化；`ProviderRuntime:UpdateCatalog` 负责目录原子更新；`Search` / `CancelQueries` 负责查询任务与取消。实例身份、注册提交和停用保持同一个生命周期所有者，不拆成各自提交的目录与查询注册表。
+
+Session 通过 `BindPresenter` / `AcceptsSearchState` 发布状态；Executor 通过当前身份、交互资格、安全动作准备和菜单接口工作，不读 Palette 私有页面字段。Palette 只协调展示，设置发现和页高归 SettingsView，普通来源失效与战斗协调由 Bootstrap 串联；安全按钮的原生 state driver 保留。
+
+`ActionOutcome` 统一成功写历史的规则。普通回调和确认施法成功可记录；Invocation 保留 pending、succeeded、failed、cancelled、indeterminate；物品 PostClick 仅为 attempted，不从冷却变化推断使用成功。`ActionStatus` 按现有 secure-spell/item 描述读取显示状态，`ActionCooldown` 绑定可见图标并合并事件，不参与执行资格或搜索排名。
+
+`tooltipHeaders` 是三列 tooltip 的可选显示标签，由 Provider 提供；SDK / Provider API 仍为 1.0.0，使用此字段要求 Host 0.3.0+，面向旧 Host 的集成须省略。诊断只有显式启用时保存标量计数，不存查询文字和记录。

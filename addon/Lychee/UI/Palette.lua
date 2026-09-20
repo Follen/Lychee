@@ -188,14 +188,8 @@ function Palette:Create()
         if self:IsHomeVisible() then self.homeView:Move(delta)
         elseif self.list.frame:IsShown() then self.list:Move(delta) end
     end)
-    frame:RegisterEvent("PLAYER_REGEN_DISABLED")
-    frame:RegisterEvent("PLAYER_REGEN_ENABLED")
     frame:SetScript("OnEvent", function(_, event)
-        if event == "PLAYER_REGEN_DISABLED" and self.visible then
-            self:Hide("combat")
-        elseif event == "PLAYER_REGEN_ENABLED" and self.combatCleanupPending then
-            self:FinishHide("combat")
-        elseif event == "GLOBAL_MOUSE_DOWN" then
+        if event == "GLOBAL_MOUSE_DOWN" then
             local menu = self.actionMenu
             if menu and menu.IsShown and menu:IsShown() and menu.IsMouseOver and menu:IsMouseOver() then return end
             Lychee.UI.Components:HideActionMenu()
@@ -218,30 +212,10 @@ function Palette:Create()
         internal.Host = internal.Host or {}
         internal.Host.PaletteController = self
         local broker = internal.Host.SecureBroker
-        if broker and broker.BindPalette then broker:BindPalette(self) end
-        if internal.Registry and internal.Registry.OnChange and not internal._paletteLifecycleWired then
-            internal._paletteLifecycleWired = true
-            internal.Registry:OnChange(function(entry, state)
-                if state == "disabled" or state == "retiring" or state == "removed" then self:InvalidateExtension(entry and entry.id) end
-                self:MarkHomeDirty()
-                if self.settingsOpen and C_Timer and C_Timer.After and not self.settingsRefreshPending then
-                    self.settingsRefreshPending = true
-                    C_Timer.After(0, function()
-                        self.settingsRefreshPending = nil
-                        if self.visible and self.settingsOpen then self.settingsView:Refresh() end
-                    end)
-                end
-            end)
-        end
+        if broker and broker.BindPalette then self.secureBroker=broker;broker:BindPalette(self,self.frame) end
         if not internal.Host.ClosePalette then internal.Host.ClosePalette = function(reason) return self:Hide(reason) end end
         if not internal.Host.TogglePalette then internal.Host.TogglePalette = function() return self:Toggle() end end
         if internal.WirePalette then internal.WirePalette(self) end
-    end
-    if Lychee.RegisterProvider then
-        self.settingsProvider = Lychee:RegisterProvider({id="lychee.settings",apiVersion="1.0.0",version="1.0.0",title=L["荔枝设置"],
-            entries={{id="settings",title=L["荔枝设置"],kindTitle=L["设置"],aliases={"设置","荔枝设置","lychee settings"},
-                icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga",actions={"open"}}},
-            actions={open={title=L["打开荔枝设置"],run=function() local ok,err=self:OpenSettings();if not ok then return nil,err end;return {ok=true,close=false} end}}})
     end
     return self
 end
@@ -267,6 +241,7 @@ function Palette:SetStatusText(value)
 end
 
 function Palette:OpenSettings(tab)
+    if I.ActionCooldown then I.ActionCooldown:ReleaseAll() end
     self:CancelWaitingHint();self.waitingPresentation=nil
     if self._motionClosing then return false end
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
@@ -283,15 +258,7 @@ function Palette:OpenSettings(tab)
     setShown(self.homeView.frame, false); setShown(self.list.frame, false); setShown(self.emptyState, false)
     if not self.settingsView then self.settingsView = Lychee.UI.SettingsView:Create(self.content, self) end
     self.settingsView.frame:Show(); self.settingsView:SetTab(tab or "providers")
-    if I.AddonDiscovery and not I.AddonDiscovery.complete then
-        if self.settingsDiscovery then self.settingsDiscovery:Cancel();self.settingsDiscovery=nil end
-        local completed=false
-        local token=I.AddonDiscovery:Scan(function()
-            completed=true;self.settingsDiscovery=nil
-            if self.visible and self.settingsOpen and not InCombatLockdown() then self.settingsView:Refresh() end
-        end)
-        if not completed then self.settingsDiscovery=token end
-    end
+    self.settingsView:Discover()
     if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(self.settingsView.frame,"page") end
     self.settingsTitle:Show(); self:SetBackNavigation(true)
     self:ResizeForMode("settings")
@@ -331,13 +298,8 @@ function Palette:MarkHomeDirty()
 end
 
 function Palette:TouchRecent(item,actionID,outcome)
-    local ok,ref=I.UserPreferences:TouchRecent(item,actionID,outcome)
-    if not ok then return false end
-    if I.Search.Personalization and self.input and not self.settingsOpen then
-        local remembered=item
-        if ref and (ref.actionID or ref.kind) then remembered={};for key,value in pairs(item) do remembered[key]=value end;remembered.ref=ref end
-        I.Search.Personalization:Remember(self.input:GetText(), remembered)
-    end
+    local query=self.input and not self.settingsOpen and self.input:GetText() or nil
+    if not I.ActionOutcome:RememberEntry("succeeded",item,actionID,outcome,query) then return false end
     return self:MarkHomeDirty()
 end
 
@@ -457,9 +419,7 @@ function Palette:ResizeForMode(mode, count)
     end
     if mode == "settings" then
         listHeight = metrics.resultTiles * rowHeight + (metrics.resultTiles - 1) * rowGap
-        if self.settingsView and self.settingsView.tab=="about" then
-            listHeight=metrics.settingsTabsHeight+12+(L:IsChinese() and metrics.aboutHeight or metrics.aboutEnglishHeight)
-        end
+        if self.settingsView then listHeight=self.settingsView:GetContentHeight(listHeight) end
     end
     if mode == "settings-detail" then listHeight = math.max(0,tonumber(count) or 0) end
     local desired = HEADER_HEIGHT + FOOTER_HEIGHT + padding + listHeight
@@ -808,6 +768,7 @@ function Palette:Hide(reason, immediate)
     -- Invalidate the session only after marking the UI inactive; a synchronous
     -- result callback must not repaint a protected row on combat entry.
     self.visible = false
+    if I.ActionCooldown then I.ActionCooldown:ReleaseAll() end
     self:CancelWaitingHint();self.waitingPresentation=nil
     if self.social then self.social:Close(false) end
     self._openingLayout,self._deferredHover,self._deferredHoverRevision=nil,nil,nil
@@ -881,9 +842,7 @@ function Palette:ShowRowActions(row)
         self.actionMenu = Lychee.UI.Components:ShowActionMenu(row, function(_, root)
             root:CreateButton(L["取消固定"], function()
                 if not self.visible or self.settingsOpen or InCombatLockdown() then return false end
-                for index, current in ipairs(I.UserPreferences:GetPins()) do
-                    if current == pin then I.UserPreferences:Remove(index); self:MarkHomeDirty(); return true end
-                end
+                if I.UserPreferences:RemoveReference(pin) then self:MarkHomeDirty();return true end
             end)
         end)
         return true
@@ -945,6 +904,7 @@ function Palette:OpenView(factory, context, state)
         return false, "PANEL_CANCELLED"
     end
     if mounted then
+        if I.ActionCooldown then I.ActionCooldown:ReleaseAll() end
         self.social:Close(false)
         Lychee.UI.Components:HideActionMenu();self:SetBackNavigation(true)
         if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
@@ -980,3 +940,27 @@ end
 Lychee.UI.Palette = Palette
 -- Construct the protected hierarchy on the first out-of-combat open, then reuse
 -- it. Loading the addon does not need a hidden search window and all of its rows.
+
+function Palette:AcceptsSearchState() return self.visible end
+function Palette:SourcesChanged(id,state)
+    if state=="disabled" or state=="retiring" or state=="removed" then self:InvalidateExtension(id) end
+    self:MarkHomeDirty()
+    if self.settingsView and self.settingsOpen then self.settingsView:QueueRefresh() end
+end
+I.Host=I.Host or {}
+function I.Host.OpenSettings(tab)
+    local controller=I.Host.PaletteController or Palette:Create()
+    return controller:OpenSettings(tab)
+end
+
+function Palette:GetActionIdentity() return self.session,self.generation end
+function Palette:IsActionContextCurrent(session,generation)
+    return self.visible and not self.settingsOpen and (session==nil or session==self.session)
+        and (generation==nil or generation==self.generation)
+end
+function Palette:GetSecureBroker() return self.secureBroker end
+function Palette:FinishCombatCleanup()
+    if self.combatCleanupPending then self:FinishHide("combat") end
+end
+function Palette:SetActionMenu(menu) self.actionMenu=menu end
+function Palette:ClearActionMenu(menu) if self.actionMenu==menu then self.actionMenu=nil end end

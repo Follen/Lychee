@@ -66,12 +66,9 @@ function Access:Begin(raw,context,refresh)
         return I.Search.ProviderPolicy:Configuration(id,definition)==true
     end
     local function prepare(id)
-        local entry=I.Providers.entries[id]
+        local entry=I.Providers:BorrowInstance(id)
         if not state.current or not entry or not entry.definition.prepare or self.failures[id] then return end
-        local slots=I.Preparation.jobs[id]
-        local key="search\31"..I.Search.RuntimeIdentity:Current().locale
-        local ready=slots and slots[key]
-        if ready and ready.status=="ready" and ready.entry==entry and ready.revision==entry.revision then return end
+        if I.Preparation:IsReady(id,"search") then return end
         local synchronous=true
         request(function(done)
             return I.Preparation:Ensure({id},{scope="search",intent="query"},context.deadline or I.Providers:QueryTime()+5,done)
@@ -88,12 +85,12 @@ function Access:Begin(raw,context,refresh)
         if result.error then self.failures.discovery=result.error end
         if not wasComplete then I.Search.ProviderPolicy:Invalidate() end
         local _,filter=I.Search.ProviderPolicy:Route(raw,context and context.searchFilter)
-        for id,entry in pairs(I.Providers.entries) do
+        for id,entry in I.Providers:Instances() do
             if selected(id,entry.definition,filter) then prepare(id) end
         end
         for _,row in ipairs(I.AddonDiscovery and I.AddonDiscovery:Definitions() or {}) do
             if not state.current then return end
-            if row.selected and not row.reason and not I.Providers.entries[row.id] and not self.failures[row.id] and selected(row.id,row,filter) then
+            if row.selected and not row.reason and not I.Providers:BorrowInstance(row.id) and not self.failures[row.id] and selected(row.id,row,filter) then
                 local id=row.id
                 request(function(done)
                     return I.AddonLoader:Ensure({id},context.deadline or I.Providers:QueryTime()+5,done)
@@ -114,8 +111,5 @@ end
 
 function Access:QueryReady(entry)
     if not entry.definition.prepare then return true end
-    local slots=I.Preparation and I.Preparation.jobs[entry.id]
-    local key="search\31"..I.Search.RuntimeIdentity:Current().locale
-    local job=slots and slots[key]
-    return job and job.status=="ready" and job.entry==entry and job.revision==entry.revision
+    return I.Preparation and I.Preparation:IsReady(entry.id,"search") or false
 end

@@ -130,3 +130,16 @@ assert(handle:Unregister())
 collectgarbage("collect")
 assert(weak[1]==nil and weak[2]==nil and weak[3]==nil,"unregister releases metadata pool roots")
 print("Provider ingestion PASS: one canonical validation/batch member, external access/isolation, reentry, forged ownership, limits, atomic failures and bounded shared metadata")
+
+local headerInput=record("headers");headerInput.tooltipHeaders={"Instance","Result","Score"};headerInput.tooltipRows={{"A","+10","200"}}
+local headerHandle=assert(Lychee:RegisterProvider(definition("ingestion.headers",{headerInput})))
+headerInput.tooltipHeaders[1]="mutated"
+local stored=I.Search.StaticIndex:GetRecord("ingestion.headers:records","headers")
+assert(stored.tooltipHeaders[1]=="Instance")
+for _,bad in ipairs({{"one","two"},{"one","two","three","four"},{"one","two",string.rep("x",513)},{"one","two",3}}) do
+    local replacement=record("headers");replacement.tooltipHeaders=bad
+    assert(not headerHandle:Update({replace={replacement}}))
+    assert(I.Search.StaticIndex:GetRecord("ingestion.headers:records","headers")==stored)
+end
+assert(headerHandle:Unregister())
+print("Provider tooltip headers PASS: explicit labels, isolation, bounded schema and atomic rejection")

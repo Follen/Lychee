@@ -50,11 +50,11 @@ local function wireRegistryLifecycle()
     if I._registryLifecycleWired or not I.Registry then return end
     I._registryLifecycleWired = true
     I.Registry:OnChange(function(entry, state)
+        local palette = I.Host and I.Host.PaletteController
+        if palette and palette.SourcesChanged then palette:SourcesChanged(entry.id,state) end
         if state ~= "disabled" and state ~= "retiring" and state ~= "removed" then return end
         if I.Search and I.Search.Session then I.Search.Session:Invalidate("extension-" .. state)
         elseif I.Search and I.Search.Query and I.Search.Query.Cancel then I.Search.Query:Cancel("extension-" .. state) end
-        local palette = I.Host and I.Host.PaletteController
-        if palette and palette.InvalidateExtension then palette:InvalidateExtension(entry.id, state) end
     end)
 end
 
@@ -71,6 +71,7 @@ local function onLogin()
         end
     end
     wireRegistryLifecycle()
+    if I.ProjectProviders then I.ProjectProviders:InitializeSystemSources() end
     if I.ProviderModules and I.ProviderModules.Init then I.ProviderModules:Init() end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController
@@ -80,7 +81,9 @@ end
 function I.WirePalette(palette)
     if not palette or not I.Search or not I.Search.Session or not I.ResultActionExecutor or I._paletteWired then return false end
     I._paletteWired = true
-    I.Search.Session:BindPalette(palette)
+    wireRegistryLifecycle()
+    if I.ProjectProviders then I.ProjectProviders:InitializeSystemSources() end
+    I.Search.Session:BindPresenter(palette)
     I.ResultActionExecutor:BindPalette(palette)
     palette:SetQueryCallback(function(raw) return I.Search.Session:Input(raw) end)
     return true
@@ -101,6 +104,8 @@ if frame then
             if I.Invocations then I.Invocations:CancelAll("COMBAT_LOCKED") end
             if I.Host and I.Host.PaletteController then I.Host.PaletteController:Hide("combat") end
         elseif event == "PLAYER_REGEN_ENABLED" then
+            local palette=I.Host and I.Host.PaletteController
+            if palette then palette:FinishCombatCleanup() end
             if I.Host and I.Host.SecureBroker then I.Host.SecureBroker:Flush() end
             onLogin()
         end

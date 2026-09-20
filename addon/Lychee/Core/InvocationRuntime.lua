@@ -313,13 +313,13 @@ function V:Release(handle)
 end
 
 local function available(entry)
- return entry and I.Providers.entries[entry.id]==entry and I.Registry:IsEnabled(entry.id)
+ return entry and I.Providers:BorrowInstance(entry.id)==entry and I.Registry:IsEnabled(entry.id)
   and I.Search.RuntimeIdentity:MatchesScope(entry.definition.scope)
 end
 local function currentProduct() return I.Search.RuntimeIdentity:Current().product end
 local function conflictReason(providerID,key,target,editing)
  for at=#conflicts,1,-1 do
-  local row=conflicts[at];local owner=I.Providers.entries[row.providerID]
+  local row=conflicts[at];local owner=I.Providers:BorrowInstance(row.providerID)
   if not available(owner) or owner.instanceToken~=row.instance or owner.lifecycleEpoch~=row.lifecycle then table.remove(conflicts,at)
   elseif row.providerID==providerID and row.key==key and equal(row.target,target) then return "OPERATION_UNCERTAIN" end
  end
@@ -456,7 +456,7 @@ local function targetResult(input)
 end
 -- Read-only target restoration uses the same bounded operation lifetime as preparation.
 function V:ResolveTarget(providerID,target,context,reply)
- local entry=I.Providers.entries[providerID]
+ local entry=I.Providers:BorrowInstance(providerID)
  if not available(entry) or not entry.definition.resolveTarget then return fail("TARGET_VIEW_UNAVAILABLE") end
  local owned,err=plain(target,"target");if err then return nil,err end
  local ok;ok,err=targetRef(owned);if not ok then return nil,err end
@@ -471,7 +471,7 @@ function V:ResolveTarget(providerID,target,context,reply)
 end
 function V:Prepare(providerID,actionID,target,args,context,reply)
  if not identifier(providerID) or not identifier(actionID) then return fail("INVALID_SCHEMA","providerID/actionID") end
- local entry=I.Providers.entries[providerID]
+ local entry=I.Providers:BorrowInstance(providerID)
  local action=entry and entry.definition.actions and entry.definition.actions[actionID]
  if not available(entry) or not action then return fail("ACTION_UNAVAILABLE") end
  local schema,err=self:ValidateAction(action);if not schema then return nil,err end
@@ -492,7 +492,7 @@ function V:Prepare(providerID,actionID,target,args,context,reply)
    local handle=setmetatable({},preparedMeta)
    local count=0
    for token,grant in pairs(prepared) do
-    local owner=I.Providers.entries[grant.invocation.providerID]
+    local owner=I.Providers:BorrowInstance(grant.invocation.providerID)
     if not available(owner) or owner.instanceToken~=grant.instance or owner.lifecycleEpoch~=grant.lifecycle or grant.character~=characterToken() then prepared[token]=nil
     else count=count+1 end
    end
@@ -524,7 +524,7 @@ local function invoke(handle,context,reply,editing)
  if not grant then return fail("STALE_PREPARED") end
  prepared[handle]=nil
  local invocation=grant.invocation
- local entry=I.Providers.entries[invocation.providerID]
+ local entry=I.Providers:BorrowInstance(invocation.providerID)
  if not available(entry) or entry.instanceToken~=grant.instance or entry.lifecycleEpoch~=grant.lifecycle or invocation.product~=currentProduct() or grant.character~=characterToken() then return fail("STALE_PREPARED") end
  if InCombatLockdown and InCombatLockdown() then return fail("COMBAT_LOCKED") end
  if grant.execution=="secure" then return fail("SECURE_ACTION_REQUIRED") end
@@ -583,7 +583,7 @@ function V:PrepareStoredRef(input,context,reply)
  local ref,err=self:NormalizeStoredRef(input);if not ref then return nil,err end
  if ref.kind~="invocation" then return fail("INCOMPLETE_INVOCATION","kind") end
  if ref.product~=currentProduct() then return fail("INCOMPATIBLE_PRODUCT","product") end
- local entry=I.Providers.entries[ref.providerID]
+ local entry=I.Providers:BorrowInstance(ref.providerID)
  local action=entry and entry.definition.actions and entry.definition.actions[ref.actionID]
  if not action then return fail("ACTION_UNAVAILABLE") end
  if action.actionVersion~=ref.actionVersion then return fail("INCOMPATIBLE_ACTION_VERSION","actionVersion") end
@@ -635,7 +635,7 @@ function V:PrepareAvailable(providerID,actionID,target,args,context,reply,action
  local function prepare()
   if not current() then return end
   state.stage=nil;state.phase="prepare"
-  local entry=I.Providers.entries[providerID]
+  local entry=I.Providers:BorrowInstance(providerID)
   local action=entry and entry.definition.actions and entry.definition.actions[actionID]
   if actionVersion and (not action or action.actionVersion~=actionVersion) then finish(nil,{code="INCOMPATIBLE_ACTION_VERSION"});return end
   local _,problem,stage=V:Prepare(providerID,actionID,state.target,state.args,state.context,function(token,why)
@@ -647,7 +647,7 @@ function V:PrepareAvailable(providerID,actionID,target,args,context,reply,action
  local function readiness()
   if not current() then return end
   state.stage=nil;state.phase="readiness"
-  local entry=I.Providers.entries[providerID]
+  local entry=I.Providers:BorrowInstance(providerID)
   if not available(entry) then finish(nil,{code="PROVIDER_UNAVAILABLE"});return end
   if not entry.definition.prepare then prepare();return end
   if not I.Preparation then finish(nil,{code="PREPARATION_UNAVAILABLE"});return end
@@ -659,7 +659,7 @@ function V:PrepareAvailable(providerID,actionID,target,args,context,reply,action
   end)
   attach(stage,problem,phase)
  end
- if I.Providers.entries[providerID] then readiness()
+ if I.Providers:BorrowInstance(providerID) then readiness()
  elseif I.AddonLoader then
   state.phase="loading"
   local stage,problem=I.AddonLoader:Ensure({providerID},owned.deadline,function(result)
@@ -696,7 +696,7 @@ function V:CancelSearch(reason)
  for _,state in ipairs(pending) do state.stop(reason or "SEARCH_CHANGED") end
 end
 function V:BeginEdit(providerID,actionID,target,options,context)
- local entry=I.Providers.entries[providerID]
+ local entry=I.Providers:BorrowInstance(providerID)
  local action=entry and entry.definition.actions and entry.definition.actions[actionID]
  if not available(entry) or not action or not action.actionVersion then return fail("ACTION_UNAVAILABLE") end
  local opts,err=B:Copy(options or {},"edit",{maxDepth=3,maxFields=8,maxNodes=32,maxBytes=2048,scalarKeys=true,callbacks={onState=true}})
@@ -733,7 +733,7 @@ function V:BeginEdit(providerID,actionID,target,options,context)
  local function finish()
   if state.finished or state.pending then return end
   state.finished=true;edits[state]=nil
-  if state.lastInvocation and state.character==characterToken() and I.UserPreferences then I.UserPreferences:TouchInvocation(state.lastInvocation,{title=action.title}) end
+  if state.lastInvocation and state.character==characterToken() and I.UserPreferences then I.ActionOutcome:RememberInvocation("succeeded",state.lastInvocation,{title=action.title}) end
   local resource=state.scope;state.scope=nil
   state.queued,state.context,state.target,state.operation=nil,nil,nil,nil
   if resource then I.Resources:Close(resource,"edit-finished") end

@@ -17,7 +17,7 @@ local function cold(id)
     return entry,entry.state
 end
 local function current(id, token)
-    local entry = I.Providers.entries[id]
+    local entry = I.Providers:BorrowInstance(id)
     local state = entry and I.Registry.entries[id]
     if not entry then entry,state=cold(id) end
     if not entry or not state or state.state == "removed" or state.state == "retiring"
@@ -40,60 +40,18 @@ local function writable(id, token)
 end
 
 local L = I.Locale
-local moduleOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
-    ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6,
-    ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
-    ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
-local providerDescriptions = {
-    ["builtin.player-spells"]=L["搜索并施放已学技能"],
-    ["builtin.mounts"]=L["搜索并召唤坐骑"],
-    ["builtin.bosses"]=L["搜索团本首领和技能并查看指南"],
-    ["builtin.game-menus"]=L["快速打开游戏面板"],
-    ["builtin.crests"]=L["查看当前角色的纹章数量"],
-    ["builtin.great-vault"]=L["查看宏伟宝库进度与奖励"],
-    ["builtin.bags"]=L["搜索物品并定位背包"],
-    ["builtin.talent-loadouts"]=L["搜索并切换天赋方案"],
-    ["builtin.equipment-sets"]=L["搜索并切换装备方案"],
-    ["builtin.blizzard-settings"]=L["定位设置、重载界面与冷却管理器"],
-    ["builtin.keystones"]=L["队伍钥匙、分数与副本传送"],
-    ["builtin.achievements"]=L["搜索成就、查看进度与分享链接"],
-    ["builtin.addon-inspector"]=L["指向界面，识别来源插件"],
-    ["builtin.ellesmere"]=L["用 EUI：搜索设置页面或解锁界面"],
-    ["builtin.exwind"]=L["用 EX：搜索设置页面或解锁界面"],
-}
-local iconRoot = "Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
-local providerIcons = {
-    ["builtin.player-spells"] = iconRoot .. "spellbook.tga",
-    ["builtin.mounts"] = iconRoot .. "mounts.tga",
-    ["builtin.bosses"] = iconRoot .. "skull.tga",
-    ["builtin.game-menus"] = iconRoot .. "game-menu.tga",
-    ["builtin.crests"] = iconRoot .. "currency.tga",
-    ["builtin.great-vault"] = iconRoot .. "great-vault.tga",
-    ["builtin.bags"] = iconRoot .. "toys.tga",
-    ["builtin.talent-loadouts"] = iconRoot .. "talents.tga",
-    ["builtin.equipment-sets"] = iconRoot .. "character.tga",
-    ["builtin.blizzard-settings"] = iconRoot .. "settings.tga",
-    ["builtin.keystones"] = iconRoot .. "keystone.tga",
-    ["builtin.achievements"] = iconRoot .. "achievements.tga",
-    ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
-}
-moduleOrder["builtin.slash-commands"]=17
-moduleOrder["builtin.toys"]=18
-moduleOrder["builtin.ldt"]=14
-moduleOrder["builtin.exwind"]=15
-moduleOrder["builtin.ellesmere"]=16
-providerDescriptions["builtin.ldt"]=L["搜索地下城怪物和技能并查看资料"]
-providerIcons["builtin.ldt"]=iconRoot.."skull.tga"
 
 local function summary(out, id, entry, state)
     local definition = entry.definition
     out.id, out.instanceToken = id, entry.instanceToken
     out.title = I.Locale and I.Locale:Resolve(definition.title, id) or definition.title or id
     out.version, out.searchable = definition.version, definition.searchable ~= false
-    out.builtin = moduleOrder[id] ~= nil
-    out.order = moduleOrder[id] or 100
-    out.description = definition.description or providerDescriptions[id]
-    out.icon = definition.icon or providerIcons[id]
+    local order,description,icon
+    if I.ProjectProviders then order,description,icon=I.ProjectProviders:Presentation(id) end
+    out.builtin = order ~= nil
+    out.order = order or 100
+    out.description = definition.description or description
+    out.icon = definition.icon or icon
     out.sourceID = out.builtin and "builtin" or "external"
     out.sourceTitle = L[out.builtin and "内置功能" or "第三方"]
     out.statusReason = state.ownerEnabled == false and entry.unavailableReason or nil
@@ -108,9 +66,9 @@ end
 -- its records; never retain another list or expose live runtime entries to UI.
 function M:FillList(out)
     local count = 0
-    for id, entry in pairs(I.Providers.entries) do
+    for id, entry in I.Providers:Instances() do
         local state = I.Registry.entries[id]
-        if id ~= "lychee.settings" and state and state.state ~= "removed" and state.state ~= "retiring"
+        if not (I.ProjectProviders and I.ProjectProviders:IsRequired(id)) and state and state.state ~= "removed" and state.state ~= "retiring"
             and I.Search.RuntimeIdentity:MatchesScope(entry.definition.scope) then
             count = count + 1
             local row = out[count] or {}; out[count] = row
@@ -119,7 +77,7 @@ function M:FillList(out)
         end
     end
     for _, definition in ipairs(I.AddonDiscovery and I.AddonDiscovery:Definitions() or EMPTY) do
-        if not I.Providers.entries[definition.id] then
+        if not I.Providers:BorrowInstance(definition.id) then
             local entry,state=cold(definition.id)
             if entry and I.Search.RuntimeIdentity:MatchesScope(entry.definition.scope) then
                 count=count+1

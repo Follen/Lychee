@@ -521,7 +521,8 @@ function Components:HideActionMenu()
     if not menu or not menu.owner then return false end
     menu.owner=nil;menu:Hide();menu:ClearAllPoints()
     for _,button in ipairs(menu.buttons) do
-        button.callback=nil;button.pressed=nil;button.frame:Hide();button:SetText("")
+        if _G.LycheeInternal.ActionCooldown then _G.LycheeInternal.ActionCooldown:Release(button.frame) end
+        button.cooldownAction=nil;button.callback=nil;button.pressed=nil;button.frame:Hide();button:SetText("")
     end
     return true
 end
@@ -537,7 +538,7 @@ function Components:ShowActionMenu(owner, generator)
         menu.title:SetJustifyH("LEFT");menu.title:SetWordWrap(false)
         menu.title:SetText("|TInterface\\AddOns\\Lychee\\Media\\MenuIcons\\game-menu.tga:14:14|t  ".._G.LycheeInternal.Locale["操作菜单"])
         menu.buttons={}
-        function menu:CreateButton(title,callback)
+        function menu:CreateButton(title,callback,action)
             local index=self.count+1;assert(index<=18,"action menu capacity exceeded")
             self.count=index
             local button=self.buttons[index]
@@ -557,8 +558,12 @@ function Components:ShowActionMenu(owner, generator)
                 end)
                 self.buttons[index]=button
             end
+            button.cooldownAction=action
+            local hasCooldown=_G.LycheeInternal.ActionStatus and _G.LycheeInternal.ActionStatus:Reference(action)
+            local inset=hasCooldown and 36 or 12
+            if button.cooldownInset~=inset then button.cooldownInset=inset;button.label:ClearAllPoints();button.label:SetPoint("LEFT",12,0);button.label:SetPoint("RIGHT",-inset,0) end
             button.callback=callback;button:SetText(title);button.frame:Show();button:RefreshPointerState()
-            self.width=math.max(self.width,math.min(280,button.label:GetStringWidth()+24))
+            self.width=math.max(self.width,math.min(280,button.label:GetStringWidth()+inset+12))
             return button
         end
     end
@@ -575,6 +580,9 @@ function Components:ShowActionMenu(owner, generator)
     local x,y=GetCursorPosition();local scale=menu:GetEffectiveScale()
     menu:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x/scale,y/scale)
     menu:Show()
+    if _G.LycheeInternal.ActionCooldown then
+        for index=1,menu.count do local button=menu.buttons[index];_G.LycheeInternal.ActionCooldown:BindMenu(button,button.cooldownAction,owner) end
+    end
     return menu
 end
 

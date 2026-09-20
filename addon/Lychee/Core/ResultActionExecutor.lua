@@ -40,7 +40,7 @@ local function pickupSpell(spellID)
 end
 
 local function succeeded(result)
-    return result == true or (type(result) == "table" and result.ok == true)
+    return I.ActionOutcome:Status(result)=="succeeded"
 end
 
 function Executor:BindPalette(palette)
@@ -65,15 +65,15 @@ end
 
 function Executor:IsRowCurrent(row, session, generation, item, owner)
     local palette = self.palette
-    if not palette or not palette.visible or palette.settingsOpen or not row or not row.item then return false, "STALE_GENERATION" end
+    if not palette or not palette:IsActionContextCurrent() or not row or not row.item then return false, "STALE_GENERATION" end
     local searchSession = I.Search and I.Search.Session
     if searchSession then
         local current, err = searchSession:IsCurrent(session or row.session, generation or row.generation)
         if not current then return false, err end
-    elseif row.session ~= palette.session or row.generation ~= palette.generation then
+    elseif not palette:IsActionContextCurrent(row.session,row.generation) then
         return false, "STALE_GENERATION"
     end
-    if row.session ~= palette.session or row.generation ~= palette.generation then return false, "STALE_GENERATION" end
+    if not palette:IsActionContextCurrent(row.session,row.generation) then return false, "STALE_GENERATION" end
     if item and row.item ~= item then return false, "STALE_GENERATION" end
     owner = owner or extensionID(row, row.item)
     if owner and I.Registry and not I.Registry:IsEnabled(owner) then return false, "EXTENSION_DISABLED" end
@@ -81,9 +81,7 @@ function Executor:IsRowCurrent(row, session, generation, item, owner)
     if I.Providers and not I.Providers:IsCurrent(rowItem) then return false, "STALE_GENERATION" end
     if rowItem.sourceID and rowItem.sourceGeneration then
         local static = I.Search and I.Search.StaticIndex
-        local state = static and static:GetSourceState(rowItem.sourceID)
-        if not state or state.enabled == false or state.generation ~= rowItem.sourceGeneration
-            or state.revision ~= rowItem.sourceRevision then
+        if not static or not static:IsCurrentSource(rowItem.sourceID,rowItem.sourceGeneration,rowItem.sourceRevision) then
             return false, "STALE_GENERATION"
         end
     end
@@ -119,7 +117,7 @@ function Executor:_Transition(result, item, row, session, generation)
     local stateOK, stateErr = I.Registry:ValidateSchema(state, factory.stateSchema or {}, "transition.state")
     if not stateOK then return false, stateErr and stateErr.code or "INVALID_SCHEMA" end
     local palette = self.palette
-    if not palette or not palette.viewHost then return false, "PANEL_ERROR" end
+    if not palette or not palette.OpenView then return false, "PANEL_ERROR" end
     local ok, err = palette:OpenView(factory, {
         extensionID = owner,
         panelID = panelID,
@@ -158,7 +156,7 @@ function Executor:_Invocation(row,actionID,actionRef,actionTitle)
     local ref=actionRef or record.invocation
     if not ref or ref.actionID~=actionID then return false,"INCOMPLETE_INVOCATION" end
     local palette=self.palette
-    local session,generation=palette.session,palette.generation
+    local session,generation=palette:GetActionIdentity()
     local sequence=self.actionSequence
     local display={entryID=item.id,title=item.text,icon=item.icon,sourceTitle=item.sourceTitle}
     local result,errorCode,execution,feedbackResult
@@ -168,10 +166,10 @@ function Executor:_Invocation(row,actionID,actionRef,actionTitle)
         errorCode=not result and {code=outcome.status=="indeterminate" and "INDETERMINATE" or outcome.status=="cancelled" and "CANCELLED" or outcome.code,message=outcome.status=="failed" and outcome.message or nil} or nil
         feedbackResult=result and {ok=true,invocation=true,actionTitle=actionTitle,message=outcome.message} or nil
         if result and I.UserPreferences then
-            I.UserPreferences:TouchInvocation(outcome.invocation,display)
+            I.ActionOutcome:RememberInvocation(outcome.status,outcome.invocation,display)
             if palette.MarkHomeDirty then palette:MarkHomeDirty() end
         end
-        if palette.visible and palette.session==session and palette.generation==generation and self.actionSequence==sequence and palette.ReportActionResult then
+        if palette:IsActionContextCurrent(session,generation) and self.actionSequence==sequence and palette.ReportActionResult then
             if result and self:IsRowCurrent(row,session,generation,item) and palette.RefreshResultDisplay then
                 -- Re-read only this entry. Keep the original query/action identity;
                 -- resolving its Invocation ref would produce a history placeholder.
@@ -182,7 +180,7 @@ function Executor:_Invocation(row,actionID,actionRef,actionTitle)
             end
             -- Display refresh can publish search state. Feedback wins only for
             -- this operation, after that refresh, and never for a newer action.
-            if palette.visible and palette.session==session and palette.generation==generation and self.actionSequence==sequence then
+            if palette:IsActionContextCurrent(session,generation) and self.actionSequence==sequence then
                 palette:ReportActionResult(feedbackResult,errorCode)
             end
         end
@@ -198,16 +196,17 @@ function Executor:_Invocation(row,actionID,actionRef,actionTitle)
     if errorCode then return false,errorCode end
     if result then return feedbackResult end
     local pending={ok=true,pending=true,invocation=true,actionTitle=actionTitle,operation=execution or preparation}
-    if palette.visible and palette.session==session and palette.generation==generation and self.actionSequence==sequence and palette.ReportActionResult then palette:ReportActionResult(pending) end
+    if palette:IsActionContextCurrent(session,generation) and self.actionSequence==sequence and palette.ReportActionResult then palette:ReportActionResult(pending) end
     return pending
 end
 
 function Executor:Execute(row, actionID)
     local palette = self.palette
-    if not palette or not palette.visible then return false, "INVALID_STATE" end
+    if not palette or not palette:IsActionContextCurrent() then return false, "INVALID_STATE" end
     local valid, err = self:Validate(row)
     if not valid then return palette:RejectRow(row, err) end
     local item = row.item
+    local session,generation=palette:GetActionIdentity()
     local result, actionErr
 
     local action, interaction = actionFor(item, actionID)
@@ -216,16 +215,16 @@ function Executor:Execute(row, actionID)
     if action and action.kind == "invocation" then
         return self:_Invocation(row,action.invocation.actionID,action.invocation,action.title)
     elseif action and action.kind == "provider" then
-        local provider=I.Providers.entries[item.providerID]
+        local provider=I.Providers:BorrowInstance(item.providerID)
         local definition=provider and provider.definition.actions and provider.definition.actions[actionID]
         if definition and definition.actionVersion then return self:_Invocation(row,actionID,nil,action.title) end
         result, actionErr = I.Providers:Execute(item, actionID, I.Context and I.Context:Snapshot() or {})
         if result then
-            result, actionErr = self:_Transition(result, item, row, palette.session, palette.generation)
+            result, actionErr = self:_Transition(result, item, row, session, generation)
             if result and result.closePalette then palette:Hide("provider-action") end
         end
     elseif action and action.kind == "open-panel" then
-        result, actionErr = self:_OpenPanel(item, row, action.panel, action.state or item.payload or {}, palette.session, palette.generation)
+        result, actionErr = self:_OpenPanel(item, row, action.panel, action.state or item.payload or {}, session, generation)
     elseif action and action.kind == "drag-spell" then
         result, actionErr = pickupSpell(action.spellID)
     elseif action and (action.kind == "secure-spell" or action.kind == "secure-item") then
@@ -237,7 +236,7 @@ function Executor:Execute(row, actionID)
             return false, "ACTION_REQUIRES_HARDWARE_CLICK"
         end
         -- Preparing a secondary button performs the policy check in the broker.
-        result, actionErr = palette.secureBroker and palette.secureBroker:ShowFor(row, action, palette.session, palette.generation, item, row.extensionID) or false
+        result, actionErr = palette:GetSecureBroker() and palette:GetSecureBroker():ShowFor(row, action, session, generation, item, row.extensionID) or false
         if result then result = { ok=true, awaitingHardwareClick=true, actionTitle=action.title } end
     else
         return false, "ACTION_UNAVAILABLE"
@@ -289,13 +288,13 @@ function Executor:ShowActions(row)
         for index = 1, #actions do
             local actionID, title = actions[index].id, actions[index].title
             root:CreateButton(title or actionID, function()
-                if self.palette and self.palette.actionMenu == menu then self.palette.actionMenu = nil end
+                if self.palette then self.palette:ClearActionMenu(menu) end
                 local current, reason = self:Validate(row, session, generation, item)
                 if not current then return false, reason end
                 local result, actionError = self:Execute(row, actionID)
                 if self.palette then self.palette:ReportActionResult(result, actionError) end
                 return result
-            end)
+            end,actions[index])
         end
         if canPin then
             root:CreateButton(L["设置别名"],function()
@@ -314,13 +313,15 @@ function Executor:ShowActions(row)
             end)
         end
     end)
-    if self.palette then self.palette.actionMenu = menu end
+    if self.palette then self.palette:SetActionMenu(menu) end
     return true
 end
 
 function Executor:PrepareVisibleRows(rows)
     local palette = self.palette
-    local broker = palette and palette.secureBroker
+    local broker = palette and palette:GetSecureBroker()
+    local session,generation
+    if palette then session,generation=palette:GetActionIdentity() end
     if not broker or type(broker.Prepare) ~= "function" then return true end
     for rowIndex = 1, #(rows or {}) do
         local row = rows[rowIndex]
@@ -338,8 +339,8 @@ function Executor:PrepareVisibleRows(rows)
                     row = row,
                     item = row.item,
                     extensionID = row.extensionID,
-                    session = palette.session,
-                    generation = palette.generation,
+                    session = session,
+                    generation = generation,
                 })
                 if button then
                     -- The target is declared by the generic list renderer.  Older

@@ -2,6 +2,9 @@ local I = _G.LycheeInternal
 if not I.ProviderLocales:IsModuleLocale("enUS") then return end
 I.ProviderLocaleData = I.ProviderLocaleData or {}
 I.ProviderLocaleData["builtin.keystones"] = {
+    ["当季副本"] = "Season dungeon",
+    ["成绩"] = "Record",
+    ["分数"] = "Score",
     ["传送"] = "Teleport",
     ["分数 %s"] = "Rating %s",
     ["分数未知"] = "Rating unknown",

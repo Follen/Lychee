@@ -174,7 +174,7 @@ for _, id in ipairs({"one","two","three"}) do menuDefinition.actions[id]={title=
 local menuHandle=assert(SDK:RegisterProvider(menuDefinition))
 local menuItem=query("Menu entity")[1]
 local palette={visible=true,session=1,generation=1,ReportActionResult=function() end,RejectRow=function(_,_,reason) return false,reason end}
-I.ResultActionExecutor:BindPalette(palette)
+I.ResultActionExecutor:BindPalette(dofile("tests/support/action_presenter.lua")(palette))
 local row={item=menuItem,session=1,generation=1,extensionID=menuItem.providerID,IsVisible=function() return true end}
 assert(I.ResultActionExecutor:ShowActions(row) and #menuActions==3)
 assert(menuActions[3].callback().ok and menuCalls==1)

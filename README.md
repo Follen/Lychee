@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.9-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.3.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -217,6 +217,13 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 ### 0.2.8：玩具搜索（正式服）
 
 搜索已收藏玩具的名称或物品 ID，左键使用；也支持 `玩具:` / `toys:` 前缀。需要放置的玩具会进入原生地面选点，点击地面放置，右键或 Esc 取消。搜索不改变玩具箱筛选；冷却和地点限制由游戏处理。新增模块后须完整重启游戏。
+
+### 0.3.0：动作冷却与模块职责整理
+
+- 搜索结果、首页和右键动作使用公共原生冷却显示；按可见动作共享事件，关闭后停止观察，不增加常驻轮询。
+- 项目展示、设置发现、动作结果与 UI 布局各归所属模块；Provider 自定义表头，执行层不读取 Palette 私有页面状态。
+- 只有确认成功的动作写入最近使用。物品和玩具的原生点击只表示尝试，未确认成功或取消地面选点不会新增历史。
+- 查询保留快速来源的渐进结果。新增模块需要重启客户端；实机受保护点击、战斗及其他客户端验收状态见[验收记录](docs/archive/validation/2026-09-20-host-redesign.md)。
 
 ### 0.2.9：玩具内存与界面解耦
 

@@ -12,6 +12,8 @@ local function setup(packages, identity)
     _G.LycheeInternal={Providers={entries={},QueryTime=function() local current=environment.now;environment.now=environment.now+environment.step;return current end},
         Search={RuntimeIdentity={Current=function() return identity or {product="retail",interface=120100,build="70000",locale="enUS"} end}}}
     local I=LycheeInternal
+    function I.Providers:BorrowInstance(id) return self.entries[id] end
+    function I.Providers:Instances() return next,self.entries,nil end
     C_Timer={NewTimer=function(delay,callback)
         local token={delay=delay,callback=callback,Cancel=function(self) self.cancelled=true end}
         environment.timers[#environment.timers+1]=token;return token

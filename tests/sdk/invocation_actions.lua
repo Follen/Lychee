@@ -20,7 +20,7 @@ local handle=assert(Lychee:RegisterProvider({id="actions.fixture",title="Actions
    {id="off",kind="invocation",title="Off",invocation=ref(false)}},primaryActionID="off"},confidence=1}})
  end}))
 local p={visible=true,session=1,generation=1,RejectRow=function(_,_,why) return false,why end}
-I.ResultActionExecutor:BindPalette(p)
+I.ResultActionExecutor:BindPalette(dofile("tests/support/action_presenter.lua")(p))
 local function query()
  local _,results=I.Search.Query:Query("test",{visible=true},1)
  return results[1] and {item=results[1],session=1,generation=1,extensionID="actions.fixture"}

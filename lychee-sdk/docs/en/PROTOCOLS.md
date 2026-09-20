@@ -115,3 +115,5 @@ Returning false is not an exception/failure signal. Exceptions trigger cleanup. 
 Reject secret/inaccessible values, cycles, metatables, ordinary-data functions, nonfinite numbers and unknown fields. Errors return nil,Error with at least code, optionally field/providerID/retryable. Helper ERROR_CODES lists declared framework codes, not all possible provider/native errors; retain a generic unknown-error path.
 
 LycheeInternal, index objects, validation credentials, project ProviderModules and generated build assembly are private. Optional `entryMode="documents"` requires readEntry and makes entries/Update accept SearchDocument. The default remains full Entry. Readers create action descriptions without executing them; [Catalog](CATALOG.md) specifies ownership, completeness and lifecycle.
+
+`tooltipHeaders?:string[]` supplies exactly three localized column labels (≤512 bytes each). Optional since Host 0.3.0; omit it when targeting older Hosts. Without it, tooltip rows have no implicit business-specific header.

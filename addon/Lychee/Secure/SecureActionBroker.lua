@@ -44,11 +44,10 @@ function Broker:Create(parent)
     end
     return self
 end
-function Broker:BindPalette(palette)
+function Broker:BindPalette(palette,parent)
     if not palette then return false end
     self.palette = palette
-    palette.secureBroker = self
-    if palette.frame and self.parent == UIParent then self.parent = palette.frame end
+    if parent and self.parent == UIParent then self.parent = parent end
     return true
 end
 function Broker:EnsureBound()
@@ -118,9 +117,9 @@ function Broker:_Acquire()
         if mouseButton == "LeftButton" and current.itemID and current.itemClicked then
             current.itemClicked=nil
             local palette=self:EnsureBound()
-            local item=current.token and current.token.item
             if palette then
-                if item then palette:TouchRecent(item,current.action and current.action.id) end
+                -- PostClick confirms an attempt only; failures and ground cancellation have no success receipt.
+                self.lastOutcome="attempted"
                 -- Native toys may need the next world click for ground placement.
                 palette:Hide("item-click",current.toyID~=nil)
             end
@@ -191,6 +190,7 @@ function Broker:Prepare(action, token)
 end
 
 function Broker:Notify(state, action, reason)
+    self.lastOutcome=state=="success" and "succeeded" or state=="pending" and "pending" or "failed"
     local palette = self:EnsureBound()
     if not palette then return false end
     if state == "pending" then
@@ -263,6 +263,8 @@ function Broker:ShowFor(row, action, session, generation, item, extensionID)
         if previous ~= button and previous.token and previous.token.row == row then self:Release(previous) end
     end
     button.armedSecondary, button.action, button._target = true, action, nil
+    local cooldown=_G.LycheeInternal.ActionCooldown
+    if cooldown then cooldown:Bind(row,row.icon,action,row) end
     if button:GetParent() ~= row then button:SetParent(row) end
     if row.GetFrameLevel and button.SetFrameLevel and button:GetFrameLevel() ~= row:GetFrameLevel() + 3 then button:SetFrameLevel(row:GetFrameLevel() + 3) end
     button:ClearAllPoints(); button:SetPoint("TOPLEFT", row, "TOPLEFT", 4, 2); button:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -4, -2)
@@ -303,5 +305,5 @@ local internal = _G.LycheeInternal
 internal.Host = internal.Host or {}
 if not internal.Host.SecureBroker then
     local palette = internal.Host.PaletteController
-    internal.Host.SecureBroker = Broker:Create(palette and palette.frame or UIParent)
+    internal.Host.SecureBroker = Broker:Create(UIParent)
 end

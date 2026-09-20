@@ -483,6 +483,7 @@ function HomeView:Create(parent, controller)
         self.sections = {}
         local executor = I.ResultActionExecutor
         for _,tile in ipairs(self.tiles) do
+            if I.ActionCooldown then I.ActionCooldown:Release(tile) end
             if not preserveSnapshot then tile.snapshotOwner = nil end
             I.InteractionBinding:Bind(tile, nil, nil, nil)
             tile.section,tile.item,tile.index,tile._hovered=nil,nil,nil,nil
@@ -581,7 +582,17 @@ end
 function HomeView:HasPresentation()
     return self.frame:IsShown() and #self.sections>0
 end
+function HomeView:RefreshCooldowns()
+    if not I.ActionCooldown then return end
+    local top,bottom=self.scroll or 0,(self.scroll or 0)+math.max(0,self.frame:GetHeight())
+    for _,tile in ipairs(self.tiles) do
+        if not self.frozen and self.frame:IsShown() and tile.item and tile._demandTop and tile._demandTop<bottom and tile._demandTop+(tile._demandHeight or 0)>top then
+            I.ActionCooldown:BindRow(tile)
+        else I.ActionCooldown:Release(tile) end
+    end
+end
 function HomeView:ReportDemand()
+    self:RefreshCooldowns()
     if self.frozen or not self.frame:IsShown() then return end
     local session=I.Search and I.Search.Session
     if session and session.HomeReferences and session:IsCurrent(self.session,self.generation) then session:HomeReferences(self:GetVisibleReferences(20)) end
@@ -616,6 +627,7 @@ function HomeView:Prepare(session, generation, allowExpand)
         end
     end
     if executor then executor:PrepareVisibleRows(self.tiles) end
+    self:RefreshCooldowns()
     return true
 end
 

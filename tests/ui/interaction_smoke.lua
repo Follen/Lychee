@@ -145,11 +145,11 @@ _G.__combat = true
 -- The engine evaluates this snippet securely; the Lua event only stops work.
 RunPaletteCombatSnippet(palette.frame)
 assert(not palette.escapeFrame:IsShown(),"secure combat hide also releases the Escape receiver")
-palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_DISABLED")
+env.event("PLAYER_REGEN_DISABLED")
 assertEq(palette.visible, false, "combat event closes palette")
 assertEq(palette.frame:IsShown(), false, "combat event hides palette frame")
 _G.__combat = false
-palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_ENABLED")
+env.event("PLAYER_REGEN_ENABLED")
 assertEq(palette.frame:IsShown(), false, "leaving combat does not reopen palette")
 assert(palette:Show())
 palette:SetQueryMode("")
@@ -591,7 +591,7 @@ C_Timer = { NewTimer = function(_, callback)
 end }
 typeQuery("入口测试")
 _G.__combat = true
-palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_DISABLED")
+env.event("PLAYER_REGEN_DISABLED")
 assert(pendingTimer.cancelled and not I.Search.Session.visible, "combat cancels asynchronous search")
 _G.__secureSnippet = true
 palette.frame:Hide()
@@ -605,7 +605,7 @@ pendingTimer.callback()
 assert(not palette.frame:IsShown(), "late timer does not reopen hidden launcher")
 _G.__combat = false
 secureBroker:Flush()
-palette.frame.scripts.OnEvent(palette.frame, "PLAYER_REGEN_ENABLED")
+env.event("PLAYER_REGEN_ENABLED")
 assert(not palette.frame:IsShown() and not palette.combatCleanupPending, "regen cleans up without reopening")
 for index = 1, #secureBroker.buttons do
     local button = secureBroker.buttons[index]

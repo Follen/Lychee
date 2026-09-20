@@ -99,6 +99,7 @@
 
 ---@class LycheeEntry
 ---@field rememberable? boolean False prevents pin/history storage.
+---@field tooltipHeaders? string[] Optional three localized column labels, at most 512 bytes each; Host 0.3.0+.
 ---@field tooltipRows? string[][] At most 16 rows, 3 columns each, 512 bytes per string.
 ---@field id string Stable Provider-local identity.
 ---@field title LycheeText Required nonempty display title.

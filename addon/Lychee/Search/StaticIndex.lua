@@ -634,4 +634,10 @@ function Index:Rebuild()
     self.previousQuery, self.previousCandidates = nil, nil
 end
 
+
+function Index:IsCurrentSource(id,generation,revision)
+    local state=self:GetSourceState(id)
+    return state~=nil and state.enabled~=false and state.generation==generation and state.revision==revision
+end
+
 return Index
