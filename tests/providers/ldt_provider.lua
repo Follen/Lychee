@@ -15,6 +15,7 @@ function methods:SetShown(v) if v then self:Show() else self:Hide() end end
 function methods:SetText(v) self.text=v end
 function methods:GetText() return self.text end
 function methods:GetStringWidth() return #(self.text or "")*6 end
+function methods:GetUnboundedStringWidth() return #(self.text or "")*6 end
 function methods:SetTexture(v) self.texture=v end
 function methods:SetTexCoord(...) self.texCoords={...} end
 function methods:SetDisplayInfo(v) assert(v>0);self.displayID=v end
@@ -246,6 +247,14 @@ local function mount() view:Mount({contentFrame=parent,resources=resources,
     SetFooter=function(_,value) parent.footer=value;return true end,Resize=function(_,height) parent.requestedHeight=height;return true end,
     ClearFocus=function() return true end,Close=function() return true end},{dungeonID=164,npcID=259446,spellID=1287798}) end
 mount();assert(view.model.displayID==144156 and view.selected==1287798 and #view.rows==8)
+-- A reused FontString can report its clipped width after a short previous title.
+do
+    view:Unmount();view.title:SetWidth(24)
+    view.title.GetStringWidth=function(self) return math.min(self:GetWidth(),self:GetUnboundedStringWidth()) end
+    mount()
+    assert(view.title:GetWidth()>=view.title:GetUnboundedStringWidth(),"short-to-long creature title must grow beyond its previous clipped width")
+    view.title.GetStringWidth=nil
+end
 assert(parent.footer=="","detail has no permanent footer hint")
 assert(not view.traits and not view.back and not view.descriptionScroll,"detail removes traits, duplicate back and bottom reading area")
 view.rows[1].frame.scripts.OnEnter()
@@ -424,7 +433,11 @@ calculator.rows[1].frame.scripts.OnMouseWheel(calculator.rows[1].frame,-1)
 assert(calculator.bar.value>firstScroll,"effect rows forward scrolling")
 calculator.stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=0,spec=70}
 calculator.input={confirmed=true,first=600000,tick=120000,firstSchool="magic",aoe=true,tooltipVers=.2};calculator.level=1
+calculator.values[3]:SetWidth(16)
+calculator.values[3].GetStringWidth=function(self) return math.min(self:GetWidth(),self:GetUnboundedStringWidth()) end
 calculator:Render()
+assert(calculator.values[3]:GetWidth()>=calculator.values[3]:GetUnboundedStringWidth(),"verdict must recover from a previous clipped width")
+calculator.values[3].GetStringWidth=nil
 assert(math.abs(calculator.result.first-360000)<.001 and calculator.result.status=="survives")
 assert(calculator.values[3]:GetText()=="可承受")
 assert(calculator.results:IsShown() and not view.title:IsShown(),"calculator owns task heading and fixed result region")

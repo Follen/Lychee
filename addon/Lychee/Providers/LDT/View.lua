@@ -322,7 +322,7 @@ function M:CreateView()
         self.selected=state.spellID~=0 and state.spellID or enemy.spells[1] and enemy.spells[1].id
         self.page,self.facing,self.zoom,self.rowOffset,self.renderedPage=1,0,0,0,nil
         self.title:SetText(M:Name(enemy))
-        self.title:SetWidth(math.min(320,self.title:GetStringWidth()+2))
+        self.title:SetWidth(math.min(320,math.ceil(self.title:GetUnboundedStringWidth())+4))
         self.creatureMeta:ClearAllPoints();self.creatureMeta:SetPoint("LEFT",self.title,"RIGHT",14,-1)
         self.subtitle:SetText(M:Name(dungeon))
         self.creatureMeta:SetText(L[enemy.isBoss and "首领" or "小怪"].."   "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or ""))

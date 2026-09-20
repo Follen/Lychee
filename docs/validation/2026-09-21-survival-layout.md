@@ -78,3 +78,12 @@ Ticket `LYCHEE-20260921-021400-0087` request=ldt-check32-20260921/revision=check
 最终确认前收到用户反馈未选白边过亮，0.3.33同轮将未选边框降至#39363B、内底#18161A；尺寸、图集容量和事件逻辑不变。实机额外使用同commit的SimpleFontStringAPIDocumentation.lua:442–454 `IsTruncated` 返回bool检查结论文字截断。
 
 最终运行提交 `c8bdbd9`，200文件SHA一致；完整契约、Lua语法、wowdoc valid=true及diff检查通过。Ticket `LYCHEE-20260921-021749-0088` request=ldt-check33-20260921/revision=check33，同Retail12.1.0.69875/zhCN角色，complete/succeeded，29/29通过；客户端IsTruncated=false，结论宽约55单位。100次计算1.8136ms。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-021749-0088/content.json`，最终WGC `analyze/survival/ui-check33-4.png` 核对暗边框、荔枝红选中、工具栏及完整结论。ACK确认清理、临时任务移除。未覆盖英文实机、其他DPI、真实硬件点击独立场景及引擎总内存；本轮为同一实际缩放下的局部样式验收。
+
+
+## 0.3.34 标题复用导致提前省略
+
+离线回归 `lua tests/providers/ldt_provider.lua` 在修改前失败：short-to-long creature title must grow beyond its previous clipped width。实机基线Ticket `LYCHEE-20260921-024143-0089`（title-red），Retail12.1.0.69875 zhCN 灵止光—死亡之翼：净化构造体完整宽69.1304，首次分配71.1304不截断；模拟上一短标题40宽再走实际OpenView/Mount，GetStringWidth只返回38.4783、分配40.4782且IsTruncated=true；单独恢复320宽后false。证明旧宽度影响测量，不是字体缺字或总空间不足。完整payload在本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-024143-0089/content.json`，已ACK清理。
+
+修复两个实际同类点：怪物标题与生存结论采用GetUnboundedStringWidth；保留上限、居中和4单位缩放余量。设置标签先重置测量宽度，首页测量只影响装饰标记，均无此反馈循环；其他菜单布局未作未经复现的扩改。无新增对象、事件、timer、持久数据或热循环，现有静态/复用预算不变。
+
+wowdoc source check已核对，sourceId=wow-ui-source/product=retail/requestedRef=12.1.0/resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59，Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua:398–410 定义GetUnboundedStringWidth返回width/uiUnit；339–350为GetStringWidth；442–454为IsTruncated。仅用于本插件公开名称文字。
