@@ -182,6 +182,10 @@
     "UI/SocialLinks.lua",
     "UI/TextHighlight.lua",
     "UI/Theme.lua",
-    "UI/ViewHost.lua"
+    "UI/ViewHost.lua",
+    "Providers/SlashCommands/Locales/enUS.lua",
+    "Providers/SlashCommands/Locales/zhCN.lua",
+    "Providers/SlashCommands/Provider.lua",
+    "Media/MenuIcons/slash-commands.tga"
   ]
 }

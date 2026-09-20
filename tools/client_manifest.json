@@ -1,5 +1,5 @@
 {
-  "version": "0.2.4",
+  "version": "0.2.5",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -602,6 +602,9 @@
       "provider": "builtin.ldt"
     },
     {
+      "provider": "builtin.slash-commands"
+    },
+    {
       "path": "Providers/Init.lua",
       "products": [
         "retail",
@@ -903,6 +906,24 @@
       "locales": [
         "Providers/LDT/Locales/enUS.lua",
         "Providers/LDT/Locales/zhCN.lua"
+      ]
+    },
+    {
+      "id": "builtin.slash-commands",
+      "module": "SlashCommands",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ],
+      "files": [
+        "Providers/SlashCommands/Provider.lua"
+      ],
+      "requires": [],
+      "locales": [
+        "Providers/SlashCommands/Locales/enUS.lua",
+        "Providers/SlashCommands/Locales/zhCN.lua"
       ]
     }
   ]

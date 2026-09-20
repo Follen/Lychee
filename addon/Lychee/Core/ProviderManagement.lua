@@ -77,6 +77,7 @@ local providerIcons = {
     ["builtin.achievements"] = iconRoot .. "achievements.tga",
     ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
 }
+moduleOrder["builtin.slash-commands"]=17
 moduleOrder["builtin.ldt"]=14
 moduleOrder["builtin.exwind"]=15
 moduleOrder["builtin.ellesmere"]=16

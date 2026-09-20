@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.4-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.2.5-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -201,3 +201,7 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 本项目采用[自定义非商业署名许可证](LICENSE)，属于源码可见项目，不使用开源许可证。完整条款以许可证为准；[第三方素材](THIRD_PARTY_NOTICES.md)保留各自授权。
 
 分发署名：**Lychee（荔枝启动器）— Follen · https://github.com/Follen/Lychee**
+
+### 0.2.5：斜杠命令
+
+新增四客户端通用的斜杠命令来源，动态搜索已注册的普通命令（含第三方插件），输入 `dev` 或 `/dev` 后左键运行。输入 `rs` 可找到露露提亚工具箱，并复用已安装 RurutiaSuite 的 Logo。未知归属使用命令图标；不枚举子命令或绕过受保护命令。支持中英文与 `cmd:` / `命令:` 前缀。

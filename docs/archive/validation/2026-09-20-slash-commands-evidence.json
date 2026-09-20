@@ -1,0 +1,650 @@
+[
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "matchedTag": null,
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "function",
+          "name": "ImportListToHash",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "727: local function ImportListToHash(list, hash)\n728: \tlocal function ImportHash(k, v, hash)\n729: \t\tlocal i = 1;\n730: \t\tlocal tag = _G[\"SLASH_\"..k..i];\n731: \t\twhile(tag) do\n732: \t\t\ttag = strupper(tag);\n733: \t\t\tif ( hash ) then\n734: \t\t\t\thash[tag] = v;\n735: \t\t\tend\n736: \t\t\thash_ChatTypeInfoList[tag] = k;\t--Also need to import it here for all types.\n737: \t\t\ti = i + 1;\n738: \t\t\ttag = _G[\"SLASH_\"..k..i];\n739: \t\tend\n740: \t\t--Add the item we removed to the proxy table.\n741: \t\tlocal proxyTable = getmetatable(list).__index;\n742: \t\tproxyTable[k] = v;\n743: \tend\n744: \tsecureexecuterange(list, ImportHash, hash);\n745: \tsecurecallfunction(tWipe, list);\n746: end",
+          "contentHash": "6ad0481a0128135c62a02f1f34b786c6ae8b4f6b04da1fbc25edd66cf31488bc",
+          "line": 727,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "ImportListToHash",
+          "target": "secureexecuterange",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 744
+        },
+        {
+          "source": "ImportListToHash",
+          "target": "securecallfunction",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 745
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 749
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 750
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 751
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "matchedTag": null,
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "function",
+          "name": "IsSecureCmd",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "21: function IsSecureCmd(command)\n22: \tcommand = strupper(command);\n23: \t-- first check the hash table\n24: \tif addonTbl.hash_SecureCmdList[command] then\n25: \t\treturn true;\n26: \tend\n27: \n28: \tfor index, value in pairs(addonTbl.SecureCmdList) do\n29: \t\tlocal i = 1;\n30: \t\tlocal cmdString = _G[\"SLASH_\"..index..i];\n31: \t\twhile cmdString do\n32: \t\t\tcmdString = strupper(cmdString);\n33: \t\t\tif ( cmdString == command ) then\n34: \t\t\t\treturn true;\n35: \t\t\tend\n36: \t\t\ti = i + 1;\n37: \t\t\tcmdString = _G[\"SLASH_\"..index..i];\n38: \t\tend\n39: \tend\n40: end",
+          "contentHash": "422d7f47d599c98bec963c9ceccd42c739e31bf45a141ab243b5ad267da190ad",
+          "line": 21,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 22
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "pairs",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 28
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 32
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "matchedTag": null,
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_AddOns.GetAddOnMetadata",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "165: \t\t\tName = \"GetAddOnMetadata\",\n166: \t\t\tType = \"Function\",\n167: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n168: \n169: \t\t\tArguments =\n170: \t\t\t{\n171: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n172: \t\t\t\t{ Name = \"variable\", Type = \"cstring\", Nilable = false },\n173: \t\t\t},\n174: \n175: \t\t\tReturns =\n176: \t\t\t{\n177: \t\t\t\t{ Name = \"value\", Type = \"cstring\", Nilable = false },\n178: \t\t\t},\n179: \t\t},",
+          "contentHash": "fc633341c70580b4ce5821efb6b2381b844bb8c89da8828cc8fa872ac7457611",
+          "line": 165,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_AddOns",
+          "target": "C_AddOns.GetAddOnMetadata",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "line": 165
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "classic",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+      "snapshotId": "wow-ui-source-classic-ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+      "results": [
+        {
+          "kind": "function",
+          "name": "ImportListToHash",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "717: local function ImportListToHash(list, hash)\n718: \tlocal function ImportHash(k, v, hash)\n719: \t\tlocal i = 1;\n720: \t\tlocal tag = _G[\"SLASH_\"..k..i];\n721: \t\twhile(tag) do\n722: \t\t\ttag = strupper(tag);\n723: \t\t\tif ( hash ) then\n724: \t\t\t\thash[tag] = v;\n725: \t\t\tend\n726: \t\t\thash_ChatTypeInfoList[tag] = k;\t--Also need to import it here for all types.\n727: \t\t\ti = i + 1;\n728: \t\t\ttag = _G[\"SLASH_\"..k..i];\n729: \t\tend\n730: \t\t--Add the item we removed to the proxy table.\n731: \t\tlocal proxyTable = getmetatable(list).__index;\n732: \t\tproxyTable[k] = v;\n733: \tend\n734: \tsecureexecuterange(list, ImportHash, hash);\n735: \tsecurecallfunction(tWipe, list);\n736: end",
+          "contentHash": "98ce6744cf79a6596952e358403e01d5d0cb7c5c62e89e6fafdf8a9ce8d8c530",
+          "line": 717,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "ImportListToHash",
+          "target": "secureexecuterange",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 734
+        },
+        {
+          "source": "ImportListToHash",
+          "target": "securecallfunction",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 735
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 739
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 740
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 741
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "classic",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+      "snapshotId": "wow-ui-source-classic-ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+      "results": [
+        {
+          "kind": "function",
+          "name": "IsSecureCmd",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "21: function IsSecureCmd(command)\n22: \tcommand = strupper(command);\n23: \t-- first check the hash table\n24: \tif addonTbl.hash_SecureCmdList[command] then\n25: \t\treturn true;\n26: \tend\n27: \n28: \tfor index, value in pairs(addonTbl.SecureCmdList) do\n29: \t\tlocal i = 1;\n30: \t\tlocal cmdString = _G[\"SLASH_\"..index..i];\n31: \t\twhile cmdString do\n32: \t\t\tcmdString = strupper(cmdString);\n33: \t\t\tif ( cmdString == command ) then\n34: \t\t\t\treturn true;\n35: \t\t\tend\n36: \t\t\ti = i + 1;\n37: \t\t\tcmdString = _G[\"SLASH_\"..index..i];\n38: \t\tend\n39: \tend\n40: end",
+          "contentHash": "422d7f47d599c98bec963c9ceccd42c739e31bf45a141ab243b5ad267da190ad",
+          "line": 21,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 22
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "pairs",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 28
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 32
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "classic",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+      "snapshotId": "wow-ui-source-classic-ecadf9d3326fa87828cacca7f13c0ab5f41840a6",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_AddOns.GetAddOnMetadata",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "154: \t\t\tName = \"GetAddOnMetadata\",\n155: \t\t\tType = \"Function\",\n156: \n157: \t\t\tArguments =\n158: \t\t\t{\n159: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n160: \t\t\t\t{ Name = \"variable\", Type = \"cstring\", Nilable = false },\n161: \t\t\t},\n162: \n163: \t\t\tReturns =\n164: \t\t\t{\n165: \t\t\t\t{ Name = \"value\", Type = \"cstring\", Nilable = false },\n166: \t\t\t},\n167: \t\t},",
+          "contentHash": "890061cbd367742667e4370980003a2336625fa34df0875447a9807f80c8afa9",
+          "line": 154,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_AddOns",
+          "target": "C_AddOns.GetAddOnMetadata",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "line": 154
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "titan",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+      "snapshotId": "wow-ui-source-titan-84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+      "results": [
+        {
+          "kind": "function",
+          "name": "ImportListToHash",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "717: local function ImportListToHash(list, hash)\n718: \tlocal function ImportHash(k, v, hash)\n719: \t\tlocal i = 1;\n720: \t\tlocal tag = _G[\"SLASH_\"..k..i];\n721: \t\twhile(tag) do\n722: \t\t\ttag = strupper(tag);\n723: \t\t\tif ( hash ) then\n724: \t\t\t\thash[tag] = v;\n725: \t\t\tend\n726: \t\t\thash_ChatTypeInfoList[tag] = k;\t--Also need to import it here for all types.\n727: \t\t\ti = i + 1;\n728: \t\t\ttag = _G[\"SLASH_\"..k..i];\n729: \t\tend\n730: \t\t--Add the item we removed to the proxy table.\n731: \t\tlocal proxyTable = getmetatable(list).__index;\n732: \t\tproxyTable[k] = v;\n733: \tend\n734: \tsecureexecuterange(list, ImportHash, hash);\n735: \tsecurecallfunction(tWipe, list);\n736: end",
+          "contentHash": "afc6cdc6e028d53b9270857ac5463a23d367542e5bacfe70bf826bd51312f961",
+          "line": 717,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "ImportListToHash",
+          "target": "secureexecuterange",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 734
+        },
+        {
+          "source": "ImportListToHash",
+          "target": "securecallfunction",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 735
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 739
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 740
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 741
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "titan",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+      "snapshotId": "wow-ui-source-titan-84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+      "results": [
+        {
+          "kind": "function",
+          "name": "IsSecureCmd",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "21: function IsSecureCmd(command)\n22: \tcommand = strupper(command);\n23: \t-- first check the hash table\n24: \tif addonTbl.hash_SecureCmdList[command] then\n25: \t\treturn true;\n26: \tend\n27: \n28: \tfor index, value in pairs(addonTbl.SecureCmdList) do\n29: \t\tlocal i = 1;\n30: \t\tlocal cmdString = _G[\"SLASH_\"..index..i];\n31: \t\twhile cmdString do\n32: \t\t\tcmdString = strupper(cmdString);\n33: \t\t\tif ( cmdString == command ) then\n34: \t\t\t\treturn true;\n35: \t\t\tend\n36: \t\t\ti = i + 1;\n37: \t\t\tcmdString = _G[\"SLASH_\"..index..i];\n38: \t\tend\n39: \tend\n40: end",
+          "contentHash": "37d4dde6379b5f8699f7425b960e12b4ea5a0b2e0f2b9133c7f4fc07b697b34d",
+          "line": 21,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 22
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "pairs",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 28
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 32
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "titan",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+      "snapshotId": "wow-ui-source-titan-84ef503f0d2617494db84cc9c7e7b530e976f6e7",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_AddOns.GetAddOnMetadata",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "154: \t\t\tName = \"GetAddOnMetadata\",\n155: \t\t\tType = \"Function\",\n156: \n157: \t\t\tArguments =\n158: \t\t\t{\n159: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n160: \t\t\t\t{ Name = \"variable\", Type = \"cstring\", Nilable = false },\n161: \t\t\t},\n162: \n163: \t\t\tReturns =\n164: \t\t\t{\n165: \t\t\t\t{ Name = \"value\", Type = \"cstring\", Nilable = false },\n166: \t\t\t},\n167: \t\t},",
+          "contentHash": "890061cbd367742667e4370980003a2336625fa34df0875447a9807f80c8afa9",
+          "line": 154,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_AddOns",
+          "target": "C_AddOns.GetAddOnMetadata",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "line": 154
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "anniversary",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "snapshotId": "wow-ui-source-anniversary-1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "results": [
+        {
+          "kind": "function",
+          "name": "ImportListToHash",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "717: local function ImportListToHash(list, hash)\n718: \tlocal function ImportHash(k, v, hash)\n719: \t\tlocal i = 1;\n720: \t\tlocal tag = _G[\"SLASH_\"..k..i];\n721: \t\twhile(tag) do\n722: \t\t\ttag = strupper(tag);\n723: \t\t\tif ( hash ) then\n724: \t\t\t\thash[tag] = v;\n725: \t\t\tend\n726: \t\t\thash_ChatTypeInfoList[tag] = k;\t--Also need to import it here for all types.\n727: \t\t\ti = i + 1;\n728: \t\t\ttag = _G[\"SLASH_\"..k..i];\n729: \t\tend\n730: \t\t--Add the item we removed to the proxy table.\n731: \t\tlocal proxyTable = getmetatable(list).__index;\n732: \t\tproxyTable[k] = v;\n733: \tend\n734: \tsecureexecuterange(list, ImportHash, hash);\n735: \tsecurecallfunction(tWipe, list);\n736: end",
+          "contentHash": "afc6cdc6e028d53b9270857ac5463a23d367542e5bacfe70bf826bd51312f961",
+          "line": 717,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "ImportListToHash",
+          "target": "secureexecuterange",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 734
+        },
+        {
+          "source": "ImportListToHash",
+          "target": "securecallfunction",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 735
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 739
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 740
+        },
+        {
+          "source": "ChatFrameUtil.ImportAllListsToHash",
+          "target": "ImportListToHash",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/ChatFrameUtil.lua",
+          "line": 741
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "anniversary",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "snapshotId": "wow-ui-source-anniversary-1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "results": [
+        {
+          "kind": "function",
+          "name": "IsSecureCmd",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "21: function IsSecureCmd(command)\n22: \tcommand = strupper(command);\n23: \t-- first check the hash table\n24: \tif addonTbl.hash_SecureCmdList[command] then\n25: \t\treturn true;\n26: \tend\n27: \n28: \tfor index, value in pairs(addonTbl.SecureCmdList) do\n29: \t\tlocal i = 1;\n30: \t\tlocal cmdString = _G[\"SLASH_\"..index..i];\n31: \t\twhile cmdString do\n32: \t\t\tcmdString = strupper(cmdString);\n33: \t\t\tif ( cmdString == command ) then\n34: \t\t\t\treturn true;\n35: \t\t\tend\n36: \t\t\ti = i + 1;\n37: \t\t\tcmdString = _G[\"SLASH_\"..index..i];\n38: \t\tend\n39: \tend\n40: end",
+          "contentHash": "37d4dde6379b5f8699f7425b960e12b4ea5a0b2e0f2b9133c7f4fc07b697b34d",
+          "line": 21,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 22
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "pairs",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 28
+        },
+        {
+          "source": "IsSecureCmd",
+          "target": "strupper",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ChatFrameBase/Shared/SlashCommandsRegistry.lua",
+          "line": 32
+        }
+      ]
+    }
+  },
+  {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "anniversary",
+      "requestedRef": "latest",
+      "matchedTag": null,
+      "resolvedCommit": "1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "snapshotId": "wow-ui-source-anniversary-1463c686270b6c64e2c5c228f447c4597c0f8ba6",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_AddOns.GetAddOnMetadata",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "154: \t\t\tName = \"GetAddOnMetadata\",\n155: \t\t\tType = \"Function\",\n156: \n157: \t\t\tArguments =\n158: \t\t\t{\n159: \t\t\t\t{ Name = \"name\", Type = \"uiAddon\", Nilable = false },\n160: \t\t\t\t{ Name = \"variable\", Type = \"cstring\", Nilable = false },\n161: \t\t\t},\n162: \n163: \t\t\tReturns =\n164: \t\t\t{\n165: \t\t\t\t{ Name = \"value\", Type = \"cstring\", Nilable = false },\n166: \t\t\t},\n167: \t\t},",
+          "contentHash": "890061cbd367742667e4370980003a2336625fa34df0875447a9807f80c8afa9",
+          "line": 154,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_AddOns",
+          "target": "C_AddOns.GetAddOnMetadata",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/AddOnsDocumentation.lua",
+          "line": 154
+        }
+      ]
+    }
+  }
+]

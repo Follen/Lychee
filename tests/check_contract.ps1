@@ -59,6 +59,12 @@ $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
+    foreach ($flavor in @('Mainline','Mists','Wrath','TBC')) {
+        foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
+            & $lua.Source 'tests/providers/slash_commands.lua' $locale $flavor
+            if ($LASTEXITCODE -ne 0) { throw "Slash commands failed: $flavor/$locale" }
+        }
+    }
     & python 'tools/check_repository.py'
     if ($LASTEXITCODE -ne 0) { throw 'Repository documentation/layout checks failed' }
     & python 'tools/build_enemy_catalog.py' '--check'

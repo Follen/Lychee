@@ -18,4 +18,5 @@ I.ProviderModules.Definitions = {
     {id="builtin.achievements",module="Achievements",scope={products={"retail","classic","titan"}},requires={"GetCategoryList","GetAchievementInfo","GetAchievementCriteriaInfo","GetAchievementNumCriteria","GetAchievementLink"}},
     {id="builtin.addon-inspector",module="AddonInspector",scope={products={"retail","classic","titan","anniversary"}},requires={"GetMouseFoci"}},
     {id="builtin.ldt",module="LDT",scope={products={"retail"}},requires={"C_Spell.GetSpellName"}},
+    {id="builtin.slash-commands",module="SlashCommands",scope={products={"retail","classic","titan","anniversary"}},requires={}},
 }

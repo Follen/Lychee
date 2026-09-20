@@ -39,4 +39,4 @@ for id,pair in pairs(resources) do
     assert(LycheeInternal.ProviderLocales:Compile(pair))
     for key in pairs(pair.enUS) do assert(pair.zhCN[key]~=nil,id..":"..key) end
 end
-print("Provider locale loading PASS: 16 modules, 5 locales, "..checks.." text checks, selected dictionaries only")
+print("Provider locale loading PASS: all modules, 5 locales, "..checks.." text checks, selected dictionaries only")

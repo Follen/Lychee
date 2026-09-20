@@ -149,3 +149,5 @@
 - [2026-09-10-achievement-loading · 成就首次搜索时序优化](2026-09-10-achievement-loading.md)
 - [2026-09-10-achievement-cache · 成就持久目录与增量更新](2026-09-10-achievement-cache.md)
 - [2026-09-10-achievement-cache-v2 · 成就缓存进一步优化：实施前预算](2026-09-10-achievement-cache-v2.md)
+
+- [2026-09-20 斜杠命令来源](2026-09-20-slash-commands.md)：四客户端动态发现、双语、RurutiaSuite 图标与离线验收；实机待重启后验收。
