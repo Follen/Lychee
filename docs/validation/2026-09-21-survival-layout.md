@@ -87,3 +87,7 @@ Ticket `LYCHEE-20260921-021400-0087` request=ldt-check32-20260921/revision=check
 修复两个实际同类点：怪物标题与生存结论采用GetUnboundedStringWidth；保留上限、居中和4单位缩放余量。设置标签先重置测量宽度，首页测量只影响装饰标记，均无此反馈循环；其他菜单布局未作未经复现的扩改。无新增对象、事件、timer、持久数据或热循环，现有静态/复用预算不变。
 
 wowdoc source check已核对，sourceId=wow-ui-source/product=retail/requestedRef=12.1.0/resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59，Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua:398–410 定义GetUnboundedStringWidth返回width/uiUnit；339–350为GetStringWidth；442–454为IsTruncated。仅用于本插件公开名称文字。
+
+运行提交 `a6374eb`，200文件SHA一致，完整契约/Lua语法/wowdoc valid=true/diff检查通过；离线模块432.5 KiB（前432.4），50次重开无新增Frame、保留-1.03 KiB，查询增长0.0 KiB、峰批3ms。无新增常驻对象或驱动，此变化未观察到保留增长；引擎总内存未测。
+
+初次修复验收Ticket `LYCHEE-20260921-024528-0090` 因探针错误访问原生返回按钮.frame失败，已ACK清理，不作产品通过证据。探针修正为兼容原生Button，并用实际unknown→survives状态切换测试结论，不直接改缓存管理的字体宽度。最终Ticket `LYCHEE-20260921-024732-0091` request=ldt-title-green2-20260921/revision=title-green2，同Retail12.1.0.69875 zhCN角色，complete/succeeded/pass=true；首次、复用短宽后的净化构造体和计算返回标题均IsTruncated=false，结论恢复不截断。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-024732-0091/content.json`，截图 `analyze/survival/ui-title34-final-3.png` 确认完整标题及元信息间距。ACK清理且自有任务移除。英文实机及其他缩放未覆盖；本轮未再次发布到DD/新手盒子，远端仍0.3.33。
