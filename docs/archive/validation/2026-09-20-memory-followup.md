@@ -44,3 +44,41 @@ wowdoc source check 后固定 sourceId=wow-ui-source / product=retail / requeste
 受影响流程：正常搜索/关闭/重开、目录未变化与变更、首页滚动/键盘/按压重绑、冻屏清理、真实背包定位与玩具声明。实机性能与功能分别记录；安全物品使用、真实战斗/taint、其他客户端/语言、团本/姓名板压力不能由脚本模拟宣称通过。
 
 第一次旧版性能探针 Ticket LYCHEE-20260920-194944-0062 / memory0311-before-20260920 / revision 1 在50秒诊断总时限失败；未形成可比较基线，完整失败报告已读取并ACK。此前用户正在操作导致就绪码未返回，按用户明确要求重新发命令后恢复；不归因于运行代码。第二次扩大诊断总时限，产品查询时限未改。后续结果待追加。
+
+
+### 实机性能对照完成
+
+旧版 Ticket `LYCHEE-20260920-195249-0063` / request `memory0311-before2-20260920` / revision 2；新版 Ticket `LYCHEE-20260920-195746-0064` / request `memory0311-after-20260920` / revision 3。均 complete/succeeded、未截断；Retail 12.1.0.69875 / zhCN / 晴昼秋岚—白银之手，环境完全一致。探针源码相同，只更换任务request身份。完整payload已解析，24次查询的ID/Provider/标题/顺序逐条一致，结束visible/pending/jobs全部false。两份ACK received。
+
+| 真实客户端测量 | 0.3.10 | 0.3.11 |
+|---|---:|---:|
+| 69项、约302高视口：首页按钮池 | 69 | 28 |
+| 20次首尾滚动后的按钮池 | 69 | 28 |
+| 关闭后首页图标绑定数 | 69 | 0 |
+| 第1轮搜索关闭回收后 Lychee KiB | 14384.72 | 14386.77 |
+| 第2轮搜索关闭回收后 Lychee KiB | 14301.13 | 14305.18 |
+| 第3轮搜索关闭回收后 Lychee KiB | 14304.50 | 14305.67 |
+| 大首页场景结束回收后 Lychee KiB | 13707.16 | 13686.65 |
+
+普通搜索常驻基本不变（约1–4 KiB差）；大首页场景后Lua读数约少20.51 KiB。原生按钮少41个（约59%），引擎/纹理实际字节仍未测，不能把离线替身3.46 MiB当作实机节省。查询完成约2.3–2.7秒，含后台帧率/调度与来源等待，不声称CPU或帧率改善。两次三轮自然Lua读数约22.35/19.11/19.03 MiB，基本不变。
+
+诊断工具独立统计：旧约4351 KiB、新约4387 KiB，包含新增任务源码；不计为Lychee业务占用。全局Lua包括所有第三方，不归因给本改动。测试用诊断GC只发生在固定采样点，产品代码无新增GC。当前角色实际背包/玩具规模由功能探针另记。
+
+完整原始报告分别在 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-195249-0063/content.json` 与 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-195746-0064/content.json`。运行提交 `78de60c`（主实现 `1c08273`），197运行文件SHA-256一致、旧文件保留，自动reload完成。功能探针结果待追加。
+
+
+### 独立功能覆盖
+
+Ticket `LYCHEE-20260920-195957-0065` / request `memory0311-func-20260920` / revision 1，完整 succeeded，Retail/zhCN/同角色。测试来源只执行无副作用回调，不模拟安全物品使用。覆盖首批结果/慢来源完成、正常回调、菜单与冷却绑定、设置切页清理、6→1→6结果、失败可见/重试、取消/关闭/重开、注销/重注册；另覆盖69项首页、滚动后旧按压失效、末项可见、重绑回调、键盘带入视口、20次滚动池稳定、冻结保留素材、关闭逐按钮清纹理及重开绑定。
+
+真实当前目录：背包84种、玩具145件，无变化build分别复用84/145项、完整记录生成均0。真实背包定位返回成功；测试结束停止发光、关闭Ellesmere背包，冷却bindings/groups=0、listening/scheduled=false、查询无待办；两临时Provider删除。未测真实安全点击/放置、战斗taint、其他客户端/语言、团本和姓名板峰值。ACK received。
+
+最终补充提交 `717b382`：滚动后刷新原生scroll child rect，离线新增断言并通过原交互回归；197文件重新同步并核对。对应API证据同固定retail commit，SimpleScrollFrameAPIDocumentation.lua 的 UpdateScrollChildRect。最后实机复测另记，不用前一Ticket覆盖后续修改。
+
+### 最终版本复测与收尾
+
+用户暂停操作后重新发送重载，nonce `req-20260920-120340-2b8a45` 返回 reload_ready。最终运行提交 `717b38243c5f42b6713cd809d21ef9f2be0c907a`，0.3.11，197个运行文件已同步并逐一核对SHA-256。
+
+Ticket `LYCHEE-20260920-200623-0066` / task `memory0311func` / request `memory0311-func2-20260920` / revision 2，Retail 12.1.0.69875 / zhCN / 同角色，complete=true、status=succeeded、outputTruncated=false。完整2657字节payload已读取并核对身份，包含最终新增的 `native scroll geometry refreshed` 断言；前述功能覆盖再次全部通过。首页69项使用28个按钮，背包84项、玩具145项复用，完整记录生成均0；关闭后冷却bindings/groups=0、listening/scheduled=false，查询无待办，临时Provider已删除。
+
+完整报告：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-200623-0066/content.json`。ACK received 已确认，本轮 `memory0311` 与 `memory0311func` 自动任务已移除。最终完整契约检查PASS，wowdoc validate valid=true，相关静态/清单/diff检查通过。未覆盖项仍为真实安全点击与地面放置、战斗taint、其他客户端/语言及团本/姓名板峰值；不将诊断脚本回调视为这些流程的验收。
