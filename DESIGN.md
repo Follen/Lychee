@@ -487,3 +487,9 @@ LDT默认参与全局搜索，`ldt:` 可选；名称、技能、ID、Boss序号�
 移除正文尾部说明，仅在公共底栏左侧显示“仅计算首段直接伤害”。所有Provider视图的单条底栏提示使用同一左侧状态位，右侧保留现有社交入口，无LDT专用Host分支。
 
 公共Components:CreateCheckbox由页面控制业务选中状态，14px细框、红底白勾、整行悬停和禁用状态。复用游戏技能图标，不新增装饰媒体、计时器或逐帧驱动。返回层级保持计算页→原怪物页→搜索。
+
+### 公共圆角Checkbox与结果工具栏（0.3.23）
+
+Checkbox必须使用Components:CreateCheckbox，不在业务页面自行绘制方框。14×14外框、3单位圆角、1单位边框；内填充内缩1，圆角2。未选为window填充/fieldBorder细框，选中为accentHover填充和text白勾，禁用覆盖悬停。整行点击目标保持不变。复用Theme:CreateRoundedSurface(frame,token,radius,inset,layer)，通过同一框架两层圆角区域绘制边框，沿用rounded-corner.tga，不新增位图。每个Checkbox新增一个无脚本Frame，固定16个纹理区域，首次创建后复用，无额外动画组或OnUpdate。
+
+计算页上半区的层数旁复用keystone图标，刷新使用reload图标并有悬停文字。生命/直接承伤分别复用character/pvp语义图标；存活结论以绿色勾号，致死以skull和danger色表示。数值使用千位分隔和input字号，标签保持meta字号。剩余/超出生命归到结论列下方，不再跨整页。所有效果和技能继续用原生游戏图标，保留三项核心结果，不加入装饰卡片或新参数。

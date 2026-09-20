@@ -227,21 +227,21 @@ function Components:CreateCheckbox(parent, options)
     options.colors={normal="transparent",hover="surfaceSelected",pressed="surfaceSelected",disabled="transparent"}
     options.textColors={normal="text",hover="text",pressed="text",disabled="disabled"}
     local c=self:CreateButton(parent,options)
-    local box=c.frame:CreateTexture(nil,"BORDER")
+    local box=CreateFrame("Frame",nil,c.frame)
     box:SetSize(14,14);box:SetPoint("RIGHT",-10,0)
-    local inner=c.frame:CreateTexture(nil,"ARTWORK")
-    inner:SetSize(12,12);inner:SetPoint("CENTER",box,"CENTER",0,0)
-    local short=c.frame:CreateTexture(nil,"OVERLAY")
+    local border=Theme:CreateRoundedSurface(box,"fieldBorder",3)
+    local fill=Theme:CreateRoundedSurface(box,"window",2,1,"BORDER")
+    local short=box:CreateTexture(nil,"OVERLAY")
     short:SetSize(4,1.5);short:SetPoint("CENTER",box,"CENTER",-3,-1);short:SetRotation(-math.pi/4)
-    local long=c.frame:CreateTexture(nil,"OVERLAY")
+    local long=box:CreateTexture(nil,"OVERLAY")
     long:SetSize(8,1.5);long:SetPoint("CENTER",box,"CENTER",1,0);long:SetRotation(math.pi/4)
     c.label:ClearAllPoints();c.label:SetPoint("LEFT",8,0);c.label:SetPoint("RIGHT",-32,0)
     c.label:SetJustifyH("LEFT");Theme:SetFont(c.label,"body")
     c.check=long
     function c:PaintCheck()
         local enabled=self.enabled~=false
-        Theme:SetColorTexture(box,not enabled and "disabled" or self.checked and "accentHover" or self._hovered and "textMuted" or "fieldBorder")
-        Theme:SetColorTexture(inner,self.checked and (enabled and "accentHover" or "disabled") or "window")
+        border:SetColor(not enabled and "disabled" or self.checked and "accentHover" or self._hovered and "textMuted" or "fieldBorder")
+        fill:SetColor(self.checked and (enabled and "accentHover" or "disabled") or "window")
         Theme:SetColorTexture(short,"text");Theme:SetColorTexture(long,"text")
         setShown(short,self.checked);setShown(long,self.checked)
     end

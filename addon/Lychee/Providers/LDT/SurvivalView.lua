@@ -3,7 +3,11 @@ local M=I.ProviderModules.LDT
 local S=M.Survival
 local L=I.ProviderLocales:Module(M.id)
 local groupNames={"单体外援","团队增益","团队主动"}
-local function amount(value) return value and string.format("%.0f",value) or "—" end
+local function amount(value)
+    if not value then return "—" end
+    local digits=string.format("%.0f",value)
+    return (digits:reverse():gsub("(%d%d%d)","%1,"):reverse():gsub("^,",""))
+end
 function M:CreateSurvivalView(owner)
     if owner.calculator then return owner.calculator end
     local C,Theme=_G.Lychee.UI.Components,_G.Lychee.UI.Theme
@@ -36,10 +40,10 @@ function M:CreateSurvivalView(owner)
         end});Theme:SetFont(b.label,"body");b.frame:SetPoint("TOPLEFT",x,-y);scrollable(b.frame);return b
     end
     function v:Layout()
-        self.contentHeight=328;self.frame:SetHeight(self.contentHeight)
-        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-100)
+        self.contentHeight=336;self.frame:SetHeight(self.contentHeight)
+        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-108)
         resize()
-        if owner.context then owner.context:Resize(470) end
+        if owner.context then owner.context:Resize(478) end
     end
     function v:Refresh()
         if not self.active then return end
@@ -66,7 +70,8 @@ function M:CreateSurvivalView(owner)
         self.values[1]:SetText(amount(r.health or stats.health))
         self.values[2]:SetText(amount(r.first))
         local status=r.status=="lethal" and "会致死" or r.status=="survives" and "可承受" or r.status=="noDirect" and "无首段直接伤害" or "伤害数据暂不可用"
-        self.values[3]:SetText(L[status]);Theme:SetTextColor(self.values[3],r.status=="lethal" and "danger" or "text")
+        self.values[3]:SetText(L[status]);Theme:SetTextColor(self.values[3],r.status=="lethal" and "danger" or r.status=="survives" and "success" or "text")
+        self.lethalIcon:SetShown(r.status=="lethal");self.safeShort:SetShown(r.status=="survives");self.safeLong:SetShown(r.status=="survives")
         self.summary:SetText(r.remaining and (r.remaining>0 and L:Format("承受后剩余生命 %s",amount(r.remaining)) or L:Format("超出生命 %s",amount(-r.remaining))) or L["自动读取技能伤害与自身属性"])
         self:RenderEffects()
     end
@@ -98,23 +103,35 @@ function M:CreateSurvivalView(owner)
         self.toolbar:Show();self.viewport:Show();self.frame:Show();self:Layout();self.bar:SetValue(0);self:Render();owner:SetHint(L["仅计算首段直接伤害"])
     end
     function v:Close()
-        self.active=false;self.toolbar:Hide();self.spellIcon:SetTexture(nil);self.frame:Hide();self.viewport:Hide();self.bar:StopDrag()
+        self.active=false;C:HideTooltip(self.refresh.frame);self.toolbar:Hide();self.spellIcon:SetTexture(nil);self.frame:Hide();self.viewport:Hide();self.bar:StopDrag()
         for _,row in ipairs(self.rows) do row.effect=nil;row.pressed=nil;row.icon:SetTexture(nil);row.label:SetText("");C:HideTooltip(row.frame) end
         for key in pairs(self.selected) do self.selected[key]=nil end
         self.stats,self.input,self.result,self.list=nil,nil,nil,nil
     end
     v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(28,28);v.spellIcon:SetPoint("LEFT",0,0);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
     v.name=text("title",38,5,304,20,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
-    v.levelLabel=text("body",410,6,80,18,v.toolbar);v.levelLabel:SetJustifyH("CENTER")
+    v.levelLabel=text("body",428,6,64,18,v.toolbar);v.levelLabel:SetJustifyH("CENTER")
     v.minus=button("−",378,0,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.toolbar)
     v.plus=button("+",496,0,28,function() v.level=math.min(35,v.level+1);v:Render() end,nil,v.toolbar)
-    v.refresh=button(L["刷新"],536,0,48,function() v:Refresh() end,nil,v.toolbar)
+    local iconRoot="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
+    local function icon(parent,asset,x,y,size)
+        local t=parent:CreateTexture(nil,"ARTWORK");t:SetSize(size,size);t:SetPoint("TOPLEFT",x,-y);t:SetTexture(iconRoot..asset..".tga");return t
+    end
+    icon(v.toolbar,"keystone",406,7,16)
+    v.refresh=button("",544,0,32,function() v:Refresh() end,nil,v.toolbar)
+    icon(v.refresh.frame,"reload",6,3,18)
+    v.refresh.frame:HookScript("OnEnter",function() if v.active then C:ShowTooltip(v.refresh.frame,{title=L["刷新"]}) end end)
+    v.refresh.frame:HookScript("OnLeave",function() C:HideTooltip(v.refresh.frame) end)
     v.values={}
     for i,caption in ipairs({"生命值","直接承伤","是否致死"}) do
-        text("meta",(i-1)*196,8,188,18):SetText(L[caption])
-        v.values[i]=text("title",(i-1)*196,34,188,26);Theme:SetTextColor(v.values[i],"text")
+        text("meta",(i-1)*196+24,8,164,18):SetText(L[caption])
+        v.values[i]=text("input",(i-1)*196,34,188,26);Theme:SetTextColor(v.values[i],"text")
     end
-    v.summary=text("meta",0,68,584,20)
+    icon(v.frame,"character",0,7,16);icon(v.frame,"pvp",196,7,16)
+    v.lethalIcon=icon(v.frame,"skull",392,7,16)
+    v.safeShort=v.frame:CreateTexture(nil,"ARTWORK");v.safeShort:SetSize(5,2);v.safeShort:SetPoint("TOPLEFT",394,-15);v.safeShort:SetRotation(-math.pi/4);Theme:SetColorTexture(v.safeShort,"success")
+    v.safeLong=v.frame:CreateTexture(nil,"ARTWORK");v.safeLong:SetSize(10,2);v.safeLong:SetPoint("TOPLEFT",398,-12);v.safeLong:SetRotation(math.pi/4);Theme:SetColorTexture(v.safeLong,"success")
+    v.summary=text("meta",392,65,188,32)
     v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,228);scrollable(v.effects)
     for i,caption in ipairs(groupNames) do
         v.tabs[i]=button(L[caption],(i-1)*196,0,188,function() v.group=i;v:RenderEffects() end,nil,v.effects)

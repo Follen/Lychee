@@ -195,8 +195,9 @@ function Theme:ApplySurface(frame, backgroundColor, borderColor)
 end
 
 -- Seven reusable regions keep the corner radius fixed as the window grows.
-function Theme:CreateRoundedSurface(frame, token, radius)
+function Theme:CreateRoundedSurface(frame, token, radius, inset, layer)
     radius = radius or 10
+    inset,layer=inset or 0,layer or "BACKGROUND"
     local surface={regions={}}
     function surface:SetColor(color)
         for _,region in ipairs(self.regions) do
@@ -204,15 +205,15 @@ function Theme:CreateRoundedSurface(frame, token, radius)
             else Theme:SetColorTexture(region,color) end
         end
     end
-    local middle = frame:CreateTexture(nil,"BACKGROUND")
-    middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius, 0)
-    middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius, 0)
+    local middle = frame:CreateTexture(nil,layer)
+    middle:SetPoint("TOPLEFT", frame, "TOPLEFT", radius+inset, -inset)
+    middle:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -radius-inset, inset)
     self:SetColorTexture(middle, token)
     surface.regions[#surface.regions+1]=middle
     for _, side in ipairs({ "LEFT", "RIGHT" }) do
-        local strip = frame:CreateTexture(nil,"BACKGROUND")
-        strip:SetPoint("TOP" .. side, frame, "TOP" .. side, 0, -radius)
-        strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, 0, radius)
+        local strip = frame:CreateTexture(nil,layer)
+        strip:SetPoint("TOP" .. side, frame, "TOP" .. side, side=="LEFT" and inset or -inset, -radius-inset)
+        strip:SetPoint("BOTTOM" .. side, frame, "BOTTOM" .. side, side=="LEFT" and inset or -inset, radius+inset)
         strip:SetWidth(radius)
         self:SetColorTexture(strip, token)
         surface.regions[#surface.regions+1]=strip
@@ -223,9 +224,9 @@ function Theme:CreateRoundedSurface(frame, token, radius)
     }
     for index = 1, #corners do
         local corner = corners[index]
-        local texture = frame:CreateTexture(nil,"BACKGROUND")
+        local texture = frame:CreateTexture(nil,layer)
         texture:SetSize(radius, radius)
-        texture:SetPoint(corner[1], frame, corner[1], 0, 0)
+        texture:SetPoint(corner[1], frame, corner[1], corner[2]==0 and inset or -inset, corner[4]==0 and -inset or inset)
         texture:SetTexture("Interface\\AddOns\\Lychee\\Media\\rounded-corner.tga")
         if texture.SetTexCoord then texture:SetTexCoord(corner[2], corner[3], corner[4], corner[5]) end
         self:SetVertexColor(texture, token)
