@@ -50,7 +50,9 @@ C_Container={GetContainerNumSlots=function(b) return b==0 and 512 or 0 end,
     SetItemSearch=function(s) calls.bagSearch=s end}
 function OpenAllBags() calls.bags=true end
 function ContainerFrameUtil_GetItemButtonAndContainer()
-    return {IsVisible=function() return true end,GetFrameLevel=function() return 1 end}
+    return {IsVisible=function() return true end,GetFrameLevel=function() return 1 end,
+        LockHighlight=function() end,UnlockHighlight=function() end,
+        IsHighlightLocked=function() return false end,GetHighlightTexture=function() return true end}
 end
 local createCatalogFrame=CreateFrame
 function CreateFrame(...)

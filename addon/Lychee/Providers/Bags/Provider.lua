@@ -1,40 +1,39 @@
 local I = _G.LycheeInternal
 local L = I.ProviderLocales:Module("builtin.bags")
 local C = I.ProviderModules.CatalogProvider
-local highlight, highlightTimer
+-- One reusable lifecycle sentinel; the item button owns all visual resources.
+local highlight, highlightTimer, highlightedButton, ownsHighlight
 local function clearHighlight()
+    local button,owned=highlightedButton,ownsHighlight
+    highlightedButton,ownsHighlight=nil,nil
     if highlightTimer then highlightTimer:Cancel(); highlightTimer=nil end
     if highlight then
         highlight:UnregisterAllEvents()
         highlight:Hide()
         highlight:ClearAllPoints()
+        highlight:SetParent(UIParent)
     end
+    if button and owned then button:UnlockHighlight() end
 end
 local function showHighlight(button)
     clearHighlight()
+    if not button.LockHighlight or not button.UnlockHighlight or not button.IsHighlightLocked
+        or not button.GetHighlightTexture or not button:GetHighlightTexture() then return false end
     if not highlight then
         highlight=CreateFrame("Frame")
         highlight:EnableMouse(false)
-        local edges={{"TOPLEFT","TOPRIGHT"},{"BOTTOMLEFT","BOTTOMRIGHT"},{"TOPLEFT","BOTTOMLEFT"},{"TOPRIGHT","BOTTOMRIGHT"}}
-        for index,edge in ipairs(edges) do
-            local texture=highlight:CreateTexture(nil,"OVERLAY")
-            texture:SetColorTexture(0.94,0.20,0.29,1)
-            texture:SetPoint(edge[1],highlight,edge[1],0,0)
-            texture:SetPoint(edge[2],highlight,edge[2],0,0)
-            if index<=2 then texture:SetHeight(2) else texture:SetWidth(2) end
-        end
-        local wash=highlight:CreateTexture(nil,"ARTWORK")
-        wash:SetAllPoints();wash:SetColorTexture(1,0.85,0.65,0.12)
         highlight:SetScript("OnHide",clearHighlight)
         highlight:SetScript("OnEvent",clearHighlight)
     end
+    highlightedButton,ownsHighlight=button,not button:IsHighlightLocked()
+    if ownsHighlight then button:LockHighlight() end
     highlight:SetParent(button)
     highlight:SetAllPoints(button)
-    highlight:SetFrameLevel(button:GetFrameLevel()+5)
     highlight:RegisterEvent("BAG_UPDATE_DELAYED")
     highlight:RegisterEvent("PLAYER_REGEN_DISABLED")
     highlight:Show()
     highlightTimer=C_Timer.NewTimer(3,clearHighlight)
+    return true
 end
 local function bagLast() return NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4 end
 local function build(self,put,checkpoint)
@@ -143,7 +142,7 @@ local function locate(entry)
                 if not button or not button:IsVisible() then
                     return {ok=false,message=L["已打开背包；目标格位当前不可见，请展开对应分类"]}
                 end
-                showHighlight(button)
+                if not showHighlight(button) then return {ok=false,code="ACTION_UNAVAILABLE"} end
                 return {ok=true,close=true}
             end
         end

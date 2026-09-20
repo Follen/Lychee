@@ -36,6 +36,13 @@ C_Container={GetContainerNumSlots=function(b) return b==0 and 4 or 0 end,
     SetItemSearch=function(text) assert(text=="", "locating must never leave a global name filter") end}
 function OpenAllBags() end
 local bagButton={IsVisible=function() return visible end,GetFrameLevel=function() return 3 end}
+local function nativeHighlight(button)
+    button.LockHighlight=function(self) self.locked=true end
+    button.UnlockHighlight=function(self) self.locked=false end
+    button.IsHighlightLocked=function(self) return self.locked==true end
+    button.GetHighlightTexture=function() return true end
+end
+nativeHighlight(bagButton)
 local locatedSlot
 function ContainerFrameUtil_GetItemButtonAndContainer(_,s) locatedSlot=s;return bagButton end
 LycheeInternal={ProviderModules={CatalogProvider={New=function(_,id,title,events,build,actions)
@@ -73,11 +80,11 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==5 and glow.anchor==bagButton)
+assert(glow.shown and textures==0 and glow.anchor==bagButton and bagButton.locked)
 slot=4;assert(bags.actions.locate.run(entry).ok and locatedSlot==4)
 assert(timers[1].cancelled and #frames==1)
 glow.scripts.OnEvent(glow,'BAG_UPDATE_DELAYED')
-assert(not glow.shown and not next(glow.events) and not glow.anchor)
+assert(not glow.shown and not next(glow.events) and not glow.anchor and glow.parent==UIParent and not bagButton.locked)
 assert(bags.actions.locate.run(entry).ok)
 glow:Hide();assert(not next(glow.events) and timers[#timers].cancelled)
 assert(bags.actions.locate.run(entry).ok)
@@ -85,10 +92,19 @@ timers[#timers].callback();assert(not glow.shown and not next(glow.events))
 combat=true;assert(not bags.actions.locate.run(entry).ok);combat=false
 visible=false;assert(not bags.actions.locate.run(entry).ok and not glow.shown);visible=true
 present=false;assert(not bags.actions.locate.run(entry).ok);present=true
+-- Preserve an existing native lock; reject buttons without a native texture.
+bagButton.locked=true
+assert(bags.actions.locate.run(entry).ok);bags:onStop();assert(bagButton.locked)
+bagButton.locked=false
+local textureGetter=bagButton.GetHighlightTexture
+bagButton.GetHighlightTexture=function() end
+assert(not bags.actions.locate.run(entry).ok and not glow.shown and not bagButton.locked)
+bagButton.GetHighlightTexture=textureGetter
 -- Adapter fixtures model the versioned source structures, not global frame names.
 local getter=ContainerFrameUtil_GetItemButtonAndContainer
 ContainerFrameUtil_GetItemButtonAndContainer=function() error("custom bags must not select hidden Blizzard buttons") end
 local custom={IsVisible=function() return true end,GetFrameLevel=function() return 3 end,GetID=function() return slot end}
+nativeHighlight(custom)
 local count=0
 NDui_Backpack={IsVisible=function() return true end,GetButton=function(_,b,s) assert(b==0 and s==slot);count=count+1;return custom end}
 assert(bags.actions.locate.run(entry).ok and glow.anchor==custom and count==1)
@@ -116,8 +132,8 @@ for n=1,100 do assert(bags.actions.locate.run(entry).ok);bags:onStop() end
 local elapsed=(os.clock()-started)*1000
 local allocated=collectgarbage('count')-memory
 timers={};collectgarbage('restart');collectgarbage('collect');local growth=collectgarbage('count')-memory
-assert(#frames==1 and textures==5 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
-print(string.format('Bag highlight PASS frames=1 textures=5 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
+assert(#frames==1 and textures==0 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
+print(string.format('Bag highlight PASS frames=1 textures=0 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
 
 Lychee={Secure={}}
 local valid=true
