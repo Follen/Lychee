@@ -153,4 +153,3 @@ Ticket `LYCHEE-20260920-114229-0035`，完整报告3567字节，SHA-256 `2048d87
 完整payload路径：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-114229-0035/content.json`。ACK confirmed/cleared；slash-owner-live与slash-owner-probe磁盘任务均移除，游戏探针deadline、query作用域及打开面板均已清理。探针自身先通过离线成功、失败、超时、清理测试。
 
 其他客户端、其他语言、物理鼠标点击、战斗/taint和团本帧时间保持待验收。没有把未捕获的历史共享库注册归属标为成功。
-
