@@ -1,0 +1,339 @@
+{
+  "LYCHEE-20260920-162632-0053": {
+    "source": {
+      "sourceBytes": 5860,
+      "requestId": "regression-034-20260920-1",
+      "sourceChecksum": "6414dfeb"
+    },
+    "complete": true,
+    "lifecycleLog": {},
+    "startedAt": 1789892790,
+    "status": "succeeded",
+    "requestType": "task",
+    "revision": "1",
+    "taskId": "regression-034",
+    "returns": [
+      {
+        "cleanup": {
+          "providersRemoved": true,
+          "stopped": true
+        },
+        "checks": [
+          "fast results while slow pending",
+          "slow completion",
+          "visible cooldown bindings",
+          "normal callback",
+          "action menu",
+          "menu cooldown",
+          "settings release",
+          "six to one",
+          "one to six",
+          "failure exposed",
+          "retry recovered",
+          "cancel pending query",
+          "reopen",
+          "unregister invalidates",
+          "reregister",
+          "closed cooldown bindings",
+          "closed cooldown tasks",
+          "closed query jobs"
+        ],
+        "samples": {},
+        "closed": {
+          "observerKiB": 4395.8212890625,
+          "lycheeKiB": 22459.205078125,
+          "heapKiB": 389331.75976562
+        },
+        "before": {
+          "observerKiB": 4395.4228515625,
+          "lycheeKiB": 17427.31640625,
+          "heapKiB": 383651.11230469
+        },
+        "skips": [
+          "real hardware use/ground targeting",
+          "combat/taint",
+          "other clients and locales",
+          "raid/nameplate peaks"
+        ],
+        "query": {
+          "lastVisible": 7,
+          "publications": 36,
+          "materialized": 62,
+          "candidates": 62
+        },
+        "locale": "zhCN",
+        "cooldown": {
+          "bindings": 0,
+          "listening": false,
+          "scheduled": false,
+          "groups": 0
+        },
+        "schema": 1,
+        "build": [
+          "12.1.0",
+          "69875",
+          "Sep 15 2026",
+          120100,
+          "",
+          " "
+        ]
+      }
+    ],
+    "lifecycleLogLimited": false,
+    "outputTruncated": false,
+    "finishedAt": 1789892792,
+    "environment": {
+      "locale": "zhCN",
+      "buildDate": "Sep 15 2026",
+      "version": "12.1.0",
+      "clientId": "retail",
+      "realm": "白银之手",
+      "character": "晴昼秋岚",
+      "interface": 120100,
+      "build": "69875"
+    },
+    "executionId": "regression-034-20260920-1",
+    "kind": "lua",
+    "schema": "lychee.automation.result.v1"
+  },
+  "LYCHEE-20260920-162719-0054": {
+    "source": {
+      "sourceBytes": 3055,
+      "requestId": "regression-sources-034-20260920-1",
+      "sourceChecksum": "5ed32754"
+    },
+    "complete": true,
+    "lifecycleLog": {},
+    "startedAt": 1789892836,
+    "status": "succeeded",
+    "requestType": "task",
+    "revision": "1",
+    "taskId": "regression-sources-034",
+    "returns": [
+      {
+        "queries": [
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 64.925899997354,
+            "round": 0,
+            "initialCPUms": 4.7131999954581,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.733399994671,
+            "round": 0,
+            "initialCPUms": 2.8119999989867,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.672700002789,
+            "round": 0,
+            "initialCPUms": 2.5341999977827,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.737199999392,
+            "round": 0,
+            "initialCPUms": 2.0487999990582,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 66.048299998045,
+            "round": 1,
+            "initialCPUms": 3.9413999989629,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 67.314600005746,
+            "round": 1,
+            "initialCPUms": 2.0866999998689,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.331000000238,
+            "round": 1,
+            "initialCPUms": 1.9794999957085,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.783600002527,
+            "round": 1,
+            "initialCPUms": 1.6152000054717,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 65.655000001192,
+            "round": 2,
+            "initialCPUms": 3.7798000052571,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.644100002944,
+            "round": 2,
+            "initialCPUms": 1.8861000016332,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.597500003874,
+            "round": 2,
+            "initialCPUms": 1.9333999976516,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.636199995875,
+            "round": 2,
+            "initialCPUms": 1.9371999949217,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 66.158099994063,
+            "round": 3,
+            "initialCPUms": 4.472199998796,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.948000006378,
+            "round": 3,
+            "initialCPUms": 1.8844000026584,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.930200003088,
+            "round": 3,
+            "initialCPUms": 1.9404000043869,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.545600004494,
+            "round": 3,
+            "initialCPUms": 2.2242000028491,
+            "bindings": 8
+          }
+        ],
+        "rounds": [
+          {
+            "round": 0,
+            "collected": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13622.215820312,
+              "heapKiB": 339297.45898438
+            },
+            "natural": {
+              "observerKiB": 4317.0869140625,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14486.673828125,
+              "heapKiB": 340444.70117188
+            }
+          },
+          {
+            "round": 1,
+            "collected": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13622.028320312,
+              "heapKiB": 339299.90136719
+            },
+            "natural": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14303.333007812,
+              "heapKiB": 340038.06347656
+            }
+          },
+          {
+            "round": 2,
+            "collected": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13622.028320312,
+              "heapKiB": 339302.91503906
+            },
+            "natural": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14303.145507812,
+              "heapKiB": 340043.2109375
+            }
+          },
+          {
+            "round": 3,
+            "collected": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13622.028320312,
+              "heapKiB": 339306.13867188
+            },
+            "natural": {
+              "observerKiB": 4316.568359375,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14303.145507812,
+              "heapKiB": 340084.97167969
+            }
+          }
+        ],
+        "scope": "Lychee refreshed counters; global GC diagnostic only",
+        "cleanup": {
+          "bindings": 0,
+          "listening": false,
+          "scheduled": false,
+          "groups": 0
+        },
+        "schema": 1,
+        "before": {
+          "observerKiB": 4316.6884765625,
+          "cooldownFrames": 0,
+          "lycheeKiB": 13652.142578125,
+          "heapKiB": 339520.17578125
+        }
+      }
+    ],
+    "lifecycleLogLimited": false,
+    "outputTruncated": false,
+    "finishedAt": 1789892839,
+    "environment": {
+      "locale": "zhCN",
+      "buildDate": "Sep 15 2026",
+      "version": "12.1.0",
+      "clientId": "retail",
+      "realm": "白银之手",
+      "character": "晴昼秋岚",
+      "interface": 120100,
+      "build": "69875"
+    },
+    "executionId": "regression-sources-034-20260920-1",
+    "kind": "lua",
+    "schema": "lychee.automation.result.v1"
+  }
+}
