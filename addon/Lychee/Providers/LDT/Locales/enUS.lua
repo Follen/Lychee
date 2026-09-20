@@ -56,4 +56,5 @@ I.ProviderLocaleData["builtin.ldt"] = {
     ["满血估算 · 伤害类型与范围自动识别"] = "Full health · Damage type and area detected automatically",
     ["模拟效果：全能提高 %d 点。"] = "Simulated effect: +%d Versatility rating.",
     ["已有增益自动计入，不重复叠加"] = "An existing buff is included automatically, without stacking twice.",
+    ["%d 层"] = "Level %d",
 }

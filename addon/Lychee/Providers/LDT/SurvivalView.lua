@@ -64,7 +64,8 @@ function M:CreateSurvivalView(owner)
         if not self.active then return end
         local stats,input=self.stats,self.input
         input.level=self.level
-        self.levelLabel:SetText(L["层数"].." "..self.level)
+        self.levelLabel:SetText(L:Format("%d 层",self.level))
+        self.minus:SetEnabled(self.level>0);self.plus:SetEnabled(self.level<35)
         self.result=S:Calculate(stats,input,self.selected,self.result)
         local r=self.result
         self.values[1]:SetText(amount(r.health or stats.health))
@@ -110,16 +111,17 @@ function M:CreateSurvivalView(owner)
     end
     v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(28,28);v.spellIcon:SetPoint("LEFT",0,0);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
     v.name=text("title",38,5,304,20,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
-    v.levelLabel=text("body",428,6,64,18,v.toolbar);v.levelLabel:SetJustifyH("CENTER")
-    v.minus=button("−",378,0,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.toolbar)
-    v.plus=button("+",496,0,28,function() v.level=math.min(35,v.level+1);v:Render() end,nil,v.toolbar)
+    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",416,0);v.levelControl:SetSize(112,28)
+    Theme:CreateRoundedSurface(v.levelControl,"field",5);scrollable(v.levelControl)
+    v.levelLabel=text("body",28,6,56,18,v.levelControl);v.levelLabel:SetJustifyH("CENTER");Theme:SetTextColor(v.levelLabel,"text")
+    v.minus=button("−",0,2,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.levelControl)
+    v.plus=button("+",84,2,28,function() v.level=math.min(35,v.level+1);v:Render() end,nil,v.levelControl)
     local iconRoot="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
     local function icon(parent,asset,x,y,size)
         local t=parent:CreateTexture(nil,"ARTWORK");t:SetSize(size,size);t:SetPoint("TOPLEFT",x,-y);t:SetTexture(iconRoot..asset..".tga");return t
     end
-    icon(v.toolbar,"keystone",406,7,16)
-    v.refresh=button("",544,0,32,function() v:Refresh() end,nil,v.toolbar)
-    icon(v.refresh.frame,"reload",6,3,18)
+    v.refresh=button("",544,2,32,function() v:Refresh() end,nil,v.toolbar)
+    icon(v.refresh.frame,"reload",8,4,16)
     v.refresh.frame:HookScript("OnEnter",function() if v.active then C:ShowTooltip(v.refresh.frame,{title=L["刷新"]}) end end)
     v.refresh.frame:HookScript("OnLeave",function() C:HideTooltip(v.refresh.frame) end)
     v.values={}

@@ -232,8 +232,10 @@ function M:CreateView()
     end
     function panel:Create(parent)
         self.frame=CreateFrame("Frame",nil,parent);self.frame:SetAllPoints(parent);self.frame:Hide()
-        self.title=label(self.frame,"input","text",16,-4,400,22);self.title:SetPoint("RIGHT",-16,0)
-        self.subtitle=label(self.frame,"meta","textMuted",16,-30,584,16);self.subtitle:SetPoint("RIGHT",-16,0)
+        self.title=label(self.frame,"input","text",16,-2,584,22);self.title:SetWordWrap(false)
+        self.subtitle=label(self.frame,"meta","textMuted",16,-27,292,16);self.subtitle:SetWordWrap(false)
+        self.creatureMeta=label(self.frame,"meta","textDim",324,-27,276,16)
+        self.creatureMeta:SetJustifyH("RIGHT");self.creatureMeta:SetWordWrap(false)
         self.model=CreateFrame("PlayerModel",nil,self.frame);self.model:SetPoint("TOPLEFT",16,-62);self.model:SetSize(264,304)
         self.model:EnableMouse(true);self.model:EnableMouseWheel(true)
         local function drag()
@@ -320,7 +322,8 @@ function M:CreateView()
         self.selected=state.spellID~=0 and state.spellID or enemy.spells[1] and enemy.spells[1].id
         self.page,self.facing,self.zoom,self.rowOffset,self.renderedPage=1,0,0,0,nil
         self.title:SetText(M:Name(enemy))
-        self.subtitle:SetText(M:Name(dungeon).."  ·  "..L[enemy.isBoss and "首领" or "小怪"].."  ·  "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or ""))
+        self.subtitle:SetText(M:Name(dungeon))
+        self.creatureMeta:SetText(L[enemy.isBoss and "首领" or "小怪"].."   "..(types[enemy.creatureType] and L[types[enemy.creatureType]] or enemy.creatureType or "").." "..(enemy.level or ""))
         self:SetHint("")
         self.event=context.resources:OnEvent("SPELL_DATA_LOAD_RESULT",function(_,id)
             if self.active and self.pending[id]==true then
@@ -362,7 +365,7 @@ function M:CreateView()
         self.hintText=nil
         if self.frame then
             Components:HideTooltip(self.reset.frame)
-            self.title:SetText("");self.subtitle:SetText("")
+            self.title:SetText("");self.subtitle:SetText("");self.creatureMeta:SetText("")
             self.reset.frame:Hide()
             self.skillBar:StopDrag();self.model:Hide();pcall(self.model.ClearModel,self.model);self.frame:Hide()
         end
