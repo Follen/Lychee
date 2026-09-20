@@ -30,3 +30,12 @@ UI.xsd 的 ANIMCURVETYPE 定义为 NONE / SMOOTH；使用 NONE 保持矩形边�
 实机 Ticket LYCHEE-20260920-191210-0060 / requestId=lycheeglow039-20260920 / revision=2 / Retail 12.1.0.69875 / zhCN / 晴昼秋岚—白银之手，complete=true/status=succeeded。32组动画播放且原生时钟推进，无Lua OnUpdate；30次定位每轮32 Region、0子Frame，超时、实际关闭Ellesmere、重开、背包更新、模拟战斗事件、重试、减少动态效果、错误key及显式停止均通过。重载标记清理中断通过原nonce恢复，没有重复执行；ACK及任务清理完成。
 
 三轮（每轮10次）包含Ellesmere完整背包刷新的总CPU为144.44 / 229.88 / 280.31 ms；全局自然Lua读数398789 / 404470 / 410151 KiB，包含第三方及客户端分配，不归因为流光独立性能或保留增长。不增加GC干预，不声称整个客户端内存降低。原生图形/控制点的引擎内存字节未测。32粒是本次明确的视觉密度成本，可接受固定容量及零空闲Lua工作；不宣称比LibCustomGlow更快。其他客户端、真实战斗及其他背包实机仍未覆盖。
+
+
+## 0.3.10 正式服技能触发光
+
+正式服改用原生 FlipBook；经典服保留 0.3.9 Path 分支。正式服固定一个框体、两张纹理、两个动画组和两个 FlipBook，首次使用创建并复用，无 Lua OnUpdate。0.3 秒开场结束后切换 0.85 秒循环；三秒到期、隐藏、战斗和背包更新清理引用、事件、计时器及动画。减少动态效果只显示静态帧。
+
+证据：sourceId `wow-ui-source`，product `retail`，requestedRef / matchedTag `12.1.0`，resolvedCommit `4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59`。`Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonSpellAlerts.xml` 的 ActionButtonSpellAlertTemplate 定义 Start/Loop atlas 与 6 行、5 列、30 帧 FlipBook；`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimFlipBookAPIDocumentation.lua:115` 定义 `SetFlipBookRows(rows)`。复用客户端资源，不新增媒体文件或外部库。
+
+离线：两条分支的背包适配、取消、超时、隐藏、重试、减少动态效果、过期 key 与原生对象复用检查通过；正式服 100 次定位分配 44.6 KiB，回收后增长 0.0 KiB（测试替身，不代表客户端堆）。实机覆盖按开场到循环、原生时钟、隐藏、重开、三轮重复定位、超时、事件清理和减少动态效果执行；结果待追加。

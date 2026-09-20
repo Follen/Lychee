@@ -1,3 +1,6 @@
+local retail=arg and arg[1]=="--retail-glow"
+if retail then WOW_PROJECT_ID=1;WOW_PROJECT_MAINLINE=1 end
+local expectedTextures=retail and 2 or 32
 local frames,textures,timers={},0,{}
 local combat,visible,present=false,true,true
 function InCombatLockdown() return combat end
@@ -98,7 +101,13 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==32 and glow.anchor==bagButton and #glow.dots==32)
+assert(glow.shown and textures==expectedTextures and glow.anchor==bagButton)
+if retail then
+    assert(glow.burstGroup:IsPlaying() and not glow.loopGroup:IsPlaying())
+    glow.burstGroup:Stop();glow.burstGroup.scripts.OnFinished()
+    assert(not glow.burst.shown and glow.loop.shown and glow.loopGroup:IsPlaying())
+else
+assert(#glow.dots==32)
 for _,dot in ipairs(glow.dots) do
     assert(dot.group:IsPlaying() and #dot.points==6)
     assert(dot.points[1].x==dot.points[6].x and dot.points[1].y==dot.points[6].y)
@@ -121,6 +130,8 @@ for _,dot in ipairs(glow.dots) do
     assert(math.abs(step-math.floor(step+0.5))<0.0001)
     assert(not seen[step]);seen[step]=true
 end
+end
+assert(not glow.scripts.OnUpdate)
 local frameCount,textureCount=#frames,textures
 glow.testWidth,glow.testHeight=48,28;glow.scripts.OnSizeChanged()
 assert(#frames==frameCount and textures==textureCount,"resize allocates native objects")
@@ -144,10 +155,18 @@ bagButton.locked=false
 assert(glow.parent==UIParent)
 local G=LycheeInternal.LycheeGlow
 assert(G:Start(bagButton,{key="a",reducedMotion=true}))
-for _,dot in ipairs(glow.dots) do assert(not dot.group:IsPlaying()) end
+if retail then
+    assert(glow.loop.shown and not glow.burstGroup:IsPlaying() and not glow.loopGroup:IsPlaying())
+else
+    for _,dot in ipairs(glow.dots) do assert(not dot.group:IsPlaying()) end
+end
 assert(not G:Stop(bagButton,"b") and glow.shown)
 assert(G:Stop(bagButton,"a") and not glow.shown)
 assert(not G:Stop(bagButton,"a"))
+if retail then
+    glow.burstGroup.scripts.OnFinished()
+    assert(not glow.loopGroup:IsPlaying() and not glow.loop.shown)
+end
 -- Adapter fixtures model the versioned source structures, not global frame names.
 local getter=ContainerFrameUtil_GetItemButtonAndContainer
 ContainerFrameUtil_GetItemButtonAndContainer=function() error("custom bags must not select hidden Blizzard buttons") end
@@ -180,8 +199,8 @@ for n=1,100 do assert(bags.actions.locate.run(entry).ok);bags:onStop() end
 local elapsed=(os.clock()-started)*1000
 local allocated=collectgarbage('count')-memory
 timers={};collectgarbage('restart');collectgarbage('collect');local growth=collectgarbage('count')-memory
-assert(#frames==1 and textures==32 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
-print(string.format('Bag highlight PASS frames=1 textures=32 native_groups=32 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
+assert(#frames==1 and textures==expectedTextures and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
+print(string.format('Bag highlight PASS frames=1 textures=%d locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',expectedTextures,elapsed,allocated,growth))
 
 Lychee={Secure={}}
 local valid=true

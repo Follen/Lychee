@@ -209,6 +209,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Brand motion lifecycle or allocation budget failed' }
     & $lua.Source 'tests/providers/bag_actions.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Bag actions failed' }
+    & $lua.Source 'tests/providers/bag_actions.lua' '--retail-glow'
+    if ($LASTEXITCODE -ne 0) { throw 'Retail glow regression failed' }
     & $lua.Source 'tests/providers/addon_inspector.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Addon inspector failed' }
     & $lua.Source 'tests/providers/achievements_provider.lua'
