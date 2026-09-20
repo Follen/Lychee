@@ -1,0 +1,103 @@
+{
+  "source": {
+    "sourceBytes": 2737,
+    "requestId": "credits-20260920-1",
+    "sourceChecksum": "8caccdde"
+  },
+  "complete": true,
+  "lifecycleLog": {},
+  "startedAt": 1789889293,
+  "status": "succeeded",
+  "requestType": "task",
+  "revision": "1",
+  "taskId": "thanks-ui",
+  "returns": [
+    {
+      "checks": [
+        "Chinese credits tab",
+        "credits lazy",
+        "dedication",
+        "Escape closes and clears",
+        "second link reuses popup",
+        "switch closes popup and credits",
+        "owner closes popup",
+        "reopen still works",
+        "no pending query"
+      ],
+      "scope": "Lychee; observer separately; full GC diagnostic only",
+      "icons": [
+        -16550,
+        -16549
+      ],
+      "closed": {
+        "lycheeKiB": 13622.931640625,
+        "observerKiB": 4284.9609375
+      },
+      "before": {
+        "lycheeKiB": 13642.840820312,
+        "observerKiB": 4285.068359375
+      },
+      "coldMs": 0.28599999845028,
+      "memory": [
+        {
+          "sample": {
+            "lycheeKiB": 13639.931640625,
+            "observerKiB": 4285.005859375
+          },
+          "batchMs": 2.8500999957323
+        },
+        {
+          "sample": {
+            "lycheeKiB": 13639.869140625,
+            "observerKiB": 4285.005859375
+          },
+          "batchMs": 2.7135000005364
+        },
+        {
+          "sample": {
+            "lycheeKiB": 13639.869140625,
+            "observerKiB": 4285.005859375
+          },
+          "batchMs": 3.4612999930978
+        },
+        {
+          "sample": {
+            "lycheeKiB": 13639.869140625,
+            "observerKiB": 4285.005859375
+          },
+          "batchMs": 4.7052000015974
+        }
+      ],
+      "locale": "zhCN",
+      "geometry": {
+        "height": 180.00001525879,
+        "dedicationWidth": 129.13043212891,
+        "width": 592.00006103516
+      },
+      "build": [
+        "12.1.0",
+        "69875",
+        "Sep 15 2026",
+        120100,
+        "",
+        " "
+      ]
+    }
+  ],
+  "lifecycleLogLimited": false,
+  "outputTruncated": false,
+  "finishedAt": 1789889333,
+  "environment": {
+    "locale": "zhCN",
+    "buildDate": "Sep 15 2026",
+    "version": "12.1.0",
+    "clientId": "retail",
+    "realm": "白银之手",
+    "character": "晴昼秋岚",
+    "interface": 120100,
+    "build": "69875"
+  },
+  "executionId": "credits-20260920-1",
+  "kind": "lua",
+  "schema": "lychee.automation.result.v1"
+}
