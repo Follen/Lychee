@@ -49,3 +49,9 @@ Retail 12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-00
 离线模块429.5 KiB（上一版426.8）；50次重开无新增控件，未观察保留增长（-1.03 KiB）；固定查询保留增长0.8 KiB、峰批4ms。有限常驻增加用于固定结果、可辨识选择状态和重置操作，接受；引擎纹理总内存未测，不把Lua数字当总量。完整契约、Lua语法、wowdoc及diff检查通过。
 
 实机Retail12.1.0.69875 zhCN，灵止光—死亡之翼；Ticket `LYCHEE-20260921-013825-0083` request=ldt-layout28-20260921 revision=layout28，complete=true/succeeded，20/20断言通过：自动数据、任务标题、固定区域父级、unknown与恢复、无编辑参数、底栏、两组切换、无分页、合剂与效果、重置模拟、致死、按钮随列表、恢复怪物标题、返回怪物、重开、返回搜索、清理。100次计算1.4478ms。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-013825-0083/content.json`；WGC `analyze/survival/ui-layout28-9.png` 检查圆角、选中态及固定区域。ACK确认与清理完成，任务移除。真实硬件滚轮/点击、英文实机、战斗及长技能名实机本轮未覆盖；离线滚轮转发、过期按压、生命周期与本地化契约通过。
+
+## 0.3.29 精修四项反馈
+
+运行提交 `8d7fdbb`，199文件SHA-256一致。标题下移12；结果区三列184、内缩16并居中，结论图标按本地普通文字GetStringWidth定位且缓存setter；标签和下划线左对齐；choice未选框16、半径5、switchOff实心底。无新增Frame/Region/驱动，Lua模块离线430.5 KiB（上一版429.5）；50次重开未观察保留增长（-1.03 KiB），查询增长0.5 KiB，峰批3ms。完整契约、语法、wowdoc valid=true和diff检查通过。
+
+Retail12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-014706-0084` request=ldt-layout29-20260921/revision=layout29，complete/succeeded，20/20功能断言通过，100次计算1.6274ms。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-014706-0084/content.json`，WGC `analyze/survival/ui-layout29-9.png` 核对三栏、勾号、标签和未选态。ACK确认且清理，自有任务移除。英文实机、真实鼠标/滚轮、战斗和总纹理内存未覆盖。增加留白导致同高度窗口可见行减少，保留已有独立滚动供访问全部效果。
