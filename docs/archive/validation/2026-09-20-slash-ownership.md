@@ -109,4 +109,48 @@ wowdoc：wow-ui-source / retail / 12.1.0 resolvedCommit 4e3cbb8c5609e4bfc332c0ae
 
 完整契约检查通过；四客户端四语言回归通过，新增错误共享库来源、任意命令、旧嵌入、新注册、注销、替换、缺失 API、恢复、无重复 hook 用例。千命令20查询约分配3.5 MiB，保留约41 KiB，单批1–2ms，未增加空闲Frame。四 TOC wowdoc valid=true，Lua、生成清单、SDK及交付检查通过。
 
-实机修复后的功能与性能结果待本次提交同步、重载后补充。只读诊断不能代替动作验收；其他客户端、其他语言、物理鼠标点击、战斗/taint和团本帧时间保持待验收。
+## 修复后实机结果
+
+运行提交 `ffb0b250ebd57c50a82d82bff059dfe7ac5b7786`，版本0.2.6；186个运行文件逐一SHA-256一致，保留目标额外文件。重载握手已就绪，retail 12.1.0.69875 / zhCN。
+
+Ticket `LYCHEE-20260920-114229-0035`，完整报告3567字节，SHA-256 `2048d87060974ca59d8d022be829b8b8a379423014d80c38570da95179616961`。18项断言通过：四个真实插件的命令恢复和准确Logo；/rs和/dev结果动作各执行两次，对应原生插件面板实际切换并恢复初始显示状态；取消查询资源归零、无迟到回复。通过的是实际Provider动作调用，不是物理鼠标点击。
+
+通用解析得到的真实展示数据：
+
+```json
+[
+  {
+    "command": "/rs",
+    "subtitle": "/rs",
+    "title": "[露露] 工具箱 核心",
+    "icon": "Interface\\AddOns\\RurutiaSuite\\Media\\icon.tga"
+  },
+  {
+    "command": "/dev",
+    "subtitle": "/dev",
+    "title": "[荔枝]开发工具",
+    "icon": "Interface\\AddOns\\Lychee Dev\\Media\\Logo.png"
+  },
+  {
+    "command": "/eui",
+    "subtitle": "/eui",
+    "title": "EllesmereUI",
+    "icon": "Interface\\AddOns\\EllesmereUI\\media\\eg-logo.tga"
+  },
+  {
+    "command": "/bw",
+    "subtitle": "/bw",
+    "title": "BigWigs",
+    "icon": "Interface\\AddOns\\BigWigs\\Media\\Icons\\minimap_raid.tga"
+  }
+]
+```
+
+20次冷/热混合查询（rs/dev/eui/bw/不存在命令）完成时间中位数166.85ms、最大169.75ms；这是包含后台客户端逐帧调度的墙钟时间，不能解释为单回调CPU。离线最大回调1–2ms，真实单回调峰值及前后同场景CPU尚未测量。
+
+探针读取的整个客户端Lua堆由376031.14到377889.87KiB，未强制GC；此读数受全部插件及自然GC影响，不是Lychee独占内存、累计分配或泄漏结论。单插件前后常驻、回收后保留和游戏帧时间仍待专项测量。功能验证通过与性能全面验收分别记录。
+
+完整payload路径：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-114229-0035/content.json`。ACK confirmed/cleared；slash-owner-live与slash-owner-probe磁盘任务均移除，游戏探针deadline、query作用域及打开面板均已清理。探针自身先通过离线成功、失败、超时、清理测试。
+
+其他客户端、其他语言、物理鼠标点击、战斗/taint和团本帧时间保持待验收。没有把未捕获的历史共享库注册归属标为成功。
+
