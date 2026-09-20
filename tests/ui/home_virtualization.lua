@@ -11,6 +11,7 @@ assert(#home.tiles<=35 and home:GetContentHeight()>300)
 local first=home.tiles[1]
 I.InteractionBinding:Press(first,first,'LeftButton')
 home:SetScroll(100000)
+assert(not home._scrollRectDirty,'rebound anchors must refresh the native scroll rectangle')
 assert(home:GetTile(69) and not I.InteractionBinding:Consume(first,first,'LeftButton'))
 home:Select(1);home:ActivateSelected();assert(picked=='pin1' and home:GetTile(1),'offscreen activation must bind its row')
 home:SetScroll(100000);home:Select(69);home:ActivateSelected();assert(picked=='recent69')

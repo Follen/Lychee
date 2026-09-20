@@ -165,6 +165,7 @@ function HomeView:Create(parent, controller)
         end
         self.scrollbar:SetRange(content:GetHeight(), viewport, self.scroll)
         self:RenderVisible()
+        self:RefreshScrollRect()
         self:ReportDemand()
     end
     frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll);view:RefreshScrollRect() end)
