@@ -38,4 +38,10 @@ UI.xsd 的 ANIMCURVETYPE 定义为 NONE / SMOOTH；使用 NONE 保持矩形边�
 
 证据：sourceId `wow-ui-source`，product `retail`，requestedRef / matchedTag `12.1.0`，resolvedCommit `4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59`。`Interface/AddOns/Blizzard_ActionBar/Shared/ActionButtonSpellAlerts.xml` 的 ActionButtonSpellAlertTemplate 定义 Start/Loop atlas 与 6 行、5 列、30 帧 FlipBook；`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleAnimFlipBookAPIDocumentation.lua:115` 定义 `SetFlipBookRows(rows)`。复用客户端资源，不新增媒体文件或外部库。
 
-离线：两条分支的背包适配、取消、超时、隐藏、重试、减少动态效果、过期 key 与原生对象复用检查通过；正式服 100 次定位分配 44.6 KiB，回收后增长 0.0 KiB（测试替身，不代表客户端堆）。实机覆盖按开场到循环、原生时钟、隐藏、重开、三轮重复定位、超时、事件清理和减少动态效果执行；结果待追加。
+离线：两条分支的背包适配、取消、超时、隐藏、重试、减少动态效果、过期 key 与原生对象复用检查通过；正式服 100 次定位分配 44.6 KiB，回收后增长 0.0 KiB（测试替身，不代表客户端堆）。完整契约、仓库、发布清单、retail wowdoc validate 和 git diff --check 通过。
+
+实机 Ticket `LYCHEE-20260920-192440-0061`，task `lycheeglow0310` / request `lycheeglow0310-20260920` / revision 1；Retail 12.1.0.69875 / zhCN / 晴昼秋岚—白银之手，完整报告 succeeded。21 项断言覆盖开场接循环、原生进度推进、关闭 Ellesmere、重开、三轮各十次复用、超时、背包更新、模拟战斗事件、重试、减少动态效果和 key 隔离。始终 2 Region / 0 子 Frame，无 Lua OnUpdate；WGC 截图确认金色边缘与物品图案可辨。ACK received，临时任务已移除。
+
+三轮含 Ellesmere 刷新 CPU 为 131.93 / 205.57 / 270.79 ms；全局自然 Lua 395100.3 / 400781.3 / 406462.3 KiB，不能归因于发光保留内存。引擎纹理内存未测；真实战斗、其他背包及非正式服未做本轮实机验收。减少动态效果仅验证停止动画，静态帧外观未单独截图。完整 payload：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-192440-0061/content.json`。
+
+运行提交 `4d609f8`，197 个运行文件同步至既定正式服 Lychee 目录并逐文件 SHA-256 一致；73 个旧文件保留。自动 reload 完成，未发布或推送。
