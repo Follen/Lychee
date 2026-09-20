@@ -338,13 +338,13 @@ function HomeView:Create(parent, controller)
     function view:RenderVisible()
         if self.frozen or InCombatLockdown and InCombatLockdown() then return end
         local top,bottom=self.scroll,self.scroll+math.max(0,self.frame:GetHeight())
-        local used=0
+        local used,hasItems=0,false
         for index,section in ipairs(self.sections) do
             local layoutY,tileHeight=section._homeTop,section._homeHeight
             if layoutY and layoutY<bottom and layoutY+tileHeight>top then
-                used=used+1
+                used=used+1;hasItems=hasItems or section.item~=nil
                 local tile=self:AcquireTile(used)
-                if tile.section~=section then
+                if tile.section~=section or tile.item~=section.item then
                     if I.ActionCooldown then I.ActionCooldown:Release(tile) end
                     if self.controller.secureBroker then self.controller.secureBroker:InvalidateRow(tile) end
                 end
@@ -407,7 +407,7 @@ function HomeView:Create(parent, controller)
         for index=used+1,#self.tiles do
             if self.tiles[index].section then self:ClearTile(self.tiles[index]) end
         end
-        if I.ResultActionExecutor then I.ResultActionExecutor:PrepareVisibleRows(self.tiles) end
+        if hasItems and I.ResultActionExecutor then I.ResultActionExecutor:PrepareVisibleRows(self.tiles) end
     end
 
     function view:SetSections(sections, allowExpand)
