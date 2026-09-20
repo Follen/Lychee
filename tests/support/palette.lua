@@ -88,6 +88,7 @@ local function object(kind, parent)
     function o:HasFocus() return self.focused == true end
     function o:ClearFocus() self.focused = false end
     function o:SetFocus() self.focused = true end
+    function o:HighlightText() self.highlighted = true end
     function o:SetAttribute(k, v) mutation(self, "SetAttribute"); self.attrs[k] = v end
     function o:GetAttribute(k) return self.attrs[k] end
     function o:SetParent(parentValue) mutation(self, "SetParent"); self.parent = parentValue; if self.protected then protect(parentValue) end end

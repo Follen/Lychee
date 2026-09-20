@@ -197,6 +197,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/ui/presence_geometry.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Presence geometry checks failed' }
+    foreach ($locale in @('zhCN','zhTW','enUS','enGB')) {
+        & $lua.Source 'tests/ui/credits.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "Credits regression failed: $locale" }
+    }
     & $lua.Source 'tests/ui/ui_motion.lua'
     if ($LASTEXITCODE -ne 0) { throw "UI motion lifecycle failed with exit code $LASTEXITCODE" }
     & $lua.Source 'tests/ui/brand_motion.lua'

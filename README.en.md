@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.3.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.3.1-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -221,3 +221,7 @@ Search collected toys by name or item ID and left-click to use them. Use `toys:`
 ### 0.2.9: Toy memory and UI separation
 
 Toy catalogs retain lightweight search documents and materialize actions only for results. The palette accepts a generic immediate-close argument without knowing toy behavior.
+
+### 0.3.1: Chinese acknowledgements
+
+Chinese clients gain an acknowledgements tab with creator profile links and the dedication moved from About. English clients retain their existing four tabs.

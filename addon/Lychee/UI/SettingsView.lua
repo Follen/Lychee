@@ -73,6 +73,11 @@ function Settings:Create(parent, controller)
     view.tabs={}
     local previous
     for _,entry in ipairs({{"providers","功能来源"},{"pins","已固定"},{"general","综合设置"},{"about","关于"}}) do
+        if entry[1]=="about" and L:IsChinese() then
+            local thanks=button(frame,L["鸣谢"],86,function() view:SetTab("credits") end)
+            thanks.frame:SetPoint("LEFT",previous,"RIGHT",12,0)
+            view.tabs.credits=thanks;previous=thanks.frame
+        end
         local tab=button(frame,L[entry[2]],86,function() view:SetTab(entry[1]) end)
         if previous then tab.frame:SetPoint("LEFT",previous,"RIGHT",12,0)
         else tab.frame:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset,-2) end
@@ -192,7 +197,8 @@ function Settings:Create(parent, controller)
         text(header,title);shown(header,true)
     end
     function view:SetTab(tab)
-        controller:SetStatusText(tab=="about" and L["感谢使用荔枝"] or L["更改即时生效"])
+        if not self.tabs[tab] or (InCombatLockdown and InCombatLockdown()) then return false end
+        controller:SetStatusText((tab=="about" or tab=="credits") and L["感谢使用荔枝"] or L["更改即时生效"])
         controller.social:Close(false)
         if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
@@ -200,9 +206,10 @@ function Settings:Create(parent, controller)
             Lychee.UI.Motion:Cancel(content,true)
             if self.general then Lychee.UI.Motion:Cancel(self.general,true) end
             if self.about then Lychee.UI.Motion:Cancel(self.about,true) end
+            if self.credits then Lychee.UI.Motion:Cancel(self.credits,true) end
         end
         self.tab=tab;self.scroll=0;scroll:SetVerticalScroll(0);self:Refresh()
-        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or tab=="about" and self.about or content,"page") end
+        if Lychee.UI.Motion then Lychee.UI.Motion:Reveal(tab=="general" and self.general or tab=="about" and self.about or tab=="credits" and self.credits or content,"page") end
     end
     function view:Refresh()
         if InCombatLockdown and InCombatLockdown() then return end
@@ -217,9 +224,46 @@ function Settings:Create(parent, controller)
         self.underline:Show()
         if self._underlineTab~=self.tab then self.underline:ClearAllPoints();self.underline:SetPoint("BOTTOM",self.tabs[self.tab].frame,"BOTTOM",0,-3);self._underlineTab=self.tab end
         shown(self.undo.frame,self.tab=="pins" and self.removed~=nil)
-        shown(scroll,self.tab~="general" and self.tab~="about")
+        shown(scroll,self.tab~="general" and self.tab~="about" and self.tab~="credits")
         if self.general then shown(self.general,self.tab=="general") end
         if self.about then shown(self.about,self.tab=="about") end
+        if self.credits then shown(self.credits,self.tab=="credits") end
+        if self.tab=="credits" then
+            self.data=nil
+            for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
+            if not self.credits then
+                local credits=CreateFrame("Frame",nil,frame);self.credits=credits
+                credits:SetSize(rowWidth,metrics.creditsHeight)
+                credits:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listInset+10,-metrics.settingsTabsHeight-12)
+                credits.buttons={}
+                local entries={
+                    {icon="douyin",name="@魔兽阿落",title="抖音 · @魔兽阿落",platform="抖音",url="https://v.douyin.com/BHwvNPtS3AE/"},
+                    {icon="bilibili",name="@露露缇娅",title="哔哩哔哩 · @露露缇娅",platform="哔哩哔哩",url="https://space.bilibili.com/455259"},
+                }
+                for index,entry in ipairs(entries) do
+                    local control
+                    control=Lychee.UI.Components:CreateNavigationButton(credits,{width=rowWidth-20,height=52,text=entry.name,onClick=function()
+                        if frame:IsShown() and view.tab=="credits" then controller.social:Open(entry,control.frame,"below") end
+                    end})
+                    control.frame:SetPoint("TOPLEFT",credits,"TOPLEFT",0,-(index-1)*64)
+                    control.label:ClearAllPoints();control.label:SetPoint("TOPLEFT",control.frame,"TOPLEFT",44,-6)
+                    control.label:SetJustifyH("LEFT");Lychee.UI.Theme:SetFont(control.label,"title")
+                    local icon=control.frame:CreateTexture(nil,"ARTWORK");icon:SetSize(28,28)
+                    icon:SetPoint("LEFT",control.frame,"LEFT",0,0)
+                    icon:SetTexture("Interface\\AddOns\\Lychee\\Media\\About\\"..entry.icon..".tga")
+                    control.feedbackIcon=icon;Lychee.UI.Theme:SetVertexColor(icon,"textMuted")
+                    local caption=label(control.frame,"meta","textMuted")
+                    caption:SetPoint("TOPLEFT",control.label,"BOTTOMLEFT",0,-5);caption:SetText(entry.platform)
+                    local hint=label(control.frame,"meta","textMuted")
+                    hint:SetPoint("RIGHT",control.frame,"RIGHT",0,0);hint:SetText(L["复制主页链接"])
+                    credits.buttons[index]=control
+                end
+                credits.dedication=label(credits,"title","tooltipAccent")
+                credits.dedication:SetPoint("TOPLEFT",credits,"TOPLEFT",0,-148)
+                credits.dedication:SetText(L["谨献给挚爱：荔枝小月亮"])
+            end
+            return
+        end
         if self.tab=="about" then
             self.data=nil
             for _,row in ipairs(self.rows) do releaseIdentity(row);shown(row,false) end
@@ -238,7 +282,6 @@ function Settings:Create(parent, controller)
                 copy("Follen  ·  "..L["版本"].." "..version,0,32,rowWidth-20,"meta","textMuted",18)
                 copy(L["在游戏里搜技能、物品和插件设置。"],0,64,rowWidth-20,"title","textMuted",22)
                 copy(L["常用的可以固定到首页，也能设置好记的别名。"],0,86,rowWidth-20,"title","textMuted",22)
-                if L:IsChinese() then copy(L["谨献给爱人：荔枝小月亮"],0,124,rowWidth-20,"title","tooltipAccent",24) end
             end
             return
         end
@@ -392,6 +435,7 @@ function Settings:Create(parent, controller)
         if self.providerView then self.providerView.frame:Hide() end
         if self.general then self.general:Hide() end
         if self.about then self.about:Hide() end
+        if self.credits then self.credits:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.aliasView:Show(ref,title)
         for _,tab in pairs(self.tabs) do tab.frame:Hide() end
@@ -420,6 +464,7 @@ function Settings:Create(parent, controller)
         if not complete then self.discovery=token end
     end
     function view:GetContentHeight(default)
+        if self.tab=="credits" then return metrics.settingsTabsHeight+12+metrics.creditsHeight end
         if self.tab=="about" then return metrics.settingsTabsHeight+12+(L:IsChinese() and metrics.aboutHeight or metrics.aboutEnglishHeight) end
         return default
     end
@@ -429,6 +474,7 @@ function Settings:Create(parent, controller)
         if self.aliasView then self.aliasView.frame:Hide() end
         if self.general then self.general:Hide() end
         if self.about then self.about:Hide() end
+        if self.credits then self.credits:Hide() end
         scroll:Hide();self.undo.frame:Hide()
         self.providerView:Show(id,icon)
         if controller.ResizeForMode then controller:ResizeForMode("settings") end

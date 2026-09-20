@@ -13,7 +13,7 @@ def build():
     target = ROOT / 'addon/Lychee/Media/About'
     target.mkdir(parents=True, exist_ok=True)
     records = []
-    for name in ('github', 'paypal', 'x', 'wechat', 'support'):
+    for name in ('github', 'paypal', 'x', 'wechat', 'support', 'douyin', 'bilibili'):
         svg = source / 'icons' / (name + '.svg')
         png = cairosvg.svg2png(url=str(svg), output_width=64, output_height=64)
         image = Image.open(io.BytesIO(png)).convert('RGBA')

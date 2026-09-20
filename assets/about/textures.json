@@ -40,6 +40,22 @@
     "sha256": "60329de484eacbc6cfe720b1a0b7663fec6a9cafd31048da2a5cbc9e38a31df2"
   },
   {
+    "file": "addon/Lychee/Media/About/douyin.tga",
+    "size": [
+      64,
+      64
+    ],
+    "sha256": "dcf8436e9d39e2587b7a731735bc645bfea1b0bdb3955f11a998eb312197078c"
+  },
+  {
+    "file": "addon/Lychee/Media/About/bilibili.tga",
+    "size": [
+      64,
+      64
+    ],
+    "sha256": "24146c72c2a14bfcf773a2a4d2e85f5961cd636df234e3662d6e9fbf4df2cb24"
+  },
+  {
     "file": "addon/Lychee/Media/About/wechat-support.tga",
     "size": [
       512,

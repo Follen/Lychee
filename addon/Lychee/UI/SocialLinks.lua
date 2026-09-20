@@ -15,7 +15,7 @@ function Social:Create(owner,controller)
         if restoreFocus~=false and controller.visible and not controller.settingsOpen and not controller.viewHost:IsActive() and not InCombatLockdown() then controller.input:Focus() end
         return true
     end
-    function view:Open(entry,anchor)
+    function view:Open(entry,anchor,placement)
         if not controller.visible or not owner:IsShown() or InCombatLockdown() then return end
         if self.active==entry then self:Close();return end
         self:Close(false);controller.input:ClearFocus();UI.Components:HideTooltip();UI.Components:HideActionMenu()
@@ -49,7 +49,9 @@ function Social:Create(owner,controller)
         self.active=entry
         self.popup:SetScale(controller.frame:GetEffectiveScale()/UIParent:GetEffectiveScale())
         self.popup:SetSize(entry.code and 208 or 316,entry.code and 252 or 100)
-        self.popup:ClearAllPoints();self.popup:SetPoint("BOTTOMRIGHT",bar,"TOPRIGHT",0,8)
+        self.popup:ClearAllPoints()
+        if placement=="below" and anchor then self.popup:SetPoint("TOPLEFT",anchor,"BOTTOMLEFT",0,-6)
+        else self.popup:SetPoint("BOTTOMRIGHT",bar,"TOPRIGHT",0,8) end
         self.title:SetText(entry.title);self.title:SetWidth(entry.code and 156 or 264)
         self.hint:SetText(entry.code and L["使用微信扫一扫"] or L["Ctrl+C 复制 · Esc 退出"])
         self.input:SetShown(not entry.code);self.code:SetShown(entry.code~=nil)

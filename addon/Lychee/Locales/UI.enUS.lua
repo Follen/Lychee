@@ -1,6 +1,9 @@
 local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
+    ["鸣谢"] = "Acknowledgements",
+    ["复制主页链接"] = "Copy profile link",
+    ["谨献给挚爱：荔枝小月亮"] = "Dedicated to my beloved: 荔枝小月亮",
     ["操作菜单"] = "Actions",
     ["暂不可用"] = "Unavailable",
     ["正在恢复…"] = "Restoring…",
