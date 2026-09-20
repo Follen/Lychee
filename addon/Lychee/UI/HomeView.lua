@@ -75,6 +75,7 @@ function HomeView:Create(parent, controller)
     view.clearRecent=Lychee.UI.Components:CreateNavigationButton(view.content,{width=48,height=20,text=L["清空"],muted=true,
         onClick=function() view:ClearRecent() end})
     Lychee.UI.Theme:SetFont(view.clearRecent.label,"meta")
+    view.clearRecent.label:SetJustifyH("RIGHT")
     view.clearRecent.frame:Hide()
 
     function view:RenderTileState(tile)
