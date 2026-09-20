@@ -70,3 +70,9 @@ Retail12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-014
 计划实机覆盖：层数加减及0/35禁用、刷新保留手动模拟、四态、重置、失败unknown与恢复、关闭重开、两级返回。沿用完整契约检查关闭清理和50次复用，另核对实际缩放下显示。
 
 修改前wowdoc source list/check已核对；sourceId=wow-ui-source/product=retail/requestedRef=12.1.0/resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59。Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua:135–149 定义SetPoint(point,relativeTo,relativePoint,offsetX,offsetY)；SimpleTextureBaseAPIDocumentation.lua:576–587 定义SetTexCoord(left,right,bottom,top)。接口仅用于本插件非受保护UI。
+
+0.3.32运行提交a7e32e2，同步200个SHA一致。完整契约、语法、wowdoc valid=true和diff检查通过；离线模块432.4 KiB（基线430.5），增加固定按钮圆角及线条，50次重开不新增Frame，保留-1.03 KiB（未观察增长）；查询增长0.0 KiB、峰批3ms。此有限固定成本用于同组反馈，接受；引擎总内存未测。
+
+Ticket `LYCHEE-20260921-021400-0087` request=ldt-check32-20260921/revision=check32，Retail12.1.0.69875/zhCN/灵止光—死亡之翼，完整succeeded、28/28通过，含层数0/35边界、加减、刷新保留模拟和原有关闭/返回/重置/unknown恢复。100次计算1.7718ms。payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-021400-0087/content.json`，ACK确认清理。WGC `analyze/survival/ui-check32-4.png` 确认工具栏、红色手动选中、灰色禁用及细未选框；hover/禁用由探针注入。发现可承受文字省略，最终0.3.33追加4单位宽度余量（无新增对象）再确认。
+
+最终确认前收到用户反馈未选白边过亮，0.3.33同轮将未选边框降至#39363B、内底#18161A；尺寸、图集容量和事件逻辑不变。实机额外使用同commit的SimpleFontStringAPIDocumentation.lua:442–454 `IsTruncated` 返回bool检查结论文字截断。

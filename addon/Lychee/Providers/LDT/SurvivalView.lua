@@ -77,7 +77,8 @@ function M:CreateSurvivalView(owner)
         self.values[3]:SetText(L[status]);Theme:SetFont(self.values[3],(r.status=="lethal" or r.status=="survives") and "aboutBrand" or "body");Theme:SetTextColor(self.values[3],r.status=="lethal" and "danger" or r.status=="survives" and "success" or "text")
         self.lethalIcon:SetShown(r.status=="lethal");self.safeShort:SetShown(r.status=="survives");self.safeLong:SetShown(r.status=="survives")
         local hasIcon=r.status=="lethal" or r.status=="survives"
-        local width=math.min(160,self.values[3]:GetStringWidth())
+        -- Rounded UI pixels can otherwise ellipsize an exactly measured label.
+        local width=math.min(160,math.ceil(self.values[3]:GetStringWidth())+4)
         local x=476-width/2+(hasIcon and 12 or 0)
         if self.verdictX~=x or self.verdictWidth~=width then
             self.verdictX,self.verdictWidth=x,width
