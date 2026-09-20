@@ -11,10 +11,13 @@ end
 function M:CreateSurvivalView(owner)
     if owner.calculator then return owner.calculator end
     local C,Theme=_G.Lychee.UI.Components,_G.Lychee.UI.Theme
-    local v={rows={},tabs={},selected={},group=1,level=10,contentHeight=388}
+    local v={rows={},tabs={},selected={},group=1,level=10,contentHeight=252}
     owner.calculator=v
-    v.toolbar=CreateFrame("Frame",nil,owner.frame);v.toolbar:SetPoint("TOPLEFT",16,-60);v.toolbar:SetPoint("RIGHT",-16,0);v.toolbar:SetHeight(30);v.toolbar:Hide()
-    v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-98);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
+    v.toolbar=CreateFrame("Frame",nil,owner.frame);v.toolbar:SetPoint("TOPLEFT",16,0);v.toolbar:SetPoint("RIGHT",-16,0);v.toolbar:SetHeight(60);v.toolbar:Hide()
+    v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-226);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
+    v.results=CreateFrame("Frame",nil,owner.frame);v.results:SetPoint("TOPLEFT",16,-70);v.results:SetSize(584,108);v.results:Hide()
+    Theme:CreateRoundedSurface(v.results,"field",8)
+    v.controls=CreateFrame("Frame",nil,owner.frame);v.controls:SetPoint("TOPLEFT",16,-190);v.controls:SetSize(584,28);v.controls:Hide()
     v.frame=CreateFrame("Frame",nil,v.viewport);v.frame:SetSize(584,v.contentHeight);v.viewport:SetScrollChild(v.frame)
     v.bar=C:CreateScrollbar(v.viewport,function(value)
         v.viewport:SetVerticalScroll(value)
@@ -30,7 +33,7 @@ function M:CreateSurvivalView(owner)
     local function scrollable(frame) frame:EnableMouseWheel(true);frame:SetScript("OnMouseWheel",wheel) end
     v.viewport:SetScript("OnSizeChanged",resize);scrollable(v.viewport);scrollable(v.frame);scrollable(v.bar.frame)
     local function text(role,x,y,w,h,parent)
-        local f=(parent or v.frame):CreateFontString(nil,"ARTWORK","GameFontHighlight")
+        local f=(parent or v.results):CreateFontString(nil,"ARTWORK","GameFontHighlight")
         Theme:SetFont(f,role);Theme:SetTextColor(f,"textMuted");f:SetJustifyH("LEFT");f:SetJustifyV("TOP")
         f:SetPoint("TOPLEFT",x,-y);f:SetSize(w,h);return f
     end
@@ -40,10 +43,10 @@ function M:CreateSurvivalView(owner)
         end});Theme:SetFont(b.label,"body");b.frame:SetPoint("TOPLEFT",x,-y);scrollable(b.frame);return b
     end
     function v:Layout()
-        self.contentHeight=336;self.frame:SetHeight(self.contentHeight)
-        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-92)
+        local height=math.ceil(#self.list/2)*42
+        if self.contentHeight~=height then self.contentHeight=height;self.frame:SetHeight(height);self.effects:SetHeight(height) end
         resize()
-        if owner.context then owner.context:Resize(446) end
+        if owner.context then owner.context:Resize(486) end
     end
     function v:Refresh()
         if not self.active then return end
@@ -71,9 +74,12 @@ function M:CreateSurvivalView(owner)
         self.values[1]:SetText(amount(r.health or stats.health))
         self.values[2]:SetText(amount(r.first))
         local status=r.status=="lethal" and "会致死" or r.status=="survives" and "可承受" or r.status=="noDirect" and "无首段直接伤害" or "伤害数据暂不可用"
-        self.values[3]:SetText(L[status]);Theme:SetTextColor(self.values[3],r.status=="lethal" and "danger" or r.status=="survives" and "success" or "text")
+        self.values[3]:SetText(L[status]);Theme:SetFont(self.values[3],(r.status=="lethal" or r.status=="survives") and "aboutBrand" or "body");Theme:SetTextColor(self.values[3],r.status=="lethal" and "danger" or r.status=="survives" and "success" or "text")
         self.lethalIcon:SetShown(r.status=="lethal");self.safeShort:SetShown(r.status=="survives");self.safeLong:SetShown(r.status=="survives")
         self.summary:SetText(r.remaining and (r.remaining>0 and L:Format("承受后剩余生命 %s",amount(r.remaining)) or L:Format("超出生命 %s",amount(-r.remaining))) or L["自动读取技能伤害与自身属性"])
+        local selected=0;for _,value in pairs(self.selected) do if value then selected=selected+1 end end
+        self.resetSelection:SetEnabled(selected>0)
+        self.resetSelection:SetText(selected>0 and L:Format("重置模拟 (%d)",selected) or L["勾选模拟减伤"])
         self:RenderEffects()
     end
     function v:RenderEffects()
@@ -93,25 +99,29 @@ function M:CreateSurvivalView(owner)
             end
         end
         for i,b in ipairs(self.tabs) do b:SetSelected(i==self.group);b.indicator:SetShown(i==self.group) end
+        self:Layout()
     end
     function v:Open()
         self.active=true;self.group=1
         self.stats=S:Snapshot(self.stats,owner.enemy.level)
         self:LoadDamage()
         self.name:SetText(M:SpellName(owner.selected) or L["技能"]);self.spellIcon:SetTexture(C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(owner.selected))
+        self.contextLabel:SetText(M:Name(owner.enemy).."  ·  "..M:Name(owner.dungeon))
+        owner.title:Hide();owner.subtitle:Hide();owner.creatureMeta:Hide()
         owner:StopDrag();owner.model:Hide();owner.modelMessage:Hide();owner.reset.frame:Hide();owner.skillArea:Hide()
         owner.abilities:Hide();owner.previous.frame:Hide();owner.next.frame:Hide();owner.pageLabel:Hide();owner.survivalButton.frame:Hide()
-        self.toolbar:Show();self.viewport:Show();self.frame:Show();self:Layout();self.bar:SetValue(0);self:Render();owner:SetHint(L["仅计算首段直接伤害"])
+        self.toolbar:Show();self.results:Show();self.controls:Show();self.viewport:Show();self.frame:Show();self.bar:SetValue(0);self:Render();owner:SetHint(L["仅计算首段直接伤害"])
     end
     function v:Close()
-        self.active=false;C:HideTooltip(self.refresh.frame);self.toolbar:Hide();self.spellIcon:SetTexture(nil);self.frame:Hide();self.viewport:Hide();self.bar:StopDrag()
+        self.active=false;self.results:Hide();self.controls:Hide();self.contextLabel:SetText("");owner.title:Show();owner.subtitle:Show();owner.creatureMeta:Show();C:HideTooltip(self.refresh.frame);self.toolbar:Hide();self.spellIcon:SetTexture(nil);self.frame:Hide();self.viewport:Hide();self.bar:StopDrag()
         for _,row in ipairs(self.rows) do row.effect=nil;row.pressed=nil;row.icon:SetTexture(nil);row.label:SetText("");C:HideTooltip(row.frame) end
         for key in pairs(self.selected) do self.selected[key]=nil end
         self.stats,self.input,self.result,self.list=nil,nil,nil,nil
     end
-    v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(28,28);v.spellIcon:SetPoint("LEFT",0,0);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
-    v.name=text("title",38,5,304,20,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
-    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",432,0);v.levelControl:SetSize(112,28)
+    v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(40,40);v.spellIcon:SetPoint("TOPLEFT",0,-4);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
+    v.name=text("aboutBrand",54,2,344,28,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
+    v.contextLabel=text("meta",54,34,344,18,v.toolbar);v.contextLabel:SetWordWrap(false)
+    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",432,-8);v.levelControl:SetSize(112,28)
     Theme:CreateRoundedSurface(v.levelControl,"field",5);scrollable(v.levelControl)
     v.levelLabel=text("body",28,6,56,18,v.levelControl);v.levelLabel:SetJustifyH("CENTER");Theme:SetTextColor(v.levelLabel,"text")
     v.minus=button("−",0,2,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.levelControl)
@@ -120,40 +130,44 @@ function M:CreateSurvivalView(owner)
     local function icon(parent,asset,x,y,size)
         local t=parent:CreateTexture(nil,"ARTWORK");t:SetSize(size,size);t:SetPoint("TOPLEFT",x,-y);t:SetTexture(iconRoot..asset..".tga");return t
     end
-    v.refresh=button("",552,2,32,function() v:Refresh() end,nil,v.toolbar)
+    v.refresh=button("",552,10,32,function() v:Refresh() end,nil,v.toolbar)
     icon(v.refresh.frame,"reload",8,4,16)
     v.refresh.frame:HookScript("OnEnter",function() if v.active then C:ShowTooltip(v.refresh.frame,{title=L["刷新"]}) end end)
     v.refresh.frame:HookScript("OnLeave",function() C:HideTooltip(v.refresh.frame) end)
     for i=1,2 do
-        local divider=v.frame:CreateTexture(nil,"ARTWORK")
-        divider:SetPoint("TOPLEFT",i*196-18,-10);divider:SetSize(1,48);Theme:SetColorTexture(divider,"borderStrong")
+        local divider=v.results:CreateTexture(nil,"ARTWORK")
+        divider:SetPoint("TOPLEFT",i*184+10,-18);divider:SetSize(1,50);Theme:SetColorTexture(divider,"border")
     end
     v.values={}
     for i,caption in ipairs({"生命值","直接承伤","是否致死"}) do
-        text("meta",(i-1)*196+(i==3 and 24 or 0),8,164,18):SetText(L[caption])
-        v.values[i]=text("input",(i-1)*196,34,168,26);Theme:SetTextColor(v.values[i],"text")
+        text("meta",(i-1)*184+20,14,156,18):SetText(L[caption])
+        v.values[i]=text("aboutBrand",(i-1)*184+20,38,164,28);Theme:SetTextColor(v.values[i],"text")
     end
-    v.lethalIcon=icon(v.frame,"skull",392,7,16)
-    v.safeShort=v.frame:CreateTexture(nil,"ARTWORK");v.safeShort:SetSize(5,2);v.safeShort:SetPoint("TOPLEFT",394,-15);v.safeShort:SetRotation(-math.pi/4);Theme:SetColorTexture(v.safeShort,"success")
-    v.safeLong=v.frame:CreateTexture(nil,"ARTWORK");v.safeLong:SetSize(10,2);v.safeLong:SetPoint("TOPLEFT",398,-12);v.safeLong:SetRotation(math.pi/4);Theme:SetColorTexture(v.safeLong,"success")
-    v.summary=text("meta",392,65,188,32)
-    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,244);scrollable(v.effects)
+    v.lethalIcon=icon(v.results,"skull",548,14,16)
+    v.safeShort=v.results:CreateTexture(nil,"ARTWORK");v.safeShort:SetSize(5,2);v.safeShort:SetPoint("TOPLEFT",550,-22);v.safeShort:SetRotation(-math.pi/4);Theme:SetColorTexture(v.safeShort,"success")
+    v.safeLong=v.results:CreateTexture(nil,"ARTWORK");v.safeLong:SetSize(10,2);v.safeLong:SetPoint("TOPLEFT",554,-19);v.safeLong:SetRotation(math.pi/4);Theme:SetColorTexture(v.safeLong,"success")
+    v.summary=text("meta",388,73,176,28)
+    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,252);v.effects:SetPoint("TOPLEFT",0,0);scrollable(v.effects)
     for i,caption in ipairs(groupNames) do
-        v.tabs[i]=button(L[caption],(i-1)*112,0,104,function() v.group=i;v:RenderEffects() end,nil,v.effects)
+        v.tabs[i]=button(L[caption],(i-1)*112,0,104,function() v.group=i;v:RenderEffects() end,nil,v.controls)
         local tab=v.tabs[i]
         tab.label:ClearAllPoints();tab.label:SetPoint("CENTER",0,0);tab.label:SetSize(104,18);tab.label:SetJustifyH("CENTER")
         tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOP",tab.label,"BOTTOM",0,-5);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
     end
+    v.resetSelection=button(L["勾选模拟减伤"],378,0,206,function()
+        for id in pairs(v.selected) do v.selected[id]=nil end;v:Render()
+    end,nil,v.controls)
+    v.resetSelection.label:SetJustifyH("RIGHT");Theme:SetFont(v.resetSelection.label,"meta")
     for i=1,12 do
         local row
-        row=C:CreateCheckbox(v.effects,{width=284,height=32,checkSide="left",onClick=function()
+        row=C:CreateCheckbox(v.effects,{width=284,height=38,checkSide="left",variant="choice",onClick=function()
             if not v.active or not owner.active or (InCombatLockdown and InCombatLockdown()) then return end
             if row.pressed~=row.generation or not row.effect then return end
             row.pressed=nil;local id=row.effect.id;v.selected[id]=not v.selected[id];v:Render()
         end})
-        row.frame:SetPoint("TOPLEFT",((i-1)%2)*294,-(40+math.floor((i-1)/2)*34));scrollable(row.frame)
-        row.label:ClearAllPoints();row.label:SetPoint("LEFT",66,0);row.label:SetPoint("RIGHT",-10,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
-        row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetPoint("LEFT",34,0);row.icon:SetSize(22,22);row.icon:SetTexCoord(.07,.93,.07,.93)
+        row.frame:SetPoint("TOPLEFT",((i-1)%2)*300,-(math.floor((i-1)/2)*42));scrollable(row.frame)
+        row.label:ClearAllPoints();row.label:SetPoint("LEFT",72,0);row.label:SetPoint("RIGHT",-10,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
+        row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetPoint("LEFT",38,0);row.icon:SetSize(26,26);row.icon:SetTexCoord(.07,.93,.07,.93)
         row.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" then row.pressed=row.generation end end)
         row.frame:HookScript("OnHide",function() row.pressed=nil;C:HideTooltip(row.frame) end)
         row.frame:HookScript("OnEnter",function()

@@ -57,4 +57,6 @@ I.ProviderLocaleData["builtin.ldt"] = {
     ["模拟效果：全能提高 %d 点。"] = "Simulated effect: +%d Versatility rating.",
     ["已有增益自动计入，不重复叠加"] = "An existing buff is included automatically, without stacking twice.",
     ["%d 层"] = "Level %d",
+    ["重置模拟 (%d)"] = "Reset simulation (%d)",
+    ["勾选模拟减伤"] = "Select effects to compare",
 }

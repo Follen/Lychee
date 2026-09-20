@@ -224,24 +224,33 @@ end
 -- so disabled or rebound records cannot accidentally change business state.
 function Components:CreateCheckbox(parent, options)
     options=options or {}
-    options.colors={normal="transparent",hover="surfaceSelected",pressed="surfaceSelected",disabled="transparent"}
-    options.textColors={normal="text",hover="text",pressed="text",disabled="disabled"}
+    local choice=options.variant=="choice"
+    if choice then options.radius=6 end
+    options.colors={normal=choice and "field" or "transparent",hover="surfaceSelected",pressed="actionHover",disabled=choice and "field" or "transparent"}
+    options.textColors={normal="text",hover="text",pressed="text",disabled=choice and "textMuted" or "disabled"}
     local c=self:CreateButton(parent,options)
     local box=CreateFrame("Frame",nil,c.frame)
-    box:SetSize(14,14);box:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
-    local border=Theme:CreateRoundedSurface(box,"fieldBorder",3)
-    local fill=Theme:CreateRoundedSurface(box,"window",2,1,"BORDER")
+    box:SetSize(choice and 18 or 14,choice and 18 or 14);box:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
+    local border=Theme:CreateRoundedSurface(box,choice and "borderStrong" or "fieldBorder",choice and 5 or 3)
+    local fill=Theme:CreateRoundedSurface(box,choice and "field" or "window",choice and 4 or 2,1,"BORDER")
     local short=box:CreateTexture(nil,"OVERLAY")
-    short:SetSize(4,1.5);short:SetPoint("CENTER",box,"CENTER",-3,-1);short:SetRotation(-math.pi/4)
+    short:SetSize(choice and 5 or 4,choice and 2 or 1.5);short:SetPoint("CENTER",box,"CENTER",-3,-1);short:SetRotation(-math.pi/4)
     local long=box:CreateTexture(nil,"OVERLAY")
-    long:SetSize(8,1.5);long:SetPoint("CENTER",box,"CENTER",1,0);long:SetRotation(math.pi/4)
+    long:SetSize(choice and 9 or 8,choice and 2 or 1.5);long:SetPoint("CENTER",box,"CENTER",1,0);long:SetRotation(math.pi/4)
     c.label:ClearAllPoints();c.label:SetPoint("LEFT",options.checkSide=="left" and 34 or 8,0);c.label:SetPoint("RIGHT",options.checkSide=="left" and -8 or -32,0)
     c.label:SetJustifyH("LEFT");Theme:SetFont(c.label,"body")
     c.check=long
     function c:PaintCheck()
         local enabled=self.enabled~=false
-        border:SetColor(not enabled and "disabled" or self.checked and "accentHover" or self._hovered and "textMuted" or "fieldBorder")
-        fill:SetColor(self.checked and (enabled and "accentHover" or "disabled") or "window")
+        border:SetColor(not enabled and (choice and "borderStrong" or "disabled") or self.checked and "accentHover" or self._hovered and "textMuted" or choice and "borderStrong" or "fieldBorder")
+        fill:SetColor(self.checked and (enabled and "accentHover" or choice and "textDim" or "disabled") or choice and "field" or "window")
+        if choice then
+            local normal=self.checked and "actionHover" or "field"
+            if options.colors.normal~=normal then
+                options.colors.normal=normal;options.colors.hover=self.checked and "actionHover" or "surfaceHover"
+                local state=self._state;self._state=nil;self:SetState(state)
+            end
+        end
         Theme:SetColorTexture(short,"text");Theme:SetColorTexture(long,"text")
         setShown(short,self.checked);setShown(long,self.checked)
     end
