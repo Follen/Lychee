@@ -100,6 +100,9 @@ function Broker:_Acquire()
         current.itemClicked=nil
         local valid, tokenErr = self:ValidateToken(current.token)
         if not binding:Consume(current, current, "LeftButton") then valid, tokenErr = false, "STALE_GENERATION" end
+        if valid and current.toyID and not (type(PlayerHasToy)=="function" and PlayerHasToy(current.toyID)) then
+            valid,tokenErr=false,"ITEM_NOT_FOUND"
+        end
         if valid and current.itemID then current.itemClicked=true; return end
         if valid then
             current.pendingCast = true
@@ -118,7 +121,7 @@ function Broker:_Acquire()
             local item=current.token and current.token.item
             if palette then
                 if item then palette:TouchRecent(item,current.action and current.action.id) end
-                palette:Hide("item-click")
+                palette:Hide(current.toyID and "toy-click" or "item-click")
             end
             self:Release(current)
             return
@@ -153,21 +156,24 @@ function Broker:Prepare(action, token)
     end
     local descriptor, err = Lychee.Secure.Descriptor.FromAction(action)
     if not descriptor then return nil, err end
-    local ok, policyErr, mountID = Lychee.Secure.Policy:Check(descriptor)
+    local ok, policyErr, mountID, toyID = Lychee.Secure.Policy:Check(descriptor)
     if not ok then self:Invalidate(); return nil, policyErr end
     for index = 1, #self.buttons do
         local existing = self.buttons[index]
         local bound = existing.token
         if existing.busy and not existing.pendingRelease and bound and token and bound.row == token.row
             and bound.item == token.item and bound.session == token.session and bound.generation == token.generation
-            and existing.itemID == descriptor.itemID and existing.spellID == descriptor.spellID and existing.mountID == mountID then return existing end
+            and existing.itemID == descriptor.itemID and existing.spellID == descriptor.spellID and existing.mountID == mountID
+            and existing.toyID == toyID then return existing end
     end
     local button = self:_Acquire()
     if not button then self:Invalidate(); return nil, "COMBAT_LOCKED" end
     if mountID then button:SetAttribute("type", nil)
-    else button:SetAttribute("type", descriptor.kind == "item" and "item" or "spell") end
+    else button:SetAttribute("type", toyID and "toy" or descriptor.kind == "item" and "item" or "spell") end
+    button:SetAttribute("toy",toyID)
     button:SetAttribute("spell", descriptor.spellID)
-    button:SetAttribute("item", descriptor.itemID and ("item:"..descriptor.itemID) or nil)
+    button:SetAttribute("item", not toyID and descriptor.itemID and ("item:"..descriptor.itemID) or nil)
+    button.toyID=toyID
     button.itemID,button.itemClicked=descriptor.itemID,nil
     _G.LycheeInternal.InteractionBinding:Bind(button, token, token and token.session, token and token.generation)
     button.token = token
@@ -230,6 +236,8 @@ function Broker:Release(button)
         return
     end
     button:Hide(); button:SetAttribute("type", nil); button:SetAttribute("spell", nil); button:SetAttribute("item", nil)
+    button:SetAttribute("toy",nil)
+    button.toyID=nil
     if button.activeIndex then
         local index, last = button.activeIndex, self.active[#self.active]
         self.active[index] = last

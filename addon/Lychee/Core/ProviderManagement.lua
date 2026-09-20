@@ -78,6 +78,7 @@ local providerIcons = {
     ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
 }
 moduleOrder["builtin.slash-commands"]=17
+moduleOrder["builtin.toys"]=18
 moduleOrder["builtin.ldt"]=14
 moduleOrder["builtin.exwind"]=15
 moduleOrder["builtin.ellesmere"]=16

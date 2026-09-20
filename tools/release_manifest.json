@@ -186,6 +186,10 @@
     "Providers/SlashCommands/Locales/enUS.lua",
     "Providers/SlashCommands/Locales/zhCN.lua",
     "Providers/SlashCommands/Provider.lua",
-    "Media/MenuIcons/slash-commands.tga"
+    "Media/MenuIcons/slash-commands.tga",
+    "Providers/Toys/Data.lua",
+    "Providers/Toys/Provider.lua",
+    "Providers/Toys/Locales/enUS.lua",
+    "Providers/Toys/Locales/zhCN.lua"
   ]
 }

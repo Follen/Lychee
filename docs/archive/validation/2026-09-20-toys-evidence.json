@@ -1,0 +1,674 @@
+{
+  "secure-toy": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "function",
+          "name": "SECURE_ACTIONS.toy",
+          "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "401:         end\n402:     end;\n403: \n404: SECURE_ACTIONS.toy =\n405: \tfunction (self, unit, button)\n406: \t\tlocal toy = SecureButton_GetModifiedAttribute(self, \"toy\", button);\n407: \t\tlocal toyID = tonumber(toy);",
+          "contentHash": "5fd1efcbfc20b4d426187f55dbee52542d37befd1ef52082db1f466f1049929a",
+          "line": 404,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "SECURE_ACTIONS.toy",
+          "target": "SecureButton_GetModifiedAttribute",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+          "line": 406
+        },
+        {
+          "source": "SECURE_ACTIONS.toy",
+          "target": "tonumber",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+          "line": 407
+        },
+        {
+          "source": "SECURE_ACTIONS.toy",
+          "target": "UseToy",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+          "line": 409
+        },
+        {
+          "source": "SECURE_ACTIONS.toy",
+          "target": "UseToyByName",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_FrameXML/SecureTemplates.lua",
+          "line": 411
+        }
+      ]
+    }
+  },
+  "update-button": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "function",
+          "name": "ToySpellButton_UpdateButton",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "matchedBy": "exact_symbol",
+          "role": "project",
+          "excerpt": "301: function ToySpellButton_UpdateButton(self)\n302: \tlocal itemIndex = (ToyBox.PagingFrame:GetCurrentPage() - 1) * TOYS_PER_PAGE + self:GetID();\n303: \tself.itemID = C_ToyBox.GetToyFromIndex(itemIndex);\n304: \n305: \tlocal toyString = self.name;\n306: \tlocal toyNewString = self.new;\n307: \tlocal toyNewGlow = self.newGlow;\n308: \tlocal iconTexture = self.iconTexture;\n309: \tlocal iconTextureUncollected = self.iconTextureUncollected;\n310: \tlocal slotFrameCollected = self.slotFrameCollected;\n311: \tlocal slotFrameUncollected = self.slotFrameUncollected;\n312: \tlocal slotFrameUncollectedInnerGlow = self.slotFrameUncollectedInnerGlow;\n313: \tlocal iconFavoriteTexture = self.cooldownWrapper.slotFavorite;\n314: \n315: \tif (self.itemID == -1) then\n316: \t\tself:Hide();\n317: \t\treturn;\n318: \tend\n319: \n320: \tself:Show();\n321: \n322: \tlocal itemID, toyName, icon, isFavorite, hasFanfare = C_ToyBox.GetToyInfo(self.itemID);\n323: \tif (itemID == nil) or (toyName == nil) then\n324: \t\treturn;\n325: \tend\n326: \n327: \tif ToyBox.fanfareToys[itemID] == nil and hasFanfare then\n328: \t\tToyBox.fanfareToys[itemID] = true;\n329: \t\tToyBox.newToys[self.itemID] = true;-- if it has fanfare, we also want to treat it as new\n330: \tend\n331: \n332: \tif string.len(toyName) == 0 then\n333: \t\ttoyName = itemID;\n334: \tend\n335: \n336: \tif not ToyBox.newToys[self.itemID] then\n337: \t\ttoyNewString:Hide();\n338: \t\ttoyNewGlow:Hide();\n339: \telse\n340: \t\ttoyNewString:Show();\n341: \t\ttoyNewGlow:Show();\n342: \tend\n343: \n344: \ticonTexture:SetTexture(icon);\n345: \ticonTextureUncollected:SetTexture(icon);\n346: \ticonTextureUncollected:SetDesaturated(true);\n347: \n348: \tif not ToyBox.fanfareToys[itemID] then\n349: \t\tif self.modelScene then\n350: \t\t\tToyBox.fanfarePool:Release(self.modelScene);\n351: \t\t\tself.modelScene = nil;\n352: \t\tend\n353: \n354: \t\tif (PlayerHasToy(self.itemID)) then\n355: \t\t\ticonTexture:Show();\n356: \t\t\ticonTextureUncollected:Hide();\n357: \t\t\ttoyString:SetTextColor(1, 0.82, 0, 1);\n358: \t\t\ttoyString:SetShadowColor(0, 0, 0, 1);\n359: \t\t\tslotFrameCollected:Show();\n360: \t\t\tslotFrameUncollected:Hide();\n361: \t\t\tslotFrameUncollectedInnerGlow:Hide();\n362: \n363: \t\t\tif(ToyBox.firstCollectedToyID == 0) then\n364: \t\t\t\tToyBox.firstCollectedToyID = self.itemID;\n365: \t\t\tend\n366: \n367: \t\t\tif (ToyBox.firstCollectedToyID == self.itemID and not HelpTip:IsShowing(ToyBox, TOYBOX_FAVORITE_HELP) and not GetCVarBitfield(\"closedInfoFrames\", LE_FRAME_TUTORIAL_TOYBOX_FAVORITE)) then\n368: \t\t\t\tlocal helpTipInfo = {\n369: \t\t\t\t\ttext = TOYBOX_FAVORITE_HELP,\n370: \t\t\t\t\tbuttonStyle = HelpTip.ButtonStyle.Close,\n371: \t\t\t\t\tcvarBitfield = \"closedInfoFrames\",\n372: \t\t\t\t\tbitfieldFlag = LE_FRAME_TUTORIAL_TOYBOX_FAVORITE,\n373: \t\t\t\t\ttargetPoint = HelpTip.Point.BottomEdgeCenter,\n374: \t\t\t\t\talignment = HelpTip.Alignment.Left,\n375: \t\t\t\t\toffsetY = 0,\n376: \t\t\t\t};\n377: \t\t\t\tHelpTip:Show(ToyBox, helpTipInfo, self);\n378: \t\t\tend\n379: \t\telse\n380: \t\t\ticonTexture:Hide();",
+          "contentHash": "ce3df23e8234bf2dca43f5bfc200558d969efb33711a922636a9effd7a420c9d",
+          "line": 301,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "ToySpellButton_OnEnter",
+          "target": "ToySpellButton_UpdateButton",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 226
+        },
+        {
+          "source": "OnFinishedCallback",
+          "target": "ToySpellButton_UpdateButton",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 238
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "self:GetID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 302
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "ToyBox.PagingFrame:GetCurrentPage",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 302
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "C_ToyBox.GetToyFromIndex",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 303
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "self:Hide",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 316
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "self:Show",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 320
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "C_ToyBox.GetToyInfo",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 322
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "string.len",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 332
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "toyNewString:Hide",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 337
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "toyNewGlow:Hide",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 338
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "toyNewString:Show",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 340
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "toyNewGlow:Show",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 341
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "iconTexture:SetTexture",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 344
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "iconTextureUncollected:SetTexture",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 345
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "iconTextureUncollected:SetDesaturated",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 346
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "ToyBox.fanfarePool:Release",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 350
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "PlayerHasToy",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 354
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "iconTexture:Show",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 355
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "iconTextureUncollected:Hide",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 356
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "toyString:SetTextColor",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 357
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "toyString:SetShadowColor",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 358
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "slotFrameCollected:Show",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 359
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "slotFrameUncollected:Hide",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 360
+        },
+        {
+          "source": "ToySpellButton_UpdateButton",
+          "target": "slotFrameUncollectedInnerGlow:Hide",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Collections/Mainline/Blizzard_ToyBox.lua",
+          "line": 361
+        }
+      ]
+    }
+  },
+  "item-name": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_Item.GetItemNameByID",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "824: \t\t\tName = \"GetItemNameByID\",\n825: \t\t\tType = \"Function\",\n826: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n827: \n828: \t\t\tArguments =\n829: \t\t\t{\n830: \t\t\t\t{ Name = \"itemInfo\", Type = \"ItemInfo\", Nilable = false },\n831: \t\t\t},\n832: \n833: \t\t\tReturns =\n834: \t\t\t{\n835: \t\t\t\t{ Name = \"itemName\", Type = \"string\", Nilable = true },\n836: \t\t\t},\n837: \t\t},",
+          "contentHash": "96a47025f01b338a1fb6891825bc1d71e888910008cd12dd22a54089427c64ae",
+          "line": 824,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_Item",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "line": 824
+        },
+        {
+          "source": "AuctionHouseBuyDialogMixin:SetItemID",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseBuyDialog.lua",
+          "line": 246
+        },
+        {
+          "source": "HousingMarketCartDataManagerMixin:AddToCart",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HousingMarketCart/Blizzard_HousingMarketCartTemplates.lua",
+          "line": 505
+        },
+        {
+          "source": "HousingMarketCartDataManagerMixin:OnUpdateItemInfo",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HousingMarketCart/Blizzard_HousingMarketCartTemplates.lua",
+          "line": 775
+        },
+        {
+          "source": "GetName",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ItemUpgradeUI/Mainline/Blizzard_ItemUpgradeUI.lua",
+          "line": 347
+        },
+        {
+          "source": "ItemMixin:GetItemName",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectAPI/Mainline/Item.lua",
+          "line": 197
+        },
+        {
+          "source": "DressUpFrameTransmogSetMixin:SetData",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXMLGame/DressUpModelFrameMixin.lua",
+          "line": 471
+        },
+        {
+          "source": "DressUpFrameTransmogSetMixin:CreateSetItemFrame",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXMLGame/DressUpModelFrameMixin.lua",
+          "line": 611
+        },
+        {
+          "source": "TooltipComparisonManager:SetItemTooltip",
+          "target": "C_Item.GetItemNameByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXMLGame/Tooltip/TooltipComparisonManager.lua",
+          "line": 275
+        }
+      ]
+    }
+  },
+  "item-icon": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_Item.GetItemIconByID",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "589: \t\t\tName = \"GetItemIconByID\",\n590: \t\t\tType = \"Function\",\n591: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n592: \n593: \t\t\tArguments =\n594: \t\t\t{\n595: \t\t\t\t{ Name = \"itemInfo\", Type = \"ItemInfo\", Nilable = false },\n596: \t\t\t},\n597: \n598: \t\t\tReturns =\n599: \t\t\t{\n600: \t\t\t\t{ Name = \"icon\", Type = \"fileID\", Nilable = true },\n601: \t\t\t},\n602: \t\t},",
+          "contentHash": "96a47025f01b338a1fb6891825bc1d71e888910008cd12dd22a54089427c64ae",
+          "line": 589,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_Item",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "line": 589
+        },
+        {
+          "source": "CommentatorUnitFrameMixin:SetCCRemoverItemIcon",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Commentator/Classic/Blizzard_CommentatorUnitFrame.lua",
+          "line": 411
+        },
+        {
+          "source": "ContributeButtonMixin:Update",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_Contribution/Blizzard_Contribution.lua",
+          "line": 261
+        },
+        {
+          "source": "CooldownViewerItemDataMixin:UpdateFromSpellCategory",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_CooldownViewer/CooldownViewerItemData.lua",
+          "line": 173
+        },
+        {
+          "source": "HousingDyePaneMixin:GetPreviewDyeInfos",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HouseEditor/Blizzard_HouseEditorCustomizationDyeTemplates.lua",
+          "line": 143
+        },
+        {
+          "source": "NeighborhoodChangeNameCostMixin:OnLoad",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HousingBulletinBoard/Blizzard_HousingBulletinBoard.lua",
+          "line": 765
+        },
+        {
+          "source": "HousingMarketCartDataManagerMixin:AddToCart",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HousingMarketCart/Blizzard_HousingMarketCartTemplates.lua",
+          "line": 506
+        },
+        {
+          "source": "HousingMarketCartDataManagerMixin:OnUpdateItemInfo",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_HousingMarketCart/Blizzard_HousingMarketCartTemplates.lua",
+          "line": 776
+        },
+        {
+          "source": "ItemMixin:GetItemIcon",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ObjectAPI/Mainline/Item.lua",
+          "line": 187
+        },
+        {
+          "source": "PVPRewardRoleShortageBonusMixin:Init",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_PVPUI/Mainline/Blizzard_PVPUI.lua",
+          "line": 2633
+        },
+        {
+          "source": "PerksProgramProductButtonMixin:SetItemInfo",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_PerksProgram/Blizzard_PerksProgramElements.lua",
+          "line": 229
+        },
+        {
+          "source": "PerksProgramItemDetailsListMixin:AddItemToDataProvider",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_PerksProgram/Blizzard_PerksProgramElements.lua",
+          "line": 1220
+        },
+        {
+          "source": "PerksProgramModelSceneContainerFrameMixin:SetupModelSceneForToys",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_PerksProgram/Blizzard_PerksProgramModel.lua",
+          "line": 774
+        },
+        {
+          "source": "ReforgingFrame_Update",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_ReforgingUI/Classic/Blizzard_ReforgingUI.lua",
+          "line": 92
+        },
+        {
+          "source": "FormattingUtil.GetItemCostString",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXML/FormattingUtil.lua",
+          "line": 205
+        },
+        {
+          "source": "DressUpFrameTransmogSetMixin:CreateSetItemFrame",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_SharedXMLGame/DressUpModelFrameMixin.lua",
+          "line": 616
+        },
+        {
+          "source": "CurrencyHorizontalLayoutFrameMixin:AddItem",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UIPanelTemplates/Mainline/UIPanelTemplates.lua",
+          "line": 291
+        },
+        {
+          "source": "PaperDollItemSocketDisplayMixin:SetItem",
+          "target": "C_Item.GetItemIconByID",
+          "kind": "call",
+          "confidence": "inferred",
+          "path": "Interface/AddOns/Blizzard_UIPanels_Game/Mainline/PaperDollFrame.lua",
+          "line": 2795
+        }
+      ]
+    }
+  },
+  "item-load": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "api-function",
+          "name": "C_Item.RequestLoadItemDataByID",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "1673: \t\t\tName = \"RequestLoadItemDataByID\",\n1674: \t\t\tType = \"Function\",\n1675: \t\t\tSecretArguments = \"AllowedWhenUntainted\",\n1676: \n1677: \t\t\tArguments =\n1678: \t\t\t{\n1679: \t\t\t\t{ Name = \"itemInfo\", Type = \"ItemInfo\", Nilable = false },\n1680: \t\t\t},\n1681: \t\t},",
+          "contentHash": "96a47025f01b338a1fb6891825bc1d71e888910008cd12dd22a54089427c64ae",
+          "line": 1673,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_Item",
+          "target": "C_Item.RequestLoadItemDataByID",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "line": 1673
+        }
+      ]
+    }
+  },
+  "item-event": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "api-event",
+          "name": "ITEM_DATA_LOAD_RESULT",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ItemDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "1817: \t\t\tName = \"ItemDataLoadResult\",\n1818: \t\t\tType = \"Event\",\n1819: \t\t\tLiteralName = \"ITEM_DATA_LOAD_RESULT\",\n1820: \t\t\tSynchronousEvent = true,\n1821: \t\t\tPayload =\n1822: \t\t\t{\n1823: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n1824: \t\t\t\t{ Name = \"success\", Type = \"bool\", Nilable = false },\n1825: \t\t\t},\n1826: \t\t},",
+          "contentHash": "96a47025f01b338a1fb6891825bc1d71e888910008cd12dd22a54089427c64ae",
+          "line": 1817,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ]
+    }
+  },
+  "new-toy-event": {
+    "ok": true,
+    "data": {
+      "sourceId": "wow-ui-source",
+      "product": "retail",
+      "requestedRef": "12.1.0",
+      "matchedTag": "12.1.0",
+      "resolvedCommit": "4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "snapshotId": "wow-ui-source-retail-4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59",
+      "results": [
+        {
+          "kind": "api-event",
+          "name": "C_ToyBoxInfo.NewToyAdded",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ToyBoxInfoDocumentation.lua",
+          "matchedBy": "exact_symbol",
+          "role": "official-generated-api",
+          "excerpt": "68: \t\t\tName = \"NewToyAdded\",\n69: \t\t\tType = \"Event\",\n70: \t\t\tLiteralName = \"NEW_TOY_ADDED\",\n71: \t\t\tSynchronousEvent = true,\n72: \t\t\tPayload =\n73: \t\t\t{\n74: \t\t\t\t{ Name = \"itemID\", Type = \"number\", Nilable = false },\n75: \t\t\t},\n76: \t\t},",
+          "contentHash": "63c072567a3c44d467cc20b2b2f8396d7314402289adee6a75fd0a8b76851543",
+          "line": 68,
+          "score": 100,
+          "scoreParts": {
+            "match": 100,
+            "rolePenalty": 0
+          }
+        }
+      ],
+      "relations": [
+        {
+          "source": "C_ToyBoxInfo",
+          "target": "C_ToyBoxInfo.NewToyAdded",
+          "kind": "contains",
+          "confidence": "exact",
+          "path": "Interface/AddOns/Blizzard_APIDocumentationGenerated/ToyBoxInfoDocumentation.lua",
+          "line": 68
+        }
+      ]
+    }
+  }
+}

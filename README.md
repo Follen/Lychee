@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.7-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.2.8-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -213,3 +213,7 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 ### 0.2.7：斜杠搜索入口
 
 斜杠命令仅接受以 `/` 开头的输入，例如 `/rs`、`/dev`；单独输入 `/` 列出命令。普通文字、来源筛选和自定义别名不能绕过此条件，移除 `cmd:` / `命令:` 默认入口。历史与固定项仍可恢复运行。
+
+### 0.2.8：玩具搜索（正式服）
+
+搜索已收藏玩具的名称或物品 ID，左键使用；也支持 `玩具:` / `toys:` 前缀。需要放置的玩具会进入原生地面选点，点击地面放置，右键或 Esc 取消。搜索不改变玩具箱筛选；冷却和地点限制由游戏处理。新增模块后须完整重启游戏。

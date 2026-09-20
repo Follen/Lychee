@@ -90,6 +90,7 @@ Unknown kinds/extra fields are rejected. There is no arbitrary secure script or 
 | `"open"` | Provider actions.open.run |
 | `{id,title?,kind="invocation",invocation}` | Own valid complete Invocation reference; selected branch owns its parameters/history |
 | `{id,title?,kind="open-panel",panel,state?}` | Registered view, with validated state |
+| `{id,title?,kind="secure-item",itemID}` | Positive integer item ID; bag items or collected toys require a real left click. Collected toys use the native secure toy action and preserve native ground targeting. |
 | `{id,title?,kind="secure-spell",spellID}` | Positive spell ID; real hardware click required. Secondary menu selection prepares a button; history requires successful cast. |
 | `{id,title?,kind="drag-spell",spellID}` | Pick up through Host cursor adapter on click |
 | `drag={type="spell",spellID,title?}` | Pick up during an actual drag gesture |

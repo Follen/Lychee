@@ -65,6 +65,12 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Slash commands failed: $flavor/$locale" }
         }
     }
+    foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
+        & $lua.Source 'tests/providers/toys.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "Toys failed: $locale" }
+    }
+    & python 'tools/build_toy_catalog.py' '--check'
+    if ($LASTEXITCODE -ne 0) { throw 'Toy catalogue failed' }
     & python 'tools/check_repository.py'
     if ($LASTEXITCODE -ne 0) { throw 'Repository documentation/layout checks failed' }
     & python 'tools/build_enemy_catalog.py' '--check'

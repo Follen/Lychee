@@ -149,3 +149,32 @@ combat=true;assert(not broker:Prepare(action,token));combat=false
 broker:Flush()
 assert(not next(broker.eventFrame.events))
 print('Bag secure action PASS right-click/no-use, stale identity, reuse, combat, missing item')
+
+-- Toys are collection items, not bag contents. Native targeting survives release.
+local owned,targeting=true,false
+function PlayerHasToy(id) return owned and id==456 end
+function SpellStopTargeting() error("broker must not cancel ground placement") end
+function ClearCursor() error("broker must not clear the native toy cursor") end
+local hiddenReason
+palette.Hide=function(_,reason) hiddenReason=reason end
+present=false
+local toyAction={kind="secure-item",itemID=456}
+button=assert(broker:Prepare(toyAction,token))
+assert(button.attrs.type=="toy" and button.attrs.toy==456 and not button.attrs.item)
+button.scripts.OnMouseDown(button,"LeftButton");button.scripts.PreClick(button)
+assert(button.itemClicked)
+targeting=true -- Native SecureActionButton use starts the ground-target cursor.
+button.scripts.PostClick(button,"LeftButton")
+assert(targeting and hiddenReason=="toy-click" and not button.attrs.toy and not button.busy)
+button=assert(broker:Prepare(toyAction,token));owned=false
+button.scripts.OnMouseDown(button,"LeftButton");button.scripts.PreClick(button)
+assert(not button.attrs.type and not button.attrs.toy and not button.busy)
+assert(not broker:Prepare(toyAction,token));owned=true
+button=assert(broker:Prepare(toyAction,token));broker:Release(button)
+present=true;button=assert(broker:Prepare(action,token))
+assert(button.attrs.type=="item" and not button.attrs.toy);broker:Release(button)
+button=assert(broker:Prepare({kind="secure-spell",spellID=1},token))
+assert(button.attrs.type=="spell" and not button.attrs.toy);broker:Release(button)
+combat=true;assert(not broker:Prepare(toyAction,token));combat=false;broker:Flush()
+assert(not next(broker.eventFrame.events))
+print("Toy secure action PASS collection ownership, native targeting preservation, stale ownership, pool reuse and combat")

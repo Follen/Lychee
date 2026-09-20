@@ -90,6 +90,7 @@ EntryAction 可以是命名动作 ID 字符串，或以下 Host 描述符。未�
 | `"open"` | 调用本 Provider 的 actions.open.run。 |
 | `{id,title?,kind="invocation",invocation}` | 本条目的参数动作分支；invocation 必须是本 Provider 的合法 Invocation StoredRef，动作版本和参数按已注册 schema 校验。执行与历史使用所选分支自己的参数，见 [Invocation](INVOCATIONS.md)。 |
 | `{id,title?,kind="open-panel",panel,state?}` | 打开本 Provider 的已声明 view，state 按该 view 的 schema 校验。 |
+| `{id,title?,kind="secure-item",itemID}` | 正整数物品 ID；背包物品或已收藏玩具，必须真实左键点击。玩具自动使用原生安全 toy 动作，地面选点保持由游戏处理。 |
 | `{id,title?,kind="secure-spell",spellID}` | Host 安全技能动作，正整数 spellID；主动作需要真实物理点击；菜单选择次要技能动作只准备按钮，施法成功后才记入历史。 |
 | `{id,title?,kind="drag-spell",spellID}` | 点击后通过 Host 技能 cursor 适配器拾取技能。 |
 | `drag={type="spell",spellID,title?}` | 真实拖动手势拾取技能。 |

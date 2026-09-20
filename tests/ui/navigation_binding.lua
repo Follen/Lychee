@@ -170,3 +170,11 @@ local failedFooter,failedFooterReason=p:OpenView({create=function() return {
 assert(not failedFooter and failedFooterReason=="PANEL_ERROR")
 assert(p.status:GetText()==originalStatus and p.footerHint:GetText()==originalHint,"failed Mount cannot publish provisional footer")
 print("Failed view footer rollback PASS")
+
+p:Show();p:SetQueryMode("")
+local oldPresence=Lychee.UI.Motion.Presence
+Lychee.UI.Motion.Presence=function() error("toy placement must not wait for closing animation") end
+p:Hide("toy-click")
+assert(not p.visible and not p.frame:IsShown() and not p._motionClosing)
+Lychee.UI.Motion.Presence=oldPresence
+print("Toy placement close PASS immediate world click surface release")

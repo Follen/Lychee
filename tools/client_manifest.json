@@ -1,5 +1,5 @@
 {
-  "version": "0.2.7",
+  "version": "0.2.8",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -605,6 +605,9 @@
       "provider": "builtin.slash-commands"
     },
     {
+      "provider": "builtin.toys"
+    },
+    {
       "path": "Providers/Init.lua",
       "products": [
         "retail",
@@ -924,6 +927,26 @@
       "locales": [
         "Providers/SlashCommands/Locales/enUS.lua",
         "Providers/SlashCommands/Locales/zhCN.lua"
+      ]
+    },
+    {
+      "id": "builtin.toys",
+      "module": "Toys",
+      "products": [
+        "retail"
+      ],
+      "files": [
+        "Providers/Toys/Data.lua",
+        "Providers/Toys/Provider.lua"
+      ],
+      "requires": [
+        "C_Item.GetItemNameByID",
+        "C_Item.GetItemIconByID",
+        "PlayerHasToy"
+      ],
+      "locales": [
+        "Providers/Toys/Locales/enUS.lua",
+        "Providers/Toys/Locales/zhCN.lua"
       ]
     }
   ]

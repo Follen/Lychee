@@ -829,6 +829,9 @@ function Palette:Hide(reason)
         return true
     end
     if self.escapeFrame then self.escapeFrame:Hide() end
+    -- A toy may leave a ground-target cursor active. Immediately free the world
+    -- click surface; hiding/releasing our controls must not cancel targeting.
+    if reason=="toy-click" then return self:FinishHide(reason) end
     local motion=Lychee.UI.Motion
     if motion and self.frame:IsShown() and not motion:IsReduced() and self.frame.CreateAnimationGroup then
         self._motionClosing=true
