@@ -13,12 +13,12 @@ function P:Create(parent,controller,onBack)
     outer:SetPoint("TOPLEFT",parent,"TOPLEFT",metrics.listInset,0)
     outer:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",-metrics.listInset,2);outer:Hide()
     local scroll=CreateFrame("ScrollFrame",nil,outer)
-    scroll:SetPoint("TOPLEFT",outer,"TOPLEFT",0,-32);scroll:SetPoint("BOTTOMRIGHT",outer,"BOTTOMRIGHT",0,8)
+    scroll:SetPoint("TOPLEFT",outer,"TOPLEFT",0,0);scroll:SetPoint("BOTTOMRIGHT",outer,"BOTTOMRIGHT",0,8)
     local contentHeight=392
     local frame=CreateFrame("Frame",nil,scroll);frame:SetSize(width,contentHeight);scroll:SetScrollChild(frame)
     local bar
     bar=UI.Components:CreateScrollbar(scroll,function(value) bar.value=value;scroll:SetVerticalScroll(value) end)
-    bar.frame:ClearAllPoints();bar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,-32);bar.frame:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",0,10)
+    bar.frame:ClearAllPoints();bar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,0);bar.frame:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",0,10)
     local function range() bar:SetRange(contentHeight,scroll:GetHeight(),bar.value);scroll:SetVerticalScroll(bar.value) end
     scroll:SetScript("OnSizeChanged",range)
     if scroll.EnableMouseWheel then scroll:EnableMouseWheel(true) end
@@ -48,9 +48,7 @@ function P:Create(parent,controller,onBack)
         b.frame:SetPoint("TOPLEFT",container,"TOPLEFT",x,y);return b
     end
     local function back() outer:Hide();onBack() end
-    view.back=button(L["返回功能来源"],0,0,152,back,outer,28,true,false,"left")
-    view.back.label:ClearAllPoints();view.back.label:SetPoint("TOPLEFT",view.back.frame,"TOPLEFT",22,0)
-    view.back.label:SetPoint("BOTTOMRIGHT",view.back.frame,"BOTTOMRIGHT",-8,0);view.back.label:SetJustifyH("LEFT")
+    function view:Back() if current() then back() end end
     view.icon=frame:CreateTexture(nil,"ARTWORK");view.icon:SetSize(metrics.iconSize,metrics.iconSize);view.icon:SetPoint("TOPLEFT",frame,"TOPLEFT",metrics.listIconInset,-10)
     view.title=label("",metrics.listTitleInset,-4,width-160);UI.Theme:SetTextColor(view.title,"text")
     view.detail=label("",metrics.listTitleInset,-24,width-160,"meta")

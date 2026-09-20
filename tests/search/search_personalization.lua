@@ -157,6 +157,19 @@ do
     assert(legacyCalled==1 and legacyFilter==nil,"legacy callback retains unfiltered request shape")
     assert(legacy:Unregister())
     assert(#query("限定：目标")==1 and #query(" SCOPE :目标")==1)
+    for _,prefix in ipairs({"限定","scope","SCOPE"}) do
+        for _,separator in ipairs({":","："," ","   ","\t"}) do
+            local input="  "..prefix..separator.."目标"
+            local text,filter,offset=policy:Route(input)
+            assert(text=="目标" and filter.sourceID=="prefix.test:records" and offset==#input-#text,"prefix route/byte offset: "..input)
+            assert(#query(input)==1,"prefix separator: "..input)
+        end
+    end
+    local ordinary="unknown multi word query"
+    local unchanged,_,offset=policy:Route(ordinary)
+    assert(unchanged==ordinary and offset==0,"ordinary spaces parsed as prefix")
+    local withColon,_,colonOffset=policy:Route("scope text:more")
+    assert(withColon=="text:more" and colonOffset==6,"colon in payload swallowed")
     assert(#query("限定：")==1 and #query(" ")==0)
     local bad,err=Lychee:RegisterProvider(definition("prefix.collision",{"scope"}))
     assert(not bad and err.field=="searchPrefixes.conflict")
@@ -165,6 +178,7 @@ do
     assert(policy:Set("prefix.test","prefix",{"newprefix"}))
     assert(policy:Effective("prefix.test",{searchable=false})=="global","old override cannot constrain independent query")
     assert(#query("限定目标")==0 and #query("newprefix:目标")==1 and #query("scope:目标")==0)
+    assert(#query("newprefix 目标")==1 and #query("scope 目标")==0,"custom space prefix did not follow override")
     local reserved=assert(Lychee:RegisterProvider(definition("prefix.owner",{"key"})))
     assert(not policy:Set("prefix.test","prefix",{"key"}))
     assert(reserved:Unregister())
@@ -172,8 +186,10 @@ do
     local saved=LycheeCharacterDB.palette;LycheeCharacterDB={palette=saved};policy.owner=nil
     assert(#query("scope:目标")==1,"reload normalization retains declaration")
     assert(handle:SetAvailability(false));assert(#query("scope:目标")==0)
+    assert(#query("scope 目标")==0,"space bypassed disabled source")
     assert(handle:SetAvailability(true));assert(#query("scope:目标")==1)
     assert(handle:Unregister());assert(#query("scope:目标")==0)
+    assert(#query("scope 目标")==0,"space route retained unregistered source")
     print("Prefix policy PASS: global exclusion, routed search, dynamic guard, override, conflict, reset, lifecycle")
 end
 do

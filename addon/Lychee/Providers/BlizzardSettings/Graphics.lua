@@ -1,6 +1,18 @@
 local I=_G.LycheeInternal
 local L=I.ProviderLocales:Module("builtin.blizzard-settings")
 local G={};I.ProviderModules.SettingsGraphics=G
+function G.Locate(frame,spec)
+ local raid=spec.raid or spec.variable=="RAIDsettingsEnabled"
+ if frame.tabsGroup then frame.tabsGroup:SelectAtIndex(raid and 2 or 1) end
+ local controls=raid and frame.RaidQualityControls or frame.BaseQualityControls
+ if not controls then return end
+ -- Native Graphics.lua names children after the graphics CVar suffix.
+ local key=spec.cvar and spec.cvar:gsub("^raidGraphics",""):gsub("^graphics","") or "Quality"
+ key=key:sub(1,1):upper()..key:sub(2)
+ if key=="Quality" then key="GraphicsQuality" end
+ local child=controls[key]
+ if child and (not child.IsShown or child:IsShown()) then return child end
+end
 -- Retail 12.1.0 Graphics.lua/GraphicsOverrides.lua: native composite controls
 -- keep settings in two private maps instead of separate list initializers.
 function G.Collect(initializer,categoryID,categoryName,add,checkpoint)

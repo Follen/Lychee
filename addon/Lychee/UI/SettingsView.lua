@@ -426,6 +426,12 @@ function Settings:Create(parent, controller)
         if #data==0 then visibleGroups=1 end
         for index=visibleGroups+1,#self.groups do shown(self.groups[index],false) end
     end
+    function view:Back()
+        if not frame:IsShown() or InCombatLockdown() then return true end
+        if self.providerView and self.providerView.frame:IsShown() then self.providerView:Back();return true end
+        if self.aliasView and self.aliasView.frame:IsShown() then self.aliasView:Back();return true end
+        return false
+    end
     function view:OpenAliases(ref,title)
         if not frame:IsShown() or InCombatLockdown() then return false end
         if not self.aliasView then self.aliasView=Lychee.UI.AliasSettings:Create(frame,controller,function() view:SetTab("general") end) end

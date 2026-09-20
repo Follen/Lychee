@@ -189,6 +189,15 @@ function P:Route(text,filter)
     local first,last=text:find(":",1,true)
     local wide,wideLast=text:find("：",1,true)
     if wide and (not first or wide<first) then first,last=wide,wideLast end
+    -- Only a registered first token claims a whitespace route. Preserve the
+    -- original byte offset used by search match highlighting.
+    local _,tokenEnd=text:find("^%s*%S+")
+    local spaceStart,spaceEnd
+    if tokenEnd then spaceStart,spaceEnd=text:find("^%s+",tokenEnd+1) end
+    if spaceStart and (not first or not snapshot.map[normalize(text:sub(1,first-1))])
+        and snapshot.map[normalize(text:sub(1,spaceStart-1))] then
+        first,last=spaceStart,spaceEnd
+    end
     if first then
         local owner=snapshot.map[normalize(text:sub(1,first-1))]
         if owner then offset=offset+last;text=text:sub(last+1);filter={sourceID=owner..":records"} end

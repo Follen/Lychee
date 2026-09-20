@@ -51,7 +51,7 @@ function A.Scan(checkpoint)
      local named,name=pcall(GetBindingName,ok and binding or "")
      if ok and type(binding)=="string" and named and type(name)=="string" and name~="" then
       local id=bindingID(binding)
-      if id then add({id=id,name=name,categoryID=categoryID,categoryName=categoryName,initializer=initializer,searchName=name}) end
+      if id then add({id=id,name=name,categoryID=categoryID,categoryName=categoryName,initializer=initializer,binding=binding}) end
       found=true
      end
     end
@@ -78,10 +78,53 @@ function A.Scan(checkpoint)
  A.byID,A.byVariable,A.ordered=map,variables,ordered
 end
 function A.Clear() A.byID,A.byVariable,A.ordered={},{},{} end
+local function locate(spec,category)
+ local list=call(SettingsPanel,"GetSettingsList")
+ local box=list and list.ScrollBox
+ if not box or not box.ScrollToElementData or not ScrollBoxConstants then return end
+ local layout=call(SettingsPanel,"GetLayout",category)
+ local rows=call(layout,"GetInitializers") or {}
+ local target,childIndex
+ -- Resolve against today's visible layout, including regenerated addon bindings.
+ for _,row in ipairs(rows) do
+  local data=row.data or {}
+  if spec.binding and type(data.bindingsCategories)=="table" then
+   for index,binding in ipairs(data.bindingsCategories) do
+    if binding[2]==spec.binding then target,childIndex=row,index;break end
+   end
+  elseif spec.variable then
+   for _,field in ipairs(fields) do
+    if call(data[field],"GetVariable")==spec.variable then target=row;break end
+   end
+   if not target and call(row,"GetTemplate")=="SettingsAdvancedQualitySectionTemplate" then
+    local map=data[spec.raid and "raidSettings" or "settings"]
+    if spec.cvar and map and call(map[spec.cvar],"GetVariable")==spec.variable or spec.variable=="RAIDsettingsEnabled" then target=row end
+   end
+  elseif row==spec.initializer then target=row end
+  if target then break end
+ end
+ if not target then return end -- Conditional controls retain category navigation.
+ box:ScrollToElementData(target,ScrollBoxConstants.AlignBegin,0,true)
+ local frame=call(box,"FindFrame",target)
+ if not frame then return end
+ local child
+ if childIndex then
+  if not target.data.expanded and frame.Button then call(frame.Button,"Click") end
+  child=target.data.expanded and frame.Controls and frame.Controls[childIndex]
+ elseif call(target,"GetTemplate")=="SettingsAdvancedQualitySectionTemplate" then
+  child=I.ProviderModules.SettingsGraphics.Locate(frame,spec)
+ end
+ if child then
+  local top,childTop=call(frame,"GetTop"),call(child,"GetTop")
+  if top and childTop then box:ScrollToElementData(target,ScrollBoxConstants.AlignBegin,childTop-top,true) end
+ end
+end
 function A.Open(spec)
  if not A.Available(spec) or not C_SettingsUtil or not C_SettingsUtil.OpenSettingsPanel then return {status="failed",code="SETTINGS_NOT_READY"} end
  local ok=pcall(C_SettingsUtil.OpenSettingsPanel,spec.categoryID,spec.searchName or spec.name)
  local selected=call(SettingsPanel,"GetCurrentCategory")
  if not ok or not selected or call(selected,"GetID")~=spec.categoryID or call(SettingsPanel,"IsShown")~=true then return {status="failed",code="SETTINGS_NOT_READY"} end
+ local located=pcall(locate,spec,selected)
+ if not located then return {status="failed",code="SETTINGS_NOT_READY"} end
  return {status="succeeded"}
 end

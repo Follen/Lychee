@@ -23,17 +23,18 @@ function A:Create(parent,controller,onBack)
     frame:SetPoint("TOPLEFT",parent,"TOPLEFT",metrics.listInset,0)
     frame:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",-metrics.listInset,2);frame:Hide()
     local function active() return frame:IsShown() and controller.visible and controller.settingsOpen and not InCombatLockdown() end
-    local back=button(frame,L["返回综合设置"],188,0,0,function() if active() then frame:Hide();onBack() end end,false,"left")
-    back.label:ClearAllPoints();back.label:SetPoint("TOPLEFT",back.frame,"TOPLEFT",22,0)
-    back.label:SetPoint("BOTTOMRIGHT",back.frame,"BOTTOMRIGHT",-8,0);back.label:SetJustifyH("LEFT")
-    view.back=back
-    view.heading=label(frame,L["自定义别名"],8,-36,width-16);UI.Theme:SetTextColor(view.heading,"text")
+    function view:Back()
+        if not active() then return end
+        if self.editing then self.input:ClearFocus();self:ShowList()
+        else frame:Hide();onBack() end
+    end
+    view.heading=label(frame,L["自定义别名"],8,-4,width-16);UI.Theme:SetTextColor(view.heading,"text")
     local scroll=CreateFrame("ScrollFrame",nil,frame);view.scroll=scroll
-    scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-66);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",0,0)
+    scroll:SetPoint("TOPLEFT",frame,"TOPLEFT",0,-34);scroll:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",0,0)
     local content=CreateFrame("Frame",nil,scroll);view.content=content;content:SetSize(width,1);scroll:SetScrollChild(content)
     view.bar=UI.Components:CreateScrollbar(scroll,function(value) view.offset=value;scroll:SetVerticalScroll(value);view:Render() end)
     view.bar.frame:ClearAllPoints()
-    view.bar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,-66)
+    view.bar.frame:SetPoint("TOPRIGHT",parent,"TOPRIGHT",0,-34)
     view.bar.frame:SetPoint("BOTTOMRIGHT",parent,"BOTTOMRIGHT",0,2)
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel",function(_,delta)
@@ -82,7 +83,7 @@ function A:Create(parent,controller,onBack)
     function view:Fit(height)
         if self.fittedHeight==height then return end
         self.fittedHeight=height
-        if controller.ResizeForMode then controller:ResizeForMode("settings-detail",66+height) end
+        if controller.ResizeForMode then controller:ResizeForMode("settings-detail",34+height) end
     end
     function view:Edit(ref,title)
         if not active() then return end

@@ -48,4 +48,36 @@ for _,s in ipairs(A.ordered) do assert(s.name~="分组标题") end
 assert(M.handle:Unregister());assert(not next(A.byID))
 assert(M:Init());f.advance();assert(I.Providers:Resolve({providerID=M.id,entryID=spec.id},{}))
 assert(#f.writes==0)
+-- The searchable binding initializer is NOT in the visible category layout.
+local bindingSpec=A.byID["binding:CLICK_20ExampleButton:LeftButton"]
+local section={data={name="视角",expanded=false,bindingsCategories={{2,"CLICK_20ExampleButton:LeftButton"},{1,"CLICK ExampleButton:LeftButton"}}},GetTemplate=function() return "SettingsKeybindingSectionTemplate" end}
+local control={GetTop=function() return 350 end}
+local sectionFrame={Controls={{},control},GetTop=function() return 420 end}
+sectionFrame.Button={Click=function() section.data.expanded=true end}
+local scrolled,offset
+ScrollBoxConstants={AlignBegin=0}
+local box={ScrollToElementData=function(_,row,_,delta) scrolled=row;offset=delta end,FindFrame=function(_,row) if row==section then return sectionFrame end end}
+SettingsPanel.GetSettingsList=function() return {ScrollBox=box} end
+SettingsPanel.GetLayout=function() return {GetInitializers=function() return {section} end} end
+C_SettingsUtil.OpenSettingsPanel=function() f.state.shown=true end
+assert(A.Open(bindingSpec).status=="succeeded")
+assert(section.data.expanded,"native binding section remained collapsed")
+assert(scrolled==section and offset==-70,"binding child was not positioned by identity")
+section.data.expanded=false
+section.data.bindingsCategories={{1,"CLICK ExampleButton:LeftButton"}}
+sectionFrame.Controls={control}
+assert(A.Open(bindingSpec).status=="succeeded" and section.data.expanded,"rebuilt native layout was not resolved")
+local combo=A.byID["setting:PROXY_UI_SCALE"]
+SettingsPanel.GetLayout=function() return {GetInitializers=function() return {combo.initializer} end} end
+assert(A.Open(combo).status=="succeeded" and scrolled==combo.initializer,"composite label did not locate its actual row")
+local gfx=A.byID["setting:PROXY_SHADOW_QUALITY"]
+local graphicsFrame={GetTop=function() return 420 end,BaseQualityControls={ShadowQuality=control},RaidQualityControls={ShadowQuality=control}}
+local selectedTab
+graphicsFrame.tabsGroup={SelectAtIndex=function(_,index) selectedTab=index end}
+box.FindFrame=function(_,row) if row==gfx.initializer then return graphicsFrame end end
+SettingsPanel.GetLayout=function() return {GetInitializers=function() return {gfx.initializer} end} end
+assert(A.Open(gfx).status=="succeeded" and selectedTab==1 and offset==-70,"base graphics child not located")
+gfx.raid=true;gfx.initializer.data.raidSettings=gfx.initializer.data.settings
+assert(A.Open(gfx).status=="succeeded" and selectedTab==2 and offset==-70,"raid graphics tab not selected")
+assert(#f.writes==0,"locating controls changed settings")
 print("Settings navigation PASS: all kinds open natively; no grammar, edits, panels or legacy invocation execution; aliases and lifecycle retained")

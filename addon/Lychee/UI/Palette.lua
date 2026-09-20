@@ -118,7 +118,8 @@ function Palette:Create()
         colors = { normal = "transparent" },
         textColors = { normal = "accent", hover = "accentHover", pressed = "accentHover" },
         onClick = function()
-            if self.settingsOpen then self:CloseSettings()
+            if self.settingsOpen then
+                if not self.settingsView:Back() then self:CloseSettings() end
             elseif self.viewHost:IsActive() then self:CloseView("header-back")
             else self:Hide("close") end
         end,
