@@ -1,0 +1,144 @@
+{
+  "LYCHEE-20260920-155803-0050": {
+    "source": {
+      "sourceBytes": 1910,
+      "requestId": "settings-hint-20260920-1",
+      "sourceChecksum": "fe6ca8dd"
+    },
+    "complete": true,
+    "lifecycleLog": {},
+    "startedAt": 1789891058,
+    "status": "succeeded",
+    "requestType": "task",
+    "revision": "1",
+    "taskId": "settings-hint",
+    "returns": [
+      {
+        "locale": "zhCN",
+        "checks": [
+          "first-use hint visible",
+          "Chinese copy",
+          "ack saved",
+          "ack hides",
+          "reopen stays dismissed",
+          "settings click acknowledges",
+          "closed"
+        ],
+        "samples": [
+          {
+            "lycheeKiB": 13697.536132812,
+            "observerKiB": 4289.0654296875
+          },
+          {
+            "lycheeKiB": 13621.700195312,
+            "observerKiB": 4289.0029296875
+          },
+          {
+            "lycheeKiB": 13622.598632812,
+            "observerKiB": 4289.0029296875
+          },
+          {
+            "lycheeKiB": 13623.497070312,
+            "observerKiB": 4289.0029296875
+          }
+        ],
+        "openMs": 2.3434999957681,
+        "build": [
+          "12.1.0",
+          "69875",
+          "Sep 15 2026",
+          120100,
+          "",
+          " "
+        ]
+      }
+    ],
+    "lifecycleLogLimited": false,
+    "outputTruncated": false,
+    "finishedAt": 1789891083,
+    "environment": {
+      "locale": "zhCN",
+      "buildDate": "Sep 15 2026",
+      "version": "12.1.0",
+      "clientId": "retail",
+      "realm": "白银之手",
+      "character": "晴昼秋岚",
+      "interface": 120100,
+      "build": "69875"
+    },
+    "executionId": "settings-hint-20260920-1",
+    "kind": "lua",
+    "schema": "lychee.automation.result.v1"
+  },
+  "LYCHEE-20260920-160024-0051": {
+    "source": {
+      "sourceBytes": 1910,
+      "requestId": "settings-hint-20260920-2",
+      "sourceChecksum": "fe6ca8dd"
+    },
+    "complete": true,
+    "lifecycleLog": {},
+    "startedAt": 1789891199,
+    "status": "succeeded",
+    "requestType": "task",
+    "revision": "2",
+    "taskId": "settings-hint",
+    "returns": [
+      {
+        "locale": "zhCN",
+        "checks": [
+          "first-use hint visible",
+          "Chinese copy",
+          "ack saved",
+          "ack hides",
+          "reopen stays dismissed",
+          "settings click acknowledges",
+          "closed"
+        ],
+        "samples": [
+          {
+            "lycheeKiB": 13697.278320312,
+            "observerKiB": 4293.3623046875
+          },
+          {
+            "lycheeKiB": 13621.747070312,
+            "observerKiB": 4293.2998046875
+          },
+          {
+            "lycheeKiB": 13622.645507812,
+            "observerKiB": 4293.2998046875
+          },
+          {
+            "lycheeKiB": 13623.543945312,
+            "observerKiB": 4293.2998046875
+          }
+        ],
+        "openMs": 1.952500000596,
+        "build": [
+          "12.1.0",
+          "69875",
+          "Sep 15 2026",
+          120100,
+          "",
+          " "
+        ]
+      }
+    ],
+    "lifecycleLogLimited": false,
+    "outputTruncated": false,
+    "finishedAt": 1789891224,
+    "environment": {
+      "locale": "zhCN",
+      "buildDate": "Sep 15 2026",
+      "version": "12.1.0",
+      "clientId": "retail",
+      "realm": "白银之手",
+      "character": "晴昼秋岚",
+      "interface": 120100,
+      "build": "69875"
+    },
+    "executionId": "settings-hint-20260920-2",
+    "kind": "lua",
+    "schema": "lychee.automation.result.v1"
+  }
+}
