@@ -54,9 +54,12 @@ local section={data={name="视角",expanded=false,bindingsCategories={{2,"CLICK_
 local control={GetTop=function() return 350 end}
 local sectionFrame={Controls={{},control},GetTop=function() return 420 end}
 sectionFrame.Button={Click=function() section.data.expanded=true end}
-local scrolled,offset
-ScrollBoxConstants={AlignBegin=0}
-local box={ScrollToElementData=function(_,row,_,delta) scrolled=row;offset=delta end,FindFrame=function(_,row) if row==section then return sectionFrame end end}
+local scrolled,offset,updated
+ScrollBoxConstants={AlignBegin=0,UpdateImmediately=true}
+local box={ScrollToElementData=function(_,row,_,delta)
+ if delta~=0 then assert(updated,"expanded scroll range still pending") end
+ scrolled=row;offset=delta
+end,FindFrame=function(_,row) if row==section then return sectionFrame end end,FullUpdate=function(_,immediate) updated=immediate end}
 SettingsPanel.GetSettingsList=function() return {ScrollBox=box} end
 SettingsPanel.GetLayout=function() return {GetInitializers=function() return {section} end} end
 C_SettingsUtil.OpenSettingsPanel=function() f.state.shown=true end

@@ -109,7 +109,14 @@ local function locate(spec,category)
  if not frame then return end
  local child
  if childIndex then
-  if not target.data.expanded and frame.Button then call(frame.Button,"Click") end
+  if not target.data.expanded and frame.Button then
+   call(frame.Button,"Click")
+   -- Native resize callbacks queue their extent update. Finish it outside the
+   -- callback before scrolling; the old range clips children in large groups.
+   call(box,"FullUpdate",ScrollBoxConstants.UpdateImmediately)
+   frame=call(box,"FindFrame",target)
+   if not frame then return end
+  end
   child=target.data.expanded and frame.Controls and frame.Controls[childIndex]
  elseif call(target,"GetTemplate")=="SettingsAdvancedQualitySectionTemplate" then
   child=I.ProviderModules.SettingsGraphics.Locate(frame,spec)
