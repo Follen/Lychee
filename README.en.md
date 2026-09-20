@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.3.19-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.3.20-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 </div>
 
-0.3.19: Survival results and defensives come first. Missing duration no longer hides known damage. Shared row checkboxes provide consistent checked, hover and disabled states.
+0.3.20: Survival shows health, direct-hit damage and a lethal verdict. Damage types are detected automatically; periodic damage and manual parameters are removed.
 
 You remember a spell's name, but not which action bar it is on. You know which setting you want, but not which menu contains it. Lychee starts with **the name**: find it, then cast, use, switch, or open the relevant page.
 
@@ -235,6 +235,10 @@ Move the Chinese dedication to the acknowledgements footer, using its existing n
 ### 0.3.3
 
 A first-use bubble identifies the settings icon. Opening settings or choosing Got it dismisses it across characters on the account.
+
+### 0.3.20
+
+0.3.20: Survival shows health, direct-hit damage and a lethal verdict. Damage types are detected automatically; periodic damage and manual parameters are removed.
 
 ### 0.3.19
 

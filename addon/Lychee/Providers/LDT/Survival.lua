@@ -13,6 +13,7 @@ S.effects={
     {id=207401,aura=207400,group=2,health=.1},{id=403264,group=2,health=.02},
     {id=238063,group=2,dr=.02,manual=true},{id=381637,group=2,dr=.04,manual=true},
     {id=407243,group=2,augment=403264,healthExtra=.02},{id=196864,group=2,augment=381637,extra=.008},
+    {id=1235057,group=2,flaskRating=165},
     {id=97462,group=3,health=.15},{id=98008,group=3,dr=.1},{id=62618,group=3,dr=.2},
     {id=51052,group=3,dr=.2,school="magic"},{id=374227,group=3,aoe=.2},
     {id=31821,group=3,dr=.09},{id=461243,group=3,dr=.05},
@@ -34,7 +35,7 @@ S.passives={
     {id=388664,class="MONK",notSpec=268,dr=.06,windwalker=.1},
     {id=450427,class="MONK",notSpec=268,aoe=.02,ranks=2,windwalker=.03},
     {id=385427,class="PALADIN",aoe=.02,ranks=2},
-    {id=402964,class="PALADIN",aoe=.06,holyAoe=.03},
+    {id=402964,class="PALADIN",aoe=.03,holyAoe=.015,ranks=2},
     {id=390667,class="PRIEST",dr=.03,school="magic",ranks=2},
     {id=381650,class="SHAMAN",dr=.08,school="magic"},
     {id=386124,class="WARLOCK",dr=.03},
@@ -88,6 +89,17 @@ function S:Snapshot(out,enemyLevel)
     local vb=number(call(GetVersatilityBonus,CR_VERSATILITY_DAMAGE_DONE))
     local vt=number(call(GetCombatRatingBonus,CR_VERSATILITY_DAMAGE_TAKEN))
     local vtb=number(call(GetVersatilityBonus,CR_VERSATILITY_DAMAGE_TAKEN))
+    local rating=number(call(GetCombatRating,CR_VERSATILITY_DAMAGE_DONE))
+    out.flaskVers,out.flaskDR=nil,nil
+    if rating then
+        local before=number(call(GetCombatRatingBonusForCombatRatingValue,CR_VERSATILITY_DAMAGE_DONE,rating))
+        local after=number(call(GetCombatRatingBonusForCombatRatingValue,CR_VERSATILITY_DAMAGE_DONE,rating+165))
+        local beforeDR=number(call(GetCombatRatingBonusForCombatRatingValue,CR_VERSATILITY_DAMAGE_TAKEN,rating))
+        local afterDR=number(call(GetCombatRatingBonusForCombatRatingValue,CR_VERSATILITY_DAMAGE_TAKEN,rating+165))
+        if before and after and beforeDR and afterDR then
+            out.flaskVers=math.max(0,after-before)/100;out.flaskDR=math.max(0,afterDR-beforeDR)/100
+        end
+    end
     out.vers=vd and vb and (vd+vb)/100
     out.versDR=vt and vtb and (vt+vtb)/100
     local avoidance=number(call(GetAvoidance));out.avoidance=avoidance and avoidance/100
@@ -129,12 +141,10 @@ end
 -- Parse explicit damage clauses only; never infer damage from an arbitrary large number.
 function S:Parse(description,out)
     out=out or {};clear(out)
-    out.first,out.tick,out.ticks=0,0,0
+    out.first,out.tick=0,0
     if type(description)~="string" or #description>8192 then return out end
     local t=description:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub(",",""):gsub("，",""):lower()
     local zh=t:find("伤害",1,true)~=nil
-    local interval=tonumber(t:match("每([%d%.]+)秒") or t:match("every ([%d%.]+) sec"))
-    local duration=tonumber(t:match("持续([%d%.]+)秒") or t:match("for ([%d%.]+) sec"))
     local count=0
     local pattern=zh and "()(%d+%.?%d*)点([^%d]-)伤害()" or "()(%d+%.?%d*) ([%a ]-)damage()"
     for start,amount,kind,finish in t:gmatch(pattern) do
@@ -145,14 +155,12 @@ function S:Parse(description,out)
             local suffix=t:sub(finish,finish+45)
             local periodic=prefix:find("每[%d%.]+秒") or suffix:find("every [%d%.]+ sec") or prefix:find("every [%d%.]+ sec")
             local key=periodic and "tick" or "first"
-            if out[key]>0 or not school(kind) then out.ambiguous=true end
+            if key=="first" and (out[key]>0 or not school(kind)) then out.ambiguous=true end
             out[key]=out[key]+value;out[key.."School"]=school(kind)
         end
     end
     out.aoe=t:find("所有",1,true)~=nil or t:find("范围",1,true)~=nil or t:find("附近",1,true)~=nil or t:find("all ",1,true)~=nil or t:find("nearby",1,true)~=nil
-    if out.tick>0 and interval and duration and interval>0 and duration>=interval then out.ticks=math.floor(duration/interval) end
-    out.damageValid=count>0 and count<=2 and not out.ambiguous
-    out.valid=out.damageValid and (out.tick==0 or out.ticks>0 and out.ticks<=1000)
+    out.damageValid=count>0 and not out.ambiguous and (out.first>0 or out.tick>0)
     return out
 end
 local EMPTY={}
@@ -193,12 +201,16 @@ function S:Calculate(stats,input,selected,out)
     out=out or {};clear(out)
     if not stats.valid or not input.confirmed then out.status="unknown";return out end
     local multiplier=self:Multiplier(input.level,input.boss,stats.season)
-    if not multiplier or not number(input.first) or not number(input.tick) or not number(input.ticks) or input.ticks>1000 or input.ticks%1~=0
-        or (input.first==0 and input.tick==0) then out.status="unknown";return out end
+    if not multiplier or not number(input.first) then out.status="unknown";return out end
+    if input.first==0 then out.status=input.tick and input.tick>0 and "noDirect" or "unknown";return out end
     local health,vers,versDR=stats.health,stats.vers,stats.versDR
     local active=stats.active or EMPTY
     for _,e in ipairs(self.effects) do
         if enabled(selected,active,e.id) then
+            if e.flaskRating and not active[e.id] then
+                if not stats.flaskVers or not stats.flaskDR then out.status="unknown";return out end
+                vers=vers+stats.flaskVers;versDR=versDR+stats.flaskDR
+            end
             if e.health and not active[e.id] then health=health*(1+e.health) end
             if e.healthExtra and enabled(selected,active,e.augment) and not active[e.augment] then health=health*(1+e.healthExtra/(1.02)) end
             if e.vers and not active[e.id] then vers=vers+e.vers;versDR=versDR+e.vers/2 end
@@ -212,35 +224,13 @@ function S:Calculate(stats,input,selected,out)
         if e.school=="magic" then magicAbsorb=magicAbsorb+shield else absorb=absorb+shield end
     end end
     local firstFactor=input.first==0 and 1 or mitigation(self,stats,input,selected,active,versDR,input.firstSchool)
-    local tickFactor=input.tick==0 and 1 or mitigation(self,stats,input,selected,active,versDR,input.tickSchool)
-    if not firstFactor or not tickFactor then out.status="unknown";return out end
+    if not firstFactor then out.status="unknown";return out end
     local correction=multiplier/(1+(input.tooltipVers or stats.vers))
-    out.rawFirst=math.floor(input.first*correction);out.rawTick=math.floor(input.tick*correction)
-    out.firstBeforeAbsorb=out.rawFirst*firstFactor;out.tickBeforeAbsorb=out.rawTick*tickFactor
+    out.rawFirst=math.floor(input.first*correction)
+    out.firstBeforeAbsorb=out.rawFirst*firstFactor
     out.health,out.shield,out.multiplier=health,absorb+magicAbsorb,multiplier
-    out.first,absorb,magicAbsorb=hit(out.firstBeforeAbsorb,input.firstSchool,absorb,magicAbsorb)
-    out.complete=input.tick==0 or input.ticks>0
+    out.first=hit(out.firstBeforeAbsorb,input.firstSchool,absorb,magicAbsorb)
     out.remaining=health-out.first
-    if not out.complete then
-        out.status=out.remaining<=0 and "lethal" or "needsDuration"
-        -- Identical periodic hits consume the remaining applicable shield pool.
-        -- Closed-form threshold avoids scanning an unknown duration.
-        if out.remaining>0 and out.tickBeforeAbsorb>0 then
-            local pool=absorb+(input.tickSchool=="magic" and magicAbsorb or 0)
-            out.lethalTick=math.ceil((out.remaining+pool)/out.tickBeforeAbsorb)
-        end
-        return out
-    end
-    out.total=out.first
     out.status=out.remaining<=0 and "lethal" or "survives"
-    for i=1,input.ticks do
-        local value
-        value,absorb,magicAbsorb=hit(out.tickBeforeAbsorb,input.tickSchool,absorb,magicAbsorb)
-        if i==1 then out.tick=value end
-        out.total=out.total+value
-        if out.status~="lethal" and out.total>=health and not out.lethalTick then out.lethalTick=i end
-    end
-    out.tick=out.tick or 0
-    if out.status~="lethal" and out.lethalTick then out.status="needsHealing" end
     return out
 end

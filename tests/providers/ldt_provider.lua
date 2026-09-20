@@ -412,34 +412,16 @@ mount()
 view.survivalButton.frame.scripts.OnClick()
 local calculator=assert(view.calculator)
 assert(calculator.active and not view.model:IsShown() and calculator.result.status=="unknown")
-calculator.fields.first.scripts.OnTextChanged(calculator.fields.first,false)
-assert(not calculator.manual,"programmatic text updates do not become user edits")
-calculator.viewport:SetHeight(100)
-calculator.viewport.scripts.OnSizeChanged()
-calculator.viewport.scripts.OnMouseWheel(calculator.viewport,-1)
-local scrollOne=calculator.bar.value
-calculator.viewport.scripts.OnMouseWheel(calculator.viewport,-1)
-assert(scrollOne>0 and calculator.bar.value>scrollOne,"repeated wheel must advance the scroll position")
+assert(not calculator.fields and not calculator.editor and not calculator.kind,"no manual damage or school controls")
+calculator.viewport:SetHeight(100);calculator.viewport.scripts.OnSizeChanged()
+calculator.viewport.scripts.OnMouseWheel(calculator.viewport,-1);local firstScroll=calculator.bar.value
 calculator.rows[1].frame.scripts.OnMouseWheel(calculator.rows[1].frame,-1)
-assert(calculator.bar.value>scrollOne+32,"effect row forwards wheel")
-local beforeFieldWheel=calculator.bar.value
-calculator.fields.first.scripts.OnMouseWheel(calculator.fields.first,-1)
-assert(calculator.bar.value>beforeFieldWheel,"editor forwards wheel")
-assert(calculator.editing and not calculator.metrics:IsShown(),"missing data opens editor without empty metrics")
-calculator.editToggle.frame.scripts.OnClick()
-assert(not calculator.editing)
-calculator.editToggle.frame.scripts.OnClick()
-assert(calculator.editing and calculator.editor:IsShown())
-assert(calculator.kind.frame:GetParent()==calculator.editor,"school control belongs to folded editor")
+assert(calculator.bar.value>firstScroll,"effect rows forward scrolling")
 calculator.stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=0,spec=70}
-calculator.input.firstSchool,calculator.input.tickSchool="magic","magic"
-calculator.input.tooltipVers=.2;calculator.level=1
-for key,value in pairs({first=600000,tick=120000,ticks=6}) do
-    local field=calculator.fields[key];field:SetText(tostring(value));field.scripts.OnTextChanged()
-end
-calculator.confirm.frame.scripts.OnClick()
-assert(calculator.result.first==450000 and calculator.result.status=="survives","real edit/confirm UI feeds the calculation")
-calculator:LoadDamage();assert(calculator.input.first==600000,"late data preserves manual edits")
+calculator.input={confirmed=true,first=600000,tick=120000,firstSchool="magic",aoe=true,tooltipVers=.2};calculator.level=1
+calculator:Render()
+assert(math.abs(calculator.result.first-360000)<.001 and calculator.result.status=="survives")
+assert(calculator.values[3]:GetText()=="可承受")
 local row=calculator.rows[1]
 row.frame.scripts.OnMouseDown(row.frame,"LeftButton")
 calculator.tabs[2].frame.scripts.OnClick()
@@ -454,7 +436,7 @@ assert(view:Back() and not calculator.active and view.model:IsShown() and view.s
 assert(view.selected==selectedSpell and view.page==savedPage and view.facing==savedFacing,"back preserves creature state")
 assert(not view:Back(),"creature root delegates back to Host")
 view.survivalButton.frame.scripts.OnClick()
-assert(calculator.editing and calculator.bar.value==0,"reopen shows missing parameters and resets scroll")
+assert(calculator.bar.value==0,"reopen resets scroll")
 view:Unmount()
 assert(not calculator.active and not calculator.stats and not calculator.input and not next(calculator.selected))
 -- Public controlled checkbox: state painting cannot trigger business callbacks.
