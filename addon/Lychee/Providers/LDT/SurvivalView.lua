@@ -111,7 +111,7 @@ function M:CreateSurvivalView(owner)
     end
     v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(28,28);v.spellIcon:SetPoint("LEFT",0,0);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
     v.name=text("title",38,5,304,20,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
-    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",416,0);v.levelControl:SetSize(112,28)
+    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",432,0);v.levelControl:SetSize(112,28)
     Theme:CreateRoundedSurface(v.levelControl,"field",5);scrollable(v.levelControl)
     v.levelLabel=text("body",28,6,56,18,v.levelControl);v.levelLabel:SetJustifyH("CENTER");Theme:SetTextColor(v.levelLabel,"text")
     v.minus=button("−",0,2,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.levelControl)
@@ -120,14 +120,18 @@ function M:CreateSurvivalView(owner)
     local function icon(parent,asset,x,y,size)
         local t=parent:CreateTexture(nil,"ARTWORK");t:SetSize(size,size);t:SetPoint("TOPLEFT",x,-y);t:SetTexture(iconRoot..asset..".tga");return t
     end
-    v.refresh=button("",544,2,32,function() v:Refresh() end,nil,v.toolbar)
+    v.refresh=button("",552,2,32,function() v:Refresh() end,nil,v.toolbar)
     icon(v.refresh.frame,"reload",8,4,16)
     v.refresh.frame:HookScript("OnEnter",function() if v.active then C:ShowTooltip(v.refresh.frame,{title=L["刷新"]}) end end)
     v.refresh.frame:HookScript("OnLeave",function() C:HideTooltip(v.refresh.frame) end)
+    for i=1,2 do
+        local divider=v.frame:CreateTexture(nil,"ARTWORK")
+        divider:SetPoint("TOPLEFT",i*196-18,-10);divider:SetSize(1,48);Theme:SetColorTexture(divider,"borderStrong")
+    end
     v.values={}
     for i,caption in ipairs({"生命值","直接承伤","是否致死"}) do
         text("meta",(i-1)*196+24,8,164,18):SetText(L[caption])
-        v.values[i]=text("input",(i-1)*196,34,188,26);Theme:SetTextColor(v.values[i],"text")
+        v.values[i]=text("input",(i-1)*196,34,168,26);Theme:SetTextColor(v.values[i],"text")
     end
     icon(v.frame,"character",0,7,16);icon(v.frame,"pvp",196,7,16)
     v.lethalIcon=icon(v.frame,"skull",392,7,16)

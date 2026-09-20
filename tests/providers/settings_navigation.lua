@@ -84,3 +84,8 @@ gfx.raid=true;gfx.initializer.data.raidSettings=gfx.initializer.data.settings
 assert(A.Open(gfx).status=="succeeded" and selectedTab==2 and offset==-70,"raid graphics tab not selected")
 assert(#f.writes==0,"locating controls changed settings")
 print("Settings navigation PASS: all kinds open natively; no grammar, edits, panels or legacy invocation execution; aliases and lifecycle retained")
+
+local camera=M:Record(assert(A.byID["binding:CAMERAZOOMOUT"]))
+local minimap=M:Record(assert(A.byID["binding:MINIMAPZOOMOUT"]))
+assert(camera.title==minimap.title and camera.subtitle~=minimap.subtitle,"duplicate binding labels need distinct native groups")
+assert(camera.subtitle:find(BINDING_HEADER_CAMERA,1,true) and minimap.subtitle:find(BINDING_HEADER_INTERFACE,1,true),"native localized group missing")

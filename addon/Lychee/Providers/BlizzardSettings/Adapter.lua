@@ -47,11 +47,13 @@ function A.Scan(checkpoint)
      I.ProviderModules.SettingsGraphics.Collect(initializer,categoryID,categoryName,add,checkpoint);found=true
     end
     if template=="KeyBindingFrameBindingTemplate" and type(data.bindingIndex)=="number" and GetBinding and GetBindingName then
-     local ok,binding=pcall(GetBinding,data.bindingIndex)
+     local ok,binding,group=pcall(GetBinding,data.bindingIndex)
+     local groupName=type(group)=="string" and (_G[group] or group) or nil
+     if type(groupName)~="string" or groupName=="" then groupName=nil end
      local named,name=pcall(GetBindingName,ok and binding or "")
      if ok and type(binding)=="string" and named and type(name)=="string" and name~="" then
       local id=bindingID(binding)
-      if id then add({id=id,name=name,categoryID=categoryID,categoryName=categoryName,initializer=initializer,binding=binding}) end
+      if id then add({id=id,name=name,categoryID=categoryID,categoryName=categoryName,initializer=initializer,binding=binding,groupName=groupName}) end
       found=true
      end
     end

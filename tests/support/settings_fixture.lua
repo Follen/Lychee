@@ -55,9 +55,11 @@ function IsGraphicsSettingValueSupported(_,value) return value==5 and 1 or 0 end
 Settings.GetSetting=function(variable) return byVariable[variable] end
 rows[#rows+1]={data={settings={graphicsQuality=gfx,graphicsShadowQuality=gfxShadow}},GetTemplate=function() return "SettingsAdvancedQualitySectionTemplate" end}
 local header={data={name="分组标题"},GetTemplate=function() return "SettingsListSectionHeaderTemplate" end};rows[#rows+1]=header
-local bindings={"CLICK ExampleButton:LeftButton","CLICK_20ExampleButton:LeftButton",string.rep("LongBinding",20)}
-function GetBinding(index) return bindings[index] end
-function GetBindingName(binding) return "示例快捷键 "..binding end
+local bindings={"CLICK ExampleButton:LeftButton","CLICK_20ExampleButton:LeftButton",string.rep("LongBinding",20),"CAMERAZOOMOUT","MINIMAPZOOMOUT"}
+BINDING_HEADER_CAMERA=en and "Camera" or "视角"
+BINDING_HEADER_INTERFACE=en and "Interface" or "界面面板"
+function GetBinding(index) return bindings[index], index==4 and "BINDING_HEADER_CAMERA" or index==5 and "BINDING_HEADER_INTERFACE" or nil end
+function GetBindingName(binding) if binding=="CAMERAZOOMOUT" or binding=="MINIMAPZOOMOUT" then return en and "Zoom Out" or "缩小" end;return "示例快捷键 "..binding end
 for index=1,#bindings do rows[#rows+1]={data={bindingIndex=index},GetTemplate=function() return "KeyBindingFrameBindingTemplate" end} end
 local cat={GetID=function() return 1 end,GetName=function() return "游戏" end,GetCategorySet=function() return 1 end}
 local selected=cat

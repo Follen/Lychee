@@ -3,7 +3,7 @@ local L = I.ProviderLocales:Module("builtin.blizzard-settings")
 local C = I.ProviderModules.CatalogProvider
 local iconRoot="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
 local function document(spec)
-    return {id=spec.id,title=spec.name,aliases=spec.aliases,subtitle=L:Format("%s · 点击定位",spec.categoryName)}
+    return {id=spec.id,title=spec.name,aliases=spec.aliases,subtitle=L:Format("%s · 点击定位",spec.groupName and (spec.categoryName.." / "..spec.groupName) or spec.categoryName)}
 end
 local function build(owner,put,checkpoint)
     put({id="reload",title=L["重载界面"],
@@ -15,7 +15,7 @@ local function build(owner,put,checkpoint)
     local adapter=I.ProviderModules.SettingsAdapter
     adapter.Scan(checkpoint);I.ProviderModules.SettingsLanguage.Build(adapter.ordered,checkpoint)
     for _,spec in ipairs(adapter.ordered) do
-        put(document(spec),spec.id.."\0"..spec.name.."\0"..spec.categoryName)
+        put(document(spec),spec.id.."\0"..spec.name.."\0"..spec.categoryName.."\0"..(spec.groupName or ""))
         checkpoint()
     end
 end

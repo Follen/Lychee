@@ -14,6 +14,7 @@ function methods:IsShown() return self.shown end
 function methods:SetShown(v) if v then self:Show() else self:Hide() end end
 function methods:SetText(v) self.text=v end
 function methods:GetText() return self.text end
+function methods:GetStringWidth() return #(self.text or "")*6 end
 function methods:SetTexture(v) self.texture=v end
 function methods:SetTexCoord(...) self.texCoords={...} end
 function methods:SetDisplayInfo(v) assert(v>0);self.displayID=v end
