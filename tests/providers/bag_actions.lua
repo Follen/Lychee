@@ -7,6 +7,8 @@ function CreateFrame(_,_,_,template)
     local f={scripts={},events={},attrs={},shown=false}
     if template=="AutoCastOverlayTemplate" then
         f.template=template
+        f.Shine={}
+        f.Corners={Hide=function() f.cornersHidden=true end}
         f.scripts.OnHide=function(self) self.nativeHides=(self.nativeHides or 0)+1 end
         function f:ShowAutoCastEnabled(enabled) self.glowing=enabled end
     end
@@ -26,6 +28,10 @@ function CreateFrame(_,_,_,template)
     end
     function f:SetParent(p) self.parent=p end
     function f:SetAllPoints(p) self.anchor=p end
+    function f:SetPoint(point,p,relative,x,y)
+        self.anchor=p
+        assert(point=="TOPLEFT" and x==-4 and y==4 or point=="BOTTOMRIGHT" and x==4 and y==-4)
+    end
     function f:ClearAllPoints() self.anchor=nil end
     function f:CreateTexture()
         textures=textures+1
@@ -89,7 +95,7 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==0 and glow.anchor==bagButton and glow.glowing and glow.template=="AutoCastOverlayTemplate")
+assert(glow.shown and textures==0 and glow.anchor==bagButton and glow.glowing and glow.template=="AutoCastOverlayTemplate" and glow.cornersHidden)
 slot=4;assert(bags.actions.locate.run(entry).ok and locatedSlot==4)
 assert(timers[1].cancelled and #frames==1)
 glow.scripts.OnEvent(glow,'BAG_UPDATE_DELAYED')

@@ -19,12 +19,19 @@ local function showHighlight(button)
         highlight=CreateFrame("Frame",nil,UIParent,"AutoCastOverlayTemplate")
         highlight:Hide()
         highlight:EnableMouse(false)
+        if highlight.Corners then highlight.Corners:Hide() end
         -- Keep the template's own animation lifecycle scripts intact.
         highlight:HookScript("OnHide",clearHighlight)
         highlight:SetScript("OnEvent",clearHighlight)
     end
     highlight:SetParent(button)
-    highlight:SetAllPoints(button)
+    if highlight.Shine then
+        -- The retail mask is inset by 4: align the moving rim outside the icon.
+        highlight:SetPoint("TOPLEFT",button,"TOPLEFT",-4,4)
+        highlight:SetPoint("BOTTOMRIGHT",button,"BOTTOMRIGHT",4,-4)
+    else
+        highlight:SetAllPoints(button)
+    end
     highlight:SetFrameLevel(button:GetFrameLevel()+5)
     highlight:RegisterEvent("BAG_UPDATE_DELAYED")
     highlight:RegisterEvent("PLAYER_REGEN_DISABLED")
