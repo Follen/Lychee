@@ -120,7 +120,7 @@ function M:Init()
     if self.handle then return true end
     if not hasAPI() then return false, "MOUNT_API_UNAVAILABLE" end
     local handle, err = _G.Lychee:RegisterProvider({
-        id="builtin.mounts", apiVersion="1.0.0",i18n=L.resources, version="1.0.0", title=L["坐骑"], scope=I.ProviderModules.Support:Scope("builtin.mounts"), entries={},
+        id="builtin.mounts", apiVersion="1.0.0",version="1.0.0", title=L["坐骑"], scope=I.ProviderModules.Support:Scope("builtin.mounts"), entries={},
         onEnable=function(providerHandle)
             M.handle, M.active = providerHandle, true
             if not M.eventFrame then M.eventFrame=CreateFrame("Frame") end

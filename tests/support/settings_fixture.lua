@@ -63,7 +63,7 @@ local cat={GetID=function() return 1 end,GetName=function() return "游戏" end,
 local selected=cat
 SettingsPanel={GetAllCategories=function() return {cat} end,GetLayout=function() return {GetInitializers=function() return rows end} end,GetCurrentCategory=function() return selected end,IsShown=function() return state.shown end}
 C_SettingsUtil={OpenSettingsPanel=function() state.shown=true end}
-local files={"BlizzardSettings/Locales.lua","Shared/CatalogProvider.lua","BlizzardSettings/Provider.lua","BlizzardSettings/Graphics.lua","BlizzardSettings/Adapter.lua","BlizzardSettings/Aliases.lua","BlizzardSettings/Language.lua"}
+local files={"BlizzardSettings/Locales/enUS.lua", "BlizzardSettings/Locales/zhCN.lua","Shared/CatalogProvider.lua","BlizzardSettings/Provider.lua","BlizzardSettings/Graphics.lua","BlizzardSettings/Adapter.lua","BlizzardSettings/Aliases.lua","BlizzardSettings/Language.lua"}
 local extra={"Core/InvocationRuntime.lua","PublicAPI/Invocation.lua"};for _,f in ipairs(files) do extra[#extra+1]="Providers/"..f end
 dofile("tests/support/runtime.lua").Load("provider",extra)
 return {I=LycheeInternal,A=LycheeInternal.ProviderModules.SettingsAdapter,G=LycheeInternal.ProviderModules.SettingsLanguage,

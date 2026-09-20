@@ -4,6 +4,7 @@
 
 以下是当时的记录，按日期倒序。原始输出随对应报告保存；不作为现行接口规范。
 
+- [2026-09-20-provider-locale-split · 内置 Provider 单语言词典](2026-09-20-provider-locale-split.md)
 - [2026-09-20-sdk-documentation · 文档分层与双语 SDK](2026-09-20-sdk-documentation.md)
 
 - [2026-09-20-settings-navigation-only · 暴雪设置只保留原生定位](2026-09-20-settings-navigation-only.md)

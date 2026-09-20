@@ -1,5 +1,5 @@
 {
-  "version": "0.2.3",
+  "version": "0.2.4",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -622,7 +622,10 @@
         "Providers/Exwind/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/Exwind/Locales.lua"
+      "locales": [
+        "Providers/Exwind/Locales/enUS.lua",
+        "Providers/Exwind/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.ellesmere",
@@ -635,7 +638,10 @@
         "Providers/Ellesmere/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/Ellesmere/Locales.lua"
+      "locales": [
+        "Providers/Ellesmere/Locales/enUS.lua",
+        "Providers/Ellesmere/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.player-spells",
@@ -652,7 +658,10 @@
         "Providers/PlayerSpells/Init.lua"
       ],
       "requires": [],
-      "locales": "Providers/PlayerSpells/Locales.lua"
+      "locales": [
+        "Providers/PlayerSpells/Locales/enUS.lua",
+        "Providers/PlayerSpells/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.mounts",
@@ -669,7 +678,10 @@
         "C_MountJournal.GetMountIDs",
         "C_MountJournal.GetMountInfoByID"
       ],
-      "locales": "Providers/Mounts/Locales.lua"
+      "locales": [
+        "Providers/Mounts/Locales/enUS.lua",
+        "Providers/Mounts/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.crests",
@@ -681,7 +693,10 @@
         "Providers/Crests/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/Crests/Locales.lua"
+      "locales": [
+        "Providers/Crests/Locales/enUS.lua",
+        "Providers/Crests/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.game-menus",
@@ -696,7 +711,10 @@
         "Providers/GameMenus/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/GameMenus/Locales.lua"
+      "locales": [
+        "Providers/GameMenus/Locales/enUS.lua",
+        "Providers/GameMenus/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.bosses",
@@ -709,7 +727,10 @@
         "Providers/Bosses/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/Bosses/Locales.lua"
+      "locales": [
+        "Providers/Bosses/Locales/enUS.lua",
+        "Providers/Bosses/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.great-vault",
@@ -721,7 +742,10 @@
         "Providers/GreatVault/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/GreatVault/Locales.lua"
+      "locales": [
+        "Providers/GreatVault/Locales/enUS.lua",
+        "Providers/GreatVault/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.bags",
@@ -739,7 +763,10 @@
         "C_Container.GetContainerNumSlots",
         "C_Container.GetContainerItemInfo"
       ],
-      "locales": "Providers/Bags/Locales.lua"
+      "locales": [
+        "Providers/Bags/Locales/enUS.lua",
+        "Providers/Bags/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.talent-loadouts",
@@ -751,7 +778,10 @@
         "Providers/TalentLoadouts/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/TalentLoadouts/Locales.lua"
+      "locales": [
+        "Providers/TalentLoadouts/Locales/enUS.lua",
+        "Providers/TalentLoadouts/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.equipment-sets",
@@ -769,7 +799,10 @@
         "C_EquipmentSet.GetEquipmentSetInfo",
         "C_EquipmentSet.UseEquipmentSet"
       ],
-      "locales": "Providers/EquipmentSets/Locales.lua"
+      "locales": [
+        "Providers/EquipmentSets/Locales/enUS.lua",
+        "Providers/EquipmentSets/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.blizzard-settings",
@@ -788,7 +821,10 @@
         "Providers/BlizzardSettings/Language.lua"
       ],
       "requires": [],
-      "locales": "Providers/BlizzardSettings/Locales.lua"
+      "locales": [
+        "Providers/BlizzardSettings/Locales/enUS.lua",
+        "Providers/BlizzardSettings/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.keystones",
@@ -800,7 +836,10 @@
         "Providers/Keystones/Provider.lua"
       ],
       "requires": [],
-      "locales": "Providers/Keystones/Locales.lua"
+      "locales": [
+        "Providers/Keystones/Locales/enUS.lua",
+        "Providers/Keystones/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.achievements",
@@ -820,7 +859,10 @@
         "GetAchievementNumCriteria",
         "GetAchievementLink"
       ],
-      "locales": "Providers/Achievements/Locales.lua"
+      "locales": [
+        "Providers/Achievements/Locales/enUS.lua",
+        "Providers/Achievements/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.addon-inspector",
@@ -838,7 +880,10 @@
       "requires": [
         "GetMouseFoci"
       ],
-      "locales": "Providers/AddonInspector/Locales.lua"
+      "locales": [
+        "Providers/AddonInspector/Locales/enUS.lua",
+        "Providers/AddonInspector/Locales/zhCN.lua"
+      ]
     },
     {
       "id": "builtin.ldt",
@@ -855,7 +900,10 @@
       "requires": [
         "C_Spell.GetSpellName"
       ],
-      "locales": "Providers/LDT/Locales.lua"
+      "locales": [
+        "Providers/LDT/Locales/enUS.lua",
+        "Providers/LDT/Locales/zhCN.lua"
+      ]
     }
   ]
 }

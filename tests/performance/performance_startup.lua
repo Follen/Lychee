@@ -28,7 +28,7 @@ C_MountJournal = {
     GetMountIDs=function() local ids={}; for n=1,1500 do ids[n]=n end; return ids end,
     GetMountInfoByID=function(n) return mountNames[(n-1)%#mountNames+1]..n,100000+n,123456,false,true,1,false,false,nil,false,true,n end,
 }
-dofile("tests/support/runtime.lua").Load("provider", {"Providers/Crests/Locales.lua", "Providers/GameMenus/Locales.lua", "Providers/Bosses/Locales.lua", "Providers/Mounts/Locales.lua", "Providers/Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Shared/InterfaceActions.lua", "Providers/Bosses/JournalCatalog.lua", "Providers/Crests/Provider.lua", "Providers/GameMenus/Provider.lua", "Providers/Bosses/Provider.lua", "Providers/Mounts/Provider.lua", "Providers/Init.lua"}, {root=(baselineRoot and baselineRoot~="" and baselineRoot.."/" or "").."addon/Lychee/",load=source})
+dofile("tests/support/runtime.lua").Load("provider", {"Providers/Crests/Locales/enUS.lua", "Providers/Crests/Locales/zhCN.lua", "Providers/GameMenus/Locales/enUS.lua", "Providers/GameMenus/Locales/zhCN.lua", "Providers/Bosses/Locales/enUS.lua", "Providers/Bosses/Locales/zhCN.lua", "Providers/Mounts/Locales/enUS.lua", "Providers/Mounts/Locales/zhCN.lua", "Providers/Shared/CatalogProvider.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Shared/InterfaceActions.lua", "Providers/Bosses/JournalCatalog.lua", "Providers/Crests/Provider.lua", "Providers/GameMenus/Provider.lua", "Providers/Bosses/Provider.lua", "Providers/Mounts/Provider.lua", "Providers/Init.lua"}, {root=(baselineRoot and baselineRoot~="" and baselineRoot.."/" or "").."addon/Lychee/",load=source})
 local I = LycheeInternal
 local function measure(callback)
     collectgarbage("collect")

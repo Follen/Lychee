@@ -16,10 +16,10 @@ for product in manifest['clients']:
     paths = build.file_list(manifest, product)
     assert len(paths) == len(set(paths))
     for provider in manifest['providers']:
-        for path in [provider['locales'], *provider['files']]:
+        for path in [*provider['locales'], *provider['files']]:
             assert (path in paths) == (product in provider['products']), (product, path)
         if product in provider['products']:
-            assert paths.index(provider['locales']) < paths.index(provider['files'][0])
+            assert all(paths.index(path) < paths.index(provider['files'][0]) for path in provider['locales'])
     assert all((build.ADDON / path).is_file() for path in paths)
 
 def rejects(change):
@@ -38,7 +38,9 @@ rejects(lambda m: m['providers'][0]['requires'].append('x();run()'))
 rejects(lambda m: m['providers'][0]['files'].append('../escape.lua'))
 rejects(lambda m: m['files'].append({'provider': m['providers'][0]['id']}))
 rejects(lambda m: m['files'].append({'providerLocales': True}))
-rejects(lambda m: m['files'].append({'path': m['providers'][0]['locales'], 'products': ['retail']}))
+rejects(lambda m: m['files'].append({'path': m['providers'][0]['locales'][0], 'products': ['retail']}))
+rejects(lambda m: m['providers'][0]['locales'].pop())
+rejects(lambda m: m['providers'][0]['locales'].reverse())
 # A support change propagates to both packing and registration metadata.
 candidate = copy.deepcopy(manifest)
 provider = candidate['providers'][0]

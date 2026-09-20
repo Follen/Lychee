@@ -7,7 +7,7 @@
 ## Notes-zhTW: 魔兽世界万用启动器
 ## Author: Lychee
 ## IconTexture: Interface\AddOns\Lychee\Media\lychee-logo.tga
-## Version: 0.2.3
+## Version: 0.2.4
 ## SavedVariables: LycheeDB
 ## SavedVariablesPerCharacter: LycheeCharacterDB
 ## Bindings: Bindings.xml
@@ -18,22 +18,38 @@ Providers/Definitions.lua
 Providers/Shared/Support.lua
 Core/ProviderLocales.lua
 Locales/UI.enUS.lua
-Providers/Exwind/Locales.lua
-Providers/Ellesmere/Locales.lua
-Providers/PlayerSpells/Locales.lua
-Providers/Mounts/Locales.lua
-Providers/Crests/Locales.lua
-Providers/GameMenus/Locales.lua
-Providers/Bosses/Locales.lua
-Providers/GreatVault/Locales.lua
-Providers/Bags/Locales.lua
-Providers/TalentLoadouts/Locales.lua
-Providers/EquipmentSets/Locales.lua
-Providers/BlizzardSettings/Locales.lua
-Providers/Keystones/Locales.lua
-Providers/Achievements/Locales.lua
-Providers/AddonInspector/Locales.lua
-Providers/LDT/Locales.lua
+Providers/Exwind/Locales/enUS.lua
+Providers/Exwind/Locales/zhCN.lua
+Providers/Ellesmere/Locales/enUS.lua
+Providers/Ellesmere/Locales/zhCN.lua
+Providers/PlayerSpells/Locales/enUS.lua
+Providers/PlayerSpells/Locales/zhCN.lua
+Providers/Mounts/Locales/enUS.lua
+Providers/Mounts/Locales/zhCN.lua
+Providers/Crests/Locales/enUS.lua
+Providers/Crests/Locales/zhCN.lua
+Providers/GameMenus/Locales/enUS.lua
+Providers/GameMenus/Locales/zhCN.lua
+Providers/Bosses/Locales/enUS.lua
+Providers/Bosses/Locales/zhCN.lua
+Providers/GreatVault/Locales/enUS.lua
+Providers/GreatVault/Locales/zhCN.lua
+Providers/Bags/Locales/enUS.lua
+Providers/Bags/Locales/zhCN.lua
+Providers/TalentLoadouts/Locales/enUS.lua
+Providers/TalentLoadouts/Locales/zhCN.lua
+Providers/EquipmentSets/Locales/enUS.lua
+Providers/EquipmentSets/Locales/zhCN.lua
+Providers/BlizzardSettings/Locales/enUS.lua
+Providers/BlizzardSettings/Locales/zhCN.lua
+Providers/Keystones/Locales/enUS.lua
+Providers/Keystones/Locales/zhCN.lua
+Providers/Achievements/Locales/enUS.lua
+Providers/Achievements/Locales/zhCN.lua
+Providers/AddonInspector/Locales/enUS.lua
+Providers/AddonInspector/Locales/zhCN.lua
+Providers/LDT/Locales/enUS.lua
+Providers/LDT/Locales/zhCN.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua

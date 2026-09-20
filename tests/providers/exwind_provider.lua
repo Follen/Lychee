@@ -27,7 +27,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-dofile("tests/support/runtime.lua").Load("provider", {"Providers/Exwind/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Exwind/Provider.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"Providers/Exwind/Locales/enUS.lua", "Providers/Exwind/Locales/zhCN.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Exwind/Provider.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.ProviderModules.Exwind

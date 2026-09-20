@@ -19,7 +19,10 @@ def validate(manifest):
         ids.add(spec['id']); modules.add(spec['module'])
         if not spec['products'] or len(set(spec['products'])) != len(spec['products']) or not set(spec['products']) <= products:
             raise ValueError('Invalid Provider products: ' + spec['id'])
-        for path in [spec['locales'], *spec['files']]:
+        expected_locales = [f"Providers/{spec['module']}/Locales/{locale}.lua" for locale in ('enUS', 'zhCN')]
+        if spec['locales'] != expected_locales:
+            raise ValueError('Provider needs ordered enUS/zhCN locale files: ' + spec['id'])
+        for path in [*spec['locales'], *spec['files']]:
             if Path(path).is_absolute() or '..' in Path(path).parts or '\\' in path:
                 raise ValueError('Unsafe Provider path: ' + path)
             if path in owned:
@@ -66,7 +69,7 @@ def file_list(manifest, product):
     paths = []
     for item in manifest['files']:
         if item.get('providerLocales'):
-            paths.extend(spec['locales'] for spec in manifest['providers'] if product in spec['products'])
+            paths.extend(path for spec in manifest['providers'] if product in spec['products'] for path in spec['locales'])
             continue
         spec = providers[item['provider']] if 'provider' in item else item
         if product in spec['products']:

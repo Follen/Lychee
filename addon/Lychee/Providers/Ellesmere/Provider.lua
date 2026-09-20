@@ -231,7 +231,7 @@ local actions={
 function M:Init()
     if self.handle and self.handle:GetState() then return end
     self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",version="1.0.0",title="Ellesmere UI",
-        scope=I.ProviderModules.Support:Scope(self.id),i18n=L.resources,searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
+        scope=I.ProviderModules.Support:Scope(self.id),searchGlobal=false,searchPrefixes={"eui"},searchKeywords={},
         entries={},actions=actions,query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,
         onEnable=function()

@@ -276,7 +276,7 @@ if I.Locale:IsChinese() then
                 payload={encounterID=encounterID,instanceID=instanceID},actions={"open"}}
         end
         local handle,err=Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",version="1.0.0",
-            title=L["团本首领"],i18n=L.resources,scope=I.ProviderModules.Support:Scope("builtin.bosses"),entries=records,actions=self.actions,query=self.query,resolve=self.resolve,
+            title=L["团本首领"],scope=I.ProviderModules.Support:Scope("builtin.bosses"),entries=records,actions=self.actions,query=self.query,resolve=self.resolve,
             onEnable=function() M.active=true;return function(reason) M.active=false;if reason=="unregister" then M.handle=nil end end end})
         self.handle=handle
         return handle~=nil,err

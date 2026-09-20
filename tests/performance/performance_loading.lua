@@ -11,7 +11,7 @@ function methods:UnregisterAllEvents() end
 function methods:SetScript(key,fn) self[key]=fn end
 function CreateFrame() frames=frames+1;return setmetatable({},{__index=methods}) end
 function InCombatLockdown() return false end
-function GetLocale() return "enUS" end
+function GetLocale() return arg[4] or "enUS" end
 function GetBuildInfo() return "fixture","69587","",120100 end
 WOW_PROJECT_ID=1
 local paths={}

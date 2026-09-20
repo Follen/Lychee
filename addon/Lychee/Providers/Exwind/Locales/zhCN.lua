@@ -1,0 +1,14 @@
+local I = _G.LycheeInternal
+if not I.ProviderLocales:IsModuleLocale("zhCN") then return end
+I.ProviderLocaleData = I.ProviderLocaleData or {}
+I.ProviderLocaleData["builtin.exwind"] = {
+    ["Exwind 设置暂不可用"] = "Exwind 设置暂不可用",
+    ["Exwind 设置目录超出限制"] = "Exwind 设置目录超出限制",
+    ["打开所在设置页"] = "打开所在设置页",
+    ["打开面板"] = "打开面板",
+    ["此设置页面已不可用"] = "此设置页面已不可用",
+    ["解锁界面"] = "解锁界面",
+    ["请先启用 Exwind Core"] = "请先启用 Exwind Core",
+    ["请先脱离战斗"] = "请先脱离战斗",
+    ["进入 Exwind 编辑模式"] = "进入 Exwind 编辑模式",
+}

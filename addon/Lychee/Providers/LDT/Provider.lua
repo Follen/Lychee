@@ -4,8 +4,7 @@ local L=I.ProviderLocales:Module(M.id)
 function M:Init()
     if self.handle and self.handle:GetState() then return true end
     local handle,err=_G.Lychee:RegisterProvider({
-        id=self.id,title=L["荔枝大米助手"],version="1.0.0",apiVersion="1.0.0",i18n=L.resources,
-        scope=I.ProviderModules.Support:Scope(self.id),searchGlobal=true,searchPrefixes={"ldt"},entries={},
+        id=self.id,title=L["荔枝大米助手"],version="1.0.0",apiVersion="1.0.0",scope=I.ProviderModules.Support:Scope(self.id),searchGlobal=true,searchPrefixes={"ldt"},entries={},
         query=function(request,reply,context) return M:Query(request,reply,context) end,
         resolve=function(id) return M:Resolve(id) end,
         actions={open={title=L["查看资料"],run=function(record)

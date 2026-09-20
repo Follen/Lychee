@@ -4,51 +4,48 @@ local root="addon/Lychee/"
 dofile(root.."Providers/Definitions.lua")
 dofile(root.."Providers/Shared/Support.lua")
 dofile(root.."Core/ProviderLocales.lua")
-dofile(root.."Providers/Achievements/Locales.lua")
-dofile(root.."Providers/AddonInspector/Locales.lua")
-dofile(root.."Providers/Bags/Locales.lua")
-dofile(root.."Providers/BlizzardSettings/Locales.lua")
-dofile(root.."Providers/Bosses/Locales.lua")
-dofile(root.."Providers/Crests/Locales.lua")
-dofile(root.."Providers/EquipmentSets/Locales.lua")
-dofile(root.."Providers/GameMenus/Locales.lua")
-dofile(root.."Providers/GreatVault/Locales.lua")
-dofile(root.."Providers/Keystones/Locales.lua")
-dofile(root.."Providers/Mounts/Locales.lua")
-dofile(root.."Providers/PlayerSpells/Locales.lua")
-dofile(root.."Providers/TalentLoadouts/Locales.lua")
+dofile(root.."Providers/Achievements/Locales/enUS.lua");dofile(root.."Providers/Achievements/Locales/zhCN.lua")
+dofile(root.."Providers/AddonInspector/Locales/enUS.lua");dofile(root.."Providers/AddonInspector/Locales/zhCN.lua")
+dofile(root.."Providers/Bags/Locales/enUS.lua");dofile(root.."Providers/Bags/Locales/zhCN.lua")
+dofile(root.."Providers/BlizzardSettings/Locales/enUS.lua");dofile(root.."Providers/BlizzardSettings/Locales/zhCN.lua")
+dofile(root.."Providers/Bosses/Locales/enUS.lua");dofile(root.."Providers/Bosses/Locales/zhCN.lua")
+dofile(root.."Providers/Crests/Locales/enUS.lua");dofile(root.."Providers/Crests/Locales/zhCN.lua")
+dofile(root.."Providers/EquipmentSets/Locales/enUS.lua");dofile(root.."Providers/EquipmentSets/Locales/zhCN.lua")
+dofile(root.."Providers/GameMenus/Locales/enUS.lua");dofile(root.."Providers/GameMenus/Locales/zhCN.lua")
+dofile(root.."Providers/GreatVault/Locales/enUS.lua");dofile(root.."Providers/GreatVault/Locales/zhCN.lua")
+dofile(root.."Providers/Keystones/Locales/enUS.lua");dofile(root.."Providers/Keystones/Locales/zhCN.lua")
+dofile(root.."Providers/Mounts/Locales/enUS.lua");dofile(root.."Providers/Mounts/Locales/zhCN.lua")
+dofile(root.."Providers/PlayerSpells/Locales/enUS.lua");dofile(root.."Providers/PlayerSpells/Locales/zhCN.lua")
+dofile(root.."Providers/TalentLoadouts/Locales/enUS.lua");dofile(root.."Providers/TalentLoadouts/Locales/zhCN.lua")
 local P=I.ProviderLocales
 local compile=P.Compile
 local calls=0
 function P:Compile(...) calls=calls+1;return compile(self,...) end
 local talent=assert(P:Module("builtin.talent-loadouts"))
-assert(P:Module("builtin.talent-loadouts")==talent and calls==1)
-local gear=assert(P:Module("builtin.equipment-sets"));assert(gear~=talent and calls==2)
+assert(P:Module("builtin.talent-loadouts")==talent and calls==0)
+local gear=assert(P:Module("builtin.equipment-sets"));assert(gear~=talent and calls==0)
 for i=1,1000 do assert(P:Module("builtin.equipment-sets")==gear) end
-assert(calls==2)
-I.ProviderLocaleData.unknown={enUS={a="x"}}
+assert(calls==0)
+I.ProviderLocaleData.unknown={a="x"}
 for i=1,100 do local t,e=P:Module("unknown");assert(not t and e.code=="INVALID_LOCALE_KEY") end
-assert(calls==2)
 local original=I.ProviderLocaleData["builtin.equipment-sets"]
-I.ProviderLocaleData["builtin.equipment-sets"]={enUS={["装备方案"]="Replacement"}}
-local replaced=assert(P:Module("builtin.equipment-sets"));assert(replaced~=gear and replaced["装备方案"]=="Replacement" and calls==3)
+I.ProviderLocaleData["builtin.equipment-sets"]={["装备方案"]="Replacement"}
+local replaced=assert(P:Module("builtin.equipment-sets"));assert(replaced~=gear and replaced["装备方案"]=="Replacement" and calls==0)
 assert(gear["装备方案"]=="Equipment sets")
-I.ProviderLocaleData["builtin.equipment-sets"].enUS={["装备方案"]="Language table replacement"}
-assert(P:Module("builtin.equipment-sets")["装备方案"]=="Language table replacement" and calls==4)
+local weak=setmetatable({replaced.dictionary},{__mode="v"})
+replaced=nil
 I.ProviderLocaleData["builtin.equipment-sets"]=original
-I.Locale.code="zhCN"
-assert(P:Module("builtin.equipment-sets")["装备方案"]=="装备方案")
-I.Locale.code="enUS"
 assert(P:Module("builtin.equipment-sets")["装备方案"]=="Equipment sets")
+collectgarbage("collect");assert(weak[1]==nil,"replaced dictionary must not remain cached")
 -- Both Providers intentionally define identical keys with conflicting texts.
 -- Actual scanners and action callbacks must select their own namespace.
 local all={}
 for _,id in ipairs({"builtin.talent-loadouts","builtin.equipment-sets"}) do
- for key in pairs(I.ProviderLocaleData[id].enUS) do all[key]=true end
+ for key in pairs(I.ProviderLocaleData[id]) do all[key]=true end
 end
 for _,id in ipairs({"builtin.talent-loadouts","builtin.equipment-sets"}) do
  local dict={};for key in pairs(all) do dict[key]=id..":"..key end
- I.ProviderLocaleData[id]={enUS=dict}
+ I.ProviderLocaleData[id]=dict
 end
 local catalog={}
 function catalog:New(id,title,events,scanner,actions) return {id=id,title=title,scanner=scanner,actions=actions} end

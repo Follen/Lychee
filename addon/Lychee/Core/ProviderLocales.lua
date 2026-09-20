@@ -111,6 +111,12 @@ end
 -- Fixed built-in namespace: third-party Compile never enters this cache.
 
 local moduleCache = {}
+-- Built-in dictionaries are complete, build-checked and selected before their
+-- table literal executes. The client language is fixed for this Lua session.
+function P:IsModuleLocale(language)
+    local locale=I.Locale and I.Locale.code or (type(GetLocale)=="function" and GetLocale()) or "enUS"
+    return language==((locale=="zhCN" or locale=="zhTW") and "zhCN" or "enUS")
+end
 local moduleMeta = {__index=function(self,key)
     local method=Translator[key]
     if method then return method end
@@ -118,19 +124,24 @@ local moduleMeta = {__index=function(self,key)
 end}
 function P:Module(id)
     if not (I.ProviderModules and I.ProviderModules.Support and I.ProviderModules.Support:Known(id)) then return failure("INVALID_LOCALE_KEY","i18n."..tostring(id)) end
-    local resources=I.ProviderLocaleData and I.ProviderLocaleData[id]
-    local locale=I.Locale and I.Locale.code or (type(GetLocale)=="function" and GetLocale()) or "enUS"
+    local dictionary=I.ProviderLocaleData and I.ProviderLocaleData[id]
     local cached=moduleCache[id]
-    if cached and cached.resources==resources and cached.locale==locale
-        and cached.enUS==resources.enUS and cached.zhCN==resources.zhCN
-        and cached.zhTW==resources.zhTW and cached.enGB==resources.enGB then return cached.translator end
-    -- Resource tables are immutable after publishing. Replace the table to invalidate.
+    if cached and cached.dictionary==dictionary then return cached end
+    -- Owned dictionaries are immutable. Replacing one invalidates this cache;
+    -- existing consumers retain their original translator until recreated.
     moduleCache[id]=nil
-    local translator,err=self:Compile(resources,"i18n."..id)
-    if not translator then return nil,err end
-    translator.resources=resources
-    setmetatable(translator,moduleMeta)
-    moduleCache[id]={resources=resources,locale=locale,translator=translator,
-        enUS=resources.enUS,zhCN=resources.zhCN,zhTW=resources.zhTW,enGB=resources.enGB}
+    local field="i18n."..id
+    if not plain(dictionary) then return failure("INVALID_LOCALES",field) end
+    local count,bytes,formatPlans=0,0,{}
+    for key,value in pairs(dictionary) do
+        if type(key)~="string" or #key==0 or #key>96 or type(value)~="string" or #value>1024 then return failure("INVALID_LOCALES",field) end
+        count=count+1;bytes=bytes+#key+#value
+        if count>256 or bytes>131072 then return failure("LOCALE_LIMIT",field) end
+        local parsed,plan=signature(value)
+        if parsed==nil then return failure("INVALID_LOCALE_FORMAT",field.."."..key) end
+        formatPlans[key]=plan
+    end
+    local translator=setmetatable({dictionary=dictionary,formatPlans=formatPlans},moduleMeta)
+    moduleCache[id]=translator
     return translator
 end

@@ -48,7 +48,7 @@ function M:Init()
     if self._initialized then return true end
     local module = self
     local handle, err = _G.Lychee:RegisterProvider({
-        id = self.Provider.extensionID, apiVersion="1.0.0", i18n=L.resources, version = "2.0.0", title = L["玩家技能"],
+        id = self.Provider.extensionID, apiVersion="1.0.0", version = "2.0.0", title = L["玩家技能"],
         scope=I.ProviderModules.Support:Scope("builtin.player-spells"), entries = {},
         onEnable = function(providerHandle)
             module.Provider.providerHandle = providerHandle

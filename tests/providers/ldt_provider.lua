@@ -97,7 +97,7 @@ local loader=dofile("tests/support/runtime.lua")
 loader.Load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","UI/Theme.lua","UI/Motion.lua","UI/Presence.lua","UI/Runtime.lua","UI/Components.lua","UI/Components.lua"})
 local I=LycheeInternal
 collectgarbage("collect");local before=collectgarbage("count")
-loader.Load(nil,{"Providers/LDT/Locales.lua","Providers/LDT/Data.lua","Providers/LDT/Catalog.lua","Providers/LDT/View.lua","Providers/LDT/Provider.lua"})
+loader.Load(nil,{"Providers/LDT/Locales/enUS.lua", "Providers/LDT/Locales/zhCN.lua","Providers/LDT/Data.lua","Providers/LDT/Catalog.lua","Providers/LDT/View.lua","Providers/LDT/Provider.lua"})
 collectgarbage("collect");local moduleMemory=collectgarbage("count")-before
 assert(moduleMemory<512,"feature loading budget")
 local M=I.ProviderModules.LDT

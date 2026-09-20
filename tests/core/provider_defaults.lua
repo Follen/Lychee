@@ -14,8 +14,8 @@ end,GetAddOnEnableState=function(_,character)
     return scenario=="disabled" and 0 or 2
 end}
 dofile("tests/support/runtime.lua").Load("provider",{"Search/ProviderPolicy.lua",
-    "Providers/Ellesmere/Locales.lua","Providers/Ellesmere/Adapter.lua","Providers/Ellesmere/Provider.lua",
-    "Providers/Exwind/Locales.lua","Providers/Exwind/Provider.lua"})
+    "Providers/Ellesmere/Locales/enUS.lua", "Providers/Ellesmere/Locales/zhCN.lua","Providers/Ellesmere/Adapter.lua","Providers/Ellesmere/Provider.lua",
+    "Providers/Exwind/Locales/enUS.lua", "Providers/Exwind/Locales/zhCN.lua","Providers/Exwind/Provider.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 I.ProviderModules.Ellesmere:Init();I.ProviderModules.Exwind:Init()

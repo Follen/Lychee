@@ -117,7 +117,7 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('integration/test_assembly','sdk/sdk_resources','core/provider_locales','core/provider_locale_ownership','core/catalog_lifecycle','integration/client_contract','integration/client_providers','providers/bosses_locale','integration/client_toc_load','ui/i18n_ui')) {
+    foreach ($test in @('integration/test_assembly','sdk/sdk_resources','core/provider_locales','core/provider_locale_ownership','core/provider_locale_loading','core/catalog_lifecycle','integration/client_contract','integration/client_providers','providers/bosses_locale','integration/client_toc_load','ui/i18n_ui')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }

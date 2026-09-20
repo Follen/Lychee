@@ -22,7 +22,7 @@ for _,client in ipairs(clients) do
         end
         local I=LycheeInternal
         assert(I.Search.RuntimeIdentity.product==client[4])
-        assert(loaded["Core/ProviderLocales.lua"] and loaded["Providers/GameMenus/Locales.lua"])
+        assert(loaded["Core/ProviderLocales.lua"] and loaded["Providers/GameMenus/Locales/enUS.lua"] and loaded["Providers/GameMenus/Locales/zhCN.lua"])
         assert(not (I.Host and I.Host.PaletteController),"loading must not create the search UI")
         if client[4]~="retail" then
             for _,name in ipairs({"Crests","Keystones","Bosses","GreatVault"}) do

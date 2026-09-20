@@ -7,7 +7,7 @@
 ## Notes-zhTW: 魔兽世界万用启动器
 ## Author: Lychee
 ## IconTexture: Interface\AddOns\Lychee\Media\lychee-logo.tga
-## Version: 0.2.3
+## Version: 0.2.4
 ## SavedVariables: LycheeDB
 ## SavedVariablesPerCharacter: LycheeCharacterDB
 ## Bindings: Bindings.xml
@@ -18,14 +18,22 @@ Providers/Definitions.lua
 Providers/Shared/Support.lua
 Core/ProviderLocales.lua
 Locales/UI.enUS.lua
-Providers/PlayerSpells/Locales.lua
-Providers/Mounts/Locales.lua
-Providers/GameMenus/Locales.lua
-Providers/Bags/Locales.lua
-Providers/EquipmentSets/Locales.lua
-Providers/BlizzardSettings/Locales.lua
-Providers/Achievements/Locales.lua
-Providers/AddonInspector/Locales.lua
+Providers/PlayerSpells/Locales/enUS.lua
+Providers/PlayerSpells/Locales/zhCN.lua
+Providers/Mounts/Locales/enUS.lua
+Providers/Mounts/Locales/zhCN.lua
+Providers/GameMenus/Locales/enUS.lua
+Providers/GameMenus/Locales/zhCN.lua
+Providers/Bags/Locales/enUS.lua
+Providers/Bags/Locales/zhCN.lua
+Providers/EquipmentSets/Locales/enUS.lua
+Providers/EquipmentSets/Locales/zhCN.lua
+Providers/BlizzardSettings/Locales/enUS.lua
+Providers/BlizzardSettings/Locales/zhCN.lua
+Providers/Achievements/Locales/enUS.lua
+Providers/Achievements/Locales/zhCN.lua
+Providers/AddonInspector/Locales/enUS.lua
+Providers/AddonInspector/Locales/zhCN.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua

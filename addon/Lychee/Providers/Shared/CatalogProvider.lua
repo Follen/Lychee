@@ -113,7 +113,7 @@ function C:Init()
     self.handle=self.handle or _G.Lychee:RegisterProvider({
         id=self.id,apiVersion="1.0.0",version="1.0.0",title=self.title,
         searchable=self.searchable,searchGlobal=self.searchGlobal,searchMode=self.searchMode,searchPrefixes=self.searchPrefixes,searchKeywords=self.searchKeywords,
-        i18n=self.locale.resources,scope=I.ProviderModules.Support:Scope(self.id),entries={},entryMode=self.entryMode,readEntry=self.readEntry,actions=self.actions,query=self.query,resolve=self.resolve,
+        scope=I.ProviderModules.Support:Scope(self.id),entries={},entryMode=self.entryMode,readEntry=self.readEntry,actions=self.actions,query=self.query,resolve=self.resolve,
         views=self.views,resolveTarget=self.resolveTarget,describe=self.describe,observe=self.observe,
         onEnable=function(handle)
             m.handle, m.active=handle,true

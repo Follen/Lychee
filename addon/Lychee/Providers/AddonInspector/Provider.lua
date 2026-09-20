@@ -317,7 +317,7 @@ function M:EnableSource()
 end
 function M:Init()
     if self.handle then return true end
-    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",i18n=L.resources,version="1.0.0",title=L["插件识别"],scope=I.ProviderModules.Support:Scope("builtin.addon-inspector"),
+    self.handle=_G.Lychee:RegisterProvider({id=self.id,apiVersion="1.0.0",version="1.0.0",title=L["插件识别"],scope=I.ProviderModules.Support:Scope("builtin.addon-inspector"),
         entries={{id="inspect",title=L["插件识别"],kindTitle=L["工具"],subtitle=L["指向界面，查看来自哪个插件"],
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\addon-inspector.tga",
             aliases={"这是什么插件","识别插件","框体","界面来源","wtf","inspect","frame"},actions={"inspect"}}},

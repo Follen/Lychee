@@ -17,22 +17,24 @@ function GetSpellBookItemTexture(slot) return 500+slot end
 function IsPassiveSpell(slot) return slot==2 end
 function GetBuildInfo() return "2.5.7","70000","fixture",20507 end
 local function load(path) dofile(root..path) end
-load("Providers/Definitions.lua");load("Providers/Shared/Support.lua");load("Core/ProviderLocales.lua");load("Providers/Achievements/Locales.lua");load("Providers/AddonInspector/Locales.lua");load("Providers/Bags/Locales.lua");load("Providers/BlizzardSettings/Locales.lua");load("Providers/Bosses/Locales.lua");load("Providers/Crests/Locales.lua");load("Providers/EquipmentSets/Locales.lua");load("Providers/GameMenus/Locales.lua");load("Providers/GreatVault/Locales.lua");load("Providers/Keystones/Locales.lua");load("Providers/Mounts/Locales.lua");load("Providers/PlayerSpells/Locales.lua");load("Providers/TalentLoadouts/Locales.lua")
+load("Providers/Definitions.lua");load("Providers/Shared/Support.lua");load("Core/ProviderLocales.lua");load("Providers/Achievements/Locales/enUS.lua");load("Providers/Achievements/Locales/zhCN.lua");load("Providers/AddonInspector/Locales/enUS.lua");load("Providers/AddonInspector/Locales/zhCN.lua");load("Providers/Bags/Locales/enUS.lua");load("Providers/Bags/Locales/zhCN.lua");load("Providers/BlizzardSettings/Locales/enUS.lua");load("Providers/BlizzardSettings/Locales/zhCN.lua");load("Providers/Bosses/Locales/enUS.lua");load("Providers/Bosses/Locales/zhCN.lua");load("Providers/Crests/Locales/enUS.lua");load("Providers/Crests/Locales/zhCN.lua");load("Providers/EquipmentSets/Locales/enUS.lua");load("Providers/EquipmentSets/Locales/zhCN.lua");load("Providers/GameMenus/Locales/enUS.lua");load("Providers/GameMenus/Locales/zhCN.lua");load("Providers/GreatVault/Locales/enUS.lua");load("Providers/GreatVault/Locales/zhCN.lua");load("Providers/Keystones/Locales/enUS.lua");load("Providers/Keystones/Locales/zhCN.lua");load("Providers/Mounts/Locales/enUS.lua");load("Providers/Mounts/Locales/zhCN.lua");load("Providers/PlayerSpells/Locales/enUS.lua");load("Providers/PlayerSpells/Locales/zhCN.lua");load("Providers/TalentLoadouts/Locales/enUS.lua");load("Providers/TalentLoadouts/Locales/zhCN.lua")
 for id,resources in pairs(I.ProviderLocaleData) do
     local translator,err=I.ProviderLocales:Module(id)
     assert(translator,id..":"..tostring(err and err.field))
     local count=0
-    for key,value in pairs(resources.enUS) do
+    for key,value in pairs(resources) do
         count=count+1;assert(type(value)=="string" and value~="")
-        assert(resources.zhCN[key]==key,"Chinese fallback belongs to provider")
+        assert(translator.dictionary==resources,"selected dictionary is shared")
     end
     assert(count<=256)
 end
 local spellLocale=assert(I.ProviderLocales:Module("builtin.player-spells"))
 assert(spellLocale["玩家技能"]=="Player spells")
 I.Locale.code="zhCN"
+load("Providers/PlayerSpells/Locales/zhCN.lua")
 assert(I.ProviderLocales:Module("builtin.player-spells")["玩家技能"]=="玩家技能")
 I.Locale.code="enUS"
+load("Providers/PlayerSpells/Locales/enUS.lua")
 load("Providers/Shared/CatalogLedger.lua")
 load("Providers/PlayerSpells/Provider.lua")
 local spells=I.ProviderModules.PlayerSpells.Provider
@@ -46,7 +48,7 @@ load("Providers/Shared/InterfaceActions.lua");load("Providers/GameMenus/Provider
 for _,client in ipairs({"retail","classic","titan","anniversary"}) do
     product=client;I.ProviderModules.GameMenus.handle=nil;I.ProviderModules.GameMenus:Init()
     local def=captured["builtin.game-menus"]
-    assert(def.apiVersion=="1.0.0" and def.i18n.enUS and #def.scope.products==4)
+    assert(def.apiVersion=="1.0.0" and def.i18n==nil and #def.scope.products==4)
     local entries={};for _,entry in ipairs(def.entries) do entries[entry.id]=entry end
     assert(entries.spellbook and entries.talents and entries.settings)
     assert((entries["warband-scenes"]~=nil)==(client=="retail"))

@@ -42,7 +42,7 @@ C_Spell={GetSpellName=function(id)reads=reads+1;if not missing[id] then return s
 function EJ_GetEncounterInfo(id)return id==11 and "Alpha Boss" or id==12 and "Beta Boss" or "Boss "..id end
 function EJ_GetInstanceInfo(id)return "Raid "..id end
 local load=dofile("tests/support/runtime.lua").Load
-load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","Providers/Shared/CatalogProvider.lua","Providers/Shared/InterfaceActions.lua","Providers/Bosses/Locales.lua","Providers/Bosses/JournalCatalog.lua"})
+load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","Providers/Shared/CatalogProvider.lua","Providers/Shared/InterfaceActions.lua","Providers/Bosses/Locales/enUS.lua","Providers/Bosses/JournalCatalog.lua"});load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","Providers/Shared/CatalogProvider.lua","Providers/Shared/InterfaceActions.lua","Providers/Bosses/Locales/zhCN.lua","Providers/Bosses/JournalCatalog.lua"})
 local I=LycheeInternal
 local full=I.ProviderModules.JournalCatalog
 I.ProviderModules.JournalCatalog={instances={[1]={"Raid 1",123}},encounters={11,1,"Alpha Boss",12,1,"Beta Boss"},encounterCount=2,

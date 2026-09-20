@@ -31,7 +31,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;timer.fn() end
     end
 end
-dofile("tests/support/runtime.lua").Load("provider", {"Providers/Ellesmere/Locales.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Ellesmere/Adapter.lua", "Providers/Ellesmere/Provider.lua"}, {overrides={ ["Providers/Ellesmere/Provider.lua"]=arg[1] }})
+dofile("tests/support/runtime.lua").Load("provider", {"Providers/Ellesmere/Locales/enUS.lua", "Providers/Ellesmere/Locales/zhCN.lua", "Search/ProviderPolicy.lua", "Core/Scheduler.lua", "Providers/Ellesmere/Adapter.lua", "Providers/Ellesmere/Provider.lua"}, {overrides={ ["Providers/Ellesmere/Provider.lua"]=arg[1] }})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.ProviderModules.Ellesmere

@@ -48,8 +48,8 @@ Elles的上游版本敏感访问放在`Providers/Ellesmere/Adapter.lua`，Provid
 
 ## 新增或调整内置 Provider
 
-1. 在对应功能目录放置实现与 `Locales.lua`，继续独立注册该 Provider 的 i18n。
-2. 在 `tools/client_manifest.json` 的 `providers` 中维护唯一声明：稳定 `id`、运行时 `module` 名称、`products`、有序业务 `files`、`locales` 路径和可选必需函数 `requires`。
+1. 在对应功能目录放置实现与 `Locales/enUS.lua`、`Locales/zhCN.lua`；语言文件先检查会话语言，再创建该模块的完整词典。
+2. 在 `tools/client_manifest.json` 的 `providers` 中维护唯一声明：稳定 `id`、运行时 `module` 名称、`products`、有序业务 `files`、按 enUS/zhCN 排列的 `locales` 路径数组和可选必需函数 `requires`。
 3. 在同一清单的 `files` 中放置一次 `{ "provider": "对应 id" }`，只决定加载位置，不重复声明支持范围。唯一的 `providerLocales` 位置先加载各客户端适用的语言文件。
 4. 执行 `python tools/build_client_tocs.py`，一起生成四客户端 TOC、正式服 fallback、运行时声明和 SDK 示例 TOC。
 5. 非目录型内置功能通过 `I.ProviderModules.Support:Scope(id)` 取得注册范围；目录型功能由共享 CatalogProvider 处理。不要在实现里再维护 products 数组，也不要依赖默认正式服。
@@ -78,6 +78,6 @@ Elles的上游版本敏感访问放在`Providers/Ellesmere/Adapter.lua`，Provid
 
 所有者停用目录时停止事件和任务，只保留最多 4096 个已提交 ID（值置 false），供恢复时删除过期记录；注销清空。这里不保留条目 payload，也不再读取 Host 私有 recordMap。新增目录类型必须验证所有者停用后数据删除、迟到任务和重新启用。用户的参与搜索开关不等于所有者停用，不能用它关闭独立后台功能。
 
-各功能的 `Locales.lua` 发布独立资源。同一个内置 ID 共用一个翻译器缓存，名单来自生成声明；资源根表、语言表或语言选择变化会失效。发布后的资源不可原地修改，更新时替换表。第三方注册继续使用独立编译和输入隔离，不进入这个内置缓存。
+各功能的 `Locales/enUS.lua` 与 `Locales/zhCN.lua` 按会话语言发布一个独立词典；zhTW 使用中文，其他非中文语言使用英文。未选中的语言在创建表之前返回。加载器仍会读取这些 Lua 文件，因此这减少常驻词典，不等于文件没有被解析。同一个内置 ID 共用一个翻译器和格式计划，直接引用选中的词典；替换词典表会使缓存失效，发布后不可原地修改。内置 Provider 注册前已解析全部显示文字，不再提交重复的 SDK i18n 资源。第三方注册继续使用完整多语言校验、逐键回退和输入隔离，不进入这个内置缓存。
 
 增加中英文文案时，验证实际搜索结果和动作消息，不仅检查字典能否编译。装备方案与天赋方案的同名键冲突测试用于防止跨功能误用翻译器。
