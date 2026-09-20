@@ -195,6 +195,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Provider default activation failed' }
     & $lua.Source 'tests/providers/provider_expansion.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
+    & $lua.Source 'tests/ui/home_virtualization.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Home virtualization regression failed' }
     & $lua.Source 'tests/ui/presence_geometry.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Presence geometry checks failed' }
     foreach ($locale in @('zhCN','zhTW','enUS','enGB')) {

@@ -125,15 +125,12 @@ function HomeView:Create(parent, controller)
         repeat candidate = candidate + direction
         until candidate < 1 or candidate > #self.sections or navigable(self.sections[candidate])
         if candidate >= 1 and candidate <= #self.sections then self:Select(candidate) end
-        local tile = self.tiles[self.selected]
-        if tile and tile:IsShown() then
-            local _,_,_,_,y = tile:GetPoint(1)
-            if y then
-                local top = -y
-                local bottom = top + tile:GetHeight() - frame:GetHeight()
-                if top < self.scroll then self:SetScroll(top)
-                elseif bottom > self.scroll then self:SetScroll(bottom) end
-            end
+        local section=self.sections[self.selected]
+        if section and section._homeTop then
+            local top=section._homeTop
+            local bottom=top+section._homeHeight-frame:GetHeight()
+            if top<self.scroll then self:SetScroll(top)
+            elseif bottom>self.scroll then self:SetScroll(bottom) end
         end
         return self.sections[self.selected]
     end
@@ -142,7 +139,9 @@ function HomeView:Create(parent, controller)
         if self.frozen then return end
         local section = self.sections[self.selected]
         if section and section.enabled ~= false and self.controller and self.controller.onHomeSelect then
-            self.controller.onHomeSelect(section, self.tiles[self.selected])
+            local tile=self:GetTile(self.selected)
+            if not tile and section._homeTop then self:SetScroll(section._homeTop);tile=self:GetTile(self.selected) end
+            if tile then self.controller.onHomeSelect(section,tile) end
         end
     end
 
@@ -165,6 +164,7 @@ function HomeView:Create(parent, controller)
             frame:SetVerticalScroll(self.scroll); self._appliedScroll = self.scroll
         end
         self.scrollbar:SetRange(content:GetHeight(), viewport, self.scroll)
+        self:RenderVisible()
         self:ReportDemand()
     end
     frame:SetScript("OnSizeChanged", function() view:SetScroll(view.scroll);view:RefreshScrollRect() end)
@@ -259,6 +259,7 @@ function HomeView:Create(parent, controller)
             Lychee.UI.ResultList:HideTooltip()
         end)
         tile:SetScript("OnDragStart", function(button) if binding:Consume(button, button, "LeftButton") then controller:BeginRowDrag(button) end end)
+        tile:Hide()
         self.tiles[index] = tile
         return tile
     end
@@ -313,6 +314,102 @@ function HomeView:Create(parent, controller)
         for index = #self.tiles + 1, tileCount do self:AcquireTile(index) end
     end
 
+    function view:GetTile(index)
+        for _,tile in ipairs(self.tiles) do if tile.index==index then return tile end end
+    end
+
+    function view:ClearTile(tile)
+        if I.ActionCooldown then I.ActionCooldown:Release(tile) end
+        if self.controller.secureBroker then self.controller.secureBroker:InvalidateRow(tile) end
+        I.InteractionBinding:Bind(tile,nil,nil,nil)
+        tile.section,tile.item,tile.index,tile.snapshotOwner=nil,nil,nil,nil
+        tile.session,tile.generation,tile.extensionID=nil,nil,nil
+        tile._hovered=nil
+        if I.ResultActionExecutor then I.ResultActionExecutor:ConfigureDragTarget(tile,nil) end
+        if tile._icon~=nil then tile.icon:SetTexture(nil);tile._icon=nil end
+        setText(tile.title,"");setText(tile.category,"");tile._title=nil
+        if Lychee.UI.Motion then
+            Lychee.UI.Motion:Cancel(tile.bg,true);tile.bg._lycheeSelectedMotion=nil
+            if tile.selectionFill then Lychee.UI.Motion:Cancel(tile.selectionFill,true);tile.selectionFill._lycheeSelectedMotion=nil end
+        end
+        setShown(tile.bg,false);setShown(tile,false)
+    end
+
+    function view:RenderVisible()
+        if self.frozen or InCombatLockdown and InCombatLockdown() then return end
+        local top,bottom=self.scroll,self.scroll+math.max(0,self.frame:GetHeight())
+        local used=0
+        for index,section in ipairs(self.sections) do
+            local layoutY,tileHeight=section._homeTop,section._homeHeight
+            if layoutY and layoutY<bottom and layoutY+tileHeight>top then
+                used=used+1
+                local tile=self:AcquireTile(used)
+                if tile.section~=section then
+                    if I.ActionCooldown then I.ActionCooldown:Release(tile) end
+                    if self.controller.secureBroker then self.controller.secureBroker:InvalidateRow(tile) end
+                end
+                local recent=section.groupID=="recent"
+                self:ConfigureLayout(tile,recent)
+                tile._demandTop,tile._demandHeight=layoutY,tileHeight
+                local col=section._homeColumn
+                local anchorKey=layoutY*HOME_COLUMNS+col
+                if tile._homeAnchorKey~=anchorKey then
+                    self._scrollRectDirty=true;tile:ClearAllPoints()
+                    tile:SetPoint("TOPLEFT",self.content,"TOPLEFT",12+col*(HOME_TILE_WIDTH+HOME_COLUMN_GAP),-layoutY)
+                    tile._homeAnchorKey=anchorKey
+                end
+                I.InteractionBinding:Bind(tile, section, self.session, self.generation)
+                tile.section = section
+                tile.index = index
+                tile.item = section.item
+                tile.snapshotOwner = nil; tile:EnableMouse(true)
+                local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
+                if executor then executor:ConfigureDragTarget(tile, tile.item) end
+                tile.session, tile.generation = self.session, self.generation
+                tile.extensionID = section.item and section.item._ext
+                local title = homeLabel(section.title or section.text, "Lychee")
+                setText(tile.category, homeLabel(section.meta, ""))
+                local recovery=not recent and not section.item and section.enabled==false and section.meta~=nil and section.meta~=""
+                if tile._recoveryLayout~=recovery then
+                    tile._recoveryLayout=recovery;tile._titleLayoutDirty=true
+                    if not recent and tile.title.SetMaxLines then tile.title:SetMaxLines(recovery and 1 or 2) end
+                end
+                setShown(tile.category,recent or recovery)
+                tint(tile.title, color(section.enabled == false and "muted" or "text"))
+                if tile._title ~= title or tile._titleLayoutDirty then
+                    setText(tile.title, title)
+                    if not recent and tile.title.GetStringHeight then
+                        local height = math.max(14, math.min(recovery and 14 or 28, tile.title:GetStringHeight()))
+                        if tile.title:GetHeight() ~= height then tile.title:SetHeight(height) end
+                    end
+                    if not recent then
+                        local textWidth = tile.title.GetStringWidth and tile.title:GetStringWidth() or 64
+                        local markerWidth = math.floor(math.max(16, math.min(36, textWidth * 0.5)) + 0.5)
+                        if tile.bg:GetWidth() ~= markerWidth then tile.bg:SetWidth(markerWidth) end
+                    end
+                    tile._title = title
+                    tile._titleLayoutDirty = nil
+                end
+                if section.icon then
+                    if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end
+                    setShown(tile.icon, true)
+                else
+                    if tile._icon~=nil then tile.icon:SetTexture(nil) end
+                    tile._icon = nil
+                    setShown(tile.icon, false)
+                end
+                for fallbackIndex = 1, #tile.fallback do setShown(tile.fallback[fallbackIndex], not section.icon) end
+                if not tile:IsShown() then self._scrollRectDirty=true end
+                setShown(tile, true)
+                self:RenderTileState(tile)
+            end
+        end
+        for index=used+1,#self.tiles do
+            if self.tiles[index].section then self:ClearTile(self.tiles[index]) end
+        end
+        if I.ResultActionExecutor then I.ResultActionExecutor:PrepareVisibleRows(self.tiles) end
+    end
+
     function view:SetSections(sections, allowExpand)
         if self.frozen then
             self.frozen = nil
@@ -321,9 +418,9 @@ function HomeView:Create(parent, controller)
         Lychee.UI.ResultList:HideTooltip()
         self.sections = sections or {}
         setShown(self.empty, #self.sections == 0)
-        if allowExpand then self:EnsureCapacity(HOME_HEADER_COUNT, #self.sections) end
+        self:EnsureCapacity(HOME_HEADER_COUNT, 0)
         -- ScrollFrame owns the child origin; keep padding in content anchors.
-        local headerCount, tileCount, cursorY = 0, 0, 10
+        local headerCount, cursorY = 0, 10
         local pinnedHeader
         local groupID, column = nil, 0
         for index = 1, #self.sections do
@@ -353,90 +450,21 @@ function HomeView:Create(parent, controller)
                 end
                 cursorY = cursorY + 24
             end
-            tileCount = tileCount + 1
-            local tile = self.tiles[tileCount]
-            if not tile then break end
             local recent = section.groupID == "recent"
-            self:ConfigureLayout(tile, recent)
             local columns = recent and 1 or HOME_COLUMNS
             local tileHeight = recent and RECENT_HEIGHT or HOME_TILE_HEIGHT
             local row = math.floor(column / columns)
             local col = column % columns
             local layoutY = cursorY + row * (tileHeight + HOME_ROW_GAP)
-            tile._demandTop,tile._demandHeight=layoutY,tileHeight
-            local anchorKey = layoutY * HOME_COLUMNS + col
-            if tile._homeAnchorKey ~= anchorKey then
-                self._scrollRectDirty=true
-                tile:ClearAllPoints()
-                tile:SetPoint("TOPLEFT", self.content, "TOPLEFT", 12 + col * (HOME_TILE_WIDTH + HOME_COLUMN_GAP), -layoutY)
-                tile._homeAnchorKey = anchorKey
-            end
+            section._homeTop,section._homeHeight,section._homeColumn=layoutY,tileHeight,col
             column = column + 1
             local nextSection = self.sections[index + 1]
             if not nextSection or nextSection.groupID ~= groupID then
                 local rows = math.max(1, math.ceil(column / columns))
                 cursorY = cursorY + rows * tileHeight + math.max(0, rows - 1) * HOME_ROW_GAP
             end
-            I.InteractionBinding:Bind(tile, section, self.session, self.generation)
-            tile.section = section
-            tile.index = index
-            tile.item = section.item
-            tile.snapshotOwner = nil; tile:EnableMouse(true)
-            local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
-            if executor then executor:ConfigureDragTarget(tile, tile.item) end
-            tile.session, tile.generation = self.session, self.generation
-            tile.extensionID = section.item and section.item._ext
-            local title = homeLabel(section.title or section.text, "Lychee")
-            setText(tile.category, homeLabel(section.meta, ""))
-            local recovery=not recent and not section.item and section.enabled==false and section.meta~=nil and section.meta~=""
-            if tile._recoveryLayout~=recovery then
-                tile._recoveryLayout=recovery;tile._titleLayoutDirty=true
-                if not recent and tile.title.SetMaxLines then tile.title:SetMaxLines(recovery and 1 or 2) end
-            end
-            setShown(tile.category,recent or recovery)
-            tint(tile.title, color(section.enabled == false and "muted" or "text"))
-            if tile._title ~= title or tile._titleLayoutDirty then
-                setText(tile.title, title)
-                if not recent and tile.title.GetStringHeight then
-                    local height = math.max(14, math.min(recovery and 14 or 28, tile.title:GetStringHeight()))
-                    if tile.title:GetHeight() ~= height then tile.title:SetHeight(height) end
-                end
-                if not recent then
-                    local textWidth = tile.title.GetStringWidth and tile.title:GetStringWidth() or 64
-                    local markerWidth = math.floor(math.max(16, math.min(36, textWidth * 0.5)) + 0.5)
-                    if tile.bg:GetWidth() ~= markerWidth then tile.bg:SetWidth(markerWidth) end
-                end
-                tile._title = title
-                tile._titleLayoutDirty = nil
-            end
-            if section.icon then
-                if tile._icon ~= section.icon then tile.icon:SetTexture(section.icon); cropIcon(tile.icon); tile._icon = section.icon end
-                setShown(tile.icon, true)
-            else
-                tile._icon = nil
-                setShown(tile.icon, false)
-            end
-            for fallbackIndex = 1, #tile.fallback do setShown(tile.fallback[fallbackIndex], not section.icon) end
-            if not tile:IsShown() then self._scrollRectDirty=true end
-            setShown(tile, true)
-            self:RenderTileState(tile)
         end
-        setShown(self.manage.frame, pinnedHeader == true)
-        for index = tileCount + 1, #self.tiles do
-            local tile = self.tiles[index]
-            if tile:IsShown() then self._scrollRectDirty=true end
-            I.InteractionBinding:Bind(tile, nil, nil, nil)
-            tile.section, tile.index, tile._hovered = nil, nil, nil
-            tile.item, tile.session, tile.generation, tile.extensionID = nil, nil, nil, nil
-            setShown(tile.bg, false)
-            if Lychee.UI.Motion then
-                Lychee.UI.Motion:Cancel(tile.bg,true);tile.bg._lycheeSelectedMotion=nil
-                if tile.selectionFill then Lychee.UI.Motion:Cancel(tile.selectionFill,true);tile.selectionFill._lycheeSelectedMotion=nil end
-            end
-            local executor = _G.LycheeInternal and _G.LycheeInternal.ResultActionExecutor
-            if executor then executor:ConfigureDragTarget(tile, nil) end
-            setShown(tile, false)
-        end
+        setShown(self.manage.frame,pinnedHeader==true)
         for index = headerCount + 1, #self.headers do setShown(self.headers[index], false) end
         local height = math.max(1, cursorY + 14)
         if self.content:GetHeight() ~= height then self.content:SetHeight(height) end
@@ -452,7 +480,7 @@ function HomeView:Create(parent, controller)
             for index = 1, #self.sections do if navigable(self.sections[index]) then firstEnabled = index; break end end
             self.selected = firstEnabled or 1
         end
-        for index = 1, #self.tiles do self:RenderTileState(self.tiles[index]) end
+        self:RenderVisible()
         self:RefreshScrollRect()
         self:ReportDemand()
     end
@@ -484,7 +512,7 @@ function HomeView:Create(parent, controller)
         local executor = I.ResultActionExecutor
         for _,tile in ipairs(self.tiles) do
             if I.ActionCooldown then I.ActionCooldown:Release(tile) end
-            if not preserveSnapshot then tile.snapshotOwner = nil end
+            if not preserveSnapshot then self:ClearTile(tile) end
             I.InteractionBinding:Bind(tile, nil, nil, nil)
             tile.section,tile.item,tile.index,tile._hovered=nil,nil,nil,nil
             tile.session,tile.generation,tile.extensionID=nil,nil,nil
@@ -504,8 +532,7 @@ function HomeView:GetContentHeight() return self.content:GetHeight() end
 
 function HomeView:EnsureSavedCapacity()
     if InCombatLockdown and InCombatLockdown() then return false end
-    local pins = I.UserPreferences and I.UserPreferences:GetPins() or {}
-    self:EnsureCapacity(HOME_HEADER_COUNT, math.max(1, #pins) + math.max(1, #I.UserPreferences:GetRecent()) + 5)
+    self:EnsureCapacity(HOME_HEADER_COUNT, HOME_TILE_PREALLOCATE)
     return true
 end
 
@@ -617,11 +644,11 @@ function HomeView:Prepare(session, generation, allowExpand)
         end
     end
     local executor = I.ResultActionExecutor
-    for index = 1, #self.sections do
+    for index = 1, #self.tiles do
         local tile = self.tiles[index]
         tile.session, tile.generation = session, generation
         -- At most one recovery attempt; a failed resolver must not recurse.
-        if not rebound and executor and tile.section.item and not executor:IsRowCurrent(tile) then
+        if not rebound and executor and tile.section and tile.section.item and not executor:IsRowCurrent(tile) then
             restore(self, allowExpand)
             break
         end

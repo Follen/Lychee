@@ -24,9 +24,13 @@ local function build(self,put,checkpoint)
                     C_Item.RequestLoadItemDataByID(itemID)
                 end
             else self.pending[itemID]=nil end
-            put({id="toy:"..itemID,title=name,
+            local id,signature="toy:"..itemID,name.."\0"..tostring(icon)
+            if self.signatures and self.signatures[id]==signature then put(nil,signature,id)
+            else
+            put({id=id,title=name,
                 subtitle=L["左键使用 · 放置类玩具需再点击地面"],keywords="玩具 toy toys "..itemID},
-                name.."\0"..tostring(icon))
+                signature)
+            end
         else self.pending[itemID]=nil end
         checkpoint()
     end

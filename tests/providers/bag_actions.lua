@@ -99,6 +99,10 @@ assert(#frames==0 and #timers==0)
 local entry={payload={itemID=123}}
 local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
+local byID={};for _,record in ipairs(records) do byID[record.id]=record end
+assert(byID['item:123'].description:find('0/2',1,true))
+assert(byID['item:999'].description:find('0/1、0/3、0/4',1,true),'multi-slot ordering must remain unchanged')
+assert(byID['item:999'].subtitle:find('3',1,true),'stack total must remain unchanged')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
 assert(glow.shown and textures==expectedTextures and glow.anchor==bagButton)
@@ -192,6 +196,19 @@ EUI_Bags={IsVisible=function() return true end,_searchBox=box,
 assert(bags.actions.locate.run(entry).ok and glow.anchor==custom and scroll==392)
 bags:onStop();assert(not glow.shown and not next(glow.events))
 EUI_Bags=nil;ContainerFrameUtil_GetItemButtonAndContainer=getter
+-- Unchanged builds carry identities only, preserving full-snapshot deletions.
+local signatures={}
+bags.build(bags,function(record,signature) signatures[record.id]=signature end,noop)
+bags.signatures=signatures
+local reused,changed=0,0
+bags.build(bags,function(record,signature,id)
+    if record then changed=changed+1 else assert(signatures[id]==signature);reused=reused+1 end
+end,noop)
+assert(reused>0 and changed==0)
+slot=2
+bags.build(bags,function(record) if record then changed=changed+1 end end,noop)
+assert(changed>0,"slot changes must update display and locate facts")
+bags.signatures=nil;slot=4
 print("Bag adapters PASS Blizzard / ElvUI / NDui / Ellesmere, no persistent name filter")
 timers={};collectgarbage('collect');local memory=collectgarbage('count');collectgarbage('stop')
 local started=os.clock()

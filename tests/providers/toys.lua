@@ -121,6 +121,12 @@ C_Item.RequestLoadItemDataByID=function(id)
 end
 M:MarkDirty();drain();assert(entry.recordMap["toy:"..synchronous].title=="Synchronous toy")
 C_Item.RequestLoadItemDataByID=originalRequest
+local reused,materialized=0,0
+M.build(M,function(record,signature,id)
+    if record then materialized=materialized+1
+    else assert(M.signatures[id]==signature);reused=reused+1 end
+end,function() end)
+assert(reused>0 and materialized==0,"unchanged toy catalog should not rebuild documents")
 local frameCount=#frames
 collectgarbage("collect");local steady=collectgarbage("count");collectgarbage("stop")
 for index=1,20 do query(tostring(missing)) end

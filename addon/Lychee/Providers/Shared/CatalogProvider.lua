@@ -62,16 +62,21 @@ function C:Step()
     if not self.job then
         self.job=coroutine.create(function()
             local records, signatures, count, started = {}, {}, 0, now()
+            local total=0
             local function checkpoint()
                 count=count+1
                 if count>=(self.batchSize or 32) or now()-started>=1 then
                     coroutine.yield(); count=0; started=now()
                 end
             end
-            local function put(record, signature)
-                if #records>=4096 then error("CATALOG_LIMIT") end
-                if signatures[record.id] then error("DUPLICATE_CATALOG_ID") end
-                records[#records+1]=record; signatures[record.id]=signature
+            local function put(record, signature, unchangedID)
+                local id=record and record.id or unchangedID
+                if total>=4096 then error("CATALOG_LIMIT") end
+                if signatures[id]~=nil then error("DUPLICATE_CATALOG_ID") end
+                -- An omitted record is valid only against this committed ledger.
+                if not record and (not signature or self.signatures[id]~=signature) then error("INVALID_CATALOG_REUSE") end
+                total=total+1;signatures[id]=signature
+                if record then records[#records+1]=record end
             end
             self.build(self, put, checkpoint)
             local epoch=self.epoch

@@ -48,8 +48,12 @@ dofile("addon/Lychee/Providers/Shared/CatalogLedger.lua")
 dofile("addon/Lychee/Providers/Shared/CatalogProvider.lua")
 local values={a="A",b="B"}
 local m=LycheeInternal.ProviderModules.CatalogProvider:New("fixture","Fixture",{"DATA_CHANGED"},
-    function(_,put,checkpoint)
-        for id,title in pairs(values) do put({id=id,title=title},title);checkpoint() end
+    function(self,put,checkpoint)
+        for id,title in pairs(values) do
+            if self.signatures[id]==title then put(nil,title,id)
+            else put({id=id,title=title},title) end
+            checkpoint()
+        end
     end,{})
 assert(m:Init());assert(frames==0 and #timers==0)
 m.onReady=function() end

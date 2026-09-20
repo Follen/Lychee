@@ -20,21 +20,30 @@ local function build(self,put,checkpoint)
                 if not row then
                     local name=info.itemName or (info.hyperlink and info.hyperlink:match("%[(.-)%]"))
                     if not name then self.pendingItem=id; error("ITEM_DATA_PENDING") end
-                    row={name=name,icon=info.iconFileID,count=0,positions={}}
+                    row={name=name,icon=info.iconFileID,count=0}
                     items[id]=row
                 end
                 row.count=row.count+(info.stackCount or 1)
-                row.positions[#row.positions+1]=tostring(bag).."/"..tostring(slot)
+                local position=tostring(bag).."/"..tostring(slot)
+                if not row.positions then row.positions=position
+                elseif type(row.positions)=="string" then row.positions={row.positions,position}
+                else row.positions[#row.positions+1]=position end
             end
             checkpoint()
         end
     end
     for itemID,row in pairs(items) do
-        local positions=table.concat(row.positions,"、")
+        local positions=type(row.positions)=="string" and row.positions or table.concat(row.positions,"、")
+        local recordID="item:"..itemID
+        local signature=row.name.."\0"..tostring(row.icon).."\0"..row.count.."\0"..positions
+        if self.signatures and self.signatures[recordID]==signature then
+            put(nil,signature,recordID)
+        else
         local subtitle=L:Format("共 %d 个 · 左键使用 · 右键更多",row.count)
-        put({id="item:"..itemID,title=row.name,kind="item",kindTitle=L["背包"],icon=row.icon,
+        put({id=recordID,title=row.name,kind="item",kindTitle=L["背包"],icon=row.icon,
             subtitle=subtitle,description=L["背包/格位："]..positions,keywords="背包 物品 bags "..itemID,
-            payload={itemID=itemID},actions={{id="use",title=L["使用物品"],kind="secure-item",itemID=itemID},"locate"}},row.name.."\0"..tostring(row.icon).."\0"..row.count.."\0"..positions)
+            payload={itemID=itemID},actions={{id="use",title=L["使用物品"],kind="secure-item",itemID=itemID},"locate"}},signature)
+        end
         checkpoint()
     end
     self.pendingItem=nil
