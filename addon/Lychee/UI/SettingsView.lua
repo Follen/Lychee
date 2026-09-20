@@ -198,7 +198,7 @@ function Settings:Create(parent, controller)
     end
     function view:SetTab(tab)
         if not self.tabs[tab] or (InCombatLockdown and InCombatLockdown()) then return false end
-        controller:SetStatusText((tab=="about" or tab=="credits") and L["感谢使用荔枝"] or L["更改即时生效"])
+        controller:SetStatusText(tab=="credits" and L["谨献给挚爱：荔枝小月亮"] or tab=="about" and L["感谢使用荔枝"] or L["更改即时生效"])
         controller.social:Close(false)
         if self.providerView then self.providerView.frame:Hide() end
         if self.aliasView then self.aliasView.frame:Hide() end
@@ -258,9 +258,6 @@ function Settings:Create(parent, controller)
                     hint:SetPoint("RIGHT",control.frame,"RIGHT",0,0);hint:SetText(L["复制主页链接"])
                     credits.buttons[index]=control
                 end
-                credits.dedication=label(credits,"title","tooltipAccent")
-                credits.dedication:SetPoint("TOPLEFT",credits,"TOPLEFT",0,-148)
-                credits.dedication:SetText(L["谨献给挚爱：荔枝小月亮"])
             end
             return
         end

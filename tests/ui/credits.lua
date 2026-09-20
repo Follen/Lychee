@@ -16,7 +16,8 @@ assert(view.tabs.about.frame.point[2]==view.tabs.credits.frame)
 view:SetTab("credits")
 local page=view.credits
 assert(page and #page.buttons==2 and not view.about:IsShown())
-assert(page.dedication:GetText()=="谨献给挚爱：荔枝小月亮")
+assert(not page.dedication,"dedication belongs in footer only")
+assert(p.status:GetText()=="谨献给挚爱：荔枝小月亮")
 local urls={"https://v.douyin.com/BHwvNPtS3AE/","https://space.bilibili.com/455259"}
 local function click(index)
     local b=page.buttons[index].frame
