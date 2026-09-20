@@ -41,3 +41,11 @@ Retail 12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-00
 运行提交 `48a60ea`，199运行文件SHA-256一致。分类标签聚合靠左，公共Checkbox增加可选左置方式（默认右侧不变）；效果行32高/34节距，结果与标签间隔减少16。移除2个装饰纹理，无新增Frame、timer、事件或OnUpdate。LDT模块离线426.8 KiB，与上一版同量级；50次重开无新增控件、未观察保留增长（-1.03 KiB）。完整契约、Lua语法、wowdoc valid=true与diff检查通过。
 
 实机Retail12.1.0.69875 zhCN，灵止光—死亡之翼；Ticket `LYCHEE-20260921-013023-0082`，request=ldt-layout27-20260921/revision=layout27，complete=true/succeeded；14项功能断言全部通过，包括三组切换、合剂、致死、返回怪物、重开及关闭清理。100次计算1.4368ms，不能等同整插件性能。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-013023-0082/content.json`；WGC `analyze/survival/ui-layout27-5.png` 核对布局无重叠，ACK与自有任务清理完成。真实硬件点击、英文实机、受限失败/战斗和引擎总内存本轮未覆盖，沿用原交互实现并明确边界。
+
+## 0.3.28 整页结构与选择控件
+
+运行提交 `628e06f`，199文件SHA-256同步一致。技能主标题替换怪物主标题，怪物/副本降为上下文；固定结果区和分类区，效果独立滚动。公共Checkbox的choice变体增加圆角整行选中反馈，18方框与2粗勾；默认样式继续兼容。新增2个固定Frame、1个重置Button，12行新增固定圆角背景纹理，新增上下文文字；没有事件/计时器/逐帧驱动，保留原生对象而不宣称GC可释放。关闭清空模拟与快照并恢复怪物标题，重置只清模拟。
+
+离线模块429.5 KiB（上一版426.8）；50次重开无新增控件，未观察保留增长（-1.03 KiB）；固定查询保留增长0.8 KiB、峰批4ms。有限常驻增加用于固定结果、可辨识选择状态和重置操作，接受；引擎纹理总内存未测，不把Lua数字当总量。完整契约、Lua语法、wowdoc及diff检查通过。
+
+实机Retail12.1.0.69875 zhCN，灵止光—死亡之翼；Ticket `LYCHEE-20260921-013825-0083` request=ldt-layout28-20260921 revision=layout28，complete=true/succeeded，20/20断言通过：自动数据、任务标题、固定区域父级、unknown与恢复、无编辑参数、底栏、两组切换、无分页、合剂与效果、重置模拟、致死、按钮随列表、恢复怪物标题、返回怪物、重开、返回搜索、清理。100次计算1.4478ms。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-013825-0083/content.json`；WGC `analyze/survival/ui-layout28-9.png` 检查圆角、选中态及固定区域。ACK确认与清理完成，任务移除。真实硬件滚轮/点击、英文实机、战斗及长技能名实机本轮未覆盖；离线滚轮转发、过期按压、生命周期与本地化契约通过。
