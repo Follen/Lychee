@@ -121,4 +121,5 @@ I.ProviderLocaleData["builtin.ldt"] = {
     ["待补全跳数"] = "Ticks needed",
     ["填写跳数"] = "Enter ticks",
     ["计算依据与校正"] = "Calculation details & adjustments",
+    ["不接受治疗，第 %d 跳致死"] = "Without healing, tick %d is lethal",
 }

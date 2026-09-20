@@ -223,6 +223,12 @@ function S:Calculate(stats,input,selected,out)
     out.remaining=health-out.first
     if not out.complete then
         out.status=out.remaining<=0 and "lethal" or "needsDuration"
+        -- Identical periodic hits consume the remaining applicable shield pool.
+        -- Closed-form threshold avoids scanning an unknown duration.
+        if out.remaining>0 and out.tickBeforeAbsorb>0 then
+            local pool=absorb+(input.tickSchool=="magic" and magicAbsorb or 0)
+            out.lethalTick=math.ceil((out.remaining+pool)/out.tickBeforeAbsorb)
+        end
         return out
     end
     out.total=out.first

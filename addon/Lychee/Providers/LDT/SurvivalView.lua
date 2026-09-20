@@ -89,7 +89,9 @@ function M:CreateSurvivalView(owner)
         self.statsLabel:SetText(stats.valid and L:Format("生命 %s · 全能减伤 %.1f%% · 范围减伤 %.1f%%",amount(stats.health),stats.versDR*100,stats.avoidance*100) or L["属性暂不可用，脱战后刷新"])
         local status=r.status=="lethal" and "首段致死" or r.status=="needsHealing" and "首段可承受，后续需要治疗" or r.status=="needsDuration" and "首段可承受，累计伤害待补全" or r.status=="survives" and "满血可承受" or "请确认伤害参数"
         if r.status=="unknown" and input.tick and input.tick>0 and (not input.ticks or input.ticks<1) then status="请补全持续跳数" end
-        self.status:SetText(L[status]);Theme:SetTextColor(self.status,r.status=="lethal" and "danger" or r.status=="unknown" and "textMuted" or "text")
+        local verdict=L[status]
+        if r.status~="lethal" and r.lethalTick then verdict=L:Format("不接受治疗，第 %d 跳致死",r.lethalTick) end
+        self.status:SetText(verdict);Theme:SetTextColor(self.status,(r.status=="lethal" or r.lethalTick) and "danger" or r.status=="unknown" and "textMuted" or "text")
         self.summary:SetText(r.health and L:Format("模拟生命 %s · 估算吸收 %s",amount(r.health),amount(r.shield)) or L[status=="请补全持续跳数" and "说明未提供持续时间，请填写预计承受的跳数" or "检查下方伤害参数后开始计算"])
         self.values[1]:SetText(amount(r.first));self.values[2]:SetText(amount(r.tickBeforeAbsorb));self.values[3]:SetText(r.complete==false and L["待补全跳数"] or amount(r.total))
         self.completeTicks.frame:SetShown(r.complete==false)

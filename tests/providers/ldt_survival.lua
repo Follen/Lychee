@@ -39,6 +39,14 @@ local partial=S:Parse("对所有敌人造成600000点火焰伤害，每1秒对�
 partial.confirmed=partial.damageValid;partial.level=1;partial.boss=false
 S:Calculate(stats,partial,{},out)
 assert(out.first and out.tickBeforeAbsorb and not out.total and out.status=="needsDuration","missing duration must retain known damage without claiming full survival")
+assert(out.lethalTick==9,"unknown duration still reports a lethal tick")
+S:Calculate(stats,partial,{[116849]=true},out)
+local shieldThreshold=out.lethalTick
+assert(shieldThreshold>9,"remaining absorb delays the lethal tick")
+partial.ticks=shieldThreshold-1;S:Calculate(stats,partial,{[116849]=true},out)
+assert(out.status=="survives","one tick before threshold is survivable")
+partial.ticks=shieldThreshold;S:Calculate(stats,partial,{[116849]=true},out)
+assert(out.status=="needsHealing" and out.lethalTick==shieldThreshold,"threshold agrees with sequential shield consumption")
 partial.ticks=6;S:Calculate(stats,partial,{},out)
 assert(out.total and out.complete,"adding ticks completes the calculation")
 -- Snapshot uses only current class/spec/known spells and never duplicates stat passives.
