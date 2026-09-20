@@ -108,6 +108,11 @@ local function renderRowState(row)
     setShown(row.dragHighlight, row._selected and row._dragHovered == true or false)
 end
 
+local function rowShown(row)
+    local cooldown=_G.LycheeInternal.ActionCooldown
+    if cooldown and row.item and row.ownerView and not row.ownerView.frozen then cooldown:BindRow(row) end
+end
+
 local function clearRow(row)
     if _G.LycheeInternal.ActionCooldown then _G.LycheeInternal.ActionCooldown:Release(row) end
     row.snapshotOwner = nil
@@ -190,6 +195,7 @@ function ResultList:Create(parent, controller)
         local row = CreateFrame("Button", nil, frame)
         row:SetSize(tileWidth, rowHeight)
         row.ownerView = self
+        row:SetScript("OnShow",rowShown)
         local binding = _G.LycheeInternal.InteractionBinding
         binding:Attach(row, row)
         local column = (index - 1) % columns

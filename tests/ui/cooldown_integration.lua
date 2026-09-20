@@ -11,6 +11,15 @@ p.input:SetText("Cooldown fixture");p:SetQueryMode("Cooldown fixture")
 I.Search.Session:Input("Cooldown fixture");I.Search.Query:Flush()
 local row=assert(p.list.rows[1]);assert(row.item and row.item.id=="test")
 assert(I.ActionCooldown.count==1,"search row must bind its primary action")
+-- Native IsVisible includes hidden ancestors; the old mock only checked the row.
+local originalVisible=row.IsVisible
+row.IsVisible=function() return p.list.frame:IsShown() and row:IsShown() end
+p.list.frame:Hide();I.ActionCooldown:ReleaseAll()
+assert(not I.ActionCooldown:BindRow(row),"hidden ancestor cannot acquire observers")
+p.list.frame:Show();assert(row.scripts.OnShow)(row)
+assert(I.ActionCooldown.count==1,"native parent show must acquire the first results")
+row.IsVisible=originalVisible
+
 assert(I.ResultActionExecutor:ShowActions(row))
 assert(I.ActionCooldown.count==3,"menu observes each protected action independently")
 Lychee.UI.Components:HideActionMenu();assert(I.ActionCooldown.count==1)
