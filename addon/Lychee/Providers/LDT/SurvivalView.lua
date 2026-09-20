@@ -13,11 +13,11 @@ function M:CreateSurvivalView(owner)
     local C,Theme=_G.Lychee.UI.Components,_G.Lychee.UI.Theme
     local v={rows={},tabs={},selected={},group=1,level=10,contentHeight=252}
     owner.calculator=v
-    v.toolbar=CreateFrame("Frame",nil,owner.frame);v.toolbar:SetPoint("TOPLEFT",16,0);v.toolbar:SetPoint("RIGHT",-16,0);v.toolbar:SetHeight(60);v.toolbar:Hide()
-    v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-226);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
-    v.results=CreateFrame("Frame",nil,owner.frame);v.results:SetPoint("TOPLEFT",16,-70);v.results:SetSize(584,108);v.results:Hide()
+    v.toolbar=CreateFrame("Frame",nil,owner.frame);v.toolbar:SetPoint("TOPLEFT",16,-12);v.toolbar:SetPoint("RIGHT",-16,0);v.toolbar:SetHeight(60);v.toolbar:Hide()
+    v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-252);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
+    v.results=CreateFrame("Frame",nil,owner.frame);v.results:SetPoint("TOPLEFT",16,-88);v.results:SetSize(584,104);v.results:Hide()
     Theme:CreateRoundedSurface(v.results,"field",8)
-    v.controls=CreateFrame("Frame",nil,owner.frame);v.controls:SetPoint("TOPLEFT",16,-190);v.controls:SetSize(584,28);v.controls:Hide()
+    v.controls=CreateFrame("Frame",nil,owner.frame);v.controls:SetPoint("TOPLEFT",16,-212);v.controls:SetSize(584,28);v.controls:Hide()
     v.frame=CreateFrame("Frame",nil,v.viewport);v.frame:SetSize(584,v.contentHeight);v.viewport:SetScrollChild(v.frame)
     v.bar=C:CreateScrollbar(v.viewport,function(value)
         v.viewport:SetVerticalScroll(value)
@@ -46,7 +46,7 @@ function M:CreateSurvivalView(owner)
         local height=math.ceil(#self.list/2)*42
         if self.contentHeight~=height then self.contentHeight=height;self.frame:SetHeight(height);self.effects:SetHeight(height) end
         resize()
-        if owner.context then owner.context:Resize(486) end
+        if owner.context then owner.context:Resize(512) end
     end
     function v:Refresh()
         if not self.active then return end
@@ -76,6 +76,16 @@ function M:CreateSurvivalView(owner)
         local status=r.status=="lethal" and "会致死" or r.status=="survives" and "可承受" or r.status=="noDirect" and "无首段直接伤害" or "伤害数据暂不可用"
         self.values[3]:SetText(L[status]);Theme:SetFont(self.values[3],(r.status=="lethal" or r.status=="survives") and "aboutBrand" or "body");Theme:SetTextColor(self.values[3],r.status=="lethal" and "danger" or r.status=="survives" and "success" or "text")
         self.lethalIcon:SetShown(r.status=="lethal");self.safeShort:SetShown(r.status=="survives");self.safeLong:SetShown(r.status=="survives")
+        local hasIcon=r.status=="lethal" or r.status=="survives"
+        local width=math.min(160,self.values[3]:GetStringWidth())
+        local x=476-width/2+(hasIcon and 12 or 0)
+        if self.verdictX~=x or self.verdictWidth~=width then
+            self.verdictX,self.verdictWidth=x,width
+            self.values[3]:ClearAllPoints();self.values[3]:SetPoint("TOPLEFT",x,-42);self.values[3]:SetWidth(width)
+            self.lethalIcon:ClearAllPoints();self.lethalIcon:SetPoint("TOPLEFT",x-24,-46)
+            self.safeShort:ClearAllPoints();self.safeShort:SetPoint("TOPLEFT",x-22,-55)
+            self.safeLong:ClearAllPoints();self.safeLong:SetPoint("TOPLEFT",x-18,-52)
+        end
         self.summary:SetText(r.remaining and (r.remaining>0 and L:Format("承受后剩余生命 %s",amount(r.remaining)) or L:Format("超出生命 %s",amount(-r.remaining))) or L["自动读取技能伤害与自身属性"])
         local selected=0;for _,value in pairs(self.selected) do if value then selected=selected+1 end end
         self.resetSelection:SetEnabled(selected>0)
@@ -136,23 +146,23 @@ function M:CreateSurvivalView(owner)
     v.refresh.frame:HookScript("OnLeave",function() C:HideTooltip(v.refresh.frame) end)
     for i=1,2 do
         local divider=v.results:CreateTexture(nil,"ARTWORK")
-        divider:SetPoint("TOPLEFT",i*184+10,-18);divider:SetSize(1,50);Theme:SetColorTexture(divider,"border")
+        divider:SetPoint("TOPLEFT",i*184+16,-22);divider:SetSize(1,54);Theme:SetColorTexture(divider,"border")
     end
     v.values={}
     for i,caption in ipairs({"生命值","直接承伤","是否致死"}) do
-        text("meta",(i-1)*184+20,14,156,18):SetText(L[caption])
-        v.values[i]=text("aboutBrand",(i-1)*184+20,38,164,28);Theme:SetTextColor(v.values[i],"text")
+        local label=text("meta",(i-1)*184+16,18,184,18);label:SetText(L[caption]);label:SetJustifyH("CENTER")
+        v.values[i]=text("aboutBrand",(i-1)*184+16,42,184,28);v.values[i]:SetJustifyH("CENTER");Theme:SetTextColor(v.values[i],"text")
     end
     v.lethalIcon=icon(v.results,"skull",548,14,16)
     v.safeShort=v.results:CreateTexture(nil,"ARTWORK");v.safeShort:SetSize(5,2);v.safeShort:SetPoint("TOPLEFT",550,-22);v.safeShort:SetRotation(-math.pi/4);Theme:SetColorTexture(v.safeShort,"success")
     v.safeLong=v.results:CreateTexture(nil,"ARTWORK");v.safeLong:SetSize(10,2);v.safeLong:SetPoint("TOPLEFT",554,-19);v.safeLong:SetRotation(math.pi/4);Theme:SetColorTexture(v.safeLong,"success")
-    v.summary=text("meta",388,73,176,28)
+    v.summary=text("meta",384,74,184,22);v.summary:SetJustifyH("CENTER")
     v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,252);v.effects:SetPoint("TOPLEFT",0,0);scrollable(v.effects)
     for i,caption in ipairs(groupNames) do
         v.tabs[i]=button(L[caption],(i-1)*112,0,104,function() v.group=i;v:RenderEffects() end,nil,v.controls)
         local tab=v.tabs[i]
-        tab.label:ClearAllPoints();tab.label:SetPoint("CENTER",0,0);tab.label:SetSize(104,18);tab.label:SetJustifyH("CENTER")
-        tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOP",tab.label,"BOTTOM",0,-5);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
+        tab.label:ClearAllPoints();tab.label:SetPoint("LEFT",0,0);tab.label:SetSize(104,18);tab.label:SetJustifyH("LEFT")
+        tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOPLEFT",tab.label,"BOTTOMLEFT",0,-5);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
     end
     v.resetSelection=button(L["勾选模拟减伤"],378,0,206,function()
         for id in pairs(v.selected) do v.selected[id]=nil end;v:Render()

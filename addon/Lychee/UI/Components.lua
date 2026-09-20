@@ -230,9 +230,9 @@ function Components:CreateCheckbox(parent, options)
     options.textColors={normal="text",hover="text",pressed="text",disabled=choice and "textMuted" or "disabled"}
     local c=self:CreateButton(parent,options)
     local box=CreateFrame("Frame",nil,c.frame)
-    box:SetSize(choice and 18 or 14,choice and 18 or 14);box:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
-    local border=Theme:CreateRoundedSurface(box,choice and "borderStrong" or "fieldBorder",choice and 5 or 3)
-    local fill=Theme:CreateRoundedSurface(box,choice and "field" or "window",choice and 4 or 2,1,"BORDER")
+    box:SetSize(choice and 16 or 14,choice and 16 or 14);box:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
+    local border=Theme:CreateRoundedSurface(box,choice and "switchOff" or "fieldBorder",choice and 5 or 3)
+    local fill=Theme:CreateRoundedSurface(box,choice and "switchOff" or "window",choice and 4 or 2,1,"BORDER")
     local short=box:CreateTexture(nil,"OVERLAY")
     short:SetSize(choice and 5 or 4,choice and 2 or 1.5);short:SetPoint("CENTER",box,"CENTER",-3,-1);short:SetRotation(-math.pi/4)
     local long=box:CreateTexture(nil,"OVERLAY")
@@ -242,8 +242,8 @@ function Components:CreateCheckbox(parent, options)
     c.check=long
     function c:PaintCheck()
         local enabled=self.enabled~=false
-        border:SetColor(not enabled and (choice and "borderStrong" or "disabled") or self.checked and "accentHover" or self._hovered and "textMuted" or choice and "borderStrong" or "fieldBorder")
-        fill:SetColor(self.checked and (enabled and "accentHover" or choice and "textDim" or "disabled") or choice and "field" or "window")
+        border:SetColor(not enabled and (choice and "borderStrong" or "disabled") or self.checked and "accentHover" or self._hovered and (choice and "fieldBorder" or "textMuted") or choice and "switchOff" or "fieldBorder")
+        fill:SetColor(self.checked and (enabled and "accentHover" or choice and "textDim" or "disabled") or choice and "switchOff" or "window")
         if choice then
             local normal=self.checked and "actionHover" or "field"
             if options.colors.normal~=normal then
