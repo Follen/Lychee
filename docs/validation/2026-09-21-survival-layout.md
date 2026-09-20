@@ -13,3 +13,11 @@ API沿用wowdoc retail12.1.0 commit4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59已�
 Checkbox通过同一个14×14容器的两组7-region圆角绘制外边框及内填充，白勾2纹理；每实例增加1 Frame/12纹理，LDT12实例固定保留，无驱动和新媒体。沿用主题token缓存setter和既有圆角纹理。模块离线425.1 KiB（上一布局422.2），增加语义图标、数字分隔和结果状态区域；50次开关仍无新增控件、-1.03 KiB保留。ui_motion复用和减少动态效果回归通过。
 
 0079初次实机返回11/12通过，左footer断言将原生空文本nil当作非空。截图可见左侧提示，未把该次声明为全通过；已ACK/清理。后续探针记录原始文本并接受nil/空字符串两种空控件表现。新版一起复核。
+
+## 最终实机验收
+
+运行提交5f8e99a，199文件SHA-256同步一致；完整契约、Lua静态语法、wowdoc valid=true与diff检查通过。Ticket `LYCHEE-20260921-005144-0080`，task=ldt-layout-live/request=ldt-layout-20260921-c/revision=3，complete=true/status=succeeded，12/12通过。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-005144-0080/content.json`。环境Retail12.1.0.69875 zhCN，灵止光—死亡之翼。ACK确认/清理并移除自有任务。
+
+左footer原始值为“仅计算首段直接伤害”，右footer空原生值nil；旧断言的问题已由原始证据确认。无分页、11效果、计算按钮行数跟随、合剂勾选、致死结论、两级返回、重开清选项、退出清理通过。WGC截图ui-rounded-9.png确认圆角边框、勾号、图标、千分位数值和居中标签；游戏世界tooltip遮挡下方少量区域，非本插件新建提示。
+
+100次计算1.4212ms。使用脚本调用客户端事件；真实硬件操作、英文布局及游戏全包/纹理内存未验证。有限额外框架与纹理由公共组件持有、反复开关不增长，接受此视觉一致性成本。
