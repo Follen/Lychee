@@ -189,12 +189,12 @@ Host 加载期固定订阅 `PLAYER_LOGIN`、`PLAYER_LOGOUT`、`PLAYER_REGEN_DISA
 
 当前搜索回归基线与命令：
 
-- `lua tests/performance_memory.lua --check`：2,025 条当前固定数据（原2,689条，团本来源已排除地下城）常驻低于 7 MiB、48 次查询累计分配低于 4 MiB、重复查询保留增长低于 512 KiB。常驻门槛由 9 MiB 经 7.25 MiB 收紧至 7 MiB，依据见 [启动常驻内存压缩](docs/validation/2026-09-10-resident-memory.md)。
-- `lua tests/performance_memory.lua --stress`：扩展规模测量；`--disable`：停用与恢复数据源测量。
-- `lua tests/search_memory_regression.lua`：匹配正确性、缓存界限和索引生命周期检查。
-- `lua tests/performance_search.lua`：2,048 次规范化分配低于 1 MiB、长文本缓存保留增量低于 512 KiB、取消后旧候选归零。
-- `lua tests/performance_ui.lua --check`：固定 400 高视口、1,000 来源场景不超过 10 行，新增替身保留低于 1 MiB、20 次刷新分配低于 512 KiB，并检查重绑点击身份。
-- `lua tests/performance_core.lua`、`lua tests/perf_core_provider.lua`：固定校验/增量更新分配预算及调度、取消、回复代次检查；`performance_builtin_secure.lua`、`perf_builtin_secure_events.lua` 验证事件与启停生命周期。详见 [全项目测量与覆盖](docs/validation/2026-09-10-project-performance.md)。
+- `lua tests/performance/performance_memory.lua --check`：2,025 条当前固定数据（原2,689条，团本来源已排除地下城）常驻低于 7 MiB、48 次查询累计分配低于 4 MiB、重复查询保留增长低于 512 KiB。常驻门槛由 9 MiB 经 7.25 MiB 收紧至 7 MiB，依据见 [启动常驻内存压缩](docs/validation/2026-09-10-resident-memory.md)。
+- `lua tests/performance/performance_memory.lua --stress`：扩展规模测量；`--disable`：停用与恢复数据源测量。
+- `lua tests/search/search_memory_regression.lua`：匹配正确性、缓存界限和索引生命周期检查。
+- `lua tests/performance/performance_search.lua`：2,048 次规范化分配低于 1 MiB、长文本缓存保留增量低于 512 KiB、取消后旧候选归零。
+- `lua tests/performance/performance_ui.lua --check`：固定 400 高视口、1,000 来源场景不超过 10 行，新增替身保留低于 1 MiB、20 次刷新分配低于 512 KiB，并检查重绑点击身份。
+- `lua tests/performance/performance_core.lua`、`lua tests/performance/perf_core_provider.lua`：固定校验/增量更新分配预算及调度、取消、回复代次检查；`performance_builtin_secure.lua`、`perf_builtin_secure_events.lua` 验证事件与启停生命周期。详见 [全项目测量与覆盖](docs/validation/2026-09-10-project-performance.md)。
 - `powershell -NoProfile -File tests/check_contract.ps1`：完整契约验证；运行时改动另需 Lua/XML/TOC 静态检查、wowdoc 验证和 `git diff --check`。
 
 上述内存数字适用于固定离线历史场景，按第 0 节审查，不是未来功能的硬总量限额。CPU、容量与生命周期断言保持有效；不得为通过测试而提高 CPU 限制或缩小输入。详见 [测量记录](docs/validation/2026-09-10-deep-memory-optimization.md)。
@@ -299,8 +299,8 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 ## 10. 全局职责收敛门禁
 
 - 点击按下、绑定身份、松开消费必须同一责任管理；普通、附加、首页和安全按钮覆盖“按下→重绑→松开”、隐藏、释放、正常点击。按下不建临时表，不增加常驻驱动。返回搜索恢复安全覆盖层，失败按钮释放活动登记与引用。
-- 自定义页 create/Mount 失败保留原首页/搜索与焦点；取消导航不覆盖新会话，不复活 Dispose 实例。tests/navigation_binding.lua 覆盖这些实际入口。
-- 固定项原始读取与正常写入受同一条数/字段/逻辑字节约束；异常原文保留并提示，不进入活动列表、不覆盖写入；原始 SV 的保留不能冒充内存有界。tests/pin_restore.lua 覆盖65条、单条1MiB、总量、空洞、重复、坏字段和10000次温读取。
+- 自定义页 create/Mount 失败保留原首页/搜索与焦点；取消导航不覆盖新会话，不复活 Dispose 实例。tests/ui/navigation_binding.lua 覆盖这些实际入口。
+- 固定项原始读取与正常写入受同一条数/字段/逻辑字节约束；异常原文保留并提示，不进入活动列表、不覆盖写入；原始 SV 的保留不能冒充内存有界。tests/core/pin_restore.lua 覆盖65条、单条1MiB、总量、空洞、重复、坏字段和10000次温读取。
 - 目录账本只在成功提交后更新。catalog_ledger 覆盖原子失败重试、16条批次部分成功、删除优先、取消/注册隔离；坐骑和技能原子更新不改成通用异步拆批。
 - result_snapshot 覆盖静态/动态/恢复等价与过期身份；provider_management 覆盖复用、用户/所有者状态、旧实例与回调重入。内部具名字段不改为位置布局。
 - SDK 版本、兼容下限和交付清单由构建期门禁验证；单边漂移、漏文件、越界路径均须拒绝。完整入口保留本体离线性能测试。独立 Lychee Performance Test 已退役，不再构建或同步其诊断副本。
@@ -311,32 +311,32 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 
 | 场景与规模 | 历史内存比较线与行为/CPU 硬限制 | 可执行依据 |
 | --- | --- | --- |
-| TOC 首次加载，不含真实游戏引擎内存 | 原功能回收后保留 <1346 KiB；CPU <46 ms；新增正式服内容见第14–15节 | tests/performance_loading.lua |
-| 内置启动及重建 | 首次累计分配 <15000 KiB、保留 <7424 KiB；重建分配 <4500 KiB；重建保留增长 <128 KiB | tests/performance_startup.lua |
-| 2025 条组合目录、48 次查询 | 常驻 <7168 KiB；分配 <4096 KiB；增长 <512 KiB | tests/performance_memory.lua --check |
-| 2048 次规范化及超长文本 | 分配 <1024 KiB；超长缓存保留 <512 KiB；取消候选清空 | tests/performance_search.lua |
-| 10000 次边界校验 | 累计分配 <8192 KiB | tests/performance_core.lua |
-| 500 条目录，100 次单条更新 | 累计分配 <768 KiB | tests/perf_core_provider.lua |
-| 1000 来源、400 高视口 | 最多10行；替身保留 <1024 KiB；20次无变化刷新分配 <512 KiB；池不增长 | tests/performance_ui.lua --check |
-| 最近使用100次开关、滚动、排序和复用 | 最大单轮 <5 ms；增长 <512 KiB；预热后无新增框体 | tests/interaction_smoke.lua |
-| 角色设置、固定项温读取 | 各自固定10000次序列分配 <8 KiB | tests/character_settings.lua、tests/character_pins.lua |
-| 6002条成就目录 | 保留 <1024 KiB；重复查询分配 <1024 KiB、增长 <128 KiB；10次温恢复分配 <2048 KiB、增长 <64 KiB、枚举0次 | tests/achievements_provider.lua |
-| 1500坐骑索引 | 保留 <8192 KiB；温查询不扫描收藏 | tests/mounts_vault_smoke.lua |
-| 内置综合索引 | 固定样本保留 <8192 KiB | tests/builtin_providers_smoke.lua |
-| 目录启停 | 固定循环增长 <16 KiB；至多一个有效目录任务；复用事件框体 | tests/catalog_lifecycle.lua、tests/bosses_locale.lua |
-| Logo几何动效 | 一个复用驱动、零原生Logo动画组；固定循环分配 <64 KiB、增长 <8 KiB、冷增长 <32 KiB | tests/brand_geometry.lua |
-| 背包定位 | 一个框体、五个纹理；固定循环分配 <256 KiB、增长 <32 KiB；退出无活动订阅 | tests/bag_actions.lua |
-| 识别工具首次打开 | 保留 <512 KiB；最多16框体/48区域替身 | tests/addon_inspector.lua |
-| 识别工具稳定扫描与100次循环 | 各固定扫描序列分配 <1024 KiB；停止增长 <64 KiB；静止跟随序列分配 <128 KiB，无重复定位/来源读取/全局枚举 | tests/addon_inspector.lua |
-| EUI固定查询序列 | 分配 <40960 KiB、增长 <256 KiB；无空闲任务 | tests/ellesmere_provider.lua |
-| EX固定查询序列 | 分配 <16384 KiB、增长 <256 KiB；无新增框体和空闲任务 | tests/exwind_provider.lua |
-| UI组件1000次相同props更新 | 分配 <64 KiB；零新增对象、原生setter和脚本设置 | tests/ui_runtime.lua |
-| 1000次视图挂载、更新、卸载 | 分配 <1000 KiB、增长 <16 KiB；仅一个复用视图框体，无context/state残留 | tests/view_lifecycle.lua |
-| 公共动效2000次选择重定向 | 分配 <512 KiB；不新增动画组 | tests/ui_motion.lua |
-| Provider管理1000次温列表填充 | 分配 <8 KiB；复用调用方记录 | tests/provider_management.lua |
-| 个性化固定查询序列 | 保留增长 <16 KiB | tests/search_personalization.lua |
-| 来源扩展固定样本 | 禁用注册 <128 KiB；新增目录保留 <4096 KiB；100查询分配 <4096 KiB、增长 <512 KiB；冷批次峰值 <5 ms、完成 <1.5 s，累计CPU背包 <75 ms、其他来源 <50 ms | tests/provider_expansion.lua |
-| 1000次托管query作用域 | 增长 <64 KiB；零新增框体；禁用资源归零 | tests/sdk_resources.lua |
+| TOC 首次加载，不含真实游戏引擎内存 | 原功能回收后保留 <1346 KiB；CPU <46 ms；新增正式服内容见第14–15节 | tests/performance/performance_loading.lua |
+| 内置启动及重建 | 首次累计分配 <15000 KiB、保留 <7424 KiB；重建分配 <4500 KiB；重建保留增长 <128 KiB | tests/performance/performance_startup.lua |
+| 2025 条组合目录、48 次查询 | 常驻 <7168 KiB；分配 <4096 KiB；增长 <512 KiB | tests/performance/performance_memory.lua --check |
+| 2048 次规范化及超长文本 | 分配 <1024 KiB；超长缓存保留 <512 KiB；取消候选清空 | tests/performance/performance_search.lua |
+| 10000 次边界校验 | 累计分配 <8192 KiB | tests/performance/performance_core.lua |
+| 500 条目录，100 次单条更新 | 累计分配 <768 KiB | tests/performance/perf_core_provider.lua |
+| 1000 来源、400 高视口 | 最多10行；替身保留 <1024 KiB；20次无变化刷新分配 <512 KiB；池不增长 | tests/performance/performance_ui.lua --check |
+| 最近使用100次开关、滚动、排序和复用 | 最大单轮 <5 ms；增长 <512 KiB；预热后无新增框体 | tests/ui/interaction_smoke.lua |
+| 角色设置、固定项温读取 | 各自固定10000次序列分配 <8 KiB | tests/core/character_settings.lua、tests/core/character_pins.lua |
+| 6002条成就目录 | 保留 <1024 KiB；重复查询分配 <1024 KiB、增长 <128 KiB；10次温恢复分配 <2048 KiB、增长 <64 KiB、枚举0次 | tests/providers/achievements_provider.lua |
+| 1500坐骑索引 | 保留 <8192 KiB；温查询不扫描收藏 | tests/providers/mounts_vault_smoke.lua |
+| 内置综合索引 | 固定样本保留 <8192 KiB | tests/providers/providers_smoke.lua |
+| 目录启停 | 固定循环增长 <16 KiB；至多一个有效目录任务；复用事件框体 | tests/core/catalog_lifecycle.lua、tests/providers/bosses_locale.lua |
+| Logo几何动效 | 一个复用驱动、零原生Logo动画组；固定循环分配 <64 KiB、增长 <8 KiB、冷增长 <32 KiB | tests/ui/brand_geometry.lua |
+| 背包定位 | 一个框体、五个纹理；固定循环分配 <256 KiB、增长 <32 KiB；退出无活动订阅 | tests/providers/bag_actions.lua |
+| 识别工具首次打开 | 保留 <512 KiB；最多16框体/48区域替身 | tests/providers/addon_inspector.lua |
+| 识别工具稳定扫描与100次循环 | 各固定扫描序列分配 <1024 KiB；停止增长 <64 KiB；静止跟随序列分配 <128 KiB，无重复定位/来源读取/全局枚举 | tests/providers/addon_inspector.lua |
+| EUI固定查询序列 | 分配 <40960 KiB、增长 <256 KiB；无空闲任务 | tests/providers/ellesmere_provider.lua |
+| EX固定查询序列 | 分配 <16384 KiB、增长 <256 KiB；无新增框体和空闲任务 | tests/providers/exwind_provider.lua |
+| UI组件1000次相同props更新 | 分配 <64 KiB；零新增对象、原生setter和脚本设置 | tests/ui/ui_runtime.lua |
+| 1000次视图挂载、更新、卸载 | 分配 <1000 KiB、增长 <16 KiB；仅一个复用视图框体，无context/state残留 | tests/ui/view_lifecycle.lua |
+| 公共动效2000次选择重定向 | 分配 <512 KiB；不新增动画组 | tests/ui/ui_motion.lua |
+| Provider管理1000次温列表填充 | 分配 <8 KiB；复用调用方记录 | tests/core/provider_management.lua |
+| 个性化固定查询序列 | 保留增长 <16 KiB | tests/search/search_personalization.lua |
+| 来源扩展固定样本 | 禁用注册 <128 KiB；新增目录保留 <4096 KiB；100查询分配 <4096 KiB、增长 <512 KiB；冷批次峰值 <5 ms、完成 <1.5 s，累计CPU背包 <75 ms、其他来源 <50 ms | tests/providers/provider_expansion.lua |
+| 1000次托管query作用域 | 增长 <64 KiB；零新增框体；禁用资源归零 | tests/sdk/sdk_resources.lua |
 
 用例中的不同样本不可相加成一个“插件预算”。测试中测量但未设上限的数字是观测值，不在这里臆造新阈值。更完整的业务正确性和复用断言仍须执行完整契约入口。
 
@@ -360,7 +360,7 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 
 ### 搜索缓存
 
-- Normalizer文本缓存最多1024项、单条≤256字节，超长查询不进入缓存但仍正常计算；来源失效状态至多保留当前一个有效键，取消时候选引用清空。tests/search_memory_regression.lua与performance_search.lua覆盖。
+- Normalizer文本缓存最多1024项、单条≤256字节，超长查询不进入缓存但仍正常计算；来源失效状态至多保留当前一个有效键，取消时候选引用清空。tests/search/search_memory_regression.lua与performance_search.lua覆盖。
 - 限制缓存条数不能代替限制单条文本；不通过截断用户输入改变匹配。既有元数据池128短键的额度继续见第8节。
 
 ### 查询、语言与适配器额度
@@ -429,8 +429,8 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 - 新功能增加约100 KiB回收后常驻（同路径离线基线1716.8→1818.1 KiB）。为完整技能/难度功能单列128 KiB增量额度：不含LDT组合由1346变为1474 KiB，仍<46ms；完整正式服 1858 KiB 是历史参考，内存按第 0 节审查；CPU <61ms，其他客户端与搜索 CPU、容量和正确性门禁不变。此为新增产品能力的明确代价，不宣称内存优化或零成本；详见验证记录。
 - 查询仅在活动 query 作用域运行，每128技能组/1ms检查让出；离线端到端回调<8ms。精确首领/团本/首领ID先返回，不读全量技能名；其他查询逐组读取游戏名称，最多20候选物化。原生API不可抢占，首次未缓存名称的引擎成本另行实测。
 - 待加载ID按查询去重，上限由16384技能组约束；事件订阅先于请求，同步完成也不漏。初扫结束最多等待1.5秒，随后最后重扫，不重复请求失败ID；总查询受 SDK 5秒deadline约束。输入替换、关闭、战斗、禁用、错误均取消任务/事件/deadline并清候选引用；空闲无新增活动驱动。
-- 20次完整目录混合查询累计分配<4096 KiB（同场景闭包复用由约6460降至2940 KiB）、回收后增长<128 KiB；同时测单批峰值。`tests/raid_abilities.lua` 的 zhCN/enUS 覆盖跨难度去重、不同ID同名、完整技能名与难度词歧义、准确section、异步/同步/失败/迟到加载、取消、禁用恢复和战斗。
-- `tests/journal_catalog.py` 独立解析原始导出并逐一比较全部首领/技能/难度/section，不能只验证生成器自洽。更新快照时记录client/build、ticket、完整性、原始sha与覆盖范围；导出工具及原始SV不进入运行目录。
+- 20次完整目录混合查询累计分配<4096 KiB（同场景闭包复用由约6460降至2940 KiB）、回收后增长<128 KiB；同时测单批峰值。`tests/providers/raid_abilities.lua` 的 zhCN/enUS 覆盖跨难度去重、不同ID同名、完整技能名与难度词歧义、准确section、异步/同步/失败/迟到加载、取消、禁用恢复和战斗。
+- `tests/build/journal_catalog.py` 独立解析原始导出并逐一比较全部首领/技能/难度/section，不能只验证生成器自洽。更新快照时记录client/build、ticket、完整性、原始sha与覆盖范围；导出工具及原始SV不进入运行目录。
 
 
 ## 16. 搜索文档与物化成本

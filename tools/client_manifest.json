@@ -1,5 +1,5 @@
 {
-  "version": "0.2.1",
+  "version": "0.2.2",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -38,7 +38,7 @@
       ]
     },
     {
-      "path": "Builtin/Definitions.lua",
+      "path": "Providers/Definitions.lua",
       "products": [
         "retail",
         "classic",
@@ -47,7 +47,7 @@
       ]
     },
     {
-      "path": "Builtin/Shared/Support.lua",
+      "path": "Providers/Shared/Support.lua",
       "products": [
         "retail",
         "classic",
@@ -527,7 +527,7 @@
       ]
     },
     {
-      "path": "Builtin/Shared/InterfaceActions.lua",
+      "path": "Providers/Shared/InterfaceActions.lua",
       "products": [
         "retail",
         "classic",
@@ -536,7 +536,7 @@
       ]
     },
     {
-      "path": "Builtin/Shared/CatalogLedger.lua",
+      "path": "Providers/Shared/CatalogLedger.lua",
       "products": [
         "retail",
         "classic",
@@ -545,7 +545,7 @@
       ]
     },
     {
-      "path": "Builtin/Shared/CatalogProvider.lua",
+      "path": "Providers/Shared/CatalogProvider.lua",
       "products": [
         "retail",
         "classic",
@@ -602,7 +602,7 @@
       "provider": "builtin.ldt"
     },
     {
-      "path": "Builtin/Init.lua",
+      "path": "Providers/Init.lua",
       "products": [
         "retail",
         "classic",
@@ -619,10 +619,10 @@
         "retail"
       ],
       "files": [
-        "Builtin/Exwind/Provider.lua"
+        "Providers/Exwind/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Exwind/Locales.lua"
+      "locales": "Providers/Exwind/Locales.lua"
     },
     {
       "id": "builtin.ellesmere",
@@ -631,11 +631,11 @@
         "retail"
       ],
       "files": [
-        "Builtin/Ellesmere/Adapter.lua",
-        "Builtin/Ellesmere/Provider.lua"
+        "Providers/Ellesmere/Adapter.lua",
+        "Providers/Ellesmere/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Ellesmere/Locales.lua"
+      "locales": "Providers/Ellesmere/Locales.lua"
     },
     {
       "id": "builtin.player-spells",
@@ -647,12 +647,12 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/PlayerSpells/Aliases.lua",
-        "Builtin/PlayerSpells/Provider.lua",
-        "Builtin/PlayerSpells/Init.lua"
+        "Providers/PlayerSpells/Aliases.lua",
+        "Providers/PlayerSpells/Provider.lua",
+        "Providers/PlayerSpells/Init.lua"
       ],
       "requires": [],
-      "locales": "Builtin/PlayerSpells/Locales.lua"
+      "locales": "Providers/PlayerSpells/Locales.lua"
     },
     {
       "id": "builtin.mounts",
@@ -663,13 +663,13 @@
         "titan"
       ],
       "files": [
-        "Builtin/Mounts/Provider.lua"
+        "Providers/Mounts/Provider.lua"
       ],
       "requires": [
         "C_MountJournal.GetMountIDs",
         "C_MountJournal.GetMountInfoByID"
       ],
-      "locales": "Builtin/Mounts/Locales.lua"
+      "locales": "Providers/Mounts/Locales.lua"
     },
     {
       "id": "builtin.crests",
@@ -678,10 +678,10 @@
         "retail"
       ],
       "files": [
-        "Builtin/Crests/Provider.lua"
+        "Providers/Crests/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Crests/Locales.lua"
+      "locales": "Providers/Crests/Locales.lua"
     },
     {
       "id": "builtin.game-menus",
@@ -693,10 +693,10 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/GameMenus/Provider.lua"
+        "Providers/GameMenus/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/GameMenus/Locales.lua"
+      "locales": "Providers/GameMenus/Locales.lua"
     },
     {
       "id": "builtin.bosses",
@@ -705,11 +705,11 @@
         "retail"
       ],
       "files": [
-        "Builtin/Bosses/JournalCatalog.lua",
-        "Builtin/Bosses/Provider.lua"
+        "Providers/Bosses/JournalCatalog.lua",
+        "Providers/Bosses/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Bosses/Locales.lua"
+      "locales": "Providers/Bosses/Locales.lua"
     },
     {
       "id": "builtin.great-vault",
@@ -718,10 +718,10 @@
         "retail"
       ],
       "files": [
-        "Builtin/GreatVault/Provider.lua"
+        "Providers/GreatVault/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/GreatVault/Locales.lua"
+      "locales": "Providers/GreatVault/Locales.lua"
     },
     {
       "id": "builtin.bags",
@@ -733,13 +733,13 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/Bags/Provider.lua"
+        "Providers/Bags/Provider.lua"
       ],
       "requires": [
         "C_Container.GetContainerNumSlots",
         "C_Container.GetContainerItemInfo"
       ],
-      "locales": "Builtin/Bags/Locales.lua"
+      "locales": "Providers/Bags/Locales.lua"
     },
     {
       "id": "builtin.talent-loadouts",
@@ -748,10 +748,10 @@
         "retail"
       ],
       "files": [
-        "Builtin/TalentLoadouts/Provider.lua"
+        "Providers/TalentLoadouts/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/TalentLoadouts/Locales.lua"
+      "locales": "Providers/TalentLoadouts/Locales.lua"
     },
     {
       "id": "builtin.equipment-sets",
@@ -762,14 +762,14 @@
         "titan"
       ],
       "files": [
-        "Builtin/EquipmentSets/Provider.lua"
+        "Providers/EquipmentSets/Provider.lua"
       ],
       "requires": [
         "C_EquipmentSet.GetEquipmentSetIDs",
         "C_EquipmentSet.GetEquipmentSetInfo",
         "C_EquipmentSet.UseEquipmentSet"
       ],
-      "locales": "Builtin/EquipmentSets/Locales.lua"
+      "locales": "Providers/EquipmentSets/Locales.lua"
     },
     {
       "id": "builtin.blizzard-settings",
@@ -781,21 +781,14 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/BlizzardSettings/Provider.lua",
-        "Builtin/Audio/Locales.lua",
-        "Builtin/Audio/Language.lua",
-        "Builtin/Audio/Adapter.lua",
-        "Builtin/Audio/View.lua",
-        "Builtin/Audio/Provider.lua",
-        "Builtin/BlizzardSettings/Graphics.lua",
-        "Builtin/BlizzardSettings/Adapter.lua",
-        "Builtin/BlizzardSettings/Aliases.lua",
-        "Builtin/BlizzardSettings/Language.lua",
-        "Builtin/BlizzardSettings/View.lua",
-        "Builtin/BlizzardSettings/Invocations.lua"
+        "Providers/BlizzardSettings/Provider.lua",
+        "Providers/BlizzardSettings/Graphics.lua",
+        "Providers/BlizzardSettings/Adapter.lua",
+        "Providers/BlizzardSettings/Aliases.lua",
+        "Providers/BlizzardSettings/Language.lua"
       ],
       "requires": [],
-      "locales": "Builtin/BlizzardSettings/Locales.lua"
+      "locales": "Providers/BlizzardSettings/Locales.lua"
     },
     {
       "id": "builtin.keystones",
@@ -804,10 +797,10 @@
         "retail"
       ],
       "files": [
-        "Builtin/Keystones/Provider.lua"
+        "Providers/Keystones/Provider.lua"
       ],
       "requires": [],
-      "locales": "Builtin/Keystones/Locales.lua"
+      "locales": "Providers/Keystones/Locales.lua"
     },
     {
       "id": "builtin.achievements",
@@ -818,7 +811,7 @@
         "titan"
       ],
       "files": [
-        "Builtin/Achievements/Provider.lua"
+        "Providers/Achievements/Provider.lua"
       ],
       "requires": [
         "GetCategoryList",
@@ -827,7 +820,7 @@
         "GetAchievementNumCriteria",
         "GetAchievementLink"
       ],
-      "locales": "Builtin/Achievements/Locales.lua"
+      "locales": "Providers/Achievements/Locales.lua"
     },
     {
       "id": "builtin.addon-inspector",
@@ -839,13 +832,13 @@
         "anniversary"
       ],
       "files": [
-        "Builtin/AddonInspector/Picker.lua",
-        "Builtin/AddonInspector/Provider.lua"
+        "Providers/AddonInspector/Picker.lua",
+        "Providers/AddonInspector/Provider.lua"
       ],
       "requires": [
         "GetMouseFoci"
       ],
-      "locales": "Builtin/AddonInspector/Locales.lua"
+      "locales": "Providers/AddonInspector/Locales.lua"
     },
     {
       "id": "builtin.ldt",
@@ -854,15 +847,15 @@
         "retail"
       ],
       "files": [
-        "Builtin/LDT/Data.lua",
-        "Builtin/LDT/Catalog.lua",
-        "Builtin/LDT/View.lua",
-        "Builtin/LDT/Provider.lua"
+        "Providers/LDT/Data.lua",
+        "Providers/LDT/Catalog.lua",
+        "Providers/LDT/View.lua",
+        "Providers/LDT/Provider.lua"
       ],
       "requires": [
         "C_Spell.GetSpellName"
       ],
-      "locales": "Builtin/LDT/Locales.lua"
+      "locales": "Providers/LDT/Locales.lua"
     }
   ]
 }

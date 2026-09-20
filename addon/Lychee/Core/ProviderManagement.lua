@@ -40,7 +40,7 @@ local function writable(id, token)
 end
 
 local L = I.Locale
-local builtinOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
+local moduleOrder = { ["builtin.player-spells"]=1, ["builtin.mounts"]=2, ["builtin.bosses"]=3,
     ["builtin.game-menus"]=4,["builtin.crests"]=5,["builtin.great-vault"]=6,
     ["builtin.bags"]=7,["builtin.talent-loadouts"]=8,["builtin.equipment-sets"]=9,
     ["builtin.blizzard-settings"]=10,["builtin.keystones"]=11,["builtin.achievements"]=12,["builtin.addon-inspector"]=13 }
@@ -77,9 +77,9 @@ local providerIcons = {
     ["builtin.achievements"] = iconRoot .. "achievements.tga",
     ["builtin.addon-inspector"] = iconRoot .. "addon-inspector.tga",
 }
-builtinOrder["builtin.ldt"]=14
-builtinOrder["builtin.exwind"]=15
-builtinOrder["builtin.ellesmere"]=16
+moduleOrder["builtin.ldt"]=14
+moduleOrder["builtin.exwind"]=15
+moduleOrder["builtin.ellesmere"]=16
 providerDescriptions["builtin.ldt"]=L["搜索地下城怪物和技能并查看资料"]
 providerIcons["builtin.ldt"]=iconRoot.."skull.tga"
 
@@ -88,8 +88,8 @@ local function summary(out, id, entry, state)
     out.id, out.instanceToken = id, entry.instanceToken
     out.title = I.Locale and I.Locale:Resolve(definition.title, id) or definition.title or id
     out.version, out.searchable = definition.version, definition.searchable ~= false
-    out.builtin = builtinOrder[id] ~= nil
-    out.order = builtinOrder[id] or 100
+    out.builtin = moduleOrder[id] ~= nil
+    out.order = moduleOrder[id] or 100
     out.description = definition.description or providerDescriptions[id]
     out.icon = definition.icon or providerIcons[id]
     out.sourceID = out.builtin and "builtin" or "external"

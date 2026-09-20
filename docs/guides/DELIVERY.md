@@ -16,6 +16,10 @@ powershell -NoProfile -File tests/check_contract.ps1
 
 新增/移除运行资源必须同步 `tools/release_manifest.json`；该清单包含运行Lua/XML/TOC、媒体与许可证。TOC加载顺序只在 `tools/client_manifest.json` 维护，两个清单分别回答“随包交付什么”和“客户端加载什么”，不是两个加载入口。门禁拒绝漏文件、未声明文件和越界路径。
 
+## 版本号
+
+插件采用 `x.y.z`：小更新递增 `z`；大更新递增 `y` 并清零 `z`；`x` 仅在用户明确要求时升级。唯一版本声明是 `tools/client_manifest.json`，生成 TOC 并同步 README 版本标记。SDK / Provider API 独立版本，不随插件整理自动变化。
+
 ## 发布产物
 
 ```powershell
@@ -76,6 +80,6 @@ python tools/migrate_single_addon_saves.py --host "D:/Backups/Lychee/Character/L
 
 工具**不会自动写游戏 WTF，不会安装候选文件，也不会执行任何游戏动作**。审查和备份核对完成后，保持游戏完全退出，另行将确认后的候选部署到对应角色；不要覆盖其他角色或账号存档。随后按上节步骤做 lychee-dev 恢复与功能验收。转换失败时原始存档仍是回退依据，不能以脚本成功或哈希正确代替实机恢复成功。
 
-工具回归：[合成存档测试](../../tests/single_addon_save_migration.py)，运行 `python tests/single_addon_save_migration.py`；该测试不读取真实 WTF。
+工具回归：[合成存档测试](../../tests/build/single_addon_save_migration.py)，运行 `python tests/build/single_addon_save_migration.py`；该测试不读取真实 WTF。
 
 完整开发和验收说明见[开发与验证](DEVELOPMENT.md)，性能约束见[PERFORMANCE.md](../../PERFORMANCE.md)。

@@ -11,3 +11,5 @@
 | [1 MiB 探索](2026-09-12-one-mib-exploration.md) | 历史探索；全项目静默常驻小于 1 MiB 已不作为硬目标 |
 
 其他带日期文件是当时快照，未逐项复审的记录不标为当前规范。旧 `package/Lychee` 路径现对应 `addon/Lychee`；旧 SDK 根目录专题现位于 `lychee-sdk/docs`。查历史源码使用报告记录的 commit，不用当前文件替代当时证据。
+
+0.2.2 目录整理：旧 `Builtin/` 现为 `Providers/`；旧 `docs/architecture/raid-journal/` 的构建快照移到 `assets/data/raid-journal/`，字节不变。历史测试路径按职责移到 `tests` 子目录；历史报告中的原路径可通过记录的 commit 查阅。

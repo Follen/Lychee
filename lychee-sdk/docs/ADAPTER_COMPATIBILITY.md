@@ -8,7 +8,7 @@
 
 ## 当前 Elles 适配契约
 
-`addon/Lychee/Builtin/Ellesmere/Adapter.lua` 在适配插件内部集中版本敏感访问；Provider 保留查询、稳定 ID、捕获容量、排序与取消。此路径仅说明本仓库实现，不是第三方需要遵循或导入的目录契约。
+`addon/Lychee/Providers/Ellesmere/Adapter.lua` 在适配插件内部集中版本敏感访问；Provider 保留查询、稳定 ID、捕获容量、排序与取消。此路径仅说明本仓库实现，不是第三方需要遵循或导入的目录契约。
 以下是Lychee内部维护接口，不是第三方SDK的新公开字段：
 
 | 上游能力 | 用途 | 不可用时 |
@@ -46,5 +46,5 @@ resolvedCommit=271ffc30d3265d9f77746b0e15224d918f0fafcb。
 上游升级时：先source check并查对应版本，再跑缺失/异常/重试/页面变化与真实导航参数测试；
 同时比较完整结果、顺序、resolve和动作参数，不能只看“没有报错”。历史44组对照基于优化前3b0af04，不代表本分支或更新后的上游已经通过实机验收。
 
-在完整源码仓库根目录运行 `lua tests/ellesmere_adapter.lua`、`lua tests/ellesmere_equivalence.lua` 和 `lua tests/ellesmere_provider.lua`；独立 SDK 包不包含这些项目测试。
+在完整源码仓库根目录运行 `lua tests/providers/ellesmere_adapter.lua`、`lua tests/providers/ellesmere_equivalence.lua` 和 `lua tests/providers/ellesmere_provider.lua`；独立 SDK 包不包含这些项目测试。
 离线通过不证明新版游戏与全部第三方版本可用；游戏内仍需验证首次打开、分区定位、selector及解锁。

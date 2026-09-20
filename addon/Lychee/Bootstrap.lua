@@ -71,7 +71,7 @@ local function onLogin()
         end
     end
     wireRegistryLifecycle()
-    if I.Builtin and I.Builtin.Init then I.Builtin:Init() end
+    if I.ProviderModules and I.ProviderModules.Init then I.ProviderModules:Init() end
     if I.Registry then I.Registry:SetReady(true) end
     local palette = I.Host and I.Host.PaletteController
     if palette then I.WirePalette(palette) end

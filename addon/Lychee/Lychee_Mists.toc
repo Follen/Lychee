@@ -7,25 +7,25 @@
 ## Notes-zhTW: 魔兽世界万用启动器
 ## Author: Lychee
 ## IconTexture: Interface\AddOns\Lychee\Media\lychee-logo.tga
-## Version: 0.2.1
+## Version: 0.2.2
 ## SavedVariables: LycheeDB
 ## SavedVariablesPerCharacter: LycheeCharacterDB
 ## Bindings: Bindings.xml
 
 Bootstrap.lua
 Core/CharacterStore.lua
-Builtin/Definitions.lua
-Builtin/Shared/Support.lua
+Providers/Definitions.lua
+Providers/Shared/Support.lua
 Core/ProviderLocales.lua
 Locales/UI.enUS.lua
-Builtin/PlayerSpells/Locales.lua
-Builtin/Mounts/Locales.lua
-Builtin/GameMenus/Locales.lua
-Builtin/Bags/Locales.lua
-Builtin/EquipmentSets/Locales.lua
-Builtin/BlizzardSettings/Locales.lua
-Builtin/Achievements/Locales.lua
-Builtin/AddonInspector/Locales.lua
+Providers/PlayerSpells/Locales.lua
+Providers/Mounts/Locales.lua
+Providers/GameMenus/Locales.lua
+Providers/Bags/Locales.lua
+Providers/EquipmentSets/Locales.lua
+Providers/BlizzardSettings/Locales.lua
+Providers/Achievements/Locales.lua
+Providers/AddonInspector/Locales.lua
 Core/ContextStore.lua
 Search/RuntimeIdentity.lua
 Search/Normalizer.lua
@@ -76,29 +76,22 @@ UI/AddonInspector.lua
 UI/HomeView.lua
 UI/SocialLinks.lua
 UI/Palette.lua
-Builtin/Shared/InterfaceActions.lua
-Builtin/Shared/CatalogLedger.lua
-Builtin/Shared/CatalogProvider.lua
-Builtin/PlayerSpells/Aliases.lua
-Builtin/PlayerSpells/Provider.lua
-Builtin/PlayerSpells/Init.lua
-Builtin/Mounts/Provider.lua
-Builtin/GameMenus/Provider.lua
-Builtin/Bags/Provider.lua
-Builtin/EquipmentSets/Provider.lua
-Builtin/BlizzardSettings/Provider.lua
-Builtin/Audio/Locales.lua
-Builtin/Audio/Language.lua
-Builtin/Audio/Adapter.lua
-Builtin/Audio/View.lua
-Builtin/Audio/Provider.lua
-Builtin/BlizzardSettings/Graphics.lua
-Builtin/BlizzardSettings/Adapter.lua
-Builtin/BlizzardSettings/Aliases.lua
-Builtin/BlizzardSettings/Language.lua
-Builtin/BlizzardSettings/View.lua
-Builtin/BlizzardSettings/Invocations.lua
-Builtin/Achievements/Provider.lua
-Builtin/AddonInspector/Picker.lua
-Builtin/AddonInspector/Provider.lua
-Builtin/Init.lua
+Providers/Shared/InterfaceActions.lua
+Providers/Shared/CatalogLedger.lua
+Providers/Shared/CatalogProvider.lua
+Providers/PlayerSpells/Aliases.lua
+Providers/PlayerSpells/Provider.lua
+Providers/PlayerSpells/Init.lua
+Providers/Mounts/Provider.lua
+Providers/GameMenus/Provider.lua
+Providers/Bags/Provider.lua
+Providers/EquipmentSets/Provider.lua
+Providers/BlizzardSettings/Provider.lua
+Providers/BlizzardSettings/Graphics.lua
+Providers/BlizzardSettings/Adapter.lua
+Providers/BlizzardSettings/Aliases.lua
+Providers/BlizzardSettings/Language.lua
+Providers/Achievements/Provider.lua
+Providers/AddonInspector/Picker.lua
+Providers/AddonInspector/Provider.lua
+Providers/Init.lua

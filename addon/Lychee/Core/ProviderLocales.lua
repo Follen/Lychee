@@ -110,27 +110,27 @@ function P:Compile(resources, field)
 end
 -- Fixed built-in namespace: third-party Compile never enters this cache.
 
-local builtinCache = {}
-local builtinMeta = {__index=function(self,key)
+local moduleCache = {}
+local moduleMeta = {__index=function(self,key)
     local method=Translator[key]
     if method then return method end
     return self.dictionary[key] or key
 end}
-function P:Builtin(id)
-    if not (I.Builtin and I.Builtin.Support and I.Builtin.Support:Known(id)) then return failure("INVALID_LOCALE_KEY","i18n."..tostring(id)) end
-    local resources=I.BuiltinLocaleData and I.BuiltinLocaleData[id]
+function P:Module(id)
+    if not (I.ProviderModules and I.ProviderModules.Support and I.ProviderModules.Support:Known(id)) then return failure("INVALID_LOCALE_KEY","i18n."..tostring(id)) end
+    local resources=I.ProviderLocaleData and I.ProviderLocaleData[id]
     local locale=I.Locale and I.Locale.code or (type(GetLocale)=="function" and GetLocale()) or "enUS"
-    local cached=builtinCache[id]
+    local cached=moduleCache[id]
     if cached and cached.resources==resources and cached.locale==locale
         and cached.enUS==resources.enUS and cached.zhCN==resources.zhCN
         and cached.zhTW==resources.zhTW and cached.enGB==resources.enGB then return cached.translator end
     -- Resource tables are immutable after publishing. Replace the table to invalidate.
-    builtinCache[id]=nil
+    moduleCache[id]=nil
     local translator,err=self:Compile(resources,"i18n."..id)
     if not translator then return nil,err end
     translator.resources=resources
-    setmetatable(translator,builtinMeta)
-    builtinCache[id]={resources=resources,locale=locale,translator=translator,
+    setmetatable(translator,moduleMeta)
+    moduleCache[id]={resources=resources,locale=locale,translator=translator,
         enUS=resources.enUS,zhCN=resources.zhCN,zhTW=resources.zhTW,enGB=resources.enGB}
     return translator
 end

@@ -78,7 +78,7 @@ local ok, err = settings:Migrate()
 
 ## 单插件内置模块与第三方
 
-当前发行只包含 `addon/Lychee` 一个原生 AddOn。Host 框架偏好与内置业务数据在逻辑上分开：各 Builtin 模块拥有自己的专用命名空间、schema、失效规则和迁移责任；通用搜索层不能扫描或复制所有业务 DB。不要把同包命名空间称作原生独立 SavedVariables，更不能声称关闭页面能卸载它。
+当前发行只包含 `addon/Lychee` 一个原生 AddOn。Host 框架偏好与内置业务数据在逻辑上分开：各 Provider 模块拥有自己的专用命名空间、schema、失效规则和迁移责任；通用搜索层不能扫描或复制所有业务 DB。不要把同包命名空间称作原生独立 SavedVariables，更不能声称关闭页面能卸载它。
 
 第三方仍是独立 AddOn，自有 TOC、SV、代码和媒体。它可以嵌入 Storage.lua；不能读取 `LycheeInternal`、借用 Host 业务存档或引用 Host 私有媒体。成就这种大型缓存使用所属模块的专用 schema，不扩大通用设置容量。
 

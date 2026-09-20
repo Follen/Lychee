@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def current_documents(root: Path) -> list[Path]:
     result = list(root.glob("*.md")) + list((root / "docs").glob("*.md"))
-    for folder in ("docs/guides", "lychee-sdk"):
+    for folder in ("docs/guides", "lychee-sdk", "assets"):
         result.extend((root / folder).rglob("*.md"))
     for name in ("tools/README.md", "tests/README.md", "tests/LIFECYCLE_ACCEPTANCE.md",
                  "docs/architecture/README.md", "docs/validation/README.md"):
@@ -63,6 +63,8 @@ def check(root: Path) -> list[str]:
     errors = document_errors(root, current_documents(root))
     if not (root / "addon/Lychee/Lychee.toc").is_file() or (root / "package/Lychee").exists():
         errors.append("runtime source must exist only at addon/Lychee")
+    if (root / "addon/Lychee/Builtin").exists():
+        errors.append("provider source belongs in addon/Lychee/Providers")
     if not (root / "PERFORMANCE.md").is_file() or not (root / "DESIGN.md").is_file():
         errors.append("canonical PERFORMANCE.md and DESIGN.md must exist")
     for p in root.glob("*.md"):

@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $toc = Join-Path $root 'addon/Lychee/Lychee.toc'
 $tocLines = Get-Content $toc | Where-Object { $_ -and $_ -notmatch '^##' }
@@ -23,7 +23,7 @@ if ($tocSource -notmatch '(?m)^## Bindings:\s*Bindings\.xml\s*$') { throw 'TOC m
 if ($tocSource -match '(?m)^Bindings\.xml\s*$') { throw 'Bindings.xml must not be listed as a normal TOC file' }
 $bindings = Get-Content (Join-Path $root 'addon/Lychee/Bindings.xml') -Raw
 if ($bindings -notmatch '<Binding\s+name="TOGGLELYCHEE"\s+category="BINDING_HEADER_LYCHEE"') { throw 'Lychee binding declaration missing' }
-$playerSpells = Get-Content (Join-Path $root 'addon/Lychee/Builtin/PlayerSpells/Init.lua') -Raw
+$playerSpells = Get-Content (Join-Path $root 'addon/Lychee/Providers/PlayerSpells/Init.lua') -Raw
 if ($playerSpells -match 'LEARNED_SPELL_IN_TAB') { throw 'Legacy spell learned event must not be registered' }
 if ($playerSpells -notmatch 'LEARNED_SPELL_IN_SKILL_LINE') { throw 'Retail spell learned event missing' }
 if ($playerSpells -match 'Registry:Begin|RegisterSearchSource|RegisterCommand|RegisterCapabilityProvider|RegisterIntentHandler|RegisterPanelFactory') { throw 'PlayerSpells must use the public Provider facade' }
@@ -39,7 +39,7 @@ if ($bootstrapSource -match 'palette\.(session|generation)') { throw 'Bootstrap 
 $querySource = Get-Content (Join-Path $root 'addon/Lychee/Search/QueryOrchestrator.lua') -Raw
 if ($querySource -match 'I\.(Catalog|Broker|Router)') { throw 'QueryOrchestrator must use Provider results only' }
 if ($querySource -match 'self\.generation|local\s+Q\s*=\s*\{[^\r\n]*generation\s*=|_BeginGeneration|function\s+Q:Invalidate') { throw 'SearchSession must be the only query generation owner' }
-$playerSpellRuntime = (Get-Content (Join-Path $root 'addon/Lychee/Builtin/PlayerSpells/Init.lua') -Raw) + (Get-Content (Join-Path $root 'addon/Lychee/Builtin/PlayerSpells/Provider.lua') -Raw)
+$playerSpellRuntime = (Get-Content (Join-Path $root 'addon/Lychee/Providers/PlayerSpells/Init.lua') -Raw) + (Get-Content (Join-Path $root 'addon/Lychee/Providers/PlayerSpells/Provider.lua') -Raw)
 if ($playerSpellRuntime -match 'StaticIndex|searchSourceID|sourceGeneration') { throw 'PlayerSpells must update through its committed SearchSource handle' }
 $scheduler = Get-Content (Join-Path $root 'addon/Lychee/Core/Scheduler.lua') -Raw
 if ($scheduler -notmatch 'driver|swap-remove|Hide') { throw 'Shared scheduler lifecycle markers missing' }
@@ -63,34 +63,34 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Repository documentation/layout checks failed' }
     & python 'tools/build_enemy_catalog.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'LDT catalogue generation drift' }
-    & python 'tests/ldt_data.py'
+    & python 'tests/build/ldt_data.py'
     if ($LASTEXITCODE -ne 0) { throw 'LDT factual data/client scope checks failed' }
-    & $lua.Source 'tests/performance_loading.lua' 'Mainline' 'addon/Lychee' '--baseline'
+    & $lua.Source 'tests/performance/performance_loading.lua' 'Mainline' 'addon/Lychee' '--baseline'
     if ($LASTEXITCODE -ne 0) { throw 'Original runtime loading budget failed' }
-    & $lua.Source 'tests/ldt_provider.lua'
+    & $lua.Source 'tests/providers/ldt_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw 'LDT Provider lifecycle/performance checks failed' }
     & python 'tools/build_release.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Release archive checks failed' }
-    & python 'tests/single_addon_save_migration.py'
+    & python 'tests/build/single_addon_save_migration.py'
     if ($LASTEXITCODE -ne 0) { throw 'Saved reference migration checks failed' }
-    & python 'tests/repository_delivery.py'
+    & python 'tests/build/repository_delivery.py'
     if ($LASTEXITCODE -ne 0) { throw 'Repository delivery regression failed' }
     & python 'tools/build_sdk.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'SDK delivery declaration drift' }
-    & python 'tests/sdk_delivery.py'
+    & python 'tests/build/sdk_delivery.py'
     if ($LASTEXITCODE -ne 0) { throw 'SDK delivery mutation checks failed' }
-    foreach ($test in @('pin_restore','navigation_binding','catalog_ledger','result_snapshot','provider_management')) {
+    foreach ($test in @('core/pin_restore','ui/navigation_binding','core/catalog_ledger','core/result_snapshot','core/provider_management')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('bootstrap_storage_preservation','ui/search_presentation','sdk/sdk_storage','sdk/compact_store','sdk/cold_example','sdk/metadata','search/preference_candidates','search/invocation_preferences')) {
+    foreach ($test in @('core/bootstrap_storage_preservation','ui/search_presentation','sdk/sdk_storage','sdk/compact_store','sdk/cold_example','sdk/metadata','search/preference_candidates','search/invocation_preferences')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    & $lua.Source 'tests/character_settings.lua'
+    & $lua.Source 'tests/core/character_settings.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character settings/defaults checks failed' }
     foreach ($scenario in @('absent','disabled','installed','error','classic')) {
-        & $lua.Source 'tests/provider_defaults.lua' $scenario
+        & $lua.Source 'tests/core/provider_defaults.lua' $scenario
         if ($LASTEXITCODE -ne 0) { throw "Provider default/scope checks failed: $scenario" }
     }
     foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
@@ -99,25 +99,25 @@ try {
         & $lua.Source 'tests/ui/history_actions.lua' $locale
         if ($LASTEXITCODE -ne 0) { throw "History action checks failed: $locale" }
     }
-    & $lua.Source 'tests/character_pins.lua'
+    & $lua.Source 'tests/core/character_pins.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Character pin isolation checks failed' }
     & python 'tools/build_client_tocs.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Client TOC generation drift' }
-    & python 'tests/client_manifest.py'
+    & python 'tests/build/client_manifest.py'
     if ($LASTEXITCODE -ne 0) { throw 'Client manifest checks failed' }
     & python 'tools/build_journal_catalog.py' '--check'
     if ($LASTEXITCODE -ne 0) { throw 'Journal catalogue generation drift' }
-    & python 'tests/journal_catalog.py'
+    & python 'tests/build/journal_catalog.py'
     if ($LASTEXITCODE -ne 0) { throw 'Journal catalogue equivalence failed' }
-    & $lua.Source 'tests/raid_abilities.lua'
+    & $lua.Source 'tests/providers/raid_abilities.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Raid abilities zhCN failed' }
-    & $lua.Source 'tests/raid_abilities.lua' 'enUS'
+    & $lua.Source 'tests/providers/raid_abilities.lua' 'enUS'
     if ($LASTEXITCODE -ne 0) { throw 'Raid abilities enUS failed' }
-    foreach ($test in @('performance_loading','view_lifecycle','ellesmere_adapter','ellesmere_equivalence')) {
+    foreach ($test in @('performance/performance_loading','ui/view_lifecycle','providers/ellesmere_adapter','providers/ellesmere_equivalence')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    foreach ($test in @('test_assembly','sdk_resources','provider_locales','provider_locale_ownership','catalog_lifecycle','client_contract','client_builtins','bosses_locale','client_toc_load','i18n_ui')) {
+    foreach ($test in @('integration/test_assembly','sdk/sdk_resources','core/provider_locales','core/provider_locale_ownership','core/catalog_lifecycle','integration/client_contract','integration/client_providers','providers/bosses_locale','integration/client_toc_load','ui/i18n_ui')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
@@ -125,75 +125,75 @@ try {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    & $lua.Source 'tests/provider_sdk_smoke.lua'
+    & $lua.Source 'tests/sdk/provider_sdk_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider SDK smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/framework_sdk_smoke.lua'
+    & $lua.Source 'tests/sdk/framework_sdk_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Registry boundary smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/addon_inspector_picker.lua'
+    & $lua.Source 'tests/providers/addon_inspector_picker.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Addon inspector picker failed' }
-    & $lua.Source 'tests/smoke.lua'
+    & $lua.Source 'tests/integration/smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Built-in/SDK integration smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/builtin_providers_smoke.lua'
+    & $lua.Source 'tests/providers/providers_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Built-in providers smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/mounts_vault_smoke.lua'
+    & $lua.Source 'tests/providers/mounts_vault_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Mounts/vault smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/default_binding_smoke.lua'
+    & $lua.Source 'tests/ui/default_binding_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Default binding smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/ui_library_integration.lua'
+    & $lua.Source 'tests/ui/ui_library_integration.lua'
     if ($LASTEXITCODE -ne 0) { throw "Interaction smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/result_list_ui_smoke.lua'
+    & $lua.Source 'tests/ui/result_list_ui_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Result list UI smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/search_personalization.lua'
+    & $lua.Source 'tests/search/search_personalization.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Search personalization failed' }
-    & $lua.Source 'tests/search_platform_smoke.lua'
+    & $lua.Source 'tests/search/search_platform_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search platform smoke failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/search_session_smoke.lua'
+    & $lua.Source 'tests/search/search_session_smoke.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search session smoke failed with exit code $LASTEXITCODE" }
-    foreach ($test in @('search_quality','search_ranking_regression','search_lifecycle_regression')) {
+    foreach ($test in @('search/search_quality','search/search_ranking_regression','search/search_lifecycle_regression')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    & $lua.Source 'tests/search_checkpoint.lua'
+    & $lua.Source 'tests/search/search_checkpoint.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Search checkpoint failed' }
-    & $lua.Source 'tests/search_memory_regression.lua'
+    & $lua.Source 'tests/search/search_memory_regression.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search memory regression failed with exit code $LASTEXITCODE" }
-    foreach ($test in @('performance_startup','search_compile_regression','provider_record_ownership','provider_ingestion','ui_runtime')) {
+    foreach ($test in @('performance/performance_startup','search/search_compile_regression','core/provider_record_ownership','core/provider_ingestion','ui/ui_runtime')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }
     }
-    & $lua.Source 'tests/performance_memory.lua' '--check'
+    & $lua.Source 'tests/performance/performance_memory.lua' '--check'
     if ($LASTEXITCODE -ne 0) { throw "Memory budget failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/performance_search.lua'
+    & $lua.Source 'tests/performance/performance_search.lua'
     if ($LASTEXITCODE -ne 0) { throw "Search lifecycle budget failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/performance_ui.lua' '--check'
+    & $lua.Source 'tests/performance/performance_ui.lua' '--check'
     if ($LASTEXITCODE -ne 0) { throw "UI pool budget failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/performance_core.lua'
+    & $lua.Source 'tests/performance/performance_core.lua'
     if ($LASTEXITCODE -ne 0) { throw "Core lifecycle budget failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/perf_core_provider.lua'
+    & $lua.Source 'tests/performance/perf_core_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider workload budget failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/performance_builtin_secure.lua'
+    & $lua.Source 'tests/performance/performance_provider_secure.lua'
     if ($LASTEXITCODE -ne 0) { throw "Built-in lifecycle budget failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/perf_builtin_secure_events.lua'
+    & $lua.Source 'tests/performance/perf_provider_secure_events.lua'
     if ($LASTEXITCODE -ne 0) { throw "Secure event lifecycle failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/provider_expansion.lua' '--defaults'
+    & $lua.Source 'tests/providers/provider_expansion.lua' '--defaults'
     if ($LASTEXITCODE -ne 0) { throw 'Provider default activation failed' }
-    & $lua.Source 'tests/provider_expansion.lua'
+    & $lua.Source 'tests/providers/provider_expansion.lua'
     if ($LASTEXITCODE -ne 0) { throw "Provider expansion failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/presence_geometry.lua'
+    & $lua.Source 'tests/ui/presence_geometry.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Presence geometry checks failed' }
-    & $lua.Source 'tests/ui_motion.lua'
+    & $lua.Source 'tests/ui/ui_motion.lua'
     if ($LASTEXITCODE -ne 0) { throw "UI motion lifecycle failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/brand_motion.lua'
+    & $lua.Source 'tests/ui/brand_motion.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Brand motion lifecycle or allocation budget failed' }
-    & $lua.Source 'tests/bag_actions.lua'
+    & $lua.Source 'tests/providers/bag_actions.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Bag actions failed' }
-    & $lua.Source 'tests/addon_inspector.lua'
+    & $lua.Source 'tests/providers/addon_inspector.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Addon inspector failed' }
-    & $lua.Source 'tests/achievements_provider.lua'
+    & $lua.Source 'tests/providers/achievements_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw "Achievements Provider failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/ellesmere_provider.lua'
+    & $lua.Source 'tests/providers/ellesmere_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw "Ellesmere Provider failed with exit code $LASTEXITCODE" }
-    & $lua.Source 'tests/exwind_provider.lua'
+    & $lua.Source 'tests/providers/exwind_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw "Exwind Provider failed with exit code $LASTEXITCODE" }
 } finally {
     Pop-Location

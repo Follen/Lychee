@@ -1,2 +1,0 @@
--- Retired: Blizzard settings only opens native settings.
--- Keep this inert TOC slot to preserve the installed load manifest.

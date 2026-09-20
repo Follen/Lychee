@@ -67,7 +67,7 @@ local function searchEnabled(id, sources)
         if I.Search.RuntimeIdentity:MatchesScope(source.scope) then supported=true;break end
     end
     if not supported then return false end
-    local support = I.Builtin and I.Builtin.Support
+    local support = I.ProviderModules and I.ProviderModules.Support
     local defaultEnabled = not support or support:DefaultSearchEnabled(id)
     return I.CharacterStore:ProviderSearchEnabled(id, defaultEnabled)
 end

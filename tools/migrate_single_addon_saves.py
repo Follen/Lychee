@@ -8,9 +8,10 @@ only after review, with WoW exited. Account and other characters are not inferre
 
 Proven reference contracts (donor f715f0a -> single-addon port):
 PlayerSpells/Provider.lua BuildSearchRecords keeps spell:<ID>, cast/spellID.
-Audio/Provider.lua keeps set-volume v1, target v1 {channel}, integer percent.
-BlizzardSettings/Invocations.lua keeps setting-/stage- actions v1 and target v1
-{setting}; Adapter must still resolve the target, so no execution occurs here.
+Historical Audio/Provider.lua (retired in 0.2.2) defined set-volume v1, target v1 {channel}, integer percent.
+Historical BlizzardSettings/Invocations.lua defined setting-/stage- actions v1
+and target v1 {setting}. Retired actions remain unavailable at runtime; this
+migration only preserves their references and never executes them.
 All 16 bundled module identities are whitelisted for preferences; ordinary entry
 patterns preserve their original IDs. Unknown actions/records are retained.
 Business settings have no proved consuming migration in this port: preserve and
@@ -32,7 +33,7 @@ MAX_FILE = 32 * 1024 * 1024
 SPACE = re.compile(r"\s+|--[^\r\n]*")
 IDENT = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 NUMBER = re.compile(r"-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?")
-# Provider ownership proved by corresponding Builtin Definitions and donor
+# Provider ownership proved by corresponding Provider Definitions and donor
 # modules. Preference mapping is independent of individual record recoverability.
 PROVIDERS = {"lychee."+name: "builtin."+name for name in ('player-spells', 'blizzard-settings', 'mounts', 'achievements', 'bags', 'talent-loadouts', 'equipment-sets', 'bosses', 'ldt', 'keystones', 'game-menus', 'crests', 'great-vault', 'addon-inspector', 'ellesmere', 'exwind')}
 # Both versions retain these ID builders and consume the same payload in their
@@ -67,7 +68,7 @@ def ordinary_entry(owner, entry):
         return entry == 'unlock' or re.fullmatch('(?:app|tool)/'+ENCODED_SEGMENT+'|edit/'+ENCODED_SEGMENT+'/'+ENCODED_SEGMENT,entry) is not None
     return False
 # Audited against donor f715f0a. Paths are relative to each package's module;
-# the current counterpart is addon/Lychee/Builtin/<module>/<file>.
+# the current counterpart is addon/Lychee/Providers/<module>/<file>.
 REFERENCE_EVIDENCE = {
     'player-spells':'PlayerSpells/Provider.lua:252,266; spell ID -> secure cast',
     'mounts':'Mounts/Provider.lua:23-25; mount ID -> summon spell',
@@ -84,7 +85,7 @@ REFERENCE_EVIDENCE = {
     'addon-inspector':'AddonInspector/Provider.lua:320-327 (donor Lychee_Inspector/Provider.lua); inspect -> inspector',
     'ellesmere':'Ellesmere/Provider.lua pageID/optionID/Resolve/actions; same encoding/hash -> revalidated page',
     'exwind':'Exwind/Provider.lua destinations/Find/Resolve/actions; app/tool/edit IDs -> revalidated destination',
-    'blizzard-settings':'Audio/Provider.lua target/schema/actions; set-volume v1, channel v1, integer percent 0..100',
+    'blizzard-settings':'Historical Audio/Provider.lua target/schema/actions; set-volume v1, channel v1, integer percent 0..100',
 }
 CHANNELS = {"master", "music", "sfx", "ambience", "dialog"}
 

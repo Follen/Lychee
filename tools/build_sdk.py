@@ -24,7 +24,7 @@ def performance_document(root: Path) -> str:
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 
 # These modules implement public SDK operations. This deliberately does not
-# scan Builtin business errors or Blizzard's open-ended LoadAddOn reasons.
+# scan Provider business errors or Blizzard's open-ended LoadAddOn reasons.
 ERROR_SOURCES = (
     "addon/Lychee/Core/InvocationRuntime.lua", "addon/Lychee/Core/Catalog.lua",
     "addon/Lychee/Core/Preparation.lua", "addon/Lychee/Core/ProviderRuntime.lua",

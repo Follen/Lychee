@@ -11,6 +11,7 @@
 | 安装、使用插件 | [中文首页](../README.md) · [English](../README.en.md) |
 | 找源码、改构建或新增 Provider | [项目结构](guides/PROJECT_STRUCTURE.md) |
 | 开发、测试、同步游戏 | [开发与验证](guides/DEVELOPMENT.md) · [发布流程](guides/DELIVERY.md) |
+| 准备平台文案与封面 | [发布素材](../assets/release/DESCRIPTION.md) |
 | 理解当前内部职责 | [架构](ARCHITECTURE.md) · [当前上下文](../CONTEXT.md) |
 | 改名称、翻译、别名或语言回退 | [国际化规则](../i18n.md) |
 | 改页面、控件、动画或图标 | [设计规范](../DESIGN.md) |

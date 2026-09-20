@@ -14,7 +14,7 @@
 | `build_sdk.py` | `--check`只读；`--write`更新SDK声明、清单和性能规范副本 | sdk_contract.json、PERFORMANCE.md |
 | `build_client_tocs.py` | 生成主插件和 SDK 示例的四客户端 TOC；`--check` 只校验 | Python 标准库、`client_manifest.json` |
 | `client_manifest.json` | 客户端 Interface 与有序加载清单 | 由 TOC 工具读取 |
-| `build_journal_catalog.py` | 从已保存的数据快照生成首领目录 | Python 标准库、`docs/architecture` 下对应 JSON |
+| `build_journal_catalog.py` | 从已保存的数据快照生成首领目录 | Python 标准库、`assets/data/raid-journal` 下的 TSV 与校验元数据 |
 | `build_enemy_catalog.py` | 从具名事实快照生成 LDT 数据；`--check` 检查漂移 | `assets/data/enemies.json`；普通构建不依赖分析目录或游戏 |
 | `build_flat_menu_icons.cjs` | 当前扁平菜单图集导出 TGA 与预览 | Node.js、sharp、`assets/menu-icons/flat-atlas.png` |
 | `build_provider_icons.py` | reload、冷却管理器、钥匙通用图标导出 | Python、CairoSVG、Pillow、`assets/provider-icons` |
@@ -27,6 +27,8 @@ python tools/build_client_tocs.py --check
 pwsh -NoProfile -File tests/check_contract.ps1
 ```
 
-客户端与内置功能支持范围只在 `tools/client_manifest.json` 维护：`providers` 声明功能归属、产品范围、语言资源和必需能力，`files` 中的 provider 引用只决定加载位置。执行 `python tools/build_client_tocs.py` 同时生成 TOC 与 `Builtin/Definitions.lua`；`--check` 检查两者漂移。见 [结构维护步骤](../docs/guides/PROJECT_STRUCTURE.md)。图标／数据生成命令会更新输出文件，不作为常规测试全部执行；旧版轮廓工具与当前扁平工具有相同输出目录，分别用于对应素材的重建。
+客户端与内置功能支持范围只在 `tools/client_manifest.json` 维护：`providers` 声明功能归属、产品范围、语言资源和必需能力，`files` 中的 provider 引用只决定加载位置。执行 `python tools/build_client_tocs.py` 同时生成 TOC 与 `Providers/Definitions.lua`；`--check` 检查两者漂移。见 [结构维护步骤](../docs/guides/PROJECT_STRUCTURE.md)。图标／数据生成命令会更新输出文件，不作为常规测试全部执行；旧版轮廓工具与当前扁平工具有相同输出目录，分别用于对应素材的重建。
 
 这些文件原来位于 `tests/`。历史验证报告、已有产物的 generator 元数据及生成注释保留当时路径作为来源记录；重跑时使用此目录下同名工具。新的产物记录会使用 tools 路径。不要为清理目录而重生成游戏数据或图标。
+
+工具目录保留稳定的命令入口；运行数据快照统一在 `assets/data`，可编辑图标统一在 `assets`。生成器输出到 `addon/Lychee/Providers` 或 `Media`，临时取证输出到忽略的 `analyze`，发布产物只写 `dist`。

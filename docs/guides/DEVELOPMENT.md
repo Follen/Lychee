@@ -39,7 +39,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 修改 Lua/XML/TOC 或 WoW API 前，须按 [AGENTS.md](../../AGENTS.md) 先用 wowdoc 确认来源版本并查询精确符号，保存 sourceId、product、requestedRef、resolvedCommit、path、line 和 excerpt。修改后的 validate 不能替代修改前查档。
 
-索引基准可用 `lua tests/index_benchmark.lua` 或 `lua tests/index_benchmark.lua addon/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](../validation/2026-09-10-provider-framework.md)。
+索引基准可用 `lua tests/performance/index_benchmark.lua` 或 `lua tests/performance/index_benchmark.lua addon/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](../validation/2026-09-10-provider-framework.md)。
 
 当前菜单图标通过 `node tools/build_flat_menu_icons.cjs` 从扁平图集生成，需要 sharp。原有 `tools/build_menu_icons.py` 是旧版轮廓图标的重建工具；其他 Provider 图标和目录工具见 [工具说明](../../tools/README.md)。生成工具会写入对应运行时资源，按需要单独执行。构建脚本、预览和验证清单不进入游戏副本。
 
