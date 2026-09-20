@@ -27,3 +27,11 @@ Checkbox通过同一个14×14容器的两组7-region圆角绘制外边框及内�
 运行提交 `aaae4f4`，199 文件 SHA-256 同步一致。层数使用 112×28 圆角步进器，移除钥石装饰，刷新图标缩至 16；怪物标题下副本居左、类型等级居右。新增一个固定 Frame、七个圆角纹理及一个复用 FontString，无新驱动。完整契约、Lua 语法、wowdoc valid=true、diff 检查通过；50 次重开无控件增长。
 
 Retail 12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-005946-0081`，request `ldt-stepper-20260921`，revision `stepper1`；完整 payload 位于本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-005946-0081/content.json`。12/12 功能断言通过，100 次计算 1.4154ms；ACK 已确认并清理，自有任务已移除。WGC `analyze/survival/ui-stepper-5.png` 确认中文标题左右布局及紧凑步进器无重叠。英文实机、真实硬件点击及纹理内存总量未验证。
+
+## 0.3.25 信息归组与同名快捷键
+
+运行提交 `d4c9390`，199 文件 SHA-256 同步一致。标题属性跟随名称，层数与刷新收紧至8间距，结果新增两条1×48静态纹理；无新增Frame、事件或驱动。LDT离线模块426.8 KiB（上一版426.2），50次重开未观察到保留增长（-1.03 KiB）、零新增控件。新增分组字符串由SettingsAdapter既有4094条上限目录持有，清理随原目录生命周期；索引签名包含分组，更新不会留下旧副标题。双语同名快捷键、原定位流程、完整契约、Lua语法、wowdoc与diff检查通过。
+
+证据：wow-ui-source/retail requestedRef=12.1.0 resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59；Interface/AddOns/Blizzard_SettingsDefinitions_Frame/Keybindings.lua:25 `local action, cat, binding1, binding2 = GetBinding(bindingIndex)`，189–195分组名称按`_G[cat]`字符串本地化，213–225按该分组收录绑定。SimpleFontStringAPIDocumentation.lua:339–349定义GetStringWidth返回uiUnit；仅测量本插件普通文字，用于标题布局。
+
+客户端加载未确认：reload nonce `req-20260920-171836-738755` 初次45秒与同nonce恢复20秒均无ready回执。没有重发重载，未执行实机任务、无新Ticket；临时任务区块已移除。本轮新标题、分隔线和两个缩小的实机分组仍待验收，不沿用0.3.24实机结论。截图位于本机LycheeDev/automation/reload同nonce目录。
