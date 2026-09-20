@@ -20,3 +20,13 @@ wowdoc sourceId=wow-ui-source，retail requestedRef=12.1.0 resolvedCommit=4e3cbb
 仓库检查、发布清单、retail wowdoc validate 和 git diff --check 通过。新增模块要求重启。实机外观、动画位移、真实关闭/重开、跨背包、战斗及重复定位性能待重启后验收，不能用离线结果代替。
 
 UI.xsd 的 ANIMCURVETYPE 定义为 NONE / SMOOTH；使用 NONE 保持矩形边缘，不使用无效的 LINEAR。
+
+## 0.3.9 密集环绕修订
+
+提交 e62d354：32 个光粒均匀分布整圈，取消双束分组；小光粒7、大光粒10 UI单位，每四粒一亮点，小光粒80%亮度，约1.82秒一圈。固定1 Frame / 32 Texture / 32原生Path / 192 ControlPoint。与八粒版本相比增加固定的原生对象，资源不按点击增长。
+
+完整契约、wowdoc静态验证、仓库、构建与差异检查通过。离线100次定位约3ms、累计46.2 KiB、回收后增长1.7 KiB；初始相位按36×36格子的144周长每4.5单位一粒验证，路径闭合与调整尺寸复用通过。
+
+实机 Ticket LYCHEE-20260920-191210-0060 / requestId=lycheeglow039-20260920 / revision=2 / Retail 12.1.0.69875 / zhCN / 晴昼秋岚—白银之手，complete=true/status=succeeded。32组动画播放且原生时钟推进，无Lua OnUpdate；30次定位每轮32 Region、0子Frame，超时、实际关闭Ellesmere、重开、背包更新、模拟战斗事件、重试、减少动态效果、错误key及显式停止均通过。重载标记清理中断通过原nonce恢复，没有重复执行；ACK及任务清理完成。
+
+三轮（每轮10次）包含Ellesmere完整背包刷新的总CPU为144.44 / 229.88 / 280.31 ms；全局自然Lua读数398789 / 404470 / 410151 KiB，包含第三方及客户端分配，不归因为流光独立性能或保留增长。不增加GC干预，不声称整个客户端内存降低。原生图形/控制点的引擎内存字节未测。32粒是本次明确的视觉密度成本，可接受固定容量及零空闲Lua工作；不宣称比LibCustomGlow更快。其他客户端、真实战斗及其他背包实机仍未覆盖。
