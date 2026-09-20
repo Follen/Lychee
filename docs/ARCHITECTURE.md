@@ -6,7 +6,7 @@ SDK 1.0.0 / Provider API 1.0.0。本页描述当前运行结构与公开合同�
 
 发行运行包只有 `addon/Lychee`。自带功能在 `Providers/<功能>`，与 Host 同包加载；它们仍有清晰的数据、词表、事件和动作所有者。目录拆分不代表原生按需加载，也不能在窗口关闭时卸载已经加载的 Lua/SV。
 
-第三方是独立 AddOn，拥有代码、TOC、存档、媒体与许可证。接入只通过 `_G.Lychee` 和可嵌入 SDK；禁止依赖 LycheeInternal、Builtin 或 Host 私有素材。自带业务可以复用项目内部装配，但不能让第三方复制装配才能接入。Host 不硬编码第三方名称。
+第三方是独立 AddOn，拥有代码、TOC、存档、媒体与许可证。接入只通过 `_G.Lychee` 和可嵌入 SDK；禁止依赖 LycheeInternal、ProviderModules 或 Host 私有素材。自带业务可以复用项目内部装配，但不能让第三方复制装配才能接入。Host 不硬编码第三方名称。
 
 ## 各方负责什么
 

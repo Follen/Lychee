@@ -17,3 +17,5 @@
 - [2026-09-20 Host、SDK 与文档审计](2026-09-20-host-sdk-audit.md)
 
 - [0.2.2 目录整理](2026-09-20-directory-reorganization.md)：Providers 内部命名、测试分组、纯运行包闭包和迁移等价检查；实机状态见记录。
+
+- [0.2.2 文档一致性审计](2026-09-20-document-consistency.md)：全量文档扫描、现行行为/SDK说明校准、历史边界及版本/路径防漂移检查。

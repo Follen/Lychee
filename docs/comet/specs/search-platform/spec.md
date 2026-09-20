@@ -1,5 +1,7 @@
 # Lychee Unified Search Platform
 
+> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
+
 ## 1. 目标
 
 Lychee 提供一个由 Host 统一管理的搜索平台。内置功能和第三方插件都提交相同的 SearchSource/SearchRecord 数据；Host 负责建立活动索引、匹配、置信度、去重、排序和结果渲染。Provider 不绘制根 UI，也不在每次按键时自己扫描数据。

@@ -117,7 +117,7 @@ view 声明 `{create,stateSchema}`。create(context,initialState) 返回实例�
 
 拒绝 secret、不可访问值、循环、metatable、函数型普通数据、NaN/无穷和未知字段。Host 负责隔离、身份、范围、用户选择、结果数量、查询代次、视图 state 和硬件点击限制。普通动作回调收到公开 Entry 副本；受保护动作由 Host 在真实硬件点击下执行，战斗限制保持。
 
-失败返回 nil, Error，至少 code，可含 field/providerID/retryable。已声明的框架错误码见 helper 的 ERROR_CODES；它不是所有可能错误的封闭枚举，调用方必须保留未知错误的通用处理。Provider 业务码及原生加载失败原因可以扩展此集合；不能以错误码分支获得 Host 内部对象。LycheeInternal、Index、记录校验凭证、项目 Modules/Manifest、构建模板均为私有实现。
+失败返回 nil, Error，至少 code，可含 field/providerID/retryable。已声明的框架错误码见 helper 的 ERROR_CODES；它不是所有可能错误的封闭枚举，调用方必须保留未知错误的通用处理。Provider 业务码及原生加载失败原因可以扩展此集合；不能以错误码分支获得 Host 内部对象。LycheeInternal、Index、记录校验凭证、项目 ProviderModules／生成声明、构建模板均为私有实现。
 
 
 ### 静态目录的文档模式（1.0.0）

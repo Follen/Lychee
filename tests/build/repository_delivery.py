@@ -99,6 +99,33 @@ class RepositoryDelivery(unittest.TestCase):
         page.write_text('# 标题\n\n<a id="stable"></a>\n[ok](#stable)\n[ok](#标题)\n```lua\n[example](not-a-file)\n```\n', encoding="utf-8")
         self.assertEqual(docs.document_errors(self.root, [page]), [])
 
+    def test_current_code_paths_reject_deleted_tests(self):
+        page = self.root / "guide.md"
+        page.write_text('Use `tests/ui/deleted.lua` and `addon/Lychee/Bootstrap.lua`.\n'
+                        'Example: `tests/<group>/example.lua` or `tests/*.lua`.\n'
+                        '```lua\n`tests/example.lua`\n```\n')
+        errors = docs.code_path_errors(self.root, [page])
+        self.assertEqual(len(errors), 1)
+        self.assertIn("tests/ui/deleted.lua", errors[0])
+
+    def test_main_links_checked_but_historical_commit_links_preserved(self):
+        page = self.root / "guide.md"
+        page.write_text('[missing](https://github.com/Follen/Lychee/blob/main/tests/missing.lua)\n'
+                        '[historical](https://github.com/Follen/Lychee/blob/1662562/tests/old.lua)\n')
+        errors = docs.code_path_errors(self.root, [page])
+        self.assertEqual(len(errors), 1)
+        self.assertIn("missing main-branch link", errors[0])
+
+    def test_plugin_version_is_independent_and_detects_stale_badge(self):
+        (self.root / "tools/client_manifest.json").write_text('{"version":"0.2.2"}')
+        for name in ("README.md", "README.en.md"):
+            (self.root / name).write_text('![version](https://img.shields.io/badge/version-0.2.2-red)\n'
+                                          '![API](https://img.shields.io/badge/API%201.0.0-blue)\n')
+        self.assertEqual(docs.plugin_version_errors(self.root), [])
+        (self.root / "README.md").write_text('![version](https://img.shields.io/badge/version-0.2.0-red)')
+        self.assertEqual(docs.plugin_version_errors(self.root),
+                         ["README.md: plugin version badge differs from client manifest"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

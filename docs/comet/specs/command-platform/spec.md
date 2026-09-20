@@ -1,5 +1,7 @@
 # Lychee Command Platform
 
+> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
+
 ## 本 change 的交付形式
 
 本规格通过 `docs/ARCHITECTURE.md` 交付系统设计，不创建 Lua/XML/TOC 运行时代码。文档必须完整定义下述模型、依赖方向、生命周期、性能门槛、后续实现顺序和验证矩阵；示例 API 属于后续实现 change 的约束。它还定义下拉结果的动作与拖拽合同，后续运行时必须遵守 WoW 硬件事件和战斗保护限制。

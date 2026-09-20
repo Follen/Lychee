@@ -8,7 +8,7 @@
 
 | 工具 | 用途 | 依赖／输入 |
 |---|---|---|
-| `check_repository.py` | 当前文档链接、锚点、SDK自包含与版本徽章检查 | Python标准库 |
+| `check_repository.py` | 现行文档链接/锚点、具体代码路径、main 分支源码链接、插件/SDK 版本徽章与 SDK 自包含检查 | Python标准库 |
 | `build_release.py` | `--check`内存中验包；默认生成dist中的插件/SDK ZIP及哈希清单 | release_manifest.json、sdk_contract.json |
 | `release_manifest.json` | 完整游戏交付资源清单，含许可证 | 新增/删除运行文件同步维护 |
 | `build_sdk.py` | `--check`只读；`--write`更新SDK声明、清单和性能规范副本 | sdk_contract.json、PERFORMANCE.md |

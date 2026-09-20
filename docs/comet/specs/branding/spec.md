@@ -1,5 +1,7 @@
 # Lychee Branding
 
+> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
+
 ## 本 change 的交付形式
 
 本 change 只在设计文档中记录品牌约束。源 PNG 继续保存在本机 `analyze/inputs/`，不复制到运行时目录；媒体转换、打包和游戏内显示验证由后续实现 change 处理。

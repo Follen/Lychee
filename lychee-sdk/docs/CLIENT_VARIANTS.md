@@ -31,11 +31,11 @@ MyAddon_Wrath.toc    -> Shared.lua + TitanAdapter.lua  + Register.lua
 MyAddon_TBC.toc      -> Shared.lua + AnniversaryAdapter.lua + Register.lua
 ```
 
-Register.lua 只调用插件已选中的适配模块。以下 `client`、`SelectAdapter` 和 `CreateDefinition` 都由接入插件实现，不是 Lychee API：
+Register.lua 只调用插件已选中的适配模块。以下 `host` 指 `_G.Lychee` facade（不是 `Lychee.SDK` 工具表）；`client` 是 SDK.GetClient() 的快照，`SelectAdapter` 和 `CreateDefinition` 由接入插件实现：
 
 ```lua
-local function RegisterForClient(SDK, client, SelectAdapter)
-    if not SDK or not SDK:Supports("1.0.0") then
+local function RegisterForClient(host, client, SelectAdapter)
+    if not host or not host:Supports("1.0.0") then
         return nil, { code = "UNSUPPORTED_API" }
     end
     -- SelectAdapter verifies product, numeric ranges and capabilities.
@@ -49,7 +49,7 @@ local function RegisterForClient(SDK, client, SelectAdapter)
     definition.apiVersion="1.0.0"
     -- definition contains this adapter's version, title, scope, i18n,
     -- query, actions/views and onEnable cleanup as needed.
-    return SDK:RegisterProvider(definition)
+    return host:RegisterProvider(definition)
 end
 ```
 

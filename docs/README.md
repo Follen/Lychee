@@ -1,6 +1,6 @@
 # Lychee 文档导航
 
-本分支使用一个 `addon/Lychee` 运行包，SDK / Provider API 为 1.0.0；第三方仍独立接入。功能迁移与实机验收状态见[迁移计划](architecture/2026-09-14-single-addon-feature-port.md)，本导航不代表迁移已验收。
+本分支使用一个 `addon/Lychee` 运行包，SDK / Provider API 为 1.0.0；第三方仍独立接入。当前结构见[项目结构](guides/PROJECT_STRUCTURE.md)，实际验收范围见[验收索引](validation/README.md)；[迁移计划](architecture/2026-09-14-single-addon-feature-port.md)保留当时的背景与待办，不代表当前代码状态。
 
 这里先列当前规则。带日期的设计与验证是当时的决策和证据，不能单凭文件较新就覆盖现行规范。
 
@@ -27,6 +27,6 @@
 - SDK 的接入、协议、兼容和示例都在 lychee-sdk；本目录不复制协议正文。
 - API 版本和 SDK 交付清单归 tools/sdk_contract.json；客户端加载清单归 tools/client_manifest.json。
 - tools/release_manifest.json 管发布资源；dist 是产物，不是源码。
-- docs/comet 由工作流管理；历史报告保留原路径、原读数和未验证限制。重跑使用现行开发指南。
+- [Comet 历史规格](comet/README.md)保留原接口与旧设计，不作为当前实现要求；历史报告保留原读数和未验证限制。链接迁移另加维护注，重跑使用现行开发指南。
 
 文档新增先放进上述入口；不要将一次排障经历追加成当前 API 规则。文档变动运行 `python tools/check_repository.py`。

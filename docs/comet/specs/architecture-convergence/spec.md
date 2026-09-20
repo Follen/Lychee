@@ -1,5 +1,7 @@
 # Lychee 架构收敛完整目标规格
 
+> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
+
 ## 1. 模块所有权
 
 Lychee 保持单一 Host AddOn 和 `_G.Lychee` 公共 facade。ExtensionRegistry 是 Extension 原子声明与生命周期的唯一事实源。SearchIndex 由 Host 独占；业务模块只通过 committed Extension handle 提供的 SearchSource handle 更新记录。

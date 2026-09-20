@@ -1,8 +1,8 @@
 # 开发与验证
 
-当前版本为 Lychee 0.2.0，SDK / Provider API 1.0.0。运行时唯一来源是 `addon/Lychee`；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
+插件版本以 `tools/client_manifest.json` 和生成的 TOC 为准；SDK / Provider API 为 1.0.0。运行时唯一来源是 `addon/Lychee`；第三方接入见 [SDK](../../lychee-sdk/docs/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/PROTOCOLS.md)。
 
-本分支执行[单插件功能迁移](../architecture/2026-09-14-single-addon-feature-port.md)。[架构](../ARCHITECTURE.md)定义现行职责；[旧生命周期设计](../architecture/2026-09-12-runtime-lifecycle.md)和[测试框架记录](../../tests/LIFECYCLE_ACCEPTANCE.md)保留历史背景，不覆盖 SDK 1.0.0 的现行合同。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
+本分支已采用单插件结构，背景见[历史功能迁移计划](../architecture/2026-09-14-single-addon-feature-port.md)。[架构](../ARCHITECTURE.md)定义现行职责，[生命周期验收入口](../../tests/LIFECYCLE_ACCEPTANCE.md)列出现行测试；[旧生命周期设计](../architecture/2026-09-12-runtime-lifecycle.md)仅保留历史背景，不覆盖 SDK 1.0.0 的现行合同。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
 
 ## 环境与目录
 
@@ -31,13 +31,13 @@ Get-ChildItem addon/Lychee, lychee-sdk, tests -Filter *.lua -File -Recurse | For
     if ($LASTEXITCODE -ne 0) { throw "Lua parse failed: $($_.FullName)" }
 }
 [xml](Get-Content -LiteralPath addon/Lychee/Bindings.xml -Raw) | Out-Null
-wowdoc validate --path addon/Lychee --source wow-ui-source --product retail --ref latest
+wowdoc validate --path addon/Lychee --source wow-ui-source --product retail --ref 12.1.0
 if ($LASTEXITCODE -ne 0) { throw 'wowdoc validation failed' }
 git diff --check
 if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 ```
 
-修改 Lua/XML/TOC 或 WoW API 前，须按 [AGENTS.md](../../AGENTS.md) 先用 wowdoc 确认来源版本并查询精确符号，保存 sourceId、product、requestedRef、resolvedCommit、path、line 和 excerpt。修改后的 validate 不能替代修改前查档。
+修改 Lua/XML/TOC 或 WoW API 前，须按本地 `AGENTS.md` 开发约定先用 wowdoc 确认目标客户端的精确版本并查询精确符号，保存 sourceId、product、requestedRef、resolvedCommit、path、line 和 excerpt。上面的 12.1.0 是当前正式服示例；其他客户端使用对应 product/ref。修改后的递归 validate 不能替代修改前查档或客户端 TOC 装配检查。
 
 索引基准可用 `lua tests/performance/index_benchmark.lua` 或 `lua tests/performance/index_benchmark.lua addon/Lychee/Search/StaticIndex.lua delta` 运行。它只测离线核心索引，不包含完整 SDK 校验、游戏 CPU 或帧时间；比较方法与已测结果见 [框架验证记录](../validation/2026-09-10-provider-framework.md)。
 
@@ -77,7 +77,7 @@ Provider 声明多个客户端或版本区间时，按 [客户端与 build 差�
 
 ## 大改动的功能覆盖
 
-修改搜索、Provider/API、Invocation、生命周期、存档、页面交互或跨模块调用，必须用 lychee-dev 做真实客户端功能覆盖。先列用户流程、环境和预期，再覆盖正常、失败、取消、重试、关闭重开，以及改动涉及的角色、语言和客户端分支。搜索改动还须覆盖慢来源与快速来源同时查询、首批可交互结果、6→5→4→3→2→1 条候选回缩、输入法组合、首页引用冷恢复及搜索开关；设置改动覆盖普通条目、默认/右键动作、自然语言参数和实际写入结果；SDK 改动覆盖独立第三方冷加载、注册失败、取消与重新注册。
+修改搜索、Provider/API、Invocation、生命周期、存档、页面交互或跨模块调用，必须用 lychee-dev 做真实客户端功能覆盖。先列用户流程、环境和预期，再覆盖正常、失败、取消、重试、关闭重开，以及改动涉及的角色、语言和客户端分支。搜索改动还须覆盖慢来源与快速来源同时查询、首批可交互结果、6→5→4→3→2→1 条候选回缩、输入法组合、首页引用冷恢复及搜索开关；暴雪设置改动覆盖名称定位、普通历史恢复、别名/固定菜单及旧参数入口不可执行；其他 Provider 若声明参数或写入能力，另覆盖自然语言参数（如有）、取消和实际写入结果；SDK 改动覆盖独立第三方冷加载、注册失败、取消与重新注册。
 
 记录安装提交、运行文件哈希、Ticket、断言和未覆盖项；不能用离线替身、单纯内存采样或截图代替功能结论。
 

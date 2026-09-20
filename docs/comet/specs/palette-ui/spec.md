@@ -1,5 +1,7 @@
 # Lychee Palette UI
 
+> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
+
 ## 1. 产品角色
 
 Palette 是 Lychee Host 唯一的根搜索窗口。它承载空输入 HomeView、非空 SearchView 和 Extension Panel ViewHost，但不拥有搜索 generation、动作路由或业务数据。UI 只绘制 Host 已接纳的状态，并把输入、选择、动作和拖拽事件交给现有控制模块。

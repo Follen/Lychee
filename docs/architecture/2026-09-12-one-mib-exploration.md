@@ -1,5 +1,7 @@
 > 历史讨论，已被用户放宽内存目标后的 [当前实施设计](2026-09-12-runtime-lifecycle.md) 取代。SDK 3、拆包和完整休眠均未实施，下面的 1 MiB 不是当前验收门槛。
 
+> 文档维护注（2026-09-20）：仅修复目录迁移后的链接；原路径为 `../../lychee-sdk/RUNTIME_LIFECYCLE.md`。下文保留当时版本、测量与验收结论，不代表当前版本重新通过。
+
 # Lychee 运行时生命周期与低内存重构方案
 
 状态：设计提案，2026-09-12。尚未实现、尚未达到目标；本文不改变当前 SDK 或正式服行为。
@@ -10,7 +12,7 @@
 
 目标：面板未打开、没有活动需求时，首次使用前和完整使用后休眠的整体常驻分别低于 **1 MiB（1024 KiB）**，同时保持搜索、交互、动画与用户数据语义。覆盖插件本体、SDK、UI 库、构建、文档、测试与实机验收。活动态不受 1 MiB 限制，仍受现有性能门禁约束。
 
-规则入口：[PERFORMANCE.md](../../PERFORMANCE.md)。SDK 配套：[SDK 3 生命周期设计](../../lychee-sdk/RUNTIME_LIFECYCLE.md)。测试配套：[生命周期验收设计](../../tests/LIFECYCLE_ACCEPTANCE.md)。
+规则入口：[PERFORMANCE.md](../../PERFORMANCE.md)。SDK 配套：[SDK 3 生命周期设计](../../lychee-sdk/docs/RUNTIME_LIFECYCLE.md)。测试配套：[生命周期验收设计](../../tests/LIFECYCLE_ACCEPTANCE.md)。
 
 ## 1. 结论与实施顺序
 

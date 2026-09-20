@@ -14,7 +14,7 @@ def current_documents(root: Path) -> list[Path]:
     for folder in ("docs/guides", "lychee-sdk", "assets"):
         result.extend((root / folder).rglob("*.md"))
     for name in ("tools/README.md", "tests/README.md", "tests/LIFECYCLE_ACCEPTANCE.md",
-                 "docs/architecture/README.md", "docs/validation/README.md"):
+                 "docs/architecture/README.md", "docs/validation/README.md", "docs/comet/README.md"):
         if (root / name).exists():
             result.append(root / name)
     return sorted(set(result))
@@ -61,6 +61,8 @@ def document_errors(root: Path, files: list[Path]) -> list[str]:
 
 def check(root: Path) -> list[str]:
     errors = document_errors(root, current_documents(root))
+    errors.extend(code_path_errors(root, current_documents(root)))
+    errors.extend(plugin_version_errors(root))
     if not (root / "addon/Lychee/Lychee.toc").is_file() or (root / "package/Lychee").exists():
         errors.append("runtime source must exist only at addon/Lychee")
     if (root / "addon/Lychee/Builtin").exists():
@@ -88,6 +90,36 @@ def check(root: Path) -> list[str]:
             continue
         if re.search(r"package[/\\]Lychee", p.read_text(encoding="utf-8-sig")):
             errors.append(str(p.relative_to(root)) + ": current documentation/tool uses old runtime path")
+    return errors
+
+
+def code_path_errors(root: Path, files: list[Path]) -> list[str]:
+    """Check concrete repository paths in inline code, not illustrative code blocks."""
+    errors = []
+    pattern = r"`((?:addon/|tests/|tools/|lychee-sdk/)[^`\s]+\.(?:lua|xml|toc|py|ps1|cjs|md|json))`"
+    for path in files:
+        text = prose(path.read_text(encoding="utf-8-sig"))
+        for target in re.findall(pattern, text):
+            if any(symbol in target for symbol in "<>*"):
+                continue
+            dest = (root / target).resolve()
+            if not dest.is_relative_to(root.resolve()) or not dest.is_file():
+                errors.append(f"{path.relative_to(root)}: missing repository code path: {target}")
+        # These links describe this checkout, whereas commit-pinned URLs are historical evidence.
+        for target in re.findall(r"https://github\.com/Follen/Lychee/blob/main/([^\s)#>]+)", text):
+            dest = (root / unquote(target)).resolve()
+            if not dest.is_relative_to(root.resolve()) or not dest.is_file():
+                errors.append(f"{path.relative_to(root)}: missing main-branch link: {target}")
+    return errors
+
+
+def plugin_version_errors(root: Path) -> list[str]:
+    version = json.loads((root / "tools/client_manifest.json").read_text(encoding="utf-8"))["version"]
+    errors = []
+    for path in (root / "README.md", root / "README.en.md"):
+        badges = re.findall(r"/badge/version-([0-9]+\.[0-9]+\.[0-9]+)-", path.read_text(encoding="utf-8"))
+        if badges != [version]:
+            errors.append(path.name + ": plugin version badge differs from client manifest")
     return errors
 
 

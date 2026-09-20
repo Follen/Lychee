@@ -1,10 +1,12 @@
 # 正式服团本技能关系与国际化验证
 
+> 文档维护注（2026-09-20）：仅修复目录迁移后的链接；原路径为 `../architecture/raid-journal/retail-zhCN.tsv`、`../architecture/raid-journal/manifest.json`。下文保留当时版本、测量与验收结论，不代表当前版本重新通过。
+
 ## 数据与来源
 
 采集 Ticket `LYCHEE-20260913-021745-0019`，source kind `automation_result`；客户端 retail 12.1.0 build69587 / Interface120100 / zhCN。完整结果位于 Lychee Dev 的 `LycheeDevDB.exports.records[TICKET].payload.content`，报告 schema `lychee.automation.result.v1`，complete=true，outputTruncated=false。原报告161233字节，SHA256 `9b79ffcd259cc9c8dd05883905b015c3772d8cf7bb56fd7e0d9efc352090ead0`，已经落盘、读回验证并ACK。
 
-版本控制保留 [原始关系TSV](../architecture/raid-journal/retail-zhCN.tsv) 和 [非私人采集清单](../architecture/raid-journal/manifest.json)。不保留角色/账号等私密环境字段；运行包不包含这些文件。生成命令 `python tools/build_journal_catalog.py`，校验命令加 `--check`，不访问网络、不运行游戏、不读wowdata。
+版本控制保留 [原始关系TSV](../../assets/data/raid-journal/retail-zhCN.tsv) 和 [非私人采集清单](../../assets/data/raid-journal/manifest.json)。不保留角色/账号等私密环境字段；运行包不包含这些文件。生成命令 `python tools/build_journal_catalog.py`，校验命令加 `--check`，不访问网络、不运行游戏、不读wowdata。
 
 采集依次枚举原生指南 tier 与 raid=true 入口，对实际支持的3/4/5/6/9/14/15/16难度分别枚举首领并遍历未被 filteredByDifficulty 排除的 section；收集 spellID、sectionID和难度。32节点/1ms检查让出；总180秒、最大200000节点、32768关系。任务结束/取消/战斗/打开指南都停止。初始实例未知（initialInstanceKnown=false），仅恢复已知tier/难度等选择，不宣称完整恢复未知原生选择。
 

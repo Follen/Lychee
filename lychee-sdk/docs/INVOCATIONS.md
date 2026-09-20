@@ -2,7 +2,7 @@
 
 注册前检查 `Lychee.SDK.Invocation` 是否存在。SDK/API 版本保持 1.0.0；动作和目标的数据版本独立编号。未声明参数 schema 的普通动作使用 `run(entry, context)`，不自动解释为参数调用。
 
-项目内的音量条目属于 `builtin.blizzard-settings`，动作与目标由设置来源声明；没有独立音量 Provider。下面的 `example.volume` / `set-volume` 是第三方教学示例，不是可直接调用的内置动作。第三方自行定义稳定 Provider ID、目标 key 和参数，不依赖内置业务结构。
+项目内的音量设置属于 `builtin.blizzard-settings`，当前只提供普通名称搜索和“打开并定位”，不声明设置 Invocation、自然语言修改或直接调整页；没有独立音量 Provider。下面的 `example.volume` / `set-volume` 是第三方教学示例，不是可直接调用的内置动作。第三方自行定义稳定 Provider ID、目标 key 和参数，不依赖内置业务结构。
 
 ## 动作与参数
 
@@ -142,7 +142,7 @@ primaryActionID = "enable",
 
 目标收藏需要 Provider 显式声明 `targetView="target-controls"` 和 `resolveTarget`。恢复成功后只打开指定 view，并传 `state={target=normalizedTarget}`。该 view 的 stateSchema 必须接收这一形状，例如 `{target={version="integer",key={channel="string"}}}`。没有 targetView 返回 TARGET_VIEW_UNAVAILABLE；Host 不猜第一个 view，也不以目标显示名查找替代对象。
 
-旧 `{providerID,entryID,...}` 存档不改写 schema，仍由原 resolve(entryID) 恢复。新引用按完整参数身份区分收藏；同一入口的30与50不会合并。搜索排序只投影稳定 entryID 提示，每个入口最多一份收藏权重和一份近期权重；这些权重不携带或替换当前参数。具体 Invocation 的自定义别名只有完整匹配才恢复保存参数，业务解析始终使用原始 request.raw，不能从会丢弃负号的搜索规范化文本反推数值。
+旧 `{providerID,entryID,...}` 存档不改写 schema，仍由原 resolve(entryID) 恢复。新引用按完整参数身份区分收藏；同一入口的30与50不会合并。普通条目的偏好可投影到 preferredEntryID/ranking；具体 target/command/invocation 的偏好由 Host 按完整引用身份处理，不压成同 entryID 的统一加权，也不把保存参数替换到当前候选。Host 无法恢复 Provider 已截掉的候选。具体 Invocation 的自定义别名只有完整匹配才恢复保存参数，业务解析始终使用原始 request.raw，不能从会丢弃负号的搜索规范化文本反推数值。
 
 Host 仅在执行确认 succeeded 后记录具体 Invocation。pending、failed、cancelled、indeterminate 不被记为新成功；保存近期最多8项、65536逻辑字节，固定项最多64项、65536逻辑字节。损坏原始记录保留并停止覆盖。SDK 直接 Invoke 只报告结果，搜索执行器和 ViewContext 负责记录历史；业务不得把 Prepare 的成功当作完成。
 
@@ -185,10 +185,10 @@ patterns 最多32条，每条最多32片段，整个声明仍受深度6、256节
 
 例如 `originalRaw="  装备：音量-1%"` 路由后 `raw="音量-1%"`，将 request.rawOffset 传入后，`originalRaw:sub(parsed.originalSpans.percent.start,parsed.originalSpans.percent.finish)` 仍为 `-1`。Provider 可以把出错字段对应的 originalSpans 值放入 Entry.invocationError.span。Palette 主提交遇到带 span 的错误会保持不可执行，聚焦并选中出错原文；空 span 只定位插入点。消费前后都核对行身份、会话、代次和完整输入，拒绝超过当前文本或拆分 UTF-8 字符的位置。无 span 时保留错误提示，不猜测位置；明确的补参面板动作仍可使用。
 
-原生位置依据：wowdoc `wow-ui-source` / `retail`，requestedRef 与 matchedTag 均为 `12.1.0`，resolvedCommit `4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59`。`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua:435–443` 声明 `HighlightText(start,stop)`，默认 start=0；`Interface/AddOns/Blizzard_AutoComplete/AutoComplete.lua:409–410` 以 `strlen(editBoxText), strlen(newText)` 调用高亮，再以 `strlen(editBoxText)` 设置光标。因此闭区间 span 转为 `HighlightText(start-1,finish)` 与 `SetCursorPosition(start-1)`，不转换为字符数量。离线测试 `tests/ui/invocation_input.lua` 覆盖真实查询结果提交、中文/ASCII、空槽与过期/重入输入；尚未替代实机输入法与选区绘制验收。
+原生位置依据：wowdoc `wow-ui-source` / `retail`，requestedRef 与 matchedTag 均为 `12.1.0`，resolvedCommit `4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59`。`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleEditBoxAPIDocumentation.lua:435–443` 声明 `HighlightText(start,stop)`，默认 start=0；`Interface/AddOns/Blizzard_AutoComplete/AutoComplete.lua:409–410` 以 `strlen(editBoxText), strlen(newText)` 调用高亮，再以 `strlen(editBoxText)` 设置光标。因此闭区间 span 转为 `HighlightText(start-1,finish)` 与 `SetCursorPosition(start-1)`，不转换为字符数量。`tests/sdk/invocations.lua` 覆盖解析器的中文/ASCII、负值、空槽和原文偏移；Palette 选区消费位于 `addon/Lychee/UI/Palette.lua`。当前没有独立的 invocation_input 测试文件，不能宣称选区绘制、输入法或这条 UI 路径已有完整专项验收。
 
 当前不提供通用 NLP、自动参数表单、动作/目标数据版本迁移或通用冲突对账。Provider 可使用句式工具，也可自行做有界、完整匹配的业务解析和本地化面板。业务词表和句式由接入方自己的功能语言文件维护，不向 Host 注册全局业务语法，也不借用 Host 的 UI 词典。显示语言与允许的输入语言由 Provider 分别声明。
 
-自带音量功能就是 Player 子插件中暴雪设置 Provider 的动作分支：`Audio/Language.lua` 保存通道同义词、绝对设置动词和百分比单位，`Audio/Provider.lua` 将完整输入解析成该 Provider 的 `set-volume` Invocation。它不是独立的 Audio Provider；第三方可按同样边界组织自己的实现，无需使用这些项目内部路径或模块。新增句式须验证完整匹配、否定/相对意图、多目标、多数值及解析无副作用。保存的 title 是显示回退，不构成实时语言格式化协议。
+上述句式工具保留给自建 Provider；Lychee 自带暴雪设置不接入这些句式，也没有 Audio 运行模块。第三方自行维护词表、目标和动作，不依赖项目私有目录。新增句式须验证完整匹配、否定/相对意图、多目标、多数值及解析无副作用。保存的 title 是显示回退，不构成实时语言格式化协议。
 
 离线验证：`lua tests/sdk/invocations.lua` 和 `lua tests/sdk/invocation_flow.lua`。前者覆盖公开注册、数据隔离、十进制和列表语义、伪造/重复凭据、动态能力、目标替换、搜索关闭、同步/异步/超时/取消、注销重注册、跨角色和取消回调重入；后者覆盖真实 query→执行→历史/收藏→恢复、缺参面板、目标面板、观察释放和连续编辑。离线逻辑通过不替代真实游戏业务、战斗和控件验收。
