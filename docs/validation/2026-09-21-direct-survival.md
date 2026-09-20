@@ -19,3 +19,13 @@ wowdata local cn/wow zhCN 12.1.0.69875：SpellName 1230875/1235057 萨拉斯抗�
 wowdoc sourceId=wow-ui-source/product=retail/requestedRef=12.1.0/resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59。Interface/AddOns/Blizzard_APIDocumentationGenerated/PlayerScriptDocumentation.lua:316–330，GetCombatRatingBonusForCombatRatingValue(ratingIndex,value)，返回number可空。相同文件:300–314 GetCombatRatingBonus返回当前等级收益，受属性secret限制。读取统一通过既有number/call检查。
 
 实机计划：自动魔法范围识别、读取自身天赋、三项结果、合剂前后差异、致死/可承受、返回/关闭/重开；当前正式服中文。其他职业、语言及硬件操作仍待验收。
+
+## 验收结果
+
+提交47e81aa已同步到正式服，199文件SHA-256一致，保留73个旧文件。完整契约、运行Lua语法、wowdoc validate(valid=true)、diff检查通过。
+
+Ticket `LYCHEE-20260921-003354-0078`，完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-003354-0078/content.json`。Retail 12.1.0.69875 zhCN 灵止光—死亡之翼。task=ldt-direct-live/request=ldt-direct-20260921-a/revision=1，complete=true/status=succeeded，9项断言全部通过。ACK确认/清理、临时任务移除完成。
+
+实际魔法范围技能270292首段101261.7277、生命827280；读取圣化护甲rank=2。合剂165全能换算增加全能3.055555%、全能减伤1.527778%，勾选后首段99626.8760。高层数致死、自动数据、无编辑控件、合剂行、返回怪物、关闭重开清选项、返回搜索、清理均通过。截图analyze/survival/ui-direct-9.png核对三个结果及合剂勾选布局，无控件重叠。
+
+100次真实计算合计1.5168ms。控件事件由脚本触发，不冒充真实硬件点击或实际服用合剂；不消耗物品。物理/魔法/范围/非范围及合剂已生效去重由离线数值回归验证；当前实机只覆盖神圣圣骑士与魔法范围技能。全包堆/纹理、其他职业、英文排版及战斗未实测。
