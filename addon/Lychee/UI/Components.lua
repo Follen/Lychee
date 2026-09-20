@@ -24,10 +24,11 @@ local function componentSetText(self, value) return setText(self.label, value) e
 
 function Components:CreateAnchorHint(parent, anchor, message, dismissText, onDismiss)
     local frame=CreateFrame("Frame",nil,parent)
-    frame:SetSize(280,70);frame:SetPoint("TOPLEFT",anchor,"BOTTOMLEFT",-6,-12)
+    frame:SetSize(280,70);frame:SetPoint("BOTTOMLEFT",anchor,"TOPLEFT",-6,12)
+    frame:SetClampedToScreen(true)
     frame:SetFrameLevel(parent:GetFrameLevel()+20);frame:EnableMouse(true)
     local tip=frame:CreateTexture(nil,"BACKGROUND")
-    tip:SetSize(12,12);tip:SetPoint("CENTER",frame,"TOPLEFT",22,0)
+    tip:SetSize(12,12);tip:SetPoint("CENTER",frame,"BOTTOMLEFT",22,0)
     tip:SetRotation(math.pi/4);Theme:SetColorTexture(tip,"tooltip")
     Theme:CreateRoundedSurface(frame,"tooltip",8)
     local label=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
