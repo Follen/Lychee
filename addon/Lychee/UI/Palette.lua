@@ -795,14 +795,14 @@ function Palette:Show()
     end
     return true
 end
-function Palette:Hide(reason)
+function Palette:Hide(reason, immediate)
     if reason=="escape" and self.social and self.social:Close() then return true end
     if reason=="escape" and Lychee.UI.Components:HideActionMenu() then
         self.actionMenu=nil
         if self.escapeFrame then self.escapeFrame:Show() end
         return true
     end
-    if self._motionClosing and not self.visible and not (InCombatLockdown and InCombatLockdown()) then return true end
+    if self._motionClosing and not self.visible and not immediate and not (InCombatLockdown and InCombatLockdown()) then return true end
     Lychee.UI.ResultList:HideTooltip()
     if Lychee.UI.Motion then Lychee.UI.Motion:StopAll(self.frame) end
     -- Invalidate the session only after marking the UI inactive; a synchronous
@@ -829,9 +829,7 @@ function Palette:Hide(reason)
         return true
     end
     if self.escapeFrame then self.escapeFrame:Hide() end
-    -- A toy may leave a ground-target cursor active. Immediately free the world
-    -- click surface; hiding/releasing our controls must not cancel targeting.
-    if reason=="toy-click" then return self:FinishHide(reason) end
+    if immediate then return self:FinishHide(reason) end
     local motion=Lychee.UI.Motion
     if motion and self.frame:IsShown() and not motion:IsReduced() and self.frame.CreateAnimationGroup then
         self._motionClosing=true

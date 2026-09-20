@@ -155,8 +155,8 @@ local owned,targeting=true,false
 function PlayerHasToy(id) return owned and id==456 end
 function SpellStopTargeting() error("broker must not cancel ground placement") end
 function ClearCursor() error("broker must not clear the native toy cursor") end
-local hiddenReason
-palette.Hide=function(_,reason) hiddenReason=reason end
+local hiddenReason,hiddenImmediate
+palette.Hide=function(_,reason,immediate) hiddenReason,hiddenImmediate=reason,immediate end
 present=false
 local toyAction={kind="secure-item",itemID=456}
 button=assert(broker:Prepare(toyAction,token))
@@ -165,7 +165,7 @@ button.scripts.OnMouseDown(button,"LeftButton");button.scripts.PreClick(button)
 assert(button.itemClicked)
 targeting=true -- Native SecureActionButton use starts the ground-target cursor.
 button.scripts.PostClick(button,"LeftButton")
-assert(targeting and hiddenReason=="toy-click" and not button.attrs.toy and not button.busy)
+assert(targeting and hiddenReason=="item-click" and hiddenImmediate and not button.attrs.toy and not button.busy)
 button=assert(broker:Prepare(toyAction,token));owned=false
 button.scripts.OnMouseDown(button,"LeftButton");button.scripts.PreClick(button)
 assert(not button.attrs.type and not button.attrs.toy and not button.busy)

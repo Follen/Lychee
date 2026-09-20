@@ -24,9 +24,8 @@ local function build(self,put,checkpoint)
                     C_Item.RequestLoadItemDataByID(itemID)
                 end
             else self.pending[itemID]=nil end
-            put({id="toy:"..itemID,title=name,icon=icon,kind="toy",kindTitle=L["玩具"],
-                subtitle=L["左键使用 · 放置类玩具需再点击地面"],keywords="玩具 toy toys "..itemID,
-                payload={itemID=itemID},actions={{id="use",title=L["使用玩具"],kind="secure-item",itemID=itemID}}},
+            put({id="toy:"..itemID,title=name,
+                subtitle=L["左键使用 · 放置类玩具需再点击地面"],keywords="玩具 toy toys "..itemID},
                 name.."\0"..tostring(icon))
         else self.pending[itemID]=nil end
         checkpoint()
@@ -39,6 +38,16 @@ M.icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\toys.tga"
 M.description=L["搜索并使用已收藏玩具"]
 M.searchPrefixes={"toys","玩具"}
 M.extra,M.pending={},{}
+M.entryMode="documents"
+function M.readEntry(id)
+    local itemID=tonumber(type(id)=="string" and id:match("^toy:(%d+)$"))
+    if not validID(itemID) or not PlayerHasToy(itemID) then return end
+    local name=C_Item.GetItemNameByID(itemID)
+    if type(name)~="string" or name=="" then name=L:Format("玩具 #%d",itemID) end
+    return {id=id,title=name,icon=C_Item.GetItemIconByID(itemID),kind="toy",kindTitle=L["玩具"],
+        subtitle=L["左键使用 · 放置类玩具需再点击地面"],keywords="玩具 toy toys "..itemID,
+        payload={itemID=itemID},actions={{id="use",title=L["使用玩具"],kind="secure-item",itemID=itemID}}}
+end
 function M:onEvent(event,itemID,success)
     if event=="ITEM_DATA_LOAD_RESULT" then
         if not self.pending[itemID] or not success then return end

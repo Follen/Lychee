@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.8-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.2.9-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -217,3 +217,7 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 ### 0.2.8：玩具搜索（正式服）
 
 搜索已收藏玩具的名称或物品 ID，左键使用；也支持 `玩具:` / `toys:` 前缀。需要放置的玩具会进入原生地面选点，点击地面放置，右键或 Esc 取消。搜索不改变玩具箱筛选；冷却和地点限制由游戏处理。新增模块后须完整重启游戏。
+
+### 0.2.9：玩具内存与界面解耦
+
+玩具目录改为轻量搜索文档，命中后才生成使用动作；搜索面板通过通用立即关闭参数处理退场，不再识别玩具业务。

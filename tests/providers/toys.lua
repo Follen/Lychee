@@ -1,4 +1,5 @@
 local locale=arg[1] or "zhCN"
+local baseline=arg[2] and arg[2]~="-" and arg[2] or nil
 local timers,frames={},{}
 local locked=false
 function GetLocale() return locale end
@@ -27,7 +28,8 @@ C_ToyBox={GetToyInfo=function(id) return id,names[id],134400 end,
 C_Item={GetItemNameByID=function(id) return names[id] end,GetItemIconByID=function() return 134400 end,RequestLoadItemDataByID=function(id) requests[id]=(requests[id] or 0)+1 end}
 dofile("tests/support/runtime.lua").Load("provider",{"Core/Scheduler.lua","Search/ProviderPolicy.lua",
     "Providers/Shared/CatalogProvider.lua","Providers/Toys/Data.lua","Providers/Toys/Provider.lua",
-    "Providers/Toys/Locales/enUS.lua","Providers/Toys/Locales/zhCN.lua"})
+    "Providers/Toys/Locales/enUS.lua","Providers/Toys/Locales/zhCN.lua"},
+    {overrides=baseline and {["Providers/Toys/Provider.lua"]=baseline}})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.ProviderModules.Toys
@@ -57,12 +59,47 @@ for index,id in ipairs(ids) do
 end
 local toy=ids[2]
 local rows=query(tostring(toy));assert(#rows>0)
-local row=entry.recordMap["toy:"..toy]
+if not baseline then assert(not entry.recordMap["toy:"..toy].actions,"directory retains eager actions") end
+local row=assert(baseline and entry.recordMap["toy:"..toy] or I.Providers:ReadEntry(M.id,"toy:"..toy))
 assert(row.actions[1].kind=="secure-item" and row.actions[1].itemID==toy)
+if not baseline then
+    row.actions[1].itemID=-1
+    assert(I.Providers:ReadEntry(M.id,"toy:"..toy).actions[1].itemID==toy,"reader leaked mutable actions")
+    assert(not M.readEntry("toy:999999") and not M.readEntry("invalid"))
+end
 assert(entry.definition.icon:find("toys.tga",1,true) and #entry.definition.scope.products==1)
 local beforeReads=reads
-for index=1,20 do query(tostring(toy)) end
-assert(reads==beforeReads,"warm searches must not enumerate collection")
+local materialized=0
+for index=1,20 do materialized=materialized+#query(tostring(toy)) end
+assert(reads-beforeReads==(baseline and 0 or materialized),"warm searches must only check selected toys")
+if arg[3] then
+    local function encode(value)
+        if type(value)~="table" then return string.format("%q",tostring(value)) end
+        local keys,out={},{}
+        for key in pairs(value) do keys[#keys+1]=key end
+        table.sort(keys,function(a,b) return tostring(a)<tostring(b) end)
+        for _,key in ipairs(keys) do out[#out+1]=encode(key)..":"..encode(value[key]) end
+        return "{"..table.concat(out,",").."}"
+    end
+    local output=assert(io.open(arg[3],"w"))
+    local queries={"玩具","toy","fixture","测试",tostring(toy),"XYZ-unmatched","toy 1","放置"}
+    for _,text in ipairs(queries) do
+        local result={}
+        for _,hit in ipairs(query(text)) do
+            result[#result+1]={id=hit.id,text=hit.text,kindTitle=hit.kindTitle,subtext=hit.subtext,
+                icon=hit.icon,payload=hit.payload,confidence=hit.confidence,evidence=hit.evidence,
+                interaction=hit.interaction,ref=hit.ref}
+        end
+        output:write(text,"\t",encode(result),"\n")
+    end
+    output:close()
+    collectgarbage("collect");local startMemory=collectgarbage("count");collectgarbage("stop")
+    local start=os.clock()
+    for round=1,3 do for _,text in ipairs(queries) do query(text) end end
+    local ms=(os.clock()-start)*1000;local allocation=collectgarbage("count")-startMemory
+    collectgarbage("restart");collectgarbage("collect")
+    print(string.format("Toy mixed24 ms=%.3f alloc=%.1f KiB growth=%.1f KiB",ms,allocation,collectgarbage("count")-startMemory))
+end
 local missing=ids[4];names[missing]=nil;M:onEvent("TOYS_UPDATED");drain()
 assert(entry.recordMap["toy:"..missing].title:find(tostring(missing),1,true) and requests[missing]==1)
 M:onEvent("ITEM_DATA_LOAD_RESULT",missing,false);drain();assert(requests[missing]==1)

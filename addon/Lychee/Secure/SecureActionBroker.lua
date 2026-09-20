@@ -121,7 +121,8 @@ function Broker:_Acquire()
             local item=current.token and current.token.item
             if palette then
                 if item then palette:TouchRecent(item,current.action and current.action.id) end
-                palette:Hide(current.toyID and "toy-click" or "item-click")
+                -- Native toys may need the next world click for ground placement.
+                palette:Hide("item-click",current.toyID~=nil)
             end
             self:Release(current)
             return

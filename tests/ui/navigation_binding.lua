@@ -173,8 +173,13 @@ print("Failed view footer rollback PASS")
 
 p:Show();p:SetQueryMode("")
 local oldPresence=Lychee.UI.Motion.Presence
-Lychee.UI.Motion.Presence=function() error("toy placement must not wait for closing animation") end
-p:Hide("toy-click")
+Lychee.UI.Motion.Presence=function() error("immediate close must not wait for animation") end
+p:Hide("generic-immediate",true)
 assert(not p.visible and not p.frame:IsShown() and not p._motionClosing)
 Lychee.UI.Motion.Presence=oldPresence
-print("Toy placement close PASS immediate world click surface release")
+p:Show();p._motionClosing=true;p.visible=false
+Lychee.UI.Motion.Presence=function() error("interrupted close must finish immediately") end
+p:Hide("interrupt-closing",true)
+assert(not p.frame:IsShown() and not p._motionClosing,"immediate close must finish an active close")
+Lychee.UI.Motion.Presence=oldPresence
+print("Generic immediate close PASS cleanup and interruption of active close")
