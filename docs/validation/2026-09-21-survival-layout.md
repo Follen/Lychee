@@ -76,3 +76,5 @@ Retail12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-014
 Ticket `LYCHEE-20260921-021400-0087` request=ldt-check32-20260921/revision=check32，Retail12.1.0.69875/zhCN/灵止光—死亡之翼，完整succeeded、28/28通过，含层数0/35边界、加减、刷新保留模拟和原有关闭/返回/重置/unknown恢复。100次计算1.7718ms。payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-021400-0087/content.json`，ACK确认清理。WGC `analyze/survival/ui-check32-4.png` 确认工具栏、红色手动选中、灰色禁用及细未选框；hover/禁用由探针注入。发现可承受文字省略，最终0.3.33追加4单位宽度余量（无新增对象）再确认。
 
 最终确认前收到用户反馈未选白边过亮，0.3.33同轮将未选边框降至#39363B、内底#18161A；尺寸、图集容量和事件逻辑不变。实机额外使用同commit的SimpleFontStringAPIDocumentation.lua:442–454 `IsTruncated` 返回bool检查结论文字截断。
+
+最终运行提交 `c8bdbd9`，200文件SHA一致；完整契约、Lua语法、wowdoc valid=true及diff检查通过。Ticket `LYCHEE-20260921-021749-0088` request=ldt-check33-20260921/revision=check33，同Retail12.1.0.69875/zhCN角色，complete/succeeded，29/29通过；客户端IsTruncated=false，结论宽约55单位。100次计算1.8136ms。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-021749-0088/content.json`，最终WGC `analyze/survival/ui-check33-4.png` 核对暗边框、荔枝红选中、工具栏及完整结论。ACK确认清理、临时任务移除。未覆盖英文实机、其他DPI、真实硬件点击独立场景及引擎总内存；本轮为同一实际缩放下的局部样式验收。
