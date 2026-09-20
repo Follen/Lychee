@@ -16,7 +16,9 @@ function Motion:Cancel(region,settle)
     state.playing=false;state.finished=nil
     state.group:Stop()
     if not combat() then
-        if state.slide then
+        if state.anchor then
+            region:SetPoint("BOTTOMLEFT",state.anchor,"TOPLEFT",-6,12);region:SetAlpha(1)
+        elseif state.slide then
             local x=settle and state.to or current
             region:ClearAllPoints();region:SetPoint("LEFT",state.parent,"LEFT",x,0);region._slideX=x
         else region:SetAlpha(settle and state.to or current) end
@@ -98,6 +100,27 @@ function Motion:Alpha(region,target,duration,finished,initial,smoothing)
 end
 function Motion:Reveal(region,kind)
     return self:Alpha(region,1,self.durations[kind or "page"],nil,kind=="enter" and 0 or 0.90)
+end
+-- One finite native group; shared cancellation also settles reduced-motion changes.
+function Motion:AnchorReveal(region,anchor)
+    if combat() then return end
+    self:Cancel(region,true)
+    region:SetPoint("BOTTOMLEFT",anchor,"TOPLEFT",-6,12);region:SetAlpha(1)
+    if self:IsReduced() or not region.CreateAnimationGroup then return end
+    local state=region._lycheeMotion
+    if not state then
+        if #self.groups>=self.limit then return end
+        local group=region:CreateAnimationGroup()
+        local alpha=group:CreateAnimation("Alpha")
+        alpha:SetFromAlpha(0);alpha:SetToAlpha(1);alpha:SetDuration(0.25);alpha:SetSmoothing("OUT")
+        local move=group:CreateAnimation("Translation")
+        move:SetOffset(0,6);move:SetDuration(0.25);move:SetSmoothing("OUT")
+        state={region=region,anchor=anchor,group=group,alpha=alpha,from=0,to=1}
+        region._lycheeMotion=state;self.groups[#self.groups+1]=state
+        group:SetScript("OnFinished",function() self:Cancel(region,true) end)
+    end
+    region:SetPoint("BOTTOMLEFT",anchor,"TOPLEFT",-6,6)
+    state.playing=true;state.group:Play()
 end
 function Motion:Selection(region,selected)
     if not region or not region.SetAlpha then return end

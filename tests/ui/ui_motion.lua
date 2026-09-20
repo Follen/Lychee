@@ -357,6 +357,22 @@ collectgarbage("restart")
 assert(groups==switchGroups and switchAllocation<512)
 toggle:FinishMotion()
 print(string.format("Switch PASS cycles2000_KiB=%.2f group_growth=0",switchAllocation))
+-- Anchored onboarding shares the finite motion registry and cancellation.
+M:SetReduced(false)
+local hint=CreateFrame("Frame",nil,UIParent)
+M:AnchorReveal(hint,r)
+local state=assert(hint._lycheeMotion)
+assert(state.playing and state.anchor==r)
+local hintGroupCount=#M.groups
+M:Cancel(hint,true);assert(not state.playing and hint:GetAlpha()==1)
+for n=1,20 do M:AnchorReveal(hint,r);M:Cancel(hint,true) end
+assert(#M.groups==hintGroupCount,"hint animation groups must be reused")
+M:AnchorReveal(hint,r);M:SetReduced(true)
+assert(not state.playing and hint:GetAlpha()==1)
+M:AnchorReveal(hint,r);assert(not state.playing)
+M:SetReduced(false)
+print("Hint motion PASS: finite entrance, cancel, reused group and reduced-motion settling")
+
 for i=1,100 do M:Reveal(region()) end
 assert(groups==96 and #M.groups==96,"native groups have a hard capacity")
 M:StopAll()
