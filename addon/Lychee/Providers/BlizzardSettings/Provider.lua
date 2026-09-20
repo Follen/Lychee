@@ -46,6 +46,7 @@ I.ProviderModules.BlizzardSettings=M
 function M:Record(spec)
     local record=document(spec)
     record.kind,record.kindTitle,record.icon="setting",L["暴雪设置"],iconRoot.."settings.tga"
+    if spec.groupName then record.kindTitle=record.kindTitle.." · "..spec.groupName end
     record.actions,record.primaryActionID={"open"},"open"
     return record
 end

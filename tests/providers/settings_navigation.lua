@@ -89,3 +89,8 @@ local camera=M:Record(assert(A.byID["binding:CAMERAZOOMOUT"]))
 local minimap=M:Record(assert(A.byID["binding:MINIMAPZOOMOUT"]))
 assert(camera.title==minimap.title and camera.subtitle~=minimap.subtitle,"duplicate binding labels need distinct native groups")
 assert(camera.subtitle:find(BINDING_HEADER_CAMERA,1,true) and minimap.subtitle:find(BINDING_HEADER_INTERFACE,1,true),"native localized group missing")
+
+local restoredCamera=assert(I.Providers:Resolve({providerID=M.id,entryID=camera.id,actionID="open"},{}))
+local restoredMap=assert(I.Providers:Resolve({providerID=M.id,entryID=minimap.id,actionID="open"},{}))
+assert(restoredCamera.kindTitle~=restoredMap.kindTitle,"history source labels still hide binding group")
+assert(restoredCamera.kindTitle:find(BINDING_HEADER_CAMERA,1,true) and restoredMap.kindTitle:find(BINDING_HEADER_INTERFACE,1,true),"restored references lost native groups")
