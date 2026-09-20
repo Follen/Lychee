@@ -41,9 +41,9 @@ function M:CreateSurvivalView(owner)
     end
     function v:Layout()
         self.contentHeight=336;self.frame:SetHeight(self.contentHeight)
-        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-108)
+        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-92)
         resize()
-        if owner.context then owner.context:Resize(478) end
+        if owner.context then owner.context:Resize(446) end
     end
     function v:Refresh()
         if not self.active then return end
@@ -130,31 +130,30 @@ function M:CreateSurvivalView(owner)
     end
     v.values={}
     for i,caption in ipairs({"生命值","直接承伤","是否致死"}) do
-        text("meta",(i-1)*196+24,8,164,18):SetText(L[caption])
+        text("meta",(i-1)*196+(i==3 and 24 or 0),8,164,18):SetText(L[caption])
         v.values[i]=text("input",(i-1)*196,34,168,26);Theme:SetTextColor(v.values[i],"text")
     end
-    icon(v.frame,"character",0,7,16);icon(v.frame,"pvp",196,7,16)
     v.lethalIcon=icon(v.frame,"skull",392,7,16)
     v.safeShort=v.frame:CreateTexture(nil,"ARTWORK");v.safeShort:SetSize(5,2);v.safeShort:SetPoint("TOPLEFT",394,-15);v.safeShort:SetRotation(-math.pi/4);Theme:SetColorTexture(v.safeShort,"success")
     v.safeLong=v.frame:CreateTexture(nil,"ARTWORK");v.safeLong:SetSize(10,2);v.safeLong:SetPoint("TOPLEFT",398,-12);v.safeLong:SetRotation(math.pi/4);Theme:SetColorTexture(v.safeLong,"success")
     v.summary=text("meta",392,65,188,32)
-    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,228);scrollable(v.effects)
+    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,244);scrollable(v.effects)
     for i,caption in ipairs(groupNames) do
-        v.tabs[i]=button(L[caption],(i-1)*196,0,188,function() v.group=i;v:RenderEffects() end,nil,v.effects)
+        v.tabs[i]=button(L[caption],(i-1)*112,0,104,function() v.group=i;v:RenderEffects() end,nil,v.effects)
         local tab=v.tabs[i]
-        tab.label:ClearAllPoints();tab.label:SetPoint("CENTER",0,0);tab.label:SetSize(180,18);tab.label:SetJustifyH("CENTER")
+        tab.label:ClearAllPoints();tab.label:SetPoint("CENTER",0,0);tab.label:SetSize(104,18);tab.label:SetJustifyH("CENTER")
         tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOP",tab.label,"BOTTOM",0,-5);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
     end
     for i=1,12 do
         local row
-        row=C:CreateCheckbox(v.effects,{width=284,height=28,onClick=function()
+        row=C:CreateCheckbox(v.effects,{width=284,height=32,checkSide="left",onClick=function()
             if not v.active or not owner.active or (InCombatLockdown and InCombatLockdown()) then return end
             if row.pressed~=row.generation or not row.effect then return end
             row.pressed=nil;local id=row.effect.id;v.selected[id]=not v.selected[id];v:Render()
         end})
-        row.frame:SetPoint("TOPLEFT",((i-1)%2)*294,-(36+math.floor((i-1)/2)*32));scrollable(row.frame)
-        row.label:ClearAllPoints();row.label:SetPoint("LEFT",36,0);row.label:SetPoint("RIGHT",-30,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
-        row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetPoint("LEFT",4,0);row.icon:SetSize(22,22);row.icon:SetTexCoord(.07,.93,.07,.93)
+        row.frame:SetPoint("TOPLEFT",((i-1)%2)*294,-(40+math.floor((i-1)/2)*34));scrollable(row.frame)
+        row.label:ClearAllPoints();row.label:SetPoint("LEFT",66,0);row.label:SetPoint("RIGHT",-10,0);row.label:SetHeight(18);row.label:SetJustifyH("LEFT")
+        row.icon=row.frame:CreateTexture(nil,"ARTWORK");row.icon:SetPoint("LEFT",34,0);row.icon:SetSize(22,22);row.icon:SetTexCoord(.07,.93,.07,.93)
         row.frame:HookScript("OnMouseDown",function(_,mouse) if mouse=="LeftButton" then row.pressed=row.generation end end)
         row.frame:HookScript("OnHide",function() row.pressed=nil;C:HideTooltip(row.frame) end)
         row.frame:HookScript("OnEnter",function()
