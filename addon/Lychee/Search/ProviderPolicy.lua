@@ -1,5 +1,5 @@
 local I=_G.LycheeInternal
-local P={version=0}
+local P={version=0,rawPrefixes={}}
 I.Search.ProviderPolicy=P
 local function normalize(value) return I.Search.Normalizer:Normalize(value) end
 local function literal(value) return value:lower():match("^%s*(.-)%s*$") end
@@ -176,6 +176,13 @@ function P:Set(id,mode,input,keywordInput)
 end
 function P:Route(text,filter)
     local offset=0
+    -- Internal modules may require literal syntax before normalization. Apply
+    -- this to every result path, including aliases and explicit source filters.
+    local rawExcluded={}
+    for id,prefix in pairs(self.rawPrefixes) do
+        if text:sub(1,#prefix)~=prefix then rawExcluded[id..":records"]=true
+        elseif text==prefix and not filter then filter={sourceID=id..":records"} end
+    end
     local snapshot=self:Snapshot()
     local keywordOwner=next(snapshot.keywords) and snapshot.keywords[literal(text)]
     if not filter and keywordOwner and snapshot.keywordSources[keywordOwner] then
@@ -188,13 +195,14 @@ function P:Route(text,filter)
         local owner=snapshot.map[normalize(text:sub(1,first-1))]
         if owner then offset=offset+last;text=text:sub(last+1);filter={sourceID=owner..":records"} end
     end
-    if next(snapshot.excluded) or next(snapshot.disabled) then
+    if next(snapshot.excluded) or next(snapshot.disabled) or next(rawExcluded) then
         local copy={}
         for key,value in pairs(filter or {}) do copy[key]=value end
         local excluded={}
         if not copy.sourceID then for id in pairs(snapshot.excluded) do excluded[id]=true end end
         for id in pairs(snapshot.disabled) do excluded[id]=true end
         for id,value in pairs(copy.excludedSources or {}) do excluded[id]=value end
+        for id in pairs(rawExcluded) do excluded[id]=true end
         copy.excludedSources=excluded
         copy.policyVersion=self.version;filter=copy
     end

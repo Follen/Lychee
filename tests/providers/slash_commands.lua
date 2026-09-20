@@ -68,7 +68,7 @@ local function drain()
         if not timer.cancelled then virtual=timer.due;local start=os.clock();timer.fn();maxBatch=math.max(maxBatch,(os.clock()-start)*1000) end
     end
 end
-dofile("tests/support/runtime.lua").Load("provider",{"Providers/SlashCommands/Locales/enUS.lua","Providers/SlashCommands/Locales/zhCN.lua","Search/ProviderPolicy.lua","Core/Scheduler.lua","Providers/SlashCommands/Provider.lua"},{toc="Lychee_"..flavor..".toc"})
+dofile("tests/support/runtime.lua").Load("provider",{"Providers/SlashCommands/Locales/enUS.lua","Providers/SlashCommands/Locales/zhCN.lua","Search/ProviderPolicy.lua","Core/Scheduler.lua","Core/UserPreferences.lua","Search/Personalization.lua","Providers/SlashCommands/Provider.lua"},{toc="Lychee_"..flavor..".toc"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local M=I.ProviderModules.SlashCommands
@@ -107,34 +107,34 @@ RurutiaSuite={name="RurutiaSuite",ownerFolder="RurutiaSuite",OnChatCommand=funct
 console:Embed(RurutiaSuite)
 RurutiaSuite:RegisterChatCommand("rs","OnChatCommand")
 register("CAST","/cast",function() error("secure dispatch") end)
-local dev=query("dev")[1];assert(dev.id=="slash:/dev" and dev.title=="/dev")
+local dev=query("/dev")[1];assert(dev.id=="slash:/dev" and dev.title=="/dev")
 assert(query("/dev")[1].id==dev.id)
-local rs=query("rs")[1];assert(rs.id=="slash:/rs" and rs.icon:find("RurutiaSuite",1,true))
+local rs=query("/rs")[1];assert(rs.id=="slash:/rs" and rs.icon:find("RurutiaSuite",1,true))
 assert(rs.title=="RurutiaSuite","use actual addon metadata, not a translated hardcoded title")
 register("ARBITRARY_REGISTRATION","/examplelogo")
 early:RegisterChatCommand("earlylogo","Open")
-assert(query("earlylogo")[1].icon:find("ExampleAddon",1,true),"pre-existing embedded references must be observed")
+assert(query("/earlylogo")[1].icon:find("ExampleAddon",1,true),"pre-existing embedded references must be observed")
 local hookCount=hooks
 M:ObserveConsole();M:ObserveConsole();assert(hooks==hookCount,"no duplicate hooks")
-local example=query("examplelogo")[1]
+local example=query("/examplelogo")[1]
 assert(example and example.icon=="Interface\\AddOns\\ExampleAddon\\logo.tga","arbitrary command must use registering addon logo")
-assert(#query("cast")==0 and #calls==0,"discovery never executes commands")
+assert(#query("/cast")==0 and #calls==0,"discovery never executes commands")
 assert(definition.actions.run.run(dev).ok and calls[1]=="/dev")
 import()
-assert(next(SlashCmdList)==nil and query("dev")[1].id==dev.id,"imported command remains searchable")
-assert(query("rs")[1].icon==rs.icon and M:Resolve(dev.id))
+assert(next(SlashCmdList)==nil and query("/dev")[1].id==dev.id,"imported command remains searchable")
+assert(query("/rs")[1].icon==rs.icon and M:Resolve(dev.id))
 -- The shared library loader is deliberately wrong in the fixture. A replaced,
 -- uncaptured wrapper must lose the old identity instead of borrowing its logo.
 register("ACECONSOLE_RS","/rs",function() end)
-assert(query("rs")[1].icon:find("slash%-commands"),"stale owner or library loader must not supply a logo")
+assert(query("/rs")[1].icon:find("slash%-commands"),"stale owner or library loader must not supply a logo")
 RurutiaSuite:RegisterChatCommand("rs","OnChatCommand");import()
-assert(query("rs")[1].icon==rs.icon)
+assert(query("/rs")[1].icon==rs.icon)
 early:UnregisterChatCommand("earlylogo")
 assert(not M:Resolve("slash:/earlylogo"))
 early:RegisterChatCommand("renamedlogo",function() end)
-assert(query("renamedlogo")[1].icon==example.icon,"function callbacks use validated generic receiver identity")
+assert(query("/renamedlogo")[1].icon==example.icon,"function callbacks use validated generic receiver identity")
 local provenance=issecurevariable;issecurevariable=nil
-assert(query("examplelogo")[1].icon:find("slash%-commands"),"missing provenance API degrades without guessing")
+assert(query("/examplelogo")[1].icon:find("slash%-commands"),"missing provenance API degrades without guessing")
 issecurevariable=provenance
 register("DEV","/dev",function() calls[#calls+1]="replacement" end)
 assert(definition.actions.run.run(dev).ok and calls[#calls]=="replacement","pending replacement wins hash")
@@ -149,12 +149,12 @@ locked=true;assert(not definition.actions.run.run(dev).ok);locked=false
 for index=1,1000 do register("FIX"..index,"/fixture"..index) end
 local function managed(reply)
     local scope=assert(I.Resources:Create(function() return M.active end,nil,assert(M.handle:Resources())))
-    local cancel=M:Query({normalized="fixture",limit=20},reply,{resources=scope})
+    local cancel=M:Query({originalRaw="/fixture",normalized="fixture",limit=20},reply,{resources=scope})
     return function() cancel("cancelled");I.Resources:Close(scope,"cancelled") end
 end
 local replied=false
 local cancel=managed(function() replied=true end);cancel();drain();assert(not replied)
-local rows=query("fixture");assert(#rows==20)
+local rows=query("/fixture");assert(#rows==20)
 local all={};for _,row in ipairs(rows) do assert(row.id:match("^slash:/fixture"));assert(not all[row.id]);all[row.id]=true end
 -- Independent full enumeration and full sort, rather than the Provider's Top K.
 local expected={}
@@ -170,20 +170,33 @@ for index=1,20 do
     assert(rawRows[index].id==expected[index].id,"Provider full-scan order differs")
     assert(all[expected[index].id],"Host lost a selected candidate")
 end
-assert(query("cmd: dev")[1].id==dev.id and query("命令: dev")[1].id==dev.id)
-assert(#query("missingcommanduniquexyz")==0)
+for _,text in ipairs({"dev","rs","RurutiaSuite","cmd: dev","cmd: /dev","命令: /dev"," /dev","／dev"}) do
+    assert(#query(text)==0,"non-slash input must not search commands: "..text)
+    local delivered=false
+    M:Query({originalRaw=text,raw="/dev",normalized="dev"},function(result) delivered=true;assert(#result==0) end,nil)
+    assert(delivered,"reject before acquiring resources")
+    local _,filter=I.Search.ProviderPolicy:Route(text,{sourceID=M.id..":records"})
+    assert(filter.excludedSources[M.id..":records"],"source selection cannot bypass literal gate")
+end
+assert(#query("/")==20,"bare slash lists commands")
+local personal=I.Search.Personalization
+assert(personal:SetAlias({providerID=M.id,entryID=dev.id},"mycommand","Command"))
+assert(#query("mycommand")==0,"custom aliases cannot bypass literal gate")
+assert(personal:SetAlias({providerID=M.id,entryID=dev.id},"","Command"))
+assert(M:Resolve(dev.id),"history and pins still resolve without a query")
+assert(#query("/missingcommanduniquexyz")==0)
 assert(M.handle:SetAvailability(false));drain();assert(not M.active and not M:Resolve(dev.id))
-assert(M.handle:SetAvailability(true));assert(M.active and query("dev")[1].id==dev.id)
-assert(query("rs")[1].icon==rs.icon,"enable restores still-current captured ownership")
+assert(M.handle:SetAvailability(true));assert(M.active and query("/dev")[1].id==dev.id)
+assert(query("/rs")[1].icon==rs.icon,"enable restores still-current captured ownership")
 collectgarbage("collect");local before=collectgarbage("count")
 collectgarbage("stop")
-for index=1,20 do assert(#query("fixture")==20) end
+for index=1,20 do assert(#query("/fixture")==20) end
 local allocated=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-before
 assert(retained<128,"retained growth")
 assert(maxBatch<8,"callback budget")
 assert(#timers==0 and frames==baseFrames,"no idle resources")
 for index=1001,8300 do register("FIX"..index,"/fixture"..index) end
-local status=query("fixture")
+local status=query("/fixture")
 assert(#status==1 and status[1].id=="status" and M.lastError:find("SLASH_COMMAND_LIMIT",1,true),"overflow is visible")
 print(string.format("Slash commands PASS %s/%s: allocation=%.1f KiB retained=%.1f KiB maxBatch=%.3f ms",locale,flavor,allocated,retained,maxBatch))

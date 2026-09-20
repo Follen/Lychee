@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.6-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.2.7-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -204,8 +204,12 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 
 ### 0.2.5：斜杠命令
 
-新增四客户端通用的斜杠命令来源，动态搜索已注册的普通命令（含第三方插件），输入 `dev` 或 `/dev` 后左键运行。自动读取可确认注册来源的插件标题与 Logo；共享 AceConsole 命令通过注册观察区分调用插件，未知归属使用命令图标；不枚举子命令或绕过受保护命令。支持中英文与 `cmd:` / `命令:` 前缀。
+新增四客户端通用的斜杠命令来源，动态搜索已注册的普通命令（含第三方插件），输入 `/dev` 后左键运行。自动读取可确认注册来源的插件标题与 Logo；共享 AceConsole 命令通过注册观察区分调用插件，未知归属使用命令图标；不枚举子命令或绕过受保护命令。支持中英文；从 0.2.7 起，仅以 `/` 开头的输入触发命令搜索。
 
 ### 0.2.6：通用命令归属
 
 移除 `/rs` 专项映射。普通命令读取客户端来源信息，AceConsole 命令记录实际注册对象，名称和 Logo 统一读取所属插件 TOC。共享库的首个加载者不再被误认为命令所属插件。未捕获或不可确认来源时保留命令本身与通用图标，不猜测插件。
+
+### 0.2.7：斜杠搜索入口
+
+斜杠命令仅接受以 `/` 开头的输入，例如 `/rs`、`/dev`；单独输入 `/` 列出命令。普通文字、来源筛选和自定义别名不能绕过此条件，移除 `cmd:` / `命令:` 默认入口。历史与固定项仍可恢复运行。

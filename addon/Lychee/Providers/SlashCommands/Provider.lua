@@ -175,7 +175,8 @@ function M:Resolve(id)
     if fn then return entry(slash,key,fn) end
 end
 function M:Query(request,reply,context)
-    if not self.active then reply({});return end
+    local raw=request.originalRaw or request.raw or ""
+    if not self.active or raw:sub(1,1)~="/" then reply({});return end
     self:ObserveConsole()
     local query=request.normalized or ""
     local terms=N:Terms(query)
@@ -235,9 +236,10 @@ local function run(record)
 end
 function M:Init()
     if self.handle and self.handle:GetState() then return end
+    I.Search.ProviderPolicy.rawPrefixes[self.id]="/"
     self.handle=_G.Lychee:RegisterProvider({id=self.id,title=L["斜杠命令"],description=L["搜索并运行已注册的斜杠命令"],icon=ICON,
         version="1.0.0",apiVersion="1.0.0",scope=I.ProviderModules.Support:Scope(self.id),
-        searchGlobal=true,searchPrefixes={"cmd","命令"},entries={},actions={run={title=L["运行命令"],run=run}},
+        searchGlobal=true,entries={},actions={run={title=L["运行命令"],run=run}},
         query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,
         onEnable=function()
