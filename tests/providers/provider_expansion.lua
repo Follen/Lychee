@@ -57,6 +57,8 @@ end
 local createCatalogFrame=CreateFrame
 function CreateFrame(...)
     local f=createCatalogFrame(...)
+    function f:ShowAutoCastEnabled() end
+    function f:HookScript() end
     function f:EnableMouse() end
     function f:ClearAllPoints() end
     function f:SetAllPoints() end

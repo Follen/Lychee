@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.3.6-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.3.7-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -233,6 +233,10 @@ Move the Chinese dedication to the acknowledgements footer, using its existing n
 ### 0.3.3
 
 A first-use bubble identifies the settings icon. Opening settings or choosing Got it dismisses it across characters on the account.
+
+### 0.3.7
+
+- Bag location uses a single reusable Blizzard auto-cast glow. Closing, timeout, bag updates or combat stop it and release the target; no third-party glow library or bundled artwork is needed.
 
 ### 0.3.6
 

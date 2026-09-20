@@ -1,37 +1,35 @@
 local I = _G.LycheeInternal
 local L = I.ProviderLocales:Module("builtin.bags")
 local C = I.ProviderModules.CatalogProvider
--- One reusable lifecycle sentinel; the item button owns all visual resources.
-local highlight, highlightTimer, highlightedButton, ownsHighlight
+-- Reuse one Blizzard glow, including its native textures and animation driver.
+local highlight, highlightTimer
 local function clearHighlight()
-    local button,owned=highlightedButton,ownsHighlight
-    highlightedButton,ownsHighlight=nil,nil
     if highlightTimer then highlightTimer:Cancel(); highlightTimer=nil end
     if highlight then
+        highlight:ShowAutoCastEnabled(false)
         highlight:UnregisterAllEvents()
         highlight:Hide()
         highlight:ClearAllPoints()
         highlight:SetParent(UIParent)
     end
-    if button and owned then button:UnlockHighlight() end
 end
 local function showHighlight(button)
     clearHighlight()
-    if not button.LockHighlight or not button.UnlockHighlight or not button.IsHighlightLocked
-        or not button.GetHighlightTexture or not button:GetHighlightTexture() then return false end
     if not highlight then
-        highlight=CreateFrame("Frame")
+        highlight=CreateFrame("Frame",nil,UIParent,"AutoCastOverlayTemplate")
+        highlight:Hide()
         highlight:EnableMouse(false)
-        highlight:SetScript("OnHide",clearHighlight)
+        -- Keep the template's own animation lifecycle scripts intact.
+        highlight:HookScript("OnHide",clearHighlight)
         highlight:SetScript("OnEvent",clearHighlight)
     end
-    highlightedButton,ownsHighlight=button,not button:IsHighlightLocked()
-    if ownsHighlight then button:LockHighlight() end
     highlight:SetParent(button)
     highlight:SetAllPoints(button)
+    highlight:SetFrameLevel(button:GetFrameLevel()+5)
     highlight:RegisterEvent("BAG_UPDATE_DELAYED")
     highlight:RegisterEvent("PLAYER_REGEN_DISABLED")
     highlight:Show()
+    highlight:ShowAutoCastEnabled(true)
     highlightTimer=C_Timer.NewTimer(3,clearHighlight)
     return true
 end

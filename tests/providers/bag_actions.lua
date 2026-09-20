@@ -3,8 +3,17 @@ local combat,visible,present=false,true,true
 function InCombatLockdown() return combat end
 UIParent={}
 local function noop() end
-function CreateFrame()
+function CreateFrame(_,_,_,template)
     local f={scripts={},events={},attrs={},shown=false}
+    if template=="AutoCastOverlayTemplate" then
+        f.template=template
+        f.scripts.OnHide=function(self) self.nativeHides=(self.nativeHides or 0)+1 end
+        function f:ShowAutoCastEnabled(enabled) self.glowing=enabled end
+    end
+    function f:HookScript(k,fn)
+        local old=self.scripts[k]
+        self.scripts[k]=function(self,...) if old then old(self,...) end;fn(self,...) end
+    end
     function f:SetScript(k,v) self.scripts[k]=v end
     function f:RegisterEvent(e) self.events[e]=true end
     f.RegisterUnitEvent=f.RegisterEvent
@@ -80,7 +89,7 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==0 and glow.anchor==bagButton and bagButton.locked)
+assert(glow.shown and textures==0 and glow.anchor==bagButton and glow.glowing and glow.template=="AutoCastOverlayTemplate")
 slot=4;assert(bags.actions.locate.run(entry).ok and locatedSlot==4)
 assert(timers[1].cancelled and #frames==1)
 glow.scripts.OnEvent(glow,'BAG_UPDATE_DELAYED')
@@ -92,14 +101,11 @@ timers[#timers].callback();assert(not glow.shown and not next(glow.events))
 combat=true;assert(not bags.actions.locate.run(entry).ok);combat=false
 visible=false;assert(not bags.actions.locate.run(entry).ok and not glow.shown);visible=true
 present=false;assert(not bags.actions.locate.run(entry).ok);present=true
--- Preserve an existing native lock; reject buttons without a native texture.
+-- Never alter a target's own hover/selection lock.
 bagButton.locked=true
 assert(bags.actions.locate.run(entry).ok);bags:onStop();assert(bagButton.locked)
 bagButton.locked=false
-local textureGetter=bagButton.GetHighlightTexture
-bagButton.GetHighlightTexture=function() end
-assert(not bags.actions.locate.run(entry).ok and not glow.shown and not bagButton.locked)
-bagButton.GetHighlightTexture=textureGetter
+assert(not glow.glowing and glow.nativeHides>0 and glow.parent==UIParent)
 -- Adapter fixtures model the versioned source structures, not global frame names.
 local getter=ContainerFrameUtil_GetItemButtonAndContainer
 ContainerFrameUtil_GetItemButtonAndContainer=function() error("custom bags must not select hidden Blizzard buttons") end
@@ -133,7 +139,7 @@ local elapsed=(os.clock()-started)*1000
 local allocated=collectgarbage('count')-memory
 timers={};collectgarbage('restart');collectgarbage('collect');local growth=collectgarbage('count')-memory
 assert(#frames==1 and textures==0 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
-print(string.format('Bag highlight PASS frames=1 textures=0 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
+print(string.format('Bag highlight PASS templates=1 custom_textures=0 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
 
 Lychee={Secure={}}
 local valid=true
