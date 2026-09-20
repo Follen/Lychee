@@ -161,7 +161,7 @@ function M:CreateView()
         self.rowOffset=math.max(0,math.min(offset,math.max(0,#items-self.visibleRows)))
         local areaHeight=math.max(ROW_HEIGHT,self.visibleRows*ROW_HEIGHT)
         if self.skillArea:GetHeight()~=areaHeight then self.skillArea:SetHeight(areaHeight) end
-        if self.context then self.context:Resize(392) end
+        if self.context then self.context:Resize(420) end
         self.skillBar:SetRange(#items*ROW_HEIGHT,self.visibleRows*ROW_HEIGHT,self.rowOffset*ROW_HEIGHT)
     end
     function panel:ShowSpellTooltip(row)
@@ -223,6 +223,11 @@ function M:CreateView()
         self.previous:SetEnabled(self.page>1);self.next:SetEnabled(self.page<pages)
         self.previous.frame:SetShown(pages>1);self.next.frame:SetShown(pages>1);self.pageLabel:SetShown(pages>1)
         self.abilities:SetText(L["技能"].."  ·  "..#self.groups)
+        if self.buttonRows~=self.visibleRows then
+            self.buttonRows=self.visibleRows
+            self.survivalButton.frame:ClearAllPoints()
+            self.survivalButton.frame:SetPoint("TOPRIGHT",-16,-(LIST_TOP+self.visibleRows*ROW_HEIGHT+10))
+        end
         self.survivalButton.frame:SetShown(self.selected~=nil)
     end
     function panel:Create(parent)

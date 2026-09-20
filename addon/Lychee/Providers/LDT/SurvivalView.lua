@@ -7,7 +7,7 @@ local function amount(value) return value and string.format("%.0f",value) or "�
 function M:CreateSurvivalView(owner)
     if owner.calculator then return owner.calculator end
     local C,Theme=_G.Lychee.UI.Components,_G.Lychee.UI.Theme
-    local v={rows={},tabs={},selected={},group=1,offset=0,level=10,contentHeight=388}
+    local v={rows={},tabs={},selected={},group=1,level=10,contentHeight=388}
     owner.calculator=v
     v.toolbar=CreateFrame("Frame",nil,owner.frame);v.toolbar:SetPoint("TOPLEFT",16,-60);v.toolbar:SetPoint("RIGHT",-16,0);v.toolbar:SetHeight(30);v.toolbar:Hide()
     v.viewport=CreateFrame("ScrollFrame",nil,owner.frame);v.viewport:SetPoint("TOPLEFT",16,-98);v.viewport:SetPoint("BOTTOMRIGHT",-4,0);v.viewport:Hide()
@@ -36,10 +36,10 @@ function M:CreateSurvivalView(owner)
         end});Theme:SetFont(b.label,"body");b.frame:SetPoint("TOPLEFT",x,-y);scrollable(b.frame);return b
     end
     function v:Layout()
-        self.contentHeight=348;self.frame:SetHeight(self.contentHeight)
-        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-112)
+        self.contentHeight=328;self.frame:SetHeight(self.contentHeight)
+        self.effects:ClearAllPoints();self.effects:SetPoint("TOPLEFT",0,-100)
         resize()
-        if owner.context then owner.context:Resize(490) end
+        if owner.context then owner.context:Resize(470) end
     end
     function v:Refresh()
         if not self.active then return end
@@ -74,10 +74,9 @@ function M:CreateSurvivalView(owner)
         local list=self.list or {};self.list=list
         for k=#list,1,-1 do list[k]=nil end
         for _,e in ipairs(S.effects) do if e.group==self.group then list[#list+1]=e end end
-        self.offset=math.max(0,math.min(self.offset,math.max(0,#list-10)))
         for index,row in ipairs(self.rows) do
             row.frame:Hide();row.effect=nil;row.generation=(row.generation or 0)+1
-            local e=list[index+self.offset]
+            local e=list[index]
             if e then
                 row.effect=e
                 local active=self.stats.active[e.id]
@@ -88,10 +87,9 @@ function M:CreateSurvivalView(owner)
             end
         end
         for i,b in ipairs(self.tabs) do b:SetSelected(i==self.group);b.indicator:SetShown(i==self.group) end
-        self.previous:SetEnabled(self.offset>0);self.next:SetEnabled(self.offset+10<#list)
     end
     function v:Open()
-        self.active=true;self.group,self.offset=1,0
+        self.active=true;self.group=1
         self.stats=S:Snapshot(self.stats,owner.enemy.level)
         self:LoadDamage()
         self.name:SetText(M:SpellName(owner.selected) or L["技能"]);self.spellIcon:SetTexture(C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(owner.selected))
@@ -116,17 +114,15 @@ function M:CreateSurvivalView(owner)
         text("meta",(i-1)*196,8,188,18):SetText(L[caption])
         v.values[i]=text("title",(i-1)*196,34,188,26);Theme:SetTextColor(v.values[i],"text")
     end
-    v.summary=text("meta",0,76,584,20)
-    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,216);scrollable(v.effects)
+    v.summary=text("meta",0,68,584,20)
+    v.effects=CreateFrame("Frame",nil,v.frame);v.effects:SetSize(584,228);scrollable(v.effects)
     for i,caption in ipairs(groupNames) do
-        v.tabs[i]=button(L[caption],(i-1)*150,0,136,function() v.group=i;v.offset=0;v:RenderEffects() end,nil,v.effects)
+        v.tabs[i]=button(L[caption],(i-1)*196,0,188,function() v.group=i;v:RenderEffects() end,nil,v.effects)
         local tab=v.tabs[i]
-        tab.label:ClearAllPoints();tab.label:SetPoint("LEFT",0,0);tab.label:SetJustifyH("LEFT")
-        tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("BOTTOMLEFT",0,-2);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
+        tab.label:ClearAllPoints();tab.label:SetPoint("CENTER",0,0);tab.label:SetSize(180,18);tab.label:SetJustifyH("CENTER")
+        tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOP",tab.label,"BOTTOM",0,-5);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
     end
-    v.previous=button("",504,0,26,function() v.offset=math.max(0,v.offset-10);v:RenderEffects() end,"left",v.effects)
-    v.next=button("",544,0,26,function() v.offset=v.offset+10;v:RenderEffects() end,"right",v.effects)
-    for i=1,10 do
+    for i=1,12 do
         local row
         row=C:CreateCheckbox(v.effects,{width=284,height=28,onClick=function()
             if not v.active or not owner.active or (InCombatLockdown and InCombatLockdown()) then return end
@@ -146,6 +142,5 @@ function M:CreateSurvivalView(owner)
         row.frame:HookScript("OnLeave",function() C:HideTooltip(row.frame) end)
         v.rows[i]=row
     end
-    text("meta",0,204,574,20,v.effects):SetText(L["满血估算 · 伤害类型与范围自动识别"])
     return v
 end

@@ -358,7 +358,7 @@ function Palette:SetStatus(mode, count)
     if (mode=="home" or mode=="search") and self.actionFeedbackSession==self.session and self.actionFeedbackGeneration==self.generation then text=self.actionFeedback or text end
     local panel=mode=="panel" and self.viewHost and self.viewHost.panel
     if panel and panel.footerHint~=nil then
-        self:SetFooterText("",panel.footerHint)
+        self:SetFooterText(panel.footerHint,"")
     else
         self:SetFooterText(text,(mode == "home" or self.searchIncomplete) and "" or L["↑ ↓ 选择   ·   点击使用"])
     end
