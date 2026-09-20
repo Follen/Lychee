@@ -98,7 +98,7 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==8 and glow.anchor==bagButton and #glow.dots==8)
+assert(glow.shown and textures==32 and glow.anchor==bagButton and #glow.dots==32)
 for _,dot in ipairs(glow.dots) do
     assert(dot.group:IsPlaying() and #dot.points==6)
     assert(dot.points[1].x==dot.points[6].x and dot.points[1].y==dot.points[6].y)
@@ -109,6 +109,17 @@ for _,dot in ipairs(glow.dots) do
         local x,y=dot.texture.x+point.x,dot.texture.y+point.y
         assert(x>=-0.001 and x<=36.001 and y<=0.001 and y>=-36.001,"path leaves rectangular perimeter")
     end
+end
+-- Even starting density around the entire perimeter, not two trail clusters.
+local seen={}
+for _,dot in ipairs(glow.dots) do
+    local x,y=dot.texture.x,dot.texture.y
+    local distance
+    if y==0 then distance=x elseif x==36 then distance=36-y
+    elseif y==-36 then distance=108-x else distance=144+y end
+    local step=distance/4.5
+    assert(math.abs(step-math.floor(step+0.5))<0.0001)
+    assert(not seen[step]);seen[step]=true
 end
 local frameCount,textureCount=#frames,textures
 glow.testWidth,glow.testHeight=48,28;glow.scripts.OnSizeChanged()
@@ -169,8 +180,8 @@ for n=1,100 do assert(bags.actions.locate.run(entry).ok);bags:onStop() end
 local elapsed=(os.clock()-started)*1000
 local allocated=collectgarbage('count')-memory
 timers={};collectgarbage('restart');collectgarbage('collect');local growth=collectgarbage('count')-memory
-assert(#frames==1 and textures==8 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
-print(string.format('Bag highlight PASS frames=1 textures=8 native_groups=8 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
+assert(#frames==1 and textures==32 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
+print(string.format('Bag highlight PASS frames=1 textures=32 native_groups=32 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
 
 Lychee={Secure={}}
 local valid=true

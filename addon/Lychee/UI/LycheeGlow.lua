@@ -3,6 +3,7 @@ local G = {}
 I.LycheeGlow = G
 local frame, timer, owner, activeKey
 local EMPTY = {}
+local PARTICLES = 32
 local function number(value, fallback, low, high)
     if type(value)~="number" or value~=value then return fallback end
     return math.max(low,math.min(high,value))
@@ -32,8 +33,7 @@ local function layout()
     if w<=0 or h<=0 then stop();return end
     for index,dot in ipairs(frame.dots) do
         dot.group:Stop()
-        local tail=(index-1)%4
-        local phase=math.floor((index-1)/4)*0.5-tail*0.035
+        local phase=(index-1)/PARTICLES
         local x,y,edge=position(phase*2*(w+h),w,h)
         dot.texture:ClearAllPoints()
         dot.texture:SetPoint("CENTER",frame,"TOPLEFT",x,y)
@@ -52,7 +52,7 @@ local function create()
     frame=CreateFrame("Frame",nil,UIParent)
     frame:Hide();frame:EnableMouse(false)
     frame.dots={}
-    for index=1,8 do
+    for index=1,PARTICLES do
         local texture=frame:CreateTexture(nil,"OVERLAY")
         texture:SetTexture("Interface\\Cooldown\\star4")
         texture:SetBlendMode("ADD")
@@ -79,17 +79,17 @@ function G:Start(target,options)
     if type(key)~="string" or #key>64 then return false end
     stop()
     if not frame then create() end
-    local frequency=number(options.frequency,0.65,0.1,2)
+    local frequency=number(options.frequency,0.55,0.1,2)
     local scale=number(options.scale,1,0.5,2)
     local color=type(options.color)=="table" and options.color or EMPTY
     local r,g,b,a=number(color[1],1,0,1),number(color[2],0.78,0,1),number(color[3],0.35,0,1),number(color[4],1,0,1)
     local motion=_G.Lychee and _G.Lychee.UI and _G.Lychee.UI.Motion
     frame.reduced=options.reducedMotion==true or motion and motion:IsReduced()
     for index,dot in ipairs(frame.dots) do
-        local tail=(index-1)%4
-        local size=(16-tail*3)*scale
+        local accent=index%4==1
+        local size=(accent and 10 or 7)*scale
         dot.texture:SetSize(size,size)
-        dot.texture:SetVertexColor(r,g,b,a*(1-tail*0.23))
+        dot.texture:SetVertexColor(r,g,b,a*(accent and 1 or 0.8))
         dot.path:SetDuration(1/frequency)
     end
     frame:SetParent(target)
