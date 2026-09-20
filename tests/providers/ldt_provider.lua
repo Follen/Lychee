@@ -457,6 +457,13 @@ checkbox.frame.scripts.OnEnter();assert(checkbox._state=="disabled")
 checkbox:SetEnabled(true);checkbox.frame.scripts.OnClick();assert(changes==1)
 checkbox:SetChecked(false);assert(not checkbox.check:IsShown())
 checkbox.frame.scripts.OnHide();assert(not checkbox._hovered)
+local choice=Lychee.UI.Components:CreateCheckbox(parent,{variant="choice",checkSide="left",onClick=function() changes=changes+1 end})
+assert(choice.indicator and choice._checkState==0)
+choice.frame.scripts.OnEnter();assert(choice._checkState==1,"unchecked hover has its own visual")
+choice:SetChecked(true);assert(choice._checkState==2)
+choice:SetEnabled(false);choice.frame.scripts.OnEnter();assert(choice._checkState==3,"disabled selection must not look interactive")
+choice:SetChecked(false);assert(choice._checkState==0 and choice.indicator._lycheeAlpha==.45)
+choice:SetEnabled(true);choice.frame.scripts.OnLeave();assert(choice._checkState==0 and choice.indicator._lycheeAlpha==1,"reused indicator resets opacity and hover")
 local warmFrames=#frames
 collectgarbage("collect");local uiBase=collectgarbage("count")
 for _=1,50 do mount();view.survivalButton.frame.scripts.OnClick();view:Unmount() end

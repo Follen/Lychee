@@ -229,30 +229,40 @@ function Components:CreateCheckbox(parent, options)
     options.colors={normal=choice and "field" or "transparent",hover="surfaceSelected",pressed="actionHover",disabled=choice and "field" or "transparent"}
     options.textColors={normal="text",hover="text",pressed="text",disabled=choice and "textMuted" or "disabled"}
     local c=self:CreateButton(parent,options)
-    local box=CreateFrame("Frame",nil,c.frame)
-    box:SetSize(choice and 16 or 14,choice and 16 or 14);box:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
-    local border=Theme:CreateRoundedSurface(box,choice and "switchOff" or "fieldBorder",choice and 5 or 3)
-    local fill=Theme:CreateRoundedSurface(box,choice and "switchOff" or "window",choice and 4 or 2,1,"BORDER")
-    local short=box:CreateTexture(nil,"OVERLAY")
-    short:SetSize(choice and 5 or 4,choice and 2 or 1.5);short:SetPoint("CENTER",box,"CENTER",-3,-1);short:SetRotation(-math.pi/4)
-    local long=box:CreateTexture(nil,"OVERLAY")
-    long:SetSize(choice and 9 or 8,choice and 2 or 1.5);long:SetPoint("CENTER",box,"CENTER",1,0);long:SetRotation(math.pi/4)
+    local border,fill,short,long,mark
+    if choice then
+        mark=c.frame:CreateTexture(nil,"OVERLAY")
+        mark:SetSize(20,20);mark:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 8 or -8,0)
+        mark:SetTexture("Interface\\AddOns\\Lychee\\Media\\choice-checkbox.tga")
+        c.indicator=mark
+    else
+        local box=CreateFrame("Frame",nil,c.frame)
+        box:SetSize(14,14);box:SetPoint(options.checkSide=="left" and "LEFT" or "RIGHT",options.checkSide=="left" and 10 or -10,0)
+        border=Theme:CreateRoundedSurface(box,"fieldBorder",3)
+        fill=Theme:CreateRoundedSurface(box,"window",2,1,"BORDER")
+        short=box:CreateTexture(nil,"OVERLAY");short:SetSize(4,1.5);short:SetPoint("CENTER",box,"CENTER",-3,-1);short:SetRotation(-math.pi/4)
+        long=box:CreateTexture(nil,"OVERLAY");long:SetSize(8,1.5);long:SetPoint("CENTER",box,"CENTER",1,0);long:SetRotation(math.pi/4)
+        c.check=long
+    end
     c.label:ClearAllPoints();c.label:SetPoint("LEFT",options.checkSide=="left" and 34 or 8,0);c.label:SetPoint("RIGHT",options.checkSide=="left" and -8 or -32,0)
     c.label:SetJustifyH("LEFT");Theme:SetFont(c.label,"body")
-    c.check=long
     function c:PaintCheck()
         local enabled=self.enabled~=false
-        border:SetColor(not enabled and (choice and "borderStrong" or "disabled") or self.checked and "accentHover" or self._hovered and (choice and "fieldBorder" or "textMuted") or choice and "switchOff" or "fieldBorder")
-        fill:SetColor(self.checked and (enabled and "accentHover" or choice and "textDim" or "disabled") or choice and "switchOff" or "window")
         if choice then
+            local state=self.checked and (enabled and 2 or 3) or (enabled and self._hovered and 1 or 0)
+            if self._checkState~=state then self._checkState=state;mark:SetTexCoord(state/4,(state+1)/4,0,1) end
+            Theme:SetAlpha(mark,not enabled and not self.checked and .45 or 1)
             local normal=self.checked and "actionHover" or "field"
             if options.colors.normal~=normal then
                 options.colors.normal=normal;options.colors.hover=self.checked and "actionHover" or "surfaceHover"
-                local state=self._state;self._state=nil;self:SetState(state)
+                local current=self._state;self._state=nil;self:SetState(current)
             end
+        else
+            border:SetColor(not enabled and "disabled" or self.checked and "accentHover" or self._hovered and "textMuted" or "fieldBorder")
+            fill:SetColor(self.checked and (enabled and "accentHover" or "disabled") or "window")
+            Theme:SetColorTexture(short,"text");Theme:SetColorTexture(long,"text")
+            setShown(short,self.checked);setShown(long,self.checked)
         end
-        Theme:SetColorTexture(short,"text");Theme:SetColorTexture(long,"text")
-        setShown(short,self.checked);setShown(long,self.checked)
     end
     function c:SetChecked(checked)
         checked=checked==true

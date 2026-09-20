@@ -199,6 +199,7 @@
     "Core/ActionOutcome.lua",
     "Core/ActionStatus.lua",
     "Core/ProviderDefinition.lua",
-    "UI/ActionCooldown.lua"
+    "UI/ActionCooldown.lua",
+    "Media/choice-checkbox.tga"
   ]
 }
