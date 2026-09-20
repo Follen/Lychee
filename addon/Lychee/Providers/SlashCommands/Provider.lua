@@ -12,6 +12,14 @@ end
 local function command(value)
     if plain(value,256) and value:match("^/[^%s|]+$") then return value:lower() end
 end
+local function entryID(slash)
+    if #slash<=186 and slash:match("^[A-Za-z0-9%._:%-/]+$") then return "slash:"..slash end
+    -- Search references accept ASCII IDs, but registered commands can contain
+    -- punctuation or localized bytes. Keep their identity reversible and bounded.
+    if #slash<=91 then
+        return "slash-hex:"..slash:gsub(".",function(byte) return string.format("%02x",byte:byte()) end)
+    end
+end
 local function proxy(list)
     local mt=type(list)=="table" and getmetatable(list)
     return type(mt)=="table" and type(mt.__index)=="table" and mt.__index or nil
@@ -33,7 +41,7 @@ local function scan(put,checkpoint)
     end
     local function add(value,fn,key,index)
         local slash=command(value)
-        if slash and type(fn)=="function" and not seen[slash] then
+        if slash and entryID(slash) and type(fn)=="function" and not seen[slash] then
             seen[slash]=true
             if not secure(slash) then put(slash,fn,key,index) end
         end
@@ -153,7 +161,7 @@ local function presentation(slash,key,handler)
 end
 local function entry(slash,key,handler)
     local title,icon,owner=presentation(slash,key,handler)
-    return {id="slash:"..slash,title=title,icon=icon,kind="command",kindTitle=L["斜杠命令"],
+    return {id=entryID(slash),title=title,icon=icon,kind="command",kindTitle=L["斜杠命令"],
         subtitle=owner and slash or L["点击运行命令"],
         aliases={slash,slash:sub(2),owner or slash},payload={command=slash},actions={"run"}}
 end
@@ -169,8 +177,15 @@ function M:Find(slash)
     if ok then return handler,key end
 end
 function M:Resolve(id)
-    if type(id)~="string" or id:sub(1,6)~="slash:" then return end
-    local slash=id:sub(7)
+    if type(id)~="string" or #id>192 then return end
+    local slash
+    if id:sub(1,6)=="slash:" then slash=id:sub(7)
+    elseif id:sub(1,10)=="slash-hex:" then
+        local hex=id:sub(11)
+        if #hex%2~=0 or not hex:match("^[0-9a-f]+$") then return end
+        slash=hex:gsub("..",function(pair) return string.char(tonumber(pair,16)) end)
+    end
+    if not slash or entryID(slash)~=id then return end
     local fn,key=self:Find(slash)
     if fn then return entry(slash,key,fn) end
 end
@@ -197,7 +212,7 @@ function M:Query(request,reply,context)
             fields[10],fields[11],fields[12]="alias",owner or "",N:Normalize(owner or "",false)
             local score=query=="" and 0 or N:ScoreCompiled(query,fields,terms,false)
             if not score then return end
-            local id="slash:"..slash
+            local id=entryID(slash)
             local weighted=ranker and ranker(id,score) or score
             local at=#selected+1
             for index,row in ipairs(selected) do
@@ -226,7 +241,7 @@ end
 local function run(record)
     if combat() then return {ok=false,message=L["请先脱离战斗"]} end
     local slash=record.payload and record.payload.command
-    if not slash or record.id~="slash:"..slash then return {ok=false,message=L["命令已注销，请重新搜索"]} end
+    if not slash or record.id~=entryID(slash) then return {ok=false,message=L["命令已注销，请重新搜索"]} end
     local handler=M:Find(slash)
     if not handler then return {ok=false,message=L["命令已注销，请重新搜索"]} end
     local editBox=DEFAULT_CHAT_FRAME and DEFAULT_CHAT_FRAME.editBox

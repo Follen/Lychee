@@ -103,6 +103,11 @@ local function query(text)
     return records
 end
 register("DEV","/dev");SLASH_DEV2="/developer"
+register("HELP","/?")
+assert(#query("/")>0,"punctuation command must not invalidate batch")
+local help=M:Resolve("slash-hex:2f3f")
+assert(help and help.payload.command=="/?")
+assert(not M:Resolve("slash-hex:xyz") and not M:Resolve("slash-hex:2f646576"))
 RurutiaSuite={name="RurutiaSuite",ownerFolder="RurutiaSuite",OnChatCommand=function() end}
 console:Embed(RurutiaSuite)
 RurutiaSuite:RegisterChatCommand("rs","OnChatCommand")
