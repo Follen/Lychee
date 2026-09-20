@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.2.5-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.2.6-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
@@ -204,4 +204,8 @@ Redistribution credit: **Lychee Launcher — Follen · https://github.com/Follen
 
 ### 0.2.5: Slash commands
 
-Search registered ordinary slash commands, including third-party addons, on all four supported clients. Search `dev` or `/dev`, then left-click to run it. The `/rs` integration displays the installed RurutiaSuite logo and toolbox title. Unknown owners use the command icon. Protected commands and subcommand discovery are not included. English and Chinese locales and `cmd:` / `命令:` prefixes are supported.
+Search registered ordinary slash commands, including third-party addons, on all four supported clients. Search `dev` or `/dev`, then left-click to run it. Confirmed registering addons supply their own TOC title and logo. Shared AceConsole registrations are observed to identify the actual caller; unknown owners use the command icon. Protected commands and subcommand discovery are not included. English and Chinese locales and `cmd:` / `命令:` prefixes are supported.
+
+### 0.2.6: Generic command ownership
+
+Removed the `/rs` special case. Direct registrations use client provenance; AceConsole registrations track the actual registering object. Titles and logos come from addon metadata, without command-to-addon mappings. Unknown or uncaptured owners retain the command text and generic icon.

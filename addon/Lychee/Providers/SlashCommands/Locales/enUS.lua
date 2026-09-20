@@ -4,7 +4,6 @@ I.ProviderLocaleData = I.ProviderLocaleData or {}
 I.ProviderLocaleData["builtin.slash-commands"] = {
     ["斜杠命令"] = "Slash commands",
     ["搜索并运行已注册的斜杠命令"] = "Find and run registered slash commands",
-    ["露露提亚工具箱"] = "RurutiaSuite toolbox",
     ["点击运行命令"] = "Click to run command",
     ["运行命令"] = "Run command",
     ["命令数量超出限制"] = "Too many registered commands",

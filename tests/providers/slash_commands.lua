@@ -18,10 +18,46 @@ C_Timer={NewTimer=function(delay,fn)
     timers[#timers+1]=timer;return timer
 end}
 C_AddOns={GetAddOnMetadata=function(folder,key)
-    assert(folder=="RurutiaSuite")
+    if folder=="ExampleAddon" then
+        return key=="Title" and "Example tools" or key=="IconTexture" and "Interface\\AddOns\\ExampleAddon\\logo.tga" or nil
+    end
+    if folder~="RurutiaSuite" then return end
     if key=="Title" then return "|cffff559aRurutiaSuite|r" end
     if key=="IconTexture" then return "Interface\\AddOns\\RurutiaSuite\\Media\\icon.tga" end
 end}
+local console={embeds={}}
+function console:RegisterChatCommand(alias,method)
+    local key="ACECONSOLE_"..alias:upper()
+    if type(method)=="string" then
+        SlashCmdList[key]=function(message,box) self[method](self,message,box) end
+    else SlashCmdList[key]=method end
+    _G["SLASH_"..key.."1"]="/"..alias
+end
+function console:UnregisterChatCommand(alias)
+    local key="ACECONSOLE_"..alias:upper()
+    SlashCmdList[key]=nil;_G["SLASH_"..key.."1"]=nil;hash_SlashCmdList[("/"..alias):upper()]=nil
+end
+function console:Embed(receiver)
+    receiver.RegisterChatCommand=self.RegisterChatCommand
+    receiver.UnregisterChatCommand=self.UnregisterChatCommand
+    self.embeds[receiver]=true
+end
+-- A receiver embedded before Lychee loads still holds the original method.
+local early={name="ExampleAddon",ownerFolder="ExampleAddon",Open=function() end}
+console:Embed(early)
+LibStub={GetLibrary=function(_,name) if name=="AceConsole-3.0" then return console end end}
+local hooks=0
+function hooksecurefunc(object,key,callback)
+    hooks=hooks+1
+    local original=object[key]
+    object[key]=function(...) local result=original(...);callback(...);return result end
+end
+function issecurevariable(object,key)
+    if type(object)=="table" and rawget(object,"ownerFolder") then return false,object.ownerFolder end
+    if key=="ARBITRARY_REGISTRATION" or key=="/EXAMPLELOGO" then return false,"ExampleAddon" end
+    if key=="ACECONSOLE_RS" or key=="/RS" then return false,"SharedLibraryLoader" end
+    return true
+end
 local maxBatch=0
 local function drain()
     local count=0
@@ -67,18 +103,39 @@ local function query(text)
     return records
 end
 register("DEV","/dev");SLASH_DEV2="/developer"
-register("ACECONSOLE_RS","/rs")
-RurutiaSuite={OnChatCommand=function() end}
+RurutiaSuite={name="RurutiaSuite",ownerFolder="RurutiaSuite",OnChatCommand=function() end}
+console:Embed(RurutiaSuite)
+RurutiaSuite:RegisterChatCommand("rs","OnChatCommand")
 register("CAST","/cast",function() error("secure dispatch") end)
 local dev=query("dev")[1];assert(dev.id=="slash:/dev" and dev.title=="/dev")
 assert(query("/dev")[1].id==dev.id)
 local rs=query("rs")[1];assert(rs.id=="slash:/rs" and rs.icon:find("RurutiaSuite",1,true))
-assert(rs.title==((locale=="zhCN" or locale=="zhTW") and "露露提亚工具箱" or "RurutiaSuite toolbox"))
+assert(rs.title=="RurutiaSuite","use actual addon metadata, not a translated hardcoded title")
+register("ARBITRARY_REGISTRATION","/examplelogo")
+early:RegisterChatCommand("earlylogo","Open")
+assert(query("earlylogo")[1].icon:find("ExampleAddon",1,true),"pre-existing embedded references must be observed")
+local hookCount=hooks
+M:ObserveConsole();M:ObserveConsole();assert(hooks==hookCount,"no duplicate hooks")
+local example=query("examplelogo")[1]
+assert(example and example.icon=="Interface\\AddOns\\ExampleAddon\\logo.tga","arbitrary command must use registering addon logo")
 assert(#query("cast")==0 and #calls==0,"discovery never executes commands")
 assert(definition.actions.run.run(dev).ok and calls[1]=="/dev")
 import()
 assert(next(SlashCmdList)==nil and query("dev")[1].id==dev.id,"imported command remains searchable")
 assert(query("rs")[1].icon==rs.icon and M:Resolve(dev.id))
+-- The shared library loader is deliberately wrong in the fixture. A replaced,
+-- uncaptured wrapper must lose the old identity instead of borrowing its logo.
+register("ACECONSOLE_RS","/rs",function() end)
+assert(query("rs")[1].icon:find("slash%-commands"),"stale owner or library loader must not supply a logo")
+RurutiaSuite:RegisterChatCommand("rs","OnChatCommand");import()
+assert(query("rs")[1].icon==rs.icon)
+early:UnregisterChatCommand("earlylogo")
+assert(not M:Resolve("slash:/earlylogo"))
+early:RegisterChatCommand("renamedlogo",function() end)
+assert(query("renamedlogo")[1].icon==example.icon,"function callbacks use validated generic receiver identity")
+local provenance=issecurevariable;issecurevariable=nil
+assert(query("examplelogo")[1].icon:find("slash%-commands"),"missing provenance API degrades without guessing")
+issecurevariable=provenance
 register("DEV","/dev",function() calls[#calls+1]="replacement" end)
 assert(definition.actions.run.run(dev).ok and calls[#calls]=="replacement","pending replacement wins hash")
 import()
@@ -117,6 +174,7 @@ assert(query("cmd: dev")[1].id==dev.id and query("命令: dev")[1].id==dev.id)
 assert(#query("missingcommanduniquexyz")==0)
 assert(M.handle:SetAvailability(false));drain();assert(not M.active and not M:Resolve(dev.id))
 assert(M.handle:SetAvailability(true));assert(M.active and query("dev")[1].id==dev.id)
+assert(query("rs")[1].icon==rs.icon,"enable restores still-current captured ownership")
 collectgarbage("collect");local before=collectgarbage("count")
 collectgarbage("stop")
 for index=1,20 do assert(#query("fixture")==20) end

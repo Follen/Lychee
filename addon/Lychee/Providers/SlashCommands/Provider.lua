@@ -71,24 +71,90 @@ local function metadata(folder,key)
     local ok,value=pcall(fn,folder,key)
     if ok and plain(value,512) and value~="" then return value end
 end
-local function presentation(slash,key)
-    -- Explicit integration, not a guessed prefix-to-addon ownership map.
-    -- RurutiaSuite Core/Init.lua registers rs through AceConsole and exports RS.
-    if slash=="/rs" and key=="ACECONSOLE_RS" and type(_G.RurutiaSuite)=="table"
-        and type(_G.RurutiaSuite.OnChatCommand)=="function" then
-        local icon=metadata("RurutiaSuite","IconTexture")
-        local title=metadata("RurutiaSuite","Title")
-        if title then
-            title=title:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub("|T.-|t",""):gsub("|A.-|a","")
-            return L["露露提亚工具箱"],icon and (tonumber(icon) or icon) or ICON,title
-        end
+local owners,ownerCount={},0
+local weakOwner={__mode="v"}
+local watched=setmetatable({},{__mode="k"})
+local consoles=setmetatable({},{__mode="k"})
+local function origin(object,key)
+    if type(object)~="table" or not plain(key,512) or type(issecurevariable)~="function" then return end
+    local ok,isSecure,addon=pcall(issecurevariable,object,key)
+    if ok and isSecure==false and plain(addon,256) and addon~="" then return addon end
+end
+local function forget(_,alias)
+    if M.active==false or not plain(alias,255) then return end
+    local slash=command("/"..alias)
+    if slash and owners[slash] then owners[slash]=nil;ownerCount=ownerCount-1 end
+end
+local function capture(receiver,alias,method)
+    if M.active==false or type(receiver)~="table" or not plain(alias,255) then return end
+    local slash=command("/"..alias)
+    if not slash then return end
+    local key="ACECONSOLE_"..alias:upper()
+    local handler=type(SlashCmdList)=="table" and SlashCmdList[key]
+    if type(handler)~="function" then return end
+    -- The library's closure belongs to its first loader, not to the caller.
+    -- Prefer the caller's method field; a validated AceAddon name is a fallback.
+    local owner=type(method)=="string" and origin(receiver,method)
+    if not owner or not metadata(owner,"Title") then
+        owner=rawget(receiver,"name")
+        if not plain(owner,256) or not metadata(owner,"Title") then owner=nil end
+    end
+    if not owner then forget(nil,alias);return end
+    if not owners[slash] then
+        if ownerCount>=4096 then M.ownershipLimited=true;return end
+        ownerCount=ownerCount+1
+    end
+    owners[slash]=setmetatable({handler=handler,owner=owner},weakOwner)
+end
+local function watch(receiver,library)
+    if type(receiver)~="table" or type(receiver.RegisterChatCommand)~="function" then return end
+    if receiver~=library and receiver.RegisterChatCommand==library.RegisterChatCommand then return end
+    if watched[receiver]==receiver.RegisterChatCommand then return end
+    hooksecurefunc(receiver,"RegisterChatCommand",capture)
+    if type(receiver.UnregisterChatCommand)=="function" then hooksecurefunc(receiver,"UnregisterChatCommand",forget) end
+    watched[receiver]=receiver.RegisterChatCommand
+end
+function M:ObserveConsole()
+    if self.active==false or type(hooksecurefunc)~="function" or type(LibStub)~="table" or type(LibStub.GetLibrary)~="function" then return end
+    local ok,library=pcall(LibStub.GetLibrary,LibStub,"AceConsole-3.0",true)
+    if not ok or type(library)~="table" then return end
+    watch(library,library)
+    if not consoles[library] and type(library.Embed)=="function" then
+        hooksecurefunc(library,"Embed",function(_,receiver)
+            if M.active~=false then watch(receiver,library) end
+        end)
+        consoles[library]=true
+    end
+    -- Existing embeds keep their original function reference when the library
+    -- field is hooked. Hook those references too; never replace their methods.
+    local count=0
+    for receiver in pairs(type(library.embeds)=="table" and library.embeds or {}) do
+        count=count+1;if count>512 then self.ownershipLimited=true;break end
+        watch(receiver,library)
+    end
+end
+local function ownerFor(slash,key,handler)
+    local captured=owners[slash]
+    if captured and captured.handler==handler then return captured.owner end
+    -- An uncaptured AceConsole closure's taint identifies the library loader.
+    -- Do not display that unrelated addon's logo as the command owner.
+    if key and key:match("^ACECONSOLE_") then return end
+    return key and origin(SlashCmdList,key) or origin(hash_SlashCmdList,slash:upper())
+end
+local function presentation(slash,key,handler)
+    local owner=ownerFor(slash,key,handler)
+    local title=owner and metadata(owner,"Title")
+    if title then
+        title=title:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub("|T.-|t",""):gsub("|A.-|a","")
+        local icon=metadata(owner,"IconTexture")
+        return title,icon and (tonumber(icon) or icon) or ICON,owner
     end
     return slash,ICON
 end
-local function entry(slash,key)
-    local title,icon,owner=presentation(slash,key)
+local function entry(slash,key,handler)
+    local title,icon,owner=presentation(slash,key,handler)
     return {id="slash:"..slash,title=title,icon=icon,kind="command",kindTitle=L["斜杠命令"],
-        subtitle=owner and slash.." · "..owner or L["点击运行命令"],
+        subtitle=owner and slash or L["点击运行命令"],
         aliases={slash,slash:sub(2),owner or slash},payload={command=slash},actions={"run"}}
 end
 local function status(message)
@@ -106,10 +172,11 @@ function M:Resolve(id)
     if type(id)~="string" or id:sub(1,6)~="slash:" then return end
     local slash=id:sub(7)
     local fn,key=self:Find(slash)
-    if fn then return entry(slash,key) end
+    if fn then return entry(slash,key,fn) end
 end
 function M:Query(request,reply,context)
     if not self.active then reply({});return end
+    self:ObserveConsole()
     local query=request.normalized or ""
     local terms=N:Terms(query)
     local limit=math.max(1,math.min(20,tonumber(request.limit) or 20))
@@ -122,7 +189,7 @@ function M:Query(request,reply,context)
             if batch>=128 or now()-started>=1 then coroutine.yield();batch=0;started=now() end
         end
         scan(function(slash,fn,key)
-            local title,_,owner=presentation(slash,key)
+            local title,_,owner=presentation(slash,key,fn)
             fields[1],fields[2],fields[3]="title",title,N:Normalize(title,false)
             fields[4],fields[5],fields[6]="alias",slash,N:Normalize(slash,false)
             fields[7],fields[8],fields[9]="alias",slash:sub(2),N:Normalize(slash:sub(2),false)
@@ -136,12 +203,12 @@ function M:Query(request,reply,context)
                 if weighted>row.weighted or weighted==row.weighted and (score>row.score or score==row.score and slash<row.slash) then at=index;break end
             end
             if at<=limit then
-                table.insert(selected,at,{slash=slash,key=key,score=score,weighted=weighted})
+                table.insert(selected,at,{slash=slash,key=key,handler=fn,score=score,weighted=weighted})
                 if #selected>limit then selected[#selected]=nil end
             end
         end,checkpoint)
         local rows={}
-        for _,row in ipairs(selected) do rows[#rows+1]=entry(row.slash,row.key) end
+        for _,row in ipairs(selected) do rows[#rows+1]=entry(row.slash,row.key,row.handler) end
         return rows
     end
     local token=context.resources:Run("slash-query",work,{
@@ -173,5 +240,14 @@ function M:Init()
         searchGlobal=true,searchPrefixes={"cmd","命令"},entries={},actions={run={title=L["运行命令"],run=run}},
         query=function(request,reply,context) return self:Query(request,reply,context) end,
         resolve=function(id) return self:Resolve(id) end,
-        onEnable=function() self.active=true;return function() self.active=false end end})
+        onEnable=function()
+            self.active=true;self:ObserveConsole()
+            return function(reason)
+                self.active=false
+                if reason=="unregister" then owners={};ownerCount=0;self.ownershipLimited=nil end
+            end
+        end})
 end
+
+-- Observe before later addons initialize; no frame, event or idle timer.
+M:ObserveConsole()
