@@ -48,3 +48,15 @@ Retail 12.1.0.69875 / zhCN / 晴昼秋岚—白银之手 / EUI 9.1.8。运行版
 原生锚点证据：wowdoc source check / query，sourceId=wow-ui-source，product=retail，requestedRef=12.1.0，resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59，`Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua:135` SetPoint，参数point/relativeTo/relativePoint/offsetX/offsetY；复用现有非安全导航按钮，战斗不变更锚点。
 
 计划：真实冷重载后首页恢复、全部 EUI 页面解析、现存其他来源历史、关闭重开、温恢复重复成本及无残留；离线注入加载失败/战斗/禁用/上游替换，不改真实设置制造失败。真实战斗taint、安全技能/物品使用及其他客户端语言不属于本次已实测项。最终安装提交、SHA-256、Ticket 和结果在同步后追加。
+
+### 最终完成
+
+运行提交 `595baf93aa7627c0b216f35ca5a9d41e466f1d35`，0.3.12，197运行文件覆盖同步并核对SHA-256，保留73个旧文件，无新增TOC模块或加载顺序变化。完整契约、全量Lua解析、XML、TOC/发布清单、仓库检查、wowdoc Mainline validate valid=true及diff检查通过。
+
+最终 Ticket `LYCHEE-20260920-202149-0068` / task `history0312` / request `history0312-after-20260920` / revision 2，complete/succeeded，2143字节，未截断，Retail 12.1.0.69875 / zhCN / 同角色，完整payload已读取且ACK received。首次首页之前cold=true，首次首页 HoverCast restored/enabled均true；60个EUI页面全部可解析，当前8条历史全部恢复，关闭重开通过。期间用户新增一条成就历史，前后现存列表不相同，因此不把两份列表当同输入性能比较。
+
+“清空”原生按钮OnClick回调实测通过：临时列表被清空、按钮隐藏、关闭重开仍为空，固定项和搜索记忆保持同一对象。测试使用原历史的浅复制列表，收尾恢复原列表，未清除用户历史。结束窗口隐藏、pending=false、Preparation请求0；自有task已移除。最后单独打开首页做视觉验收，WGC截图 `analyze/history0312-home.png` 确认标题右侧灰色“清空”与可用的悬停施法条目，首页保留作为交付预览，无诊断任务运行。
+
+内存/延迟边界：实际首次首页同步调用约116.88ms，含EUI的不可抢占按需加载；温恢复100次10.24ms。EUIOptions（正确包名EllesmereUIOptions）加载后约24750.34KiB自然读数，关闭后仍加载；EUI核心约23446KiB，Lychee首次首页约14161KiB，诊断工具约4507KiB。它是首次使用EUI设置能力必须支付的上游加载成本，修复将这个时点提前到可见保存页面恢复，不声称整体内存节省或117ms符合短Lua回调预算。没有新增索引或后台工作；无EUI页面历史时不触发此加载。未做GC后归因、GPU测量或稳定帧率采样。
+
+完整结果：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260920-202149-0068/content.json`。细项真实会话未捕获到条目，rememberable=false由实际Host离线回归覆盖；不称为真实细项点击/重载实测。其他客户端、英文实机及战斗taint继续未测。
