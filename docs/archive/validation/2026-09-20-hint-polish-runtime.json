@@ -1,0 +1,77 @@
+{
+  "source": {
+    "sourceBytes": 2488,
+    "requestId": "hint-polish-20260920-1",
+    "sourceChecksum": "b5a66c75"
+  },
+  "complete": true,
+  "lifecycleLog": {},
+  "startedAt": 1789892568,
+  "status": "succeeded",
+  "requestType": "task",
+  "revision": "1",
+  "taskId": "hint-polish",
+  "returns": [
+    {
+      "finished": true,
+      "checks": [
+        "first-use hint visible",
+        "native entrance playing",
+        "Chinese copy",
+        "entrance completed",
+        "ack saved",
+        "ack hides",
+        "reopen stays dismissed",
+        "settings click acknowledges",
+        "closed"
+      ],
+      "progress": 0.58778518438339,
+      "openMs": 2.3814000040293,
+      "width": 244,
+      "locale": "zhCN",
+      "height": 41.999996185303,
+      "samples": [
+        {
+          "lycheeKiB": 13703.229492188,
+          "observerKiB": 4298.26171875
+        },
+        {
+          "lycheeKiB": 13627.698242188,
+          "observerKiB": 4298.19921875
+        },
+        {
+          "lycheeKiB": 13628.596679688,
+          "observerKiB": 4298.19921875
+        },
+        {
+          "lycheeKiB": 13629.495117188,
+          "observerKiB": 4298.19921875
+        }
+      ],
+      "build": [
+        "12.1.0",
+        "69875",
+        "Sep 15 2026",
+        120100,
+        "",
+        " "
+      ]
+    }
+  ],
+  "lifecycleLogLimited": false,
+  "outputTruncated": false,
+  "finishedAt": 1789892594,
+  "environment": {
+    "locale": "zhCN",
+    "buildDate": "Sep 15 2026",
+    "version": "12.1.0",
+    "clientId": "retail",
+    "realm": "白银之手",
+    "character": "晴昼秋岚",
+    "interface": 120100,
+    "build": "69875"
+  },
+  "executionId": "hint-polish-20260920-1",
+  "kind": "lua",
+  "schema": "lychee.automation.result.v1"
+}
