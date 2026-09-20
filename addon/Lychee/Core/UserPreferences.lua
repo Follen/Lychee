@@ -2,6 +2,9 @@ local I = _G.LycheeInternal
 local Preferences = {}
 I.UserPreferences = Preferences
 
+function Preferences:NeedsSettingsHint() return I.CharacterStore:NeedsSettingsHint() end
+function Preferences:DismissSettingsHint() return I.CharacterStore:DismissSettingsHint() end
+
 local LIMIT, BYTES = 64, 65536
 local fields = {providerID=1024,entryID=1024,sourceID=1024,title=4096,sourceTitle=4096,icon=1024,actionID=64}
 local owner, original, active, size, recovery

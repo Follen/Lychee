@@ -46,3 +46,16 @@ function Store:Initialize()
     self:DisabledProviders()
     data.settingsVersion = 1
 end
+
+-- Account-wide onboarding is a Host preference, independent of character settings.
+function Store:NeedsSettingsHint()
+    if not I.Registry or not I.Registry.ready then return false end
+    return LycheeDB==nil or type(LycheeDB)=="table" and LycheeDB.settingsHintDismissed~=true
+end
+function Store:DismissSettingsHint()
+    if not I.Registry or not I.Registry.ready then return false end
+    if LycheeDB==nil then LycheeDB={} end
+    if type(LycheeDB)~="table" then return false end
+    LycheeDB.settingsHintDismissed=true
+    return true
+end

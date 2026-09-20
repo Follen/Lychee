@@ -137,7 +137,7 @@ Lychee.UI.Components={HideActionMenu=function() end}
 dofile("addon/Lychee/Search/Normalizer.lua")
 local createFrameForMotion=CreateFrame
 CreateFrame=nil
-dofile("addon/Lychee/Bootstrap.lua"); dofile("addon/Lychee/Core/CharacterStore.lua")
+dofile("addon/Lychee/Bootstrap.lua"); dofile("addon/Lychee/Core/CharacterStore.lua"); dofile("addon/Lychee/Core/UserPreferences.lua")
 CreateFrame=createFrameForMotion
 dofile("addon/Lychee/UI/Palette.lua")
 function methods:RegisterEvent() end

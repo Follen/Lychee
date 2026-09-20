@@ -241,6 +241,8 @@ function Palette:SetStatusText(value)
 end
 
 function Palette:OpenSettings(tab)
+    if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
+    self:UpdateSettingsHint(true)
     if I.ActionCooldown then I.ActionCooldown:ReleaseAll() end
     self:CancelWaitingHint();self.waitingPresentation=nil
     if self._motionClosing then return false end
@@ -711,6 +713,17 @@ function Palette:FinishShow()
     end
 end
 
+function Palette:UpdateSettingsHint(dismiss)
+    if InCombatLockdown and InCombatLockdown() then return end
+    if dismiss then I.UserPreferences:DismissSettingsHint() end
+    local show=not dismiss and self.visible and not self.settingsOpen and I.UserPreferences:NeedsSettingsHint()
+    if show and not self.settingsHint then
+        self.settingsHint=Lychee.UI.Components:CreateAnchorHint(self.frame,self.settingsButton,
+            L["点击荔枝图标，打开设置"],L["知道了"],function() self:UpdateSettingsHint(true) end)
+    end
+    if self.settingsHint then self.settingsHint.frame:SetShown(show==true) end
+end
+
 function Palette:Show()
     if I.NotifyPaletteVisibility then I.NotifyPaletteVisibility(true) end
     if InCombatLockdown and InCombatLockdown() then return false, "COMBAT_LOCKED" end
@@ -742,6 +755,7 @@ function Palette:Show()
     else self:FinishShow() end
     self._openingLayout=nil
     self.brandComponent:PlayMotion()
+    self:UpdateSettingsHint()
     -- Defer focus one frame: the keystroke that opened the palette (e.g. the space
     -- in ALT-SPACE) delivers its character to whichever EditBox is focused during
     -- the same input dispatch; focusing synchronously would swallow it as query text.

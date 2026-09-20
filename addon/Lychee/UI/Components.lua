@@ -22,6 +22,24 @@ end
 local function componentSetShown(self, shown) setShown(self.frame, shown) end
 local function componentSetText(self, value) return setText(self.label, value) end
 
+function Components:CreateAnchorHint(parent, anchor, message, dismissText, onDismiss)
+    local frame=CreateFrame("Frame",nil,parent)
+    frame:SetSize(280,70);frame:SetPoint("TOPLEFT",anchor,"BOTTOMLEFT",-6,-12)
+    frame:SetFrameLevel(parent:GetFrameLevel()+20);frame:EnableMouse(true)
+    local tip=frame:CreateTexture(nil,"BACKGROUND")
+    tip:SetSize(12,12);tip:SetPoint("CENTER",frame,"TOPLEFT",22,0)
+    tip:SetRotation(math.pi/4);Theme:SetColorTexture(tip,"tooltip")
+    Theme:CreateRoundedSurface(frame,"tooltip",8)
+    local label=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+    label:SetPoint("TOPLEFT",frame,"TOPLEFT",14,-12);label:SetWidth(252)
+    label:SetJustifyH("LEFT");Theme:SetFont(label,"body");Theme:SetTextColor(label,"text")
+    label:SetText(message)
+    local close=self:CreateNavigationButton(frame,{width=80,height=24,text=dismissText,primary=true,onClick=onDismiss})
+    close.frame:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-8,5)
+    frame:Hide()
+    return {frame=frame,label=label,dismiss=close}
+end
+
 function Components:CreateBand(parent, options)
     options = options or {}
     local component = self:CreateSurface(parent, { allPoints=false, color=options.color })

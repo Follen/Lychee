@@ -198,6 +198,8 @@ try {
     & $lua.Source 'tests/ui/presence_geometry.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Presence geometry checks failed' }
     foreach ($locale in @('zhCN','zhTW','enUS','enGB')) {
+        & $lua.Source 'tests/ui/settings_hint.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "Settings hint regression failed: $locale" }
         & $lua.Source 'tests/ui/credits.lua' $locale
         if ($LASTEXITCODE -ne 0) { throw "Credits regression failed: $locale" }
     }
