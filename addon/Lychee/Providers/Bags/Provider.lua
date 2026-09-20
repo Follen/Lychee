@@ -20,6 +20,11 @@ local function showHighlight(button)
         highlight:Hide()
         highlight:EnableMouse(false)
         if highlight.Corners then highlight.Corners:Hide() end
+        if highlight.Shine then
+            highlight.Shine:SetBlendMode("ADD")
+            local rotation=highlight.Shine.Anim:GetAnimations()
+            if rotation then rotation:SetDuration(2) end
+        end
         -- Keep the template's own animation lifecycle scripts intact.
         highlight:HookScript("OnHide",clearHighlight)
         highlight:SetScript("OnEvent",clearHighlight)

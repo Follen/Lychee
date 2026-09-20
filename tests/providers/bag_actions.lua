@@ -7,7 +7,8 @@ function CreateFrame(_,_,_,template)
     local f={scripts={},events={},attrs={},shown=false}
     if template=="AutoCastOverlayTemplate" then
         f.template=template
-        f.Shine={}
+        f.Shine={SetBlendMode=function(_,mode) f.blend=mode end,
+            Anim={GetAnimations=function() return {SetDuration=function(_,seconds) f.period=seconds end} end}}
         f.Corners={Hide=function() f.cornersHidden=true end}
         f.scripts.OnHide=function(self) self.nativeHides=(self.nativeHides or 0)+1 end
         function f:ShowAutoCastEnabled(enabled) self.glowing=enabled end
@@ -95,7 +96,7 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==0 and glow.anchor==bagButton and glow.glowing and glow.template=="AutoCastOverlayTemplate" and glow.cornersHidden)
+assert(glow.shown and textures==0 and glow.anchor==bagButton and glow.glowing and glow.template=="AutoCastOverlayTemplate" and glow.cornersHidden and glow.blend=="ADD" and glow.period==2)
 slot=4;assert(bags.actions.locate.run(entry).ok and locatedSlot==4)
 assert(timers[1].cancelled and #frames==1)
 glow.scripts.OnEvent(glow,'BAG_UPDATE_DELAYED')
