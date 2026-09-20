@@ -81,6 +81,23 @@ function HomeView:Create(parent, controller)
     Lychee.UI.Theme:SetFont(separator,"meta");tint(separator,color("textDim"))
     separator:SetText("·");separator:SetPoint("RIGHT",view.clearRecent.frame,"LEFT",-8,0)
     view.clearRecent.frame:Hide()
+    local recentToggle=CreateFrame("Button",nil,view.content);view.recentToggle=recentToggle
+    recentToggle:Hide()
+    recentToggle:SetScript("OnEnter",function()
+        if not view.frozen and view._clearRecentHeader then tint(view._clearRecentHeader,color("text")) end
+    end)
+    recentToggle:SetScript("OnLeave",function()
+        if view._clearRecentHeader then tint(view._clearRecentHeader,color("muted")) end
+    end)
+    recentToggle:SetScript("OnHide",function()
+        view.recentActionsOpen=false;view.clearRecent.frame:Hide()
+        if view._clearRecentHeader then tint(view._clearRecentHeader,color("muted")) end
+    end)
+    recentToggle:SetScript("OnClick",function()
+        if view.frozen or not controller.visible or controller.settingsOpen or not view.frame:IsShown() or InCombatLockdown() then return end
+        view.recentActionsOpen=not view.recentActionsOpen
+        setShown(view.clearRecent.frame,view.recentActionsOpen)
+    end)
 
     function view:RenderTileState(tile)
         local selected = tile.index == self.selected and navigable(tile.section)
@@ -462,6 +479,9 @@ function HomeView:Create(parent, controller)
                     if self._clearRecentHeader~=header then
                         self.clearRecent.frame:ClearAllPoints()
                         self.clearRecent.frame:SetPoint("LEFT",header,"RIGHT",20,0)
+                        self.recentToggle:ClearAllPoints()
+                        self.recentToggle:SetPoint("TOPLEFT",header,"TOPLEFT",-4,4)
+                        self.recentToggle:SetPoint("BOTTOMRIGHT",header,"BOTTOMRIGHT",4,-4)
                         self._clearRecentHeader=header
                     end
                 end
@@ -482,7 +502,8 @@ function HomeView:Create(parent, controller)
             end
         end
         setShown(self.manage.frame,pinnedHeader==true)
-        setShown(self.clearRecent.frame,recentHeader==true)
+        setShown(self.recentToggle,recentHeader==true)
+        setShown(self.clearRecent.frame,recentHeader==true and self.recentActionsOpen==true)
         for index = headerCount + 1, #self.headers do setShown(self.headers[index], false) end
         local height = math.max(1, cursorY + 14)
         if self.content:GetHeight() ~= height then self.content:SetHeight(height) end
@@ -522,6 +543,7 @@ function HomeView:Create(parent, controller)
     end
 
     function view:ReleaseBindings(preserveSnapshot)
+        self.recentToggle:Hide();self.recentActionsOpen=false
         self.clearRecent.frame:Hide()
         if self.frozen and not preserveSnapshot then
             self.frozen = nil
