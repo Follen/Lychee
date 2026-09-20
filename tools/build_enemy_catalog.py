@@ -60,8 +60,8 @@ def import_reference(path):
     # These are in-game proper names, not copied UI prose or implementation.
     locale = (path / "Locales/zhCN.lua").read_text(encoding="utf-8-sig")
     names = dict(re.findall(r'L\["([^"\n]+)"\]\s*=\s*"([^"\n]*)"', locale))
-    instances = json.loads((ROOT / "docs/architecture/2026-09-10-journal-instances.json").read_text(encoding="utf-8-sig"))["data"]["rows"]
-    encounters = json.loads((ROOT / "docs/architecture/2026-09-10-journal-encounters.json").read_text(encoding="utf-8-sig"))["data"]["rows"]
+    instances = json.loads((ROOT / "assets/data/journal/2026-09-10-journal-instances.json").read_text(encoding="utf-8-sig"))["data"]["rows"]
+    encounters = json.loads((ROOT / "assets/data/journal/2026-09-10-journal-encounters.json").read_text(encoding="utf-8-sig"))["data"]["rows"]
     instance_ids = {r["Name_lang"]: r["ID"] for r in instances}
     for dungeon in data["dungeons"].values():
         dungeon["nameZh"] = names.get(dungeon.pop("key"), dungeon["name"])

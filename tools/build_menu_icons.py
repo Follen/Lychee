@@ -18,7 +18,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/menu-icons"
 OUT = ROOT / "addon/Lychee/Media/MenuIcons"
-DOCS = ROOT / "docs/architecture"
+PREVIEWS = ASSETS / "previews"
 SIZE, SCALE, SAFE_INSET = 64, 4, 5
 WHITE, RED, BACKGROUND = "#efeee8", "#d53c49", "#101012"
 SVG_NS = "http://www.w3.org/2000/svg"
@@ -84,9 +84,10 @@ def main():
         manifest.append({**icon, "sourcePath": source.relative_to(ROOT).as_posix(),
                          "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
                          "path": path.relative_to(ROOT).as_posix(), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
-    sheet.save(DOCS / "2026-09-10-menu-icons.png")
-    (DOCS / "2026-09-10-menu-icons.svg").write_text("\n".join(svg_sheet + ["</svg>"]) + "\n", encoding="utf-8")
-    (DOCS / "2026-09-10-menu-icons.json").write_text(json.dumps({
+    PREVIEWS.mkdir(parents=True, exist_ok=True)
+    sheet.save(PREVIEWS / "2026-09-10-menu-icons.png")
+    (PREVIEWS / "2026-09-10-menu-icons.svg").write_text("\n".join(svg_sheet + ["</svg>"]) + "\n", encoding="utf-8")
+    (PREVIEWS / "2026-09-10-menu-icons.json").write_text(json.dumps({
         "generator": "tools/build_menu_icons.py", "upstream": {k:v for k,v in selection.items() if k != "icons"},
         "size": SIZE, "safeInsetPx": SAFE_INSET, "hostCropUV": [.07, .93, .07, .93],
         "format": "RGBA TGA", "style": "IconPark outline, 3/48 stroke, ivory with selected Lychee red strokes",
@@ -96,7 +97,7 @@ def main():
               "Modified by Lychee: ivory/red recoloring, transparent padding, rasterization to 64x64 TGA.\n"
               "Original SVG geometry is unchanged. Licensed under Apache License 2.0, reproduced below.\n\n")
     (OUT / "LICENSE.txt").write_text(notice + (ASSETS / "LICENSE.txt").read_text(encoding="utf-8"), encoding="utf-8")
-    print(f"Built and checked {len(items)} IconPark textures; preview: docs/architecture/2026-09-10-menu-icons.png")
+    print(f"Built and checked {len(items)} IconPark textures; preview: assets/menu-icons/previews/2026-09-10-menu-icons.png")
 
 if __name__ == "__main__":
     main()

@@ -21,11 +21,12 @@
 | `assets/data/` | 生成器使用的事实快照，包括 raid-journal；不直接打入运行包 |
 | `assets/about/`、`menu-icons/`、`provider-icons/` | 可编辑图标、图片和授权；导出资源进入 Media |
 | `assets/release/` | 发布封面素材和 [平台文案](../../assets/release/DESCRIPTION.md) |
-| `lychee-sdk/docs/` | 随SDK发布的教程、协议和专题；性能规范是生成副本 |
+| `lychee-sdk/docs/zh-CN/`、`lychee-sdk/docs/en/` | 按相同文件名配对的中文/英文专题；中文性能规范是生成副本，英文页为 SDK 接入指南 |
+| `lychee-sdk/examples/` | 示例与双语安装/集成说明 |
 | `dist/` | 生成的ZIP和哈希清单，忽略Git；legacy保存旧产物 |
 | `docs/guides/` | 现行开发、构建和维护步骤 |
-| `docs/architecture/` | 设计与来源调查，入口注明当前/历史状态 |
-| `docs/validation/` | 验证证据；历史报告保留当时的路径 |
+| `docs/archive/design/` | 设计与来源调查，入口注明当前/历史状态 |
+| `docs/archive/validation/` | 验证证据；历史报告保留当时的路径 |
 
 单文件功能用 `<功能>/Provider.lua`；复杂功能可以在自己的目录内拆分，不要求每个功能都具备相同数量的文件。技能别名在 `Providers/PlayerSpells/Aliases.lua`，首领目录在 `Providers/Bosses/JournalCatalog.lua`，不再混放到通用 Data 目录。
 
@@ -33,7 +34,7 @@
 `encounterID, instanceID, canonicalName`连续三字段，`encounterCount`记录条数；
 `tests/build/journal_catalog.py`逐条验证源快照，禁止手工修改生成行。
 Elles的上游版本敏感访问放在`Providers/Ellesmere/Adapter.lua`，Provider保留业务查询、排序和取消。
-面板会话由`UI/ViewHost.lua`维护，SDK样例的缓存与清理由Provider所有，见`lychee-sdk/docs/VIEW_LIFECYCLE.md`。
+面板会话由`UI/ViewHost.lua`维护，SDK样例的缓存与清理由Provider所有，见`lychee-sdk/docs/zh-CN/VIEW_LIFECYCLE.md`。
 
 ## 内部名称与稳定身份
 
@@ -43,7 +44,7 @@ Elles的上游版本敏感访问放在`Providers/Ellesmere/Adapter.lua`，Provid
 
 插件 ZIP 只包含 `Lychee/` 运行代码、媒体和许可证；其中 `SDK/` 是正在使用的运行时工具。独立的 `lychee-sdk.zip` 才包含开发文档、声明和示例。
 
-根目录保留 README、许可证和被各模块共同引用的现行规范。`.agents` / `.comet` 是工作流配置，`.codex` / `.impeccable` 是本地工具状态；`analyze` 是本地证据，不参与发布，也不批量改写历史内容。历史设计与验收目录保留原始路径和结论，旧路径对应关系见各自索引。空的旧 `package/` 已移除。
+根目录保留 README、许可证和被各模块共同引用的现行规范。`.agents` / `.comet` 是工作流配置，`.codex` / `.impeccable` 是本地工具状态；`analyze` 是本地证据，不参与发布，也不批量改写历史内容。历史设计与验收集中在 docs/archive，当前指南在 docs/guides；SDK 专题按 docs/zh-CN 与 docs/en 分开，对应页面使用相同文件名。空的旧 `package/` 已移除。
 
 ## 新增或调整内置 Provider
 
@@ -59,17 +60,17 @@ Elles的上游版本敏感访问放在`Providers/Ellesmere/Adapter.lua`，Provid
 
 ## 第三方边界与搜索路径
 
-本仓库 Providers 装配只服务自带功能，不是第三方模板。第三方独立 AddOn 通过公开 SDK 注册；需要冷加载时按 [加载合同](../../lychee-sdk/docs/LOADING.md) 声明。Host 通过声明发现，不能硬编码第三方名称或读取其私有数据库。第三方自己交付媒体，不依赖 Host 私有路径。
+本仓库 Providers 装配只服务自带功能，不是第三方模板。第三方独立 AddOn 通过公开 SDK 注册；需要冷加载时按 [加载合同](../../lychee-sdk/docs/zh-CN/LOADING.md) 声明。Host 通过声明发现，不能硬编码第三方名称或读取其私有数据库。第三方自己交付媒体，不依赖 Host 私有路径。
 
 `Core/AddonDiscovery.lua` / `AddonLoader.lua` 负责发现与加载协调，`Core/Preparation.lua` 负责有界准备，`Search/SourceAccess.lua` 将需求接到原有查询路径；`StaticIndex`、`QueryOrchestrator` 和 `SearchSession` 保留渐进结果发布。`Core/InvocationRuntime.lua` 与动作执行器处理参数调用；UI 只呈现状态和绑定当前操作。
 
-简单 Provider 可以继续提交 entries/Update；自有 query、Catalog、documents 和 CompactStore 是可选工具，不能作为普通接入的必修步骤。数据所有权、初始化时序和容量见 [SDK 存储](../../lychee-sdk/docs/STORAGE.md)。
+简单 Provider 可以继续提交 entries/Update；自有 query、Catalog、documents 和 CompactStore 是可选工具，不能作为普通接入的必修步骤。数据所有权、初始化时序和容量见 [SDK 存储](../../lychee-sdk/docs/zh-CN/STORAGE.md)。
 
 ## 不同客户端的不同实现
 
 支持范围回答“能在哪用”，功能内部的实现选择回答“在这里怎么做”。现有技能书和游戏菜单已有真实分支；选择在各自功能内完成，不移到 Host。只有确实不同的业务才拆实现文件，不创建四份空实现。
 
-以后需要按 interface/build 区间选择多个实现时，先按 [客户端差异约定](../../lychee-sdk/docs/CLIENT_VARIANTS.md) 明确唯一匹配、稳定身份、缓存版本和清理规则，再扩展构建清单与验证；当前清单不接受未经实现的新字段。不要把内部 Support 当作第三方 SDK。
+以后需要按 interface/build 区间选择多个实现时，先按 [客户端差异约定](../../lychee-sdk/docs/zh-CN/CLIENT_VARIANTS.md) 明确唯一匹配、稳定身份、缓存版本和清理规则，再扩展构建清单与验证；当前清单不接受未经实现的新字段。不要把内部 Support 当作第三方 SDK。
 
 ## 目录刷新与语言资源
 

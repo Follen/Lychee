@@ -108,6 +108,20 @@ class RepositoryDelivery(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIn("tests/ui/deleted.lua", errors[0])
 
+    def test_sdk_translation_missing_is_rejected(self):
+        (self.root / "lychee-sdk/docs/en/INVOCATIONS.md").unlink()
+        self.assertIn("SDK translation missing: docs/en/INVOCATIONS.md", docs.sdk_language_errors(self.root))
+
+    def test_sdk_language_navigation_is_required(self):
+        page = self.root / "lychee-sdk/docs/en/PROTOCOLS.md"
+        page.write_text(page.read_text(encoding="utf-8").replace("../zh-CN/PROTOCOLS.md", "PROTOCOLS.md"), encoding="utf-8")
+        self.assertIn("SDK language switch missing: docs/en/PROTOCOLS.md", docs.sdk_language_errors(self.root))
+
+    def test_sdk_topic_must_be_discoverable(self):
+        page = self.root / "lychee-sdk/README.en.md"
+        page.write_text(page.read_text(encoding="utf-8").replace("docs/en/STORAGE.md", "docs/en/CATALOG.md"), encoding="utf-8")
+        self.assertIn("SDK topic absent from README.en.md: STORAGE.md", docs.sdk_language_errors(self.root))
+
     def test_main_links_checked_but_historical_commit_links_preserved(self):
         page = self.root / "guide.md"
         page.write_text('[missing](https://github.com/Follen/Lychee/blob/main/tests/missing.lua)\n'

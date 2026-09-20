@@ -1,6 +1,6 @@
 # 单插件版架构与职责
 
-SDK 1.0.0 / Provider API 1.0.0。本页描述当前运行结构与公开合同。迁移背景保留在[单插件功能迁移](architecture/2026-09-14-single-addon-feature-port.md)，实际验证范围见[验收记录](validation/README.md)；历史方案不覆盖现行契约。
+SDK 1.0.0 / Provider API 1.0.0。本页描述当前运行结构与公开合同。迁移背景保留在[单插件功能迁移](archive/design/2026-09-14-single-addon-feature-port.md)，实际验证范围见[验收记录](archive/validation/README.md)；历史方案不覆盖现行契约。
 
 ## 物理包与逻辑模块
 
@@ -35,7 +35,7 @@ flowchart TD
   I --> J[显示当前结果和轻量等待状态]
 ```
 
-原生禁用包不自动启用；产品范围、原生 TOC 与 API 存在性一起决定适用性。静态声明使用版本化 TOC 元数据，加载后核对 ID、所有者、路由和资源。声明格式见[加载合同](../lychee-sdk/docs/LOADING.md)。
+原生禁用包不自动启用；产品范围、原生 TOC 与 API 存在性一起决定适用性。静态声明使用版本化 TOC 元数据，加载后核对 ID、所有者、路由和资源。声明格式见[加载合同](../lychee-sdk/docs/zh-CN/LOADING.md)。
 
 设置管理只展示 scope 匹配当前产品、Interface 和 build 的来源。不适用的来源默认不参与搜索；原有角色偏好保留，不能因切换客户端而覆写。Ellesmere UI / EX 集成的缺省参与状态由 EllesmereUI / ExwindCore 核心包的安装及当前角色启用状态决定，按需加载尚未执行不等于未安装。自动默认值只保存在本次加载会话，角色显式开关由 CharacterStore 保存；未安装或原生禁用时默认关闭，不主动加载依赖插件。
 
@@ -57,13 +57,13 @@ flowchart TD
 
 搜索给出条目，条目聚合相关 Action。暴雪设置来源只提供“打开并定位”；设置别名和固定首页由 Host 提供。SDK 的参数动作可以由其他 Provider 按需注册，不用于重新引入暴雪设置的数值编辑入口。
 
-执行链为：完整引用 → 校验和只读 Prepare → 用户确认/点击 → Invoke → 确认结果 → 写入有界历史。准备与搜索不得修改设置。已提交业务操作有自己的生命周期，关页面只是解除 UI 观察；失败或结果不确定不得自动重试。参数、准备凭据和异步恢复见[Invocation](../lychee-sdk/docs/INVOCATIONS.md)。
+执行链为：完整引用 → 校验和只读 Prepare → 用户确认/点击 → Invoke → 确认结果 → 写入有界历史。准备与搜索不得修改设置。已提交业务操作有自己的生命周期，关页面只是解除 UI 观察；失败或结果不确定不得自动重试。参数、准备凭据和异步恢复见[Invocation](../lychee-sdk/docs/zh-CN/INVOCATIONS.md)。
 
 空白等待采用轻量状态；旧结果只可作不可操作的视觉过渡，不能计为当前查询首批。零结果、部分失败、超时、加载中分别表达。键盘选择与按下/松开绑定完整身份；不能按行号将旧操作转移给新结果。6→1、1→6、IME、长标题、小视口和关闭重开必须验收。
 
 ## 数据、国际化和客户端
 
-框架偏好、固定、别名与最近记录只存有界稳定引用和必要显示回退。Provider 拥有业务设置与持久缓存；内置模块用自己的命名空间，第三方用自己的 SV。已加载 SV 仍占 Lua 堆。迁移先备份，不能因 API 不兼容丢用户数据，见[存储](../lychee-sdk/docs/STORAGE.md)。
+框架偏好、固定、别名与最近记录只存有界稳定引用和必要显示回退。Provider 拥有业务设置与持久缓存；内置模块用自己的命名空间，第三方用自己的 SV。已加载 SV 仍占 Lua 堆。迁移先备份，不能因 API 不兼容丢用户数据，见[存储](../lychee-sdk/docs/zh-CN/STORAGE.md)。
 
 Provider ID 与语种无关。品牌中“荔枝”和“Lychee”用荔枝色，显示为荔枝启动器 / Lychee Launcher；文案与游戏本地化见[i18n](../i18n.md)。Retail / classic / titan / anniversary 各自按生成清单和对应原生 API 证据验证，声明支持不代表实机通过。
 
@@ -76,6 +76,6 @@ Provider ID 与语种无关。品牌中“荔枝”和“Lychee”用荔枝色�
 
 ## 搜索文档与动作的所有权
 
-SDK 1.0.0 支持完整 Entry 和 `entryMode="documents"` 两种有界索引入口，详见 [目录契约](../lychee-sdk/docs/CATALOG.md)。Host 保存校验后的搜索字段；Provider 保存业务事实，reader 只生成当前候选/明确恢复的完整动作。二者共享既有索引流水线，不额外建第二份搜索目录。物化结果使用弱身份登记，目录版本变更后不能继续执行旧动作。
+SDK 1.0.0 支持完整 Entry 和 `entryMode="documents"` 两种有界索引入口，详见 [目录契约](../lychee-sdk/docs/zh-CN/CATALOG.md)。Host 保存校验后的搜索字段；Provider 保存业务事实，reader 只生成当前候选/明确恢复的完整动作。二者共享既有索引流水线，不额外建第二份搜索目录。物化结果使用弱身份登记，目录版本变更后不能继续执行旧动作。
 
-暴雪设置采用文档入口，只物化普通“打开并定位”动作；不注册设置 Invocation、自然语言解析或直接编辑页面。SDK 的通用 Invocation 协议继续供其他 Provider 使用。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和历史实测见 [数据结构审查](validation/2026-09-19-structural-memory.md)。
+暴雪设置采用文档入口，只物化普通“打开并定位”动作；不注册设置 Invocation、自然语言解析或直接编辑页面。SDK 的通用 Invocation 协议继续供其他 Provider 使用。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和历史实测见 [数据结构审查](archive/validation/2026-09-19-structural-memory.md)。

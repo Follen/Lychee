@@ -1,32 +1,30 @@
-# Lychee 文档导航
+# Lychee 文档
 
-本分支使用一个 `addon/Lychee` 运行包，SDK / Provider API 为 1.0.0；第三方仍独立接入。当前结构见[项目结构](guides/PROJECT_STRUCTURE.md)，实际验收范围见[验收索引](validation/README.md)；[迁移计划](architecture/2026-09-14-single-addon-feature-port.md)保留当时的背景与待办，不代表当前代码状态。
+[简体中文](README.md) · [English](README.en.md)
 
-这里先列当前规则。带日期的设计与验证是当时的决策和证据，不能单凭文件较新就覆盖现行规范。
+## 使用与开发
 
-## 我想做什么
-
-| 任务 | 阅读入口 |
+| 任务 | 入口 |
 | --- | --- |
-| 安装、使用插件 | [中文首页](../README.md) · [English](../README.en.md) |
-| 找源码、改构建或新增 Provider | [项目结构](guides/PROJECT_STRUCTURE.md) |
-| 开发、测试、同步游戏 | [开发与验证](guides/DEVELOPMENT.md) · [发布流程](guides/DELIVERY.md) |
-| 准备平台文案与封面 | [发布素材](../assets/release/DESCRIPTION.md) |
-| 理解当前内部职责 | [架构](ARCHITECTURE.md) · [当前上下文](../CONTEXT.md) |
-| 改名称、翻译、别名或语言回退 | [国际化规则](../i18n.md) |
-| 改页面、控件、动画或图标 | [设计规范](../DESIGN.md) |
-| 改性能、缓存或生命周期 | [性能规则与内存审查](../PERFORMANCE.md) |
-| 接入第三方 Provider | [SDK 首页](../lychee-sdk/README.md) |
-| 查看产品范围 | [产品](../PRODUCT.md) · [内置功能](PROVIDER_FEATURES.md) |
-| 找历史决策和测量证据 | [设计记录](architecture/README.md) · [验收记录](validation/README.md) |
+| 安装和使用 | [插件首页](../README.md) · [English](../README.en.md) |
+| 找源码和构建入口 | [项目结构](guides/PROJECT_STRUCTURE.md) |
+| 开发、测试、同步游戏 | [开发指南](guides/DEVELOPMENT.md) · [交付指南](guides/DELIVERY.md) |
+| 维护文档与翻译 | [文档维护](guides/DOCUMENTATION.md) |
+| 接入第三方 Provider | [中文 SDK](../lychee-sdk/README.md) · [English SDK](../lychee-sdk/README.en.md) |
+| 准备平台文案和封面 | [发布素材](../assets/release/DESCRIPTION.md) |
 
-## 一项规则只维护一份
+## 现行规范
 
-- PERFORMANCE.md 管性能规则、测量口径与 Agent 内存审查；CPU、容量和生命周期门禁继续执行，SDK 中的副本自动生成。
-- DESIGN.md 管用户看到和操作到的行为，主题值由 UI/Theme.lua 实现，动效参数由对应 Motion 模块实现。
-- SDK 的接入、协议、兼容和示例都在 lychee-sdk；本目录不复制协议正文。
-- API 版本和 SDK 交付清单归 tools/sdk_contract.json；客户端加载清单归 tools/client_manifest.json。
-- tools/release_manifest.json 管发布资源；dist 是产物，不是源码。
-- [Comet 历史规格](comet/README.md)保留原接口与旧设计，不作为当前实现要求；历史报告保留原读数和未验证限制。链接迁移另加维护注，重跑使用现行开发指南。
+| 范围 | 维护源 |
+| --- | --- |
+| 产品和内置功能 | [PRODUCT](../PRODUCT.md) · [功能说明](PROVIDER_FEATURES.md) |
+| 内部职责和上下文 | [ARCHITECTURE](ARCHITECTURE.md) · [CONTEXT](../CONTEXT.md) |
+| 交互和视觉 | [DESIGN](../DESIGN.md) |
+| 性能、容量和内存审查 | [PERFORMANCE](../PERFORMANCE.md) |
+| 名称、词典与语言回退 | [i18n](../i18n.md) |
 
-文档新增先放进上述入口；不要将一次排障经历追加成当前 API 规则。文档变动运行 `python tools/check_repository.py`。
+SDK 协议只在 SDK 中维护；版本和 SDK 文件清单来自 tools/sdk_contract.json。插件版本、客户端装配来自 tools/client_manifest.json，运行交付清单来自 tools/release_manifest.json。dist 是构建产物。
+
+## 历史记录
+
+[归档入口](archive/README.md)集中设计、验收和原始测量。旧工作流资料单列在 [Comet](comet/README.md)，读取它不会启动工作流。历史状态不代表当前实现或当前客户端验收。

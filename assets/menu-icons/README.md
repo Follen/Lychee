@@ -2,7 +2,7 @@
 
 ## Current flat assets
 
-`flat-atlas.png` contains generated light silver / warm ivory / lychee red artwork for a dark UI. Export the magenta matte to transparency and build 36 runtime icons with `node tools/build_flat_menu_icons.cjs` (requires `sharp`). The exporter writes 64×64 uncompressed RGBA TGA files and a dark-background preview at 28/34/48 pixels. Source and output hashes are in `docs/architecture/2026-09-10-flat-menu-icons.json`. Original skill, mount and currency game textures are unaffected.
+`flat-atlas.png` contains generated light silver / warm ivory / lychee red artwork for a dark UI. Export the magenta matte to transparency and build 36 runtime icons with `node tools/build_flat_menu_icons.cjs` (requires `sharp`). The exporter writes 64×64 uncompressed RGBA TGA files and a dark-background preview at 28/34/48 pixels. Source and output hashes are in `docs/archive/design/2026-09-10-flat-menu-icons.json`. Original skill, mount and currency game textures are unaffected.
 
 ## Previous outline assets (reference only)
 

@@ -82,8 +82,8 @@ assert(growth<16,"repeated queries retain unexpected memory")
 print(string.format("Alias capacity benchmark (200 queries, Lua 5.1): off mean=%.3f max=%.3f alloc=%.1f KiB; on mean=%.3f max=%.3f alloc=%.1f KiB retained_delta=%.2f KiB",before,beforeMax,beforeAlloc,after,afterMax,afterAlloc,growth))
 assert(perf:Unregister())
 do
-    local function definition(value,revision)
-        return {id="restricted",apiVersion="1.0.0",minApiRevision=revision,version="1",title="Restricted",
+    local function definition(value)
+        return {id="restricted",apiVersion="1.0.0",version="1",title="Restricted",
             scope={products={"retail"}},i18n={enUS={TITLE="Restricted"}},searchable=value,
             entries={{id="row",title="Hidden title",aliases={"hiddenalias"}}},
             query=function(request,reply)
@@ -92,7 +92,6 @@ do
     end
     assert(Lychee:Supports("1.0.0"))
     assert(not Lychee:RegisterProvider(definition("false")))
-    assert(not Lychee:RegisterProvider(definition(false,2)))
     local restricted=assert(Lychee:RegisterProvider(definition(false)))
     assert(#query("Hidden")==0 and #query("hiddenalias")==0)
     assert(#query("",{visible=true,searchFilter={sourceID="restricted:records"}})==0)
@@ -122,8 +121,7 @@ do
             searchGlobal=true,searchPrefixes={"inside"},searchKeywords={"openlist"},entries={{id="one",title="Unique target"}}}
     end
     assert(Lychee:Supports("1.0.0"))
-    local bad=definition("combined.bad");bad.minApiRevision=5;assert(not Lychee:RegisterProvider(bad))
-    bad=definition("combined.bad");bad.searchMode="global";assert(not Lychee:RegisterProvider(bad))
+    local bad=definition("combined.bad");bad.searchMode="global";assert(not Lychee:RegisterProvider(bad))
     bad=definition("combined.bad");bad.searchGlobal=false;bad.searchPrefixes={};bad.searchKeywords={};assert(not Lychee:RegisterProvider(bad))
     local handle=assert(Lychee:RegisterProvider(definition("combined.test")))
     assert(#query("Unique target")==1 and #query("inside:target")==1 and #query("openlist")==1)
@@ -187,8 +185,6 @@ do
             query=function(request,reply) calls=calls+1;last=request;reply({{id="live",title="Live result"}}) end}
     end
     assert(Lychee:Supports("1.0.0"))
-    local old=definition("keyword.old",{"show"});old.minApiRevision=4
-    assert(not Lychee:RegisterProvider(old),"retired revision declarations are rejected")
     local missing=definition("keyword.missing",nil);assert(not Lychee:RegisterProvider(missing))
     local handle,registrationError=Lychee:RegisterProvider(definition("keyword.test",{"KEYWORD","触发"}))
     assert(handle,registrationError and tostring(registrationError.code)..":"..tostring(registrationError.field))

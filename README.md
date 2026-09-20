@@ -10,12 +10,12 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.2.2-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.2.3-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/zh-CN/GETTING_STARTED.md)
 [![许可](https://img.shields.io/badge/license-非商业%20·%20署名-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -172,11 +172,11 @@ Interface/
 
 ## 把你的插件接进来
 
-SDK / Provider API 为 **1.0.0**，不兼容 API 2。一个 Provider 提供内容和动作，荔枝负责搜索、排序和展示。简单接入可提交 `entries` 和动作；有按需加载、参数调用或大目录需求时再使用相应能力。第三方仍是独立插件，维护自己的代码、存档和媒体，不读取 Host 私有模块。
+SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔枝负责搜索、排序和展示。简单接入可提交 `entries` 和动作；有按需加载、参数调用或大目录需求时再使用相应能力。第三方仍是独立插件，维护自己的代码、存档和媒体，不读取 Host 私有模块。
 
-你可以声明支持的客户端、注册自己的中英文文案，并为不同客户端提供不同实现。[加载约定](lychee-sdk/docs/LOADING.md)说明未加载插件如何被发现，[参数调用](lychee-sdk/docs/INVOCATIONS.md)说明如何把具体参数交给动作执行。
+你可以声明支持的客户端、注册自己的中英文文案，并为不同客户端提供不同实现。[加载约定](lychee-sdk/docs/zh-CN/LOADING.md)说明未加载插件如何被发现，[参数调用](lychee-sdk/docs/zh-CN/INVOCATIONS.md)说明如何把具体参数交给动作执行。
 
-**[从 SDK 接入开始 →](lychee-sdk/docs/GETTING_STARTED.md)** · [协议参考](lychee-sdk/docs/PROTOCOLS.md) · [示例与类型定义](lychee-sdk/README.md)
+**[从 SDK 接入开始 →](lychee-sdk/docs/zh-CN/GETTING_STARTED.md)** · [协议参考](lychee-sdk/docs/zh-CN/PROTOCOLS.md) · [示例与类型定义](lychee-sdk/README.md)
 
 <details>
 <summary><strong>维护与验证</strong></summary>

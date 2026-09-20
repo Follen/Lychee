@@ -10,12 +10,12 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.2.2-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.2.3-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
 
-[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/GETTING_STARTED.md)
+[![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/en/GETTING_STARTED.md)
 [![License](https://img.shields.io/badge/license-noncommercial%20·%20attribution-d53c49?style=flat-square)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/Follen/Lychee?style=flat-square&color=b79857)](https://github.com/Follen/Lychee/stargazers)
 [![Issues](https://img.shields.io/github/issues/Follen/Lychee?style=flat-square&color=687581)](https://github.com/Follen/Lychee/issues)
@@ -172,11 +172,11 @@ The interface supports **English and Simplified Chinese**, following the game lo
 
 ## Make your addon searchable
 
-The SDK and Provider API are **1.0.0**; API 2 is not supported. A Provider supplies content and actions; Lychee handles searching, ranking and display. Start with entries and actions. Loading declarations, parameterized calls and catalog tools are optional capabilities for providers that need them.
+The SDK and Provider API are **1.0.0**. A Provider supplies content and actions; Lychee handles searching, ranking and display. Start with entries and actions. Loading declarations, parameterized calls and catalog tools are optional capabilities for providers that need them.
 
-Third-party addons keep their own code, SavedVariables and media and use the public SDK rather than Host internals. Declare supported clients, register your own English and Chinese text, and provide different implementations where clients differ. See the [loading contract](lychee-sdk/docs/LOADING.md) and [Invocation guide](lychee-sdk/docs/INVOCATIONS.md) for those flows.
+Third-party addons keep their own code, SavedVariables and media and use the public SDK rather than Host internals. Declare supported clients, register your own English and Chinese text, and provide different implementations where clients differ. See the [loading contract](lychee-sdk/docs/en/LOADING.md) and [Invocation guide](lychee-sdk/docs/en/INVOCATIONS.md) for those flows.
 
-**[Start with the SDK →](lychee-sdk/docs/GETTING_STARTED.md)** · [Protocol reference](lychee-sdk/docs/PROTOCOLS.md) · [Examples and type definitions](lychee-sdk/README.md)
+**[Start with the SDK →](lychee-sdk/docs/en/GETTING_STARTED.md)** · [Protocol reference](lychee-sdk/docs/en/PROTOCOLS.md) · [Examples and type definitions](lychee-sdk/README.en.md)
 
 <details>
 <summary><strong>Maintenance and verification</strong></summary>

@@ -19,7 +19,8 @@ def performance_document(root: Path) -> str:
         path, separator, fragment = target.partition("#")
         return "](https://github.com/Follen/Lychee/blob/main/" + quote(path, safe="/") + (separator + fragment if separator else "") + ")"
     text = re.sub(r"\]\(([^\s)]+)\)", link, text)
-    return "<!-- Generated from root PERFORMANCE.md by tools/build_sdk.py; do not edit. -->\n\n" + text
+    return ("<!-- Generated from root PERFORMANCE.md by tools/build_sdk.py; do not edit. -->\n\n"
+            "[目录](README.md) · [English guide](../en/PERFORMANCE.md)\n\n" + text)
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,12 +58,12 @@ def contract_at(root: Path) -> dict:
     contract = json.loads((root / "tools/sdk_contract.json").read_text(encoding="utf-8"))
     if contract.get("schemaVersion") != 1:
         raise ValueError("unsupported SDK contract schema")
+    if set(contract) - {"schemaVersion", "sdkVersion", "apiVersion", "errorCodes", "contents"}:
+        raise ValueError("unknown SDK contract field")
     if not re.fullmatch(r"\d+\.\d+\.\d+", str(contract.get("sdkVersion", ""))):
         raise ValueError("invalid SDK release version")
     if contract.get("apiVersion") != contract["sdkVersion"]:
         raise ValueError("SDK and API must share one semantic version")
-    if "apiRevision" in contract or "helperMinimumRevision" in contract:
-        raise ValueError("retired revision fields are not supported")
     contents = contract.get("contents")
     if not isinstance(contents, list) or not contents or any(not isinstance(p, str) for p in contents):
         raise ValueError("contents must be a nonempty list of relative SDK paths")
@@ -126,7 +127,7 @@ def expected_files(root: Path, contract: dict) -> dict[str, str]:
                 f'apiVersion: "{version}"\ncontents:\n')
     manifest += "".join(f"  - {name}\n" for name in contract["contents"])
     return {host_path: host, facade_path: facade, types_path: types, helper_path: helper, "lychee-sdk/manifest.yaml": manifest,
-            "lychee-sdk/docs/PERFORMANCE.md": performance_document(root),
+            "lychee-sdk/docs/zh-CN/PERFORMANCE.md": performance_document(root),
             "addon/Lychee/SDK/CompactStore.lua": (root / "lychee-sdk/CompactStore.lua").read_text(encoding="utf-8")}
 
 

@@ -14,7 +14,7 @@ def current_documents(root: Path) -> list[Path]:
     for folder in ("docs/guides", "lychee-sdk", "assets"):
         result.extend((root / folder).rglob("*.md"))
     for name in ("tools/README.md", "tests/README.md", "tests/LIFECYCLE_ACCEPTANCE.md",
-                 "docs/architecture/README.md", "docs/validation/README.md", "docs/comet/README.md"):
+                 "docs/archive/README.md", "docs/archive/design/README.md", "docs/archive/validation/README.md", "docs/comet/README.md"):
         if (root / name).exists():
             result.append(root / name)
     return sorted(set(result))
@@ -63,6 +63,7 @@ def check(root: Path) -> list[str]:
     errors = document_errors(root, current_documents(root))
     errors.extend(code_path_errors(root, current_documents(root)))
     errors.extend(plugin_version_errors(root))
+    errors.extend(sdk_language_errors(root))
     if not (root / "addon/Lychee/Lychee.toc").is_file() or (root / "package/Lychee").exists():
         errors.append("runtime source must exist only at addon/Lychee")
     if (root / "addon/Lychee/Builtin").exists():
@@ -78,10 +79,11 @@ def check(root: Path) -> list[str]:
         badges = re.findall(r"API%20([0-9]+\.[0-9]+\.[0-9]+)", p.read_text(encoding="utf-8"))
         if badges != [version]:
             errors.append(p.name + ": SDK version badge differs from contract")
-    protocol = root / "lychee-sdk/docs/PROTOCOLS.md"
-    if f'API_VERSION="{version}"' not in protocol.read_text(encoding="utf-8"):
-        errors.append("SDK protocol current version differs from contract")
-    # Historical evidence and workflow state intentionally retain the original paths.
+    for language in ("zh-CN", "en"):
+        protocol = root / "lychee-sdk/docs" / language / "PROTOCOLS.md"
+        if not protocol.is_file() or f'API_VERSION="{version}"' not in protocol.read_text(encoding="utf-8"):
+            errors.append(f"SDK {language} protocol current version differs from contract")
+    # Only current policies and runnable tools are subject to current source-path checks.
     scan = current_documents(root)
     for folder in ("tools", "tests"):
         scan += [p for p in (root / folder).rglob("*") if p.suffix in {".lua", ".py", ".ps1", ".cjs"} and "__pycache__" not in p.parts]
@@ -120,6 +122,33 @@ def plugin_version_errors(root: Path) -> list[str]:
         badges = re.findall(r"/badge/version-([0-9]+\.[0-9]+\.[0-9]+)-", path.read_text(encoding="utf-8"))
         if badges != [version]:
             errors.append(path.name + ": plugin version badge differs from client manifest")
+    return errors
+
+
+def sdk_language_errors(root: Path) -> list[str]:
+    """Require real paired pages, discoverable in both language entry points."""
+    sdk = root / "lychee-sdk"
+    errors = []
+    pages = {lang: {p.name for p in (sdk / "docs" / lang).glob("*.md")}
+             for lang in ("zh-CN", "en")}
+    for lang, other, entry in (("zh-CN", "en", "README.md"), ("en", "zh-CN", "README.en.md")):
+        index = sdk / entry
+        if not index.is_file():
+            errors.append(f"SDK language entry missing: {entry}")
+            continue
+        contents = index.read_text(encoding="utf-8")
+        for name in sorted(pages[other] - pages[lang]):
+            errors.append(f"SDK translation missing: docs/{lang}/{name}")
+        if not pages[lang]:
+            errors.append(f"SDK language directory empty: {lang}")
+        for name in sorted(pages[lang]):
+            text = (sdk / "docs" / lang / name).read_text(encoding="utf-8")
+            if not re.search(r"(?m)^# .+", text):
+                errors.append(f"SDK page lacks a title: docs/{lang}/{name}")
+            if f"../{other}/{name}" not in text:
+                errors.append(f"SDK language switch missing: docs/{lang}/{name}")
+            if name != "README.md" and f"docs/{lang}/{name}" not in contents:
+                errors.append(f"SDK topic absent from {entry}: {name}")
     return errors
 
 

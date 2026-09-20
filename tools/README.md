@@ -1,6 +1,6 @@
 # 构建工具
 
-[生命周期重构提案](../docs/architecture/2026-09-12-runtime-lifecycle.md) 包含未来按需加载包的 TOC、依赖、版本与分发闭包检查。候选按需加载拆包尚未实施；当前源码在addon/Lychee，游戏仍只安装Lychee，不按提案候选包名安装。
+[生命周期重构提案](../docs/ARCHITECTURE.md) 包含未来按需加载包的 TOC、依赖、版本与分发闭包检查。候选按需加载拆包尚未实施；当前源码在addon/Lychee，游戏仍只安装Lychee，不按提案候选包名安装。
 
 这里存放构建期生成工具，不进入游戏 AddOns。运行时唯一来源是 `addon/Lychee`，离线验证仍在 `tests`；SDK 文档与类型在 `lychee-sdk`。
 

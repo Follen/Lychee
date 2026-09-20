@@ -44,7 +44,7 @@ class DeliveryContractTests(unittest.TestCase):
         self.assertEqual(builder.run(ROOT), [])
 
     def test_generated_performance_drift(self):
-        self.change("lychee-sdk/docs/PERFORMANCE.md", "性能规范与验收", "错误副本")
+        self.change("lychee-sdk/docs/zh-CN/PERFORMANCE.md", "性能规范与验收", "错误副本")
         self.reject("PERFORMANCE.md")
 
     def test_host_only_drift(self):
@@ -73,17 +73,21 @@ class DeliveryContractTests(unittest.TestCase):
         self.change("lychee-sdk/LycheeAPI.lua", "apiVersion=API.API_VERSION", "apiVersion=API.RETIRED_VERSION")
         self.reject("LycheeAPI.lua")
 
-    def test_retired_revision_contract_is_rejected(self):
-        path = self.root / "tools/sdk_contract.json"
-        data = json.loads(path.read_text(encoding="utf-8"))
-        data["apiRevision"] = 7
-        path.write_text(json.dumps(data), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "retired revision"):
-            builder.run(self.root)
-
     def test_helper_error_code_drift(self):
         self.change("lychee-sdk/LycheeAPI.lua", '"RESOURCE_LIMIT"', '"LOST_RESOURCE_LIMIT"')
         self.reject("LycheeAPI.lua")
+
+    def test_unknown_contract_fields_are_rejected(self):
+        path = self.root / "tools/sdk_contract.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["unexpectedVersionField"] = 1
+        path.write_text(json.dumps(data), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "unknown SDK contract field"):
+            builder.run(self.root)
+
+    def test_english_document_must_be_shipped(self):
+        (self.root / "lychee-sdk/docs/en/PROTOCOLS.md").unlink()
+        self.reject("docs/en/PROTOCOLS.md")
 
     def test_implementation_error_missing_from_contract(self):
         self.change("addon/Lychee/Core/InvocationRuntime.lua", 'code="PENDING"', 'code="NEW_PENDING_ERROR"')
@@ -101,7 +105,7 @@ class DeliveryContractTests(unittest.TestCase):
         self.assertTrue(any("STORAGE_CLOSED" in error for error in builder.run(self.root, write=True)))
 
     def test_missing_required_docs_and_example(self):
-        for name in ("docs/MANAGED_RESOURCES.md", "examples/ManagedProvider.lua"):
+        for name in ("docs/zh-CN/MANAGED_RESOURCES.md", "examples/ManagedProvider.lua"):
             (self.root / "lychee-sdk" / name).unlink()
             self.reject(name)
 
@@ -141,11 +145,11 @@ class DeliveryContractTests(unittest.TestCase):
         helper_path = json.dumps((self.root / "lychee-sdk/LycheeAPI.lua").as_posix())
         script = f"""
 local helper=dofile({helper_path})
-assert(helper.API_VERSION=="1.0.0" and helper.API_REVISION==nil and helper.MIN_API_REVISION==nil)
+assert(helper.API_VERSION=="1.0.0")
 local requested
 local host={{Supports=function(_,version,...) requested=version;return version=="1.0.0" and select("#",...)==0 end}}
 assert(helper.Supports(host) and requested=="1.0.0")
-local ok,err=helper.Supports(host,2,7)
+local ok,err=helper.Supports(host,"9.9.9")
 assert(not ok and err.code=='UNSUPPORTED_API')
 assert(not helper.Supports(host,"1.0.1"))
 assert(not helper.Supports(host,"1.0.0",1))
@@ -154,7 +158,7 @@ for _,code in ipairs({{'RESOURCE_CLOSED','RESOURCE_REENTRANT','RESOURCE_LIMIT','
  'INVALID_EVENT','INVALID_SETTINGS','DATA_LIMIT','SECRET_VALUE','INACCESSIBLE_VALUE'}}) do
  assert(helper.ERROR_CODES[code]==code)
 end
-print('SDK helper exact semantic version / retired numeric API rejection PASS')
+print('SDK helper exact semantic version / unsupported version rejection PASS')
 """
         result = subprocess.run(["lua", "-"], input=script, text=True, encoding="utf-8", capture_output=True, cwd=self.root)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

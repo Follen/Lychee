@@ -76,7 +76,7 @@ local function validateDescriptor(desc, public)
     if type(desc)~="table" then return nil,failure("INVALID_SCHEMA","descriptor") end
     local ok,why=I.Boundary:Validate(desc,"descriptor",{callbacks=descriptorCallbacks})
     if not ok then return nil,why end
-    if not validID(desc.id) or type(desc.apiVersion)~="string" or desc.minApiRevision~=nil or not validTitle(desc.title) then
+    if not validID(desc.id) or type(desc.apiVersion)~="string" or not validTitle(desc.title) then
         return nil,failure("INVALID_SCHEMA","descriptor",desc.id)
     end
     if public and (type(desc.version)~="string" or desc.version=="") then return nil,failure("INVALID_SCHEMA","version",desc.id) end

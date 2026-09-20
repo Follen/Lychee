@@ -4,7 +4,7 @@
 
 ## 阅读导航与现行边界
 
-本文件是项目所有性能约束的唯一维护源。SDK `docs/PERFORMANCE.md` 由构建工具从这里生成；设计和 SDK 的功能说明引用本文件，不单独调整预算。
+本文件是项目所有性能约束的唯一维护源。SDK `docs/zh-CN/PERFORMANCE.md` 由构建工具从这里生成；设计和 SDK 的功能说明引用本文件，不单独调整预算。
 
 - **先读通用规则**：1–6 节（成本、事件、UI、内存、模块边界）。
 - **选验证与交付**：7–10 节（测量口径、角色、SDK 和职责收敛）。
@@ -113,7 +113,7 @@ Host 加载期固定订阅 `PLAYER_LOGIN`、`PLAYER_LOGOUT`、`PLAYER_REGEN_DISA
 - 缩放、字体、语言或布局变化会使几何缓存失效；不能仅因条目 ID 相同就跳过必要的重排。
 - 静态纹理和图标在构建期准备，复用已有资源；运行时不做可避免的图像变换或重复资源创建。媒体尺寸需匹配实际显示需求，不能以 Lua 内存未增加推断渲染/纹理成本为零。
 
-本项目案例：[排序按钮状态回归](docs/validation/2026-09-10-reorder-button-state.md)。测试必须模拟真实事件序列，不能只调用 Move 方法就宣称点击状态正确。
+本项目案例：[排序按钮状态回归](docs/archive/validation/2026-09-10-reorder-button-state.md)。测试必须模拟真实事件序列，不能只调用 Move 方法就宣称点击状态正确。
 
 ## 5. 内存、缓存和搜索门禁
 
@@ -189,15 +189,15 @@ Host 加载期固定订阅 `PLAYER_LOGIN`、`PLAYER_LOGOUT`、`PLAYER_REGEN_DISA
 
 当前搜索回归基线与命令：
 
-- `lua tests/performance/performance_memory.lua --check`：2,025 条当前固定数据（原2,689条，团本来源已排除地下城）常驻低于 7 MiB、48 次查询累计分配低于 4 MiB、重复查询保留增长低于 512 KiB。常驻门槛由 9 MiB 经 7.25 MiB 收紧至 7 MiB，依据见 [启动常驻内存压缩](docs/validation/2026-09-10-resident-memory.md)。
+- `lua tests/performance/performance_memory.lua --check`：2,025 条当前固定数据（原2,689条，团本来源已排除地下城）常驻低于 7 MiB、48 次查询累计分配低于 4 MiB、重复查询保留增长低于 512 KiB。常驻门槛由 9 MiB 经 7.25 MiB 收紧至 7 MiB，依据见 [启动常驻内存压缩](docs/archive/validation/2026-09-10-resident-memory.md)。
 - `lua tests/performance/performance_memory.lua --stress`：扩展规模测量；`--disable`：停用与恢复数据源测量。
 - `lua tests/search/search_memory_regression.lua`：匹配正确性、缓存界限和索引生命周期检查。
 - `lua tests/performance/performance_search.lua`：2,048 次规范化分配低于 1 MiB、长文本缓存保留增量低于 512 KiB、取消后旧候选归零。
 - `lua tests/performance/performance_ui.lua --check`：固定 400 高视口、1,000 来源场景不超过 10 行，新增替身保留低于 1 MiB、20 次刷新分配低于 512 KiB，并检查重绑点击身份。
-- `lua tests/performance/performance_core.lua`、`lua tests/performance/perf_core_provider.lua`：固定校验/增量更新分配预算及调度、取消、回复代次检查；`performance_builtin_secure.lua`、`perf_builtin_secure_events.lua` 验证事件与启停生命周期。详见 [全项目测量与覆盖](docs/validation/2026-09-10-project-performance.md)。
+- `lua tests/performance/performance_core.lua`、`lua tests/performance/perf_core_provider.lua`：固定校验/增量更新分配预算及调度、取消、回复代次检查；`performance_builtin_secure.lua`、`perf_builtin_secure_events.lua` 验证事件与启停生命周期。详见 [全项目测量与覆盖](docs/archive/validation/2026-09-10-project-performance.md)。
 - `powershell -NoProfile -File tests/check_contract.ps1`：完整契约验证；运行时改动另需 Lua/XML/TOC 静态检查、wowdoc 验证和 `git diff --check`。
 
-上述内存数字适用于固定离线历史场景，按第 0 节审查，不是未来功能的硬总量限额。CPU、容量与生命周期断言保持有效；不得为通过测试而提高 CPU 限制或缩小输入。详见 [测量记录](docs/validation/2026-09-10-deep-memory-optimization.md)。
+上述内存数字适用于固定离线历史场景，按第 0 节审查，不是未来功能的硬总量限额。CPU、容量与生命周期断言保持有效；不得为通过测试而提高 CPU 限制或缩小输入。详见 [测量记录](docs/archive/validation/2026-09-10-deep-memory-optimization.md)。
 
 ### 7.1 按改动风险选择证据
 
@@ -226,7 +226,7 @@ Host 加载期固定订阅 `PLAYER_LOGIN`、`PLAYER_LOGOUT`、`PLAYER_REGEN_DISA
 - 分配、保留、延迟与正确性分别验收。为取消、重入或身份保护增加的固定成本需与收益一起报告；未被生产调用的调度器微基准不计入游戏帧率收益。专项改善后至少保留一组代表性整体负载，检查是否把成本转移到其他模块。
 - 区分“离线回归预算通过”和“游戏场景通过”。提交或同步不是实机验证证据；未完成的客户端场景继续列为待验证，不在后续报告中自动转成通过。
 
-本轮实践依据：[全项目性能审查与优化](docs/validation/2026-09-10-project-performance.md)。这些规则约束测量与行为，不把某一次机器上的耗时固化为通用门槛。
+本轮实践依据：[全项目性能审查与优化](docs/archive/validation/2026-09-10-project-performance.md)。这些规则约束测量与行为，不把某一次机器上的耗时固化为通用门槛。
 
 插件统计工具的归因口径、进程内存、Lua 堆和纹理/引擎对象成本不同。跨插件比较必须注明模块拆分、数据规模和采样口径；不能仅凭 EllesmereUI 主模块的一个数字证明 Lychee 应达到同样总内存。
 
@@ -262,14 +262,14 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 
 ### 角色存储与内存专项门禁
 
-执行设计见 [角色存储与生命周期](docs/architecture/2026-09-12-runtime-lifecycle.md)，检查映射见 [验收清单](tests/LIFECYCLE_ACCEPTANCE.md)。用户已取消严格 1 MiB 要求，改为保持体验下尽可能降低整体保留；不以拆包、默认禁用、删目录或强制 GC 获得收益。
+现行职责见 [架构](docs/ARCHITECTURE.md)，检查映射见 [验收清单](tests/LIFECYCLE_ACCEPTANCE.md)。用户已取消严格 1 MiB 要求，改为保持体验下尽可能降低整体保留；不以拆包、默认禁用、删目录或强制 GC 获得收益。
 
 - 适用当前客户端的自带 Provider 默认参与搜索；EUI/EX 仅在检测到各自核心包已安装且当前角色启用时默认参与。依赖检测每加载会话至多缓存两个布尔值，不写自动 opt-out、不增加轮询；读取失败不缓存为永久缺失。角色显式开关必须在恢复/重新注册后保留。不匹配产品、Interface 或 build 范围的来源不显示设置且不默认参与搜索。设置、历史、别名、搜索策略及成就角色缓存禁止绕过 CharacterStore 写回账号域。
 - 当前 2025 条固定离线组合目录（历史为 2689 条）的回归比较线为保留 7168 KiB（7 MiB）、48 次查询分配 4096 KiB、保留增长 512 KiB；按第 0 节审查。数据/解释器不同另行报告，不能将离线数值当作客户端内存。
 - 6002 条成就目录单角色保留低于 1024 KiB；10 次温恢复累计分配低于 2048 KiB、保留增长低于 64 KiB、成就枚举调用为 0。所有者停用停止工作，用户搜索开关不停止后台；事件增量/分类变化、缓存损坏重建与角色隔离同时通过。
 - 输入访问安全、隔离复制与最终语义必须完整；内部一次性凭据不能由公开字段伪造。元数据池至多 128 个短键（每键≤256字节），键/弱值/辅助结构均有界，大值不缓存但正常处理。
 - 首页和视图关闭释放活动条目/回调/context，原生控件复用；开关不新增常驻 timer/OnUpdate，动画几何和动作身份门禁继续执行。
-- SDK 1.0.0 / Provider API 1.0.0 保留已有 Provider 业务与隔离门禁，不提供 API 2 兼容层。旧私有 Command/Capability/Intent 路径按本轮授权移除，不能据此放松搜索或安全测试。
+- SDK 1.0.0 / Provider API 1.0.0 保留已有 Provider 业务与隔离门禁。旧私有 Command/Capability/Intent 路径按本轮授权移除，不能据此放松搜索或安全测试。
 - 游戏内冷/热/关闭、所有已访问页面、角色切换及全来源默认开启的整体成本另行采样，报告 sourceCommit/dirty/hash。旧客户端报告、私有副本差额和提交同步均不能充当新实现实机达标证据。
 
 - [ ] 成本预算、对象上限、所有权、创建和退出路径已记录。
@@ -407,7 +407,7 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 
 ## 14. LDT 正式服怪物资料门禁
 
-新增独立功能的预算与原有功能分开验收，设计依据见 [LDT 设计](docs/architecture/2026-09-12-creature-reference.md)。
+新增独立功能的预算与原有功能分开验收，设计依据见 [LDT 设计](docs/archive/design/2026-09-12-creature-reference.md)。
 
 - 只加载到 Mainline 与正式服 fallback TOC，Provider scope 同时限定 retail；其他客户端不加载数据和页面。默认全局开启并服从角色显式关闭。
 - 静态事实最多64副本、4096怪物、每副本256怪物、每怪64技能。具名数据，不复制地图、坐标、路线；普通构建只读取版本控制内的 JSON 快照。
@@ -444,7 +444,7 @@ AGENTS.md / 开发指南规定的大改动 lychee-dev **功能覆盖测试**，�
 
 ## 17. 本轮优化经验与后续取舍
 
-以下来自单插件版的实际改动与对照测试，用于指导下一次优化，不是新的通用内存上限。详细数据见[数据结构审查](docs/validation/2026-09-19-structural-memory.md)与[查询分配验收](docs/validation/2026-09-19-query-allocation.md)。
+以下来自单插件版的实际改动与对照测试，用于指导下一次优化，不是新的通用内存上限。详细数据见[数据结构审查](docs/archive/validation/2026-09-19-structural-memory.md)与[查询分配验收](docs/archive/validation/2026-09-19-query-allocation.md)。
 
 ### 先确定省的是哪种内存
 

@@ -262,7 +262,7 @@ UI 采用适合 WoW 的保留式组件库：静态定义一次，`Lychee.UI:Crea
 
 Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用同一生命周期。受控输入相同值不调用 SetText，保留光标；按钮使用当前绑定，旧按下不能触发新对象。State 更新同步，动作和安全检查不延期。Native 为安全按钮、既有滚动池和第三方复杂视图提供接入点，业务规则不进入声明式属性。
 
-定义和业务状态分开。页面持有实例，卸载先使旧代次失效；组件清理幂等且允许重新挂载。不宣称 Hide/Release 能销毁 WoW Frame。SDK 自定义面板的 create→Mount→Update→Unmount→Dispose 顺序保留，缓存归 Provider 所有。完整接口、属性和示例见 `lychee-sdk/docs/UI_LIBRARY.md`。
+定义和业务状态分开。页面持有实例，卸载先使旧代次失效；组件清理幂等且允许重新挂载。不宣称 Hide/Release 能销毁 WoW Frame。SDK 自定义面板的 create→Mount→Update→Unmount→Dispose 顺序保留，缓存归 Provider 所有。完整接口、属性和示例见 `lychee-sdk/docs/zh-CN/UI_LIBRARY.md`。
 
 固定项按角色独立保存：每个角色拥有自己的列表、顺序和删除／撤销状态，上限64项。使用游戏原生角色保存库；旧账号共用固定数据直接清空，不迁移到当前角色。
 
@@ -308,7 +308,7 @@ Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用同�
 
 关闭立即停止会话、安全动作和输入；Input仅冻结外观，焦点和启用状态照常更新；隐藏后解除，重开恢复实时外观。战斗由安全宿主隐藏并停止动效，脱战不重开。减少动态效果即时设置终态并完成收尾。首次播放仅创建一个复用驱动Frame和任务表，每帧计算标量及最多SetPoint/SetAlpha各一次，同值跳过；结束解除OnUpdate、隐藏驱动、释放业务引用。没有主窗口原生动画组。
 
-品牌 Logo 保持原 `lychee-logo.tga` 的轮廓、纹理、颜色与完整 UV，不重画或生成逐帧贴图。打开播放一次，空闲悬停可重播；播放中悬停不重启，关闭立即停止。录像 `20260912-114435.mp4` 已否定 Logo 原生 Scale/Translation 组合：播放期间消失、偏到“最近使用”附近，结束才复位，禁止复用该路径。现在只改 Logo 纹理自身的 SetSize 和相对固定品牌容器的 CENTER 锚点；输入、父框体、设置按钮命中区域不参与变换。五段合计 1.386 秒，直接求解确认预览的 cubic-bezier；原图源坐标枢轴为 (64,103)/128，42 像素下局部中心位移小于 4 UI 单位，绝不把屏幕坐标用于动效。一个复用驱动和一个任务表，活动帧最多 SetSize/SetPoint 各一次、同值跳过，不创建动画组或新纹理；结束解绑 OnUpdate、隐藏驱动并释放引用。战斗时停止更新，不改保护布局，仅保留一个待安全复位的目标；下次安全 StopAll/打开时复位。详见 `lychee-sdk/docs/MOTION.md` 与 `docs/validation/2026-09-12-brand-local-geometry.md`。
+品牌 Logo 保持原 `lychee-logo.tga` 的轮廓、纹理、颜色与完整 UV，不重画或生成逐帧贴图。打开播放一次，空闲悬停可重播；播放中悬停不重启，关闭立即停止。录像 `20260912-114435.mp4` 已否定 Logo 原生 Scale/Translation 组合：播放期间消失、偏到“最近使用”附近，结束才复位，禁止复用该路径。现在只改 Logo 纹理自身的 SetSize 和相对固定品牌容器的 CENTER 锚点；输入、父框体、设置按钮命中区域不参与变换。五段合计 1.386 秒，直接求解确认预览的 cubic-bezier；原图源坐标枢轴为 (64,103)/128，42 像素下局部中心位移小于 4 UI 单位，绝不把屏幕坐标用于动效。一个复用驱动和一个任务表，活动帧最多 SetSize/SetPoint 各一次、同值跳过，不创建动画组或新纹理；结束解绑 OnUpdate、隐藏驱动并释放引用。战斗时停止更新，不改保护布局，仅保留一个待安全复位的目标；下次安全 StopAll/打开时复位。详见 `lychee-sdk/docs/zh-CN/MOTION.md` 与 `docs/archive/validation/2026-09-12-brand-local-geometry.md`。
 
 滚动视口参与伸缩时，必须在首次显示、视口尺寸变化及内容几何变化后同步原生滚动内容边界（UpdateScrollChildRect），不能只更新自绘滑块。无变化通知跳过；隐藏或战斗中保留待刷新状态，下次安全显示时完成。通过尺寸事件更新，不新增空闲轮询，也不以反复隐藏条目强制重绘。
 

@@ -18,6 +18,7 @@ for row,name in enumerate(('settings','addon-inspector','achievements')):
     for x,size in ((190,28),(258,34),(330,48)):
         tile=image.resize((size,size),Image.Resampling.LANCZOS)
         preview.paste(tile,(x,row*62+(54-size)//2),tile)
-preview.save(root / 'docs/validation/2026-09-10-addon-inspector-icons.png')
-(root / 'docs/validation/2026-09-10-addon-inspector-icon.json').write_text(json.dumps({'source':str(source.relative_to(root)), 'size':[64,64], 'mode':icon.mode, 'sha256':hashlib.sha256(target.read_bytes()).hexdigest()},indent=2)+'\n')
+(root / 'assets/provider-icons/previews').mkdir(parents=True, exist_ok=True)
+preview.save(root / 'assets/provider-icons/previews/2026-09-10-addon-inspector-icons.png')
+(root / 'assets/provider-icons/previews/2026-09-10-addon-inspector-icon.json').write_text(json.dumps({'source':str(source.relative_to(root)), 'size':[64,64], 'mode':icon.mode, 'sha256':hashlib.sha256(target.read_bytes()).hexdigest()},indent=2)+'\n')
 print('Exported editable vector to 64x64 RGBA TGA and 28/34/48 px comparison.')

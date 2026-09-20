@@ -235,7 +235,7 @@ local swapItem=query("Swap action")[1]
 expect("STALE_RESULT",function() return I.Providers:Execute(swapItem,"swap",{}) end)
 assert(#query("New owner")==1 and swapped:Unregister())
 local helper=dofile("lychee-sdk/LycheeAPI.lua")
-assert(helper.Supports(SDK) and not helper.Supports(SDK,2,false))
+assert(helper.Supports(SDK) and not helper.Supports(SDK,"9.9.9"))
 assert(next(I.Providers.jobs)==nil)
 assert(not LycheeDB or LycheeDB.searchIndex==nil, "executable search data is not persisted")
 print("Lychee Provider API 1.0.0 contract PASS")

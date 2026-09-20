@@ -1,6 +1,6 @@
 # 角色存储与生命周期验收入口
 
-当前 SDK / Provider API 为 1.0.0，UI Runtime 为 1；插件版本独立维护。2026-09-12 的 SDK 2/revision 6 方案已是[历史设计](../docs/architecture/2026-09-12-runtime-lifecycle.md)，不作为当前接口要求。现行行为见 [架构](../docs/ARCHITECTURE.md)，性能与内存审查见 [PERFORMANCE.md](../PERFORMANCE.md)。
+当前 SDK / Provider API 为 1.0.0，UI Runtime 为 1；插件版本独立维护。现行行为见 [架构](../docs/ARCHITECTURE.md)，性能与内存审查见 [PERFORMANCE.md](../PERFORMANCE.md)。
 
 从仓库根目录执行 `powershell -NoProfile -File tests/check_contract.ps1`。分组与公共装配见 [测试说明](README.md)。失败、Lua 缺失和清单漂移必须非零退出；文档检查不能代替功能测试。
 
@@ -16,4 +16,4 @@
 | `integration/client_toc_load.lua`、`build/client_manifest.py` | 四客户端真实加载顺序、范围和能力过滤 |
 | `performance/`、`build/sdk_delivery.py`、`build/repository_delivery.py` | 性能观测与生命周期门禁、版本及交付漂移故障注入 |
 
-本表是导航，不是某次实机验收结论；完整执行清单由 check_contract.ps1 维护。独立性能诊断插件已退役，历史报告只作对照。实机用 lychee-dev 并记录当前安装提交、客户端、角色、Ticket、清理和未测项，见[验收索引](../docs/validation/README.md)。离线通过不代表硬件点击、战斗、taint、字体/缩放或长期常驻已通过。
+本表是导航，不是某次实机验收结论；完整执行清单由 check_contract.ps1 维护。独立性能诊断插件已退役，历史报告只作对照。实机用 lychee-dev 并记录当前安装提交、客户端、角色、Ticket、清理和未测项，见[验收索引](../docs/archive/validation/README.md)。离线通过不代表硬件点击、战斗、taint、字体/缩放或长期常驻已通过。

@@ -1,23 +1,25 @@
-# Independent cold-loading example
+# 独立冷加载示例
 
-This is a complete Retail AddOn using SDK / Provider API 1.0.0. Copy this entire directory to `Interface/AddOns/ColdProvider`, alongside Lychee, then restart the client. Do not rename the directory without updating both TOC names and `X-Lychee-Package`.
+[简体中文](README.md) · [English](README.en.md)
 
-The `X-Lychee-*` TOC fields are the discovery declaration; there is no Lua manifest to execute before loading. This example uses a public game file ID and its own `ColdProviderDB` SavedVariables. It reads no Host internals or private media. No SDK helper file needs to be copied into this simple example.
+完整 Retail AddOn，使用 SDK / Provider API 1.0.0。将整个目录复制到 `Interface/AddOns/ColdProvider`，与 Lychee 并列，重启客户端。改目录名时必须同时改两份 TOC 文件名和 X-Lychee-Package。
 
-## Expected flow
+X-Lychee-* 是原生 TOC 静态声明，不在发现时执行 Lua manifest。示例使用公开游戏 fileID 和自己的 ColdProviderDB，不读取 Host 私有表/媒体，也无需另复制 SDK helper。
 
-1. Enable both addons in the native addon list. `ColdProvider` is load-on-demand; ordinary login does not run its Lua.
-2. Enter `cold:` or `coldexample` in Lychee. The default is prefix/keyword-only, so unrelated general searches should not load it. User route overrides may change that policy.
-3. Lychee reads the TOC declaration, loads the package, and checks registration. `RegisterReady` and `WhenSavedVariablesReady` may complete synchronously; the code handles either order without reading SV early.
-4. The result is “Test cold-loaded action” in English or “测试冷加载动作” in Chinese. Opening or searching does not execute it. Clicking records `acknowledged=true` in this example's own SV and prints a confirmation.
-5. Pin the entry, close and reopen the palette, and confirm it restores. Turning off participation in search hides its search results but must not make a valid explicit pin unavailable. Native disabling is different and requires a reload/restart to affect package loading.
+## 验证流程
 
-The package stays loaded after closing Lychee: WoW does not unload its Lua/SavedVariables. To test a genuinely cold load again, restart or reload without a visible saved reference to this example; a visible pin can legitimately load its owner. Test cancellation while a separate slow fixture is preparing; this minimal example intentionally creates no artificial timer.
+1. 原生插件列表启用两个插件；ColdProvider 是按需加载，普通登录不运行其 Lua。
+2. 输入 `cold:` 或 `coldexample`；默认仅路由搜索触发，其他普通搜索不应加载。用户覆盖路由可改变这一点。
+3. Lychee 读声明、加载包、等待注册。RegisterReady/WhenSavedVariablesReady 都可同步完成，示例不提前读 SV。
+4. 中英文分别显示“测试冷加载动作”/“Test cold-loaded action”。搜索和打开不执行动作，点击才在本包 SV 写 acknowledged=true 并输出确认。
+5. 固定入口并关闭重开，验证恢复。关闭“参与搜索”隐藏搜索结果，但不阻止有效固定引用；原生禁用是另一种状态，需 reload/重启影响加载。
 
-## Scope and verification
+关闭 Lychee 不卸载已经加载的 Lua/SV。再次测试真正冷加载时 reload/重启并避免该示例的可见固定引用；可见引用可以合法加载所属包。取消慢准备使用独立慢测试来源，本示例不人为添加 timer。
 
-Only Retail interface 120100–120199 is declared. Other products require their own verified TOCs, capability checks and tests; do not merely widen this example's range. The broad build range is an example contract for this interface family, not a claim of testing every build.
+## 范围和验收
 
-From the repository root, run `lua tests/sdk/cold_example.lua`. It runs this actual TOC and Lua through the Host registration boundary with mocked native addon loading in English and Chinese, including readiness ordering, explicit actions, invalid SV preservation, and rejection of renamed/mismatched declarations. Offline evidence does not prove native loading/UI behavior; record in-game cold/reopen/disabled-source results separately.
+仅声明 Retail Interface 120100–120199。其他客户端需要自己的 TOC、能力证据和测试，不能仅扩大范围；宽 build 范围是接口族示例，不代表每个 build 都实测。
 
-For your own code, replace the example provider ID, routes, labels, SV name and action together. Keep the cold declaration and loaded registration consistent. Add optional preparation only when your own business data requires it; loading, preparation and action execution are separate stages. See [loading contract](../../docs/LOADING.md), [Invocation](../../docs/INVOCATIONS.md) and [Catalog](../../docs/CATALOG.md).
+完整仓库运行 `lua tests/sdk/cold_example.lua`，使用真实示例 TOC/Lua 和原生加载替身覆盖中英文、就绪顺序、明确执行、损坏 SV 保留、改名/声明不符拒绝。离线通过不替代真实客户端的冷加载、关闭重开和来源禁用验证。
+
+适配自己的功能时一起修改 ID、路由、文案、SV 名称和动作，保持冷声明与热注册一致。仅业务需要时加 prepare。参见[加载](../../docs/zh-CN/LOADING.md)、[Invocation](../../docs/zh-CN/INVOCATIONS.md)、[目录](../../docs/zh-CN/CATALOG.md)。

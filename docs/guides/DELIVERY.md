@@ -12,7 +12,7 @@ python tools/build_release.py --check
 powershell -NoProfile -File tests/check_contract.ps1
 ```
 
-变更SDK版本或文件清单时修改 `tools/sdk_contract.json`，执行 `python tools/build_sdk.py --write`。它更新声明、manifest与SDK性能规范副本，不自动创建ZIP或发布。本分支 SDK / Provider API 均为 1.0.0；不保留 API 2 兼容入口。接口与版本文档必须同实现核对，不能只改标记。
+变更SDK版本或文件清单时修改 `tools/sdk_contract.json`，执行 `python tools/build_sdk.py --write`。它更新声明、manifest与SDK性能规范副本，不自动创建ZIP或发布。本分支 SDK / Provider API 均为 1.0.0。接口与版本文档必须同实现核对，不能只改标记。
 
 新增/移除运行资源必须同步 `tools/release_manifest.json`；该清单包含运行Lua/XML/TOC、媒体与许可证。TOC加载顺序只在 `tools/client_manifest.json` 维护，两个清单分别回答“随包交付什么”和“客户端加载什么”，不是两个加载入口。门禁拒绝漏文件、未声明文件和越界路径。
 

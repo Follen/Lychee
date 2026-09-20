@@ -10,7 +10,7 @@ The root [Lychee license](LICENSE) covers only rights the Lychee rights holders 
 - Source: [bytedance/IconPark](https://github.com/bytedance/IconPark), `@icon-park/svg` 1.4.2.
 - License: [Apache License 2.0](assets/menu-icons/LICENSE.txt), retained in full.
 - Reference source: `assets/menu-icons/upstream/*.svg`.
-- Derived previews: `docs/architecture/2026-09-10-menu-icons.svg` and `.png`.
+- Derived previews: `assets/menu-icons/previews/2026-09-10-menu-icons.svg` and `.png`.
 - Changes in derived previews: selection, recoloring to ivory and red, rasterization and layout. Original reference SVG geometry is retained.
 
 These legacy reference materials retain Apache-2.0 permissions, including permissions that differ from Lychee's custom terms. Current runtime menu icons use the replacement artwork described in [the asset notes](assets/menu-icons/README.md).

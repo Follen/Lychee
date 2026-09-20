@@ -10,7 +10,7 @@ if ($LASTEXITCODE -eq 0) { throw "Legacy SDK facade marker found: $legacy" }
 $architectureDocs = @(
     (Join-Path $root 'docs/comet/specs'),
     (Join-Path $root 'docs/ARCHITECTURE.md'),
-    (Join-Path $root 'lychee-sdk/docs/GETTING_STARTED.md'),
+    (Join-Path $root 'lychee-sdk/docs/zh-CN/GETTING_STARTED.md'),
     (Join-Path $root 'lychee-sdk')
 )
 $legacyArchitecture = rg -n '用户输入只匹配 Command|必须注册引用该 Provider|新增数据源时注册 Provider|Provider\s*->\s*Command|可搜索入口是两份显式声明|ambient.*Command 负责直接命中名称' @architectureDocs 2>$null

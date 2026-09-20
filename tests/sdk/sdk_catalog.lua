@@ -56,7 +56,7 @@ assert(handle:SetAvailability(false))
 assert(catalog:GetState().entries==0)
 assert(not catalog:Search({normalized="",limit=20}))
 assert(handle:Unregister());assert(catalog:Close())
-local old={id="old.api",title="Old",version="1",apiVersion=2,scope=options.scope,i18n=options.i18n,query=function() end}
+local old={id="version.check",title="Version check",version="1",apiVersion="9.9.9",scope=options.scope,i18n=options.i18n,query=function() end}
 local value,err=Lychee:RegisterProvider(old);assert(not value and err.code=="UNSUPPORTED_API")
 old.apiVersion="1.0.0";old.entries={};value,err=Lychee:RegisterProvider(old)
 assert(value,"simple entries remain supported in API 1.0.0");assert(value:Unregister())
