@@ -17,3 +17,13 @@ WoW证据：sourceId wow-ui-source / retail / requestedRef与Tag 12.1.0 / resolv
 - Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseSharedTemplates.lua:600–608，OnTextChanged(userInput) 仅对用户输入触发回调。
 
 精确excerpt保存于 analyze/survival/scroll-evidence.json、wheel-evidence.json、text-evidence.json。视觉保留现有黑底、暖白、稀疏荔枝红，机械layout扫描无发现（Lua原生布局需实机检查）。
+
+## 2026-09-21 实机结果
+
+运行提交9387af7已同步到正式服Lychee，199文件SHA-256逐一一致，73个旧文件保留。仅更新现有模块，TOC加载顺序不变；reload后元数据0.3.18。
+
+Ticket `LYCHEE-20260921-000005-0076`，task ldt-redesign-live / request ldt-redesign-20260920 / revision ui-1，status succeeded、complete true，10/10断言通过。环境：12.1.0.69875、Interface120100、zhCN、灵止光—死亡之翼。完整payload：`C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-000005-0076/content.json`，sha256 `1e8e43c87791560b68da8d75aa8094dbe0963fcf3e1d0639b5ca3b62961ae02b`。ACK confirmed/cleared，自有任务已remove；上轮0075未确认ACK也已补齐并清理。
+
+真实资料17/134739/270292（净化构造体/净化烈焰）：客户端说明明确每秒伤害但未给总持续时间，页面正确要求补全持续跳数，自动填充manual=false。默认校正收起、固定工具栏可见；展开后viewport332/content532。空白、效果行和输入框滚轮按脚本触发，偏移0→32→64→96且原生GetVerticalScroll一致。确认最新字段后成功计算并收起、偏移归零。顶部返回第一次保留怪物页与270292技能，第二次返回搜索；退出后业务事件和resources清空。
+
+WGC实机截图 `analyze/survival/ui-live-5.png`（默认）、`ui-live-9.png`（展开）核对：技能、层数、刷新不随正文滚走，外援默认可见，展开参数后滚动容器裁切正确，无控件相互遮挡。回归使用原生页面、脚本触发事件；真实硬件滚轮/拖动、英文、小视口、战斗、其他客户端仍待单独实机验收。离线50轮复用与全契约通过，不冒充这些未覆盖的游戏场景。
