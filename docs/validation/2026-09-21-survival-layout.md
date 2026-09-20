@@ -55,3 +55,9 @@ Retail 12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-00
 运行提交 `8d7fdbb`，199文件SHA-256一致。标题下移12；结果区三列184、内缩16并居中，结论图标按本地普通文字GetStringWidth定位且缓存setter；标签和下划线左对齐；choice未选框16、半径5、switchOff实心底。无新增Frame/Region/驱动，Lua模块离线430.5 KiB（上一版429.5）；50次重开未观察保留增长（-1.03 KiB），查询增长0.5 KiB，峰批3ms。完整契约、语法、wowdoc valid=true和diff检查通过。
 
 Retail12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-014706-0084` request=ldt-layout29-20260921/revision=layout29，complete/succeeded，20/20功能断言通过，100次计算1.6274ms。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-014706-0084/content.json`，WGC `analyze/survival/ui-layout29-9.png` 核对三栏、勾号、标签和未选态。ACK确认且清理，自有任务移除。英文实机、真实鼠标/滚轮、战斗和总纹理内存未覆盖。增加留白导致同高度窗口可见行减少，保留已有独立滚动供访问全部效果。
+
+## 0.3.30–0.3.31 勾选四态图集与尺寸
+
+运行提交9019048加入原创SVG四态图集，5caee2c按用户反馈将显示尺寸从20缩到16（实际轮廓约12），整行点击不变。200运行文件SHA-256一致；素材256×64 RGBA原始像素64 KiB，全行共享，每个choice从1 Frame/16 regions改为1 Texture，12行减少12 Frame/180 regions。状态UV和透明度缓存，无新驱动。完整契约、四态禁用/复用回归、Lua语法、wowdoc与diff检查通过；50次打开不增加控件、保留-1.03 KiB；离线模块430.5 KiB、查询增长0.0、峰批3ms。纹理引擎总内存未量化，不按对象计数换算总节省。
+
+首轮Ticket `LYCHEE-20260921-020131-0085` 为21/23通过，合剂与选中态两项失败；WGC有同时鼠标操作且模拟选项发生变化，疑似干扰但不当作已确证根因；已ACK清理。check30-fast已加载但因用户尺寸修订未执行，直接换成check31。check31在断言同一回调中先恢复自有模拟基线，再执行点击检查。最终Ticket `LYCHEE-20260921-020529-0086` request=ldt-check31-20260921/revision=check31，Retail12.1.0.69875 zhCN 灵止光—死亡之翼，complete/succeeded，23/23通过。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-020529-0086/content.json`。WGC `analyze/survival/ui-check31-3.png` 确认缩小标记、hover及禁用（后两者由探针临时注入，不代表实际角色增益）；选中图集在首轮截图中可见。100次计算1.4311ms，ACK确认清理，任务移除。英文客户端、不同DPI及真实硬件点击独立场景未覆盖。
