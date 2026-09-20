@@ -88,6 +88,8 @@ dofile("addon/Lychee/".."Providers/Mounts/Locales/enUS.lua");dofile("addon/Lyche
 dofile("addon/Lychee/".."Providers/PlayerSpells/Locales/enUS.lua");dofile("addon/Lychee/".."Providers/PlayerSpells/Locales/zhCN.lua")
 dofile("addon/Lychee/".."Providers/TalentLoadouts/Locales/enUS.lua");dofile("addon/Lychee/".."Providers/TalentLoadouts/Locales/zhCN.lua")
 dofile("addon/Lychee/".."Search/RuntimeIdentity.lua")
+dofile('tests/support/glow_frames.lua')
+dofile('addon/Lychee/UI/LycheeGlow.lua')
 dofile('addon/Lychee/Providers/Bags/Provider.lua')
 local bags=LycheeInternal.ProviderModules.Bags
 assert(#frames==0 and #timers==0)
@@ -96,7 +98,23 @@ local records={};bags.build(bags,function(r) records[#records+1]=r end,noop)
 assert(records[1].actions[1].kind=='secure-item' and records[1].actions[2]=='locate')
 assert(bags.actions.locate.run(entry).ok and locatedSlot==2)
 local glow=frames[1]
-assert(glow.shown and textures==0 and glow.anchor==bagButton and glow.glowing and glow.template=="AutoCastOverlayTemplate" and glow.cornersHidden and glow.blend=="ADD" and glow.period==2)
+assert(glow.shown and textures==8 and glow.anchor==bagButton and #glow.dots==8)
+for _,dot in ipairs(glow.dots) do
+    assert(dot.group:IsPlaying() and #dot.points==6)
+    assert(dot.points[1].x==dot.points[6].x and dot.points[1].y==dot.points[6].y)
+end
+assert(not glow.scripts.OnUpdate)
+for _,dot in ipairs(glow.dots) do
+    for _,point in ipairs(dot.points) do
+        local x,y=dot.texture.x+point.x,dot.texture.y+point.y
+        assert(x>=-0.001 and x<=36.001 and y<=0.001 and y>=-36.001,"path leaves rectangular perimeter")
+    end
+end
+local frameCount,textureCount=#frames,textures
+glow.testWidth,glow.testHeight=48,28;glow.scripts.OnSizeChanged()
+assert(#frames==frameCount and textures==textureCount,"resize allocates native objects")
+glow.testWidth,glow.testHeight=nil,nil;glow.scripts.OnSizeChanged()
+
 slot=4;assert(bags.actions.locate.run(entry).ok and locatedSlot==4)
 assert(timers[1].cancelled and #frames==1)
 glow.scripts.OnEvent(glow,'BAG_UPDATE_DELAYED')
@@ -112,7 +130,13 @@ present=false;assert(not bags.actions.locate.run(entry).ok);present=true
 bagButton.locked=true
 assert(bags.actions.locate.run(entry).ok);bags:onStop();assert(bagButton.locked)
 bagButton.locked=false
-assert(not glow.glowing and glow.nativeHides>0 and glow.parent==UIParent)
+assert(glow.parent==UIParent)
+local G=LycheeInternal.LycheeGlow
+assert(G:Start(bagButton,{key="a",reducedMotion=true}))
+for _,dot in ipairs(glow.dots) do assert(not dot.group:IsPlaying()) end
+assert(not G:Stop(bagButton,"b") and glow.shown)
+assert(G:Stop(bagButton,"a") and not glow.shown)
+assert(not G:Stop(bagButton,"a"))
 -- Adapter fixtures model the versioned source structures, not global frame names.
 local getter=ContainerFrameUtil_GetItemButtonAndContainer
 ContainerFrameUtil_GetItemButtonAndContainer=function() error("custom bags must not select hidden Blizzard buttons") end
@@ -145,8 +169,8 @@ for n=1,100 do assert(bags.actions.locate.run(entry).ok);bags:onStop() end
 local elapsed=(os.clock()-started)*1000
 local allocated=collectgarbage('count')-memory
 timers={};collectgarbage('restart');collectgarbage('collect');local growth=collectgarbage('count')-memory
-assert(#frames==1 and textures==0 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
-print(string.format('Bag highlight PASS templates=1 custom_textures=0 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
+assert(#frames==1 and textures==8 and allocated<256 and growth<32 and not glow.shown and not next(glow.events))
+print(string.format('Bag highlight PASS frames=1 textures=8 native_groups=8 locate100_ms=%.2f allocated_KiB=%.1f retained_growth_KiB=%.1f idle_work=0',elapsed,allocated,growth))
 
 Lychee={Secure={}}
 local valid=true

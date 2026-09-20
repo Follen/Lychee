@@ -1,50 +1,9 @@
 local I = _G.LycheeInternal
 local L = I.ProviderLocales:Module("builtin.bags")
 local C = I.ProviderModules.CatalogProvider
--- Reuse one Blizzard glow, including its native textures and animation driver.
-local highlight, highlightTimer
-local function clearHighlight()
-    if highlightTimer then highlightTimer:Cancel(); highlightTimer=nil end
-    if highlight then
-        highlight:ShowAutoCastEnabled(false)
-        highlight:UnregisterAllEvents()
-        highlight:Hide()
-        highlight:ClearAllPoints()
-        highlight:SetParent(UIParent)
-    end
-end
-local function showHighlight(button)
-    clearHighlight()
-    if not highlight then
-        highlight=CreateFrame("Frame",nil,UIParent,"AutoCastOverlayTemplate")
-        highlight:Hide()
-        highlight:EnableMouse(false)
-        if highlight.Corners then highlight.Corners:Hide() end
-        if highlight.Shine then
-            highlight.Shine:SetBlendMode("ADD")
-            local rotation=highlight.Shine.Anim:GetAnimations()
-            if rotation then rotation:SetDuration(2) end
-        end
-        -- Keep the template's own animation lifecycle scripts intact.
-        highlight:HookScript("OnHide",clearHighlight)
-        highlight:SetScript("OnEvent",clearHighlight)
-    end
-    highlight:SetParent(button)
-    if highlight.Shine then
-        -- The retail mask is inset by 4: align the moving rim outside the icon.
-        highlight:SetPoint("TOPLEFT",button,"TOPLEFT",-4,4)
-        highlight:SetPoint("BOTTOMRIGHT",button,"BOTTOMRIGHT",4,-4)
-    else
-        highlight:SetAllPoints(button)
-    end
-    highlight:SetFrameLevel(button:GetFrameLevel()+5)
-    highlight:RegisterEvent("BAG_UPDATE_DELAYED")
-    highlight:RegisterEvent("PLAYER_REGEN_DISABLED")
-    highlight:Show()
-    highlight:ShowAutoCastEnabled(true)
-    highlightTimer=C_Timer.NewTimer(3,clearHighlight)
-    return true
-end
+local glowOptions={key="bag-locate",duration=3,cancelEvent="BAG_UPDATE_DELAYED"}
+local function clearHighlight() I.LycheeGlow:Stop(nil,"bag-locate") end
+local function showHighlight(button) return I.LycheeGlow:Start(button,glowOptions) end
 local function bagLast() return NUM_TOTAL_EQUIPPED_BAG_SLOTS or NUM_BAG_SLOTS or 4 end
 local function build(self,put,checkpoint)
     if not C_Container then error("BAG_API_UNAVAILABLE") end

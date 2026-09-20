@@ -21,6 +21,7 @@ function M.Load(profile,extra,options)
     if selected["Core/InvocationRuntime.lua"] or selected["Core/ResultActionExecutor.lua"] or selected["UI/Palette.lua"] or profile=="provider" then selected["Core/ActionOutcome.lua"]=true end
     if profile=="provider" then selected["SDK/CompactStore.lua"]=true;selected["Core/Catalog.lua"]=true;selected["Core/RecordCodec.lua"]=true;selected["Core/InvocationRuntime.lua"]=true;selected["PublicAPI/Invocation.lua"]=true end
     if selected["Core/Preparation.lua"] then selected["Search/SourceAccess.lua"]=true;selected["Search/ProviderPolicy.lua"]=true;selected["Core/AddonDiscovery.lua"]=true;selected["Core/AddonLoader.lua"]=true end
+    if selected["Providers/Bags/Provider.lua"] then selected["UI/LycheeGlow.lua"]=true end
     local settingsProvider=selected["Providers/BlizzardSettings/Provider.lua"]
     local loaded={}
     for line in io.lines(root..(options.toc or "Lychee_Mainline.toc")) do

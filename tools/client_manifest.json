@@ -1,5 +1,5 @@
 {
-  "version": "0.3.7",
+  "version": "0.3.8",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -402,6 +402,15 @@
     },
     {
       "path": "UI/Motion.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary"
+      ]
+    },
+    {
+      "path": "UI/LycheeGlow.lua",
       "products": [
         "retail",
         "classic",
