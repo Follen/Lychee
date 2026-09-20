@@ -79,6 +79,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'LDT factual data/client scope checks failed' }
     & $lua.Source 'tests/performance/performance_loading.lua' 'Mainline' 'addon/Lychee' '--baseline'
     if ($LASTEXITCODE -ne 0) { throw 'Original runtime loading budget failed' }
+    & $lua.Source 'tests/providers/ldt_survival.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'LDT survival calculator checks failed' }
     & $lua.Source 'tests/providers/ldt_provider.lua'
     if ($LASTEXITCODE -ne 0) { throw 'LDT Provider lifecycle/performance checks failed' }
     & python 'tools/build_release.py' '--check'

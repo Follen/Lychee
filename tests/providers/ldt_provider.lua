@@ -97,7 +97,7 @@ local loader=dofile("tests/support/runtime.lua")
 loader.Load("provider",{"Search/ProviderPolicy.lua","Core/Scheduler.lua","UI/Theme.lua","UI/Motion.lua","UI/Presence.lua","UI/Runtime.lua","UI/Components.lua","UI/Components.lua"})
 local I=LycheeInternal
 collectgarbage("collect");local before=collectgarbage("count")
-loader.Load(nil,{"Providers/LDT/Locales/enUS.lua", "Providers/LDT/Locales/zhCN.lua","Providers/LDT/Data.lua","Providers/LDT/Catalog.lua","Providers/LDT/View.lua","Providers/LDT/Provider.lua"})
+loader.Load(nil,{"Providers/LDT/Locales/enUS.lua", "Providers/LDT/Locales/zhCN.lua","Providers/LDT/Data.lua","Providers/LDT/Catalog.lua","Providers/LDT/Survival.lua","Providers/LDT/SurvivalView.lua","Providers/LDT/View.lua","Providers/LDT/Provider.lua"})
 collectgarbage("collect");local moduleMemory=collectgarbage("count")-before
 assert(moduleMemory<512,"feature loading budget")
 local M=I.ProviderModules.LDT
@@ -406,6 +406,39 @@ view.model.scripts.OnMouseDown(view.model,"LeftButton");view:Unmount()
 assert(not view.model.scripts.OnUpdate and not view.groups and not view.flat and not view.expanded and not view.resources)
 assert(not Lychee.UI.Components.tooltip:IsShown() and not view.hintText,"closing clears owned tooltip, and footer reference")
 mouseHeld=false
+-- Calculator uses its own bounded controls and releases snapshot/selection on exit.
+for _,name in ipairs({'SetAutoFocus','SetMaxLetters','SetFontObject','SetTextInsets','ClearFocus'}) do methods[name]=function() end end
+mount()
+view.survivalButton.frame.scripts.OnClick()
+local calculator=assert(view.calculator)
+assert(calculator.active and not view.model:IsShown() and calculator.result.status=="unknown")
+calculator.stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=0,spec=70}
+calculator.input.firstSchool,calculator.input.tickSchool="magic","magic"
+calculator.input.tooltipVers=.2;calculator.level=1
+for key,value in pairs({first=600000,tick=120000,ticks=6}) do
+    local field=calculator.fields[key];field:SetText(tostring(value));field.scripts.OnTextChanged()
+end
+calculator.confirm.frame.scripts.OnClick()
+assert(calculator.result.first==450000 and calculator.result.status=="survives","real edit/confirm UI feeds the calculation")
+calculator:LoadDamage();assert(calculator.input.first==600000,"late data preserves manual edits")
+local row=calculator.rows[1]
+row.frame.scripts.OnMouseDown(row.frame,"LeftButton")
+calculator.tabs[2].frame.scripts.OnClick()
+row.frame.scripts.OnClick()
+assert(not next(calculator.selected),"old press cannot toggle a rebound effect")
+row.frame.scripts.OnMouseDown(row.frame,"LeftButton");row.frame.scripts.OnClick()
+assert(calculator.selected[465],"current effect click toggles")
+calculator.tabs[3].frame.scripts.OnClick();calculator.next.frame.scripts.OnClick()
+assert(calculator.rows[1].effect,"external pagination stays usable")
+view:Unmount()
+assert(not calculator.active and not calculator.stats and not calculator.input and not next(calculator.selected))
+local warmFrames=#frames
+collectgarbage("collect");local uiBase=collectgarbage("count")
+for _=1,50 do mount();view.survivalButton.frame.scripts.OnClick();view:Unmount() end
+collectgarbage("collect")
+local uiGrowth=collectgarbage("count")-uiBase
+assert(#frames==warmFrames and uiGrowth<16,"calculator frames and retained state stay bounded")
+print(string.format("LDT calculator UI PASS: 50 reopen cycles, retained %.2f KiB, no new frames",uiGrowth))
 local high=#frames
 
 for _=1,20 do mount();view:Unmount() end

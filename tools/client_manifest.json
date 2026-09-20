@@ -1,5 +1,5 @@
 {
-  "version": "0.3.16",
+  "version": "0.3.17",
   "clients": {
     "retail": {
       "suffix": "Mainline",
@@ -945,6 +945,8 @@
       "files": [
         "Providers/LDT/Data.lua",
         "Providers/LDT/Catalog.lua",
+        "Providers/LDT/Survival.lua",
+        "Providers/LDT/SurvivalView.lua",
         "Providers/LDT/View.lua",
         "Providers/LDT/Provider.lua"
       ],

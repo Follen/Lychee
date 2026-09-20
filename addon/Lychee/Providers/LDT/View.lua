@@ -192,6 +192,7 @@ function M:CreateView()
     end
     function panel:RenderSkills()
         if not self.active then return end
+        if self.calculator and self.calculator.active then return end
         local pages=math.max(1,math.ceil(#self.groups/PER_PAGE))
         self.page=math.max(1,math.min(self.page,pages))
         self:LayoutSkills()
@@ -222,6 +223,7 @@ function M:CreateView()
         self.previous:SetEnabled(self.page>1);self.next:SetEnabled(self.page<pages)
         self.previous.frame:SetShown(pages>1);self.next.frame:SetShown(pages>1);self.pageLabel:SetShown(pages>1)
         self.abilities:SetText(L["技能"].."  ·  "..#self.groups)
+        self.survivalButton.frame:SetShown(self.selected~=nil)
     end
     function panel:Create(parent)
         self.frame=CreateFrame("Frame",nil,parent);self.frame:SetAllPoints(parent);self.frame:Hide()
@@ -251,6 +253,10 @@ function M:CreateView()
             end
         end,L["拖动旋转 · 滚轮缩放"])
         self.reset.frame:SetPoint("TOPRIGHT",self.model,"TOPRIGHT",0,0)
+        self.survivalButton=nav(self.frame,L["生存计算"],120,function()
+            if self.active and self.selected and not (InCombatLockdown and InCombatLockdown()) then M:CreateSurvivalView(self):Open() end
+        end)
+        self.survivalButton.frame:SetPoint("TOPLEFT",16,-368)
         self.abilities=label(self.frame,"body","text",308,-60,160,18)
         self.previous=nav(self.frame,"",20,function() if self.active then self.page=self.page-1;self:RenderSkills() end end,"left")
         self.next=nav(self.frame,"",20,function() if self.active then self.page=self.page+1;self:RenderSkills() end end,"right")
@@ -317,6 +323,7 @@ function M:CreateView()
                     if self.active then
                         local owner=Components.tooltip and Components.tooltip._owner
                         self:BuildGroups(false);self:RenderSkills()
+                        if self.calculator and self.calculator.active then self.calculator:LoadDamage();self.calculator:Render() end
                         if owner then for _,row in ipairs(self.rows) do
                             if row.frame==owner and row.frame:IsShown() and row.frame:IsMouseOver() then self:ShowSpellTooltip(row);break end
                         end end
@@ -324,7 +331,7 @@ function M:CreateView()
                 end) end
             end
         end)
-        self.frame:Show();self.model:Show();self.reset.frame:Show()
+        self.frame:Show();self.model:Show();self.reset.frame:Show();self.modelMessage:Show();self.skillArea:Show();self.abilities:Show()
         local ok=pcall(function() self.model:ClearModel();self.model:SetDisplayInfo(enemy.displayId);self.model:SetPortraitZoom(0);self.model:SetCamDistanceScale(1);self.model:SetFacing(0) end)
         self.modelMessage:SetText(ok and "" or L["模型暂不可用"])
         self:BuildGroups(true);self:RenderSkills()
@@ -332,6 +339,7 @@ function M:CreateView()
     function panel:Unmount()
         self.context=nil
         self.active=false;self:StopDrag()
+        if self.calculator then self.calculator:Close() end
         if self.event then self.event:Cancel();self.event=nil end
         if self.refreshToken then self.refreshToken:Cancel();self.refreshToken=nil end
         for _,row in ipairs(self.rows) do row.spellID=nil;row.group=nil;row.child=nil;row.frame:Hide();row.label:SetText("");row.meta:SetText("");row.icon:SetTexture(nil) end

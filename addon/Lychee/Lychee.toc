@@ -7,7 +7,7 @@
 ## Notes-zhTW: 魔兽世界万用启动器
 ## Author: Lychee
 ## IconTexture: Interface\AddOns\Lychee\Media\lychee-logo.tga
-## Version: 0.3.16
+## Version: 0.3.17
 ## SavedVariables: LycheeDB
 ## SavedVariablesPerCharacter: LycheeCharacterDB
 ## Bindings: Bindings.xml
@@ -138,6 +138,8 @@ Providers/Ellesmere/Provider.lua
 Providers/Exwind/Provider.lua
 Providers/LDT/Data.lua
 Providers/LDT/Catalog.lua
+Providers/LDT/Survival.lua
+Providers/LDT/SurvivalView.lua
 Providers/LDT/View.lua
 Providers/LDT/Provider.lua
 Providers/SlashCommands/Provider.lua

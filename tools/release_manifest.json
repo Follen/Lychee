@@ -53,6 +53,8 @@
     "Providers/LDT/Locales/enUS.lua",
     "Providers/LDT/Locales/zhCN.lua",
     "Providers/LDT/Provider.lua",
+    "Providers/LDT/Survival.lua",
+    "Providers/LDT/SurvivalView.lua",
     "Providers/LDT/View.lua",
     "Providers/Mounts/Locales/enUS.lua",
     "Providers/Mounts/Locales/zhCN.lua",
