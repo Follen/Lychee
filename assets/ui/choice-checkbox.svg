@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="64" viewBox="0 0 80 20">
 <!-- Original Lychee UI geometry. Four cells: off, hover, on, active/disabled. -->
-<g stroke-width="1" fill="#141416"><rect x="2.5" y="2.5" width="15" height="15" rx="4.5" stroke="#625b62"/><rect x="22.5" y="2.5" width="15" height="15" rx="4.5" fill="#21171b" stroke="#dc6575"/></g>
-<rect x="42" y="2" width="16" height="16" rx="5" fill="#f25569"/>
-<rect x="62" y="2" width="16" height="16" rx="5" fill="#453c42"/>
+<!-- Selected fill matches Theme.Colors.accent (#D53C49), not accentHover. -->
+<g stroke-width="1" fill="#111113"><rect x="2.5" y="2.5" width="15" height="15" rx="3.25" stroke="#504d52"/><rect x="22.5" y="2.5" width="15" height="15" rx="3.25" fill="#23171a" stroke="#d53c49"/></g>
+<rect x="42" y="2" width="16" height="16" rx="3.75" fill="#d53c49"/>
+<rect x="62" y="2" width="16" height="16" rx="3.75" fill="#453c42"/>
 <g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M46.2 10.1 48.7 12.6 53.8 7.5" stroke="#fff8f5"/><path d="M66.2 10.1 68.7 12.6 73.8 7.5" stroke="#bfb5bb"/></g>
 </svg>

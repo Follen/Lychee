@@ -131,17 +131,33 @@ function M:CreateSurvivalView(owner)
     v.spellIcon=v.toolbar:CreateTexture(nil,"ARTWORK");v.spellIcon:SetSize(40,40);v.spellIcon:SetPoint("TOPLEFT",0,-4);v.spellIcon:SetTexCoord(.07,.93,.07,.93)
     v.name=text("aboutBrand",54,2,344,28,v.toolbar);Theme:SetTextColor(v.name,"text");v.name:SetWordWrap(false)
     v.contextLabel=text("meta",54,34,344,18,v.toolbar);v.contextLabel:SetWordWrap(false)
-    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",432,-8);v.levelControl:SetSize(112,28)
-    Theme:CreateRoundedSurface(v.levelControl,"field",5);scrollable(v.levelControl)
-    v.levelLabel=text("body",28,6,56,18,v.levelControl);v.levelLabel:SetJustifyH("CENTER");Theme:SetTextColor(v.levelLabel,"text")
-    v.minus=button("−",0,2,28,function() v.level=math.max(0,v.level-1);v:Render() end,nil,v.levelControl)
-    v.plus=button("+",84,2,28,function() v.level=math.min(35,v.level+1);v:Render() end,nil,v.levelControl)
+    v.levelControl=CreateFrame("Frame",nil,v.toolbar);v.levelControl:SetPoint("TOPLEFT",440,-8);v.levelControl:SetSize(144,28)
+    Theme:CreateRoundedSurface(v.levelControl,"field",6);scrollable(v.levelControl)
+    v.levelLabel=text("body",28,0,48,28,v.levelControl);v.levelLabel:SetJustifyH("CENTER");v.levelLabel:SetJustifyV("MIDDLE");Theme:SetTextColor(v.levelLabel,"text")
+    local function tool(x,fn)
+        local b=C:CreateButton(v.levelControl,{width=24,height=24,radius=4,
+            colors={normal="transparent",hover="surfaceHover",pressed="actionHover",disabled="transparent"},
+            textColors={normal="textMuted",hover="accentHover",pressed="accent",disabled="disabled"},
+            onClick=function() if v.active and owner.active and not (InCombatLockdown and InCombatLockdown()) then fn() end end})
+        b.frame:SetPoint("TOPLEFT",x,-2);scrollable(b.frame);return b
+    end
+    local function stepper(x,delta)
+        local b=tool(x,function() v.level=math.max(0,math.min(35,v.level+delta));v:Render() end)
+        b.strokes={}
+        for i=1,delta>0 and 2 or 1 do
+            local line=b.frame:CreateTexture(nil,"ARTWORK");line:SetPoint("CENTER",0,0);line:SetSize(i==1 and 7 or 1,i==1 and 1 or 7)
+            Theme:SetColorTexture(line,"textMuted");b.strokes[i]=line
+        end
+        return b
+    end
+    v.minus=stepper(2,-1);v.plus=stepper(78,1)
+    local separator=v.levelControl:CreateTexture(nil,"ARTWORK");separator:SetSize(1,12);separator:SetPoint("LEFT",108,0);Theme:SetColorTexture(separator,"borderStrong");Theme:SetAlpha(separator,.5)
     local iconRoot="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\"
     local function icon(parent,asset,x,y,size)
         local t=parent:CreateTexture(nil,"ARTWORK");t:SetSize(size,size);t:SetPoint("TOPLEFT",x,-y);t:SetTexture(iconRoot..asset..".tga");return t
     end
-    v.refresh=button("",552,10,32,function() v:Refresh() end,nil,v.toolbar)
-    icon(v.refresh.frame,"reload",8,4,16)
+    v.refresh=tool(116,function() v:Refresh() end)
+    icon(v.refresh.frame,"reload",4,4,16)
     v.refresh.frame:HookScript("OnEnter",function() if v.active then C:ShowTooltip(v.refresh.frame,{title=L["刷新"]}) end end)
     v.refresh.frame:HookScript("OnLeave",function() C:HideTooltip(v.refresh.frame) end)
     for i=1,2 do

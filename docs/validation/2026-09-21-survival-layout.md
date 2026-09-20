@@ -61,3 +61,12 @@ Retail12.1.0.69875 zhCN，灵止光—死亡之翼。Ticket `LYCHEE-20260921-014
 运行提交9019048加入原创SVG四态图集，5caee2c按用户反馈将显示尺寸从20缩到16（实际轮廓约12），整行点击不变。200运行文件SHA-256一致；素材256×64 RGBA原始像素64 KiB，全行共享，每个choice从1 Frame/16 regions改为1 Texture，12行减少12 Frame/180 regions。状态UV和透明度缓存，无新驱动。完整契约、四态禁用/复用回归、Lua语法、wowdoc与diff检查通过；50次打开不增加控件、保留-1.03 KiB；离线模块430.5 KiB、查询增长0.0、峰批3ms。纹理引擎总内存未量化，不按对象计数换算总节省。
 
 首轮Ticket `LYCHEE-20260921-020131-0085` 为21/23通过，合剂与选中态两项失败；WGC有同时鼠标操作且模拟选项发生变化，疑似干扰但不当作已确证根因；已ACK清理。check30-fast已加载但因用户尺寸修订未执行，直接换成check31。check31在断言同一回调中先恢复自有模拟基线，再执行点击检查。最终Ticket `LYCHEE-20260921-020529-0086` request=ldt-check31-20260921/revision=check31，Retail12.1.0.69875 zhCN 灵止光—死亡之翼，complete/succeeded，23/23通过。完整payload本机 `C:/Users/follen/AppData/Local/LycheeDev/automation/received/LYCHEE-20260921-020529-0086/content.json`。WGC `analyze/survival/ui-check31-3.png` 确认缩小标记、hover及禁用（后两者由探针临时注入，不代表实际角色增益）；选中图集在首轮截图中可见。100次计算1.4311ms，ACK确认清理，任务移除。英文客户端、不同DPI及真实硬件点击独立场景未覆盖。
+
+
+## 0.3.32 工具栏归组与荔枝红
+
+基线5caee2c，局部样式修订：复用1个底座Frame和3个Button，额外3组圆角共21区域、3条加减线及1分隔，共25个固定Texture；无新增Frame、驱动、事件或缓存。首次打开分配、关闭隐藏、后续复用；单次hover更新当前按钮，效果仍12行有界。图集尺寸与64 KiB原始像素不变，不声明总内存节省。
+
+计划实机覆盖：层数加减及0/35禁用、刷新保留手动模拟、四态、重置、失败unknown与恢复、关闭重开、两级返回。沿用完整契约检查关闭清理和50次复用，另核对实际缩放下显示。
+
+修改前wowdoc source list/check已核对；sourceId=wow-ui-source/product=retail/requestedRef=12.1.0/resolvedCommit=4e3cbb8c5609e4bfc332c0aebbfa4d79731fab59。Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleScriptRegionResizingAPIDocumentation.lua:135–149 定义SetPoint(point,relativeTo,relativePoint,offsetX,offsetY)；SimpleTextureBaseAPIDocumentation.lua:576–587 定义SetTexCoord(left,right,bottom,top)。接口仅用于本插件非受保护UI。
