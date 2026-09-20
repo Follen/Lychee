@@ -1,0 +1,339 @@
+{
+  "LYCHEE-20260920-150227-0045": {
+    "source": {
+      "sourceBytes": 5696,
+      "requestId": "host-redesign-20260920-2",
+      "sourceChecksum": "6f72a600"
+    },
+    "complete": true,
+    "lifecycleLog": {},
+    "startedAt": 1789887732,
+    "status": "succeeded",
+    "requestType": "task",
+    "revision": "2",
+    "taskId": "host-redesign",
+    "returns": [
+      {
+        "cleanup": {
+          "providersRemoved": true,
+          "stopped": true
+        },
+        "checks": [
+          "fast results while slow pending",
+          "slow completion",
+          "visible cooldown bindings",
+          "normal callback",
+          "action menu",
+          "menu cooldown",
+          "settings release",
+          "six to one",
+          "one to six",
+          "failure exposed",
+          "retry recovered",
+          "cancel pending query",
+          "reopen",
+          "unregister invalidates",
+          "reregister",
+          "closed cooldown bindings",
+          "closed cooldown tasks",
+          "closed query jobs"
+        ],
+        "samples": {},
+        "closed": {
+          "observerKiB": 4337.9423828125,
+          "lycheeKiB": 22436.926757812,
+          "heapKiB": 385171.14160156
+        },
+        "before": {
+          "observerKiB": 4337.5439453125,
+          "lycheeKiB": 17408.672851562,
+          "heapKiB": 377729.20214844
+        },
+        "skips": [
+          "real hardware use/ground targeting",
+          "combat/taint",
+          "other clients and locales",
+          "raid/nameplate peaks"
+        ],
+        "query": {
+          "lastVisible": 7,
+          "publications": 36,
+          "materialized": 62,
+          "candidates": 62
+        },
+        "locale": "zhCN",
+        "cooldown": {
+          "bindings": 0,
+          "listening": false,
+          "scheduled": false,
+          "groups": 0
+        },
+        "schema": 1,
+        "build": [
+          "12.1.0",
+          "69875",
+          "Sep 15 2026",
+          120100,
+          "",
+          " "
+        ]
+      }
+    ],
+    "lifecycleLogLimited": false,
+    "outputTruncated": false,
+    "finishedAt": 1789887747,
+    "environment": {
+      "locale": "zhCN",
+      "buildDate": "Sep 15 2026",
+      "version": "12.1.0",
+      "clientId": "retail",
+      "realm": "白银之手",
+      "character": "晴昼秋岚",
+      "interface": 120100,
+      "build": "69875"
+    },
+    "executionId": "host-redesign-20260920-2",
+    "kind": "lua",
+    "schema": "lychee.automation.result.v1"
+  },
+  "LYCHEE-20260920-151104-0048": {
+    "source": {
+      "sourceBytes": 3055,
+      "requestId": "host-redesign-memory-20260920-3",
+      "sourceChecksum": "5ed32754"
+    },
+    "complete": true,
+    "lifecycleLog": {},
+    "startedAt": 1789888261,
+    "status": "succeeded",
+    "requestType": "task",
+    "revision": "3",
+    "taskId": "host-redesign-memory",
+    "returns": [
+      {
+        "queries": [
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 64.440200001001,
+            "round": 0,
+            "initialCPUms": 3.8454999998212,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.697900004685,
+            "round": 0,
+            "initialCPUms": 2.5936999991536,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.594100005925,
+            "round": 0,
+            "initialCPUms": 2.178200006485,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.631099998951,
+            "round": 0,
+            "initialCPUms": 1.8399000018835,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 65.948200002313,
+            "round": 1,
+            "initialCPUms": 3.3057000041008,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.651300005615,
+            "round": 1,
+            "initialCPUms": 2.6245000064373,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.702599994838,
+            "round": 1,
+            "initialCPUms": 1.9961999952793,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.577700003982,
+            "round": 1,
+            "initialCPUms": 1.5981000065804,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 64.55719999969,
+            "round": 2,
+            "initialCPUms": 3.224599994719,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.561400003731,
+            "round": 2,
+            "initialCPUms": 1.8712000027299,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.931199997663,
+            "round": 2,
+            "initialCPUms": 1.9130999967456,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.614799998701,
+            "round": 2,
+            "initialCPUms": 1.6017000004649,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.toys",
+            "completionMs": 65.740999996662,
+            "round": 3,
+            "initialCPUms": 3.3234999999404,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.player-spells",
+            "completionMs": 66.81780000031,
+            "round": 3,
+            "initialCPUms": 1.8291999995708,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.mounts",
+            "completionMs": 66.834499999881,
+            "round": 3,
+            "initialCPUms": 1.9703000038862,
+            "bindings": 8
+          },
+          {
+            "visible": 8,
+            "source": "builtin.bags",
+            "completionMs": 66.700200006366,
+            "round": 3,
+            "initialCPUms": 1.5402000024915,
+            "bindings": 8
+          }
+        ],
+        "rounds": [
+          {
+            "round": 0,
+            "collected": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13603.184570312,
+              "heapKiB": 339412.11621094
+            },
+            "natural": {
+              "observerKiB": 4278.73828125,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14465.791015625,
+              "heapKiB": 340434.90625
+            }
+          },
+          {
+            "round": 1,
+            "collected": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13602.997070312,
+              "heapKiB": 339414.30859375
+            },
+            "natural": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14284.301757812,
+              "heapKiB": 340154.79882812
+            }
+          },
+          {
+            "round": 2,
+            "collected": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13602.997070312,
+              "heapKiB": 339417.57226562
+            },
+            "natural": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14284.114257812,
+              "heapKiB": 340157.37890625
+            }
+          },
+          {
+            "round": 3,
+            "collected": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 13602.997070312,
+              "heapKiB": 339420.79589844
+            },
+            "natural": {
+              "observerKiB": 4278.2216796875,
+              "cooldownFrames": 9,
+              "lycheeKiB": 14284.114257812,
+              "heapKiB": 340163.64746094
+            }
+          }
+        ],
+        "scope": "Lychee refreshed counters; global GC diagnostic only",
+        "cleanup": {
+          "bindings": 0,
+          "listening": false,
+          "scheduled": false,
+          "groups": 0
+        },
+        "schema": 1,
+        "before": {
+          "observerKiB": 4278.33984375,
+          "cooldownFrames": 0,
+          "lycheeKiB": 13636.447265625,
+          "heapKiB": 339514.24902344
+        }
+      }
+    ],
+    "lifecycleLogLimited": false,
+    "outputTruncated": false,
+    "finishedAt": 1789888264,
+    "environment": {
+      "locale": "zhCN",
+      "buildDate": "Sep 15 2026",
+      "version": "12.1.0",
+      "clientId": "retail",
+      "realm": "白银之手",
+      "character": "晴昼秋岚",
+      "interface": 120100,
+      "build": "69875"
+    },
+    "executionId": "host-redesign-memory-20260920-3",
+    "kind": "lua",
+    "schema": "lychee.automation.result.v1"
+  }
+}
