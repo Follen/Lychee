@@ -72,10 +72,14 @@ function HomeView:Create(parent, controller)
         onClick=function() controller:OpenSettings("pins") end})
     Lychee.UI.Theme:SetFont(view.manage.label, "meta")
     view.manage.frame:Hide()
-    view.clearRecent=Lychee.UI.Components:CreateNavigationButton(view.content,{width=48,height=20,text=L["清空"],muted=true,
+    view.clearRecent=Lychee.UI.Components:CreateButton(view.content,{width=48,height=20,text=L["清空"],
+        colors={normal="transparent"},textColors={normal="textDim",hover="text",pressed="text",disabled="disabled"},
         onClick=function() view:ClearRecent() end})
-    Lychee.UI.Theme:SetFont(view.clearRecent.label,"meta")
-    view.clearRecent.label:SetJustifyH("RIGHT")
+    Lychee.UI.Theme:SetFont(view.clearRecent.label,"tooltipMeta")
+    view.clearRecent.label:SetJustifyH("LEFT")
+    local separator=view.clearRecent.frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+    Lychee.UI.Theme:SetFont(separator,"meta");tint(separator,color("textDim"))
+    separator:SetText("·");separator:SetPoint("RIGHT",view.clearRecent.frame,"LEFT",-8,0)
     view.clearRecent.frame:Hide()
 
     function view:RenderTileState(tile)
@@ -455,10 +459,10 @@ function HomeView:Create(parent, controller)
                     end
                 elseif groupID == "recent" then
                     recentHeader=true
-                    if self._clearRecentY~=cursorY then
+                    if self._clearRecentHeader~=header then
                         self.clearRecent.frame:ClearAllPoints()
-                        self.clearRecent.frame:SetPoint("TOPRIGHT",self.content,"TOPRIGHT",-14,-cursorY+3)
-                        self._clearRecentY=cursorY
+                        self.clearRecent.frame:SetPoint("LEFT",header,"RIGHT",20,0)
+                        self._clearRecentHeader=header
                     end
                 end
                 cursorY = cursorY + 24
