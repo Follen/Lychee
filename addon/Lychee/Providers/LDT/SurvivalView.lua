@@ -62,7 +62,7 @@ function M:CreateSurvivalView(owner)
         self.input.confirmed=self.input.damageValid==true
         self.input.boss=owner.enemy.isBoss
         self.input.tooltipVers=self.stats.vers
-        if not description and not self.input.periodicOnly then owner:Request(descriptionID) end
+        if not description then owner:Request(descriptionID) end
     end
     function v:Render()
         if not self.active then return end

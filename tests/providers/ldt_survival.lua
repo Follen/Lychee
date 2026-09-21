@@ -19,7 +19,7 @@ assert(S:Multiplier(10,false,38)==nil,"unknown season must not silently use base
 for _,id in ipairs({270292,265773}) do
     local parsed=S:Parse("Deals 60,000 Fire damage to all players and 50,000 Fire damage every 1 sec.",{},id)
     parsed.confirmed=parsed.damageValid;parsed.level=10
-    assert(S:Calculate(live,parsed,{},{}).status=="noDirect","shared tooltip must not turn a DOT into a direct hit")
+    assert(parsed.first==60000 and S:Calculate(live,parsed,{},{}).first,"shared chain entries retain the described initial hit")
 end
 local tail=S:Calculate(live,{confirmed=true,first=222067,firstSchool="physical",boss=true,level=20},{},{})
 assert(tail.status=="lethal","corrected first hit exceeds this player's health")
