@@ -110,7 +110,11 @@ function M:CreateSurvivalView(owner)
                 row:SetEnabled(not active);row.frame:Show()
             end
         end
-        for i,b in ipairs(self.tabs) do b:SetSelected(i==self.group);b.indicator:SetShown(i==self.group) end
+        for i,b in ipairs(self.tabs) do
+            b:SetSelected(i==self.group);b.indicator:SetShown(i==self.group)
+            local width=math.ceil(b.label:GetUnboundedStringWidth())
+            if b.indicatorWidth~=width then b.indicatorWidth=width;b.indicator:SetWidth(width) end
+        end
         self:Layout()
     end
     function v:Open()
@@ -180,7 +184,7 @@ function M:CreateSurvivalView(owner)
         v.tabs[i]=button(L[caption],(i-1)*112,0,104,function() v.group=i;v:RenderEffects() end,nil,v.controls)
         local tab=v.tabs[i]
         tab.label:ClearAllPoints();tab.label:SetPoint("LEFT",0,0);tab.label:SetSize(104,18);tab.label:SetJustifyH("LEFT")
-        tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOPLEFT",tab.label,"BOTTOMLEFT",0,-5);tab.indicator:SetSize(28,2);Theme:SetColorTexture(tab.indicator,"accentHover")
+        tab.indicator=tab.frame:CreateTexture(nil,"ARTWORK");tab.indicator:SetPoint("TOPLEFT",tab.label,"BOTTOMLEFT",0,-5);tab.indicator:SetSize(1,2);Theme:SetColorTexture(tab.indicator,"accentHover")
     end
     v.resetSelection=button(L["勾选模拟减伤"],378,0,206,function()
         for id in pairs(v.selected) do v.selected[id]=nil end;v:Render()
