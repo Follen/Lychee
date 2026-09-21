@@ -2,6 +2,30 @@ LycheeInternal={ProviderModules={LDT={}}}
 dofile("addon/Lychee/Providers/LDT/Survival.lua")
 local S=LycheeInternal.ProviderModules.LDT.Survival
 local function near(a,b) assert(math.abs(a-b)<.001,tostring(a).." ~= "..tostring(b)) end
+-- WCL first-hit baselines: two reports per level, no periodic or amplified hits.
+local live={valid=true,health=827280,vers=.10740740776062,versDR=.05370370388031,
+    avoidance=.062770843505859,armorDR=.55051761865616,active={},passives={[385427]=2,[402964]=2},season=37,spec=65}
+for _,case in ipairs({
+    {270293,61495,"magic",false,{385446,620065,999227}},
+    {1310755,8541,"physical",false,{53535,86121,138784}},
+    {1306736,30748,"magic",true,{184692,297114,478796}},
+}) do
+    for index,level in ipairs({10,15,20}) do
+        local result=S:Calculate(live,{confirmed=true,first=case[2],firstSchool=case[3],boss=case[4],aoe=true,level=level},{},{})
+        assert(result.rawFirst and math.abs(result.rawFirst/case[5][index]-1)<.0001,"WCL first-hit baseline: "..case[1].." / "..level)
+    end
+end
+assert(S:Multiplier(10,false,38)==nil,"unknown season must not silently use base factor 1")
+for _,id in ipairs({270292,265773}) do
+    local parsed=S:Parse("Deals 60,000 Fire damage to all players and 50,000 Fire damage every 1 sec.",{},id)
+    parsed.confirmed=parsed.damageValid;parsed.level=10
+    assert(S:Calculate(live,parsed,{},{}).status=="noDirect","shared tooltip must not turn a DOT into a direct hit")
+end
+local tail=S:Calculate(live,{confirmed=true,first=222067,firstSchool="physical",boss=true,level=20},{},{})
+assert(tail.status=="lethal","corrected first hit exceeds this player's health")
+-- Isolate mitigation arithmetic from the independently tested seasonal scaling.
+local multiplier=S.Multiplier
+S.Multiplier=function() return 1 end
 local stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=0,spec=70}
 local input={confirmed=true,first=600000,tick=120000,ticks=6,level=1,boss=true,firstSchool="magic",tickSchool="magic",aoe=true}
 local selected,out={},{}
@@ -76,3 +100,4 @@ assert(elapsed<1000,"average direct-hit computation stays below 1 ms")
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-base
 assert(retained<4,"retained result must not grow across calculations")
 print(string.format("LDT survival PASS: 1000 calculations %.2f ms, allocated %.2f KiB, retained %.2f KiB",elapsed,allocated,retained))
+S.Multiplier=multiplier

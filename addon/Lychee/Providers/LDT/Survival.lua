@@ -2,6 +2,11 @@
 local M=_G.LycheeInternal.ProviderModules.LDT
 local S={}
 M.Survival=S
+-- Display season IDs, not MythicPlusSeason DB2 IDs. See WCL investigation.
+local seasonFactors={[34]=1.8945719251,[37]=1.9393*1.621}
+-- Shared descriptions include another spell's direct hit. These IDs only tick.
+local periodicOnly={[270292]=true,[265773]=true}
+function S:DescriptionSpell(id) return id==1312104 and 1306736 or id end
 local levels={1,1.07000005245,1.13999998569,1.23000001907,1.30999994278,1.39999997616,1.5,1.61000001431,1.72000002861,1.84000003338,2.01999998093,2.22000002861,2.45000004768,2.69000005722,2.96000003815,3.25999999046,3.57999992371,3.94000005722,4.32999992371,4.76999998093,5.25,5.76999998093,6.34999990463,6.98000001907,7.67999982834,8.44999980927,9.28999996185,10.22000026703,11.23999977112,12.36999988556,13.60999965668,14.97000026703,16.45999908447,18.11000061035,19.92000007629}
 -- Numeric mechanics snapshot; localized names/icons come from the client.
 S.effects={
@@ -127,9 +132,11 @@ function S:Snapshot(out,enemyLevel)
 end
 function S:Multiplier(level,boss,season)
     if not number(level) or level%1~=0 or level<0 or level>35 then return nil end
+    local base=seasonFactors[season]
+    if not base then return nil end
     local value=level==0 and 1 or levels[level]
     if level>=10 then value=value*(boss and 1.15 or 1.2) end
-    return math.max(1,value*(season==34 and 1.8945719251 or 1))
+    return math.max(1,value*base)
 end
 local function school(text)
     if text:find("流血",1,true) or text:find("bleed",1,true) then return "bleed" end
@@ -139,9 +146,11 @@ local function school(text)
     end
 end
 -- Parse explicit damage clauses only; never infer damage from an arbitrary large number.
-function S:Parse(description,out)
+function S:Parse(description,out,spellID)
     out=out or {};clear(out)
     out.first,out.tick=0,0
+    out.damageSpellID=spellID==1306736 and 1312104 or spellID
+    if periodicOnly[spellID] then out.periodicOnly=true;out.damageValid=true;return out end
     if type(description)~="string" or #description>8192 then return out end
     local t=description:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub(",",""):gsub("，",""):lower()
     local zh=t:find("伤害",1,true)~=nil
@@ -200,6 +209,7 @@ end
 function S:Calculate(stats,input,selected,out)
     out=out or {};clear(out)
     if not stats.valid or not input.confirmed then out.status="unknown";return out end
+    if input.periodicOnly then out.status="noDirect";return out end
     local multiplier=self:Multiplier(input.level,input.boss,stats.season)
     if not multiplier or not number(input.first) then out.status="unknown";return out end
     if input.first==0 then out.status=input.tick and input.tick>0 and "noDirect" or "unknown";return out end

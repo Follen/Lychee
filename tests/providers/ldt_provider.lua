@@ -431,14 +431,14 @@ calculator.viewport:SetHeight(100);calculator.viewport.scripts.OnSizeChanged()
 calculator.viewport.scripts.OnMouseWheel(calculator.viewport,-1);local firstScroll=calculator.bar.value
 calculator.rows[1].frame.scripts.OnMouseWheel(calculator.rows[1].frame,-1)
 assert(calculator.bar.value>firstScroll,"effect rows forward scrolling")
-calculator.stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=0,spec=70}
+calculator.stats={valid=true,health=1000000,vers=.2,versDR=.1,avoidance=.2,armorDR=.3,active={},passives={},season=34,spec=70}
 calculator.input={confirmed=true,first=600000,tick=120000,firstSchool="magic",aoe=true,tooltipVers=.2};calculator.level=1
 calculator.values[3]:SetWidth(16)
 calculator.values[3].GetStringWidth=function(self) return math.min(self:GetWidth(),self:GetUnboundedStringWidth()) end
 calculator:Render()
 assert(calculator.values[3]:GetWidth()>=calculator.values[3]:GetUnboundedStringWidth(),"verdict must recover from a previous clipped width")
 calculator.values[3].GetStringWidth=nil
-assert(math.abs(calculator.result.first-360000)<.001 and calculator.result.status=="survives")
+assert(math.abs(calculator.result.first-math.floor(500000*1.8945719251)*.72)<.001 and calculator.result.status=="survives")
 assert(calculator.values[3]:GetText()=="可承受")
 assert(calculator.results:IsShown() and not view.title:IsShown(),"calculator owns task heading and fixed result region")
 local row=calculator.rows[1]

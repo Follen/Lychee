@@ -56,12 +56,13 @@ function M:CreateSurvivalView(owner)
     end
     function v:LoadDamage()
         if not self.active then return end
-        local description=C_Spell and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(owner.selected)
-        self.input=S:Parse(description,self.input)
+        local descriptionID=S:DescriptionSpell(owner.selected)
+        local description=C_Spell and C_Spell.GetSpellDescription and C_Spell.GetSpellDescription(descriptionID)
+        self.input=S:Parse(description,self.input,owner.selected)
         self.input.confirmed=self.input.damageValid==true
         self.input.boss=owner.enemy.isBoss
         self.input.tooltipVers=self.stats.vers
-        if not description then owner:Request(owner.selected) end
+        if not description and not self.input.periodicOnly then owner:Request(descriptionID) end
     end
     function v:Render()
         if not self.active then return end
