@@ -20,7 +20,7 @@
 - 既有 history_actions、bag_actions（含玩具放置光标保留）、perf_provider_secure_events 通过；完整 check_contract.ps1 通过。
 - 1000次受保护物品回执离线循环：7 ms、累计分配746.1 KiB、回收后增长0.0 KiB、新增Frame0、结束事件0。不是游戏CPU/内存；不声称性能提升。数据由一个操作所有，最多保留30秒；框体沿用代理池，重复操作无增长。
 - 五客户端逐端静态 loadValid/staticValid=true、加载issues为空；complete=false，未检查binding identity、argument types、dynamic code、combat、taint和实际运行，Interface基线仍unresolved。
-- 运行版本0.4.1；完整原流程的实机硬件点击、其他客户端及战斗/taint仍待验证，Ticket取得后补记。
+- 运行版本0.4.1；正式服已完成从既有定位历史重新搜索、真实左键使用炉石、成功传送、重开首页确认使用历史。其他客户端及失败、取消、重试、战斗/taint场景仍待实测，不能用离线覆盖替代。
 
 ## 固定源码证据
 
@@ -55,4 +55,20 @@ sourceId=wow-ui-source；以下记录请求的精确commit及该版本原文位�
 
 通过 Computer Use 的 WGC 只读查看确认游戏仍在线，聊天中有 Lychee Dev 对命令返回的 usage 提示（status/connect/disconnect）；这提示对接异常，但没有据此猜测确切运行版本、战斗状态或擅自重放命令。已请求用户方便时暂停操作再进行UI重新加载。尚未用受保护按钮实际执行炉石。
 
-原生成功事件观察探针 PRB-581335c5d04e5708b2196b92a0f3d09638bc6e726ee0586c9c2b1b020edc23a4 已注册但未加载/执行，无待ACK任务。下一步：确认非战斗维护窗口，重建可用连接并加载修复版，执行原始“定位→再次搜索→真实左键使用→成功后查看历史”流程，记录匹配的 castGUID、最新历史动作和结束后零订阅/计时器。此项仍待验收，不能把离线成功事件替身说成已实机通过。
+以上是此前连接失败时的状态，以下为用户暂停游戏后重试所得的实际验收结果。
+
+## 正式服实机重试结果（2026-09-26 19:27 +08:00）
+
+观察探针 `PRB-581335c5d04e5708b2196b92a0f3d09638bc6e726ee0586c9c2b1b020edc23a4` 已加载执行。客户端回报 `version=0.4.1`、`fixLoaded=true`、Retail build69933/interface120100、zhCN。操作 `OP-80ebb0c89be98bc5822007fac6b91495` 首次 run 遇到 `desktop.capture_resized`，随后 resume 同一操作取得 verified 报告；没有重复发起物品使用。完成后已 ACK，`complete=true`、`cleanup=complete`，并隐藏测试回执。
+
+通过 Computer Use 原生输入打开荔枝，首页第一条确认为“炉石 · 定位背包”。输入“炉石”后左键点击搜索结果第一条，游戏实际读条并传送至“旅者的梦乡”。探针仅观察事件，没有模拟成功事件或调用使用接口。
+
+- 物品 `builtin.bags / item:6948`，点击动作 `use`，实际使用法术8690。
+- 匹配的 castGUID：`Cast-3-3903-0-246807-8690-0004B7ABF9`；`observed=true`、`correct=true`。
+- 使用前最新记录 `actionID=locate`；成功后最新稳定引用为默认使用动作，恢复所得 `restoredAction=use`，原定位记录移至第二条。
+- 实际重开首页：第一条“炉石 · 使用物品”并显示15分钟冷却，第二条“炉石 · 定位背包”。此次沿用用户现存定位记录，没有重新执行定位动作。
+- 成功结束后 `pendingItem=false`、`timerRemaining=false`、`castSubscriptions=false`。这证明本次生命周期清理，不代表已完成实机CPU/内存压力验收。
+
+报告已保留：`CAP-7c23c62a59cc89786a27e7041b516837da07263b3a7af68448ddfbf25e4b7965`；SHA-256 `758de158447563b1e85a43c180789ff1e9663ac5b5f7c88d8869b7529020e9cd`。回执 `CAP-7d8baa0c566c480b0fbe8d629c697e8a8bb48c77460e8485b81e9fa5284c180f`。
+
+本次只证明正式服炉石成功使用后的历史更新及重开显示正确。点击后立即关窗的时序未单独测量；取消、失败、目标光标、其他物品、其他客户端、战斗/taint和实机性能仍未扩展验证。
