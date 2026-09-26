@@ -18,7 +18,9 @@ function N:Normalize(value, cache)
     -- Normalize only ASCII punctuation/control bytes so Chinese text survives.
     -- Explicit byte ranges preserve UTF-8 and avoid a table/string per byte.
     local normalized = raw:gsub("[%z\1-\47\58-\64\91-\96\123-\127]+", " ")
-        :gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+        :gsub("%s+", " ")
+    if normalized:byte(1)==32 then normalized=normalized:sub(2) end
+    if normalized:byte(-1)==32 then normalized=normalized:sub(1,-2) end
     -- Long descriptions remain searchable without retaining arbitrary text.
     -- At most 1024 keys plus values of <=256 bytes: <=512 KiB of text payload.
     if not cacheable then return normalized end
@@ -156,7 +158,7 @@ end
 -- ASCII alphanumerics and UTF-8 bytes continue a word; whitespace/punctuation do not.
 function N:FindLiteral(query,text,start)
     local first,last=text:find(query,start or 1,true)
-    if not shortFirstTerm(query) then return first,last end
+    if not first or not shortFirstTerm(query) then return first,last end
     while first do
         local before=first>1 and text:byte(first-1)
         if not before or before<128 and not letter(before) and not (before>=48 and before<=57) then return first,last end

@@ -133,6 +133,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Raid abilities zhCN failed' }
     & $lua.Source 'tests/providers/raid_abilities.lua' 'enUS'
     if ($LASTEXITCODE -ne 0) { throw 'Raid abilities enUS failed' }
+    & $lua.Source 'tests/providers/raid_abilities.lua' 'zhCN' '--frame-paced'
+    if ($LASTEXITCODE -ne 0) { throw 'Raid abilities frame-paced latency failed' }
     foreach ($test in @('performance/performance_loading','ui/view_lifecycle','providers/ellesmere_adapter','providers/ellesmere_equivalence')) {
         & $lua.Source "tests/$test.lua"
         if ($LASTEXITCODE -ne 0) { throw "$test failed" }

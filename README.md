@@ -10,7 +10,7 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.4.1-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.4.2-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@
 
 </div>
 
-0.4.1：修复炉石等物品成功使用后，历史仍停留在“定位背包”的问题；保留点击使用后立即关闭搜索框的体验。
+0.4.2：减少团本技能搜索的重复计算与跨帧等待，加快未命中匹配；保留完整搜索范围与结果排序。
 
 想用一个技能，却不记得它放在哪条动作栏；想改一个设置，却不记得它藏在哪层菜单。荔枝让你从**名字**出发：找到它，然后施放、使用、切换，或打开对应页面。
 

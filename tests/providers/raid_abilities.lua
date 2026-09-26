@@ -1,5 +1,6 @@
 -- Real SDK query lifecycle with independent encounter/difficulty fixtures.
 local locale=arg[1] or "zhCN"
+local frameSeconds=arg[2]=="--frame-paced" and 1/30 or 0
 local clock,timers,frames,combat,missing,failed,sync,reads,requests=0,{},{},false,{},false,false,0,0
 local function fire(event,...)
  for _,f in ipairs(frames) do if f.events[event] and f.scripts.OnEvent then f.scripts.OnEvent(f,event,...) end end
@@ -20,7 +21,7 @@ function CreateFrame()
  frames[#frames+1]=f;return f
 end
 C_Timer={NewTimer=function(delay,fn)
- local t={at=clock+delay,fn=fn};function t:Cancel()self.cancelled=true end;timers[#timers+1]=t;return t
+ local t={at=clock+math.max(delay,frameSeconds),fn=fn};function t:Cancel()self.cancelled=true end;timers[#timers+1]=t;return t
 end}
 local maxBatch=0
 local function drain(stop)
@@ -97,7 +98,13 @@ assert(not m:ResolveReference("boss-89-spell-101-14"),"removed dungeon cannot be
 print("Raid abilities correctness PASS "..locale)
 -- Fixed full-catalogue query scenario; generation data is restored intact.
 I.ProviderModules.JournalCatalog=full
+local latencyStart=clock
 query("Ability 1229327")
+if frameSeconds>0 then
+ local elapsed=(clock-latencyStart)*1000
+ print(string.format("Full raid search at simulated 30 FPS: %.1f ms",elapsed))
+ assert(elapsed<1000,"cached full raid search waits more than one second across frames")
+end
 collectgarbage("collect");local base=collectgarbage("count");collectgarbage("stop")
 local started=os.clock()
 for i=1,20 do query(i%2==0 and "Ability 1229327" or "mythic Ability 1230087") end

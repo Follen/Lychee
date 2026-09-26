@@ -168,8 +168,8 @@ function M:Query(request,reply,context)
         for _,r in ipairs(selected) do rows[#rows+1]=M:Reference(r.offset,r.spell,r.mask,r.section,r.diff) end
         dispose();reply(rows)
     end
-    local function field(kind,text)
-        if text and text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=kind,text,N:Normalize(text,false) end
+    local function field(kind,text,numeric)
+        if text and text~="" then local n=#fields;fields[n+1],fields[n+2],fields[n+3]=kind,text,numeric and text or N:Normalize(text,false) end
     end
     local function add(offset,spell,mask,section,diff,score)
         if not score or not diff then return end
@@ -187,26 +187,62 @@ function M:Query(request,reply,context)
         selected={};local count,started=0,debugprofilestop()
         local function checkpoint()
             count=count+1
-            if count>=128 or debugprofilestop()-started>=1 then coroutine.yield();count,started=0,debugprofilestop() end
+            if count>=512 or debugprofilestop()-started>=1 then coroutine.yield();count,started=0,debugprofilestop() end
         end
         local data=I.ProviderModules.JournalCatalog
         -- One accumulator/closure per scan, not per encounter. These locals
         -- belong to this query's coroutine and are never shared across queries.
-        local offset,base,current,total,section,diff,fallbackDiff,fallbackSection
+        local offset,base,current,currentText,encoded,groupStart,groupEnd,baseRank
+        local baseTerms={}
+        local function skillRank()
+            local best=baseRank
+            for at=base+1,#fields,3 do
+                local score=N:ScoreNormalized(query,fields[at+2],fields[at],false)
+                if score and (not best or score>best) then best=score end
+            end
+            if #terms>1 then
+                local weakest=1
+                -- Suffix terms commonly distinguish skills sharing a prefix.
+                -- The weakest-term score is order independent.
+                for i=#terms,1,-1 do
+                    local term=terms[i]
+                    local strongest=baseTerms[i]
+                    for at=base+1,#fields,3 do
+                        local score=N:ScoreNormalized(term,fields[at+2],fields[at],false)
+                        if score and (not strongest or score>strongest) then strongest=score end
+                    end
+                    if not strongest then return best end
+                    weakest=math.min(weakest,strongest)
+                end
+                if not best or weakest*.9>best then best=weakest*.9 end
+            end
+            return best
+        end
         local function flush()
             if not current then return end
-            if diff or family then
+            do
                 local name=C_Spell.GetSpellName(current)
                 if not name and loadMissing and pending[current]==nil and event and C_Spell.RequestLoadSpellData then
                     pending[current]=true;awaiting=awaiting+1
                     local ok=pcall(C_Spell.RequestLoadSpellData,current)
                     if not ok and pending[current]==true then pending[current]=false;awaiting=awaiting-1 end
                 end
-                field("title",name);field("alias",tostring(current))
+                field("title",name);field("alias",currentText,true)
                 -- A full spell name wins over an ambiguous leading difficulty word.
                 local literal=family and name and N:Normalize(name,false)==original
-                local rank=N:ScoreCompiled(literal and original or query,fields,literal and N:Terms(original) or terms,false)
-                add(offset,current,total,literal and fallbackSection or section,literal and fallbackDiff or diff,rank)
+                local rank=literal and 1 or skillRank()
+                -- Difficulty relations are only needed for competitive matches.
+                -- Keep the generated text as the owner; no per-skill cache/table.
+                if rank and (#selected<limit or rank>selected[#selected].score) then
+                    local total,section,diff=0,nil,nil
+                    for sectionText,maskText in encoded:sub(groupStart,groupEnd):gmatch("%d+:(%d+):(%d+)") do
+                        local mask=tonumber(maskText)
+                        for i in ipairs(diffIDs) do if included(mask,i) and not included(total,i) then total=total+2^(i-1) end end
+                        local d=choose(mask,not literal and family or nil)
+                        if d and (not diff or families[d]<families[diff] or families[d]==families[diff] and d<diff) then diff,section=d,tonumber(sectionText) end
+                    end
+                    add(offset,current,total,section,diff,rank)
+                end
                 for i=#fields,base+1,-1 do fields[i]=nil end
             end
             checkpoint()
@@ -216,23 +252,24 @@ function M:Query(request,reply,context)
             local id=data.encounters[offset]
             local boss,instance=M:Names(offset)
             for i=#fields,1,-1 do fields[i]=nil end
-            field("alias",boss);field("alias",instance);field("alias",tostring(id))
+            field("alias",boss);field("alias",instance);field("alias",tostring(id),true)
             base=#fields
+            if skills then baseRank=N:ScoreCompiled(query,fields,nil,false) end
+            if skills and #terms>1 then
+                for i,term in ipairs(terms) do baseTerms[i]=N:ScoreCompiled(term,fields,nil,false) end
+            end
             if family then local mask=bossMask(id);add(offset,nil,mask,0,choose(mask,family),N:ScoreCompiled(query,fields,terms,false)) end
             if not skills then
                 if query==fields[3] or query==fields[6] or query==tostring(id) then exact=true end
             else
-                current,total,section,diff,fallbackDiff,fallbackSection=nil,nil,nil,nil,nil,nil
-                for spellText,sectionText,maskText in (data.abilities[id] or ""):gmatch("(%d+):(%d+):(%d+)") do
-                    local spell,mask=tonumber(spellText),tonumber(maskText)
-                    if spell~=current then flush();current,total,section,diff,fallbackDiff,fallbackSection=spell,0,nil,nil,nil,nil end
-                    for i in ipairs(diffIDs) do if included(mask,i) and not included(total,i) then total=total+2^(i-1) end end
-                    local d=choose(mask,family)
-                    if d and (not diff or families[d]<families[diff] or families[d]==families[diff] and d<diff) then diff,section=d,tonumber(sectionText) end
-                    if family then
-                        local any=choose(mask)
-                        if any and (not fallbackDiff or families[any]<families[fallbackDiff] or families[any]==families[fallbackDiff] and any<fallbackDiff) then fallbackDiff,fallbackSection=any,tonumber(sectionText) end
+                current=nil
+                encoded=data.abilities[id] or ""
+                local previous
+                for first,spellText,last in encoded:gmatch("()(%d+):%d+:%d+()") do
+                    if spellText~=previous then
+                        flush();current,currentText,previous,groupStart=tonumber(spellText),spellText,spellText,first
                     end
+                    groupEnd=last-1
                 end
                 flush()
             end
