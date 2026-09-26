@@ -50,4 +50,4 @@ sourceId=wow-ui-source，product=retail，requestedRef/resolvedCommit=7828252214
 - 五端staticValid/loadValid=true、load issues=0；complete=false，Interface基线unresolved，动态参数、战斗、taint和运行行为未被静态工具覆盖。
 - 最终静态capture：Retail CAP-dd0d6ac836345f9cc2b9dd710efa9b8e08eca20177712af0c7ddd9e746f6a703；Classic CAP-cbf8371486a4dcc8fee5a4115f892f50845460a331466e04aaf0e5d164c2f8a6；Titan CAP-60fef310a658591df77d8b34ee0523e599286b956dc539de6049c7572f096263；Anniversary CAP-337ab79a66c75c9e670ac3b618c0680a1e1bcca68ddd0d3b5edc7362b502244e；Forever CAP-7be04fe1878719532ebe8ad8318708a717e16dce2eb6d783358e8bdc2a96044c。
 
-版本0.4.2；正式服文件同步完成后记录hash。原实机操作仍需恢复与清理，未绕过窗口所有权另发reload，未发布平台或npm。不能声称新版本已在当前进程加载。
+版本0.4.2，运行提交b66f6e88407f0b2bd2599b421fcfb0cc7b73b1cb；正式服D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee已覆盖同步203个运行文件，逐文件SHA-256一致，证据analyze/search-latency-delivery.json。目标旧文件保留。原实机操作仍需恢复与清理，未绕过窗口所有权另发reload，未发布平台或npm。不能声称新版本已在当前进程加载。
