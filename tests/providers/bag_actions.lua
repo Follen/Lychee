@@ -90,6 +90,7 @@ dofile("addon/Lychee/".."Providers/Keystones/Locales/enUS.lua");dofile("addon/Ly
 dofile("addon/Lychee/".."Providers/Mounts/Locales/enUS.lua");dofile("addon/Lychee/".."Providers/Mounts/Locales/zhCN.lua")
 dofile("addon/Lychee/".."Providers/PlayerSpells/Locales/enUS.lua");dofile("addon/Lychee/".."Providers/PlayerSpells/Locales/zhCN.lua")
 dofile("addon/Lychee/".."Providers/TalentLoadouts/Locales/enUS.lua");dofile("addon/Lychee/".."Providers/TalentLoadouts/Locales/zhCN.lua")
+dofile("addon/Lychee/".."Core/ClientProfiles.lua");dofile("addon/Lychee/".."Core/ClientSupport.lua")
 dofile("addon/Lychee/".."Search/RuntimeIdentity.lua")
 dofile('tests/support/glow_frames.lua')
 dofile('addon/Lychee/UI/LycheeGlow.lua')

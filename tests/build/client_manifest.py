@@ -48,4 +48,18 @@ provider['products'] = ['retail']
 build.validate(candidate)
 assert all(path not in build.file_list(candidate, 'classic') for path in provider['files'])
 assert 'scope={products={"retail"}}' in build.runtime_definitions(candidate).splitlines()[4]
-print('Client manifest PASS: 4 clients, 13 owners, invalid rules rejected, support change propagated')
+range_row = dict(product='retail', minInterface=120100, maxInterface=120199, minBuild=69900, maxBuild=69999)
+def set_ranges(m, rows):
+    m['providers'][0]['products'] = ['retail']
+    m['providers'][0]['ranges'] = rows
+for invalid in (None, {}, [], [None], [{}], [dict(range_row, product='forever')],
+                [dict(range_row, product=[])], [dict(range_row, minBuild=True)],
+                [dict(range_row, minBuild=70000)], [dict(range_row, minInterface=16001)],
+                [range_row, range_row]):
+    rejects(lambda m, rows=invalid: set_ranges(m, rows))
+set_ranges(candidate, [range_row, dict(range_row, minBuild=70000, maxBuild=70099)])
+build.validate(candidate)
+assert 'minBuild=70000,maxBuild=70099' in build.runtime_definitions(candidate)
+rejects(lambda m: m['clients']['forever'].update(minInterface=120000, maxInterface=120199,
+    interface=120100, supportedMinInterface=120100, supportedMaxInterface=120199))
+print('Client manifest PASS: 5 clients, declared owners, invalid rules rejected, support change propagated')

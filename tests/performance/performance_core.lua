@@ -7,6 +7,7 @@ function CreateFrame()
         SetScript=function() end}
 end
 local root=os.getenv('LYCHEE_PERF_ROOT') or 'addon/Lychee/'
+dofile("addon/Lychee/Core/ClientProfiles.lua")
 dofile(root..'Core/Boundary.lua')
 dofile(root..'Core/Scheduler.lua')
 dofile(root..'Core/ExtensionRegistry.lua')

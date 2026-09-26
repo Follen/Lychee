@@ -25,6 +25,7 @@ local function setup(packages, identity)
         IsAddOnLoadable=function(name,character,demand) assert(character=="Player-1-ABC" and demand==true);return not map[name].unloadable,map[name].unloadable end}
     UnitGUID=function(unit) assert(unit=="player");return "Player-1-ABC" end
     CreateFrame=function() error("discovery may not create frames") end
+    dofile("addon/Lychee/Core/ClientProfiles.lua");dofile("addon/Lychee/Core/ClientSupport.lua")
     dofile("addon/Lychee/Core/AddonDiscovery.lua")
     Lychee={RegisterProvider=function(_,definition)
         local ok,err=I.AddonDiscovery:ValidateRegistration(definition)
@@ -139,4 +140,15 @@ many={}
 for index=1,129 do many[index]=package("Package"..index,{"provider."..index},{"title=Test;global=1;ranges=retail:0:9999999:0:9999999"}) end
 D,env=setup(many);D:Scan();while not D.complete do env:Drain() end
 assert(D.error=="DISCOVERY_LIMIT" and #D:Definitions()==128,"package capacity must fail explicitly")
-print("addon_discovery: public cold declaration, resources, collisions, ranges and bounded scan passed")
+local forever=base:gsub("retail:120100:120199:0:9999999","forever:16001:16099:70000:71000")
+D,env=setup({package("ABC_Lychee",{"abc.equipment"},{forever})},
+    {product="forever",interface=16001,build=70009,locale="enUS"})
+D:Scan();assert(D:Get("abc.equipment").status=="cold")
+bad=definition();bad.scope={products={"forever"},minInterface=16001,maxInterface=16099,minBuild=70000,maxBuild=71000}
+assert(Lychee:RegisterProvider(bad))
+bad.scope.maxBuild=71001;rejected(bad,"SCOPE_MISMATCH")
+bad.scope.maxBuild=71000;bad.scope.products={"retail"};rejected(bad,"SCOPE_MISMATCH")
+D=setup({package("ABC_Lychee",{"abc.equipment"},{forever})},
+    {product="forever",interface=16001,build=71001,locale="enUS"})
+D:Scan();assert(D:Get("abc.equipment").status=="unsupported")
+print("addon_discovery: public cold declaration, resources, collisions, five-product ranges and bounded scan passed")

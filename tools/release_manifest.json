@@ -1,6 +1,8 @@
 {
   "schemaVersion": 1,
   "runtimeFiles": [
+    "Core/ClientProfiles.lua",
+    "Core/ClientSupport.lua",
     "Bindings.xml",
     "Bootstrap.lua",
     "Providers/Achievements/Locales/enUS.lua",
@@ -200,6 +202,7 @@
     "Core/ActionStatus.lua",
     "Core/ProviderDefinition.lua",
     "UI/ActionCooldown.lua",
-    "Media/choice-checkbox.tga"
+    "Media/choice-checkbox.tga",
+    "Lychee_Forever.toc"
   ]
 }

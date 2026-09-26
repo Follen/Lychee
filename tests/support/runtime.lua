@@ -23,6 +23,7 @@ function M.Load(profile,extra,options)
     if selected["Core/Preparation.lua"] then selected["Search/SourceAccess.lua"]=true;selected["Search/ProviderPolicy.lua"]=true;selected["Core/AddonDiscovery.lua"]=true;selected["Core/AddonLoader.lua"]=true end
     if selected["Providers/Bags/Provider.lua"] then selected["UI/LycheeGlow.lua"]=true end
     local settingsProvider=selected["Providers/BlizzardSettings/Provider.lua"]
+    selected["Core/ClientProfiles.lua"]=true;selected["Core/ClientSupport.lua"]=true
     local loaded={}
     for line in io.lines(root..(options.toc or "Lychee_Mainline.toc")) do
         local path=line:gsub("\r$","")

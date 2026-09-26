@@ -9,7 +9,7 @@ dofile("tests/support/runtime.lua").Load("provider", {"Core/Scheduler.lua"})
 local I=LycheeInternal
 I.Registry:SetReady(true)
 local sequence=0
-for _,client in ipairs({{"retail",1,120100},{"classic",19,50504},{"titan",11,38002},{"anniversary",5,20506},{"unknown",11,30403},{"unknown",2,11508},{"unknown",1,50504}}) do
+for _,client in ipairs({{"retail",1,120100},{"classic",19,50504},{"titan",11,38002},{"anniversary",5,20506},{"unknown",11,30403},{"unknown",2,11508},{"classic",1,50504},{"forever",99,16001}}) do
     for _,lang in ipairs({"enUS","enGB","zhCN","zhTW"}) do
         locale,interface,WOW_PROJECT_ID=lang,client[3],client[2]
         I.Locale.code=locale;I.Search.Normalizer.locale=locale;I.Search.RuntimeIdentity:Refresh()
@@ -19,7 +19,7 @@ for _,client in ipairs({{"retail",1,120100},{"classic",19,50504},{"titan",11,380
         local id="matrix."..sequence
         local enabled,disabled=0,0
         local handle=assert(Lychee:RegisterProvider({id=id,apiVersion="1.0.0",version="1",title={key="name"},
-            scope={products={"retail","classic","titan","anniversary"},minBuild=60000,maxBuild=80000},
+            scope={products={"retail","classic","titan","anniversary","forever"},minBuild=60000,maxBuild=80000},
             i18n={enUS={name="Shared launcher",entry="Test entry",run="Run",message="Found %d"},zhCN={name="共享启动器",entry="测试条目",run="执行",message="找到 %d"}},
             entries={{id="entry",title={key="entry"},actions={"run"}}},
             actions={run={title={key="run"},run=function() return {ok=true} end}},
@@ -55,7 +55,7 @@ assert(I.Providers:Resolve({providerID="missing.locales",entryID="one"}).text=="
 assert(plain:Unregister())
 assert(not Lychee:RegisterProvider({id="invalid.scope",apiVersion="1.0.0",version="1",title="No",entries={},scope="retail"}))
 assert(not Lychee:RegisterProvider({id="invalid.locales",apiVersion="1.0.0",version="1",title="No",entries={},i18n=false}))
-print("Client/locale public registration matrix PASS 7 identities x 4 locales, updates/resolve/disable/namespace release")
+print("Client/locale public registration matrix PASS 8 identities x 4 locales, updates/resolve/disable/namespace release")
 
 locale="enUS";I.Locale.code=locale;I.Search.Normalizer.locale=locale;I.Search.RuntimeIdentity:Refresh()
 local function descriptor(id)

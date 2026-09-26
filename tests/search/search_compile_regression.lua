@@ -3,7 +3,7 @@ local locale = "zhCN"
 function GetLocale() return locale end
 function GetBuildInfo() return "12.1.0", "69587", "today", 120100 end
 LycheeInternal={Search={}}
-dofile("addon/Lychee/Search/RuntimeIdentity.lua")
+dofile("addon/Lychee/Core/ClientProfiles.lua");dofile("addon/Lychee/Core/ClientSupport.lua");dofile("addon/Lychee/Search/RuntimeIdentity.lua")
 dofile("addon/Lychee/Search/Normalizer.lua")
 dofile("addon/Lychee/Search/StaticIndex.lua")
 local I=LycheeInternal

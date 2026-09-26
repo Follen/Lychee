@@ -26,7 +26,7 @@
 ---@field retryable? boolean
 ---@field message? string
 
----@alias LycheeProduct 'retail'|'classic'|'titan'|'anniversary'
+---@alias LycheeProduct 'retail'|'classic'|'titan'|'anniversary'|'forever'
 
 ---@class LycheeLocaleKey
 ---@field key string Provider-owned i18n key; no additional fields.
@@ -547,6 +547,7 @@ Lychee = {}
 
 ---@class LycheeSDK
 ---@field VERSION '1.0.0'
+---@field SelectClientImplementation fun(implementations:LycheeClientImplementation[]):string?, LycheeScope|LycheeError
 ---@field GetClient fun():table Current client identity; isolated copy.
 ---@field SupportsFeature fun(name:string,version?:integer):boolean
 ---@field Invocation? LycheeInvocationAPI Optional capability; feature-probe before registration.
@@ -560,3 +561,13 @@ Lychee = {}
 ---@field WhenSavedVariablesReady fun(addonName:string,callback:fun()):LycheeReadySubscription?,LycheeError?
 ---@field Normalizer table Optional text tools, not a business catalog.
 ---@field RuntimeIdentity {Current:fun(self:table):table} Current client identity copy.
+
+---@class LycheeClientRange
+---@field product string Product ID, including forever; never a localized name.
+---@field minInterface integer Inclusive.
+---@field maxInterface integer Inclusive.
+---@field minBuild integer Inclusive.
+---@field maxBuild integer Inclusive.
+---@class LycheeClientImplementation
+---@field id string Stable implementation key, at most 64 bytes.
+---@field ranges LycheeClientRange[] At most 8 disjoint ranges.

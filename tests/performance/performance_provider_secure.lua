@@ -59,6 +59,7 @@ dofile(root.."/".."Providers/Keystones/Locales/enUS.lua");dofile(root.."/".."Pro
 dofile(root.."/".."Providers/Mounts/Locales/enUS.lua");dofile(root.."/".."Providers/Mounts/Locales/zhCN.lua")
 dofile(root.."/".."Providers/PlayerSpells/Locales/enUS.lua");dofile(root.."/".."Providers/PlayerSpells/Locales/zhCN.lua")
 dofile(root.."/".."Providers/TalentLoadouts/Locales/enUS.lua");dofile(root.."/".."Providers/TalentLoadouts/Locales/zhCN.lua")
+dofile(root.."/".."Core/ClientProfiles.lua");dofile(root.."/".."Core/ClientSupport.lua")
 dofile(root.."/".."Search/RuntimeIdentity.lua")
 dofile(root.."/Providers/Shared/CatalogLedger.lua")
 dofile(root.."/Providers/PlayerSpells/Provider.lua")

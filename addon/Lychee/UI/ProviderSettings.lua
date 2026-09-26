@@ -2,7 +2,7 @@ local EMPTY_UI_PROPS = {}
 local I,UI=_G.LycheeInternal,_G.Lychee.UI
 local L=I.Locale
 local management=I.ProviderManagement
-local CLIENTS={retail="正式服",classic="经典怀旧服",titan="泰坦重铸",anniversary="周年纪念服"}
+local CLIENTS={retail="正式服",classic="经典怀旧服",titan="泰坦重铸",anniversary="周年纪念服",forever="永恒服"}
 local P={};UI.ProviderSettings=P
 function P:Create(parent,controller,onBack)
     local metrics=UI.Theme.Metrics

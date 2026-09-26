@@ -33,7 +33,12 @@ end
 
 function S:Scope(id)
     local definition = assert(byID[id], "Unknown built-in Provider: " .. tostring(id))
-    return definition.scope
+    local client=I.Search.RuntimeIdentity:Current()
+    local selected=I.ClientSupport:SelectRange(definition.ranges,client)
+    if selected then return I.ClientSupport:Scope(selected) end
+    -- Keep a nonmatching scope for unsupported clients, never a nil scope
+    -- (which public registration would interpret as the retail default).
+    return {products=definition.scope.products,minInterface=9999999,maxInterface=9999999}
 end
 
 function S:Known(id)
@@ -46,15 +51,15 @@ function S:Available(definition, product)
         if candidate == product then supported = true; break end
     end
     if not supported then return false end
-    if I.Search.RuntimeIdentity:Current().product == product
-        and not I.Search.RuntimeIdentity:MatchesScope(definition.scope) then return false end
+    local current=I.Search.RuntimeIdentity:Current()
+    if current.product == product and not I.ClientSupport:SelectRange(definition.ranges,current) then return false,"UNSUPPORTED_CLIENT" end
     -- Evaluated only during startup, before business frames/events/tasks exist.
     for _, symbol in ipairs(definition.requires) do
         local value = _G
         for part in symbol:gmatch("[^.]+") do
             value = type(value) == "table" and value[part] or nil
         end
-        if type(value) ~= "function" then return false end
+        if type(value) ~= "function" then return false,"REQUIRED_API_UNAVAILABLE",symbol end
     end
     return true
 end
@@ -141,7 +146,7 @@ function S:InitializeSystemSources()
     if self.settingsProvider or not Lychee or not Lychee.RegisterProvider then return end
     local L=I.Locale
     self.settingsProvider=Lychee:RegisterProvider({id="lychee.settings",apiVersion="1.0.0",version="1.0.0",title=L["荔枝设置"],
-        scope={products={"retail","classic","titan","anniversary"}},
+        scope={products={"retail","classic","titan","anniversary","forever"}},
         entries={{id="settings",title=L["荔枝设置"],kindTitle=L["设置"],aliases={"设置","荔枝设置","lychee settings"},rememberable=false,
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\settings.tga",actions={"open"}}},
         actions={open={title=L["打开荔枝设置"],run=function()

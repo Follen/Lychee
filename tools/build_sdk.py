@@ -27,6 +27,7 @@ DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 # These modules implement public SDK operations. This deliberately does not
 # scan Provider business errors or Blizzard's open-ended LoadAddOn reasons.
 ERROR_SOURCES = (
+    "addon/Lychee/Core/ClientSupport.lua",
     "addon/Lychee/Core/InvocationRuntime.lua", "addon/Lychee/Core/Catalog.lua",
     "addon/Lychee/Core/Preparation.lua", "addon/Lychee/Core/ProviderRuntime.lua",
     "addon/Lychee/PublicAPI/Invocation.lua", "lychee-sdk/Storage.lua",

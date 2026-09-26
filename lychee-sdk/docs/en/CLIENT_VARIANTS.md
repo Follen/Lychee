@@ -79,3 +79,15 @@ Cold ranges and loaded Scope must agree. Loaded bounds may narrow, not expand, c
 | anniversary | TBC | 20506 |
 
 These are declaration/build ranges, not a claim that every client has passed real-game acceptance. Chinese/English builds of one product share protocol and stable IDs.
+
+## Optional implementation selection
+
+Check `SDK.SupportsFeature("client-implementations", 1)` before calling `SDK.SelectClientImplementation(implementations)` (dot or colon syntax). Existing hosts and ordinary Provider API 1.0.0 descriptors remain compatible; older hosts need the addon's own selector or an explicit unsupported result.
+
+Supply at most 16 `{id,ranges}` declarations, 8 ranges per declaration and 32 ranges in total. Each range has named fields `{product,minInterface,maxInterface,minBuild,maxBuild}` with inclusive positive integer bounds. Products include `forever`; that identity does not imply Retail feature support. Interface and build must both match. No factories, capability callbacks or business objects are accepted.
+
+The result is `implementationID, scope`, with a fresh ordinary Scope, or `nil, Error`. All declarations are validated, including off-client overlap, duplicate IDs and malformed data. No match returns `UNSUPPORTED_CLIENT`; overlap returns `AMBIGUOUS_CLIENT_IMPLEMENTATION`. Selection never depends on declaration order, retains no inputs, invokes no callbacks and creates no game resources. Call once before registration, not per search result.
+
+The provider owns factories and API/ready checks; use the returned key to build one descriptor and assign its scope. Only onEnable starts business work. See [example](../../examples/ClientImplementations.lua). Cold discovery and loaded scopes share range semantics; a loaded scope cannot exceed its selected cold declaration. Declared support, current readiness and verified builds are separate facts.
+
+The project's client manifest generates identity profiles and per-provider ranges, while client TOCs retain data pruning. Forever uses the flat Lychee.toc; Retail uses Lychee_Mainline.toc. Other existing suffixes are retained. Project assembly is not part of the public SDK.

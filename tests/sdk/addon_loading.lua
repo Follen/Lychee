@@ -55,6 +55,7 @@ local function setup(packages)
     function env:ActiveTimers()
         local count=0;for _,timer in ipairs(self.timers) do if not timer.cancelled then count=count+1 end end;return count
     end
+    dofile("addon/Lychee/Core/ClientProfiles.lua");dofile("addon/Lychee/Core/ClientSupport.lua")
     dofile("addon/Lychee/Core/AddonDiscovery.lua")
     dofile("addon/Lychee/Core/AddonLoader.lua")
     function Lychee:RegisterProvider(def)

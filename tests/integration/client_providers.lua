@@ -2,7 +2,7 @@
 local root="addon/Lychee/"
 local captured={}
 local product,locale="anniversary","enUS"
-_G.LycheeInternal={ProviderModules={},Search={RuntimeIdentity={Current=function() return {product=product} end}},
+_G.LycheeInternal={ProviderModules={},Search={RuntimeIdentity={Current=function() return {product=product,interface=({retail=120100,classic=50504,titan=38002,anniversary=20506,forever=16001})[product],build="70000"} end}},
     Locale={code=locale,IsChinese=function(self) return self.code=="zhCN" or self.code=="zhTW" end}}
 local I=LycheeInternal
 _G.Lychee={RegisterProvider=function(_,definition) captured[definition.id]=definition;return {} end}
@@ -17,7 +17,7 @@ function GetSpellBookItemTexture(slot) return 500+slot end
 function IsPassiveSpell(slot) return slot==2 end
 function GetBuildInfo() return "2.5.7","70000","fixture",20507 end
 local function load(path) dofile(root..path) end
-load("Providers/Definitions.lua");load("Providers/Shared/Support.lua");load("Core/ProviderLocales.lua");load("Providers/Achievements/Locales/enUS.lua");load("Providers/Achievements/Locales/zhCN.lua");load("Providers/AddonInspector/Locales/enUS.lua");load("Providers/AddonInspector/Locales/zhCN.lua");load("Providers/Bags/Locales/enUS.lua");load("Providers/Bags/Locales/zhCN.lua");load("Providers/BlizzardSettings/Locales/enUS.lua");load("Providers/BlizzardSettings/Locales/zhCN.lua");load("Providers/Bosses/Locales/enUS.lua");load("Providers/Bosses/Locales/zhCN.lua");load("Providers/Crests/Locales/enUS.lua");load("Providers/Crests/Locales/zhCN.lua");load("Providers/EquipmentSets/Locales/enUS.lua");load("Providers/EquipmentSets/Locales/zhCN.lua");load("Providers/GameMenus/Locales/enUS.lua");load("Providers/GameMenus/Locales/zhCN.lua");load("Providers/GreatVault/Locales/enUS.lua");load("Providers/GreatVault/Locales/zhCN.lua");load("Providers/Keystones/Locales/enUS.lua");load("Providers/Keystones/Locales/zhCN.lua");load("Providers/Mounts/Locales/enUS.lua");load("Providers/Mounts/Locales/zhCN.lua");load("Providers/PlayerSpells/Locales/enUS.lua");load("Providers/PlayerSpells/Locales/zhCN.lua");load("Providers/TalentLoadouts/Locales/enUS.lua");load("Providers/TalentLoadouts/Locales/zhCN.lua")
+load("Core/ClientProfiles.lua");load("Core/ClientSupport.lua");load("Providers/Definitions.lua");load("Providers/Shared/Support.lua");load("Core/ProviderLocales.lua");load("Providers/Achievements/Locales/enUS.lua");load("Providers/Achievements/Locales/zhCN.lua");load("Providers/AddonInspector/Locales/enUS.lua");load("Providers/AddonInspector/Locales/zhCN.lua");load("Providers/Bags/Locales/enUS.lua");load("Providers/Bags/Locales/zhCN.lua");load("Providers/BlizzardSettings/Locales/enUS.lua");load("Providers/BlizzardSettings/Locales/zhCN.lua");load("Providers/Bosses/Locales/enUS.lua");load("Providers/Bosses/Locales/zhCN.lua");load("Providers/Crests/Locales/enUS.lua");load("Providers/Crests/Locales/zhCN.lua");load("Providers/EquipmentSets/Locales/enUS.lua");load("Providers/EquipmentSets/Locales/zhCN.lua");load("Providers/GameMenus/Locales/enUS.lua");load("Providers/GameMenus/Locales/zhCN.lua");load("Providers/GreatVault/Locales/enUS.lua");load("Providers/GreatVault/Locales/zhCN.lua");load("Providers/Keystones/Locales/enUS.lua");load("Providers/Keystones/Locales/zhCN.lua");load("Providers/Mounts/Locales/enUS.lua");load("Providers/Mounts/Locales/zhCN.lua");load("Providers/PlayerSpells/Locales/enUS.lua");load("Providers/PlayerSpells/Locales/zhCN.lua");load("Providers/TalentLoadouts/Locales/enUS.lua");load("Providers/TalentLoadouts/Locales/zhCN.lua")
 for id,resources in pairs(I.ProviderLocaleData) do
     local translator,err=I.ProviderLocales:Module(id)
     assert(translator,id..":"..tostring(err and err.field))
@@ -45,16 +45,26 @@ local records=spells:BuildSearchRecords()
 assert(#records==2 and records[1].actions[1].spellID==101)
 assert(records[1].actions[1].title=="Cast")
 load("Providers/Shared/InterfaceActions.lua");load("Providers/GameMenus/Provider.lua")
-for _,client in ipairs({"retail","classic","titan","anniversary"}) do
+for _,client in ipairs({"retail","classic","titan","anniversary","forever"}) do
     product=client;I.ProviderModules.GameMenus.handle=nil;I.ProviderModules.GameMenus:Init()
     local def=captured["builtin.game-menus"]
-    assert(def.apiVersion=="1.0.0" and def.i18n==nil and #def.scope.products==4)
+    assert(def.apiVersion=="1.0.0" and def.i18n==nil and #def.scope.products==1 and def.scope.products[1]==client)
     local entries={};for _,entry in ipairs(def.entries) do entries[entry.id]=entry end
     assert(entries.spellbook and entries.talents and entries.settings)
     assert((entries["warband-scenes"]~=nil)==(client=="retail"))
-    assert((entries.achievements~=nil)==(client~="anniversary"))
+    assert((entries.achievements~=nil)==(client=="retail" or client=="classic" or client=="titan"))
     assert(entries.spellbook.title=="Spellbook")
-    if client~="retail" then
+    if client=="forever" then
+        local opened
+        PlayerSpellsFrame={IsShown=function() return opened~=nil end}
+        PlayerSpellsUtil={OpenToSpellBookTab=function() opened="spells" end,
+            OpenToClassTalentsTab=function() opened="talents" end}
+        assert(def.actions.open.run(entries.spellbook).ok and opened=="spells")
+        assert(def.actions.open.run(entries.talents).ok and opened=="talents")
+        assert(not entries.specialization and not entries.mounts and not entries.currency)
+        PlayerSpellsUtil=nil
+        assert(not def.actions.open.run(entries.spellbook).ok, "missing native menu must fail safely")
+    elseif client~="retail" then
         SpellBookFrame={bookType="spell",IsShown=function(self) return self.shown end}
         function ToggleSpellBook(book) SpellBookFrame.bookType=book;SpellBookFrame.shown=true end
         assert(def.actions.open.run(entries.spellbook).ok)
@@ -62,7 +72,7 @@ for _,client in ipairs({"retail","classic","titan","anniversary"}) do
 end
 load("Providers/Shared/CatalogProvider.lua");load("Providers/BlizzardSettings/Provider.lua")
 load("Providers/BlizzardSettings/Adapter.lua");load("Providers/BlizzardSettings/Language.lua");
-for _,client in ipairs({"retail","classic","titan","anniversary"}) do
+for _,client in ipairs({"retail","classic","titan","anniversary","forever"}) do
     product=client;local found={}
     I.ProviderModules.BlizzardSettings.build({},function(row) found[row.id]=row end,function() end)
     assert(found.reload and found.reload.title=="Reload UI")
@@ -79,4 +89,4 @@ function EJ_GetInstanceInfo() return "Native Instance" end
 I.ProviderModules.Bosses.build({},function(row) rows[#rows+1]=row end,function() end)
 assert(rows[2].title=="Native Boss" and rows[2].subtitle=="Native Instance")
 assert(I.ProviderModules.Bosses.defaultEnabled and I.ProviderModules.Bosses.batchSize==16)
-print("client builtins: locale isolation, legacy spells, four-client menus/settings and native boss names passed")
+print("client builtins: locale isolation, legacy spells, five-client menus/settings and native boss names passed")

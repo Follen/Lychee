@@ -83,3 +83,10 @@ python tools/migrate_single_addon_saves.py --host "D:/Backups/Lychee/Character/L
 工具回归：[合成存档测试](../../tests/build/single_addon_save_migration.py)，运行 `python tests/build/single_addon_save_migration.py`；该测试不读取真实 WTF。
 
 完整开发和验收说明见[开发与验证](DEVELOPMENT.md)，性能约束见[PERFORMANCE.md](../../PERFORMANCE.md)。
+
+
+## 客户端清单与永恒服
+
+客户端身份及默认支持范围统一维护在 `tools/client_manifest.json`，生成 `Core/ClientProfiles.lua` 与 Provider 范围。Provider 可声明独立 ranges；生成器拒绝越界和重叠。`Lychee_Mainline.toc` 为正式服入口，平名 `Lychee.toc` 为 Forever 入口；`Lychee_Forever.toc` 是同内容的显式验收清单，不依赖引擎支持该后缀。其余 Mists/Wrath/TBC 清单保持按端裁剪。切换平名入口后必须重启客户端验证选表，不能用旧运行时的 /reload 结果证明扫描规则。
+
+Forever 产品身份为 `forever`，不继承正式服功能。当前声明的基础来源仅为技能、背包、基础菜单、设置定位、插件识别及斜杠命令；其余来源仍不装入 Forever 的加载清单。每项支持程度以本次验收记录为准。

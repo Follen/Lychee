@@ -70,6 +70,7 @@ CreateFrame=nil
 dofile(root.."Bootstrap.lua")
 CreateFrame=frameFactory
 I.Search=I.Search or {}
+dofile(root.."Core/ClientProfiles.lua");dofile(root.."Core/ClientSupport.lua")
 dofile(root.."Search/RuntimeIdentity.lua")
 dofile(root.."Providers/Definitions.lua")
 dofile(root.."Providers/Shared/Support.lua")

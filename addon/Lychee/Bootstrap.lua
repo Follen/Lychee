@@ -58,18 +58,45 @@ local function wireRegistryLifecycle()
     end)
 end
 
+local bindingNeedsSave = false
+local function initializeDefaultBinding(settings)
+    if settings.defaultBindingComplete or (InCombatLockdown and InCombatLockdown()) then return end
+    if type(GetBindingKey)~="function" or type(GetBindingAction)~="function" or type(SetBinding)~="function"
+        or type(SaveBindings)~="function" or type(GetCurrentBindingSet)~="function" then return end
+    local ok, key = pcall(GetBindingKey,"TOGGLELYCHEE")
+    local actionOK, action = pcall(GetBindingAction,"ALT-SPACE")
+    if not ok or not actionOK or (issecretvalue and (issecretvalue(key) or issecretvalue(action))) then return end
+    if (type(key)=="string" and key~="" and (key~="ALT-SPACE" or not bindingNeedsSave)) or (type(action)=="string" and action~="" and action~="TOGGLELYCHEE") then
+        -- An existing custom binding or conflicting action is a user choice.
+        settings.defaultBindingComplete=true
+        bindingNeedsSave=false
+        return
+    end
+    if action~=nil and type(action)~="string" then return end
+    if action~="TOGGLELYCHEE" then
+        local assigned, result=pcall(SetBinding,"ALT-SPACE","TOGGLELYCHEE")
+        if not assigned or result==false then return end
+        local readOK, applied=pcall(GetBindingAction,"ALT-SPACE")
+        if not readOK or (issecretvalue and issecretvalue(applied)) or applied~="TOGGLELYCHEE" then return end
+    end
+    bindingNeedsSave=true
+    local setOK, set=pcall(GetCurrentBindingSet)
+    if not setOK or (issecretvalue and issecretvalue(set)) or (set~=1 and set~=2) then return end
+    local saved, result=pcall(SaveBindings,set)
+    if not saved or result==false then return end
+    bindingNeedsSave=false
+    -- The legacy attempted flag was written before SetBinding and cannot prove
+    -- success. Repair an unbound/free legacy installation once; thereafter an
+    -- intentional unbind is respected. No polling or extra event is introduced.
+    settings.defaultBindingComplete=true
+    settings.defaultBindingAttempted=true
+end
+
 local function onLogin()
     I.CharacterStore:Initialize()
     if I.UserPreferences then I.UserPreferences:Initialize() end
     local settings = I.CharacterStore:Data()
-    if type(GetBindingKey)=="function" and type(GetBindingAction)=="function" and type(SetBinding)=="function" and type(SaveBindings)=="function" and type(GetCurrentBindingSet)=="function" and not settings.defaultBindingAttempted and not (InCombatLockdown and InCombatLockdown()) then
-        settings.defaultBindingAttempted = true
-        local existingAction = GetBindingAction("ALT-SPACE")
-        if not GetBindingKey("TOGGLELYCHEE") and (existingAction == nil or existingAction == "") then
-            SetBinding("ALT-SPACE", "TOGGLELYCHEE")
-            SaveBindings(GetCurrentBindingSet())
-        end
-    end
+    initializeDefaultBinding(settings)
     wireRegistryLifecycle()
     if I.ProjectProviders then I.ProjectProviders:InitializeSystemSources() end
     if I.ProviderModules and I.ProviderModules.Init then I.ProviderModules:Init() end

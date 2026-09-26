@@ -43,6 +43,12 @@ function SDK.GetClient()
     return {product=source.product,interface=source.interface,build=tonumber(source.build),locale=source.locale}
 end
 function facade:GetClient() return SDK.GetClient() end
+function SDK.SelectClientImplementation(first, second)
+    local declarations=first==SDK and second or first
+    local valid,err=I.Boundary:Validate(declarations,"implementations",{maxFields=1024,maxDepth=6})
+    if not valid then return nil,err end
+    return I.ClientSupport:SelectImplementation(declarations,SDK.GetClient())
+end
 function SDK.Now() return I.Providers:QueryTime() end
 function SDK.SupportsFeature(first,second,third)
     local name,version=first,second
@@ -50,6 +56,7 @@ function SDK.SupportsFeature(first,second,third)
     if version==nil then version=1 end
     if version~=1 then return false end
     if name=="client-context" then return true end
+    if name=="client-implementations" then return I.ClientSupport~=nil end
     if name=="search-documents" or name=="query-failure" then return I.CatalogFactory~=nil and I.Providers~=nil end
     if name=="compact-storage" then return I.LycheeSDK~=nil and I.LycheeSDK.CompactStore~=nil end
     if name=="discovery" or name=="provider-readiness" then return I.AddonDiscovery~=nil and I.AddonLoader~=nil end

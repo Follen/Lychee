@@ -134,7 +134,7 @@ L:Add({
     ["版本"] = "Version",
 })
 
-L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary"})
+L:Add({["正式服"]="Retail",["经典怀旧服"]="Classic",["泰坦重铸"]="Titan",["周年纪念服"]="Anniversary",["永恒服"]="Forever"})
 L:Add({["点击保存应用搜索设置"]="Save to apply search settings"})
 L:Add({
     ["普通搜索"]="Search by name",["直接输入名称即可搜索"]="Enter a name to find matching content",

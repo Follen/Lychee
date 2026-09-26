@@ -13,3 +13,5 @@
 | Historical decisions and evidence | [Archive](archive/README.md) |
 
 The SDK has corresponding English/Chinese topic trees. Internal project policies and historical records retain their original language. Historical evidence is not a current API contract or proof of current-client acceptance.
+
+[2026-09-26 client support / 默认绑定验收](validation/2026-09-26-client-support-binding.md)

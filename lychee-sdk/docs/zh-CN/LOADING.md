@@ -20,7 +20,7 @@ local client = SDK.GetClient()
 if not SDK.SupportsFeature("discovery", 1) then return end
 ```
 
-GetClient 返回独立 `{product,interface,build,locale}` 快照；product 为 retail/classic/titan/anniversary，interface/build 为数值。修改快照不改变 Host、不加载包、不探测任意全局变量。支持仍需对应原生 TOC 和经过验证的版本范围。
+GetClient 返回独立 `{product,interface,build,locale}` 快照；product 为 retail/classic/titan/anniversary/forever，interface/build 为数值。修改快照不改变 Host、不加载包、不探测任意全局变量。支持仍需对应原生 TOC 和经过验证的版本范围。
 
 GetClient 和 SupportsFeature 支持 SDK 点/冒号及 host 冒号调用。能力版本默认1；当前名称为 client-context、discovery、provider-readiness、preparation、invocation、search-documents、compact-storage、query-failure。未知名称或版本返回false；可选服务仅在对应实现可用时报告支持。SDK.Now() 使用 Host 截止时间的同一单调时钟。
 

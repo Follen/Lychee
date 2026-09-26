@@ -21,7 +21,7 @@ local client = SDK.GetClient() -- SDK:GetClient() and host:GetClient() also work
 if not SDK.SupportsFeature("discovery", 1) then return end
 ```
 
-`GetClient` returns a new snapshot. Editing it does not change Host identity, load an addon or probe arbitrary globals. `product` is `retail`, `classic`, `titan` or `anniversary`; `interface` and `build` are numbers; `locale` is the current client locale. Product support still requires an applicable native TOC and an explicitly supported interface/build range.
+`GetClient` returns a new snapshot. Editing it does not change Host identity, load an addon or probe arbitrary globals. `product` is `retail`, `classic`, `titan`, `anniversary` or `forever`; `interface` and `build` are numbers; `locale` is the current client locale. Product support still requires an applicable native TOC and an explicitly supported interface/build range.
 
 `SDK.SupportsFeature(name, version)` also accepts SDK colon syntax and `host:SupportsFeature(name, version)`. Version defaults to `1`. Implemented names are `client-context`, `discovery`, `provider-readiness`, `preparation`, `invocation`, `search-documents`, `compact-storage` and `query-failure`. Unknown names and unsupported versions return false. Optional services report availability only when their Host implementation is installed. `SDK.Now()` uses the same monotonic clock as Host operation deadlines.
 

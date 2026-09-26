@@ -176,7 +176,7 @@ function Boundary:ValidateSchema(value, schema, field)
 end
 
 local SCOPE_SCHEMA={product="string?",products="table?",locale="string?",minInterface="integer?",maxInterface="integer?",minBuild="integer?",maxBuild="integer?"}
-local PRODUCTS={retail=true,classic=true,titan=true,anniversary=true}
+local PRODUCTS=I.ClientProfiles
 local function validateScope(scope,field,checked)
     if not checked then
         local ok,err=Boundary:Validate(scope,field)
@@ -184,10 +184,11 @@ local function validateScope(scope,field,checked)
     end
     local ok,err=schemaValue(Boundary,scope,SCOPE_SCHEMA,field)
     if not ok then return nil,err end
+    if scope.product and not PRODUCTS[scope.product] then return failure("INVALID_SCHEMA",field..".product") end
     if scope.product and scope.products then return failure("INVALID_SCHEMA",field) end
     if scope.products then
         local count=0
-        if #scope.products==0 or #scope.products>4 then return failure("INVALID_SCHEMA",field..".products") end
+        if #scope.products==0 or #scope.products>5 then return failure("INVALID_SCHEMA",field..".products") end
         local seen={}
         for key,value in pairs(scope.products) do
             if type(key)~="number" or key~=math.floor(key) or key<1 or key>#scope.products or not PRODUCTS[value] or seen[value] then return failure("INVALID_SCHEMA",field..".products") end

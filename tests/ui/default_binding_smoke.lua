@@ -18,6 +18,7 @@ local function runCase(existingKey, existingAction)
     function SetBinding(key, action)
         assert(key == "ALT-SPACE" and action == "TOGGLELYCHEE")
         setCalls = setCalls + 1
+        existingKey, existingAction = key, action
         return true
     end
     function SaveBindings(bindingSet)

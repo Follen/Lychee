@@ -1,6 +1,6 @@
 local locale=arg[1] or "zhCN"
 local flavor=arg[2] or "Mainline"
-local interfaces={Mainline=120100,Mists=50504,Wrath=38002,TBC=20506}
+local interfaces={Mainline=120100,Mists=50504,Wrath=38002,TBC=20506,Forever=16001}
 local timers,calls={},{}
 local virtual=0
 local frames,locked=0,false
@@ -76,7 +76,7 @@ local baseFrames=frames
 M:Init()
 assert(M.handle and M.active and #timers==0 and frames==baseFrames)
 local definition=I.Providers.entries[M.id].definition
-assert(#definition.scope.products==4 and definition.icon:find("slash%-commands"))
+assert(#definition.scope.products==1 and definition.scope.products[1]==I.Search.RuntimeIdentity.product and definition.icon:find("slash%-commands"))
 local proxy={}
 SlashCmdList=setmetatable({},{__index=proxy})
 hash_SlashCmdList={};hash_ChatTypeInfoList={}

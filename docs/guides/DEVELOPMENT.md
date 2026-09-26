@@ -6,7 +6,7 @@
 
 ## 环境与目录
 
-- 多客户端原生 AddOn：Mainline `120100`、Mists `50504`、Wrath（泰坦重铸）`38002`、TBC（周年纪念版）`20506`；升级时按对应客户端资料重新核对。
+- 多客户端原生 AddOn：Mainline `120100`、Mists `50504`、Wrath（泰坦重铸）`38002`、TBC（周年纪念版）`20506`、Forever（永恒服）`16001`；升级时按对应客户端资料重新核对。
 - 本地契约检查使用 PowerShell 7（`pwsh`）、ripgrep（`rg`）和 Lua 5.1（`lua`）；语法检查另需 `luac`。
 - `addon/Lychee`：安装到对应客户端的运行时、Bindings 和媒体；本仓库自动同步目标仍仅为下文指定的正式服目录。
 - `lychee-sdk`：编辑器类型、可选 helper、集成示例，不作为独立插件安装。
@@ -45,7 +45,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Diff check failed' }
 
 ## 安装与第三方示例
 
-正式服安装结构为 `Interface/AddOns/Lychee/Lychee.toc`。只安装 `addon/Lychee` 的运行时文件，不复制 SDK、测试、文档或工具状态。仓库开发流程要求检查通过并创建 Git 提交后，才覆盖复制到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，随后核对文件清单和 SHA-256；不自动删除目标旧文件。
+正式服安装目录为 `Interface/AddOns/Lychee`，加载 `Lychee_Mainline.toc`；永恒服加载平名 `Lychee.toc`。只安装 `addon/Lychee` 的运行时文件，不复制 SDK、测试、文档或工具状态。仓库开发流程要求检查通过并创建 Git 提交后，才覆盖复制到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，随后核对文件清单和 SHA-256；不自动删除目标旧文件。
 
 新增模块或 TOC 变化后重启客户端；仅已加载文件内容变化时可用 `/reload`。系统保存的游戏按键绑定独立于插件存档；默认 Alt+Space 不覆盖已有绑定。
 

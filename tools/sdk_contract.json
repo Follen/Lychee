@@ -79,7 +79,12 @@
     "STORAGE_NOT_READY",
     "TARGET_VIEW_UNAVAILABLE",
     "UNKNOWN_ARGUMENT",
-    "UNKNOWN_ENUM"
+    "UNKNOWN_ENUM",
+    "INVALID_CLIENT_RANGES",
+    "INVALID_CLIENT_IMPLEMENTATIONS",
+    "AMBIGUOUS_CLIENT_IMPLEMENTATION",
+    "CLIENT_IMPLEMENTATION_LIMIT",
+    "UNSUPPORTED_CLIENT"
   ],
   "contents": [
     "ApiStubs.lua",
@@ -140,7 +145,9 @@
     "examples/ThirdPartyFixture/ThirdPartyFixture_Mainline.toc",
     "examples/ThirdPartyFixture/ThirdPartyFixture_Mists.toc",
     "examples/ThirdPartyFixture/ThirdPartyFixture_TBC.toc",
-    "examples/ThirdPartyFixture/ThirdPartyFixture_Wrath.toc"
+    "examples/ThirdPartyFixture/ThirdPartyFixture_Wrath.toc",
+    "examples/ClientImplementations.lua",
+    "examples/ThirdPartyFixture/ThirdPartyFixture_Forever.toc"
   ],
   "sdkVersion": "1.0.0"
 }

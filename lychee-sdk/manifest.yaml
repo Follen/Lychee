@@ -66,3 +66,5 @@ contents:
   - examples/ThirdPartyFixture/ThirdPartyFixture_Mists.toc
   - examples/ThirdPartyFixture/ThirdPartyFixture_TBC.toc
   - examples/ThirdPartyFixture/ThirdPartyFixture_Wrath.toc
+  - examples/ClientImplementations.lua
+  - examples/ThirdPartyFixture/ThirdPartyFixture_Forever.toc

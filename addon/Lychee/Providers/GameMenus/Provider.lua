@@ -90,7 +90,7 @@ function M:Init()
         if product=="retail" or sharedMenus[menu[1]] or ((product=="classic" or product=="titan") and progressionMenus[menu[1]]) then
         records[#records+1] = {id=menu[1], title=L[menu[2]], kindTitle=L["游戏菜单"], subtitle=L:Format("打开%s",L[menu[2]]), aliases=menu[3],
             icon="Interface\\AddOns\\Lychee\\Media\\MenuIcons\\" .. menu[1] .. ".tga", payload={menuID=menu[1]}, actions={"open"}}
-        opens[menu[1]] = product~="retail" and classicAction(menu[1]) or menu[4]
+        opens[menu[1]] = (product=="classic" or product=="titan" or product=="anniversary") and classicAction(menu[1]) or menu[4]
         end
     end
     local handle, err = _G.Lychee:RegisterProvider({

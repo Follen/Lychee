@@ -5,7 +5,7 @@ I.AddonDiscovery = D
 -- This is a cold, bounded declaration index. It never evaluates addon code.
 local MAX_PACKAGES, MAX_PROVIDERS, MAX_PER_PACKAGE = 128, 256, 16
 local MAX_ROW, MAX_PACKAGE, MAX_WAITERS = 4096, 65536, 64
-local products = { retail = true, classic = true, titan = true, anniversary = true }
+local products = I.ClientProfiles
 local allowed = { title=true, description=true, global=true, prefixes=true, keywords=true,
     ranges=true, icon=true, requires=true, optional=true, purpose=true }
 for _, locale in ipairs({ "enGB", "zhCN", "zhTW" }) do
@@ -103,12 +103,9 @@ local function ranges(value)
         local row={product=parts[1],minInterface=numeric(parts[2]),maxInterface=numeric(parts[3]),minBuild=numeric(parts[4]),maxBuild=numeric(parts[5])}
         if not row.minInterface or not row.maxInterface or not row.minBuild or not row.maxBuild
             or row.minInterface>row.maxInterface or row.minBuild>row.maxBuild then return end
-        for _,old in ipairs(out) do
-            if old.product==row.product and old.minInterface<=row.maxInterface and row.minInterface<=old.maxInterface
-                and old.minBuild<=row.maxBuild and row.minBuild<=old.maxBuild then return end
-        end
         out[#out+1]=row
     end
+    if not I.ClientSupport:ValidateRanges(out) then return end
     return out
 end
 local function resource(value, owner)
@@ -132,9 +129,7 @@ local function client()
     return identity and identity:Current() or {product="unknown",interface=0,build=0,locale="enUS"}
 end
 local function matches(row, current)
-    local build,interface=tonumber(current.build),tonumber(current.interface)
-    return row.product==current.product and build and interface and interface>=row.minInterface and interface<=row.maxInterface
-        and build>=row.minBuild and build<=row.maxBuild
+    return I.ClientSupport:Matches(row,current)
 end
 local function parse(raw, owner, providerID)
     if type(raw)~="string" or #raw>MAX_ROW then return nil,"DECLARATION_LIMIT" end

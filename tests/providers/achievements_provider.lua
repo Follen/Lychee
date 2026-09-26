@@ -158,7 +158,7 @@ local beforeCounts=apiReads
 LycheeCharacterDB.achievementCatalog.counts[1]=5999
 M.handle:SetAvailability(true);drain();assert(apiReads>beforeCounts,"offline category drift rebuilds")
 M.handle:SetAvailability(false)
-I.Search.RuntimeIdentity.build="next-build"
+I.Search.RuntimeIdentity.build="70001"
 local beforeBuild=apiReads
 M.handle:SetAvailability(true);drain();assert(apiReads>beforeBuild,"build signature invalidates cache")
 combat=true

@@ -16,6 +16,7 @@ LycheeInternal={Search={},ProviderModules={Support={Scope=function() return {pro
     ProviderLocales={Module=function() return L end}}
 LycheeDB={}
 dofile("addon/Lychee/Search/Normalizer.lua")
+dofile("addon/Lychee/Core/ClientProfiles.lua")
 dofile("addon/Lychee/Core/Boundary.lua")
 dofile("addon/Lychee/Core/Resources.lua")
 function InCombatLockdown() return false end

@@ -6,7 +6,7 @@ function CreateFrame()
     return {RegisterEvent=function() end,UnregisterAllEvents=function() end,SetScript=function(self,event,fn) self[event]=fn end}
 end
 function InCombatLockdown() return false end
-local clients={{"Mainline",1,120100,"retail"},{"Mists",19,50504,"classic"},{"Wrath",11,38002,"titan"},{"TBC",5,20506,"anniversary"}}
+local clients={{"Mainline",1,120100,"retail"},{"Mists",19,50504,"classic"},{"Wrath",11,38002,"titan"},{"TBC",5,20506,"anniversary"},{"Forever",99,16001,"forever"}}
 for _,client in ipairs(clients) do
     for _,locale in ipairs({"enUS","zhCN"}) do
         LycheeInternal=nil;Lychee=nil;LycheeDB=nil
@@ -14,7 +14,8 @@ for _,client in ipairs(clients) do
         GetLocale=function() return locale end
         GetBuildInfo=function() return "fixture","70000","",client[3] end
         local loaded={}
-        for line in io.lines("addon/Lychee/Lychee_"..client[1]..".toc") do
+        local toc=client[4]=="forever" and "Lychee.toc" or "Lychee_"..client[1]..".toc"
+        for line in io.lines("addon/Lychee/"..toc) do
             line=line:gsub("\r$","")
             if line~="" and line:sub(1,1)~="#" then
                 dofile("addon/Lychee/"..line);loaded[line]=true
@@ -80,4 +81,4 @@ for _,client in ipairs(clients) do
         end
     end
 end
-print("Shipped TOC load order/capability dispatch PASS: 4 clients x 2 languages; no optional APIs")
+print("Shipped TOC load order/capability dispatch PASS: 5 clients x 2 languages; no optional APIs")

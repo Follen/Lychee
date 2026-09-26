@@ -59,7 +59,11 @@ $lua = Get-Command lua -ErrorAction SilentlyContinue
 if (-not $lua) { throw 'Lua runtime is required for interaction smoke' }
 Push-Location $root
 try {
-    foreach ($flavor in @('Mainline','Mists','Wrath','TBC')) {
+    & $lua.Source 'tests/core/default_binding.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Default binding initialization failed' }
+    & $lua.Source 'tests/sdk/client_implementations.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Client implementation selection failed' }
+    foreach ($flavor in @('Mainline','Mists','Wrath','TBC','Forever')) {
         foreach ($locale in @('zhCN','enUS','zhTW','enGB')) {
             & $lua.Source 'tests/providers/slash_commands.lua' $locale $flavor
             if ($LASTEXITCODE -ne 0) { throw "Slash commands failed: $flavor/$locale" }

@@ -1187,6 +1187,7 @@ do
     controller:Hide("recent-regression-done");source:Unregister();C_Timer=savedTimers
     print("Dynamic recent query lifecycle PASS")
 end
+dofile(root .. "Core/ClientProfiles.lua");dofile(root .. "Core/ClientSupport.lua")
 dofile(root .. "Search/RuntimeIdentity.lua")
 do
     local controller=LycheeInternal.Host.PaletteController

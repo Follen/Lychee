@@ -10,10 +10,10 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.3.38-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.4.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
-[![Clients](https://img.shields.io/badge/WoW-4%20clients-6d587c?style=flat-square)](#clients)
+[![Clients](https://img.shields.io/badge/WoW-5%20clients-6d587c?style=flat-square)](#clients)
 
 [![Provider SDK](https://img.shields.io/badge/Provider%20SDK-API%201.0.0-536b85?style=flat-square)](lychee-sdk/docs/en/GETTING_STARTED.md)
 [![License](https://img.shields.io/badge/license-noncommercial%20·%20attribution-d53c49?style=flat-square)](LICENSE)
@@ -28,7 +28,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 </div>
 
-0.3.38: Repackaged release with the same functionality as 0.3.37; retains shared spell-chain initial-hit calculation and corrected scaling, excluding later DOT ticks.
+0.4.0: Adds basic Forever support, shared client/build matching and an optional SDK implementation selector. Default Alt+Space initialization now retries failed setup while preserving existing bindings. See the development record for client verification status.
 
 You remember a spell's name, but not which action bar it is on. You know which setting you want, but not which menu contains it. Lychee starts with **the name**: find it, then cast, use, switch, or open the relevant page.
 
@@ -153,7 +153,7 @@ Game security rules apply: search cannot open in combat, and protected actions s
 
 ## Clients and languages
 
-One installation includes four client load lists. Each client gets the features it can use.
+One installation includes five client load lists. Each client gets the features it can use.
 
 | Client | Shared features¹ | Mounts · Equipment sets · Achievements | Retail features² |
 | :--- | :---: | :---: | :---: |
@@ -161,8 +161,9 @@ One installation includes four client load lists. Each client gets the features 
 | **Mists of Pandaria Classic** | ✓ | ✓ | — |
 | **Titan Reforged** | ✓ | ✓ | — |
 | **Burning Crusade Classic Anniversary Edition** | ✓ | — | — |
+| **Forever** | Basic adaptation; live verification pending | — | — |
 
-¹ Spells, bags, game menus, Blizzard settings and addon inspection. Bag location supports the default Blizzard UI, ElvUI, NDUI and Ellesmere bag interfaces.
+¹ Spells, bags, game menus, Blizzard settings, addon inspection and slash commands. Bag location supports the default Blizzard UI, ElvUI, NDUI and Ellesmere bag interfaces.
 
 ² Crests, the Great Vault, talent loadouts, boss journal entries, group keystones, and Ellesmere UI / Exwind integrations.
 

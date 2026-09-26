@@ -16,7 +16,7 @@ Provider 自己拥有兼容层。Host 只接收本次客户端选出的完整普
 
 ## 选择规则
 
-1. 区分 product（retail/classic/titan/anniversary）、Interface 编号和数字 build 编号。不能把它们混成一个版本值，也不能用本地化显示名、字符串字典序或语言来判断客户端。
+1. 区分 product（retail/classic/titan/anniversary/forever）、Interface 编号和数字 build 编号。不能把它们混成一个版本值，也不能用本地化显示名、字符串字典序或语言来判断客户端。
 2. 优先由对应客户端 TOC 只加载相关适配模块。共用代码可共用；跨客户端业务不同的代码放在各自模块。小差异可在初始化时选择局部函数，不强制拆文件。
 3. 同一 product 内需要按 Interface/build 分段时，在注册前选择一次实现。范围为包含两端的数值区间；每个实现写出自己的范围和必需能力。API 存在性检查用于能力确认，不能单独证明业务语义兼容。延迟加载尚未就绪须与永久不支持区分：由相关就绪事件触发有界重试，不永久负缓存，也不轮询重试。
 4. 已发布支持范围内，当前客户端必须恰好匹配一个实现。零匹配则不启用该 Provider，并提供开发诊断；多匹配是配置错误，拒绝启用。禁止依赖声明顺序或偷偷回退到其他客户端实现。
@@ -33,7 +33,7 @@ MyAddon_Wrath.toc    -> Shared.lua + TitanAdapter.lua  + Register.lua
 MyAddon_TBC.toc      -> Shared.lua + AnniversaryAdapter.lua + Register.lua
 ```
 
-Register.lua 只调用插件已选中的适配模块。以下 `host` 指 `_G.Lychee` facade（不是 `Lychee.SDK` 工具表）；`client` 是 SDK.GetClient() 的快照，`SelectAdapter` 和 `CreateDefinition` 由接入插件实现：
+Register.lua 只调用插件已选中的适配模块。以下 `host` 指 `_G.Lychee` facade（不是 `Lychee.SDK` 工具表）；`client` 是 SDK.GetClient() 的快照，`CreateDefinition` 由接入插件实现；选择器可使用下方的可选 SDK 工具：
 
 ```lua
 local function RegisterForClient(host, client, SelectAdapter)
@@ -99,5 +99,20 @@ end
 | classic | Mists | 50504 |
 | titan | Wrath | 38002 |
 | anniversary | TBC | 20506 |
+| forever | 平名 TOC（项目另生成 Forever 清单用于检查） | 16001 |
 
 以上是声明与构建范围，不表示本迁移分支已经完成各客户端实机验证。第三方功能由其自己的客户端输入决定；同一产品的中文/英文构建共用协议和稳定 ID。
+
+## 可选的实现选择工具
+
+先检查 `SDK.SupportsFeature("client-implementations", 1)`，再调用 `SDK.SelectClientImplementation(implementations)`（也支持 SDK 冒号调用）。旧 Host 未提供此能力时，保留插件自己的选择器或明确报告不支持；不把任意版本交给第一个实现。
+
+输入为最多16个 `{id,ranges}` 声明；每个 ranges 最多8项，总计最多32项。每项使用具名字段 `{product,minInterface,maxInterface,minBuild,maxBuild}`，正整数闭区间。不同产品独立匹配，同产品的 Interface 与 build 两个区间必须同时满足。工具不接受工厂、能力探测回调或业务对象。
+
+成功返回 `implementationID, scope`，scope 是独立的普通注册范围；失败返回 `nil, Error`。全部声明先校验，重复 ID、非法数据、任何产品上的重叠范围均拒绝，不依赖数组顺序。零匹配为 `UNSUPPORTED_CLIENT`，重叠为 `AMBIGUOUS_CLIENT_IMPLEMENTATION`。输入与结果不会被 SDK 保存；在初始化/注册前调用，禁止查询每条结果时重新选择。
+
+使用 [示例](../../examples/ClientImplementations.lua) 选择键，再由自己持有的工厂表创建唯一 descriptor，赋值 `definition.scope=scope`，核对游戏能力与依赖就绪后注册。工厂只准备声明；事件、任务和业务 UI 仍在 onEnable 中创建。暂未就绪走已有 readiness/准备契约，不能永久缓存为不支持。
+
+支持范围、当前可用和实测 build 是不同事实。Forever 仅表示永恒服产品，不继承正式服 Provider 或游戏功能。增加一个 product 不能替代每个实现的接口、业务语义和客户端验收。冷发现 ranges 与选择器采用同一范围语义；提交的 scope 仍必须包含于当前冷声明。
+
+项目运行时的身份范围与默认支持范围由 tools/client_manifest.json 生成。内置 Provider 可在该清单显式声明 ranges 覆盖默认值；大型数据继续按客户端 TOC 裁剪。Forever 使用 Lychee.toc，正式服使用 Lychee_Mainline.toc，其余现有后缀保持不变；同包并不意味着全端加载相同功能。

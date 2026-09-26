@@ -1,31 +1,76 @@
 {
-  "version": "0.3.38",
+  "version": "0.4.0",
   "clients": {
     "retail": {
       "suffix": "Mainline",
-      "interface": 120100
+      "interface": 120100,
+      "minInterface": 100000,
+      "maxInterface": 199999,
+      "supportedMinInterface": 120100,
+      "supportedMaxInterface": 120199
     },
     "classic": {
       "suffix": "Mists",
-      "interface": 50504
+      "interface": 50504,
+      "minInterface": 50500,
+      "maxInterface": 50599,
+      "supportedMinInterface": 50504,
+      "supportedMaxInterface": 50599
     },
     "titan": {
       "suffix": "Wrath",
-      "interface": 38002
+      "interface": 38002,
+      "minInterface": 38000,
+      "maxInterface": 38099,
+      "supportedMinInterface": 38002,
+      "supportedMaxInterface": 38099
     },
     "anniversary": {
       "suffix": "TBC",
-      "interface": 20506
+      "interface": 20506,
+      "minInterface": 20505,
+      "maxInterface": 20599,
+      "supportedMinInterface": 20506,
+      "supportedMaxInterface": 20599
+    },
+    "forever": {
+      "suffix": "Forever",
+      "interface": 16001,
+      "minInterface": 16001,
+      "maxInterface": 16099,
+      "supportedMinInterface": 16001,
+      "supportedMaxInterface": 16099
     }
   },
   "files": [
+    {
+      "path": "Core/ClientProfiles.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary",
+        "forever"
+      ]
+    },
+    {
+      "path": "Core/ClientSupport.lua",
+      "products": [
+        "retail",
+        "classic",
+        "titan",
+        "anniversary",
+        "forever"
+      ]
+    },
     {
       "path": "Bootstrap.lua",
       "products": [
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -34,7 +79,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -43,7 +89,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -52,7 +99,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -61,7 +109,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -70,7 +119,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -82,7 +132,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -91,7 +142,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -100,7 +152,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -109,7 +162,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -118,7 +172,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -127,7 +182,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -136,7 +192,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -145,7 +202,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -154,7 +212,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -163,7 +222,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -172,7 +232,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -181,7 +242,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -190,7 +252,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -199,7 +262,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -208,7 +272,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -217,7 +282,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -226,7 +292,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -235,7 +302,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -244,7 +312,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -253,7 +322,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -262,7 +332,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -271,7 +342,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -280,7 +352,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -289,7 +362,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -298,7 +372,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -307,7 +382,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -316,7 +392,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -325,7 +402,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -334,7 +412,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -343,7 +422,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -352,7 +432,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -361,7 +442,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -370,7 +452,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -379,7 +462,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -388,7 +472,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -397,7 +482,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -406,7 +492,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -415,7 +502,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -424,7 +512,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -433,7 +522,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -442,7 +532,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -451,7 +542,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -460,7 +552,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -469,7 +562,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -478,7 +572,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -487,7 +582,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -496,7 +592,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -505,7 +602,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -514,7 +612,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -523,7 +622,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -532,7 +632,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -541,7 +642,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -550,7 +652,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -559,7 +662,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -568,7 +672,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -577,7 +682,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -586,7 +692,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -595,7 +702,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     },
     {
@@ -658,7 +766,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ]
     }
   ],
@@ -701,7 +810,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ],
       "files": [
         "Providers/PlayerSpells/Aliases.lua",
@@ -756,7 +866,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ],
       "files": [
         "Providers/GameMenus/Provider.lua"
@@ -805,7 +916,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ],
       "files": [
         "Providers/Bags/Provider.lua"
@@ -862,7 +974,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ],
       "files": [
         "Providers/BlizzardSettings/Provider.lua",
@@ -922,7 +1035,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ],
       "files": [
         "Providers/AddonInspector/Picker.lua",
@@ -965,7 +1079,8 @@
         "retail",
         "classic",
         "titan",
-        "anniversary"
+        "anniversary",
+        "forever"
       ],
       "files": [
         "Providers/SlashCommands/Provider.lua"
