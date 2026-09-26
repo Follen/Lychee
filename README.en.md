@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.4.0-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.4.1-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-5%20clients-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>. Type what you need.
 
 </div>
 
-0.4.0: Adds basic Forever support, shared client/build matching and an optional SDK implementation selector. Default Alt+Space initialization now retries failed setup while preserving existing bindings. See the development record for client verification status.
+0.4.1: Record confirmed item use in history after locating the same item in bags. Clicking an item still closes the launcher immediately.
 
 You remember a spell's name, but not which action bar it is on. You know which setting you want, but not which menu contains it. Lychee starts with **the name**: find it, then cast, use, switch, or open the relevant page.
 

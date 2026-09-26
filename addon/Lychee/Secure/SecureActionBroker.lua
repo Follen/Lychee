@@ -6,11 +6,16 @@ local Broker = {}
 Broker.__index = Broker
 
 function Broker:UpdateEventInterest()
-    local cast = self.pendingButton and self.pendingButton.pendingCast or false
+    local cast = (self.pendingButton and self.pendingButton.pendingCast or self.pendingItem ~= nil) and true or false
+    local item = self.pendingItem ~= nil
     local regen = self.dirty == true
-    if self._observingCast == cast and self._observingRegen == regen then return end
+    if self._observingCast == cast and self._observingItem == item and self._observingRegen == regen then return end
     self.eventFrame:UnregisterAllEvents()
     if regen then self.eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED") end
+    if item then
+        if self.eventFrame.RegisterUnitEvent then self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SENT", "player")
+        else self.eventFrame:RegisterEvent("UNIT_SPELLCAST_SENT") end
+    end
     if cast then
         if self.eventFrame.RegisterUnitEvent then
             self.eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
@@ -22,18 +27,52 @@ function Broker:UpdateEventInterest()
             self.eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
         end
     end
-    self._observingCast, self._observingRegen = cast, regen
+    self._observingCast, self._observingItem, self._observingRegen = cast, item, regen
+end
+
+local function secret(value) return issecretvalue and issecretvalue(value) end
+
+function Broker:ClearItemCast()
+    self.pendingItem = nil
+    if self.itemTimer then self.itemTimer:Cancel(); self.itemTimer = nil end
+    self:UpdateEventInterest()
+end
+
+function Broker:BeginItemCast(button)
+    self:ClearItemCast()
+    local getSpell = C_Item and C_Item.GetItemSpell
+    if type(getSpell) ~= "function" or not C_Timer or type(C_Timer.NewTimer) ~= "function" then return end
+    local ok, _, spellID = pcall(getSpell, button.itemID)
+    if not ok or secret(spellID) or type(spellID) ~= "number" or spellID <= 0 then return end
+    -- Closing releases the secure button, but the clicked item can still be casting.
+    -- Retain one bounded receipt, not the pooled row or its interaction token.
+    local receipt = {item=button.token.item,actionID=button.action.id,spellID=spellID}
+    self.pendingItem = receipt
+    local scheduled, timer = pcall(C_Timer.NewTimer,30,function()
+        if self.pendingItem == receipt then self:ClearItemCast() end
+    end)
+    if not scheduled or not timer then self.pendingItem=nil;return end
+    self.itemTimer=timer
+    self:UpdateEventInterest()
 end
 
 function Broker:Create(parent)
     local self = setmetatable({ parent = parent or UIParent, buttons = {}, active = {}, dirty = false }, Broker)
     self.eventFrame = CreateFrame("Frame")
-    self._observingCast, self._observingRegen = false, false
-    self.eventFrame:SetScript("OnEvent", function(_, event, unit, _, spellID, reason)
+    self._observingCast, self._observingItem, self._observingRegen = false, false, false
+    self.eventFrame:SetScript("OnEvent", function(_, event, unit, guid, spellID, reason)
         if event == "PLAYER_REGEN_ENABLED" then
             self:Flush()
-        elseif unit == nil or unit == "player" then
-            self:FinishCast(event, spellID, reason)
+        elseif not secret(unit) and (unit == nil or unit == "player") then
+            if event == "UNIT_SPELLCAST_SENT" then
+                local receipt=self.pendingItem
+                -- SENT has target, castGUID, spellID; never inspect its target.
+                if receipt then
+                    if secret(spellID) or secret(reason) or type(spellID)~="string" or spellID==""
+                        or reason~=receipt.spellID or (receipt.guid and receipt.guid~=spellID) then self:ClearItemCast()
+                    else receipt.guid=spellID end
+                end
+            elseif not secret(guid) and not secret(spellID) then self:FinishCast(event, spellID, reason, guid) end
         end
     end)
     self:EnsureBound()
@@ -102,8 +141,15 @@ function Broker:_Acquire()
         if valid and current.toyID and not (type(PlayerHasToy)=="function" and PlayerHasToy(current.toyID)) then
             valid,tokenErr=false,"ITEM_NOT_FOUND"
         end
-        if valid and current.itemID then current.itemClicked=true; return end
+        if valid and current.itemID then
+            current.itemClicked=true
+            self.itemClickInProgress=true
+            self.lastOutcome="attempted"
+            self:BeginItemCast(current)
+            return
+        end
         if valid then
+            self:ClearItemCast()
             current.pendingCast = true
             self.pendingButton = current
             self:UpdateEventInterest()
@@ -114,12 +160,12 @@ function Broker:_Acquire()
         self:Release(current)
     end)
     button:SetScript("PostClick", function(current, mouseButton)
+        self.itemClickInProgress=nil
         if mouseButton == "LeftButton" and current.itemID and current.itemClicked then
             current.itemClicked=nil
             local palette=self:EnsureBound()
             if palette then
                 -- PostClick confirms an attempt only; failures and ground cancellation have no success receipt.
-                self.lastOutcome="attempted"
                 -- Native toys may need the next world click for ground placement.
                 palette:Hide("item-click",current.toyID~=nil)
             end
@@ -203,7 +249,26 @@ function Broker:Notify(state, action, reason)
     return true
 end
 
-function Broker:FinishCast(event, spellID, reason)
+function Broker:FinishCast(event, spellID, reason, guid)
+    local receipt=self.pendingItem
+    if receipt and receipt.guid and receipt.guid==guid and receipt.spellID==spellID then
+        self:ClearItemCast()
+        self.lastOutcome=event=="UNIT_SPELLCAST_SUCCEEDED" and "succeeded" or "failed"
+        if event=="UNIT_SPELLCAST_SUCCEEDED" then
+            local internal=_G.LycheeInternal
+            if internal.ActionOutcome and internal.ActionOutcome:RememberEntry("succeeded",receipt.item,receipt.actionID) then
+                local palette=self:EnsureBound()
+                if palette then
+                    -- An instant success may fire inside the native click. Do
+                    -- not rebind its home row before PostClick closes the UI.
+                    if self.itemClickInProgress then
+                        if palette.homeView then palette.homeView:Invalidate() end
+                    elseif palette.MarkHomeDirty then palette:MarkHomeDirty() end
+                end
+            end
+        end
+        return true
+    end
     local button = self.pendingButton
     if not button or not button.pendingCast then return false end
     if spellID and button.spellID and spellID ~= button.spellID then return false end
@@ -299,6 +364,7 @@ function Broker:ReleaseAll()
     for i = 1, #self.buttons do self:Release(self.buttons[i]) end
 end
 function Broker:Destroy()
+    self:ClearItemCast()
     self:ReleaseAll()
 end
 local internal = _G.LycheeInternal

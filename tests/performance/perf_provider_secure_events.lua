@@ -56,3 +56,28 @@ combat=false; deliver('PLAYER_REGEN_ENABLED')
 assert(not button.busy and eventCount()==0,'regeneration flushes and unsubscribes')
 broker:Invalidate(); assert(eventCount()==1); broker:Flush(); assert(eventCount()==0)
 print('Secure event lifecycle PASS')
+-- Bounded item receipts reuse the existing secure button and event frame.
+Lychee.Secure.Descriptor.FromAction=function(a) return {spellID=a.spellID,itemID=a.itemID,kind=a.itemID and 'item' or 'spell'} end
+C_Item={GetItemSpell=function() return 'Hearthstone',8690 end}
+local function cancelTimer(self) self.cancelled=true end
+C_Timer={NewTimer=function(_,fn) return {callback=fn,Cancel=cancelTimer} end}
+local itemAction={id='use',kind='secure-item',itemID=6948}
+local itemToken={controller=palette,row={},item={},session=1,generation=1}
+local function itemCycle()
+ local b=assert(broker:Prepare(itemAction,itemToken))
+ b.scripts.OnMouseDown(b,'LeftButton');b.scripts.PreClick(b)
+ broker.eventFrame.scripts.OnEvent(broker.eventFrame,'UNIT_SPELLCAST_SENT','player','', 'receipt',8690)
+ b.scripts.PostClick(b,'LeftButton')
+ broker.eventFrame.scripts.OnEvent(broker.eventFrame,'UNIT_SPELLCAST_SUCCEEDED','player','receipt',8690)
+ assert(not broker.pendingItem and not broker.itemTimer and eventCount()==0 and not b.busy)
+end
+itemCycle()
+local frameBaseline=#frames
+collectgarbage('collect');local memory=collectgarbage('count');collectgarbage('stop')
+local started=os.clock()
+for n=1,1000 do itemCycle() end
+local elapsed=(os.clock()-started)*1000
+local allocated=collectgarbage('count')-memory
+collectgarbage('restart');collectgarbage('collect');local retained=collectgarbage('count')-memory
+assert(#frames==frameBaseline and not next(broker.active) and not broker.pendingItem and not broker.itemTimer and eventCount()==0)
+print(string.format('Item receipt 1000 cycles cpu_ms=%.2f allocated_KiB=%.1f retained_KiB=%.1f new_frames=%d idle_events=%d',elapsed,allocated,retained,#frames-frameBaseline,eventCount()))

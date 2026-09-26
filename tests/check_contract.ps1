@@ -115,6 +115,8 @@ try {
         & $lua.Source 'tests/providers/settings_navigation.lua' $locale
         if ($LASTEXITCODE -ne 0) { throw "Settings navigation/locales checks failed: $locale" }
         & $lua.Source 'tests/ui/history_actions.lua' $locale
+        if ($LASTEXITCODE -ne 0) { throw "History actions failed: $locale" }
+        & $lua.Source 'tests/ui/item_history.lua' $locale
         if ($LASTEXITCODE -ne 0) { throw "History action checks failed: $locale" }
     }
     & $lua.Source 'tests/core/character_pins.lua'
