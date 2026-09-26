@@ -42,4 +42,11 @@ fresh();settings.defaultBindingAttempted=true;login();assert(binding=="ALT-SPACE
 fresh();blocked=true;login();assert(not settings.defaultBindingComplete and saves==0)
 local previous=SetBinding;SetBinding=function() error("restricted") end
 assert(pcall(login) and not settings.defaultBindingComplete);SetBinding=previous
+fresh();SetBinding=function() return true end
+login();assert(not settings.defaultBindingComplete and saves==0,"assignment must be confirmed by readback")
+SetBinding=previous
+fresh();local previousSave=SaveBindings
+SaveBindings=function(set) assert(set==2);saves=saves+1 end
+login();assert(settings.defaultBindingComplete and saves==1,"native save without a return value is accepted")
+SaveBindings=previousSave
 print("Default binding PASS: first install, legacy repair, assignment/save failure retry, combat, conflicts, custom binding and intentional unbind")

@@ -72,3 +72,9 @@ Retail 12.1.0.69933，灵止光/死亡之翼，旧运行包0.3.38。OP-cc15fb20c
 | titan | 84ef503f0d2617494db84cc9c7e7b530e976f6e7 | 8904 | CAP-d930b4aedc4f211f8f47bc04218c62fe6a20525f8a323b0a783de89b9d505bbe |
 | anniversary | 1463c686270b6c64e2c5c228f447c4597c0f8ba6 | 8658 | CAP-a02055667539d1349181dd2f0523cb871dca396131e28facb16a7619c9f4b59d |
 | forever | 70ef1b2fd78061a73f886c4a1e79dc5b5cff6d5e | 8658 | CAP-67294d6f6d273a10b09a72decb8f2c0461c794c919886c31e098f1ece9f863dc |
+
+## 已完成的运行包交付
+
+运行提交 eadd4bc3b98d0276f781360db7282531cf162d35，版本0.4.0。正式服 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee` 与已确认的 Forever `D:/Game/World of Warcraft/_classic_beta_/Interface/AddOns/Lychee` 均覆盖同步203个清单文件，全部与源文件 SHA-256 一致。目标旧文件未删除。证据保存在本机 analyze/client-support-validation/delivery.json。
+
+截至本记录，两端均等待完全重启后验证；新运行包的功能与性能结论仍为待验收。已准备 PRB-7255c3712d11cc1ae64b130af12a0518ae553c47353ab37119a2ce6fc0f5136d（尚未 load/run），它只测试绑定状态及目标函数、来源/SDK 生命周期和查询开关，不能代替物理 Alt+Space 输入、独立第三方冷加载或战斗验证。没有进行 npm 或平台发布。
