@@ -46,3 +46,13 @@ sourceId=wow-ui-source；以下记录请求的精确commit及该版本原文位�
 - forever: CAP-7fe3ac70b7b8825f3cdd875d0bf4776adb48493d01e253d4522bf51dfca65bbc
 - retail: CAP-cb0f2fa684e5fa023878aac18c37b940bbc043120ca231f4fe81075a81dfece8
 - titan: CAP-1246b6ad1c92279ed1c24bc16cd9753538f4a69cf44b9fc0918d9557a7c392ff
+
+## 交付与实际连接状态
+
+运行提交 `44765e2b61a889dc977e378d0b6e1aba604639c8`，版本0.4.1。仅同步正式服 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee` 的203个运行清单文件，逐文件SHA-256一致；目标旧文件未删。未推送或发布平台。
+
+本次连接曾确认 Retail 12.1.0.69933、灵止光/死亡之翼，SESSION-f2b8df853578619263a28b9b8a7ecc2815dadac770c30ca6d4c6448bd2b5fd92。之后 standalone reload 在 connect 阶段返回 live.identity_unreadable/context deadline exceeded，没有产生 operationId，不能声明加载成功。Lychee Dev 磁盘 addon status 为managed、2.0.3；磁盘状态不能证明该版已加载。
+
+通过 Computer Use 的 WGC 只读查看确认游戏仍在线，聊天中有 Lychee Dev 对命令返回的 usage 提示（status/connect/disconnect）；这提示对接异常，但没有据此猜测确切运行版本、战斗状态或擅自重放命令。已请求用户方便时暂停操作再进行UI重新加载。尚未用受保护按钮实际执行炉石。
+
+原生成功事件观察探针 PRB-581335c5d04e5708b2196b92a0f3d09638bc6e726ee0586c9c2b1b020edc23a4 已注册但未加载/执行，无待ACK任务。下一步：确认非战斗维护窗口，重建可用连接并加载修复版，执行原始“定位→再次搜索→真实左键使用→成功后查看历史”流程，记录匹配的 castGUID、最新历史动作和结束后零订阅/计时器。此项仍待验收，不能把离线成功事件替身说成已实机通过。
