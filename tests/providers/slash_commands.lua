@@ -204,7 +204,7 @@ for index=1,20 do assert(#query("/fixture")==30) end
 local allocated=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-before
 assert(retained<128,"retained growth")
-assert(maxBatch<8,"callback budget")
+assert(maxBatch<8,"callback budget: "..tostring(maxBatch).." ms")
 assert(#timers==0 and frames==baseFrames,"no idle resources")
 for index=1001,8300 do register("FIX"..index,"/fixture"..index) end
 local status=query("/fixture")

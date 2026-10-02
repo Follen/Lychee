@@ -40,7 +40,7 @@ for name,count in pairs(eventNames) do assert(hostEvents[name] and count==1,"une
 local creature=LycheeInternal.ProviderModules.LDT~=nil
 local raid=LycheeInternal.ProviderModules.JournalCatalog and LycheeInternal.ProviderModules.JournalCatalog.abilities~=nil
 if not measureOnly then
-    assert(elapsed<(creature and 61 or 46),"loading stays below the declared CPU budget")
+    assert(elapsed<(creature and 61 or 46),"loading CPU budget: "..tostring(elapsed).." ms / "..tostring(creature and 61 or 46).." ms")
 end
 print(string.format("MEMORY REVIEW: retained %.1f KiB; historical reference %d KiB; requires Agent attribution and runtime verification",retained,creature and 1858 or raid and 1474 or 1346))
 table.sort(measurements,function(a,b) return a.kib>b.kib end)

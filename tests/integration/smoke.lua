@@ -27,7 +27,7 @@ C_SpellBook = {
     end,
 }
 local root = "addon/Lychee/"
-dofile("tests/support/runtime.lua").Load("provider", {"Providers/Achievements/Locales/enUS.lua", "Providers/Achievements/Locales/zhCN.lua", "Providers/AddonInspector/Locales/enUS.lua", "Providers/AddonInspector/Locales/zhCN.lua", "Providers/Bags/Locales/enUS.lua", "Providers/Bags/Locales/zhCN.lua", "Providers/BlizzardSettings/Locales/enUS.lua", "Providers/BlizzardSettings/Locales/zhCN.lua", "Providers/Bosses/Locales/enUS.lua", "Providers/Bosses/Locales/zhCN.lua", "Providers/Crests/Locales/enUS.lua", "Providers/Crests/Locales/zhCN.lua", "Providers/EquipmentSets/Locales/enUS.lua", "Providers/EquipmentSets/Locales/zhCN.lua", "Providers/GameMenus/Locales/enUS.lua", "Providers/GameMenus/Locales/zhCN.lua", "Providers/GreatVault/Locales/enUS.lua", "Providers/GreatVault/Locales/zhCN.lua", "Providers/Keystones/Locales/enUS.lua", "Providers/Keystones/Locales/zhCN.lua", "Providers/Mounts/Locales/enUS.lua", "Providers/Mounts/Locales/zhCN.lua", "Providers/PlayerSpells/Locales/enUS.lua", "Providers/PlayerSpells/Locales/zhCN.lua", "Providers/TalentLoadouts/Locales/enUS.lua", "Providers/TalentLoadouts/Locales/zhCN.lua", "Providers/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/ResultActionExecutor.lua", "Providers/PlayerSpells/Aliases.lua", "Providers/PlayerSpells/Provider.lua", "Providers/PlayerSpells/Init.lua", "Providers/Init.lua"})
+dofile("tests/support/runtime.lua").Load("provider", {"Providers/Achievements/Locales/enUS.lua", "Providers/Achievements/Locales/zhCN.lua", "Providers/AddonInspector/Locales/enUS.lua", "Providers/AddonInspector/Locales/zhCN.lua", "Providers/Bags/Locales/enUS.lua", "Providers/Bags/Locales/zhCN.lua", "Providers/BlizzardSettings/Locales/enUS.lua", "Providers/BlizzardSettings/Locales/zhCN.lua", "Providers/Bosses/Locales/enUS.lua", "Providers/Bosses/Locales/zhCN.lua", "Providers/Crests/Locales/enUS.lua", "Providers/Crests/Locales/zhCN.lua", "Providers/EquipmentSets/Locales/enUS.lua", "Providers/EquipmentSets/Locales/zhCN.lua", "Providers/GameMenus/Locales/enUS.lua", "Providers/GameMenus/Locales/zhCN.lua", "Providers/GreatVault/Locales/enUS.lua", "Providers/GreatVault/Locales/zhCN.lua", "Providers/Keystones/Locales/enUS.lua", "Providers/Keystones/Locales/zhCN.lua", "Providers/Mounts/Locales/enUS.lua", "Providers/Mounts/Locales/zhCN.lua", "Providers/PlayerSpells/Locales/enUS.lua", "Providers/PlayerSpells/Locales/zhCN.lua", "Providers/TalentLoadouts/Locales/enUS.lua", "Providers/TalentLoadouts/Locales/zhCN.lua", "Providers/Shared/CatalogProvider.lua", "Core/Scheduler.lua", "Core/UserPreferences.lua", "Search/Personalization.lua", "Core/ResultActionExecutor.lua", "Providers/PlayerSpells/Aliases.lua", "Providers/PlayerSpells/Provider.lua", "Providers/PlayerSpells/Init.lua", "Providers/Init.lua"})
 assert(_G.Lychee and _G.Lychee:Supports("1.0.0"))
 assert(_G.LycheeInternal.ProviderModules and _G.LycheeInternal.ProviderModules.Init)
 _G.LycheeInternal.ProviderModules:Init()
@@ -167,6 +167,48 @@ I.Locale.code = "zhCN"
 I.Search.RuntimeIdentity:Refresh()
 I.Search.Normalizer.locale = "zhCN"
 I.Search.StaticIndex:Rebuild()
+-- Async reference replies can fill the entire display budget with the same
+-- exact-alias score. Learned spells must survive this final merge.
+local deferred,referenceMode
+local referenceEntries={}
+local references=assert(Lychee:RegisterProvider({id="test.teleport-references",apiVersion="1.0.0",version="1",title="Reference competition",
+    actions={open={title="Open",run=function() return {ok=true} end}},
+    resolve=function(id) return referenceEntries[id] end,
+    query=function(request,reply)
+        local entries={}
+        for n=1,31 do
+            entries[n]={id=string.format("reference:%02d",n),title=referenceMode=="title" and n==1 and request.normalized or "Reference "..n,
+                aliases={request.normalized},actions={"open"},category={id="references",title="References",order=0}}
+        end
+        referenceEntries={}
+        for _,entry in ipairs(entries) do referenceEntries[entry.id]=entry end
+        deferred=function() reply(entries) end
+        return function() deferred=nil end
+    end}))
+local function competingQuery(text)
+    local _,initial=q:Query(text,{visible=true})
+    assert(#initial>0,"static spell is available before asynchronous references")
+    local deliver=assert(deferred);deferred=nil;deliver()
+    return q.last.results
+end
+local ranked=competingQuery("毒牙")
+assert(#ranked==30 and ranked[1].payload.spellID==1286812,"learned teleport survives thirty-one equal-score references")
+assert(ranked[1].confidence==.98 and ranked[1].interaction.actions[1].kind=="secure-spell")
+local favorite=ranked[2]
+assert(I.UserPreferences:Pin(favorite))
+assert(competingQuery("毒牙")[1].id==favorite.id,"pinned reference outranks same-score spell")
+assert(I.UserPreferences:Remove(assert(I.UserPreferences:PinIndex(favorite.ref))))
+assert(I.Search.Personalization:Remember("毒牙",favorite))
+assert(competingQuery("毒牙")[1].id==favorite.id,"remembered reference outranks same-score spell")
+I.Search.Personalization:ClearChoices()
+referenceMode="title"
+assert(competingQuery("毒牙")[1].id=="reference:01","stronger title match outranks spell alias")
+referenceMode=nil
+learned[31884]=true
+assert(I.ProviderModules.PlayerSpells.Provider:Refresh())
+local ordinary=competingQuery("翅膀")
+assert(ordinary[1].payload.spellID==31884 and ordinary[1].interaction.actions[1].kind=="secure-spell","ordinary skill follows same category order and retains secure identity")
+assert(references:Unregister())
 learned[1286812] = nil
 assert(I.ProviderModules.PlayerSpells.Provider:Refresh())
 local _, unknown = q:Query("传送毒牙",{})
