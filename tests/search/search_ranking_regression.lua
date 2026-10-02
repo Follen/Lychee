@@ -16,17 +16,17 @@ local function register(id,entries)
     return assert(Lychee:RegisterProvider({id=id,apiVersion="1.0.0",version="1",title="Ranking test",entries=entries}))
 end
 local entries={}
-for index=1,21 do entries[index]={id=string.format("%03d",index),title="Neutral item "..index} end
+for index=1,31 do entries[index]={id=string.format("%03d",index),title="Neutral item "..index} end
 local handle=register("ranking.alias",entries)
-for index=1,21 do
+for index=1,31 do
     assert(P:SetAlias({providerID="ranking.alias",entryID=string.format("%03d",index)},
-        index==21 and "destination" or "destination entry "..index))
+        index==31 and "destination" or "destination entry "..index))
 end
 local resolve,calls=I.Providers.Resolve,0
 I.Providers.Resolve=function(self,...) calls=calls+1;return resolve(self,...) end
 local rows=query("destination")
-assert(#rows==20 and rows[1].id=="021","late exact alias must beat earlier partial aliases")
-assert(calls==20,"do not resolve the entire declaration set when enough valid results exist")
+assert(#rows==30 and rows[1].id=="031","late exact alias must beat earlier partial aliases")
+assert(calls==30,"do not resolve the entire declaration set when enough valid results exist")
 P:Remember("destination",rows[20])
 local remembered=rows[20].id
 assert(handle:Update({upsert={{id="000",title="New aliased item"}}}))
@@ -39,7 +39,7 @@ assert(handle:SetAvailability(true))
 assert(handle:Unregister())
 
 -- Historical aliases may outlive their records. Missing matches do not spend
--- the twenty-result budget, but nonmatching declarations are never resolved.
+-- the thirty-result budget, but nonmatching declarations are never resolved.
 LycheeCharacterDB={palette={}}
 handle=register("ranking.stale",{{id="999",title="Only live record"}})
 for index=1,20 do

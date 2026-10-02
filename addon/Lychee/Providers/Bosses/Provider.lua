@@ -152,7 +152,7 @@ function M:Query(request,reply,context)
     local fields,selected,pending={},{},{}
     local task,event,deadline,owned
     local closed,scanning,changed,awaiting=false,false,false,0
-    local limit=math.max(1,math.min(20,request.limit or 20))
+    local limit=math.max(1,math.min(30,request.limit or 20))
     local terms=N:Terms(query)
     local function dispose()
         closed=true;fields,selected,pending=nil,nil,nil

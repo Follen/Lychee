@@ -131,7 +131,7 @@ provider=assert(Lychee:RegisterProvider({id=options.id,title='Documents',version
 local final,pending,partial
 I.Search.Query:Query('Target',{visible=true},1,function(items,_,wait,incomplete) final,pending,partial=items,wait,incomplete end)
 assert(I.Providers:HasPendingQuery(),'documents work uses resources')
-drain();assert(final and #final==20 and not pending and not partial)
+drain();assert(final and #final==30 and not pending and not partial)
 assert(not I.Providers:HasPendingQuery())
 mode='error';final=nil
 I.Search.Query:Query('Target',{visible=true},2,function(items,_,wait,incomplete) final,pending,partial=items,wait,incomplete end)

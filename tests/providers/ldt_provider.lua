@@ -154,6 +154,8 @@ do
     end
     local savedClock=debugprofilestop
     debugprofilestop=function() return 0 end -- Match reference ranking independently from CPU budgets.
+    local defaultLimit=I.Search.Query.limit
+    I.Search.Query.limit=20 -- Historical transcripts explicitly cover Top 20.
     for _,case in ipairs(dofile("tests/fixtures/ldt_search.lua")) do
         locale=case.locale;I.Search.Normalizer.locale=locale
         local rows={}
@@ -162,7 +164,11 @@ do
         end
         equal(rows,case.rows,case.locale..":"..case.input)
     end
-    debugprofilestop=savedClock;locale="zhCN";I.Search.Normalizer.locale=locale
+    I.Search.Query.limit=defaultLimit
+    locale="zhCN";I.Search.Normalizer.locale=locale
+    local capacityRows=query("ability")
+    assert(#capacityRows==30,"default LDT search returns thirty candidates")
+    debugprofilestop=savedClock
 end
 forbidSpellReads=true
 local boss=query("毒牙老二")[1]

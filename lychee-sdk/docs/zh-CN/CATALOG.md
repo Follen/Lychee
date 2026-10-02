@@ -32,7 +32,7 @@ SDK 1.0.0 / API 1.0.0。Host 与调用者自持 Catalog 共用当前索引实现
 | GetState() | 只读标量摘要，逻辑 bytes 不是 Lua 堆统计。 |
 | Clear() / Close() | 清搜索数据 / 永久退休；业务数据库由 Provider 自己处理。 |
 
-默认容量 4096；更大 documents 目录必须显式声明 compact 容量并验收。最大回复 256 条，最终展示仍最多 20 条。changed 在成功提交后的变化通知中执行；通知抛错不代表提交回滚，应查询当前代次，不盲目重复操作。
+默认容量 4096；更大 documents 目录必须显式声明 compact 容量并验收。最大回复 256 条，最终展示仍最多 30 条。changed 在成功提交后的变化通知中执行；通知抛错不代表提交回滚，应查询当前代次，不盲目重复操作。
 
 ```lua
 query = function(request, reply, context)

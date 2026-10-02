@@ -195,7 +195,7 @@ function M:Query(request,reply,context)
     self:ObserveConsole()
     local query=request.normalized or ""
     local terms=N:Terms(query)
-    local limit=math.max(1,math.min(20,tonumber(request.limit) or 20))
+    local limit=math.max(1,math.min(30,tonumber(request.limit) or 20))
     local ranker=(request.preferredEntryID or request.ranking) and _G.Lychee.SDK.CreateRanker(request)
     local function work()
         local selected,fields={},{}

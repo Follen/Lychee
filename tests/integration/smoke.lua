@@ -1,7 +1,7 @@
 function GetBuildInfo() return "12.1.0", "69587", "fixture", 120100 end
 -- Offline contract smoke test. WoW UI behavior still requires an in-client pass.
 _G = _G or {}
-function GetLocale() return "zhCN" end
+function GetLocale() return _G.__locale or "zhCN" end
 function InCombatLockdown() return false end
 function CreateFrame()
     local f={}
@@ -122,6 +122,55 @@ C_Spell = { GetSpellInfo = function(id) if id == 393256 then return { name = "�
 assert(_G.LycheeInternal.ProviderModules.PlayerSpells.Provider:Refresh())
 local _, knownAlias = q:Query("红玉", {})
 assert(#knownAlias > 0 and knownAlias[1].payload.spellID == 393256)
+-- Seasonal aliases must resolve the learned spell, retain its secure action,
+-- and never manufacture a destination that this character has not learned.
+local destinations = {
+    {1286801, "夺目", "夺目谷", "blinding vale"},
+    {1286804, "虚痕", "虚空之痕竞技场", "voidscar arena"},
+    {1286807, "纳洛", "纳洛拉克的洞穴", "den of nalorakk"},
+    {1286809, "密谋", "密谋小径", "murder row"},
+    {1286812, "毒牙", "毒牙祭坛", "altar of fangs"},
+    {393256, "红玉", "红玉新生法池", "ruby life pools"},
+    {1286828, "神庙", "塞塔里斯神庙", "temple of sethraliss"},
+    {1286831, "诸王", "诸王之眠", "king's rest"},
+}
+local learned = {}
+for _, destination in ipairs(destinations) do learned[destination[1]] = true end
+IsPlayerSpell = function(id) return learned[id] == true end
+C_Spell.GetSpellInfo = function(id) if learned[id] then return {name="Destination "..id,iconID=1} end end
+assert(_G.LycheeInternal.ProviderModules.PlayerSpells.Provider:Refresh())
+local I = _G.LycheeInternal
+for _, locale in ipairs({"zhCN", "zhTW", "enUS", "enGB"}) do
+    _G.__locale = locale
+    I.Locale.code = locale
+    I.Search.RuntimeIdentity:Refresh()
+    I.Search.Normalizer.locale = locale
+    I.Search.StaticIndex:Rebuild()
+    for _, destination in ipairs(destinations) do
+        local queries = {destination[4], "teleport "..destination[4]}
+        if locale == "zhCN" or locale == "zhTW" then
+            queries[#queries+1] = destination[2]
+            queries[#queries+1] = destination[3]
+            queries[#queries+1] = "传送"..destination[2]
+            queries[#queries+1] = destination[2].."传送"
+            queries[#queries+1] = "传送 "..destination[2]
+        end
+        for _, text in ipairs(queries) do
+            local _, hits = q:Query(text,{})
+            assert(#hits>0 and hits[1].payload.spellID==destination[1],locale.." alias "..text)
+            assert(hits[1].interaction.actions[1].kind=="secure-spell")
+        end
+    end
+end
+_G.__locale = "zhCN"
+I.Locale.code = "zhCN"
+I.Search.RuntimeIdentity:Refresh()
+I.Search.Normalizer.locale = "zhCN"
+I.Search.StaticIndex:Rebuild()
+learned[1286812] = nil
+assert(I.ProviderModules.PlayerSpells.Provider:Refresh())
+local _, unknown = q:Query("传送毒牙",{})
+assert(#unknown==0,"unlearned teleport must not be synthesized from aliases")
 local panel = _G.LycheeInternal.Registry:Get("builtin.player-spells")
 assert(panel and panel:GetState().lifecycle == "enabled")
 local playerSpellsEntry = _G.LycheeInternal.Registry.entries["builtin.player-spells"]

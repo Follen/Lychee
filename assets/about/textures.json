@@ -8,14 +8,6 @@
     "sha256": "180ea344dca5f6364de25a185cb784827e502529fdd5a51ec30be2cd0e03f4ee"
   },
   {
-    "file": "addon/Lychee/Media/About/paypal.tga",
-    "size": [
-      64,
-      64
-    ],
-    "sha256": "64249ce230772da6385cb659876dcba3a6364b725100d399d70be9e8359a85a8"
-  },
-  {
     "file": "addon/Lychee/Media/About/x.tga",
     "size": [
       64,
@@ -32,14 +24,6 @@
     "sha256": "a7760d6a764b21b6a6639c2e28f3b7f6b360ff44b85860940fd8b4708342bd94"
   },
   {
-    "file": "addon/Lychee/Media/About/support.tga",
-    "size": [
-      64,
-      64
-    ],
-    "sha256": "60329de484eacbc6cfe720b1a0b7663fec6a9cafd31048da2a5cbc9e38a31df2"
-  },
-  {
     "file": "addon/Lychee/Media/About/douyin.tga",
     "size": [
       64,
@@ -54,15 +38,6 @@
       64
     ],
     "sha256": "24146c72c2a14bfcf773a2a4d2e85f5961cd636df234e3662d6e9fbf4df2cb24"
-  },
-  {
-    "file": "addon/Lychee/Media/About/wechat-support.tga",
-    "size": [
-      512,
-      512
-    ],
-    "sourceSha256": "95627c2e542f870e12ccec5799e31893b08a6e3786a250413a8c5730c09dda0f",
-    "sha256": "da895edf24cf414c7f0617c3457e0591f8fc4f3d127777a776b6f36285f9863a"
   },
   {
     "file": "addon/Lychee/Media/About/wechat-contact.tga",

@@ -51,7 +51,6 @@ L:Add({
     ["常用的可以固定到首页，也能设置好记的别名。"] = "Pin favorites to the home page and add your own search aliases.",
     ["版本"] = "Version",
     ["作者"] = "Author",
-    ["微信赞赏"] = "Support via WeChat",
     ["作者微信"] = "Author on WeChat",
     ["使用微信扫一扫"] = "Scan with WeChat",
     ["撤销"] = "Undo",

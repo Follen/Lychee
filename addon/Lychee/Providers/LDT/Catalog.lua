@@ -70,7 +70,7 @@ function M:Query(request,reply,context)
     local scratch,aliases={},{} -- Borrowed only by this query, including across coroutine yields.
     local awaiting,scanning,closed,loadedDuringScan=0,false,false,false
     local eventToken,deadline,task
-    local limit=math.max(1,math.min(20,request.limit or 20))
+    local limit=math.max(1,math.min(30,request.limit or 20))
     local ranker=(request.preferredEntryID or request.ranking) and assert(_G.Lychee.SDK.CreateRanker(request))
     local function dispose()
         closed=true;selected,pending,fields,scratch,aliases=nil,nil,nil,nil,nil
