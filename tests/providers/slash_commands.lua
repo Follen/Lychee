@@ -152,14 +152,14 @@ register("DEV","/dev")
 assert(definition.actions.run.run(dev).ok,"retry")
 locked=true;assert(not definition.actions.run.run(dev).ok);locked=false
 for index=1,1000 do register("FIX"..index,"/fixture"..index) end
-local function managed(reply)
+local function managed(reply,limit)
     local scope=assert(I.Resources:Create(function() return M.active end,nil,assert(M.handle:Resources())))
-    local cancel=M:Query({originalRaw="/fixture",normalized="fixture",limit=20},reply,{resources=scope})
+    local cancel=M:Query({originalRaw="/fixture",normalized="fixture",limit=limit or 20},reply,{resources=scope})
     return function() cancel("cancelled");I.Resources:Close(scope,"cancelled") end
 end
 local replied=false
 local cancel=managed(function() replied=true end);cancel();drain();assert(not replied)
-local rows=query("/fixture");assert(#rows==20)
+local rows=query("/fixture");assert(#rows==30)
 local all={};for _,row in ipairs(rows) do assert(row.id:match("^slash:/fixture"));assert(not all[row.id]);all[row.id]=true end
 -- Independent full enumeration and full sort, rather than the Provider's Top K.
 local expected={}
@@ -171,8 +171,13 @@ end
 table.sort(expected,function(a,b) return a.score>b.score or a.score==b.score and a.id<b.id end)
 local rawRows
 local closeReference=managed(function(result) rawRows=result end);drain();closeReference()
-for index=1,20 do
-    assert(rawRows[index].id==expected[index].id,"Provider full-scan order differs")
+assert(#rawRows==20,"explicit twenty-result request remains bounded")
+local rawThirty
+local closeThirty=managed(function(result) rawThirty=result end,30);drain();closeThirty()
+assert(#rawThirty==30,"thirty-result Provider request is honored")
+for index=1,30 do
+    if index<=20 then assert(rawRows[index].id==expected[index].id,"Provider full-scan order differs") end
+    assert(rawThirty[index].id==expected[index].id,"thirty-result Provider full-scan order differs")
     assert(all[expected[index].id],"Host lost a selected candidate")
 end
 for _,text in ipairs({"dev","rs","RurutiaSuite","cmd: dev","cmd: /dev","命令: /dev"," /dev","／dev"}) do
@@ -183,7 +188,7 @@ for _,text in ipairs({"dev","rs","RurutiaSuite","cmd: dev","cmd: /dev","命令: 
     local _,filter=I.Search.ProviderPolicy:Route(text,{sourceID=M.id..":records"})
     assert(filter.excludedSources[M.id..":records"],"source selection cannot bypass literal gate")
 end
-assert(#query("/")==20,"bare slash lists commands")
+assert(#query("/")==30,"bare slash lists commands")
 local personal=I.Search.Personalization
 assert(personal:SetAlias({providerID=M.id,entryID=dev.id},"mycommand","Command"))
 assert(#query("mycommand")==0,"custom aliases cannot bypass literal gate")
@@ -195,11 +200,11 @@ assert(M.handle:SetAvailability(true));assert(M.active and query("/dev")[1].id==
 assert(query("/rs")[1].icon==rs.icon,"enable restores still-current captured ownership")
 collectgarbage("collect");local before=collectgarbage("count")
 collectgarbage("stop")
-for index=1,20 do assert(#query("/fixture")==20) end
+for index=1,20 do assert(#query("/fixture")==30) end
 local allocated=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect");local retained=collectgarbage("count")-before
 assert(retained<128,"retained growth")
-assert(maxBatch<8,"callback budget")
+assert(maxBatch<8,"callback budget: "..tostring(maxBatch).." ms")
 assert(#timers==0 and frames==baseFrames,"no idle resources")
 for index=1001,8300 do register("FIX"..index,"/fixture"..index) end
 local status=query("/fixture")

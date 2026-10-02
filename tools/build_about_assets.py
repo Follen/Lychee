@@ -13,7 +13,7 @@ def build():
     target = ROOT / 'addon/Lychee/Media/About'
     target.mkdir(parents=True, exist_ok=True)
     records = []
-    for name in ('github', 'paypal', 'x', 'wechat', 'support', 'douyin', 'bilibili'):
+    for name in ('github', 'x', 'wechat', 'douyin', 'bilibili'):
         svg = source / 'icons' / (name + '.svg')
         png = cairosvg.svg2png(url=str(svg), output_width=64, output_height=64)
         image = Image.open(io.BytesIO(png)).convert('RGBA')
@@ -24,7 +24,7 @@ def build():
         white.save(output, compression=None)
         records.append({'file': output.relative_to(ROOT).as_posix(), 'size': [64, 64],
                         'sha256': hashlib.sha256(output.read_bytes()).hexdigest()})
-    for name in ('wechat-support', 'wechat-contact'):
+    for name in ('wechat-contact',):
         original = source / (name + '-v1.png')
         image = Image.open(original).convert('RGBA').resize((512, 512), Image.Resampling.LANCZOS)
         output = target / (name + '.tga')

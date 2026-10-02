@@ -210,7 +210,7 @@ assert(example:Unregister())
 local fullBudgetEntries={}
 for index=1,32 do fullBudgetEntries[index]={id="entry-"..index,title="Budget stable entry"} end
 local fullBudget=assert(SDK:RegisterProvider(definition("test.budget",fullBudgetEntries)))
-assert(#query("Budget stable entry")==20, "Provider-only search uses the complete result budget")
+assert(#query("Budget stable entry")==30, "Provider-only search uses the complete result budget")
 assert(fullBudget:Unregister())
 local cancelledPeer=definition("test.cancel-b")
 cancelledPeer.query=function() error("retired peer must not be queried") end

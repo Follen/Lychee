@@ -88,7 +88,7 @@ assert(not copies.schema,"reader copied read-only action schemas")
 assert(copies.args==5,"normalization should copy external args once per action")
 collectgarbage("collect");local before=collectgarbage("count")
 collectgarbage("stop");local start=os.clock()
-for n=1,10 do local _,hits=f.I.Search.Query:Query("test toggle",{visible=true});assert(#hits==20) end
+for n=1,10 do local _,hits=f.I.Search.Query:Query("test toggle",{visible=true});assert(#hits==30) end
 local elapsed=(os.clock()-start)*1000;local allocation=collectgarbage("count")-before
 collectgarbage("restart");collectgarbage("collect")
 print(string.format("INVOCATION ALLOCATION 10_queries_KiB=%.2f cpu_ms=%.2f retained_growth_KiB=%.2f",allocation,elapsed,collectgarbage("count")-before))

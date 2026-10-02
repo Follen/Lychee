@@ -29,7 +29,7 @@ local originalConfidence,originalEvidence=first[1].confidence,first[1].evidence.
 assert(I.UserPreferences:Pin(first[1]))
 all=true
 local _,rows=I.Search.Query:Query("volume",{visible=true})
-assert(#rows==20 and rows[1].ref.args.percent==99,"pinned invocation must reach top K by full reference, not entry ID")
+assert(#rows==30 and rows[1].ref.args.percent==99,"pinned invocation must reach top K by full reference, not entry ID")
 assert(not observed._preferences and not observed.preferredEntryID and not (observed.ranking and observed.ranking.master),
     "specific invocation preferences must not become scalar hints for every parameter variant")
 for index,item in ipairs(rows) do
@@ -48,7 +48,7 @@ local remembered=I.Search.Personalization:Preferred({normalized="volume"})
 assert(remembered and remembered.entryID==nil and remembered.args.percent==99)
 local ok,generation,again=pcall(I.Search.Query.Query,I.Search.Query,"volume",{visible=true})
 assert(ok,"search after remembering an invocation without entryID must not concatenate nil")
-assert(#again==20 and again[1].ref.args.percent==99,"remembered invocation remains the exact first choice")
+assert(#again==30 and again[1].ref.args.percent==99,"remembered invocation remains the exact first choice")
 assert(not observed.preferredEntryID and not (observed.ranking and observed.ranking.master))
 assert(writes==0,"pinning, remembering and searching must not run business actions")
 print("Invocation preferences PASS: exact parameter top K, no sibling bonus/scalar hint leak, ID-free remembered ref and no side effects")

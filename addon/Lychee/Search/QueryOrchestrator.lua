@@ -1,5 +1,5 @@
 local I = _G.LycheeInternal
-local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, limit = 20, debounceSeconds = 0.04 }
+local Q = { active = false, last = nil, pending = nil, timer = nil, timerToken = 0, limit = 30, debounceSeconds = 0.04 }
 I.Search.Query = Q
 local EMPTY = {} -- private read-only empty view
 

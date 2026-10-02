@@ -252,7 +252,7 @@ function P:BuildSearchRecords(items)
                 id = "spell:" .. tostring(spellID),
                 kind = "spell",
                 kindTitle = { default = "Spell", zhCN = L["技能"] },
-                category = { id = "spells", title = { default = "Spells", zhCN = L["技能"] }, order = 10, color = { 0.455, 0.670, 0.925, 1 } },
+                category = { id = "spells", title = { default = "Spells", zhCN = L["技能"] }, order = -1, color = { 0.455, 0.670, 0.925, 1 } },
                 title = spell.name,
                 aliases = spell.aliases or self.aliasDefinitions[spellID],
                 keywords = spell.subtext,

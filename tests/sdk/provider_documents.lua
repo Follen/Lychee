@@ -15,7 +15,7 @@ handle=assert(Lychee:RegisterProvider({id="documents.test",title="Documents",api
  end}))
 assert(calls==0)
 local _,hits=I.Search.Query:Query("document",{visible=true})
-assert(#hits==20 and calls==20)
+assert(#hits==30 and calls==30)
 local item=hits[1];assert(I.Providers:IsCurrent(item))
 assert(I.Providers:Execute(item,"open",{}).ok)
 raw.payload.value=2

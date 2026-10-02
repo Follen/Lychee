@@ -10,7 +10,7 @@ assert(calls==0,"directory eagerly materialized actions")
 local owner=f.I.Providers.entries[f.M.id]
 assert(owner.recordMap["setting:memory_toggle_1"].actions==nil,"Host retained eager actions")
 local _,hits=f.I.Search.Query:Query("test toggle",{visible=true})
-assert(#hits==20 and calls==20,"reader must materialize only selected results")
+assert(#hits==30 and calls==30,"reader must materialize only selected results")
 local record=assert(f.M.readEntry("setting:memory_toggle_1"))
 assert(#record.actions==1 and record.primaryActionID=="open")
 record.actions[1]="wrong"

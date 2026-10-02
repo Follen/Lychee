@@ -60,11 +60,9 @@ function Social:Create(owner,controller)
         if not entry.code then self.input:SetFocus();self.input:HighlightText() end
     end
     local entries=L:IsChinese() and {
-        {icon="support",title=L["微信赞赏"],code="wechat-support"},
         {icon="github",title="GitHub",url="https://github.com/Follen/Lychee"},
         {icon="wechat",title=L["作者微信"],code="wechat-contact"},
     } or {
-        {icon="paypal",title="PayPal",url="https://www.paypal.me/follenfang"},
         {icon="github",title="GitHub",url="https://github.com/Follen/Lychee"},
         {icon="x",title="X · @follenfang",url="https://x.com/follenfang"},
     }
