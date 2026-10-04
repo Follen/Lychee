@@ -3,7 +3,7 @@
 ## Scope and budgets established before implementation
 
 Retail latest source: wow-ui-source, commit 8ea15b61e45c0ed4eba01439c90757f86eb78d34 (12.1.0).
-Independent implementation; EasyFind code/assets are not copied.
+Independent implementation.
 
 New optional providers default off. Enabling starts one cancellable catalogue job;
 events invalidate that job and coalesce a fresh snapshot. Combat cancels work and

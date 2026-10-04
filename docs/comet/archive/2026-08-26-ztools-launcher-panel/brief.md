@@ -48,7 +48,6 @@
 - 采用“统一 SearchSource -> SearchRecord -> Host SearchIndex -> SearchResult -> Action/Panel”链路；Command 不再是每类实体各自实现搜索算法的入口。
 - 类别是记录的一等字段，至少有 spells、achievements、quests、dungeons、extensions 五类；类别文案和图标可本地化。
 - 空输入使用 ZTools 风格启动页；搜索态使用 Host 统一结果卡片，允许列表/网格布局提示但不允许 Provider 自绘。
-- EasyFind 只借鉴其 locale/build 缓存签名、统一字段匹配、增量缩小、编辑距离缓存、分帧索引和结果引用策略；不复制其桌面 UI 或 Electron 依赖。
 
 # Open questions
 

@@ -14,7 +14,6 @@
 - `Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Keybindings.lua` 108–140：生成修饰键组合、读取旧动作并解除冲突；142–143：`SaveBindings(GetCurrentBindingSet())`；169–180：赋值失败时尝试恢复旧按键。源码 CAP `CAP-e0e2308ff207af9482468da19e10324b55255bbbb5dd012b258b7356f2e355a0`。
 - `Interface/AddOns/Blizzard_SharedXML/BindingUtil.lua` 116–139：依次读取 Alt/Ctrl/Shift/Meta 状态并组成 chord。CAP `CAP-dcb1debff2a2277d86aa0c0677c1beb5c5906784e67519d120cfd8a6ffb8a899`。
 - `Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua` 1424–1432：`SetPropagateKeyboardInput` 有限制，参数为 bool。仅在非战斗创建设置 UI 时设置；取消时关闭键盘捕获。CAP `CAP-a5c3fddc194c17b2e0c76515e184b08c57cb7a8b2ef0b8166699eb83673f619c`。
-- EasyFind 作者源码 commit `644aa29af573dfb86056c48e5530ce4ab90a4fbc`：`Shared/Utils.lua` 992–1005 拒绝裸空格/回车/WASD，Esc 取消；`Search/Results/Rows/SettingWidgets.lua` 288–322 捕获按键并保存原生绑定。`Core/Main.lua` 839–889 的启动器自身使用账号配置和 override click，属于另一套绑定所有权；本次保留 Lychee 原生 `TOGGLELYCHEE` 绑定。
 - 本地 Lychee Dev `addon/Bridge/ReceiverBindings.lua`：检查普通与覆盖绑定冲突；override 安装后再次回读有效动作。它保存自己的接收器选项，不保存玩家原生按键。本次借鉴有效动作回读与失败恢复。
 
 ## 验证与交付
