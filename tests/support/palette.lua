@@ -57,6 +57,8 @@ local function object(kind, parent)
     function o:GetFrameLevel() return self.frameLevel or 0 end
     function o:SetBackdrop() end
     function o:EnableMouse() end
+    function o:EnableKeyboard(enabled) mutation(self,"EnableKeyboard");self.keyboardEnabled=enabled end
+    function o:IsKeyboardEnabled() return self.keyboardEnabled==true end
     function o:SetHideCountdownNumbers() end
     function o:SetCooldownFromDurationObject(value) self.durationObject=value end
     function o:SetCooldown(start,duration) self.cooldownStart,self.cooldownDuration=start,duration end

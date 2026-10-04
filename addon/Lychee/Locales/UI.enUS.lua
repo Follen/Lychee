@@ -1,6 +1,8 @@
 local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
+    ["alt+space已被其他插件占用"] = "Alt+Space is already used by another addon.",
+    ["点击换绑"] = "Rebind",
     ["启动器快捷键"] = "Launcher shortcut",
     ["也可以输入 /l 打开启动器"] = "You can also type /l to open the launcher.",
     ["设置快捷键"] = "Set shortcut",

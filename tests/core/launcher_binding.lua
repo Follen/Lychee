@@ -45,6 +45,7 @@ bindings["ALT-SPACE"]="OTHER";assert(not b:SetKey("ALT-SPACE") and saves==0)
 overrides["CTRL-L"]="CLICK Other:LeftButton";assert(not b:SetKey("CTRL-L") and saves==0)
 overrides={};settings.defaultBindingComplete=true -- old conflict or deliberate unbind remains untouched until user requests a key
 assert(b:SetKey("CTRL-L") and bindings["CTRL-L"]=="TOGGLELYCHEE" and saves==1)
+assert(settings.bindingHintDismissed,"a successful explicit change permanently acknowledges the conflict hint")
 bindings["SHIFT-L"]="TOGGLELYCHEE"
 assert(b:SetKey("CTRL-K") and not bindings["CTRL-L"] and bindings["SHIFT-L"]=="TOGGLELYCHEE")
 failSave=true

@@ -28,7 +28,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>, or type `/l`. Change the shortcut in **
 
 </div>
 
-0.4.4: Add `/l` to toggle the launcher and a shortcut control in General settings. Preserve occupied keys and retry the first-install default after its conflict is released.
+0.4.4: Add `/l` to toggle the launcher and a shortcut control in General settings. A shortcut conflict hint opens rebinding directly and stays dismissed after a successful change. Preserve occupied keys and retry the first-install default after its conflict is released.
 
 You remember a spell's name, but not which action bar it is on. You know which setting you want, but not which menu contains it. Lychee starts with **the name**: find it, then cast, use, switch, or open the relevant page.
 

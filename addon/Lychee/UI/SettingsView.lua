@@ -323,9 +323,9 @@ function Settings:Create(parent, controller)
                     text(capture.label,I.LauncherBinding:GetKey() or L["设置快捷键"])
                 end
                 self.stopBindingCapture=stopCapture
-                capture=button(shortcut,L["设置快捷键"],140,function()
-                    if not frame:IsShown() or view.tab~="general" or InCombatLockdown() then return end
-                    if capture.frame:GetScript("OnKeyDown") then stopCapture();return end
+                function view:BeginBindingCapture()
+                    if not frame:IsShown() or view.tab~="general" or InCombatLockdown() then return false end
+                    if capture.frame:GetScript("OnKeyDown") then return true end
                     controller.input:ClearFocus()
                     text(capture.label,L["按快捷键，Esc 取消"])
                     capture.frame:SetScript("OnKeyDown",function(_,key)
@@ -341,6 +341,11 @@ function Settings:Create(parent, controller)
                         controller:SetStatusText(ok and L["快捷键已保存"] or err=="conflict" and L["快捷键已被占用，请先在游戏设置中解除"] or L["快捷键保存失败，请重试"])
                     end)
                     capture.frame:EnableKeyboard(true)
+                    return true
+                end
+                capture=button(shortcut,L["设置快捷键"],140,function()
+                    if capture.frame:GetScript("OnKeyDown") then stopCapture();return end
+                    view:BeginBindingCapture()
                 end)
                 capture.frame:SetPropagateKeyboardInput(false)
                 capture.frame:SetPoint("RIGHT",shortcut,"RIGHT",-metrics.listIconInset,0)

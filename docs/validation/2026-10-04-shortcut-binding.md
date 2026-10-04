@@ -8,12 +8,15 @@
 
 新增 `/l` 与 `/lychee`，通过现有 `Lychee_Toggle` 开关启动器，共用战斗限制。综合设置的快捷键按钮捕获 Alt/Ctrl/Shift/Meta 组合，拒绝裸空格、回车和 WASD；普通绑定或覆盖绑定冲突均拒绝，保留第二槽。赋值后回读有效动作，保存失败时回滚内存中的换绑。Esc、换页、关闭（包括退场动画开始）停止捕获；控件首次访问创建后复用。
 
+默认快捷键冲突时，复用原有荔枝引导气泡：正文为“alt+space已被其他插件占用”，下方为11号荔枝红小字“点击换绑”；点击直接进入综合设置并开始捕获。普通引导已经确认也能显示当前角色的冲突提示。取消或保存失败不写完成状态；成功手动保存或识别到已有原生自定义绑定后，角色偏好 `bindingHintDismissed` 永久关闭冲突气泡，同时确认普通引导。保存根替换、重开窗口及后续主动解绑不重新提示。
+
 ## 源码依据
 
 - 暴雪源码：sourceId `wow-ui-source`，product `retail`，requestedRef `refs/tags/12.1.0`，resolvedCommit `09b9db7948abc9b9648dedaab51eb0cf3ee67b31`；PIN `PIN-86f3a38c315f34ce64b6408f03bb771e42db9379738e312e9417a48ad032a49f`。
 - `Interface/AddOns/Blizzard_Settings_Shared/Blizzard_Keybindings.lua` 108–140：生成修饰键组合、读取旧动作并解除冲突；142–143：`SaveBindings(GetCurrentBindingSet())`；169–180：赋值失败时尝试恢复旧按键。源码 CAP `CAP-e0e2308ff207af9482468da19e10324b55255bbbb5dd012b258b7356f2e355a0`。
 - `Interface/AddOns/Blizzard_SharedXML/BindingUtil.lua` 116–139：依次读取 Alt/Ctrl/Shift/Meta 状态并组成 chord。CAP `CAP-dcb1debff2a2277d86aa0c0677c1beb5c5906784e67519d120cfd8a6ffb8a899`。
 - `Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFrameAPIDocumentation.lua` 1424–1432：`SetPropagateKeyboardInput` 有限制，参数为 bool。仅在非战斗创建设置 UI 时设置；取消时关闭键盘捕获。CAP `CAP-a5c3fddc194c17b2e0c76515e184b08c57cb7a8b2ef0b8166699eb83673f619c`。
+- `Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleFontStringAPIDocumentation.lua` 398–411：`GetUnboundedStringWidth` 返回 `uiUnit` 宽度，标记 `SecretWhenAnchoringSecret=true`；气泡尺寸仅接受非 secret 的数值，否则使用固定回退宽度。CAP `CAP-18e0b850d2166b6795caf7c6c9a759e3a7eb1029fd2fba90fae66f838dedf999`。
 - 本地 Lychee Dev `addon/Bridge/ReceiverBindings.lua`：检查普通与覆盖绑定冲突；override 安装后再次回读有效动作。它保存自己的接收器选项，不保存玩家原生按键。本次借鉴有效动作回读与失败恢复。
 
 ## 验证与交付
@@ -21,9 +24,10 @@
 - `tests/core/default_binding.lua`：冲突解除重试、保存失败、战斗延后、已有绑定、主动解绑和 legacy attempted。
 - `tests/core/launcher_binding.lua`：组合键、保留按键、普通/覆盖冲突、第二槽、保存失败回滚、手动换绑期间同步事件、旧角色主动设置。
 - `tests/ui/interaction_smoke.lua`：实际捕获控件的 Esc、组合键保存、换页、关闭、重开、复用及命令注册；使用原生控件替身，不是物理输入。
+- `tests/ui/settings_hint.lua`：zhCN/enUS/zhTW/enGB 的冲突正文、小字号和主题红色、上下布局、与普通引导间的布局恢复、账号确认与角色状态隔离、覆盖冲突、点击开始捕获、取消/失败/成功、存档根恢复与永久关闭；不新增气泡控件。
 - 完整 `tests/check_contract.ps1`、修改 Lua 的语法检查、`git diff --check`、发布包检查通过。未降低性能门槛。
-- 固定源码 `source validate`：`staticValid=true`，`complete=false`，10971 个动态/本地符号尚未解析，Interface baseline 未解析；不代表战斗、taint 或实机验收。
-- 运行提交 `db100fc733f8620cbb2cb7ae573e6fc37bb47dd0`。发布工具输出 Lychee 200 文件；逐文件 SHA-256 核对后同步到 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，保留目标额外文件。
+- 固定源码 `source validate`：`staticValid=true`，`complete=false`，11008 个动态/本地符号尚未解析，Interface baseline 未解析；不代表战斗、taint 或实机验收。
+- 初始快捷键运行提交 `db100fc733f8620cbb2cb7ae573e6fc37bb47dd0` 已同步。后续气泡改动按同一发布流程提交后同步，实际交付提交由发布清单 `sourceCommit` 记录。发布工具输出 Lychee 200 文件，逐文件 SHA-256 核对；目标为 `D:/Game/World of Warcraft/_retail_/Interface/AddOns/Lychee`，保留目标额外文件。
 
 ## 实机状态：等待重启
 
@@ -32,3 +36,5 @@
 同步后执行一次受支持的 reload，并取得新 runtime 身份。更新验证 PRB `PRB-e9eb7d271be09670a4fff69378a4acfe34d8593a1b369fa782c3d2b4a0e99e53` 在新模块存在性断言处失败，未进入换绑；报告已验证，清理完成。后续只读观察 PRB `PRB-ca0b95a849ff8ee6b80c362887bb49b1e8a28ef1aab2ddc702c3586d5bdc2e40` 显示仍加载 0.4.3，没有 `LauncherBinding` 和 `/l`，而磁盘 Bootstrap 哈希与运行提交一致。因此新版本实机功能尚未验收，需要重启客户端后继续，不重复 reload 或手动注入新源码冒充正常加载。
 
 待覆盖：新版本正常开关、捕获取消/关闭/重开、原生保存回读、冲突保护、解除冲突后的重试及保存后的恢复核对。物理鼠标/键盘输入、真实战斗与其他客户端/语言尚未实测。诊断文件和 CON 原始记录保留在主目录 `.lycheedev/binding-044` 与 `.lycheedev/live`，不进入运行发布包。
+
+本轮冲突气泡实测尝试重新连接 PID 140100，返回 `live.channel_mailbox_unavailable: memory.mailbox_unavailable: mailbox_schema_mismatch`，未建立 CON，也未执行探针或发送 reload。最新代码的实机气泡布局和原生输入仍待客户端/诊断通道恢复后验收；不把控件替身检查当作实机结果。

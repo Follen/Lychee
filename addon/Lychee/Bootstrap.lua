@@ -60,6 +60,10 @@ end
 
 local frame, bindingBusy
 local bindingNeedsSave = false
+local function notifySettingsHint()
+    local palette=I.Host and I.Host.PaletteController
+    if palette and palette.UpdateSettingsHint then palette:UpdateSettingsHint() end
+end
 local function attemptDefaultBinding(settings)
     if settings.defaultBindingComplete or (InCombatLockdown and InCombatLockdown()) then return end
     if type(GetBindingKey)~="function" or type(GetBindingAction)~="function" or type(SetBinding)~="function"
@@ -91,7 +95,7 @@ local function attemptDefaultBinding(settings)
     bindingNeedsSave=false
     -- The legacy attempted flag was written before SetBinding and cannot prove
     -- success. Repair an unbound/free legacy installation once; thereafter an
-    -- intentional unbind is respected. No polling or extra event is introduced.
+    -- intentional unbind is respected. No polling is introduced.
     settings.defaultBindingComplete=true
     settings.defaultBindingAttempted=true
 end
@@ -105,6 +109,7 @@ local function initializeDefaultBinding(settings)
         if settings.defaultBindingComplete then frame:UnregisterEvent("UPDATE_BINDINGS")
         else frame:RegisterEvent("UPDATE_BINDINGS") end
     end
+    notifySettingsHint()
 end
 
 -- User-requested rebinding uses the native binding set, not an override that
@@ -124,6 +129,28 @@ end
 function Binding:GetKey()
     local key,ok=readBinding(GetBindingKey,"TOGGLELYCHEE")
     return ok and type(key)=="string" and key or nil
+end
+local function acknowledgeBindingHint(settings)
+    settings.bindingHintDismissed=true
+    if I.UserPreferences and I.UserPreferences.DismissSettingsHint then I.UserPreferences:DismissSettingsHint() end
+end
+function Binding:NeedsConflictHint()
+    if not I.Registry or not I.Registry.ready then return false end
+    local settings=I.CharacterStore:Data()
+    if settings.bindingHintDismissed==true then return false end
+    local key,keysOK,second=readBinding(GetBindingKey,"TOGGLELYCHEE")
+    if not keysOK then return false end
+    if type(key)=="string" and key~="" and key~="ALT-SPACE"
+        or type(second)=="string" and second~="" and second~="ALT-SPACE" then
+        -- A custom native binding is also an explicit user choice.
+        acknowledgeBindingHint(settings)
+        return false
+    end
+    local action,actionOK=readBinding(GetBindingAction,"ALT-SPACE")
+    local effective,effectiveOK=readBinding(GetBindingAction,"ALT-SPACE",true)
+    if not actionOK or not effectiveOK then return false end
+    return type(action)=="string" and action~="" and action~="TOGGLELYCHEE"
+        or type(effective)=="string" and effective~="" and effective~="TOGGLELYCHEE"
 end
 function Binding:CaptureKey(key)
     if not ordinary(key) or type(key)~="string" or #key>32 then return nil end
@@ -173,7 +200,9 @@ function Binding:SetKey(key)
     local settings=I.CharacterStore:Data()
     settings.defaultBindingComplete=true
     settings.defaultBindingAttempted=true
+    acknowledgeBindingHint(settings)
     if frame then frame:UnregisterEvent("UPDATE_BINDINGS") end
+    notifySettingsHint()
     return true
 end
 
