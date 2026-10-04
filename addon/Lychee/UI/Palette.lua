@@ -280,6 +280,7 @@ function Palette:CloseSettings(clearQuery)
     if clearQuery then self.input:SetText("") end
     if self.onQuery then self.onQuery(self.input:GetText()) end
     self:EnsureHomeCapacity(); self:SetQueryMode(self.input:GetText()); self.input:Focus()
+    self:UpdateSettingsHint()
     return true
 end
 
@@ -718,12 +719,25 @@ end
 function Palette:UpdateSettingsHint(dismiss)
     if InCombatLockdown and InCombatLockdown() then return end
     if dismiss then I.UserPreferences:DismissSettingsHint() end
-    local show=not dismiss and self.visible and not self.settingsOpen and I.UserPreferences:NeedsSettingsHint()
+    local eligible=not dismiss and self.visible and not self.settingsOpen
+    local conflict=eligible and I.LauncherBinding and I.LauncherBinding:NeedsConflictHint()
+    local show=eligible and (conflict or I.UserPreferences:NeedsSettingsHint())
+    self.settingsHintConflict=conflict==true
+    local message=conflict and L["alt+space已被其他插件占用"] or L["点击荔枝图标，打开设置"]
+    local actionText=conflict and L["点击换绑"] or L["知道了"]
     if show and not self.settingsHint then
         self.settingsHint=Lychee.UI.Components:CreateAnchorHint(self.frame,self.settingsButton,
-            L["点击荔枝图标，打开设置"],L["知道了"],function() self:UpdateSettingsHint(true) end)
+            message,actionText,function()
+                if not self.visible or not self.settingsHint.frame:IsShown() then return end
+                if self.settingsHintConflict then
+                    if self:OpenSettings("general") then self.settingsView:BeginBindingCapture() end
+                else self:UpdateSettingsHint(true) end
+            end)
     end
-    if self.settingsHint then self.settingsHint.frame:SetShown(show==true) end
+    if self.settingsHint then
+        if show then self.settingsHint:SetContent(message,actionText,conflict) end
+        if self.settingsHint.frame:IsShown()~=(show==true) then self.settingsHint.frame:SetShown(show==true) end
+    end
 end
 
 function Palette:Show()
@@ -772,6 +786,7 @@ function Palette:Show()
     return true
 end
 function Palette:Hide(reason, immediate)
+    if self.settingsView and self.settingsView.stopBindingCapture then self.settingsView.stopBindingCapture() end
     if reason=="escape" and self.social and self.social:Close() then return true end
     if reason=="escape" and Lychee.UI.Components:HideActionMenu() then
         self.actionMenu=nil
@@ -952,6 +967,11 @@ function Lychee_Toggle()
     if not controller then controller = Palette:Create() end
     controller:Toggle()
 end
+
+SLASH_LYCHEE1 = "/l"
+SLASH_LYCHEE2 = "/lychee"
+SlashCmdList = SlashCmdList or {}
+SlashCmdList["LYCHEE"] = Lychee_Toggle
 
 Lychee.UI.Palette = Palette
 -- Construct the protected hierarchy on the first out-of-combat open, then reuse

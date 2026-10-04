@@ -1073,6 +1073,32 @@ do
     assert(view.general==general,"general page reuses controls")
     Lychee.UI.Motion:SetReduced(before)
     print("General settings navigation PASS")
+    local oldKey,oldAction,oldSet,oldSave,oldCurrent,oldAlt=GetBindingKey,GetBindingAction,SetBinding,SaveBindings,GetCurrentBindingSet,IsAltKeyDown
+    local bound,saves=nil,0
+    GetBindingKey=function() return bound end
+    GetBindingAction=function(key) return key==bound and "TOGGLELYCHEE" or key=="SPACE" and "JUMP" or "" end
+    SetBinding=function(key,action) bound=action and key or nil;return true end
+    SaveBindings=function() saves=saves+1 end
+    GetCurrentBindingSet=function() return 2 end
+    IsAltKeyDown=function() return true end
+    local capture=view.bindingCapture.frame
+    function capture:EnableKeyboard(enabled) self.keyboardEnabled=enabled end
+    capture.scripts.OnClick(capture)
+    assert(capture:GetScript("OnKeyDown"),"capture begins after explicit click")
+    capture.scripts.OnKeyDown(capture,"ESCAPE")
+    assert(not capture:GetScript("OnKeyDown") and not capture.keyboardEnabled and saves==0,"Escape cancels without saving")
+    capture.scripts.OnClick(capture)
+    capture.scripts.OnKeyDown(capture,"SPACE")
+    assert(bound=="ALT-SPACE" and saves==1 and not capture:GetScript("OnKeyDown"),"capture saves the modifier chord, not bare SPACE")
+    capture.scripts.OnClick(capture);view:SetTab("providers")
+    assert(not capture:GetScript("OnKeyDown"),"leaving general settings cancels capture")
+    view:SetTab("general");capture.scripts.OnClick(capture);controller:Hide("binding-cancel")
+    assert(not capture:GetScript("OnKeyDown"),"closing the launcher cancels capture")
+    controller:OpenSettings("general")
+    assert(view.bindingCapture.frame==capture and not capture:GetScript("OnKeyDown"),"reopening reuses an inactive capture control")
+    assert(SLASH_LYCHEE1=="/l" and SlashCmdList.LYCHEE==Lychee_Toggle,"slash command dispatches through the launcher toggle")
+    GetBindingKey,GetBindingAction,SetBinding,SaveBindings,GetCurrentBindingSet,IsAltKeyDown=oldKey,oldAction,oldSet,oldSave,oldCurrent,oldAlt
+    print("Launcher shortcut UI PASS: modifier capture, Escape, save, navigation, close/reopen, reuse and slash registration")
 end
 do
     local controller=LycheeInternal.Host.PaletteController

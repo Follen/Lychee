@@ -58,20 +58,28 @@ local function wireRegistryLifecycle()
     end)
 end
 
+local frame, bindingBusy
 local bindingNeedsSave = false
-local function initializeDefaultBinding(settings)
+local function notifySettingsHint()
+    local palette=I.Host and I.Host.PaletteController
+    if palette and palette.UpdateSettingsHint then palette:UpdateSettingsHint() end
+end
+local function attemptDefaultBinding(settings)
     if settings.defaultBindingComplete or (InCombatLockdown and InCombatLockdown()) then return end
     if type(GetBindingKey)~="function" or type(GetBindingAction)~="function" or type(SetBinding)~="function"
         or type(SaveBindings)~="function" or type(GetCurrentBindingSet)~="function" then return end
     local ok, key = pcall(GetBindingKey,"TOGGLELYCHEE")
     local actionOK, action = pcall(GetBindingAction,"ALT-SPACE")
     if not ok or not actionOK or (issecretvalue and (issecretvalue(key) or issecretvalue(action))) then return end
-    if (type(key)=="string" and key~="" and (key~="ALT-SPACE" or not bindingNeedsSave)) or (type(action)=="string" and action~="" and action~="TOGGLELYCHEE") then
-        -- An existing custom binding or conflicting action is a user choice.
+    if type(key)=="string" and key~="" and (key~="ALT-SPACE" or not bindingNeedsSave) then
+        -- An existing binding is a user choice, including a later unbind.
         settings.defaultBindingComplete=true
         bindingNeedsSave=false
         return
     end
+    -- A conflict is not a completed installation. Retry only when bindings
+    -- change, without polling or taking the conflicting key from its owner.
+    if type(action)=="string" and action~="" and action~="TOGGLELYCHEE" then return end
     if action~=nil and type(action)~="string" then return end
     if action~="TOGGLELYCHEE" then
         local assigned, result=pcall(SetBinding,"ALT-SPACE","TOGGLELYCHEE")
@@ -87,9 +95,115 @@ local function initializeDefaultBinding(settings)
     bindingNeedsSave=false
     -- The legacy attempted flag was written before SetBinding and cannot prove
     -- success. Repair an unbound/free legacy installation once; thereafter an
-    -- intentional unbind is respected. No polling or extra event is introduced.
+    -- intentional unbind is respected. No polling is introduced.
     settings.defaultBindingComplete=true
     settings.defaultBindingAttempted=true
+end
+
+local function initializeDefaultBinding(settings)
+    if bindingBusy then return end
+    bindingBusy=true
+    attemptDefaultBinding(settings)
+    bindingBusy=false
+    if frame then
+        if settings.defaultBindingComplete then frame:UnregisterEvent("UPDATE_BINDINGS")
+        else frame:RegisterEvent("UPDATE_BINDINGS") end
+    end
+    notifySettingsHint()
+end
+
+-- User-requested rebinding uses the native binding set, not an override that
+-- can silently mask movement keys. Keep the secondary slot and roll back a
+-- failed assignment/save before returning an error to the capture control.
+local Binding = {}
+I.LauncherBinding = Binding
+local function ordinary(value)
+    return not (issecretvalue and issecretvalue(value))
+end
+local function readBinding(fn,...)
+    if type(fn)~="function" then return nil,false end
+    local ok,a,b=pcall(fn,...)
+    if not ok or not ordinary(a) or not ordinary(b) then return nil,false end
+    return a,true,b
+end
+function Binding:GetKey()
+    local key,ok=readBinding(GetBindingKey,"TOGGLELYCHEE")
+    return ok and type(key)=="string" and key or nil
+end
+local function acknowledgeBindingHint(settings)
+    settings.bindingHintDismissed=true
+    if I.UserPreferences and I.UserPreferences.DismissSettingsHint then I.UserPreferences:DismissSettingsHint() end
+end
+function Binding:NeedsConflictHint()
+    if not I.Registry or not I.Registry.ready then return false end
+    local settings=I.CharacterStore:Data()
+    if settings.bindingHintDismissed==true then return false end
+    local key,keysOK,second=readBinding(GetBindingKey,"TOGGLELYCHEE")
+    if not keysOK then return false end
+    if type(key)=="string" and key~="" and key~="ALT-SPACE"
+        or type(second)=="string" and second~="" and second~="ALT-SPACE" then
+        -- A custom native binding is also an explicit user choice.
+        acknowledgeBindingHint(settings)
+        return false
+    end
+    local action,actionOK=readBinding(GetBindingAction,"ALT-SPACE")
+    local effective,effectiveOK=readBinding(GetBindingAction,"ALT-SPACE",true)
+    if not actionOK or not effectiveOK then return false end
+    return type(action)=="string" and action~="" and action~="TOGGLELYCHEE"
+        or type(effective)=="string" and effective~="" and effective~="TOGGLELYCHEE"
+end
+function Binding:CaptureKey(key)
+    if not ordinary(key) or type(key)~="string" or #key>32 then return nil end
+    if key=="ESCAPE" then return nil,"cancel" end
+    if key=="LSHIFT" or key=="RSHIFT" or key=="LCTRL" or key=="RCTRL"
+        or key=="LALT" or key=="RALT" or key=="LMETA" or key=="RMETA" then return nil end
+    local prefix=""
+    if IsAltKeyDown and IsAltKeyDown() then prefix=prefix.."ALT-" end
+    if IsControlKeyDown and IsControlKeyDown() then prefix=prefix.."CTRL-" end
+    if IsShiftKeyDown and IsShiftKeyDown() then prefix=prefix.."SHIFT-" end
+    if IsMetaKeyDown and IsMetaKeyDown() then prefix=prefix.."META-" end
+    if prefix=="" and (key=="SPACE" or key=="ENTER" or key=="W" or key=="A" or key=="S" or key=="D") then
+        return nil,"reserved"
+    end
+    return prefix..key
+end
+local function bindingCall(fn,...)
+    if type(fn)~="function" then return false end
+    local ok,result=pcall(fn,...)
+    return ok and ordinary(result) and result~=false
+end
+function Binding:SetKey(key)
+    if InCombatLockdown and InCombatLockdown() then return false,"combat" end
+    if not ordinary(key) or type(key)~="string" or #key>80 or not key:match("^[A-Z0-9%-]+$")
+        or key=="SPACE" or key=="ENTER" or key=="ESCAPE" or key=="W" or key=="A" or key=="S" or key=="D" then return false,"reserved" end
+    local old,keysOK,second=readBinding(GetBindingKey,"TOGGLELYCHEE")
+    local action,actionOK=readBinding(GetBindingAction,key)
+    local effective,effectiveOK=readBinding(GetBindingAction,key,true)
+    local set,setOK=readBinding(GetCurrentBindingSet)
+    if not keysOK or not actionOK or not effectiveOK or not setOK or (set~=1 and set~=2)
+        or (old~=nil and type(old)~="string") or (second~=nil and type(second)~="string") then return false,"failed" end
+    if (action~="" and action~="TOGGLELYCHEE") or (effective~="" and effective~="TOGGLELYCHEE") then return false,"conflict" end
+    local changed=key~=old and key~=second
+    local clearOld=changed and old and old~=""
+    bindingBusy=true
+    local function rollback()
+        if changed then bindingCall(SetBinding,key,nil) end
+        if clearOld then bindingCall(SetBinding,old,"TOGGLELYCHEE") end
+        bindingBusy=false
+    end
+    if clearOld and not bindingCall(SetBinding,old,nil) then bindingBusy=false;return false,"failed" end
+    if changed and not bindingCall(SetBinding,key,"TOGGLELYCHEE") then rollback();return false,"failed" end
+    local applied,appliedOK=readBinding(GetBindingAction,key,true)
+    if not appliedOK or applied~="TOGGLELYCHEE" or not bindingCall(SaveBindings,set) then rollback();return false,"failed" end
+    bindingBusy=false
+    bindingNeedsSave=false
+    local settings=I.CharacterStore:Data()
+    settings.defaultBindingComplete=true
+    settings.defaultBindingAttempted=true
+    acknowledgeBindingHint(settings)
+    if frame then frame:UnregisterEvent("UPDATE_BINDINGS") end
+    notifySettingsHint()
+    return true
 end
 
 local function onLogin()
@@ -116,7 +230,7 @@ function I.WirePalette(palette)
     return true
 end
 
-local frame = CreateFrame and CreateFrame("Frame")
+frame = CreateFrame and CreateFrame("Frame")
 if frame then
     frame:RegisterEvent("PLAYER_LOGIN")
     frame:RegisterEvent("PLAYER_LOGOUT")
@@ -125,6 +239,7 @@ if frame then
     frame:SetScript("OnEvent", function(_, event, name)
         if event == "ADDON_LOADED" then if I.DeliverAddonLoaded then I.DeliverAddonLoaded(name) end
         elseif event == "PLAYER_LOGIN" then onLogin()
+        elseif event == "UPDATE_BINDINGS" then initializeDefaultBinding(I.CharacterStore:Data())
         elseif event == "PLAYER_LOGOUT" then
             if I.Invocations then I.Invocations:CancelAll("CHARACTER_CHANGED") end
         elseif event == "PLAYER_REGEN_DISABLED" then

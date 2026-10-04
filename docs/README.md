@@ -30,3 +30,5 @@ SDK 协议只在 SDK 中维护；版本和 SDK 文件清单来自 tools/sdk_cont
 [归档入口](archive/README.md)集中设计、验收和原始测量。旧工作流资料单列在 [Comet](comet/README.md)，读取它不会启动工作流。历史状态不代表当前实现或当前客户端验收。
 
 [2026-09-26 client support / 默认绑定验收](validation/2026-09-26-client-support-binding.md)
+
+[2026-10-04 快捷键与 /l 验收记录](validation/2026-10-04-shortcut-binding.md)

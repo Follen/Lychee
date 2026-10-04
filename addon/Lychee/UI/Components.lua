@@ -22,6 +22,35 @@ end
 local function componentSetShown(self, shown) setShown(self.frame, shown) end
 local function componentSetText(self, value) return setText(self.label, value) end
 
+local function anchorHintSetContent(self,message,actionText,stacked)
+    local changed=setText(self.label,message)
+    self.dismiss:SetText(actionText)
+    stacked=stacked==true
+    local layoutChanged=self.stacked~=stacked
+    if layoutChanged then
+        self.stacked=stacked
+        self.label:ClearAllPoints();self.dismiss.frame:ClearAllPoints()
+        if stacked then
+            self.label:SetPoint("TOPLEFT",self.frame,"TOPLEFT",14,-12)
+            self.dismiss.frame:SetPoint("TOPLEFT",self.frame,"TOPLEFT",14,-34)
+        else
+            self.label:SetPoint("LEFT",self.frame,"LEFT",14,0)
+            self.dismiss.frame:SetPoint("RIGHT",self.frame,"RIGHT",-8,0)
+        end
+        self.frame:SetHeight(stacked and 64 or 42)
+        self.dismiss.frame:SetSize(stacked and 72 or 56,stacked and 22 or 26)
+        self.dismiss.label:SetJustifyH(stacked and "LEFT" or "CENTER")
+    end
+    if changed or layoutChanged then
+        local measured=self.label.GetUnboundedStringWidth and self.label:GetUnboundedStringWidth() or self.label:GetStringWidth()
+        if issecretvalue and issecretvalue(measured) or type(measured)~="number" then measured=322 end
+        local inset=stacked and 28 or 92
+        local width=math.max(244,math.min(350,math.ceil(measured)+inset))
+        if self.frame:GetWidth()~=width then self.frame:SetWidth(width) end
+        if self.label:GetWidth()~=width-inset then self.label:SetWidth(width-inset) end
+    end
+end
+
 function Components:CreateAnchorHint(parent, anchor, message, dismissText, onDismiss)
     local frame=CreateFrame("Frame",nil,parent)
     frame:SetPoint("BOTTOMLEFT",anchor,"TOPLEFT",-6,12)
@@ -34,16 +63,14 @@ function Components:CreateAnchorHint(parent, anchor, message, dismissText, onDis
     local label=frame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
     label:SetPoint("LEFT",frame,"LEFT",14,0)
     label:SetJustifyH("LEFT");Theme:SetFont(label,"body");Theme:SetTextColor(label,"text")
-    label:SetText(message)
-    local width=math.max(244,math.min(350,math.ceil(label:GetStringWidth())+92))
-    frame:SetSize(width,42);label:SetWidth(width-92)
     local close=self:CreateNavigationButton(frame,{width=56,height=26,text=dismissText,primary=true,onClick=onDismiss})
     Theme:SetFont(close.label,"meta")
-    close.frame:SetPoint("RIGHT",frame,"RIGHT",-8,0)
+    local hint={frame=frame,label=label,dismiss=close,SetContent=anchorHintSetContent}
+    hint:SetContent(message,dismissText,false)
     frame:SetScript("OnShow",function() Lychee.UI.Motion:AnchorReveal(frame,anchor) end)
     frame:SetScript("OnHide",function() Lychee.UI.Motion:Cancel(frame,true) end)
     frame:Hide()
-    return {frame=frame,label=label,dismiss=close}
+    return hint
 end
 
 function Components:CreateBand(parent, options)

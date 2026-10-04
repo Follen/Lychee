@@ -1,6 +1,16 @@
 local L = _G.LycheeInternal.Locale
 if L:IsChinese() then return end
 L:Add({
+    ["alt+space已被其他插件占用"] = "Alt+Space is already used by another addon.",
+    ["点击换绑"] = "Rebind",
+    ["启动器快捷键"] = "Launcher shortcut",
+    ["也可以输入 /l 打开启动器"] = "You can also type /l to open the launcher.",
+    ["设置快捷键"] = "Set shortcut",
+    ["按快捷键，Esc 取消"] = "Press a key; Esc cancels",
+    ["请使用组合键，保留移动和跳跃按键"] = "Use a key combination; movement and jump keys are reserved.",
+    ["快捷键已保存"] = "Shortcut saved",
+    ["快捷键已被占用，请先在游戏设置中解除"] = "Shortcut is occupied; release it in the game settings first.",
+    ["快捷键保存失败，请重试"] = "Could not save the shortcut. Please retry.",
     ["点击荔枝图标，打开设置"] = "Click the lychee icon to open settings.",
     ["知道了"] = "Got it",
     ["鸣谢"] = "Acknowledgements",

@@ -6,11 +6,11 @@
 
 **技能、物品、设置，一个入口。**
 
-按下 <kbd>Alt</kbd> + <kbd>Space</kbd>，输入你要找的内容。
+按下 <kbd>Alt</kbd> + <kbd>Space</kbd>，或输入 `/l`，再输入你要找的内容。快捷键可在 **综合设置** 中更改。
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![版本](https://img.shields.io/badge/version-0.4.3-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![版本](https://img.shields.io/badge/version-0.4.4-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![语言](https://img.shields.io/badge/语言-中文%20%2F%20English-526b5d?style=flat-square)](#clients)
 [![客户端](https://img.shields.io/badge/WoW-4%20客户端-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@
 
 </div>
 
-0.4.3：默认搜索结果增加到 30 条，补齐八个赛季传送的副本别名与连写搜索，移除赞赏入口。
+0.4.4：新增 `/l` 打开/关闭启动器；快捷键冲突时由荔枝气泡提示“点击换绑”，成功设置后不再提醒；综合设置可直接设置快捷键，保留已有冲突按键；修复首次安装解除快捷键占用后不再补绑的问题。
 
 想用一个技能，却不记得它放在哪条动作栏；想改一个设置，却不记得它藏在哪层菜单。荔枝让你从**名字**出发：找到它，然后施放、使用、切换，或打开对应页面。
 

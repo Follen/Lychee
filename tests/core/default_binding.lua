@@ -33,6 +33,8 @@ fresh();login();assert(binding=="ALT-SPACE" and saves==1 and settings.defaultBin
 login();assert(sets==1 and saves==1,"successful initialization is idempotent")
 binding=nil;login();assert(not binding and sets==1,"intentional unbind must remain unbound")
 fresh();other="OTHER_ACTION";login();assert(sets==0 and saves==0 and other=="OTHER_ACTION")
+other=nil;frame.event(frame,"UPDATE_BINDINGS")
+assert(binding=="ALT-SPACE" and saves==1,"freeing a first-install conflict must retry the default binding")
 fresh();binding="CTRL-L";login();assert(sets==0 and saves==0 and binding=="CTRL-L")
 fresh();saveFails=true;login();assert(binding=="ALT-SPACE" and not settings.defaultBindingComplete)
 saveFails=false;login();assert(saves==2 and sets==1 and settings.defaultBindingComplete)
