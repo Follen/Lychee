@@ -61,6 +61,8 @@ Push-Location $root
 try {
     & $lua.Source 'tests/core/default_binding.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Default binding initialization failed' }
+    & $lua.Source 'tests/core/launcher_binding.lua'
+    if ($LASTEXITCODE -ne 0) { throw 'Launcher rebinding failed' }
     & $lua.Source 'tests/sdk/client_implementations.lua'
     if ($LASTEXITCODE -ne 0) { throw 'Client implementation selection failed' }
     foreach ($flavor in @('Mainline','Mists','Wrath','TBC','Forever')) {

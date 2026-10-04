@@ -772,6 +772,7 @@ function Palette:Show()
     return true
 end
 function Palette:Hide(reason, immediate)
+    if self.settingsView and self.settingsView.stopBindingCapture then self.settingsView.stopBindingCapture() end
     if reason=="escape" and self.social and self.social:Close() then return true end
     if reason=="escape" and Lychee.UI.Components:HideActionMenu() then
         self.actionMenu=nil
@@ -952,6 +953,11 @@ function Lychee_Toggle()
     if not controller then controller = Palette:Create() end
     controller:Toggle()
 end
+
+SLASH_LYCHEE1 = "/l"
+SLASH_LYCHEE2 = "/lychee"
+SlashCmdList = SlashCmdList or {}
+SlashCmdList["LYCHEE"] = Lychee_Toggle
 
 Lychee.UI.Palette = Palette
 -- Construct the protected hierarchy on the first out-of-combat open, then reuse

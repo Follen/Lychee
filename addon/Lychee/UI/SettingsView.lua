@@ -111,6 +111,7 @@ function Settings:Create(parent, controller)
     end)
     scroll:SetScript("OnSizeChanged",function() if view.data then view:RenderVisible() end end)
     frame:SetScript("OnHide",function()
+        if view.stopBindingCapture then view.stopBindingCapture() end
         view.refreshRevision=(view.refreshRevision or 0)+1
         if view.refreshTimer then view.refreshTimer:Cancel();view.refreshTimer=nil end
         if view.discovery then
@@ -198,6 +199,7 @@ function Settings:Create(parent, controller)
     end
     function view:SetTab(tab)
         if not self.tabs[tab] or (InCombatLockdown and InCombatLockdown()) then return false end
+        if self.stopBindingCapture then self.stopBindingCapture() end
         controller:SetStatusText(tab=="credits" and L["谨献给挚爱：荔枝小月亮"] or tab=="about" and L["感谢使用荔枝"] or L["更改即时生效"])
         controller.social:Close(false)
         if self.providerView then self.providerView.frame:Hide() end
@@ -311,10 +313,46 @@ function Settings:Create(parent, controller)
                     I.Search.Personalization:ClearChoices();controller:SetStatusText(L["搜索记忆已清空"])
                 end)
                 self.clearChoices.frame:SetPoint("RIGHT",memory,"RIGHT",-metrics.listIconInset,0)
+                local shortcut=settingRow(general,3,"启动器快捷键","也可以输入 /l 打开启动器")
+                local capture
+                local function stopCapture()
+                    if capture.frame:GetScript("OnKeyDown") then
+                        capture.frame:EnableKeyboard(false)
+                        capture.frame:SetScript("OnKeyDown",nil)
+                    end
+                    text(capture.label,I.LauncherBinding:GetKey() or L["设置快捷键"])
+                end
+                self.stopBindingCapture=stopCapture
+                capture=button(shortcut,L["设置快捷键"],140,function()
+                    if not frame:IsShown() or view.tab~="general" or InCombatLockdown() then return end
+                    if capture.frame:GetScript("OnKeyDown") then stopCapture();return end
+                    controller.input:ClearFocus()
+                    text(capture.label,L["按快捷键，Esc 取消"])
+                    capture.frame:SetScript("OnKeyDown",function(_,key)
+                        if InCombatLockdown() then stopCapture();return end
+                        local chord,reason=I.LauncherBinding:CaptureKey(key)
+                        if reason=="cancel" then stopCapture();return end
+                        if not chord then
+                            if reason=="reserved" then controller:SetStatusText(L["请使用组合键，保留移动和跳跃按键"]) end
+                            return
+                        end
+                        local ok,err=I.LauncherBinding:SetKey(chord)
+                        stopCapture()
+                        controller:SetStatusText(ok and L["快捷键已保存"] or err=="conflict" and L["快捷键已被占用，请先在游戏设置中解除"] or L["快捷键保存失败，请重试"])
+                    end)
+                    capture.frame:EnableKeyboard(true)
+                end)
+                capture.frame:SetPropagateKeyboardInput(false)
+                capture.frame:SetPoint("RIGHT",shortcut,"RIGHT",-metrics.listIconInset,0)
+                shortcut:SetScript("OnHide",stopCapture)
+                self.bindingCapture=capture
             end
             local enabled=not (Lychee.UI.Motion and Lychee.UI.Motion:IsReduced())
             self.motion.frame:SetChecked(enabled,true)
             text(self.motion.label,enabled and L["开启"] or L["关闭"])
+            if not self.bindingCapture.frame:GetScript("OnKeyDown") then
+                text(self.bindingCapture.label,I.LauncherBinding:GetKey() or L["设置快捷键"])
+            end
             shown(self.general,true)
             return
         end

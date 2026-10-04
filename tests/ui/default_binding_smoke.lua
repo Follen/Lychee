@@ -30,6 +30,7 @@ local function runCase(existingKey, existingAction)
     function CreateFrame()
         return {
             RegisterEvent = function() end,
+            UnregisterEvent = function() end,
             SetScript = function() end,
         }
     end
