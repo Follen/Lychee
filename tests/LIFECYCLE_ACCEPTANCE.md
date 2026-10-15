@@ -1,6 +1,6 @@
 # 角色存储与生命周期验收入口
 
-当前 SDK / Provider API 为 1.0.0，UI Runtime 为 1；插件版本独立维护。现行行为见 [架构](../docs/ARCHITECTURE.md)，性能与内存审查见 [PERFORMANCE.md](../PERFORMANCE.md)。
+当前 SDK / Provider API 为 1.0.0，UI Runtime 为 1；插件版本独立维护。现行行为见 [架构](../ARCHITECTURE.md)，性能与内存审查见 [PERFORMANCE.md](../PERFORMANCE.md)。
 
 从仓库根目录执行 `powershell -NoProfile -File tests/check_contract.ps1`。分组与公共装配见 [测试说明](README.md)。失败、Lua 缺失和清单漂移必须非零退出；文档检查不能代替功能测试。
 

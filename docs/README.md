@@ -19,7 +19,7 @@
 | --- | --- |
 | 产品：定位、用户任务、功能范围与业务规则 | [PRODUCT](../PRODUCT.md) · [功能用法](PROVIDER_FEATURES.md) |
 | UI/UX：信息层级、布局、视觉与交互反馈 | [DESIGN](../DESIGN.md) |
-| 架构：模块职责、依赖、数据所有权与生命周期 | [ARCHITECTURE](ARCHITECTURE.md) · [项目上下文](../CONTEXT.md) |
+| 架构：模块职责、依赖、数据所有权与生命周期 | [ARCHITECTURE](../ARCHITECTURE.md) · [项目上下文](../CONTEXT.md) |
 | 性能、容量和内存审查 | [PERFORMANCE](../PERFORMANCE.md) |
 | 名称、词典与语言回退 | [i18n](../i18n.md) |
 

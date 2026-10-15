@@ -11,7 +11,7 @@
 | Maintain documents/translations | [Documentation maintenance](guides/DOCUMENTATION.md) (Chinese) |
 | Product scope and business rules | [Product](../PRODUCT.md) · [Feature usage](PROVIDER_FEATURES.md) (Chinese) |
 | UI/UX: layout, visuals, interactions and feedback | [Design](../DESIGN.md) (Chinese) |
-| Architecture: modules, dependencies, data ownership and lifecycle | [Architecture](ARCHITECTURE.md) (Chinese) |
+| Architecture: modules, dependencies, data ownership and lifecycle | [Architecture](../ARCHITECTURE.md) (Chinese) |
 | Performance and localization policies | [Performance](../PERFORMANCE.md) · [Localization](../i18n.md) (Chinese) |
 | Historical decisions and evidence | [Archive](archive/README.md) |
 

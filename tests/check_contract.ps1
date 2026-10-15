@@ -9,7 +9,7 @@ $legacy = rg -n 'OptionalDeps:\s*LycheeSDK|_G\.LycheeSDK' (Join-Path $root 'addo
 if ($LASTEXITCODE -eq 0) { throw "Legacy SDK facade marker found: $legacy" }
 $architectureDocs = @(
     (Join-Path $root 'docs/comet/specs'),
-    (Join-Path $root 'docs/ARCHITECTURE.md'),
+    (Join-Path $root 'ARCHITECTURE.md'),
     (Join-Path $root 'lychee-sdk/docs/zh-CN/GETTING_STARTED.md'),
     (Join-Path $root 'lychee-sdk')
 )

@@ -185,7 +185,7 @@ Third-party addons keep their own code, SavedVariables and media and use the pub
 <summary><strong>Maintenance and verification</strong></summary>
 
 - [Project structure](docs/guides/PROJECT_STRUCTURE.md): runtime, SDK, tools and documentation.
-- [Architecture](docs/ARCHITECTURE.md): the boundary between search and Providers.
+- [Architecture](ARCHITECTURE.md): the boundary between search and Providers.
 - [Development](docs/guides/DEVELOPMENT.md): setup, checks and in-game validation.
 - [Design](DESIGN.md) · [Performance requirements](PERFORMANCE.md).
 

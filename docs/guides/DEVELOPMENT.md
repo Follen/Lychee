@@ -2,7 +2,7 @@
 
 插件版本以 `tools/client_manifest.json` 和生成的 TOC 为准；SDK / Provider API 为 1.0.0。运行时唯一来源是 `addon/Lychee`；第三方接入见 [SDK](../../lychee-sdk/docs/zh-CN/GETTING_STARTED.md)，精确字段见 [协议](../../lychee-sdk/docs/zh-CN/PROTOCOLS.md)。
 
-本分支已采用单插件结构，背景见[历史功能迁移计划](../archive/design/2026-09-14-single-addon-feature-port.md)。[架构](../ARCHITECTURE.md)定义现行职责，[生命周期验收入口](../../tests/LIFECYCLE_ACCEPTANCE.md)列出现行测试。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
+本分支已采用单插件结构，背景见[历史功能迁移计划](../archive/design/2026-09-14-single-addon-feature-port.md)。[架构](../../ARCHITECTURE.md)定义现行职责，[生命周期验收入口](../../tests/LIFECYCLE_ACCEPTANCE.md)列出现行测试。运行时仍为单目录，不增加伴随运行时目录或扩大自动同步范围。
 
 ## 环境与目录
 

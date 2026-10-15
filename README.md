@@ -185,7 +185,7 @@ SDK / Provider API 为 **1.0.0**。一个 Provider 提供内容和动作，荔�
 <summary><strong>维护与验证</strong></summary>
 
 - [项目结构](docs/guides/PROJECT_STRUCTURE.md)：运行时、SDK、工具和文档各放在哪里。
-- [架构](docs/ARCHITECTURE.md)：搜索与 Provider 的职责边界。
+- [架构](ARCHITECTURE.md)：搜索与 Provider 的职责边界。
 - [开发与验证](docs/guides/DEVELOPMENT.md)：环境、检查和客户端验收。
 - [设计规范](DESIGN.md) · [性能约定](PERFORMANCE.md)。
 

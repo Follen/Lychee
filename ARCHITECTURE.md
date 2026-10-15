@@ -2,9 +2,9 @@
 
 ## 文档职责
 
-本文件负责模块职责、依赖方向、运行链路、数据所有权、技术边界与生命周期。产品定位、功能范围和业务取舍见 [PRODUCT.md](../PRODUCT.md)；界面信息层级、布局、视觉和交互反馈见 [DESIGN.md](../DESIGN.md)。性能预算只在 [PERFORMANCE.md](../PERFORMANCE.md) 维护，公开接口的完整字段与契约只在 [SDK](../lychee-sdk/README.md) 维护。
+本文件负责模块职责、依赖方向、运行链路、数据所有权、技术边界与生命周期。产品定位、功能范围和业务取舍见 [PRODUCT.md](PRODUCT.md)；界面信息层级、布局、视觉和交互反馈见 [DESIGN.md](DESIGN.md)。性能预算只在 [PERFORMANCE.md](PERFORMANCE.md) 维护，公开接口的完整字段与契约只在 [SDK](lychee-sdk/README.md) 维护。
 
-SDK 1.0.0 / Provider API 1.0.0。本页描述当前运行结构及其与公开接口的关系。迁移背景保留在[单插件功能迁移](archive/design/2026-09-14-single-addon-feature-port.md)，实际验证范围见[验收记录](archive/validation/README.md)；历史方案不覆盖现行契约。
+SDK 1.0.0 / Provider API 1.0.0。本页描述当前运行结构及其与公开接口的关系。迁移背景保留在[单插件功能迁移](docs/archive/design/2026-09-14-single-addon-feature-port.md)，实际验证范围见[验收记录](docs/archive/validation/README.md)；历史方案不覆盖现行契约。
 
 ## 物理包与逻辑模块
 
@@ -39,7 +39,7 @@ flowchart TD
   I --> J[显示当前结果和轻量等待状态]
 ```
 
-原生禁用包不自动启用；产品范围、原生 TOC 与 API 存在性一起决定适用性。静态声明使用版本化 TOC 元数据，加载后核对 ID、所有者、路由和资源。声明格式见[加载合同](../lychee-sdk/docs/zh-CN/LOADING.md)。
+原生禁用包不自动启用；产品范围、原生 TOC 与 API 存在性一起决定适用性。静态声明使用版本化 TOC 元数据，加载后核对 ID、所有者、路由和资源。声明格式见[加载合同](lychee-sdk/docs/zh-CN/LOADING.md)。
 
 设置管理只展示 scope 匹配当前产品、Interface 和 build 的来源。不适用的来源默认不参与搜索；原有角色偏好保留，不能因切换客户端而覆写。Ellesmere UI / EX 集成的缺省参与状态由 EllesmereUI / ExwindCore 核心包的安装及当前角色启用状态决定，按需加载尚未执行不等于未安装。自动默认值只保存在本次加载会话，角色显式开关由 CharacterStore 保存；未安装或原生禁用时默认关闭，不主动加载依赖插件。
 
@@ -59,30 +59,30 @@ flowchart TD
 
 ## 参数动作与执行链
 
-搜索给出条目，条目聚合相关 Action。Provider 声明业务动作，Host 提供设置别名和固定首页等通用操作；各来源允许的动作范围由[产品规则](../PRODUCT.md#自带功能的产品规则)确定。SDK 的参数动作由需要此能力的 Provider 注册。
+搜索给出条目，条目聚合相关 Action。Provider 声明业务动作，Host 提供设置别名和固定首页等通用操作；各来源允许的动作范围由[产品规则](PRODUCT.md#自带功能的产品规则)确定。SDK 的参数动作由需要此能力的 Provider 注册。
 
-执行链为：完整引用 → 校验和只读 Prepare → 用户确认/点击 → Invoke → 确认结果 → 写入有界历史。准备与搜索不得修改设置。已提交业务操作有自己的生命周期，关页面只是解除 UI 观察；失败或结果不确定不得自动重试。参数、准备凭据和异步恢复见[Invocation](../lychee-sdk/docs/zh-CN/INVOCATIONS.md)。
+执行链为：完整引用 → 校验和只读 Prepare → 用户确认/点击 → Invoke → 确认结果 → 写入有界历史。准备与搜索不得修改设置。已提交业务操作有自己的生命周期，关页面只是解除 UI 观察；失败或结果不确定不得自动重试。参数、准备凭据和异步恢复见[Invocation](lychee-sdk/docs/zh-CN/INVOCATIONS.md)。
 
-当前查询状态与用于退场的旧画面分离；输入变化后先撤销旧结果的动作身份。键盘选择与按下/松开绑定完整身份，不能按行号将旧操作转移给新结果。等待、零结果、部分失败及超时的呈现与 UI/UX 验收见 [DESIGN](../DESIGN.md#design-5)。
+当前查询状态与用于退场的旧画面分离；输入变化后先撤销旧结果的动作身份。键盘选择与按下/松开绑定完整身份，不能按行号将旧操作转移给新结果。等待、零结果、部分失败及超时的呈现与 UI/UX 验收见 [DESIGN](DESIGN.md#design-5)。
 
 ## 数据、国际化和客户端
 
-框架偏好、固定、别名与最近记录只存有界稳定引用和必要显示回退。Provider 拥有业务设置与持久缓存；内置模块用自己的命名空间，第三方用自己的 SV。已加载 SV 仍占 Lua 堆。迁移先备份，不能因 API 不兼容丢用户数据，见[存储](../lychee-sdk/docs/zh-CN/STORAGE.md)。
+框架偏好、固定、别名与最近记录只存有界稳定引用和必要显示回退。Provider 拥有业务设置与持久缓存；内置模块用自己的命名空间，第三方用自己的 SV。已加载 SV 仍占 Lua 堆。迁移先备份，不能因 API 不兼容丢用户数据，见[存储](lychee-sdk/docs/zh-CN/STORAGE.md)。
 
-Provider ID 与语种无关。Host 与 Provider 文案分开注册，内置与第三方 Provider 使用同一独立 i18n 契约，避免同名语言 key 相互覆盖。文案与游戏本地化见[i18n](../i18n.md)。Retail / classic / titan / anniversary 各自按生成清单和对应原生 API 证据验证，声明支持不代表实机通过。
+Provider ID 与语种无关。Host 与 Provider 文案分开注册，内置与第三方 Provider 使用同一独立 i18n 契约，避免同名语言 key 相互覆盖。文案与游戏本地化见[i18n](i18n.md)。Retail / classic / titan / anniversary 各自按生成清单和对应原生 API 证据验证，声明支持不代表实机通过。
 
 ## 验证与交付
 
-功能覆盖、性能测试、离线契约分别报告，不能互相替代。大改动使用 lychee-dev 做运行时功能覆盖；性能变更按 [PERFORMANCE](../PERFORMANCE.md) 用 lychee-dev 分析时间、全部适用包内存与资源稳定性。无实机证据的项目明确待验证。
+功能覆盖、性能测试、离线契约分别报告，不能互相替代。大改动使用 lychee-dev 做运行时功能覆盖；性能变更按 [PERFORMANCE](PERFORMANCE.md) 用 lychee-dev 分析时间、全部适用包内存与资源稳定性。无实机证据的项目明确待验证。
 
-现行源码结构见[项目结构](guides/PROJECT_STRUCTURE.md)，交付见[开发](guides/DEVELOPMENT.md)与[交付](guides/DELIVERY.md)。历史架构记录保留当时语义，只作为证据，不能覆盖本页。
+现行源码结构见[项目结构](docs/guides/PROJECT_STRUCTURE.md)，交付见[开发](docs/guides/DEVELOPMENT.md)与[交付](docs/guides/DELIVERY.md)。历史架构记录保留当时语义，只作为证据，不能覆盖本页。
 
 
 ## 搜索文档与动作的所有权
 
-SDK 1.0.0 支持完整 Entry 和 `entryMode="documents"` 两种有界索引入口，详见 [目录契约](../lychee-sdk/docs/zh-CN/CATALOG.md)。Host 保存校验后的搜索字段；Provider 保存业务事实，reader 只生成当前候选/明确恢复的完整动作。二者共享既有索引流水线，不额外建第二份搜索目录。物化结果使用弱身份登记，目录版本变更后不能继续执行旧动作。
+SDK 1.0.0 支持完整 Entry 和 `entryMode="documents"` 两种有界索引入口，详见 [目录契约](lychee-sdk/docs/zh-CN/CATALOG.md)。Host 保存校验后的搜索字段；Provider 保存业务事实，reader 只生成当前候选/明确恢复的完整动作。二者共享既有索引流水线，不额外建第二份搜索目录。物化结果使用弱身份登记，目录版本变更后不能继续执行旧动作。
 
-暴雪设置采用文档入口，按[产品范围](../PRODUCT.md#暴雪设置)物化普通定位动作。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和历史实测见 [数据结构审查](archive/validation/2026-09-19-structural-memory.md)。
+暴雪设置采用文档入口，按[产品范围](PRODUCT.md#暴雪设置)物化普通定位动作。简单的技能、坐骑、背包等 Entry 继续共享动作描述符，不因统一设计强制迁移。成就保持角色权威数组，副本/团本保持生成的关系事实，Ellesmere/Exwind 保持有界动态候选。取舍和历史实测见 [数据结构审查](docs/archive/validation/2026-09-19-structural-memory.md)。
 
 ## Host 0.3.0 内部边界
 
@@ -110,17 +110,17 @@ Provider 决定数据、默认和次要动作、是否拖动及拖动内容；Ho
 
 ## UI 运行时与公共组件
 
-主题值和公共尺寸由 `addon/Lychee/UI/Theme.lua` 维护，公共控件由 `addon/Lychee/UI/Components.lua` 提供。业务页面消费公共组件，不另建同类按钮、输入框、提示框或选择样式。主题令牌的具体视觉含义见 [DESIGN](../DESIGN.md#design-2)。
+主题值和公共尺寸由 `addon/Lychee/UI/Theme.lua` 维护，公共控件由 `addon/Lychee/UI/Components.lua` 提供。业务页面消费公共组件，不另建同类按钮、输入框、提示框或选择样式。主题令牌的具体视觉含义见 [DESIGN](DESIGN.md#design-2)。
 
 UI 采用保留式组件库：静态定义一次，`Lychee.UI:Create(parent, definition)` 创建轻量控制器；`view:Update(props)` 首次构建并在以后只更新变化的属性；`view:Release(reason)` 结束绑定、清理事件、焦点与临时业务引用，保留原生框体供复用。没有每帧虚拟 DOM、隐式渲染循环或按查询身份无限缓存组件。
 
 Fragment、Surface、Text、Icon、Button、Toggle、Input 和 Native 共用生命周期。受控输入相同值不调用 SetText，保留光标；按钮使用当前绑定，旧按下不能触发新对象。State 更新同步，动作和安全检查不延期。Native 接入安全按钮、既有滚动池和第三方复杂视图，业务规则不进入声明式属性。
 
-定义与业务状态分开，页面持有实例，卸载先使旧代次失效；清理幂等且允许重新挂载。Hide/Release 不销毁 WoW Frame。SDK 自定义面板保留 create → Mount → Update → Unmount → Dispose 顺序，缓存归 Provider。完整接口、属性和示例见 [UI Library](../lychee-sdk/docs/zh-CN/UI_LIBRARY.md)。
+定义与业务状态分开，页面持有实例，卸载先使旧代次失效；清理幂等且允许重新挂载。Hide/Release 不销毁 WoW Frame。SDK 自定义面板保留 create → Mount → Update → Unmount → Dispose 顺序，缓存归 Provider。完整接口、属性和示例见 [UI Library](lychee-sdk/docs/zh-CN/UI_LIBRARY.md)。
 
 导航和文字动作使用 `CreateNavigationButton`，底层特殊按钮使用 `CreateButton`；只有声明为 `feedbackIcon` 的纯导航图形参与颜色反馈，彩色内容图标保持原色。表单通过 `StyleEditBox` 统一边界与焦点，主搜索不套用表单外框。`CreateToggle` 的 `SetChecked(checked, instant)` 只改视觉，业务动作由 Host 校验身份后执行。滑块与渐变底座独立，初次绑定、滚动换绑即时落位，隐藏调用 `FinishMotion`。控件不决定保存、启停或权限。
 
-Checkbox 由 `Components:CreateCheckbox` 提供，页面控制业务选中状态。默认样式通过 `Theme:CreateRoundedSurface(frame, token, radius, inset, layer)` 的两层圆角区域复用既有角纹理；`checkSide="left"` 改变布局。`variant="choice"` 使用共享四态图集的单个标记 Texture，替代早期逐层绘制方案；状态与透明度缓存，默认 Checkbox 兼容保留。尺寸和素材外观见 [DESIGN](../DESIGN.md#生存计算页面与公共选择控件)。
+Checkbox 由 `Components:CreateCheckbox` 提供，页面控制业务选中状态。默认样式通过 `Theme:CreateRoundedSurface(frame, token, radius, inset, layer)` 的两层圆角区域复用既有角纹理；`checkSide="left"` 改变布局。`variant="choice"` 使用共享四态图集的单个标记 Texture，替代早期逐层绘制方案；状态与透明度缓存，默认 Checkbox 兼容保留。尺寸和素材外观见 [DESIGN](DESIGN.md#生存计算页面与公共选择控件)。
 
 ### 提示、菜单与浮窗
 
@@ -128,31 +128,31 @@ Checkbox 由 `Components:CreateCheckbox` 提供，页面控制业务选中状态
 
 跟随坐标按有效缩放换算，仅显示期间使用复用的 OnUpdate，静止时跳过定位；隐藏、入口消失、视图关闭或战斗时停止并解除 owner。技能长文通过 `scrollable=true` 与 `ScrollTooltip(owner, delta)` 接入按需创建的滚动区，下一次普通提示恢复父级与宽度。
 
-动作菜单由 `Components:ShowActionMenu(owner, generator)` / `HideActionMenu()` 管理，使用 UIParent 下的自有浮层，复用菜单、标题和按钮；关闭清空动作身份。菜单不接入原生 Menu manager，避免全局换肤重画背景，不修改其他插件。显示层级、菜单收起顺序和视觉容量见 [DESIGN](../DESIGN.md#右键菜单)，动作数量与协议上限见 [PERFORMANCE](../PERFORMANCE.md#12-功能容量与活动路径) 和 SDK。
+动作菜单由 `Components:ShowActionMenu(owner, generator)` / `HideActionMenu()` 管理，使用 UIParent 下的自有浮层，复用菜单、标题和按钮；关闭清空动作身份。菜单不接入原生 Menu manager，避免全局换肤重画背景，不修改其他插件。显示层级、菜单收起顺序和视觉容量见 [DESIGN](DESIGN.md#右键菜单)，动作数量与协议上限见 [PERFORMANCE](PERFORMANCE.md#12-功能容量与活动路径) 和 SDK。
 
 底部联系入口归主窗口，继承窗口缩放与透明度。社交浮窗复用，导航、关闭与战斗统一清理焦点、码图和遮罩；只有回到首页或搜索时才恢复搜索焦点。鸣谢页首次访问创建固定入口后复用，不新增事件或计时器。
 
 ### 动效、焦点与布局
 
-统一入口为 `Lychee.UI.Motion`：`Reveal`、`Selection`、`Alpha`、`Height`、`Cancel`、`StopAll`。开关曲线和参数集中在 `addon/Lychee/UI/Presence.lua` 的 `Motion.Presets.palette`，通过 ConfigurePresence 绑定静止锚点，再由 Presence / StopPresence 控制。具体时长、位移和反向轨迹由 [DESIGN](../DESIGN.md#design-4) 维护。
+统一入口为 `Lychee.UI.Motion`：`Reveal`、`Selection`、`Alpha`、`Height`、`Cancel`、`StopAll`。开关曲线和参数集中在 `addon/Lychee/UI/Presence.lua` 的 `Motion.Presets.palette`，通过 ConfigurePresence 绑定静止锚点，再由 Presence / StopPresence 控制。具体时长、位移和反向轨迹由 [DESIGN](DESIGN.md#design-4) 维护。
 
 背景、输入、正文和底栏挂在共同运动根节点，根节点以 SetPoint 移动并对齐整物理像素，以 SetAlpha 控制透明度。不用原生 Scale 改变整个 UI 树，不改变字号、纹理尺寸或子节点锚点，也不另建全窗裁剪视口；正文原有滚动裁切保留。父节点几何变化同时带动子框体和命中区域。
 
 主面板以唯一进度正放／倒放，中途反向从当前进度继续，旧回调不能关闭新会话。每次播放使用独立 GetTimePreciseSec 起点，不把隐藏时间算入新打开。Alt+Space、输入框 Esc、失焦后的原生 Esc 与关闭按钮走同一生命周期；失焦 Esc 由不绘制内容的子框接收，不直接隐藏正在退场的主面板，不拦截全局键盘或修改暴雪函数。
 
-关闭立即停止会话、安全动作和输入；Input 只冻结外观，焦点和启用状态照常更新，隐藏后解除冻结，重开恢复实时外观。战斗由安全宿主隐藏并停止动效，减少动态效果即时应用终态。普通控件透明度使用复用原生 AnimationGroup，高度与主面板使用各自的短时驱动，任务结束解除 OnUpdate 并释放业务引用；数量与活动成本以 [PERFORMANCE](../PERFORMANCE.md#12-功能容量与活动路径) 为准。
+关闭立即停止会话、安全动作和输入；Input 只冻结外观，焦点和启用状态照常更新，隐藏后解除冻结，重开恢复实时外观。战斗由安全宿主隐藏并停止动效，减少动态效果即时应用终态。普通控件透明度使用复用原生 AnimationGroup，高度与主面板使用各自的短时驱动，任务结束解除 OnUpdate 并释放业务引用；数量与活动成本以 [PERFORMANCE](PERFORMANCE.md#12-功能容量与活动路径) 为准。
 
 Height 的 `growOnly` 在中间结果到达时保留较大目标，并停止会裁掉新内容的旧收缩；最终结果使用普通模式。开关过程记录最后一个有效悬停身份，入场后只恢复仍可见且代次未变的入口；方向键、关闭、重绑或快速反向使旧悬停失效，不增加鼠标轮询。
 
-Logo 动画只调整纹理自身 SetSize 与相对固定品牌容器的 CENTER 锚点，不变换输入、父框体或设置按钮命中区域。原生 Scale/Translation 路径曾产生错位，不恢复该方案；使用局部坐标与复用驱动。战斗停止更新且不改保护布局，只保留待安全复位目标，下次安全 StopAll／打开时复位。接口见 [Motion](../lychee-sdk/docs/zh-CN/MOTION.md)，历史证据见[局部几何验收](archive/validation/2026-09-12-brand-local-geometry.md)。
+Logo 动画只调整纹理自身 SetSize 与相对固定品牌容器的 CENTER 锚点，不变换输入、父框体或设置按钮命中区域。原生 Scale/Translation 路径曾产生错位，不恢复该方案；使用局部坐标与复用驱动。战斗停止更新且不改保护布局，只保留待安全复位目标，下次安全 StopAll／打开时复位。接口见 [Motion](lychee-sdk/docs/zh-CN/MOTION.md)，历史证据见[局部几何验收](docs/archive/validation/2026-09-12-brand-local-geometry.md)。
 
 滚动视口首次显示、尺寸变化或内容几何变化后同步 `UpdateScrollChildRect`，不能只更新自绘滑块。无变化通知跳过；隐藏或战斗中保留待刷新状态，下次安全显示完成，不以轮询或反复隐藏条目强制重绘。隐藏时准备的首页文字在现有 OnShow 边界复核可见最近项宽度，不新增布局等待驱动。
 
-怪物标题与生存结论用 `GetUnboundedStringWidth` 测量完整文字，向上取整并预留设计规定的余量，再应用最大宽度；不能用已裁切的 `GetStringWidth` 结果反向收窄复用 FontString。测量与同值设置的约束遵循 [PERFORMANCE](../PERFORMANCE.md#4-创建布局和原生调用门禁)。
+怪物标题与生存结论用 `GetUnboundedStringWidth` 测量完整文字，向上取整并预留设计规定的余量，再应用最大宽度；不能用已裁切的 `GetStringWidth` 结果反向收窄复用 FontString。测量与同值设置的约束遵循 [PERFORMANCE](PERFORMANCE.md#4-创建布局和原生调用门禁)。
 
 ## 角色设置与恢复
 
-通用面板与搜索偏好由 CharacterStore 管理，Provider 业务设置和持久缓存按前述数据所有权及 [SDK Storage](../lychee-sdk/docs/zh-CN/STORAGE.md) 保存。角色配置的产品范围见 [PRODUCT](../PRODUCT.md#设置与首次使用)；普通设置引导的账号布尔值 `LycheeDB.settingsHintDismissed` 与角色换绑完成值 `bindingHintDismissed` 分别保存，不混用作用域。
+通用面板与搜索偏好由 CharacterStore 管理，Provider 业务设置和持久缓存按前述数据所有权及 [SDK Storage](lychee-sdk/docs/zh-CN/STORAGE.md) 保存。角色配置的产品范围见 [PRODUCT](PRODUCT.md#设置与首次使用)；普通设置引导的账号布尔值 `LycheeDB.settingsHintDismissed` 与角色换绑完成值 `bindingHintDismissed` 分别保存，不混用作用域。
 
 固定项使用原生角色保存库，列表、顺序及删除／撤销状态按角色独立。旧账号共用固定数据按既有迁移规则清空，不迁移到当前角色。首页恢复只绑定视口相交条目的复用格子；滚动、键盘选择与激活按条目身份定位，不把池位置当条目索引。关闭动画结束后解除首页条目与动作绑定、清图标与文字，保留原生结构；过渡冻结期间保留素材，重开恢复当前角色数据。
 
@@ -172,11 +172,11 @@ UI 通过 ProviderManagement 读取来源展示数据并执行配置动作，组
 
 只有原生命中被明确否决后才取一次 GetFrameStack 快照，不枚举全局 Frame 或扩展父子树为候选。备用顺序没有官方保证，按可读 strata、level、draw layer 比较，确定程度只在相同层级下比较；下层可读对象不能越过上层受限内容。同分保留当前身份，完成一轮才提交结果。旧目标须仍在快照且重新验证，明确隐藏、删除、鼠标移走即撤销；原生命中切到快照外对象使旧轮次失效。
 
-选中对象与父级均无明确第三方创建来源时，才补查内部控件来源；选中 Texture/FontString 从直接父级开始，其余从选中 Frame 开始，不从 UIParent、WorldFrame 或识别工具本身开始。仅在目标变化的来源分析阶段检查，忽略隐藏、全透明和禁止访问对象。原目标与创建位置不改，报告附关联内部对象和创建文件，超限标记截断；不写死插件名或对象前缀。证据含义由[产品规则](../PRODUCT.md#插件识别)定义。
+选中对象与父级均无明确第三方创建来源时，才补查内部控件来源；选中 Texture/FontString 从直接父级开始，其余从选中 Frame 开始，不从 UIParent、WorldFrame 或识别工具本身开始。仅在目标变化的来源分析阶段检查，忽略隐藏、全透明和禁止访问对象。原目标与创建位置不改，报告附关联内部对象和创建文件，超限标记截断；不写死插件名或对象前缀。证据含义由[产品规则](PRODUCT.md#插件识别)定义。
 
 Rurutia_SimpleCursor 的特定排除由 CheckFocus 按当前全局 `SC_CursorFrame`、`RSC_SettingsPanel`、`SC_EventFrame` 对象身份及既有祖先检查实施，包含匿名纹理与冷却遮罩。首次采样生效，不依赖来源记录或鼠标移动；未加载时不按相似名字误排其他对象。其他插件沿用普通可见性规则，不恢复运动检测或跟随缓存。
 
-活动采样与跟随只在识别模式内运行，Picker 复用一轮队列、集合和原因表，不保留历史对象。Reset 清理候选、结果、轮廓与诊断引用；关闭、停用及战斗停止工作，迟到回调受 epoch 约束。快照、分批时间、祖先层数、来源补查及报告容量统一见 [PERFORMANCE](../PERFORMANCE.md#插件识别)，不在这里另定预算。
+活动采样与跟随只在识别模式内运行，Picker 复用一轮队列、集合和原因表，不保留历史对象。Reset 清理候选、结果、轮廓与诊断引用；关闭、停用及战斗停止工作，迟到回调受 epoch 约束。快照、分批时间、祖先层数、来源补查及报告容量统一见 [PERFORMANCE](PERFORMANCE.md#插件识别)，不在这里另定预算。
 
 取样器首次使用创建隐藏父级和匿名 SharedTooltipTemplate GameTooltip 并复用，owner／parent 均指向隐藏父级，每次 Hide/ClearLines；不改变玩家 FrameStackTooltip 或 Fstack CVar。识别期间一次安装 GameTooltip OnShow 收起回调，停用和战斗短路。自身面板使用 TOOLTIP/10000，轮廓使用 TOOLTIP/0，不修改受限 AuraButtonTooltip。
 
@@ -184,13 +184,13 @@ Shift 有目标时锁定；无目标时用按键前的鼠标快照重放本轮�
 
 ### 来源数据与页面
 
-- 成就目录分批构建，完成状态与进度按当前结果读取，获得成就和分类变化通过事件更新。就绪通知恢复等待查询；当前查询已超时仍可在目录就绪时刷新，不持续轮询等待。缓存归属与容量见 [PERFORMANCE](../PERFORMANCE.md#来源角色与有界数据)。
+- 成就目录分批构建，完成状态与进度按当前结果读取，获得成就和分类变化通过事件更新。就绪通知恢复等待查询；当前查询已超时仍可在目录就绪时刷新，不持续轮询等待。缓存归属与容量见 [PERFORMANCE](PERFORMANCE.md#来源角色与有界数据)。
 - 队伍钥匙默认声明 `searchGlobal=false`、`searchPrefixes={}`、`searchKeywords={"key","分数","钥匙"}`；用户覆盖交给通用 ProviderPolicy。完整成绩表只用于详情，不建立另一套搜索目录，原有引用恢复路径保留。
 - 怪物资料、模型取景和页面视觉分别维护；数据到达只刷新当前仍绑定的对象，翻页、换绑和卸载解除提示及动作身份。技能按当前客户端完整名称分组，生成阶段的排除规则同时作用于目录、详情和旧引用恢复，保留原始事实快照。页面复用模型与可见行，卸载释放当前记录、模型和订阅。
-- 生存页首次访问创建，进入或手动刷新读取属性与天赋快照；迟到技能资料只更新当前适用参数。关闭清理快照、选项、结果和图标身份。业务计算范围见 [PRODUCT](../PRODUCT.md#荔枝大米助手正式服)，资源预算见 [PERFORMANCE](../PERFORMANCE.md#21-大米生存计算)。Provider 单条底栏提示走 Host 公共状态位，不增 LDT 专用 Host 分支。
+- 生存页首次访问创建，进入或手动刷新读取属性与天赋快照；迟到技能资料只更新当前适用参数。关闭清理快照、选项、结果和图标身份。业务计算范围见 [PRODUCT](PRODUCT.md#荔枝大米助手正式服)，资源预算见 [PERFORMANCE](PERFORMANCE.md#21-大米生存计算)。Provider 单条底栏提示走 Host 公共状态位，不增 LDT 专用 Host 分支。
 
 ### 背包定位效果
 
 定位适配器清除旧过滤并定位真实格位，不设置全局物品名称搜索，也不安装背包刷新 hook。自有 `addon/Lychee/UI/LycheeGlow.lua` 提供 Start(target, options) / Stop(target, key)，Host Palette 无专用逻辑。
 
-正式服复用暴雪 ActionBar Proc 的 Start/Loop Flipbook，由原生 FlipBook 播放；经典服用原生 Path 星光动画，Lua 只在启动或尺寸变化时计算路径。结束、取消、战斗、关闭及背包更新停止动画并解除目标引用。具体颜色、轨迹与时长见 [DESIGN](../DESIGN.md#背包定位流光)，对象容量和成本见 [PERFORMANCE](../PERFORMANCE.md#11-专项预算索引)。
+正式服复用暴雪 ActionBar Proc 的 Start/Loop Flipbook，由原生 FlipBook 播放；经典服用原生 Path 星光动画，Lua 只在启动或尺寸变化时计算路径。结束、取消、战斗、关闭及背包更新停止动画并解除目标引用。具体颜色、轨迹与时长见 [DESIGN](DESIGN.md#背包定位流光)，对象容量和成本见 [PERFORMANCE](PERFORMANCE.md#11-专项预算索引)。

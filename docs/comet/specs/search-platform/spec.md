@@ -1,6 +1,6 @@
 # Lychee Unified Search Platform
 
-> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
+> 历史规格：保留已归档 change 的设计快照，包含当前已移除或调整的接口，不作为 SDK 1.0.0 或当前运行代码的实现要求。现行入口见 [架构](../../../../ARCHITECTURE.md)、[设计规范](../../../../DESIGN.md) 和 [SDK](../../../../lychee-sdk/README.md)。
 
 ## 1. 目标
 
