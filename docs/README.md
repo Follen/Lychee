@@ -17,13 +17,13 @@
 
 | 范围 | 维护源 |
 | --- | --- |
-| 产品和内置功能 | [PRODUCT](../PRODUCT.md) · [功能说明](PROVIDER_FEATURES.md) |
-| 内部职责和上下文 | [ARCHITECTURE](ARCHITECTURE.md) · [CONTEXT](../CONTEXT.md) |
-| 交互和视觉 | [DESIGN](../DESIGN.md) |
+| 产品：定位、用户任务、功能范围与业务规则 | [PRODUCT](../PRODUCT.md) · [功能用法](PROVIDER_FEATURES.md) |
+| UI/UX：信息层级、布局、视觉与交互反馈 | [DESIGN](../DESIGN.md) |
+| 架构：模块职责、依赖、数据所有权与生命周期 | [ARCHITECTURE](ARCHITECTURE.md) · [项目上下文](../CONTEXT.md) |
 | 性能、容量和内存审查 | [PERFORMANCE](../PERFORMANCE.md) |
 | 名称、词典与语言回退 | [i18n](../i18n.md) |
 
-SDK 协议只在 SDK 中维护；版本和 SDK 文件清单来自 tools/sdk_contract.json。插件版本、客户端装配来自 tools/client_manifest.json，运行交付清单来自 tools/release_manifest.json。dist 是构建产物。
+产品、UI/UX 和架构各自维护所属规则，跨领域内容用链接关联，不重复维护正文。性能预算只在 PERFORMANCE 中维护，SDK 协议只在 SDK 中维护；版本和 SDK 文件清单来自 tools/sdk_contract.json。插件版本、客户端装配来自 tools/client_manifest.json，运行交付清单来自 tools/release_manifest.json。dist 是构建产物。
 
 ## 历史记录
 

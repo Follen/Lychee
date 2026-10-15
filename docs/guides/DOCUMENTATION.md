@@ -5,6 +5,9 @@
 | 内容 | 位置 |
 | --- | --- |
 | 玩家安装、使用和介绍 | 根 README.md / README.en.md |
+| 产品定位、用户任务、功能范围与业务规则 | [PRODUCT.md](../../PRODUCT.md) |
+| UI/UX：信息层级、布局、视觉、交互流程与状态反馈 | [DESIGN.md](../../DESIGN.md) |
+| 架构：模块职责、依赖、运行链路、数据所有权与生命周期 | [docs/ARCHITECTURE.md](../ARCHITECTURE.md) |
 | 当前项目开发和交付步骤 | docs/guides，入口为 docs/README.md |
 | 当前公共 SDK | lychee-sdk/README.md / README.en.md；专题分别在 docs/zh-CN 和 docs/en |
 | 可运行示例或集成片段 | lychee-sdk/examples，双语索引说明能否独立安装 |
@@ -12,7 +15,7 @@
 | 历史验收与原始输出 | docs/archive/validation；报告与对应证据放在一起 |
 | Comet 工作流资料 | docs/comet，由对应工作流维护，不混入现行 SDK |
 
-根目录的 DESIGN、PERFORMANCE、i18n 等保留为共同规范入口，不复制到各开发指南。历史报告不是新的执行指令，也不自动成为当前版本验收。
+PRODUCT 负责产品，DESIGN 仅负责 UI/UX，ARCHITECTURE 负责架构；同一规则只在所属文档维护正文，跨领域使用链接。性能预算归 [PERFORMANCE](../../PERFORMANCE.md)，命名和语言回退归 [i18n](../../i18n.md)，公开协议归 SDK，不复制到各开发指南。历史报告不是新的执行指令，也不自动成为当前版本验收。
 
 ## 中英文同步
 
