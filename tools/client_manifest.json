@@ -3,7 +3,7 @@
   "clients": {
     "retail": {
       "suffix": "Mainline",
-      "interface": 120100,
+      "interface": 120105,
       "minInterface": 100000,
       "maxInterface": 199999,
       "supportedMinInterface": 120100,

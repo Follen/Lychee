@@ -6,7 +6,7 @@
 
 ## 环境与目录
 
-- 多客户端原生 AddOn：Mainline `120100`、Mists `50504`、Wrath（泰坦重铸）`38002`、TBC（周年纪念版）`20506`、Forever（永恒服）`16001`；升级时按对应客户端资料重新核对。
+- 多客户端原生 AddOn：Mainline `120105`（12.1.5）、Mists `50504`、Wrath（泰坦重铸）`38002`、TBC（周年纪念版）`20506`、Forever（永恒服）`16001`；升级时按对应客户端资料重新核对。
 - 本地契约检查使用 PowerShell 7（`pwsh`）、ripgrep（`rg`）和 Lua 5.1（`lua`）；语法检查另需 `luac`。
 - `addon/Lychee`：安装到对应客户端的运行时、Bindings 和媒体；本仓库自动同步目标仍仅为下文指定的正式服目录。
 - `lychee-sdk`：编辑器类型、可选 helper、集成示例，不作为独立插件安装。
