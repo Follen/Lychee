@@ -170,6 +170,6 @@ By Follen. Free to use. Redistribution and modifications are subject to the proj
 - [技能搜索](../../docs/media/search-spells.png)：主图，展示搜索列表与命中高亮。
 - [成就搜索](../../docs/media/search-achievements.png)：展示完成状态和分享入口。
 - [来源设置](../../docs/media/provider-settings.png)：展示搜索范围管理。
-- [荔枝 Logo](../../addon/Lychee/Media/lychee-logo.png)：平台图标素材，上传前按编辑器要求处理尺寸。
+- [荔枝启动器 Logo](launcher.png)：插件发布平台图标，原图复制自 Lychee Blightfall 的 `assets/footer-icons/launcher.png`。插件列表使用同图导出的 `Media/launcher.tga`；游戏内所有荔枝 Logo（含动画和自身命令结果）继续使用原图。
 
 技能搜索、成就搜索和来源设置截图来自中文客户端。英文详情使用时标注“Chinese client screenshot”，不要写成英文实机截图。先把图片上传至平台，再在详情编辑器中插入；仓库相对路径不能直接作为平台图片地址。

@@ -69,7 +69,9 @@ components:
 
 产品定位、功能范围、搜索与业务规则由 [PRODUCT.md](PRODUCT.md) 维护；模块职责、数据所有权、组件接口与运行时生命周期由 [ARCHITECTURE.md](ARCHITECTURE.md) 维护。本文不定义业务算法、存储结构或实现机制。性能预算统一遵循 [PERFORMANCE.md](PERFORMANCE.md)，命名与语言回退遵循 [i18n.md](i18n.md)，第三方接口见 [SDK](lychee-sdk/README.md)。跨领域内容使用链接，不在这里重复维护。
 
-已确认的视觉方向是 uTools 风格参考图的紧凑布局，底色比参考图更黑，主色为红色。原始 `addon/Lychee/Media/lychee-logo.tga` 是品牌标志的权威来源；技能图标使用实际游戏资源，参考图的示意图标不替代游戏图标。参考图与离线预览都不能代替真实客户端外观验收，历史证据见[验收记录](docs/archive/validation/README.md)。
+已确认的视觉方向是 uTools 风格参考图的紧凑布局，底色比参考图更黑，主色为红色。原始 `addon/Lychee/Media/lychee-logo.tga` 是游戏内品牌标志的权威来源；技能图标使用实际游戏资源，参考图的示意图标不替代游戏图标。参考图与离线预览都不能代替真实客户端外观验收，历史证据见[验收记录](docs/archive/validation/README.md)。
+
+插件列表与发布平台使用带启动箭头的荔枝启动器 Logo：平台原图为 `assets/release/launcher.png`，插件列表使用其 64×64 RGBA 导出资源 `addon/Lychee/Media/launcher.tga`。游戏内各页面、动画和自身命令搜索结果继续使用原始荔枝标志，不随平台图标替换。
 
 
 <a id="design-2"></a>

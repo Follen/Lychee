@@ -10,7 +10,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>, or type `/l`. Change the shortcut in **
 
 [简体中文](README.md) · [English](README.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.4.5-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
+[![Version](https://img.shields.io/badge/version-0.4.6-d53c49?style=flat-square)](addon/Lychee/Lychee.toc)
 [![Lua](https://img.shields.io/badge/Lua-5.1-2c2d72?style=flat-square&logo=lua&logoColor=white)](addon/Lychee)
 [![Languages](https://img.shields.io/badge/languages-English%20%2F%20中文-526b5d?style=flat-square)](#clients)
 [![Clients](https://img.shields.io/badge/WoW-5%20clients-6d587c?style=flat-square)](#clients)
@@ -28,7 +28,7 @@ Press <kbd>Alt</kbd> + <kbd>Space</kbd>, or type `/l`. Change the shortcut in **
 
 </div>
 
-0.4.5: Update the Retail version declaration to World of Warcraft 12.1.5 (TOC `120105`). Features on other clients are unchanged. Restart the game after updating; in-game compatibility with 12.1.5 has not yet been verified.
+0.4.6: Use the new launcher logo for the addon list and publishing assets. All in-game Lychee logos, including the animation and command search results, keep their original appearance. Restart the game after updating; the new icon's in-game rendering and 12.1.5 compatibility have not yet been verified.
 
 You remember a spell's name, but not which action bar it is on. You know which setting you want, but not which menu contains it. Lychee starts with **the name**: find it, then cast, use, switch, or open the relevant page.
 

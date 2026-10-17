@@ -18,6 +18,9 @@ C_Timer={NewTimer=function(delay,fn)
     timers[#timers+1]=timer;return timer
 end}
 C_AddOns={GetAddOnMetadata=function(folder,key)
+    if folder=="Lychee" then
+        return key=="Title" and "Lychee Launcher" or key=="IconTexture" and "Interface\\AddOns\\Lychee\\Media\\launcher.tga" or nil
+    end
     if folder=="ExampleAddon" then
         return key=="Title" and "Example tools" or key=="IconTexture" and "Interface\\AddOns\\ExampleAddon\\logo.tga" or nil
     end
@@ -53,6 +56,7 @@ function hooksecurefunc(object,key,callback)
     object[key]=function(...) local result=original(...);callback(...);return result end
 end
 function issecurevariable(object,key)
+    if key=="LYCHEE" or key=="/L" then return false,"Lychee" end
     if type(object)=="table" and rawget(object,"ownerFolder") then return false,object.ownerFolder end
     if key=="ARBITRARY_REGISTRATION" or key=="/EXAMPLELOGO" then return false,"ExampleAddon" end
     if key=="ACECONSOLE_RS" or key=="/RS" then return false,"SharedLibraryLoader" end
@@ -103,6 +107,11 @@ local function query(text)
     return records
 end
 register("DEV","/dev");SLASH_DEV2="/developer"
+register("LYCHEE","/l")
+local launcher=query("/l")[1]
+assert(launcher.id=="slash:/l" and launcher.icon=="Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga","in-game command results retain the original logo")
+assert(M:Resolve(launcher.id).icon==launcher.icon,"restored command entries retain the original logo")
+SlashCmdList.LYCHEE=nil;SLASH_LYCHEE1=nil
 register("HELP","/?")
 assert(#query("/")>0,"punctuation command must not invalidate batch")
 local help=M:Resolve("slash-hex:2f3f")

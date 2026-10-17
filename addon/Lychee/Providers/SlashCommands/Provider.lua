@@ -154,7 +154,8 @@ local function presentation(slash,key,handler)
     local title=owner and metadata(owner,"Title")
     if title then
         title=title:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""):gsub("|T.-|t",""):gsub("|A.-|a","")
-        local icon=metadata(owner,"IconTexture")
+        -- Lychee's TOC icon is for the addon list; keep the in-game brand here.
+        local icon=owner=="Lychee" and "Interface\\AddOns\\Lychee\\Media\\lychee-logo.tga" or metadata(owner,"IconTexture")
         return title,icon and (tonumber(icon) or icon) or ICON,owner
     end
     return slash,ICON
